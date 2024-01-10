@@ -94,6 +94,7 @@ internal object VirtualDevices {
       /* sdCard= */ "512M",
       /* skinFolder= */ skin,
       /* hardwareProperties= */ properties,
+      /* userSettings= */ null,
       /* removePrevious= */ true,
     )
   }

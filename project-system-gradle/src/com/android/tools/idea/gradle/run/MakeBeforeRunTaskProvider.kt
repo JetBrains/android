@@ -68,6 +68,8 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption
 import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -79,6 +81,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import icons.StudioIcons
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
@@ -89,6 +92,7 @@ import java.io.Writer
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
 /**
@@ -241,7 +245,16 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     // the android run config context
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     val targetDevices = deviceFutures?.devices ?: emptyList()
-    val targetDeviceSpec = createSpec(targetDevices)
+    val targetDeviceSpec = createSpec(targetDevices) { title, message ->
+      val notification = NotificationGroupManager
+        .getInstance()
+        .getNotificationGroup("Deploy")
+        .createNotification(message, NotificationType.INFORMATION)
+        .setTitle(title)
+        .setImportant(false)
+      notification.notify(env.project)
+      AppExecutorUtil.getAppScheduledExecutorService().schedule({ notification.expire() }, 5, TimeUnit.SECONDS)
+    }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration is RunProfileWithCompileBeforeLaunchOption &&

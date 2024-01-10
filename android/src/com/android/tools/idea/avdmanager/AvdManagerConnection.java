@@ -936,6 +936,7 @@ public class AvdManagerConnection {
                                    @Nullable String sdCard,
                                    @Nullable Path skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
+                                   @Nullable Map<String, String> userSettings,
                                    boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
@@ -1010,6 +1011,7 @@ public class AvdManagerConnection {
                                   skinName,
                                   sdCard,
                                   hardwareProperties,
+                                  userSettings,
                                   device.getBootProps(),
                                   device.hasPlayStore(),
                                   false,

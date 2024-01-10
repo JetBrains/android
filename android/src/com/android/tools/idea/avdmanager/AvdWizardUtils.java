@@ -26,7 +26,6 @@ import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.repository.Revision;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;

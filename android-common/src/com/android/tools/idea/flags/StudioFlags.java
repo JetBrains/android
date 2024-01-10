@@ -555,6 +555,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> RISC_V = Flag.create(
+    RUNDEBUG,
+    "riscv.support",
+    "Support for RISC V",
+    "Allow support for RISC V architecture and targeted architecture selection.",
+    true
+  );
+
   //endregion
 
   //region Logcat

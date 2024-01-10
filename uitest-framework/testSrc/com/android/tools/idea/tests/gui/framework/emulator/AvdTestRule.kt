@@ -235,6 +235,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
       null,
       null,
       HashMap<String, String>(),
+      null,
       true
     )
   }

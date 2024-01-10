@@ -26,6 +26,7 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
@@ -59,6 +60,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -143,6 +145,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1080");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
@@ -202,6 +205,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
@@ -232,6 +236,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1148");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
@@ -262,6 +267,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
@@ -282,6 +288,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       mAvdFolder,
       getName(),
       mSystemImage,
+      null,
       null,
       null,
       null,
@@ -409,6 +416,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
+      null,
       false,
       true,
       false);
@@ -470,6 +478,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
+      null,
       false,
       true,
       false);
@@ -484,6 +493,72 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
         throw new RuntimeException(expected.getCause());
       }
     }
+  }
+
+  public void testUserSettings() throws Exception {
+    MockLog log = new MockLog();
+
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // google api31 image
+    String g31Path = "system-images;android-31;google_apis;x86_64";
+    FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
+    SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    g31Details.setAbi("x86_64");
+    g31Package.setTypeDetails((TypeDetails)g31Details);
+    InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(g31Package));
+    FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
+    AndroidSdkHandler sdkHandler =
+      new AndroidSdkHandler(mSdkRoot, mAvdFolder, mgr);
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage g31Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(g31Path, progress)).getLocation());
+    assert g31Image != null;
+    SystemImageDescription g31ImageDescription = new SystemImageDescription(g31Image);
+
+    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+    Device device = devMgr.getDevice("medium_phone", "Generic");
+    Files.createDirectories(mSdkRoot.resolve("mySysImg").resolve("data"));
+
+    Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
+
+    AvdInfo info = mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "testPhone",
+      device,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      null,
+      false);
+
+    assertThat(info).isNotNull();
+    assertThat(info.parseUserSettingsFile(log).get(USER_SETTINGS_INI_PREFERRED_ABI)).isNull();
+
+    Map<String, String> userSettings = new HashMap<>();
+    userSettings.put(USER_SETTINGS_INI_PREFERRED_ABI, "x86_64");
+    info = mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "test7p6Foldable",
+      device,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      userSettings,
+      false);
+    assertThat(info).isNotNull();
+    assertThat(info.parseUserSettingsFile(log).get(USER_SETTINGS_INI_PREFERRED_ABI)).isEqualTo("x86_64");
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {

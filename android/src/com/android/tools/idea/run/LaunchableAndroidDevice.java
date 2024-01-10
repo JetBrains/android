@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
 
 import com.android.annotations.NonNull;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
@@ -105,6 +107,12 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       return abis;
     }
     return Collections.singletonList(abi);
+  }
+
+  @Nullable
+  @Override
+  public String getAppPreferredAbi() {
+    return myAvdInfo.parseUserSettingsFile(null).get(USER_SETTINGS_INI_PREFERRED_ABI);
   }
 
   @NotNull

@@ -33,14 +33,9 @@ import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.concurrency.getCompletedOrNull
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import java.util.EnumSet
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Supplier
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -48,6 +43,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.EnumSet
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -102,6 +104,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   override fun getDensity() = properties.density ?: -1
 
   override fun getAbis() = properties.abiList
+
+  override fun getAppPreferredAbi(): String? = properties.preferredAbi
 
   override fun supportsFeature(feature: IDevice.HardwareFeature): Boolean =
     when (feature) {

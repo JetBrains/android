@@ -18,12 +18,7 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.GpuMode.OFF;
 import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
-import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
-import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
-import static com.android.sdklib.SystemImageTags.WEAR_TAG;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -50,15 +45,19 @@ import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.skincombobox.Skin;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBLabel;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -215,6 +214,42 @@ public final class ConfigureAvdOptionsStepTest {
 
     // Assert
     assertEquals(ScreenOrientation.LANDSCAPE, step.getOrientationToggle().getSelectedElement());
+  }
+
+  @Test
+  public void preferredABi() throws IOException {
+    StudioFlags.RISC_V.override(true);
+
+    // Arrange
+    Files.writeString(
+      myQAvdInfo.getSystemImage().getLocation().resolve("build.prop"),
+      """
+        ro.system.product.cpu.abilist=x86_64,arm64-v8a
+        ro.system.product.cpu.abilist32=
+        ro.system.product.cpu.abilist64=x86_64,arm64-v8a
+        """,
+      StandardCharsets.UTF_8
+    );
+
+    var model = new AvdOptionsModel(myQAvdInfo);
+    model.device().setNullableValue(myManager.getDevice("pixel_tablet", "Google"));
+
+    var step = new ConfigureAvdOptionsStep(myRule.getProject(), model, newSkinComboBox());
+    Disposer.register(myRule.getTestRootDisposable(), step);
+    Disposer.register(myRule.getTestRootDisposable(), new ModelWizard.Builder(step).build());
+
+    var userSettings = myQAvdInfo.parseUserSettingsFile(null);
+    assertThat(userSettings).isEmpty();
+
+    // Act
+    step.onEntering();
+
+    // Assert
+    var abi = "arm64-v8a";
+    assertThat(step.getPreferredAbi().getModel().getSize()).isEqualTo(3);
+    step.getPreferredAbi().setSelectedItem(abi); // 0 for null, 1 for x86_64, 2 for arm64-v8a
+    assertThat(model.preferredAbi().get().isPresent()).isTrue();
+    assertThat(model.preferredAbi().get().get()).isEqualTo(abi);
   }
 
   @Test

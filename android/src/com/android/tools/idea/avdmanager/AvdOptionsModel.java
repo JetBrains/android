@@ -97,6 +97,8 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
 
+  private OptionalValueProperty<String> myPreferredAbi = OptionalValueProperty.absent();
+
   private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(EmulatedProperties.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
     new ObjectValueProperty<>(ScreenOrientation.PORTRAIT);
@@ -342,6 +344,11 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
+  public OptionalValueProperty<String> preferredAbi() {
+    return myPreferredAbi;
+  }
+
+  @NotNull
   public ObjectProperty<ScreenOrientation> selectedAvdOrientation() {
     return mySelectedAvdOrientation;
   }
@@ -503,6 +510,9 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdDeviceData = new AvdDeviceData(selectedDevice, systemImageDescription);
 
     Map<String, String> properties = avdInfo.getProperties();
+
+    Map<String, String> userSettings = avdInfo.parseUserSettingsFile(null);
+    myPreferredAbi.set(Optional.ofNullable(userSettings.getOrDefault(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, null)));
 
     myUseQemu2.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
     String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
@@ -697,6 +707,14 @@ public final class AvdOptionsModel extends WizardModel {
     return map;
   }
 
+  private Map<String, String> generateUserSettingsMap() {
+    HashMap<String, String> map = new HashMap<>();
+    if (StudioFlags.RISC_V.get()) {
+      map.put(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, myPreferredAbi.getValueOrNull());
+    }
+    return map;
+  }
+
   @Override
   public void handleFinished() {
     // By this point we should have both a Device and a SystemImage
@@ -705,6 +723,7 @@ public final class AvdOptionsModel extends WizardModel {
 
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = generateUserEditedPropertiesMap();
+    Map<String, String> userSettings = generateUserSettingsMap();
 
     String sdCard = null;
     boolean hasSdCard = false;
@@ -834,7 +853,8 @@ public final class AvdOptionsModel extends WizardModel {
       () -> {
         myCreatedAvd = connection.createOrUpdateAvd(
           myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-          isCircular, sdCardFinal, skinFile == null ? null : skinFile.toPath(), hardwareProperties, myRemovePreviousAvd.get());
+          isCircular, sdCardFinal, skinFile == null ? null : skinFile.toPath(),
+          hardwareProperties, userSettings, myRemovePreviousAvd.get());
         if (myAvdCreatedCallback != null) {
           myAvdCreatedCallback.run();
         }

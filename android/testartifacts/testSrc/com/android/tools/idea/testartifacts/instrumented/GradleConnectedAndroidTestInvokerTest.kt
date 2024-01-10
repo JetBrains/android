@@ -556,6 +556,7 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockDevice.version).thenReturn(AndroidVersion(30))
     whenever(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
     whenever(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
+    whenever(mockDevice.appPreferredAbi).thenReturn(null)
     whenever(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
@@ -587,6 +588,7 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockDevice.version).thenReturn(AndroidVersion(30))
     whenever(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
     whenever(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
+    whenever(mockDevice.appPreferredAbi).thenReturn(null)
     whenever(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()

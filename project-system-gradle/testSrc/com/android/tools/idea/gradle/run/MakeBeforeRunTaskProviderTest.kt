@@ -129,6 +129,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
@@ -144,6 +145,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     StudioFlags.API_OPTIMIZATION_ENABLE.override(false)
     setUpTestProject()
     whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
@@ -157,6 +159,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(33, null))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.supportsMultipleScreenFormats()).thenReturn(true)
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
@@ -168,6 +171,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=23"))
@@ -179,6 +183,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
@@ -198,6 +203,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
 
     val arguments =
@@ -218,6 +224,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(20))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
@@ -234,6 +241,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     whenever(myDevice.version).thenReturn(AndroidVersion(20))
     whenever(myDevice.density).thenReturn(640)
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
@@ -394,6 +402,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     try {
       setUpTestProject()
       whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
+      whenever(myDevice.appPreferredAbi).thenReturn(null)
 
       val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice),
                                                                    ProfilingMode.PROFILEABLE)
@@ -412,6 +421,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     setUpTestProject(":" to AndroidProjectBuilder())
     whenever(myDevice.supportsSdkRuntime).thenReturn(true)
     whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
 
     val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
     val argsCurrentAgp = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))
@@ -423,6 +433,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     setUpTestProject("7.3.0", ":" to AndroidProjectBuilder())
     whenever(myDevice.supportsSdkRuntime).thenReturn(true)
     whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
 
     val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
     val argsAgp7_3 = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.SdkConstants.FN_BUILD_PROP;
+import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI;
+import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI2;
+import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABILIST;
+
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
 import com.android.io.CancellableFileIo;
@@ -22,6 +27,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.CameraLocation;
@@ -33,6 +39,7 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
 import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -205,6 +212,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JBLabel myDeviceFrameTitle;
   private JPanel myCommandLineOptionsPanel;
   private JTextArea myCommandLineOptions;
+  private JComboBox<String> myPreferredAbi;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private final Project myProject;
@@ -281,6 +289,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     setAdvanceSettingsVisible(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
+    myPreferredAbi.setModel(new DefaultComboBoxModel<>(new String[]{null}));
     mySelectedSnapshotFileName = getModel().chosenSnapshotFile().get();
     populateSnapshotList();
     refreshSnapshotPullDown();
@@ -331,6 +340,45 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     for (int core = 1; core <= EmulatedProperties.MAX_NUMBER_OF_CORES; core++) {
       myCoreCount.addItem(core);
     }
+  }
+
+  private void updatePreferredAbiComboBox(@NotNull AvdOptionsModel model) {
+    myPreferredAbi.setModel(new DefaultComboBoxModel<>(new String[]{null})); // fallback
+
+    if (!StudioFlags.RISC_V.get()) {
+      return;
+    }
+
+    Path systemImageLocation = model.systemImage().getValue().getSystemImage().getLocation();
+    PathFileWrapper buildPropFile = new PathFileWrapper(systemImageLocation.resolve(FN_BUILD_PROP));
+    if (!buildPropFile.exists()) {
+      return;
+    }
+
+    Map<String, String> buildProp = ProjectProperties.parsePropertyFile(buildPropFile, null);
+    if (buildProp == null) {
+      return;
+    }
+
+    List<String> abiList = Arrays.asList(buildProp.getOrDefault("ro.system.product.cpu.abilist", "").split(","));
+    if (abiList.isEmpty()) {
+      abiList = Arrays.asList(buildProp.getOrDefault(RO_PRODUCT_CPU_ABILIST, "").split(","));
+    }
+    if (abiList.isEmpty()) {
+      abiList = new ArrayList<>(2);
+      String property = buildProp.get(RO_PRODUCT_CPU_ABI);
+      if (property != null) {
+        abiList.add(property);
+      }
+      property = buildProp.get(RO_PRODUCT_CPU_ABI2);
+      if (property != null) {
+        abiList.add(property);
+      }
+    }
+    DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
+    comboBoxModel.addElement(null);
+    comboBoxModel.addAll(abiList);
+    myPreferredAbi.setModel(comboBoxModel);
   }
 
   @TestOnly
@@ -562,6 +610,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     updateSystemImageData();
 
+    updatePreferredAbiComboBox(getModel());
 
     mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
                                                       : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
@@ -720,6 +769,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   String getSystemImageDetailsText() {
     return getModel().systemImageDetails().get();
   }
+
+  @NotNull
+  @VisibleForTesting
+  JComboBox<String> getPreferredAbi() { return myPreferredAbi; }
 
   private final ActionListener myToggleAdvancedSettingsListener = new ActionListener() {
     @Override
@@ -953,6 +1006,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
       myBindings.bindTwoWay(new TextProperty(myCommandLineOptions), getModel().commandLineOptions());
+    }
+
+    if (StudioFlags.RISC_V.get()) {
+      myBindings.bindTwoWay(new SelectedItemProperty<>(myPreferredAbi), getModel().preferredAbi());
     }
   }
 

@@ -17,10 +17,14 @@ package com.android.tools.idea.run;
 
 import static com.android.ddmlib.IDevice.PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME;
 
+import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -33,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,6 +94,33 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     }
 
     return builder.build();
+  }
+
+  @Nullable
+  @Override
+  public String getAppPreferredAbi() {
+    if (!isVirtual()) {
+      return null;
+    }
+
+    try {
+      AvdData avdData = myDevice.getAvdData().get();
+      if (avdData == null) {
+        return null;
+      }
+      String avdName = avdData.getName();
+      if (avdName == null) {
+        return null;
+      }
+      AvdInfo info = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(avdName);
+      if (info == null) {
+        return null;
+      }
+      return info.parseUserSettingsFile(null).get(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI);
+    }
+    catch (ExecutionException | InterruptedException e) {
+      return null;
+    }
   }
 
   @NotNull

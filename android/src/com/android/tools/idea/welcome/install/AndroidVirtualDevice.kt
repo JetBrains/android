@@ -102,7 +102,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     }
     return connection.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
-      hardwareSkinPath, settings, true
+      hardwareSkinPath, settings, null, true
     )
   }
 
