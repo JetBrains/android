@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -276,7 +274,7 @@ public class GradleDependencyManager {
     List<Pair<String, Dependency>> addedCoordinates = new ArrayList<>();
 
     for (Dependency dependency : dependencies) {
-      String alias = DependenciesHelper.addCatalogLibrary(catalogModel, dependency);
+      String alias = CatalogDependenciesInserter.addCatalogLibrary(catalogModel, dependency);
       addedCoordinates.add(new Pair<>(alias, dependency));
     }
     return addedCoordinates;
@@ -413,7 +411,7 @@ public class GradleDependencyManager {
 
             if (m.isVersionCatalogDependency()) {
               // Trying update catalog once dependency is a reference to a catalog declaration
-              successfulUpdate = DependenciesHelper.updateCatalogLibrary(catalogsModel, m, richVersion);
+              successfulUpdate = CatalogDependenciesInserter.updateCatalogLibrary(catalogsModel, m, richVersion);
             }
             if (!successfulUpdate) {
               // Update directly in build file if there is no catalog or update there was unsuccessful

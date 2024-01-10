@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.BuildEnvironment
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
@@ -303,6 +304,27 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+
+  @Test
+  fun testSimpleAddWithCatalogIgnoreExistingDeclaration() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val catalogModel = projectBuildModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
+             catalogModel.pluginDeclarations().addDeclaration("libsPlugin", "com.example.libs:0.5")
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             helper.addPlugin("com.example.libs", "1.0", false, projectModel!!, moduleModel, FalsePluginMatcher())
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("exampleLibs = { id = \"com.example.libs\", version.ref = \"")
+             assertThat(project.getTextForFile("app/build.gradle"))
+               .contains("alias(libs.plugins.exampleLibs)")
+             assertThat(project.getTextForFile("build.gradle"))
+               .contains("alias(libs.plugins.exampleLibs) apply false")
+           })
+  }
+
   @Test
   fun testAddDuplicatedPlatformDependencyWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
@@ -456,14 +478,14 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   private fun doTest(projectPath: String,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {
     doTest(projectPath, {}, change, assert)
   }
 
   private fun doTest(projectPath: String,
                      updateFiles: () -> Unit,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {
     prepareProjectForImport(projectPath)
     updateFiles()
@@ -474,7 +496,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
     val projectBuildModel = ProjectBuildModel.get(project)
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()
-    val helper = DependenciesHelper(projectBuildModel)
+    val helper = DependenciesHelper.withModel(projectBuildModel)
     change.invoke(projectBuildModel, moduleModel!!, helper)
     WriteCommandAction.runWriteCommandAction(project) {
       projectBuildModel.applyChanges()

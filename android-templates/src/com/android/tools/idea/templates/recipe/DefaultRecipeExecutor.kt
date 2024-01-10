@@ -154,7 +154,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
     val projectModel = projectBuildModel ?: return
-    val dependenciesHelper = DependenciesHelper(projectModel)
+    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
     if (revision == null) {
       // When the revision is null, just apply the plugin without a revision.
       // Version catalogs don't support the plugins without versions.
@@ -203,7 +203,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     projectBuildModel?.let {
       if (targetDependencyModel == null) {
-        DependenciesHelper(it).addClasspathDependency(toBeAddedDependency.compactNotation())
+        DependenciesHelper.withModel(it).addClasspathDependency(toBeAddedDependency.compactNotation())
       }
     }
   }
@@ -251,11 +251,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     } else configuration
 
     projectBuildModel?.let {
-      DependenciesHelper(it).addDependency(resolvedConfiguration,
-                                           resolvedMavenCoordinate,
-                                           listOf(),
-                                           buildModel,
-                                           GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
+      DependenciesHelper.withModel(it).addDependency(resolvedConfiguration,
+                                                     resolvedMavenCoordinate,
+                                                     listOf(),
+                                                     buildModel,
+                                                     GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
     }
   }
 
@@ -269,11 +269,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
     projectBuildModel?.let {
-      DependenciesHelper(it).addPlatformDependency(configuration,
-                                                   resolvedMavenCoordinate,
-                                                   enforced,
-                                                   buildModel,
-                                                   GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
+      DependenciesHelper.withModel(it).addPlatformDependency(configuration,
+                                                             resolvedMavenCoordinate,
+                                                             enforced,
+                                                             buildModel,
+                                                             GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
     }
   }
 

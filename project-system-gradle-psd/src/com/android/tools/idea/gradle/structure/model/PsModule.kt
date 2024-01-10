@@ -261,7 +261,7 @@ abstract class PsModule protected constructor(
 
   private fun addLibraryDependencyToParsedModel(configurationName: String, compactNotation: String) {
     parsedModel?.let { parsedModel ->
-      val helper = DependenciesHelper(parent.parsedModel)
+      val helper = DependenciesHelper.withModel(parent.parsedModel)
       helper.addDependency(configurationName, compactNotation, parsedModel)
       parsedDependencies.reset(parsedModel)
     } ?: noParsedModel()
