@@ -574,10 +574,12 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   }
 
   @Test
-  @Ignore("b/301024803")
   public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
-    RecordingOptionsView view = new MainMemoryProfilerStageView(myProfilersView, myStage).getRecordingOptionsView();
+    // MainMemoryProfilerStageView object need to be declared to maintain its reference when being used in addDependency method in
+    // AspectModel (more details in b/301024803)
+    MainMemoryProfilerStageView mainMemoryProfilerStageView = new MainMemoryProfilerStageView(myProfilersView, myStage);
+    RecordingOptionsView view = mainMemoryProfilerStageView.getRecordingOptionsView();
     myStage.toggleNativeAllocationTracking();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isPendingCapture() || view.isEnabled()).isTrue();
