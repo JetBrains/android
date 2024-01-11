@@ -69,7 +69,7 @@ class GroupedGridSurfaceLayoutManager(
 
     val groups =
       transform(content).map { group ->
-        layoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
+        createLayoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
       }
 
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
@@ -85,13 +85,21 @@ class GroupedGridSurfaceLayoutManager(
 
   /** Get the total required size of the [PositionableContent]s in grid layout. */
   private fun getGroupSize(
-    grid: List<List<PositionableContent>>,
+    layoutGroup: GridLayoutGroup,
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double
   ): Dimension {
     var groupRequiredWidth = 0
     var groupRequiredHeight = 0
-    for (row in grid) {
+    layoutGroup.header?.let {
+      val scale = scaleFunc(it)
+      val margin = it.getMargin(scale)
+      val framePadding = previewFramePaddingProvider(scale)
+      groupRequiredWidth = 2 * framePadding + it.sizeFunc().width + margin.horizontal
+      groupRequiredHeight = 2 * framePadding + it.sizeFunc().height + margin.vertical
+    }
+
+    for (row in layoutGroup.rows) {
       var rowX = 0
 
       var currentHeight = 0
@@ -209,19 +217,17 @@ class GroupedGridSurfaceLayoutManager(
    * [PositionableContent]. The [widthFunc] is for getting the preferred widths of
    * [PositionableContent]s when filling the horizontal spaces.
    */
-  private fun layoutGroup(
+  private fun createLayoutGroup(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int
-  ): List<List<PositionableContent>> {
+  ): GridLayoutGroup {
     val content = group.content
-    val gridList = mutableListOf<List<PositionableContent>>()
-    // Add header if it exists and visible.
-    group.header?.let { gridList.add(listOf(it)) }
     if (content.isEmpty()) {
-      return gridList
+      return GridLayoutGroup(group.header, emptyList())
     }
+    val gridList = mutableListOf<List<PositionableContent>>()
     val firstView = content.first()
     val firstPreviewFramePadding = previewFramePaddingProvider(scaleFunc(firstView))
     var nextX =
@@ -245,7 +251,7 @@ class GroupedGridSurfaceLayoutManager(
       }
     }
     gridList.add(columnList)
-    return gridList
+    return GridLayoutGroup(group.header, gridList)
   }
 
   override fun measure(
@@ -266,7 +272,7 @@ class GroupedGridSurfaceLayoutManager(
       return mapOf(singleContent to point)
     }
 
-    val groupedViews = transform(content)
+    val groups = transform(content)
 
     val startX: Int = canvasLeftPadding
     val startY: Int = canvasTopPadding
@@ -275,27 +281,36 @@ class GroupedGridSurfaceLayoutManager(
 
     val positionMap = mutableMapOf<PositionableContent, Point>()
 
-    for (group in groupedViews) {
-      val grid = layoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
+    for (group in groups) {
+      val layoutGroup =
+        createLayoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
       var nextX = startX
       var nextY = nextGroupY
       var maxBottomInRow = 0
-      for (row in grid) {
-        for (view in row) {
-          val framePadding = previewFramePaddingProvider(view.scale)
-          positionMap[view] = getContentPosition(view, nextX + framePadding, nextY + framePadding)
-          nextX +=
-            framePadding + view.scaledContentSize.width + view.margin.horizontal + framePadding
-          maxBottomInRow =
-            max(
-              maxBottomInRow,
-              nextY +
-                framePadding +
-                view.margin.vertical +
-                view.scaledContentSize.height +
-                framePadding
-            )
-        }
+
+      fun measure(view: PositionableContent) {
+        val framePadding = previewFramePaddingProvider(view.scale)
+        positionMap[view] = getContentPosition(view, nextX + framePadding, nextY + framePadding)
+        nextX += framePadding + view.scaledContentSize.width + view.margin.horizontal + framePadding
+        maxBottomInRow =
+          max(
+            maxBottomInRow,
+            nextY +
+              framePadding +
+              view.margin.vertical +
+              view.scaledContentSize.height +
+              framePadding
+          )
+      }
+
+      layoutGroup.header?.let {
+        measure(it)
+        nextX = startX
+        nextY = maxBottomInRow
+      }
+
+      for (row in layoutGroup.rows) {
+        row.forEach { measure(it) }
         nextX = startX
         nextY = maxBottomInRow
       }
