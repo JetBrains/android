@@ -18,6 +18,7 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
+import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import junit.framework.TestCase.assertEquals
@@ -82,6 +83,7 @@ class DeviceManagerTest {
   private val adbCommandFloatIntOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55"
   private val adbCommandFloatIntNullOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55"
   private val adbCommandCheckWhsVersionCode = "dumpsys package com.google.android.wearable.healthservices | grep versionCode | head -n1"
+  private val adbCommandQueryContentProvider = "content query --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -537,5 +539,83 @@ class DeviceManagerTest {
   @Test
   fun `Non dev WHS version codes are not supported`() {
     assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1417661 minSdk=30 targetSdk=33", false)
+  }
+
+  @Test
+  fun `Loading capabilities without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.loadCapabilities()
+    }
+    job.join()
+  }
+
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, OnDeviceCapabilityState>) = runTest {
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandQueryContentProvider, response)
+
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    val previousCount = adbSession.deviceServices.shellV2Requests.size
+
+    var parsedCapabilities = WHS_CAPABILITIES.associate { it.key to OnDeviceCapabilityState(false, null) }
+    val job = launch {
+      parsedCapabilities = deviceManager.loadCurrentCapabilityStates()
+    }
+    job.join()
+
+    val currentCount = adbSession.deviceServices.shellV2Requests.size
+    val newRequestsCount = currentCount - previousCount
+
+    assertEquals(1, newRequestsCount)
+
+    val shellRequest = adbSession.deviceServices.shellV2Requests.last
+
+    assert(shellRequest.deviceSelector.contains(serialNumber))
+    assertEquals(adbCommandQueryContentProvider, shellRequest.command)
+
+    assertEquals(expectedCapabilites, parsedCapabilities)
+  }
+
+  @Test
+  fun `Unexpected ADB response results in no capabilities being reported`() {
+    assertLoadCapabilitiesAdbResponseIsParsedCorrectly("Unexpected response", emptyMap())
+  }
+
+  @Test
+  fun `Enabled state of capabilities are parsed, override values are ignored`() {
+    assertLoadCapabilitiesAdbResponseIsParsedCorrectly("Row: 0 data_type=STEPS_PER_MINUTE, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 1 data_type=SPEED, is_enabled=true, override_value=0.0\n" +
+                                                       "Row: 2 data_type=FLOORS, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 3 data_type=ABSOLUTE_ELEVATION, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 4 data_type=ELEVATION_LOSS, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 5 data_type=DISTANCE, is_enabled=true, override_value=0.0\n" +
+                                                       "Row: 6 data_type=ELEVATION_GAIN, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 7 data_type=TOTAL_CALORIES, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 8 data_type=PACE, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0\n" +
+                                                       "Row: 10 data_type=STEPS, is_enabled=true, override_value=0", mapOf(
+                                                        WhsDataType.STEPS_PER_MINUTE to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.SPEED to OnDeviceCapabilityState(true, null),
+                                                        WhsDataType.FLOORS to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.ABSOLUTE_ELEVATION to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.ELEVATION_LOSS to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.DISTANCE to OnDeviceCapabilityState(true, null),
+                                                        WhsDataType.ELEVATION_GAIN to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.TOTAL_CALORIES to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.PACE to OnDeviceCapabilityState(false, null),
+                                                        WhsDataType.HEART_RATE_BPM to OnDeviceCapabilityState(true, null),
+                                                        WhsDataType.STEPS to OnDeviceCapabilityState(true, null),
+                                                       ))
+  }
+
+  @Test
+  fun `Unknown data type capabilities are ignored`() {
+    assertLoadCapabilitiesAdbResponseIsParsedCorrectly("Row: 0 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0\n" +
+                                                       "Row: 1 data_type=STEPS, is_enabled=true, override_value=0\n" +
+                                                       "Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0", mapOf(
+                                                        WhsDataType.STEPS to OnDeviceCapabilityState(true, null),
+                                                      ))
   }
 }

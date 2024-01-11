@@ -27,6 +27,8 @@ import com.intellij.openapi.diagnostic.Logger
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
 const val whsDevVersionCode = 1
+val capabilityStatePattern = Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*)")
+val versionCodePattern = Regex("versionCode=(\\d+)")
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
@@ -41,9 +43,30 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   // TODO(b/309608749): Implement loadCapabilities method
   override suspend fun loadCapabilities() = capabilities
 
-  // TODO(b/309607065): Implement loadCurrentCapabilityStates method
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> = capabilities.associate {
-    it.key to OnDeviceCapabilityState(false, null)
+  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return emptyMap()
+    }
+
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+    val output = adbSession.deviceServices.shellAsText(device, "content query --uri $whsUri")
+
+    val contentProviderEntryMatches = capabilityStatePattern.findAll(output.stdout)
+
+    val capabilities = mutableMapOf<WhsDataType, OnDeviceCapabilityState>()
+
+    for (match in contentProviderEntryMatches) {
+      val dataType = match.groupValues[1].toDataType()
+      if (dataType == WhsDataType.DATA_TYPE_UNKNOWN) {
+        continue
+      }
+      val isEnabled = match.groupValues[2].toBoolean()
+
+      capabilities[dataType] = OnDeviceCapabilityState(isEnabled, null)
+    }
+
+    return capabilities
   }
 
   override suspend fun clearContentProvider() {
@@ -65,7 +88,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     val device = DeviceSelector.fromSerialNumber(serialNumber!!)
     val output = adbSession.deviceServices.shellAsText(device, "dumpsys package $whsPackage | grep versionCode | head -n1")
 
-    val versionCode: Int? = Regex("versionCode=(\\d+)").find(output.stdout)?.groupValues?.get(1)?.toInt()
+    val versionCode: Int? = versionCodePattern.find(output.stdout)?.groupValues?.get(1)?.toInt()
 
     return versionCode != null && versionCode == whsDevVersionCode
   }
@@ -185,4 +208,8 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     val contentUpdateCommand = contentUpdateMultipleCapabilities(overrideUpdates)
     adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
   }
+}
+
+private fun String.toDataType(): WhsDataType {
+  return WhsDataType.values().find { it.name == this } ?: WhsDataType.DATA_TYPE_UNKNOWN
 }
