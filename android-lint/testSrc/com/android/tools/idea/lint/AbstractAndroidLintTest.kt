@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.client.api.LintClient
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.android.utils.CharSequences
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.IntentionAction
@@ -44,6 +45,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   }
 
   public override fun setUp() {
+    myProjectDescriptor = AdtTestProjectDescriptors.kotlin()
     super.setUp()
 
     // Create the iml file for a module on disk. This is necessary for correct Kotlin resolution of
