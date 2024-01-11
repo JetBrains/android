@@ -16,9 +16,6 @@
 
 package com.android.tools.sdk;
 
-import static com.intellij.openapi.util.io.FileUtil.pathHashCode;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
@@ -183,12 +180,12 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return pathsEqual(getLocation().toString(), sdkData.getLocation().toString());
+    return getLocation().normalize().toAbsolutePath().toString().equals(sdkData.getLocation().normalize().toAbsolutePath().toString());
   }
 
   @Override
   public int hashCode() {
-    return pathHashCode(getLocation().toString());
+    return getLocation().normalize().toAbsolutePath().toString().hashCode();
   }
 
   @NotNull
