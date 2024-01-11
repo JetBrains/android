@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class ComposeOverrideImplementsAnnotationsFilterTest {
-  @get:Rule var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setup() {

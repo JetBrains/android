@@ -23,7 +23,7 @@ import org.jetbrains.android.compose.stubKotlinStdlib
 import org.junit.Rule
 
 abstract class AbstractComposeDiagnosticsTest {
-  @get:Rule val androidProject = AndroidProjectRule.inMemory()
+  @get:Rule val androidProject = AndroidProjectRule.inMemory().withKotlin()
 
   protected fun doTest(
     expectedText: String,

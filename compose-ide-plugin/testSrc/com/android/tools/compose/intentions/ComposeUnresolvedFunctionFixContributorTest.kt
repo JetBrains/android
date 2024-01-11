@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeUnresolvedFunctionFixContributorTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin()
 
   private lateinit var myFixture: CodeInsightTestFixture
 

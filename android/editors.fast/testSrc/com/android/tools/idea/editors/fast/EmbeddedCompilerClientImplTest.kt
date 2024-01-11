@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 
 internal class EmbeddedCompilerClientImplTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val compiler: EmbeddedCompilerClientImpl by lazy {
     EmbeddedCompilerClientImpl(project = projectRule.project,
                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))

@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeCompletionWeigherTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 

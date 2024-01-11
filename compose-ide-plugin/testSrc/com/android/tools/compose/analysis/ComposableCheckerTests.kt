@@ -959,22 +959,6 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testComposableReporting051() {
-    val expressionToCheckReferenceResolution =
-      if (!isK2Plugin()) {
-        """
-              <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: with">with</error>(a) {
-                  <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bar">bar</error>
-                  <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bam">bam</error>
-              }
-      """
-      } else {
-        """
-              with(a) {
-                  bar
-                  bam
-              }
-      """
-      }
     doTest(
       """
         import androidx.compose.runtime.*;
@@ -990,7 +974,10 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
             val a = A()
             a.bar
             a.bam
-            $expressionToCheckReferenceResolution
+            with(a) {
+                bar
+                bam
+            }
         }
         """
     )

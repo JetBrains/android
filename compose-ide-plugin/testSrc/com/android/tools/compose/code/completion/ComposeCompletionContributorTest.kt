@@ -36,7 +36,7 @@ import org.junit.Test
 /** Tests for [ComposeCompletionContributor]. */
 class ComposeCompletionContributorTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 

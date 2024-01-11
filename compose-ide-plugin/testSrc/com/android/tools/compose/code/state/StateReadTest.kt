@@ -62,7 +62,7 @@ private val COMPOSE_RUNTIME_IMPORTS =
 @RunWith(JUnit4::class)
 @RunsInEdt
 class StateReadTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
