@@ -87,7 +87,7 @@ class TomlErrorParser : BuildOutputParser {
     while (true) {
       val descriptionLine = reader.readLine() ?: return null
       if (descriptionLine.startsWith("> Invalid catalog definition")) break
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {
@@ -127,7 +127,7 @@ class TomlErrorParser : BuildOutputParser {
           absolutePath = file
         }
       }
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {

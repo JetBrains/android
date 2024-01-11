@@ -55,7 +55,7 @@ class CallTree(val name: String) {
     val indent = depth - if (branch) 1 else 0
     for (i in 0 until indent) append("  ")
     if (branch) append("+ ")
-    appendln("$name [${time}ms] ($sampleCount)")
+    appendLine("$name [${time}ms] ($sampleCount)")
     if (children.size > 1 && children[1].time > MIN_TIME_CUTOFF_MS) {
       children.forEach { c -> if (c.time > MIN_TIME_CUTOFF_MS) append(c.toString(depth+1, true))}
     } else if (children.isNotEmpty()) {

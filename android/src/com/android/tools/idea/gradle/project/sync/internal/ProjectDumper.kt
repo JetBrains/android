@@ -229,9 +229,9 @@ class ProjectDumper(
     return version
   }
 
-  fun appendln(data: String) {
+  fun appendLine(data: String) {
     output.append(currentNestingPrefix)
-    output.appendln(data.trimEnd())
+    output.appendLine(data.trimEnd())
   }
 
   /**
@@ -304,13 +304,13 @@ private fun String.replaceJavaVersionLikeMatch(regex: Regex, regexVersionGroupIn
 
 fun ProjectDumper.prop(name: String, value: () -> String?) {
   value()?.let {
-    appendln("${name.smartPad()}: $it")
+    appendLine("${name.smartPad()}: $it")
   }
 }
 
 fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
   val v = value()
-  appendln(name.smartPad() + if (v != null) ": $v" else "")
+  appendLine(name.smartPad() + if (v != null) ": $v" else "")
 }
 
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: System.getenv("GRADLE_USER_HOME") ?: (System.getProperty("user.home") + "/.gradle"))

@@ -45,12 +45,12 @@ class ConfigurationCacheErrorParser : BuildOutputParser {
 
     // Check if it is a configuration cache error.
     if (firstDescriptionLine != "Configuration cache problems found in this build.") return false
-    val description = StringBuilder().appendln(firstDescriptionLine)
+    val description = StringBuilder().appendLine(firstDescriptionLine)
     // All lines up to '* Try:' block should be a description we want to show.
     while (true) {
       val descriptionLine = reader.readLine() ?: return false
       if (descriptionLine == "* Try:") break
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {

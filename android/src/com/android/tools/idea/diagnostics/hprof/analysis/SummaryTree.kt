@@ -47,9 +47,9 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
 
   fun printTree(context: AnalysisContext, out: StringBuilder) {
     roots.toList().sortedByDescending { pair -> pair.second.subtreeSize }.forEachIndexed { i, (id, node) ->
-      out.appendln("Root ${i+1}:")
+      out.appendLine("Root ${i+1}:")
       val rootReason = context.navigator.getRootReasonForObjectId(id.toLong())?.description ?: "<Couldn't find root description>"
-      out.appendln("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   ROOT: $rootReason")
+      out.appendLine("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   ROOT: $rootReason")
       node.print(context, out)
     }
   }
@@ -97,7 +97,7 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
         val fieldNameString = RefIndexUtil.getFieldDescription(java.lang.Byte.toUnsignedInt(edge.refIndex), parentClass, context.classStore)
         val text = edge.classDefinition.prettyName
         val disposedString = if (edge.disposed) " (disposed)" else ""
-        out.appendln("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   $indent$fieldNameString: $text$disposedString")
+        out.appendLine("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   $indent$fieldNameString: $text$disposedString")
         if (node.edges.size == 1) {
           stack.push(StackEntry(node.edges.values.first(), edge.classDefinition, nextIndent, nextIndent))
         } else {

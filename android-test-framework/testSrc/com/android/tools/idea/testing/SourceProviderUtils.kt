@@ -36,7 +36,7 @@ fun Project.dumpSourceProviders(): String {
   return buildString {
     var prefix = ""
 
-    fun out(s: String) = appendln("$prefix$s")
+    fun out(s: String) = appendLine("$prefix$s")
 
     fun <T> nest(title: String? = null, code: () -> T): T {
       if (title != null) {

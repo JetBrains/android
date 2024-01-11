@@ -80,7 +80,7 @@ AGP versions: ${generateAgpVersionsString()}
         occurrences.sumOf { it.executionTime.timeMs },
         reportData.buildSummary.criticalPathDuration.timeMs
       )
-      appendln(
+      appendLine(
         "Issues for the same task were detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:")
       for (task in occurrences) {
         val line = "Execution mode: ${task.executionMode}, " +
@@ -88,7 +88,7 @@ AGP versions: ${generateAgpVersionsString()}
                    "determines build duration: ${task.onExtendedCriticalPath}, " +
                    "on critical path: ${task.onLogicalCriticalPath}, " +
                    task.issues.joinToString(prefix = "issues: ") { it.type.uiName }
-        appendln("  $line")
+        appendLine("  $line")
       }
     }
   }

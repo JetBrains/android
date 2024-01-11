@@ -210,7 +210,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
   private enum class SubTreeUpdaterOperation  { PROCESS_CHILDREN, UPDATE_SIZE }
 
   fun prepareDisposerTreeSummarySection(options: AnalysisConfig.DisposerTreeSummaryOptions): String = buildString {
-    TruncatingPrintBuffer(options.headLimit, 0, this::appendln).use { buffer ->
+    TruncatingPrintBuffer(options.headLimit, 0, this::appendLine).use { buffer ->
       if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
         return@buildString
       }
@@ -365,7 +365,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
     if (disposerOptions.includeDisposedObjectsSummary) {
       // Print counts of disposed-but-strong-referenced objects
-      TruncatingPrintBuffer(100, 0, this::appendln).use { buffer ->
+      TruncatingPrintBuffer(100, 0, this::appendLine).use { buffer ->
         buffer.println("Count of disposed-but-strong-referenced objects: $totalCount")
         entries
           .sortedBy { it.key.name }
@@ -376,7 +376,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
             buffer.println("  ${entry.intValue} ${entry.key.prettyName}")
           }
       }
-      appendln()
+      appendLine()
     }
 
     val disposedTree = GCRootPathsTree(analysisContext, AnalysisConfig.TreeDisplayOptions.all(), null)
@@ -402,7 +402,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
 
     if (disposerOptions.includeDisposedObjectsSummary) {
-      TruncatingPrintBuffer(30, 0, this::appendln).use { buffer ->
+      TruncatingPrintBuffer(30, 0, this::appendLine).use { buffer ->
         buffer.println("Disposed-but-strong-referenced dominator object count: $allDominatorsCount")
         buffer.println(
           "Disposed-but-strong-referenced dominator sub-graph size: ${toShortStringAsSize(allDominatorsSubgraphSize)}")
@@ -414,7 +414,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
               "  ${toPaddedShortStringAsSize(entry.size)} - ${toShortStringAsCount(entry.count)} ${entry.classDefinition.name}")
           }
       }
-      appendln()
+      appendLine()
     }
 
     if (disposerOptions.includeDisposedObjectsDetails) {
@@ -423,7 +423,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         disposedDominatorClassSizeList
       )
 
-      TruncatingPrintBuffer(700, 0, this::appendln).use { buffer ->
+      TruncatingPrintBuffer(700, 0, this::appendLine).use { buffer ->
         instancesListInOrder
           .forEach { instances ->
             // Pick first instance to get class name

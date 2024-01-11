@@ -147,8 +147,8 @@ private class LeakCollector(val description: String, val enforce: Boolean = fals
     val path = backlink.toString()
     if (packagesToMatch.any { it in path }) {
       issues.add(buildString {
-        appendln("Found ${leaked.javaClass}: $leaked; hash: ${System.identityHashCode(leaked)})")
-        appendln(backlink)
+        appendLine("Found ${leaked.javaClass}: $leaked; hash: ${System.identityHashCode(leaked)})")
+        appendLine(backlink)
       })
     }
   }
@@ -156,10 +156,10 @@ private class LeakCollector(val description: String, val enforce: Boolean = fals
   override fun close() {
     if (issues.isNotEmpty()) {
       val description = buildString {
-        appendln(description)
-        appendln()
+        appendLine(description)
+        appendLine()
         issues.forEachIndexed { index, issue ->
-          appendln("[$index]: $issue").appendln()
+          appendLine("[$index]: $issue").appendLine()
         }
       }
       if (enforce) throw HeapAssertionError(description) else println(description)

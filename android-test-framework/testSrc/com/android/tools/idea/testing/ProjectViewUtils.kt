@@ -110,7 +110,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
         val newState = filter(element, state) ?: return
 
-        appendln("$prefix${element.presentation.toTestText()}")
+        appendLine("$prefix${element.presentation.toTestText()}")
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }

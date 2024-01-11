@@ -133,12 +133,12 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
                 val info = message.info
                 val serializableThrowable = Exception(buildString {
                   val ex = message.info.failure.exception
-                  appendln(ex.toString())
-                  appendln(ex.stackTrace.joinToString(separator = "\n    at "))
+                  appendLine(ex.toString())
+                  appendLine(ex.stackTrace.joinToString(separator = "\n    at "))
                   var cause = ex.cause
                   while (cause != null) {
-                    appendln("Caused by $cause")
-                    appendln(cause.stackTrace.joinToString(separator = "\n    at "))
+                    appendLine("Caused by $cause")
+                    appendLine(cause.stackTrace.joinToString(separator = "\n    at "))
                     // Throwables use a self-referential cause to indicate "uninitialized", and null to indicate "unknown" or "nonexistent"
                     if (cause.cause === cause) break
                     cause = cause.cause

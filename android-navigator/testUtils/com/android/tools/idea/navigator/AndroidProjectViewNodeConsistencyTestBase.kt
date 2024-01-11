@@ -97,10 +97,10 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
             val message = buildString {
               var prefix = ""
               (node.parents + node.node).forEach {
-                appendln("$prefix/ ${it.nodeNameForTest()}")
+                appendLine("$prefix/ ${it.nodeNameForTest()}")
                 prefix += "    "
               }
-              appendln(problem.prependIndent(prefix))
+              appendLine(problem.prependIndent(prefix))
             }
             reportProblem(message)
           }
