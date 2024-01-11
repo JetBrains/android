@@ -1068,7 +1068,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-markdown",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-model",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-server",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-performanceTesting",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",

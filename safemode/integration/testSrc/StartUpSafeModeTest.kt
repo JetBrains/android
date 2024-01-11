@@ -97,7 +97,6 @@ class StartUpSafeModeTest {
       "Maven server api classes",
       "Mercurial",
       "NetBeans Keymap",
-      "Performance Testing",
       "Plugin DevKit",
       "Properties",
       "Shell Script",

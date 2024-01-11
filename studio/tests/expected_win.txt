@@ -1358,8 +1358,8 @@ android-studio/plugins/android/lib/layout_inspector_snapshot_java_proto.jar
 android-studio/plugins/android/lib/layout_inspector_view_java_proto.jar
 android-studio/plugins/android/lib/layoutlib-api.jar
 android-studio/plugins/android/lib/layoutlib-loader.jar
-android-studio/plugins/android/lib/libam-instrumentation-data-proto.jar
 android-studio/plugins/android/lib/libadb-server-proto.jar
+android-studio/plugins/android/lib/libam-instrumentation-data-proto.jar
 android-studio/plugins/android/lib/libandroid-core-proto.jar
 android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
@@ -2121,7 +2121,6 @@ android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar
-android-studio/plugins/performanceTesting/lib/performanceTesting.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-langInjection/lib/IntelliLang.jar
 android-studio/plugins/platform-langInjection/lib/java-langInjection-jps.jar

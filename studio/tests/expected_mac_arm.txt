@@ -494,7 +494,6 @@ Android Studio Preview.app/Contents/license/jgraphx-3.4.0.1-NOTICE
 Android Studio Preview.app/Contents/license/jsr305-1.3.9-NOTICE
 Android Studio Preview.app/Contents/license/juniversalchardet-1.0.3.jar-NOTICE
 Android Studio Preview.app/Contents/license/kxml2-2.3.0-NOTICE
-Android Studio Preview.app/Contents/license/launcher-third-party-libraries.html
 Android Studio Preview.app/Contents/license/layoutlib.jar.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dll.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dylib.txt
@@ -2040,8 +2039,8 @@ Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_snapsho
 Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_view_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layoutlib-api.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layoutlib-loader.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libadb-server-proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
@@ -2800,7 +2799,6 @@ Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visua
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar
-Android Studio Preview.app/Contents/plugins/performanceTesting/lib/performanceTesting.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/platform-images.jar
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/IntelliLang.jar
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/java-langInjection-jps.jar
