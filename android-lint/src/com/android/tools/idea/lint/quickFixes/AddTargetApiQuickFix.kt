@@ -23,13 +23,13 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.lint.common.addAnnotation
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiLookup
 import com.android.tools.lint.detector.api.ApiConstraint.SdkApiConstraint
+import com.android.tools.lint.detector.api.ClassContext
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
@@ -54,7 +54,8 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import java.util.Locale
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
@@ -275,7 +276,7 @@ class AddTargetApiQuickFix(
     if (annotationContainer is KtModifierListOwner) {
       val whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " "
       annotationContainer.addAnnotation(
-        FqName(fqn),
+        ClassId.fromString(ClassContext.getInternalName(fqn)),
         inner,
         null,
         searchForExistingEntry = replace,

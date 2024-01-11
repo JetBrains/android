@@ -72,7 +72,7 @@ private const val INFER_PATH = "/infer/"
 @RunsInEdt
 class InferAnnotationsTest {
   @get:Rule val testName = TestName()
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
   private val project by lazy { projectRule.project }
   private val fixture by lazy { projectRule.fixture }

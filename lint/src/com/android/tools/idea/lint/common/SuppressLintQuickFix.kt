@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_SUPPRESS_LINT
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
+import com.android.tools.lint.detector.api.ClassContext
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
@@ -45,7 +46,8 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -226,7 +228,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       is KtModifierListOwner -> {
         val argument = "\"${getLintId(id)}\""
         target.addAnnotation(
-          FqName(getAnnotationClass(element)),
+          ClassId.fromString(ClassContext.getInternalName(getAnnotationClass(element))),
           argument,
           whiteSpaceText = if (target.isNewLineNeededForAnnotation()) "\n" else " ",
           addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.lint.detector.api.ClassContext
 import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
@@ -29,7 +30,8 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
@@ -112,9 +114,9 @@ class AnnotateQuickFix(
         if (container !is KtModifierListOwner) return
         val psiFactory = KtPsiFactory(container.project, markGenerated = true)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
-        val fqName =
-          FqName(annotationSource.removePrefix("@").substringAfter(':').substringBefore('('))
-        val existing = container.findAnnotation(fqName)
+        val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
+        val classId = ClassId.fromString(ClassContext.getInternalName(fqName))
+        val existing = container.findAnnotation(classId)
         val addedAnnotation =
           if (existing != null && existing.isPhysical && replace) {
             existing.replace(annotationEntry) as KtAnnotationEntry
