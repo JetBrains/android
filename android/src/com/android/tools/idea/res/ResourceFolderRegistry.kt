@@ -37,14 +37,14 @@ import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.Consumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
 import java.util.function.BiConsumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A project service that manages [ResourceFolderRepository] instances, creating them as necessary
@@ -157,7 +157,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
   fun dispatchToRepositories(
     file: VirtualFile,
-    handler: BiConsumer<ResourceFolderRepository?, VirtualFile?>
+    handler: BiConsumer<ResourceFolderRepository, VirtualFile>
   ) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) VFS change"
@@ -166,16 +166,13 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
       for (cache in myCaches) {
-        val repository = cache.getIfPresent(dir)
-        if (repository != null) {
-          handler.accept(repository, file)
-        }
+        cache.getIfPresent(dir)?.let { handler.accept(it, file) }
       }
       dir = dir.parent
     }
   }
 
-  fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener?>) {
+  fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener>) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) PSI change"
     }
@@ -183,10 +180,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
       for (cache in myCaches) {
-        val repository = cache.getIfPresent(dir)
-        if (repository != null) {
-          invokeCallback.consume(repository.psiListener)
-        }
+        cache.getIfPresent(dir)?.let { invokeCallback.consume(it.psiListener) }
       }
       dir = dir.parent
     }

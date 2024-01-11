@@ -130,7 +130,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     this.sampleDataListener = sampleDataListener
   }
 
-  private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener?>) {
+  private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {
     if (file != null) {
       registry.dispatchToRepositories(file, invokeCallback)
     }
@@ -138,7 +138,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   }
 
   private fun dispatchToResourceNotificationManager(
-    invokeCallback: Consumer<PsiTreeChangeListener?>
+    invokeCallback: Consumer<PsiTreeChangeListener>
   ) {
     resourceNotificationManager.psiListener?.let(invokeCallback::consume)
   }
@@ -183,9 +183,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
       val resDir = if (created.isDirectory) parent else parent.parent ?: return
 
-      registry.dispatchToRepositories(resDir) { repository, _ ->
-        onFileOrDirectoryCreated(created, repository)
-      }
+      registry.dispatchToRepositories(resDir) { repo, _ -> onFileOrDirectoryCreated(created, repo) }
     }
 
     private fun pathForLogging(parent: VirtualFile?, childName: String) =
@@ -198,9 +196,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       }
 
     private fun onFileOrDirectoryRemoved(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { obj, f ->
-        f?.let { obj?.onFileOrDirectoryRemoved(it) }
-      }
+      registry.dispatchToRepositories(file) { repo, f -> repo.onFileOrDirectoryRemoved(f) }
     }
 
     companion object {
@@ -235,9 +231,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) :
     FileDocumentManagerListener {
     override fun fileWithNoDocumentChanged(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { obj, virtualFile ->
-        virtualFile?.let { obj?.scheduleScan(it) }
-      }
+      registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
     }
   }
 
@@ -257,9 +251,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
         val virtualFile = fileDocumentManager.getFile(document) ?: return
         if (virtualFile is LightVirtualFile || !isRelevantFile(virtualFile)) return
         runInWriteAction {
-          registry.dispatchToRepositories(virtualFile) { obj, virtualFile ->
-            virtualFile?.let { obj?.scheduleScan(it) }
-          }
+          registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
         }
       }
     }
