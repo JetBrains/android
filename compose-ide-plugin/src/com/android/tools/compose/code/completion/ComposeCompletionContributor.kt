@@ -48,10 +48,8 @@ import java.io.BufferedReader
 import javax.swing.Icon
 import javax.swing.ImageIcon
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
@@ -188,6 +186,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     require(original.psiElement?.isComposableFunction() == true)
   }
 
+  private val functionInfo = psiElement.getFunctionInfoForCompletion()
+
   override fun getPsiElement(): KtNamedFunction = super.getPsiElement() as KtNamedFunction
 
   override fun renderElement(presentation: LookupElementPresentation) {
@@ -226,7 +226,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (!validCallTypes.contains(callType)) return null
 
     return if (isK2Plugin()) {
-      ComposeInsertHandlerForK2(psiElement, callType)
+      ComposeInsertHandlerForK2(functionInfo, callType)
     } else {
       val descriptor = getFunctionDescriptor() ?: return null
       ComposeInsertHandlerForK1(descriptor, callType)
@@ -476,28 +476,44 @@ private class ComposeInsertHandlerForK1(
 }
 
 private class ComposeInsertHandlerForK2(
-  val functionElement: KtNamedFunction,
+  private val functionInfo: FunctionInfo,
   callType: CallType<*>
 ) : ComposeInsertHandler(callType) {
-  @OptIn(KtAllowAnalysisOnEdt::class)
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
-    allowAnalysisOnEdt {
-      analyze(functionElement) {
-        val functionSymbol = functionElement.getFunctionLikeSymbol()
-        val allParameters = functionSymbol.valueParameters
-        val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
-        val insertLambda =
-          allParameters.lastOrNull()?.let {
-            !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
-          } ?: false
-        val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
-        configureFunctionTemplate(
-          template,
-          inParens.map { ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it)) },
-          insertLambda,
-          context.isNextElementOpenCurlyBrace()
-        )
-      }
-    }
+    configureFunctionTemplate(
+      template,
+      functionInfo.parameters,
+      functionInfo.insertLambda,
+      context.isNextElementOpenCurlyBrace()
+    )
+  }
+}
+
+/**
+ * A class used to keep the result of analysis API for the information of parameters.
+ * [getFunctionInfoForCompletion] generates an instance of this class, and
+ * [ComposeInsertHandlerForK2] uses the instance of this class.
+ */
+private class FunctionInfo(
+  val parameters: List<ComposeInsertHandler.ParameterInfo>,
+  val insertLambda: Boolean
+)
+
+private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo {
+  analyze(this) {
+    val functionSymbol = getFunctionLikeSymbol()
+    val allParameters = functionSymbol.valueParameters
+    val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
+    val insertLambda =
+      allParameters.lastOrNull()?.let {
+        !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+      } ?: false
+    val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
+    return FunctionInfo(
+      inParens.map {
+        ComposeInsertHandler.ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it))
+      },
+      insertLambda,
+    )
   }
 }

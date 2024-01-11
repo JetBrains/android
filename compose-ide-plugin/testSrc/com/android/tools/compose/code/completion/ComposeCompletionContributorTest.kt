@@ -725,7 +725,6 @@ class ComposeCompletionContributorTest {
       myFixture.completeBasic()
 
       // Then:
-      val indentation = if (isK2Plugin()) "  " else ""
       myFixture.checkResult(
         // language=kotlin
         """
@@ -735,7 +734,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        ${indentation}FoobarOne()
+        FoobarOne()
       }
       """
           .trimIndent()
