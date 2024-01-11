@@ -376,6 +376,11 @@ public class LiveEditProjectMonitor implements Disposable {
       this.applicationId = applicationId;
       intermediateSyncs.set(Boolean.FALSE);
       resetState();
+
+      // The app may have connected to ADB before we set up our ADB listeners.
+      if (device.getClient(applicationId) != null) {
+        updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
+      }
       deviceWatcher.setApplicationId(applicationId);
 
       irClassCache.clear();
