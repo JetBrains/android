@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.EnumMap;
@@ -179,7 +180,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository<Virt
   @NotNull
   private Map<ResourceType, ListMultimap<String, ResourceItem>> getResourceTable() {
     if (myResourceTable.isEmpty()) {
-      AndroidModel androidModel = AndroidModel.get(myFacet.getModule());
+      AndroidModel androidModel = ReadAction.compute(() -> AndroidModel.get(myFacet.getModule()));
       if (androidModel != null) {
         addValues(androidModel.getResValues());
       }

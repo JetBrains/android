@@ -40,7 +40,6 @@ import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
-import com.intellij.openapi.application.ReadAction;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,7 +143,7 @@ public class ResourceResolverCache {
       Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = getCachedAppResources(qualifierString);
       if (configuredAppRes == null) {
         // Get the project resource values based on the current config.
-        configuredAppRes = ReadAction.compute(() -> ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration));
+        configuredAppRes = ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration);
         cacheAppResources(qualifierString, configuredAppRes);
       }
 
@@ -158,7 +157,7 @@ public class ResourceResolverCache {
       ResourceReference theme = null;
       ResourceUrl themeUrl = ResourceUrl.parse(themeStyle);
       if (themeUrl != null) {
-        ResourceNamespace contextNamespace = ReadAction.compute(repositoryManager::getNamespace);
+        ResourceNamespace contextNamespace = repositoryManager.getNamespace();
         theme = themeUrl.resolve(contextNamespace, ResourceNamespace.Resolver.EMPTY_RESOLVER);
       }
 
