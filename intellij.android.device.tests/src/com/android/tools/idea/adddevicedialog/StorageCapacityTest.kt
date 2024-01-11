@@ -23,6 +23,30 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class StorageCapacityTest {
   @Test
+  fun withMaxUnit2048Kilobytes() {
+    // Arrange
+    val capacity = StorageCapacity(2_048, StorageCapacity.Unit.KB)
+
+    // Act
+    val capacityWithMaxUnit = capacity.withMaxUnit()
+
+    // Assert
+    assertEquals(StorageCapacity(2, StorageCapacity.Unit.MB), capacityWithMaxUnit)
+  }
+
+  @Test
+  fun withMaxUnit2049Kilobytes() {
+    // Arrange
+    val capacity = StorageCapacity(2_049, StorageCapacity.Unit.KB)
+
+    // Act
+    val capacityWithMaxUnit = capacity.withMaxUnit()
+
+    // Assert
+    assertEquals(capacity, capacityWithMaxUnit)
+  }
+
+  @Test
   fun valueInBytes() {
     // Act
     val bytes = CAPACITY.valueIn(StorageCapacity.Unit.B)
@@ -65,6 +89,15 @@ class StorageCapacityTest {
 
     // Assert
     assertEquals(0, terabytes)
+  }
+
+  @Test
+  fun testToString() {
+    // Act
+    val string = CAPACITY.toString()
+
+    // Assert
+    assertEquals("2048M", string)
   }
 }
 

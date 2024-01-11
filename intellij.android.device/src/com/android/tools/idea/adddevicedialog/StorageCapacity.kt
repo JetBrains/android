@@ -17,6 +17,23 @@ package com.android.tools.idea.adddevicedialog
 
 internal data class StorageCapacity
 internal constructor(internal val value: Long, internal val unit: Unit) {
+  /**
+   * Returns an equivalent StorageCapacity with the largest unit with no loss of precision. Returns
+   * 2M for 2048K, for example.
+   */
+  internal fun withMaxUnit(): StorageCapacity {
+    val maxUnit = maxUnit()
+    return StorageCapacity(valueIn(maxUnit), maxUnit)
+  }
+
+  private fun maxUnit(): Unit {
+    val array = Unit.values()
+    val subList = array.toList().subList(unit.ordinal + 1, array.size)
+    val byteCount = value * unit.byteCount
+
+    return subList.filter { byteCount % it.byteCount == 0L }.maxOrNull() ?: unit
+  }
+
   internal fun valueIn(unit: Unit) = value * this.unit.byteCount / unit.byteCount
 
   internal enum class Unit(internal val byteCount: Long) {
@@ -26,4 +43,6 @@ internal constructor(internal val value: Long, internal val unit: Unit) {
     GB(1_024 * 1_024 * 1_024),
     TB(1_024L * 1_024 * 1_024 * 1_024)
   }
+
+  override fun toString() = value.toString() + unit.toString().first()
 }
