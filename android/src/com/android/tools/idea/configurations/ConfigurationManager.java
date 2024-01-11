@@ -192,7 +192,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @Slow
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
-    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
+    ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
@@ -226,7 +226,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @NotNull
   public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
-    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
+    ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
@@ -242,6 +242,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     myCache.put(file, configuration);
 
     return configuration;
+  }
+
+  /**
+   * Returns the associated persistence manager
+   */
+  @NotNull
+  private ConfigurationStateManager getStateManager() {
+    return StudioConfigurationStateManager.get(myModule.getProject());
   }
 
   /**
@@ -431,7 +439,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
-      String localeString = myConfigurationModule.getConfigurationStateManager().getProjectState().getLocale();
+      String localeString = getStateManager().getProjectState().getLocale();
       if (localeString != null) {
         myLocale = fromLocaleString(localeString);
       }
@@ -457,7 +465,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
       myStateVersion++;
-      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(toLocaleString(locale));
+      getStateManager().getProjectState().setLocale(toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }
@@ -471,7 +479,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull
   public List<Device> getRecentDevices() {
     List<Device> avdDevices = getAvdDevices();
-    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -501,7 +509,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   public void selectDevice(@NotNull Device device) {
     // Manually move the given device to the front of the eligibility queue
     String id = device.getId();
-    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     deviceIds.remove(id);
     deviceIds.add(0, id);
 
@@ -549,7 +557,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      ConfigurationProjectState projectState = myConfigurationModule.getConfigurationStateManager().getProjectState();
+      ConfigurationProjectState projectState = getStateManager().getProjectState();
       if (projectState.isPickTarget()) {
         myTarget = getDefaultTarget();
       }
@@ -610,7 +618,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
       myTarget = target;
       if (target != null) {
-        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(toTargetString(target));
+        getStateManager().getProjectState().setTarget(toTargetString(target));
         myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);
