@@ -114,8 +114,6 @@ class ConfigurationForFile(
   }
 
   override fun clone(): Configuration {
-    val copy = ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig))
-    copy.copyFrom(this)
     return ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
   }
 
