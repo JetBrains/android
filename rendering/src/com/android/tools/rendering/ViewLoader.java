@@ -25,6 +25,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.log.LogAnonymizer;
+import com.android.tools.module.ViewClass;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.log.LogAnonymizerUtil;
 import com.android.tools.rendering.security.RenderSecurityManager;
@@ -36,8 +37,6 @@ import com.google.common.collect.Multiset;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiModifier;
 import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -310,10 +309,6 @@ public class ViewLoader {
     }
   }
 
-  private static boolean isAbstract(@NotNull PsiClass c) {
-    return (c.isInterface() || c.hasModifierProperty(PsiModifier.ABSTRACT));
-  }
-
   @Nullable
   private Object createViewFromSuperclass(@NotNull final String className,
                                           @Nullable final Class<?>[] constructorSignature,
@@ -332,27 +327,27 @@ public class ViewLoader {
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
       Class<?> superclass = DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
-        PsiClass psiClass = myModule.getDependencies().findPsiClassInModuleAndDependencies(className);
+        ViewClass viewClass = myModule.getDependencies().findViewClass(className);
 
-        if (psiClass == null) {
+        if (viewClass == null) {
           return null;
         }
-        psiClass = psiClass.getSuperClass();
+        viewClass = viewClass.getSuperClass();
         final Set<String> visited = new HashSet<>();
 
-        while (psiClass != null) {
-          final String qName = psiClass.getQualifiedName();
+        while (viewClass != null) {
+          final String qName = viewClass.getQualifiedName();
           if (LOG.isDebugEnabled()) {
             LOG.debug("  parent " + LogAnonymizer.anonymizeClassName(qName));
           }
 
           if (qName == null ||
               !visited.add(qName) ||
-              SdkConstants.CLASS_VIEW.equals(psiClass.getQualifiedName())) {
+              SdkConstants.CLASS_VIEW.equals(viewClass.getQualifiedName())) {
             break;
           }
 
-          if (!isAbstract(psiClass)) {
+          if (!viewClass.isAbstract()) {
             try {
               Class<?> aClass = myLoadedClasses.get(qName);
               if (aClass == null) {
@@ -369,7 +364,7 @@ public class ViewLoader {
               LOG.debug(e);
             }
           }
-          psiClass = psiClass.getSuperClass();
+          viewClass = viewClass.getSuperClass();
         }
         return null;
       });

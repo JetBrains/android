@@ -17,7 +17,6 @@ package com.android.tools.module
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.intellij.psi.PsiClass
 
 /** Information about module dependencies required for rendering. */
 interface ModuleDependencies {
@@ -30,5 +29,5 @@ interface ModuleDependencies {
   /** Returns a list of `R` class package names (resource package names) from the module and all of its dependencies. */
   fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String>
 
-  fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass?
+  fun findViewClass(fqcn: String): ViewClass?
 }
