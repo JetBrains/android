@@ -53,7 +53,8 @@ internal constructor(
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
         EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         ScreenOrientation.PORTRAIT,
-        Boot.QUICK
+        Boot.QUICK,
+        StorageCapacity(2_048, StorageCapacity.Unit.MB)
       )
     )
   }

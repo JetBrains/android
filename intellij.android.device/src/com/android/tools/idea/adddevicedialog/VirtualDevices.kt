@@ -46,7 +46,7 @@ internal object VirtualDevices {
       mutableMapOf(
         "AvdId" to id,
         "avd.ini.displayname" to device.name,
-        "disk.dataPartition.size" to "2G",
+        "disk.dataPartition.size" to device.internalStorage.withMaxUnit().toString(),
         "hw.accelerometer" to "yes",
         "hw.audioInput" to "yes",
         "hw.battery" to "yes",

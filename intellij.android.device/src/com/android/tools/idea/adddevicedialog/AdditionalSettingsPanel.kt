@@ -28,6 +28,7 @@ import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun AdditionalSettingsPanel(
@@ -45,6 +46,7 @@ internal fun AdditionalSettingsPanel(
   CameraGroup(device, onDeviceChange)
   NetworkGroup(device, onDeviceChange)
   StartupGroup(device, onDeviceChange)
+  StorageGroup(device, onDeviceChange)
 }
 
 @Composable
@@ -118,6 +120,35 @@ private val ORIENTATIONS =
   listOf(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE).toImmutableList()
 
 private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
+
+@Composable
+private fun StorageGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+  GroupHeader("Storage")
+
+  Row {
+    Text("Internal storage")
+
+    TextField(
+      device.internalStorage.value.toString(),
+      onValueChange = {
+        // TODO Validate the text field value
+        val newStorage = StorageCapacity(it.toLong(), device.internalStorage.unit)
+        onDeviceChange(device.copy(internalStorage = newStorage))
+      }
+    )
+
+    Dropdown(
+      device.internalStorage.unit,
+      UNITS,
+      onSelectedItemChange = {
+        val newStorage = StorageCapacity(device.internalStorage.value, it)
+        onDeviceChange(device.copy(internalStorage = newStorage))
+      }
+    )
+  }
+}
+
+private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
 
 @Composable
 private fun <I> Dropdown(
