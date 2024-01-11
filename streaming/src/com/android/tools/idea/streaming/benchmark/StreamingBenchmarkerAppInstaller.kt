@@ -28,9 +28,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.project.modules
 import kotlinx.coroutines.flow.first
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
 import java.util.Base64
 import kotlin.time.Duration.Companion.hours
@@ -113,7 +113,7 @@ internal class StreamingBenchmarkerAppInstallerImpl(
         // Development environment for the screen sharing agent.
         // Use the agent built by running "Build > Make Project" in Studio.
         logger.debug("App project open, building and installing from here.")
-        val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
+        val facet = project.modules.asList().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         projectDir.resolve("app/build/outputs/apk/$buildVariant/app-$buildVariant.apk")
       }
