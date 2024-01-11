@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.wearwhs.view
 
+import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.stdui.StandardColors
+import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.intellij.codeInsight.hint.HintUtil.createWarningLabel
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
@@ -122,7 +126,27 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       stateManager.getPreset().onEach {
         capabilitiesComboBox.selectedItem = it
       }.launchIn(uiScope)
-      add(capabilitiesComboBox, BorderLayout.WEST)
+      val eventTriggersDropDownButton = CommonDropDownButton(
+        CommonAction("", AllIcons.Actions.More).apply {
+          toolTipText = message("wear.whs.panel.trigger.events")
+          addChildrenActions(
+            EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
+              CommonAction(eventTriggerGroup.eventGroupLabel, null).apply {
+                addChildrenActions(eventTriggerGroup.eventTriggers.map { eventTrigger ->
+                  CommonAction(eventTrigger.eventLabel, null) {
+                    workerScope.launch {
+                      stateManager.triggerEvent(eventTrigger)
+                    }
+                  }
+                })
+              }
+            }
+          )
+        })
+      add(JPanel(FlowLayout(FlowLayout.LEADING)).apply {
+        add(capabilitiesComboBox)
+        add(eventTriggersDropDownButton)
+      }, BorderLayout.WEST)
       add(JLabel(message("wear.whs.panel.test.data.inactive")).apply {
         icon = StudioIcons.Common.INFO
         stateManager.getOngoingExercise().onEach {

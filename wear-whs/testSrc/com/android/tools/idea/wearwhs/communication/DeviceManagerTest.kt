@@ -17,11 +17,13 @@ package com.android.tools.idea.wearwhs.communication
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -374,5 +376,19 @@ class DeviceManagerTest {
   fun `Override steps per minute`() {
     assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, 25, adbCommandSetStepsPerMinuteTo25)
     assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, null, adbCommandClearStepsPerMinute)
+  }
+
+  @Test
+  fun `trigger auto pause event`() = runBlocking {
+    assertDeviceManagerFunctionSendsAdbCommand(
+      { deviceManager -> deviceManager.triggerEvent(EventTrigger("whs.AUTO_PAUSE_DETECTED", "label")) },
+      "am broadcast -a \"whs.AUTO_PAUSE_DETECTED\" com.google.android.wearable.healthservices")
+  }
+
+  @Test
+  fun `trigger golf shot event`() = runBlocking {
+    assertDeviceManagerFunctionSendsAdbCommand(
+      { deviceManager -> deviceManager.triggerEvent(EventTrigger("whs.GOLF_SHOT", "label")) },
+      "am broadcast -a \"whs.GOLF_SHOT\" com.google.android.wearable.healthservices")
   }
 }

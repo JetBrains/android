@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearwhs.communication
 
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import kotlinx.coroutines.delay
@@ -27,6 +28,7 @@ private const val DELAY_MS = 100L
 internal class FakeDeviceManager(
   internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
   internal var failState = false
+  internal val triggeredEvents = mutableListOf<EventTrigger>()
   private val onDeviceStates = capabilities.associateWith { OnDeviceCapabilityState(false, null) }
 
   override suspend fun loadCapabilities() = if (failState) {
@@ -78,4 +80,8 @@ internal class FakeDeviceManager(
   }
 
   override fun setSerialNumber(serialNumber: String) {}
+
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) {
+    triggeredEvents.add(eventTrigger)
+  }
 }

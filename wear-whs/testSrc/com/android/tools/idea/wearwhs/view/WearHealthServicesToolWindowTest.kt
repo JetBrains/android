@@ -18,11 +18,14 @@ package com.android.tools.idea.wearwhs.view
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -115,9 +118,26 @@ class WearHealthServicesToolWindowTest {
       maxPercentDifferent = 4.0)
   }
 
+  @Test
+  fun `test panel displays the dropdown for event triggers`() = runBlocking {
+    val fakeUi = FakeUi(toolWindow)
+    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+    assertThat(dropDownButton).isNotNull()
+    assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
+    assertThat(dropDownButton.action.childrenActions[0].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
+    assertThat(dropDownButton.action.childrenActions[1].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
+  }
+
+  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {
+    it.text.contains(text) && it.isSelected == selected
+  }
+
   // The UI loads on asynchronous coroutine, we need to wait
-  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForCondition(10, TimeUnit.SECONDS) {
-    root.findDescendant<JCheckBox> { it.text.contains(text) && it.isSelected == selected } != null
+  private inline fun <reified T> FakeUi.waitForDescendant(crossinline predicate: (T) -> Boolean = { true }): T {
+    waitForCondition(1, TimeUnit.SECONDS) {
+      root.findDescendant(predicate) != null
+    }
+    return root.findDescendant(predicate)!!
   }
 
   private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {

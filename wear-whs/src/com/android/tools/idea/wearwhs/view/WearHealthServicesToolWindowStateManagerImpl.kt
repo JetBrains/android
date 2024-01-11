@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
@@ -69,6 +70,9 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   override suspend fun isWhsVersionSupported(): Boolean = true
 
   override fun getCapabilitiesList(): StateFlow<List<WhsCapability>> = capabilitiesList.asStateFlow()
+
+  // TODO(b/309609475): Check the actual WHS version using the device manager
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) {}
 
   override fun getPreset(): StateFlow<Preset> = currentPreset.asStateFlow()
 

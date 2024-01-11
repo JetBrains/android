@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearwhs.communication
 
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 
 /**
@@ -59,6 +60,7 @@ internal interface WearHealthServicesDeviceManager {
    * Sets the serial number of the emulator to connect.
    */
   fun setSerialNumber(serialNumber: String)
+  suspend fun triggerEvent(eventTrigger: EventTrigger)
 }
 
 internal data class OnDeviceCapabilityState(

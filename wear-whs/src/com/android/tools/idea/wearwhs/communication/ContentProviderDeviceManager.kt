@@ -18,10 +18,13 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.intellij.openapi.diagnostic.Logger
 
+const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsUri: String = "content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
 /**
@@ -32,6 +35,7 @@ const val whsUri: String = "content://com.google.android.wearable.healthservices
  */
 internal class ContentProviderDeviceManager(private val adbSession: AdbSession, private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
   private var serialNumber: String? = null
+  private val logger = Logger.getInstance(ContentProviderDeviceManager::class.java)
 
   // TODO(b/309608749): Implement loadCapabilities method
   override suspend fun loadCapabilities() = capabilities
@@ -94,5 +98,17 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     }
     adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
   }
-}
 
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) {
+    if (serialNumber == null) {
+      logger.warn(IllegalStateException("Serial number not set"))
+      return
+    }
+
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+    adbSession.deviceServices.shellAsText(device, triggerEventCommand(eventTrigger))
+  }
+
+  private fun triggerEventCommand(eventTrigger: EventTrigger) =
+    "am broadcast -a \"${eventTrigger.eventKey}\" $whsPackage"
+}
