@@ -685,9 +685,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   override fun deviceClientAdded(client: DeviceClient, requester: Any?) {
     if (requester != this) {
       val serialNumber = client.deviceSerialNumber
-      val handle = onlineDevices[serialNumber]?.handle ?: return
-      adoptDeviceClient(serialNumber, handle) { client }
-      startMirroring(serialNumber, handle, client.deviceConfig, ActivationLevel.CREATE_TAB)
+      if (findContentBySerialNumberOfPhysicalDevice(serialNumber) == null) {
+        val handle = onlineDevices[serialNumber]?.handle ?: return
+        adoptDeviceClient(serialNumber, handle) { client }
+        startMirroring(serialNumber, handle, client.deviceConfig, ActivationLevel.CREATE_TAB)
+      }
     }
   }
 
