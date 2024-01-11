@@ -27,7 +27,7 @@ import com.intellij.util.ui.UIUtil
 internal class IssuePanelServiceTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val issuePanelService = IssuePanelService.getInstance(project)
-    val allIssues = issuePanelService.getSharedPanelIssues() ?: emptyList()
+    val allIssues = issuePanelService.getSharedPanelIssues()
     val output = StringBuilder("IssuePanelService: nIssues=${allIssues.size}")
     val issuePanel = ProblemsView.getToolWindow(project)?.contentManager?.selectedContent
     val selectedIssue =

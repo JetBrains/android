@@ -23,10 +23,9 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
@@ -59,13 +58,7 @@ class EnableUiCheckAction :
     val instanceId = modelDataContext.previewElement() ?: return
     manager.setMode(PreviewMode.UiCheck(baseElement = instanceId))
 
-    val problemsWindow =
-      e.project?.let { ToolWindowManager.getInstance(it).getToolWindow(ProblemsView.ID) } ?: return
-    val contentManager = problemsWindow.contentManager
-    contentManager.contents
-      .firstOrNull { it.tabName == instanceId.instanceId }
-      ?.let { contentManager.setSelectedContent(it) }
-    problemsWindow.show()
+    e.project?.let { ProblemsViewToolWindowUtils.selectTab(it, instanceId.instanceId) }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

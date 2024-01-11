@@ -25,6 +25,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -90,6 +91,7 @@ internal class UiCheckReopenTabAction(private val previewManager: ComposePreview
       VisualLintService.getInstance(project)
         .issueModel
         .updateErrorsList(IssueProviderListener.UI_CHECK)
+      ProblemsViewToolWindowUtils.selectTab(project, previewInstance.instanceId)
     }
     problemsWindow.show()
   }

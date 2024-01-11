@@ -40,7 +40,12 @@ class DesignToolsIssueProviderTest {
     val messageBus = rule.project.messageBus
 
     val provider =
-      DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        rule.testRootDisposable,
+        rule.project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID
+      )
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     val source1 = Any()
@@ -114,7 +119,12 @@ class DesignToolsIssueProviderTest {
     val messageBus = rule.project.messageBus
 
     val provider =
-      DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        rule.testRootDisposable,
+        rule.project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID
+      )
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     provider.viewOptionFilter =
@@ -155,7 +165,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         SelectedEditorFilter(rule.project),
-        null
+        SHARED_ISSUE_PANEL_TAB_ID
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
@@ -183,7 +193,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         SelectedEditorFilter(rule.project),
-        null
+        SHARED_ISSUE_PANEL_TAB_ID
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 

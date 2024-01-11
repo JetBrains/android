@@ -39,7 +39,12 @@ class DesignerCommonIssueProviderTest {
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID
+      )
 
     var count = 0
     val listener: () -> Unit = { count++ }
@@ -57,7 +62,12 @@ class DesignerCommonIssueProviderTest {
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID
+      )
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -98,7 +108,12 @@ class DesignerCommonIssueProviderTest {
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID
+      )
 
     assertEmpty(provider.getFilteredIssues())
 

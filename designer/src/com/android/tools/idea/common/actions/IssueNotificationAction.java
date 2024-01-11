@@ -113,7 +113,7 @@ public class IssueNotificationAction extends ToggleAction {
     }
     IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
     if (tabName != null) {
-      issuePanelService.setIssuePanelVisibilityByTabName(state, tabName, issuePanelService::focusIssuePanelIfVisible);
+      issuePanelService.setIssuePanelVisibilityByTabId(state, tabName, issuePanelService::focusIssuePanelIfVisible);
     } else {
       issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
     }

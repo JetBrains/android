@@ -71,7 +71,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       return
     }
     errorCountArray.fill(0)
-    val issues = IssuePanelService.getInstance(project).getSharedPanelIssues() ?: return
+    val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {
       val index = severities.indexOf(it.severity)
       if (index > -1) {

@@ -16,12 +16,14 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -32,7 +34,7 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.testFramework.runInEdtAndGet
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -172,8 +174,10 @@ class VisualLintFilterActionTest {
   fun testPerform() {
     ToolWindowManager.getInstance(rule.project)
       .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    val service = runInEdtAndGet { IssuePanelService.getInstance(rule.project) }
-    val panel = service.getSharedIssuePanel()!!
+    runBlocking(workerThread) {
+      ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
+    }
+    val panel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     val visualLintIssue = mock<VisualLintRenderIssue>()
     val dataContext = DataContext {
       when (it) {

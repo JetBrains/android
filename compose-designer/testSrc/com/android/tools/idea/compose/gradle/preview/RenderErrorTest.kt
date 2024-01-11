@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAn
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -52,6 +53,8 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -102,6 +105,9 @@ class RenderErrorTest {
   fun setup() {
     log.setLevel(LogLevel.ALL)
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
+    @Suppress("UnstableApiUsage")
+    ToolWindowManager.getInstance(project)
+      .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
 
     val mainFile =
       project

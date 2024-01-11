@@ -23,7 +23,6 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
@@ -362,9 +361,6 @@ internal class ComposePreviewViewImpl(
       }
 
     mainPanelSplitter.firstComponent = contentPanel
-
-    IssuePanelService.getInstance(project)
-      .registerFileToSurface(psiFilePointer.virtualFile, mainSurface)
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()

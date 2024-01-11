@@ -211,8 +211,7 @@ class CustomViewPreviewRepresentation(
         .setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
       this,
-      project,
-      psiFile
+      project
     )
   }
 

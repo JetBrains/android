@@ -47,7 +47,7 @@ class IssuePanelToggleAction :
     super.update(e)
     e.getData(PlatformDataKeys.PROJECT)?.let { project ->
       e.presentation.isVisible =
-        IssuePanelService.getInstance(project).getSharedPanelIssues()?.size != 0
+        IssuePanelService.getInstance(project).getSharedPanelIssues().isNotEmpty()
     }
   }
 

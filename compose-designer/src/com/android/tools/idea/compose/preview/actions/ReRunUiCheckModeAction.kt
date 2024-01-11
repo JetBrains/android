@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.error.DESIGNER_COMMON_ISSUE_PANEL
 import com.android.tools.idea.common.error.DesignToolsIssueProvider
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.compose.preview.getComposePreviewManager
+import com.android.tools.idea.compose.preview.uicheck.TAB_VIRTUAL_FILE
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -43,7 +43,7 @@ class ReRunUiCheckModeAction : AnAction() {
         ProblemsView.getToolWindow(it)
           ?.contentManager
           ?.selectedContent
-          ?.getUserData(IssuePanelService.TAB_VIRTUAL_FILE)
+          ?.getUserData(TAB_VIRTUAL_FILE)
       }
     if (file == null) {
       e.presentation.isVisible = false
@@ -68,7 +68,7 @@ class ReRunUiCheckModeAction : AnAction() {
       ProblemsView.getToolWindow(project)
         ?.contentManager
         ?.selectedContent
-        ?.getUserData(IssuePanelService.TAB_VIRTUAL_FILE) ?: return
+        ?.getUserData(TAB_VIRTUAL_FILE) ?: return
     val editors = FileEditorManager.getInstance(project).openFile(file, true, true)
     val relevantEditor =
       editors.filterIsInstance<SplitEditor<*>>().firstOrNull {

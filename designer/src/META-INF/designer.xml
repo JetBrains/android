@@ -271,4 +271,8 @@
   <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
     <logsProvider implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsDiagnosticsSummaryFileProvider" />
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <problemsViewPanelProvider implementation="com.android.tools.idea.common.error.SharedIssuePanelProvider" />
+  </extensions>
 </idea-plugin>

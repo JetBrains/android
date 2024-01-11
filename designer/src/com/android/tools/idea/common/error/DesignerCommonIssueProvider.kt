@@ -74,7 +74,7 @@ class DesignToolsIssueProvider(
   parentDisposable: Disposable,
   project: Project,
   private val issueFilter: DesignerCommonIssueProvider.Filter,
-  val instanceId: String?
+  val instanceId: String
 ) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
 
@@ -94,14 +94,15 @@ class DesignToolsIssueProvider(
   init {
     Disposer.register(parentDisposable, this)
     val topic =
-      if (instanceId != null) IssueProviderListener.UI_CHECK else IssueProviderListener.TOPIC
+      if (instanceId == SHARED_ISSUE_PANEL_TAB_ID) IssueProviderListener.TOPIC
+      else IssueProviderListener.UI_CHECK
     messageBusConnection.subscribe(
       topic,
       IssueProviderListener { source, issues ->
         // If in UI Check, only update if issues come from the preview that this provider is
         // associated with
         if (
-          instanceId != null &&
+          instanceId != SHARED_ISSUE_PANEL_TAB_ID &&
             (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId)
         )
           return@IssueProviderListener

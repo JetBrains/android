@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
-import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
@@ -35,6 +35,7 @@ import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
+import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -87,6 +88,7 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -617,6 +619,7 @@ class ComposePreviewRepresentation(
         surface.layeredPane.add(this, JLayeredPane.DRAG_LAYER, 0)
       }
       createUiCheckTab(instance)
+      ProblemsViewToolWindowUtils.selectTab(project, instance.instanceId)
     }
     val completableDeferred =
       CompletableDeferred<Unit>().apply {
@@ -635,22 +638,21 @@ class ComposePreviewRepresentation(
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
-    IssuePanelService.getInstance(project)
-      .startUiCheck(
-        psiFilePointer.virtualFile,
-        instance.instanceId,
-        instance.displaySettings.name,
-        surface,
-        postIssueUpdateListenerForUiCheck
-      )
+    val uiCheckIssuePanel = UiCheckPanelProvider(instance, psiFilePointer).getPanel()
+    uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
+    uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)
+    surface.visualLintIssueProvider.uiCheckInstanceId = instance.instanceId
   }
 
   private suspend fun onUiCheckPreviewStop() {
     qualityManager.resume()
     postIssueUpdateListenerForUiCheck.deactivate()
     uiCheckFilterFlow.value.basePreviewInstance?.let {
-      IssuePanelService.getInstance(project)
-        .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
+      val panel =
+        ProblemsViewToolWindowUtils.getTabById(project, it.instanceId) as? DesignerCommonIssuePanel
+      panel?.removeIssueSelectionListener(surface.issueListener)
+      panel?.issueProvider?.removeUpdateListener(postIssueUpdateListenerForUiCheck)
+      surface.visualLintIssueProvider.uiCheckInstanceId = null
     }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
     withContext(uiThread) {

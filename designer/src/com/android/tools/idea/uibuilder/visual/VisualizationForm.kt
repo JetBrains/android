@@ -618,8 +618,7 @@ class VisualizationForm(
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
     visualLintHandler.onActivate()
-    IssuePanelService.getInstance(project)
-      .getSharedIssuePanel()
+    IssuePanelService.getDesignerCommonIssuePanel(project)
       ?.addIssueSelectionListener(surface.issueListener, surface)
   }
 
@@ -641,8 +640,7 @@ class VisualizationForm(
     }
     analyticsManager.trackVisualizationToolWindow(false)
     visualLintHandler.onDeactivate()
-    IssuePanelService.getInstance(project)
-      .getSharedIssuePanel()
+    IssuePanelService.getDesignerCommonIssuePanel(project)
       ?.removeIssueSelectionListener(surface.issueListener)
     myFile?.let { FileEditorManager.getInstance(project).getSelectedEditor(it)?.selectNotify() }
   }
