@@ -17,64 +17,21 @@ package com.android.tools.idea.lint.common;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.lint.client.api.IssueRegistry;
-import com.android.tools.lint.client.api.LintBaseline;
-import com.android.tools.lint.detector.api.LintFix;
-import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.analysis.AnalysisScope;
+import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeInspection.ui.InspectionResultsView;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.PsiElement;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase {
-  public AndroidLintLintBaselineInspection() {
-    super(LintBundle.message("android.lint.inspections.lint.baseline"), IssueRegistry.BASELINE);
+public class AbstractBaselineInspection extends AndroidLintInspectionBase {
+  public AbstractBaselineInspection(@NotNull String displayName, @NotNull Issue issue) {
+    super(displayName, issue);
   }
 
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    if (LintBaseline.Companion.isFilteredMessage(message, TextFormat.RAW)) {
-      return new LintIdeQuickFix[]{
-        new DefaultLintQuickFix("Temporarily turn off the baseline and re-run the analysis") {
-          @Override
-          public void apply(@NotNull PsiElement startElement,
-                            @NotNull PsiElement endElement,
-                            @NotNull AndroidQuickfixContexts.Context context) {
-            //noinspection AssignmentToStaticFieldFromInstanceMethod
-            ourSkipBaselineNextRun = true;
-            rerun();
-          }
-        }
-      };
-    }
+  protected static void rerun() {
 
-    if (LintBaseline.Companion.isFixedMessage(message, TextFormat.RAW)) {
-      return new LintIdeQuickFix[]{
-        new DefaultLintQuickFix("Update baseline file to remove fixed issues") {
-          @Override
-          public void apply(@NotNull PsiElement startElement,
-                            @NotNull PsiElement endElement,
-                            @NotNull AndroidQuickfixContexts.Context context) {
-            //noinspection AssignmentToStaticFieldFromInstanceMethod
-            ourUpdateBaselineNextRun = true;
-            rerun();
-          }
-        }
-      };
-    }
-
-    return super.getQuickFixes(startElement, endElement, message, fixData);
-  }
-
-  private static void rerun() {
     // Attempt to re-run tne analysis. This isn't a service we can access programmatically unless we
     // have the inspections view itself. We could attempt to hold on to the GlobalInspectionContextImpl
     // after each lint run, but that object points to a huge amount of state and I don't want to risk
@@ -84,16 +41,19 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
     // from there we can invoke it. There's one wrinkle: we need to persist the analysis scope. Luckily
     // we only need to do this very temporarily (from the rerun action to the LintGlobalInspectionContext
     // processes it.)
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      for (Frame frame : Frame.getFrames()) {
-        InspectionResultsView view = findInspectionView(frame);
-        if (view != null && view.isRerunAvailable() && !view.isDisposed()) {
-          ourRerunScope = view.getScope();
-          view.rerun();
-        }
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          for (Frame frame : Frame.getFrames()) {
+            InspectionResultsView view = findInspectionView(frame);
+            if (view != null && view.isRerunAvailable() && !view.isDisposed()) {
+              view.rerun();
+            }
+          }
+        });
       }
-    });
+    );
   }
 
   /**
@@ -107,15 +67,9 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
    */
   public static boolean ourUpdateBaselineNextRun;
 
-  /**
-   * Normally null, only set briefly during re-run initialization
-   */
-  @Nullable public static AnalysisScope ourRerunScope;
-
   public static void clearNextRunState() {
     ourSkipBaselineNextRun = false;
     ourUpdateBaselineNextRun = false;
-    ourRerunScope = null;
   }
 
   @Nullable

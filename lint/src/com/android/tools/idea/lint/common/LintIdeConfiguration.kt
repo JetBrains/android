@@ -42,7 +42,7 @@ class LintIdeConfiguration(
   ): Severity? {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue == IssueRegistry.BASELINE) {
+      if (issue == IssueRegistry.BASELINE_USED || issue == IssueRegistry.BASELINE_FIXED) {
         return Severity.INFORMATIONAL
       }
 
@@ -72,7 +72,7 @@ class LintIdeGradleConfiguration(
   ): Severity? {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue == IssueRegistry.BASELINE) {
+      if (issue == IssueRegistry.BASELINE_USED || issue == IssueRegistry.BASELINE_FIXED) {
         return Severity.INFORMATIONAL
       }
 
