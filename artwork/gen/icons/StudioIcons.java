@@ -270,6 +270,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ROTATE_LEFT = load("studio/icons/emulator/toolbar/rotate-left.svg", 221797115, 2);
       /** 16x16 */ public static final @NotNull Icon ROTATE_RIGHT = load("studio/icons/emulator/toolbar/rotate-right.svg", -264912488, 2);
       /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/emulator/toolbar/screenshot.svg", 99500982, 2);
+      /** 16x16 */ public static final @NotNull Icon SESSION = load("studio/icons/emulator/toolbar/session.svg", 190210677, 2);
       /** 16x16 */ public static final @NotNull Icon SNAPSHOTS = load("studio/icons/emulator/toolbar/snapshots.svg", 2128957761, 2);
       /** 16x16 */ public static final @NotNull Icon VOLUME_DOWN = load("studio/icons/emulator/toolbar/volume-down.svg", -1821264092, 2);
       /** 16x16 */ public static final @NotNull Icon VOLUME_UP = load("studio/icons/emulator/toolbar/volume-up.svg", 1651944471, 2);

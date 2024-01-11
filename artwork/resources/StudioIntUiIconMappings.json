@@ -194,6 +194,7 @@
           "rotate-left.svg": "studio/icons/emulator/toolbar/rotate-left.svg",
           "rotate-right.svg": "studio/icons/emulator/toolbar/rotate-right.svg",
           "screenshot.svg": "studio/icons/emulator/toolbar/screenshot.svg",
+          "session.svg": "studio/icons/emulator/toolbar/session.svg",
           "snapshots.svg": "studio/icons/emulator/toolbar/snapshots.svg",
           "volume-down.svg": "studio/icons/emulator/toolbar/volume-down.svg",
           "volume-up.svg": "studio/icons/emulator/toolbar/volume-up.svg"
