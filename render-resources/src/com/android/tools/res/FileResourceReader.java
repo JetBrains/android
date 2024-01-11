@@ -15,9 +15,9 @@
  */
 package com.android.tools.res;
 
-import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
-import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+import static com.android.SdkConstants.FILE_PROTOCOL;
+import static com.android.SdkConstants.JAR_PROTOCOL;
+import static com.android.SdkConstants.JAR_SEPARATOR;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ProtoXmlPullParser;
