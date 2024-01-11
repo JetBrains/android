@@ -38,7 +38,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
@@ -96,8 +95,9 @@ public class AndroidTargetData {
   public AttributeDefinitions getAllAttrDefs() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString());
+        // to system independent paths
+        String attrsPath = myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString().replace('\\', '/');
+        String attrsManifestPath = myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString().replace('\\', '/');
         myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
       }
       return myAttrDefs;
