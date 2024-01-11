@@ -126,7 +126,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
    * @param sampleDataListener the project's [SampleDataListener]
    */
   fun setSampleDataListener(sampleDataListener: SampleDataListener?) {
-    assert(this.sampleDataListener == null) { "SampleDataListener already set!" }
+    check(this.sampleDataListener == null) { "SampleDataListener already set!" }
     this.sampleDataListener = sampleDataListener
   }
 
