@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +31,7 @@ import java.util.*;
  * the attr resource from all its declarations.
  */
 public final class AttributeDefinition implements Cloneable {
+  private final static String[] EMPTY_STRING_ARRAY = new String[0];
   @NotNull private final ResourceReference myAttr;
   @Nullable private final String myLibraryName;
   @Nullable private String myGlobalDescription;
@@ -110,7 +110,7 @@ public final class AttributeDefinition implements Cloneable {
 
   @NotNull
   public String[] getValues() {
-    return myValueMappings.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : ArrayUtil.toStringArray(myValueMappings.keySet());
+    return myValueMappings.isEmpty() ? EMPTY_STRING_ARRAY : myValueMappings.keySet().toArray(EMPTY_STRING_ARRAY);
   }
 
   @Nullable
