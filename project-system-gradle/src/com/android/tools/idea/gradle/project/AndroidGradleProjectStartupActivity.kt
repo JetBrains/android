@@ -46,8 +46,10 @@ import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -56,6 +58,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -66,10 +69,16 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
@@ -84,40 +93,60 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
  */
-class AndroidGradleProjectStartupActivity : StartupActivity {
-  override fun runActivity(project: Project) {
-    val gradleProjectInfo = GradleProjectInfo.getInstance(project)
-    val info = Info.getInstance(project)
+class AndroidGradleProjectStartupActivity : ProjectActivity {
 
-    fun shouldSyncOrAttachModels(): Boolean {
-      if (gradleProjectInfo.isSkipStartupActivity) return false
+  @Service(Service.Level.PROJECT)
+  class StartupService : AndroidGradleProjectStartupService<Unit>()
 
-      // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-      if (info.androidModules.isNotEmpty()) return true
+  override suspend fun execute(project: Project) {
+    project.service<StartupService>().runInitialization {
+      // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
+      // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
+      // programming I'd probably use an atomic integer and wait for the count to reach 3.
+      val myJob = currentCoroutineContext().job
+      val externalProjectsJob = CompletableDeferred<Unit>(parent = myJob)
+      val jpsProjectJob = CompletableDeferred<Unit>(parent = myJob)
+      val newProjectStartupJob = project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().deferred
 
-      // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
+      ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
+      whenAllModulesLoaded(project) { jpsProjectJob.complete(Unit) }
+      awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
+
+      performActivity(project)
     }
-
-    // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
-    // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
-    removeGradleProducersFromIgnoredList(project)
-
-    if (shouldSyncOrAttachModels()) {
-      whenAllModulesLoaded(project) {
-        invokeAndWaitIfNeeded {
-          removePointlessModules(project)
-          attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
-          subscribeToGradleSettingChanges(project)
-        }
-      }
-    }
-
-    gradleProjectInfo.isSkipStartupActivity = false
   }
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
+
+private suspend fun performActivity(project: Project) {
+  val gradleProjectInfo = GradleProjectInfo.getInstance(project)
+  val info = Info.getInstance(project)
+
+  fun shouldSyncOrAttachModels(): Boolean {
+    if (gradleProjectInfo.isSkipStartupActivity) return false
+
+    // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
+    if (info.androidModules.isNotEmpty()) return true
+
+    // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
+    return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
+  }
+
+  // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
+  // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
+  removeGradleProducersFromIgnoredList(project)
+
+  if (shouldSyncOrAttachModels()) {
+    withContext(Dispatchers.EDT) {
+      removePointlessModules(project)
+      attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+      subscribeToGradleSettingChanges(project)
+    }
+  }
+
+  gradleProjectInfo.isSkipStartupActivity = false
+}
 
 private fun subscribeToGradleSettingChanges(project: Project) {
   val disposable = project.getService(AndroidStartupManager.ProjectDisposableScope::class.java)
