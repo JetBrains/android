@@ -283,7 +283,7 @@ class GalleryTabs<Key : TitledKey>(
     ActionToolbarImpl(place, actionGroup, true).apply {
       targetComponent = root
       ActionToolbarUtil.makeToolbarNavigable(this)
-      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
+      layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
       setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
     }
 

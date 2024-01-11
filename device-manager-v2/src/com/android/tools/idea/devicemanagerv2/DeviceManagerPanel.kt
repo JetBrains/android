@@ -316,7 +316,7 @@ constructor(
   private fun createToolbar(actions: List<AnAction>): ActionToolbar {
     val toolbar =
       ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, DefaultActionGroup(actions), true)
-    toolbar.layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)

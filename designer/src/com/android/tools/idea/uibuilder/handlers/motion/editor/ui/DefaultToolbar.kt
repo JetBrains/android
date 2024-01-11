@@ -29,7 +29,7 @@ class DefaultToolbarImpl(parent: JComponent, place: String, actions: List<AnActi
   init {
     targetComponent = parent
     ActionToolbarUtil.makeToolbarNavigable(this)
-    layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
+    layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 }

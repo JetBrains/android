@@ -30,7 +30,7 @@ fun createStatusIcon(action: AnAction, target: JComponent): JComponent {
     .apply {
       targetComponent = target
       (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
+      layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
     }
     .component
     .apply {

@@ -263,7 +263,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ACTION_BAR_PLACE, actionGroup, true);
     toolbar.setTargetComponent(this);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
-    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY);
+    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.NOWRAP_STRATEGY);
     return toolbar;
   }
 

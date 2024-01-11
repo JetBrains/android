@@ -425,7 +425,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     actionToolbar.setMinimumButtonSize(myDefinition.getButtonSize());
     actionToolbar.setTargetComponent(myPanel);
-    actionToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY);
+    actionToolbar.setLayoutStrategy(ToolbarLayoutStrategy.NOWRAP_STRATEGY);
     actionToolbar.setReservePlaceAutoPopupIcon(false);
     actionToolbar.updateActionsImmediately();
     return actionToolbar;

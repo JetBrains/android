@@ -176,7 +176,7 @@ abstract class RunningDevicePanel(
   private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutStrategy = if (horizontal) ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY else ToolbarLayoutStrategy.VERTICAL_AUTOLAYOUT_STRATEGY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)

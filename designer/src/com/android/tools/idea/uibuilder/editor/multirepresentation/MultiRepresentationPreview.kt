@@ -25,7 +25,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -416,7 +415,7 @@ open class MultiRepresentationPreview(
   private fun createActionToolbar(group: ActionGroup): ActionToolbarImpl {
     val toolbar = ActionManager.getInstance().createActionToolbar("top", group, true)
     toolbar.targetComponent = component
-    toolbar.layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_WRAP_STRATEGY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.WRAP_STRATEGY
     if (group === ActionGroup.EMPTY_GROUP) {
       toolbar.component.isVisible = false
     }

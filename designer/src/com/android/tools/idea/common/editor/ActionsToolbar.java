@@ -132,7 +132,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     Disposer.register(this, myToolbarActionGroups);
 
     myNorthToolbar = createActionToolbar("NlConfigToolbar", myToolbarActionGroups.getNorthGroup());
-    myNorthToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
+    myNorthToolbar.setLayoutStrategy(ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY);
     myNorthToolbar.setLayoutSecondaryActions(true);
     myNorthToolbar.setTargetComponent(mySurface);
 
@@ -145,7 +145,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
     myNorthEastToolbar.setReservePlaceAutoPopupIcon(false);
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
-    myNorthEastToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
+    myNorthEastToolbar.setLayoutStrategy(ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY);
     myNorthEastToolbar.setLayoutSecondaryActions(true);
 
     myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
@@ -183,7 +183,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @NotNull
   private static ActionToolbarImpl createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(place, group, true);
-    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_WRAP_STRATEGY);
+    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.WRAP_STRATEGY);
     if (group == ActionGroup.EMPTY_GROUP) {
       toolbar.getComponent().setVisible(false);
     }

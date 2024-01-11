@@ -261,7 +261,7 @@ private fun createToolbar(
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
   val toolbar =
     actionManager.createActionToolbar(place, actionGroup, false).apply {
-      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_WRAP_STRATEGY
+      layoutStrategy = ToolbarLayoutStrategy.WRAP_STRATEGY
       setTargetComponent(target)
       setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
       component.apply {

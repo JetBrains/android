@@ -39,7 +39,6 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -728,7 +727,7 @@ class ResourceExplorerListView(
       }
 
       val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
-        layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
+        layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
       }
       toolbar.targetComponent = this@apply
 
