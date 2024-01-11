@@ -74,6 +74,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -82,6 +84,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -90,6 +94,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -98,6 +104,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
@@ -172,6 +180,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -180,6 +190,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -188,6 +200,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -196,6 +210,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
@@ -267,6 +283,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -275,6 +293,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -283,6 +303,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -291,6 +313,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
@@ -360,6 +384,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -368,6 +394,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -376,6 +404,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -384,6 +414,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
@@ -437,6 +469,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
@@ -445,6 +479,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
@@ -453,6 +489,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -461,6 +499,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
@@ -533,6 +573,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
@@ -541,6 +583,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
@@ -549,6 +593,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -557,6 +603,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
@@ -627,6 +675,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
@@ -635,6 +685,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
@@ -643,6 +695,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -651,6 +705,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
@@ -718,6 +774,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
@@ -726,6 +784,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
@@ -734,6 +794,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -742,6 +804,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
                 SOURCE_GEN                    : :lib:generateDebugSources
                 BUNDLE                        : :lib:bundleDebug
                 APK_FROM_BUNDLE               : :lib:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
@@ -751,6 +815,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
             BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::lib:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app:generateBaselineProfile, <PROJECT>::lib:generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
@@ -759,6 +825,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2
             BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::lib:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app:generateBaselineProfile, <PROJECT>::lib:generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
@@ -767,6 +835,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
             BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::lib:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app:generateBaselineProfile, <PROJECT>::lib:generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::lib:assembleDebug
@@ -775,3 +845,5 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::lib:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app:generateBaselineProfile, <PROJECT>::lib:generateBaselineProfile

@@ -40,6 +40,8 @@ interface GradleBuildInvoker {
   fun rebuild(): ListenableFuture<GradleMultiInvocationResult>
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
 
+  fun generateBaselineProfileSources(taskId: ExternalSystemTaskId, modules: Array<Module>, envVariables: Map<String, String>, args: List<String>, generateAllVariants: Boolean): ListenableFuture<GradleMultiInvocationResult>
+
   /**
    * Executes Gradle tasks requested in each request in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
    * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [AssembleInvocationResult], however,

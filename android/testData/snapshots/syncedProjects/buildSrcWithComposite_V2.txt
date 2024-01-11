@@ -80,6 +80,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -88,6 +90,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -96,6 +100,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -104,6 +110,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : BuildSrcWithComposite.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : BuildSrcWithComposite.app
@@ -354,6 +362,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -362,6 +372,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -370,6 +382,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -378,6 +392,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : BuildSrcWithComposite.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : BuildSrcWithComposite.app
@@ -536,6 +552,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -544,6 +562,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -552,6 +572,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -560,6 +582,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : BuildSrcWithComposite.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : BuildSrcWithComposite.app
@@ -780,6 +804,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
@@ -788,6 +814,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
@@ -796,6 +824,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -804,6 +834,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : BuildSrcWithComposite.buildSrc
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -1425,6 +1457,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest
@@ -1433,6 +1467,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugUnitTest
@@ -1441,6 +1477,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
@@ -1449,6 +1487,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
     MODULE                        : android-included.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.app
@@ -1613,6 +1653,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest
@@ -1621,6 +1663,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugUnitTest
@@ -1629,6 +1673,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
@@ -1637,6 +1683,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
     MODULE                        : android-included.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.app
@@ -1766,6 +1814,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest
@@ -1774,6 +1824,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugUnitTest
@@ -1782,6 +1834,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
@@ -1790,6 +1844,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
     MODULE                        : android-included.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.app
@@ -1948,6 +2004,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest
@@ -1956,6 +2014,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugUnitTest
@@ -1964,6 +2024,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
@@ -1972,6 +2034,8 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
                 BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
                 APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
     MODULE                        : android-included.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.lib
@@ -2025,24 +2089,32 @@ PROJECT                       : BuildSrcWithComposite
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
     MODULE                        : android-included.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.lib
@@ -2149,24 +2221,32 @@ PROJECT                       : BuildSrcWithComposite
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
     MODULE                        : android-included.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.lib
@@ -2266,24 +2346,32 @@ PROJECT                       : BuildSrcWithComposite
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
     MODULE                        : android-included.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.lib
@@ -2384,24 +2472,32 @@ PROJECT                       : BuildSrcWithComposite
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
                 COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
     MODULE                        : java-included
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleVersion         : 1.0
@@ -2790,6 +2886,8 @@ PROJECT                       : BuildSrcWithComposite
             SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::java-included:assemble
@@ -2798,6 +2896,8 @@ PROJECT                       : BuildSrcWithComposite
             SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
@@ -2806,6 +2906,8 @@ PROJECT                       : BuildSrcWithComposite
             SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::app:assembleDebug, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::java-included:assemble
@@ -2814,3 +2916,5 @@ PROJECT                       : BuildSrcWithComposite
             SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile

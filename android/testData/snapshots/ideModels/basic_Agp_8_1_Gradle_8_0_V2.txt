@@ -53,6 +53,8 @@ MODULE                        : project
             SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
             ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
@@ -61,6 +63,8 @@ MODULE                        : project
             SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : :createMockableJar, :generateDebugSources
             ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
@@ -69,6 +73,8 @@ MODULE                        : project
             SOURCE_GEN                    : :createMockableJar, :generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : :generateDebugSources
             ASSEMBLE                      : :assembleDebug
@@ -77,6 +83,8 @@ MODULE                        : project
             SOURCE_GEN                    : :generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
 LIBRARY_TABLE
     - library                     : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]

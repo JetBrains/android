@@ -33,6 +33,8 @@ import com.android.tools.idea.gradle.util.BuildMode.CLEAN
 import com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA
 import com.android.tools.idea.gradle.util.BuildMode.REBUILD
 import com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN
+import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN
+import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS
 import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
@@ -303,6 +305,29 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
+  override fun generateBaselineProfileSources(
+    taskId: ExternalSystemTaskId,
+    modules: Array<Module>,
+    envVariables: Map<String, String>,
+    args: List<String>,
+    generateAllVariants: Boolean
+  ): ListenableFuture<GradleMultiInvocationResult> {
+    val buildMode = if (generateAllVariants) BASELINE_PROFILE_GEN_ALL_VARIANTS else BASELINE_PROFILE_GEN
+    val tasks: ListMultimap<Path, String> = taskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE)
+    return combineGradleInvocationResults(
+      tasks.keySet()
+        .map { rootPath -> executeTasks(
+          GradleBuildInvoker.Request.builder(project, rootPath.toFile(), tasks.get(rootPath))
+            .setTaskId(taskId)
+            .setMode(buildMode)
+            .setCommandLineArguments(args)
+            .withEnvironmentVariables(envVariables)
+            .build()
+        )
+      }
+    )
+  }
+
   private fun executeTasks(
     buildMode: BuildMode,
     rootProjectPath: File,
@@ -322,7 +347,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     buildMode: BuildMode,
     rootProjectPath: File,
     gradleTasks: List<String>,
-    commandLineArguments: List<String>
+    commandLineArguments: List<String>,
   ): ListenableFuture<GradleInvocationResult> {
     return executeTasks(
       GradleBuildInvoker.Request.builder(project, rootProjectPath, gradleTasks)

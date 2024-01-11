@@ -1,13 +1,10 @@
 package com.android.tools.idea.run.configuration
 
-import ai.grazie.utils.capitalize
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.util.BaselineProfileUtil.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.resolve
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
@@ -30,7 +27,6 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.WithoutOwnBeforeRunSteps
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
@@ -40,16 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.Icon
-
-/**
- * Baseline profiles Gradle plugin is only available from this version of AGP.
- */
-val BP_PLUGIN_MIN_SUPPORTED = AgpVersion(8, 0, 0)
-
-/**
- * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
- */
-val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
 
 class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
   companion object {
@@ -148,18 +134,6 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
 
   override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet?, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
     return AndroidBaselineProfileConfigurationExecutor(env, deployFutures)
-  }
-
-  fun getTaskNames(): List<String> {
-    val variantName = if (generateAllVariants) "" else configurationModule.module?.let {
-      GradleAndroidModel.get(it)?.selectedVariant?.name?.capitalize() ?: ""
-    }
-    val taskName = "generate${variantName}BaselineProfile"
-    return listOf(configurationModule.module?.getGradleProjectPath()?.resolve(taskName)?.path ?: taskName)
-  }
-
-  fun getPath(): String? {
-    return ExternalSystemApiUtil.getExternalRootProjectPath(configurationModule.module)
   }
 
   fun getFilterArgument(): String? {

@@ -114,6 +114,8 @@ class GradleTaskFinderWorker private constructor(
       BuildMode.COMPILE_JAVA -> moduleToProcess.expand() // TODO(b/235567998): no need - compilation naturally follows dependencies.
       BuildMode.SOURCE_GEN -> moduleToProcess.expand()  // TODO(b/235567998): no need - invoked on this module only. It should be invoked
                                                         // on all modules when needed.
+      BuildMode.BASELINE_PROFILE_GEN -> moduleToProcess.expand()
+      BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> moduleToProcess.expand()
     }
   }
 
@@ -235,6 +237,20 @@ class GradleTaskFinderWorker private constructor(
               else emptySet()
             )
           }
+          BuildMode.BASELINE_PROFILE_GEN -> {
+            ModuleTasks(
+              module = moduleToProcess.module,
+              cleanTasks = emptySet(),
+              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(false))
+            )
+          }
+          BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> {
+            ModuleTasks(
+              module = moduleToProcess.module,
+              cleanTasks = emptySet(),
+              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(true))
+            )
+          }
         }
       }
 
@@ -244,7 +260,7 @@ class GradleTaskFinderWorker private constructor(
           cleanTasks = when (moduleToProcess.buildMode) {
             BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
             BuildMode.REBUILD -> setOf("clean")
-            BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE -> emptySet()
+            BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE, BuildMode.BASELINE_PROFILE_GEN, BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> emptySet()
           },
           tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.testCompileMode)
         )
@@ -328,6 +344,8 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCo
       BuildMode.SOURCE_GEN -> null
       BuildMode.BUNDLE -> null
       BuildMode.APK_FROM_BUNDLE -> null
+      BuildMode.BASELINE_PROFILE_GEN -> null
+      BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
     },
     if (testCompileMode.compileUnitTests) {
       when (buildMode) {
@@ -338,6 +356,8 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCo
         BuildMode.SOURCE_GEN -> null
         BuildMode.BUNDLE -> null
         BuildMode.APK_FROM_BUNDLE -> null
+        BuildMode.BASELINE_PROFILE_GEN -> null
+        BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
       }
     } else null
   )

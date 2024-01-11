@@ -33,6 +33,8 @@ private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.Buil
   BuildMode.SOURCE_GEN -> ProjectSystemBuildManager.BuildMode.UNKNOWN
   BuildMode.BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
   BuildMode.APK_FROM_BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.BASELINE_PROFILE_GEN -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
 }
 
 @Service

@@ -105,24 +105,32 @@ PROJECT                       : project
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources, :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
     MODULE                        : project.ads-sdk-implementation.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.ads-sdk-implementation
@@ -230,24 +238,32 @@ PROJECT                       : project
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources, :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
     MODULE                        : project.ads-sdk-implementation.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.ads-sdk-implementation
@@ -350,24 +366,32 @@ PROJECT                       : project
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources, :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
     MODULE                        : project.ads-sdk-implementation.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.ads-sdk-implementation
@@ -470,24 +494,32 @@ PROJECT                       : project
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources, :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugAndroidTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugAndroidTestSources, :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugAndroidTestSources, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:assembleDebugUnitTest, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugUnitTestSources
                 SOURCE_GEN                    : :ads-sdk-implementation:createMockableJar, :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug
                 REBUILD                       : :ads-sdk-implementation:assembleDebug, :ads-sdk-implementation:clean
                 COMPILE_JAVA                  : :ads-sdk-implementation:compileDebugSources
                 SOURCE_GEN                    : :ads-sdk-implementation:generateDebugSources
+                BASELINE_PROFILE_GEN          : :ads-sdk-implementation:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :ads-sdk-implementation:generateBaselineProfile
     MODULE                        : project.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -543,6 +575,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -551,6 +585,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -559,6 +595,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -567,6 +605,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app-with-dynamic-feature
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app-with-dynamic-feature
@@ -622,6 +662,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -630,6 +672,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugUnitTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugUnitTest
@@ -638,6 +682,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug
@@ -646,6 +692,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
     MODULE                        : project.app-with-dynamic-feature.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app-with-dynamic-feature
@@ -836,6 +884,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -844,6 +894,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugUnitTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugUnitTest
@@ -852,6 +904,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug
@@ -860,6 +914,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
     MODULE                        : project.app-with-dynamic-feature.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app-with-dynamic-feature
@@ -992,6 +1048,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -1000,6 +1058,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugUnitTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugUnitTest
@@ -1008,6 +1068,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug
@@ -1016,6 +1078,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
     MODULE                        : project.app-with-dynamic-feature.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app-with-dynamic-feature
@@ -1176,6 +1240,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -1184,6 +1250,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugUnitTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugUnitTest
@@ -1192,6 +1260,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug
@@ -1200,6 +1270,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
     MODULE                        : project.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -1388,6 +1460,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1396,6 +1470,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1404,6 +1480,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1412,6 +1490,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -1544,6 +1624,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1552,6 +1634,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1560,6 +1644,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1568,6 +1654,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -1728,6 +1816,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1736,6 +1826,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1744,6 +1836,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1752,6 +1846,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.feature
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.feature
@@ -1807,6 +1903,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -1815,18 +1913,24 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug, :feature:assembleDebugUnitTest
                 REBUILD                       : :feature:assembleDebug, :feature:assembleDebugUnitTest, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :feature:createMockableJar, :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug
                 REBUILD                       : :feature:assembleDebug, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugSources
                 SOURCE_GEN                    : :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
     MODULE                        : project.feature.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.feature
@@ -1930,6 +2034,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -1938,18 +2044,24 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug, :feature:assembleDebugUnitTest
                 REBUILD                       : :feature:assembleDebug, :feature:assembleDebugUnitTest, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :feature:createMockableJar, :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug
                 REBUILD                       : :feature:assembleDebug, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugSources
                 SOURCE_GEN                    : :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
     MODULE                        : project.feature.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.feature
@@ -2051,6 +2163,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -2059,18 +2173,24 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug, :feature:assembleDebugUnitTest
                 REBUILD                       : :feature:assembleDebug, :feature:assembleDebugUnitTest, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :feature:createMockableJar, :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug
                 REBUILD                       : :feature:assembleDebug, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugSources
                 SOURCE_GEN                    : :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
     MODULE                        : project.feature.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.feature
@@ -2169,6 +2289,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:createMockableJar, :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:createMockableJar, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:assembleDebugAndroidTest, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, :feature:assembleDebug, :feature:assembleDebugAndroidTest
@@ -2177,18 +2299,24 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app-with-dynamic-feature:generateDebugAndroidTestSources, :app-with-dynamic-feature:generateDebugSources, :feature:generateDebugAndroidTestSources, :feature:generateDebugSources
                 BUNDLE                        : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:bundleDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :app-with-dynamic-feature:generateDebugBaselineProfile, :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app-with-dynamic-feature:generateBaselineProfile, :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :feature:createMockableJar, :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug, :feature:assembleDebugUnitTest
                 REBUILD                       : :feature:assembleDebug, :feature:assembleDebugUnitTest, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugUnitTestSources
                 SOURCE_GEN                    : :feature:createMockableJar, :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug
                 REBUILD                       : :feature:assembleDebug, :feature:clean
                 COMPILE_JAVA                  : :feature:compileDebugSources
                 SOURCE_GEN                    : :feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app.main
@@ -2355,6 +2483,8 @@ PROJECT                       : project
             SOURCE_GEN                    : <PROJECT>::ads-sdk-implementation:createMockableJar, <PROJECT>::ads-sdk-implementation:generateDebugAndroidTestSources, <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:createMockableJar, <PROJECT>::app-with-dynamic-feature:generateDebugAndroidTestSources, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:createMockableJar, <PROJECT>::feature:generateDebugAndroidTestSources, <PROJECT>::feature:generateDebugSources
             BUNDLE                        : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:bundleDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:bundleDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::feature:assembleDebugAndroidTest
+            BASELINE_PROFILE_GEN          : <PROJECT>::app-with-dynamic-feature:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::feature:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app-with-dynamic-feature:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile, <PROJECT>::feature:generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::ads-sdk-implementation:generateDebugAndroidTestSources, <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:generateDebugAndroidTestSources, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:generateDebugAndroidTestSources, <PROJECT>::feature:generateDebugSources
             ASSEMBLE                      : <PROJECT>::ads-sdk-implementation:assembleDebug, <PROJECT>::ads-sdk-implementation:assembleDebugAndroidTest, <PROJECT>::app-with-dynamic-feature:assembleDebug, <PROJECT>::app-with-dynamic-feature:assembleDebugAndroidTest, <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::feature:assembleDebug, <PROJECT>::feature:assembleDebugAndroidTest
@@ -2363,6 +2493,8 @@ PROJECT                       : project
             SOURCE_GEN                    : <PROJECT>::ads-sdk-implementation:generateDebugAndroidTestSources, <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:generateDebugAndroidTestSources, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:generateDebugAndroidTestSources, <PROJECT>::feature:generateDebugSources
             BUNDLE                        : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:bundleDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:bundleDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::feature:assembleDebugAndroidTest
+            BASELINE_PROFILE_GEN          : <PROJECT>::app-with-dynamic-feature:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::feature:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app-with-dynamic-feature:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile, <PROJECT>::feature:generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::ads-sdk-implementation:createMockableJar, <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:createMockableJar, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:createMockableJar, <PROJECT>::feature:generateDebugSources
             ASSEMBLE                      : <PROJECT>::ads-sdk-implementation:assembleDebug, <PROJECT>::ads-sdk-implementation:assembleDebugUnitTest, <PROJECT>::app-with-dynamic-feature:assembleDebug, <PROJECT>::app-with-dynamic-feature:assembleDebugUnitTest, <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::feature:assembleDebug, <PROJECT>::feature:assembleDebugUnitTest
@@ -2371,6 +2503,8 @@ PROJECT                       : project
             SOURCE_GEN                    : <PROJECT>::ads-sdk-implementation:createMockableJar, <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:createMockableJar, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:createMockableJar, <PROJECT>::feature:generateDebugSources
             BUNDLE                        : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:bundleDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:bundleDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app-with-dynamic-feature:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::feature:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app-with-dynamic-feature:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile, <PROJECT>::feature:generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:generateDebugSources
             ASSEMBLE                      : <PROJECT>::ads-sdk-implementation:assembleDebug, <PROJECT>::app-with-dynamic-feature:assembleDebug, <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::app:assembleDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::feature:assembleDebug
@@ -2379,3 +2513,5 @@ PROJECT                       : project
             SOURCE_GEN                    : <PROJECT>::ads-sdk-implementation:generateDebugSources, <PROJECT>::app-with-dynamic-feature:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature:generateDebugSources
             BUNDLE                        : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:bundleDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:bundleDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : <PROJECT>::app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksForDebug, <PROJECT>::app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug
+            BASELINE_PROFILE_GEN          : <PROJECT>::app-with-dynamic-feature:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile, <PROJECT>::feature:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::app-with-dynamic-feature:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile, <PROJECT>::feature:generateBaselineProfile

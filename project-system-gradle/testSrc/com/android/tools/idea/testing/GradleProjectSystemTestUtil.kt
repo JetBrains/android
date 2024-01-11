@@ -57,6 +57,13 @@ fun Project.hookExecuteTasks(): List<GradleBuildInvoker.Request> {
     override fun bundle(modules: Array<Module>) = notHooked()
     override fun rebuild() = notHooked()
     override fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>) = notHooked()
+    override fun generateBaselineProfileSources(
+      taskId: ExternalSystemTaskId,
+      modules: Array<Module>,
+      envVariables: Map<String, String>,
+      args: List<String>,
+      generateAllVariants: Boolean
+    ): ListenableFuture<GradleMultiInvocationResult> = notHooked()
     override fun executeAssembleTasks(assembledModules: Array<Module>, request: List<GradleBuildInvoker.Request>) = notHooked()
     override fun stopBuild(id: ExternalSystemTaskId): Boolean = notHooked()
 

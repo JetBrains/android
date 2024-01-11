@@ -38,7 +38,13 @@ public enum BuildMode {
   BUNDLE,
 
   /** Build APKS from the Gradle "bundle" task*/
-  APK_FROM_BUNDLE;
+  APK_FROM_BUNDLE,
+
+  /** Generate baseline profile */
+  BASELINE_PROFILE_GEN,
+
+  /** Generate baseline profile for all variants */
+  BASELINE_PROFILE_GEN_ALL_VARIANTS;
 
   /**
    * This build mode is used when user invokes "Build" > "Make" or "Build" > "Rebuild". For these cases, Studio does not have a chance to

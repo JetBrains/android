@@ -106,6 +106,8 @@ fun ProjectDumper.dumpProject(project: Project) {
         BuildMode.APK_FROM_BUNDLE -> appModules
         BuildMode.BUNDLE -> appModules
         BuildMode.SOURCE_GEN -> allModules
+        BuildMode.BASELINE_PROFILE_GEN -> appModules
+        BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> appModules
       }
     }
   }

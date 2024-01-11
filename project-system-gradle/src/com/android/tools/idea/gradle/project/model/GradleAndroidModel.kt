@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.variantNames
+import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
@@ -53,6 +54,7 @@ import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
+import java.util.Locale
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -116,6 +118,14 @@ class GradleAndroidModel(
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
     return selectedVariantCore.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
+  }
+
+  fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String? {
+    val variant = if (useAllVariants) "" else selectedVariantName.replaceFirstChar {
+      if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
+
+    return getGenerateBaselineProfileTaskName(variant, agpVersion)
   }
 
   val selectedAndroidTestCompileDependencies: IdeDependencies? get() =

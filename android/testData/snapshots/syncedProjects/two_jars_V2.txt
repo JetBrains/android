@@ -56,6 +56,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
@@ -64,6 +66,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :createMockableJar, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
@@ -72,6 +76,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
@@ -80,6 +86,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : My_Application.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : My_Application
@@ -167,6 +175,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
@@ -175,6 +185,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :createMockableJar, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
@@ -183,6 +195,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
@@ -191,6 +205,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : My_Application.lib
         ExternalModuleGroup           : My Application
         ExternalModuleVersion         : unspecified
@@ -408,6 +424,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
@@ -416,6 +434,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :createMockableJar, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
@@ -424,6 +444,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
@@ -432,6 +454,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : My_Application.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : My_Application
@@ -510,6 +534,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
@@ -518,6 +544,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :createMockableJar, :generateDebugSources
                 ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
@@ -526,6 +554,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :createMockableJar, :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
@@ -534,6 +564,8 @@ PROJECT                       : My Application
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     RUN_CONFIGURATION             : My_Application
         *class*                       : AndroidRunConfiguration
         ModuleName                    : My_Application.main
@@ -552,6 +584,8 @@ PROJECT                       : My Application
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::lib:assemble
@@ -560,6 +594,8 @@ PROJECT                       : My Application
             SOURCE_GEN                    : <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::createMockableJar, <PROJECT>::generateDebugSources
             ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest, <PROJECT>::lib:assemble, <PROJECT>::lib:testClasses
@@ -568,6 +604,8 @@ PROJECT                       : My Application
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::generateDebugSources
             ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::lib:assemble
@@ -576,3 +614,5 @@ PROJECT                       : My Application
             SOURCE_GEN                    : <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile

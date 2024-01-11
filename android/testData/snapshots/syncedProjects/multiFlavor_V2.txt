@@ -80,6 +80,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
@@ -88,6 +90,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
@@ -96,6 +100,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
@@ -104,6 +110,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -301,6 +309,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
@@ -309,6 +319,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
@@ -317,6 +329,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
@@ -325,6 +339,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -466,6 +482,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
@@ -474,6 +492,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
@@ -482,6 +502,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
@@ -490,6 +512,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -652,6 +676,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
@@ -660,6 +686,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
@@ -668,6 +696,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
@@ -676,6 +706,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : MultiFlavor.app.main
@@ -805,6 +837,8 @@ PROJECT                       : MultiFlavor
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+            BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest
@@ -813,6 +847,8 @@ PROJECT                       : MultiFlavor
             SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+            BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest
@@ -821,6 +857,8 @@ PROJECT                       : MultiFlavor
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+            BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug
@@ -829,3 +867,5 @@ PROJECT                       : MultiFlavor
             SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+            BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
