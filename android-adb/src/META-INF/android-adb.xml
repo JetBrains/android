@@ -50,7 +50,7 @@
 
     <group id="android.device.reservation.extend"
            class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction"
-           icon="AllIcons.Actions.Resume"
+           icon="StudioIcons.Emulator.Toolbar.SESSION"
            text="Extend Reservation"
            description="Extend device reservation"
            popup="true">
