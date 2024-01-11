@@ -55,7 +55,7 @@ class GoldenFileValidator(
 
     // Although this is generating files, it's run as part of GoldenFileValidator instead of
     // GoldenFileGenerator to avoid Gradle syncing twice
-    //generateLintBaseline(projectDir)
+    generateLintBaseline(projectDir)
   }
 
   /**
