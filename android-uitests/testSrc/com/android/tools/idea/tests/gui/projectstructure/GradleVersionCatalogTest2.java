@@ -124,7 +124,7 @@ public class GradleVersionCatalogTest2 {
     //Test find usages
     editor.open(versionsFilePath);
 
-    editor.select(String.format("(androidApplication)"))
+    editor.select(String.format("(android-application)"))
       .invokeAction(EditorFixture.EditorAction.FIND_USAGES);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
