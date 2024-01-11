@@ -54,6 +54,7 @@ import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.application
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
@@ -257,9 +258,13 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
             }
             .build()
             .also {
-              Disposer.register(parentDisposable) {
-                it.shutdown()
-                it.awaitTermination(1, TimeUnit.SECONDS)
+              try {
+                Disposer.register(parentDisposable) {
+                  it.shutdown()
+                  it.awaitTermination(1, TimeUnit.SECONDS)
+                }
+              } catch (e: IncorrectOperationException) {
+                it.shutdownNow()
               }
             },
         authTokenInterceptor = GoogleLogin.instance.getActiveUserAuthInterceptor()

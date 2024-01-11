@@ -48,6 +48,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.IncorrectOperationException
 import java.time.Clock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.BufferOverflow
@@ -185,10 +186,17 @@ class VitalsConfigurationManager(
         } else {
           clientDeferred.complete(testClient)
         }
+        val uiScope =
+          try {
+            AndroidCoroutineScope(this@VitalsConfigurationManager, AndroidDispatchers.uiThread)
+          } catch (e: IncorrectOperationException) {
+            // Project is disposed.
+            return@launch
+          }
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
             key = VITALS_KEY,
-            AndroidCoroutineScope(this@VitalsConfigurationManager, AndroidDispatchers.uiThread),
+            uiScope,
             AndroidDispatchers.workerThread,
             clientDeferred.await(),
             queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
