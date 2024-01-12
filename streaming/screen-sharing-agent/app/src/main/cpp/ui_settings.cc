@@ -39,6 +39,7 @@ namespace {
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
 #define FONT_SIZE_DIVIDER "-- Font Size --"
 #define DENSITY_DIVIDER "-- Density --"
+#define FOREGROUND_APPLICATION_DIVIDER "-- Foreground Application --"
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
 
 #define ENABLED_ACCESSIBILITY_SERVICES "enabled_accessibility_services"
@@ -51,6 +52,12 @@ namespace {
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
 
+struct CommandContext {
+    set<string> enabled;
+    set<string> buttons;
+    string foreground_application_id;
+};
+
 string TrimEnd(string value) {
   while (!value.empty() && value.back() <= ' ') {
     value.erase(value.size() - 1);
@@ -58,16 +65,16 @@ string TrimEnd(string value) {
   return value;
 }
 
-void ProcessDarkMode(stringstream* stream, UiSettingsResponse* response) {
+void ProcessDarkMode(stringstream* stream, UiSettingsState* state) {
   string line;
   bool dark_mode = false;
   if (getline(*stream, line, '\n')) {
     dark_mode = line == "Night mode: yes";
   }
-  response->set_dark_mode(dark_mode);
+  state->set_dark_mode(dark_mode);
 }
 
-void ProcessListPackages(stringstream* stream, UiSettingsResponse* response) {
+void ProcessListPackages(stringstream* stream, UiSettingsState* state) {
   string line;
   string talkBackServiceLine = string("package:" TALKBACK_PACKAGE_NAME);
   bool talkback_installed = false;
@@ -80,7 +87,7 @@ void ProcessListPackages(stringstream* stream, UiSettingsResponse* response) {
     line_start_position = stream->tellg();
     talkback_installed = talkback_installed || (line == talkBackServiceLine);
   }
-  response->set_talkback_installed(talkback_installed);
+  state->set_talkback_installed(talkback_installed);
 }
 
 void GetAccessibilityServices(string accessibility_line, set<string>* services) {
@@ -101,13 +108,13 @@ void ProcessAccessibilityServices(stringstream* stream, set<string>* services) {
   }
 }
 
-void ProcessFontSize(stringstream* stream, UiSettingsResponse* response) {
+void ProcessFontSize(stringstream* stream, UiSettingsState* state) {
   string line;
   float font_size = 1;
   if (getline(*stream, line, '\n')) {
     sscanf(line.c_str(), "%g", &font_size);
   }
-  response->set_font_size(font_size * 100.);
+  state->set_font_size(font_size * 100.);
 }
 
 void ReadDensity(stringstream* stream, const char* pattern, int* density) {
@@ -123,7 +130,7 @@ void ReadDensity(stringstream* stream, const char* pattern, int* density) {
   }
 }
 
-void ProcessDensity(stringstream* stream, UiSettingsResponse* response) {
+void ProcessDensity(stringstream* stream, UiSettingsState* state) {
   int physical_density, override_density;
   ReadDensity(stream, PHYSICAL_DENSITY_PATTERN, &physical_density);
   ReadDensity(stream, OVERRIDE_DENSITY_PATTERN, &override_density);
@@ -133,7 +140,40 @@ void ProcessDensity(stringstream* stream, UiSettingsResponse* response) {
   if (override_density == 0) {
     override_density = physical_density;
   }
-  response->set_density(override_density);
+  state->set_density(override_density);
+}
+
+// Example: "    Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.process1/u0a405 (top-activity)"
+bool ParseForegroundProcessLine(const string& line, string* foreground_application_id) {
+  regex pattern("\\d*:(\\S*)/\\S* \\(top-activity\\)");
+  smatch match;
+  try {
+    if (!regex_search(line, match, pattern) || match.size() != 2) {
+      return false;
+    }
+  } catch (const std::regex_error& e) {
+    return false;
+  }
+  *foreground_application_id = match[1];
+  return true;
+}
+
+void ProcessForegroundProcess(stringstream* stream, CommandContext* context) {
+  string line;
+  string locale;
+  string application_id;
+  int line_start_position = stream->tellg();
+  if (getline(*stream, line, '\n')) {
+
+    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
+      stream->seekg(line_start_position); // Go back to start of line
+      return;
+    }
+    string foreground_application_id;
+    if (ParseForegroundProcessLine(line, &foreground_application_id)) {
+      context->foreground_application_id = foreground_application_id;
+    }
+  }
 }
 
 // Example: "Locales for com.example.process for user 0 are [es-CL,es]"
@@ -152,7 +192,7 @@ bool ParseAppLanguageLine(const string& line, string* application_id, string* lo
   return true;
 }
 
-void ProcessAppLanguage(stringstream* stream, UiSettingsResponse* response) {
+void ProcessAppLanguage(stringstream* stream, UiSettingsState* state) {
   string line;
   string locale;
   string application_id;
@@ -166,36 +206,34 @@ void ProcessAppLanguage(stringstream* stream, UiSettingsResponse* response) {
     if (ParseAppLanguageLine(line, &application_id, &locales)) {
       stringstream ss(locales);
       getline(ss, locale, ',');  // Read the first locale, ignore the rest
-      response->add_app_locale(application_id, locale);
+      state->add_app_locale(application_id, locale);
     }
   }
 }
 
-void ProcessAccessibility(const set<string>& enabled, const set<string>& buttons, UiSettingsResponse* response) {
-  bool talkback_on = enabled.find(string(TALK_BACK_SERVICE_NAME)) != enabled.end();
+void ProcessAccessibility(const CommandContext& context, UiSettingsState* state) {
+  bool talkback_on = context.enabled.find(string(TALK_BACK_SERVICE_NAME)) != context.enabled.end();
   bool select_to_speak_on =
-    enabled.find(string(SELECT_TO_SPEAK_SERVICE_NAME)) != enabled.end() &&
-    buttons.find(string(SELECT_TO_SPEAK_SERVICE_NAME)) != buttons.end();
+    context.enabled.find(string(SELECT_TO_SPEAK_SERVICE_NAME)) != context.enabled.end() &&
+    context.buttons.find(string(SELECT_TO_SPEAK_SERVICE_NAME)) != context.buttons.end();
 
-  response->set_talkback_on(talkback_on);
-  response->set_select_to_speak_on(select_to_speak_on);
+  state->set_talkback_on(talkback_on);
+  state->set_select_to_speak_on(select_to_speak_on);
 }
 
-void ProcessAdbOutput(const string& output, UiSettingsResponse* response) {
+void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandContext* context) {
   stringstream stream(output);
   string line;
-  set<string> enabled;
-  set<string> buttons;
   while (getline(stream, line, '\n')) {
-    if (line == DARK_MODE_DIVIDER) ProcessDarkMode(&stream, response);
-    if (line == LIST_PACKAGES_DIVIDER) ProcessListPackages(&stream, response);
-    if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &enabled);
-    if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &buttons);
-    if (line == FONT_SIZE_DIVIDER) ProcessFontSize(&stream, response);
-    if (line == DENSITY_DIVIDER) ProcessDensity(&stream, response);
-    if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, response);
+    if (line == DARK_MODE_DIVIDER) ProcessDarkMode(&stream, state);
+    if (line == LIST_PACKAGES_DIVIDER) ProcessListPackages(&stream, state);
+    if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &context->enabled);
+    if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
+    if (line == FONT_SIZE_DIVIDER) ProcessFontSize(&stream, state);
+    if (line == DENSITY_DIVIDER) ProcessDensity(&stream, state);
+    if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundProcess(&stream, context);
+    if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, state);
   }
-  ProcessAccessibility(enabled, buttons, response);
 }
 
 string CombineServices(string serviceA, string serviceB) {
@@ -223,14 +261,32 @@ void ChangeSecureSetting(string settingsName, string serviceName, bool on) {
   }
 }
 
-} // namespace
-
-UiSettings::UiSettings()
-  : initial_settings_(-1),
-    last_settings_(-1) {
+void GetApplicationLocales(const vector<string>& application_ids, UiSettingsState* state) {
+  string command;
+  for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
+    command += "echo " APP_LANGUAGE_DIVIDER "; ";
+    command += "cmd locale get-app-locales ";
+    command += *it;
+    command += "; ";
+  }
+  string output = ExecuteShellCommand(command.c_str());
+  ProcessAdbOutput(TrimEnd(output), state, nullptr);
 }
 
-void UiSettings::Get(const UiSettingsRequest& request, UiSettingsResponse* response) {
+} // namespace
+
+void UiSettings::Get(UiSettingsResponse* response) {
+  UiSettingsState state;
+  Get(&state);
+  StoreInitialSettings(state);
+  state.copy(response);
+  vector<string> application_ids = state.get_application_ids();
+  string foreground_application_id = application_ids.size() == 1 ? application_ids.at(0) : "";
+  response->set_foreground_application_id(foreground_application_id);
+  response->set_app_locale(state.app_locale_of(foreground_application_id));
+}
+
+void UiSettings::Get(UiSettingsState* state) {
   string command =
     "echo " DARK_MODE_DIVIDER "; "
     "cmd uimode night; "
@@ -243,33 +299,32 @@ void UiSettings::Get(const UiSettingsRequest& request, UiSettingsResponse* respo
     "echo " FONT_SIZE_DIVIDER "; "
     "settings get system font_scale; "
     "echo " DENSITY_DIVIDER "; "
-    "wm density; ";
-
-  for (auto it = begin(request.application_ids()); it != end(request.application_ids()); it++) {
-    command += "echo " APP_LANGUAGE_DIVIDER "; ";
-    command += "cmd locale get-app-locales ";
-    command += *it;
-    command += "; ";
-  }
+    "wm density; "
+    "echo " FOREGROUND_APPLICATION_DIVIDER "; "
+    "dumpsys activity processes | grep top-activity; ";
 
   string output = ExecuteShellCommand(command.c_str());
-  ProcessAdbOutput(TrimEnd(output), response);
-  StoreInitialSettings(*response);
+  CommandContext context;
+  ProcessAdbOutput(TrimEnd(output), state, &context);
+
+  auto foreground_application_id = context.foreground_application_id;
+  if (!foreground_application_id.empty()) {
+    vector<string> application_ids;
+    application_ids.push_back(foreground_application_id);
+    GetApplicationLocales(application_ids, state);
+  }
+  ProcessAccessibility(context, state);
 }
 
-void UiSettings::StoreInitialSettings(const UiSettingsResponse& response) {
+void UiSettings::StoreInitialSettings(const UiSettingsState& state) {
   if (!initial_settings_recorded_) {
     initial_settings_recorded_ = true;
-    response.copy(&initial_settings_);
-    response.copy(&last_settings_);
+    state.copy(&initial_settings_);
+    state.copy(&last_settings_);
   }
-  // Add any application_ids not seen yet if applicable:
-  for (map<string, string>::const_iterator it = response.app_locales().begin(); it != response.app_locales().end(); it++) {
-    if (initial_settings_.app_locales().count(it->first) == 0) {
-      initial_settings_.add_app_locale(it->first, it->second);
-      last_settings_.add_app_locale(it->first, it->second);
-    }
-  }
+  // Add any foreground_application_id and their app_locales not seen yet if applicable:
+  state.add_unseen_app_locales(&initial_settings_);
+  state.add_unseen_app_locales(&last_settings_);
 }
 
 void UiSettings::SetDarkMode(bool dark_mode) {
@@ -314,27 +369,22 @@ void UiSettings::Reset() {
     return;
   }
 
-  vector<string> application_ids;
-  for (map<string, string>::const_iterator it = initial_settings_.app_locales().begin(); it != initial_settings_.app_locales().end(); it++) {
-    application_ids.push_back(it->first);
-  }
-
-  UiSettingsRequest request(-1, application_ids);
-  UiSettingsResponse current_settings(-1);
-  Get(request, &current_settings);
+  UiSettingsState current_settings;
+  Get(&current_settings);
+  vector<string> application_ids = initial_settings_.get_application_ids();
+  GetApplicationLocales(application_ids, &current_settings);
 
   if (current_settings.dark_mode() != initial_settings_.dark_mode() &&
       current_settings.dark_mode() == last_settings_.dark_mode()) {
     SetDarkMode(initial_settings_.dark_mode());
   }
-  const map<string, string>& initial_locales = initial_settings_.app_locales();
-  const map<string, string>& last_locales = last_settings_.app_locales();
-  for (map<string, string>::const_iterator it = current_settings.app_locales().begin(); it != current_settings.app_locales().end(); it++) {
-    if (initial_locales.count(it->first) > 0 && it->second != initial_locales.at(it->first) &&
-        last_locales.count(it->first) > 0 && it->second == last_locales.at(it->first)) {
-      SetAppLanguage(it->first, initial_locales.at(it->first));
+  for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
+    if (current_settings.app_locale_of(*it) != initial_settings_.app_locale_of(*it) &&
+        current_settings.app_locale_of(*it) == last_settings_.app_locale_of(*it)) {
+      SetAppLanguage(*it, initial_settings_.app_locale_of(*it));
     }
   }
+
   if (current_settings.talkback_on() != initial_settings_.talkback_on() &&
       current_settings.talkback_on() == last_settings_.talkback_on()) {
     SetTalkBack(initial_settings_.talkback_on());

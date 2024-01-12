@@ -49,6 +49,7 @@ add_library(
         string_util.cc
         surface.cc
         ui_settings.cc
+        ui_settings_state.cc
         video_packet_header.cc
 )
 

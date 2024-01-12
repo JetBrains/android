@@ -87,7 +87,8 @@ class EmulatorUiSettingsControllerTest {
   fun testReadCustomValue() {
     rule.configureUiSettings(
       darkMode = true,
-      appLocales = mapOf(APPLICATION_ID1 to "da", APPLICATION_ID2 to "ru"),
+      applicationId = APPLICATION_ID1,
+      appLocales = "da",
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -118,16 +119,11 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testSetAppLanguage() {
     controller.initAndWait()
-    val language1 = model.appLanguage[APPLICATION_ID1]!!
-    val language2 = model.appLanguage[APPLICATION_ID2]!!
-    language1.selection.setFromUi(language1.getElementAt(1))
+    val appLanguage = model.appLanguage
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales da" }
-    language2.selection.setFromUi(language2.getElementAt(1))
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID2 --locales ru" }
-    language1.selection.setFromUi(language1.getElementAt(0))
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
-    language2.selection.setFromUi(language2.getElementAt(0))
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID2 --locales " }
   }
 
   @Test

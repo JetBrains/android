@@ -42,8 +42,8 @@ const val APPLICATION_ID2 = "com.example.test.process2"
  */
 class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
   private val appLanguageServices = AppLanguageService { listOf(
-    AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("es"))),
-    AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("ru"))))
+    AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
+    AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
   }
   private val projectRule = ProjectRule()
   private val adbServiceRule = ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession()))
@@ -73,8 +73,8 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
 
   fun configureUiSettings(
     darkMode: Boolean = false,
-    appLocales: Map<String, String> = mapOf(APPLICATION_ID1 to "", APPLICATION_ID2 to ""),
-    applicationIdsInRequest: List<String> = appLocales.keys.toList(),
+    applicationId: String = APPLICATION_ID1,
+    appLocales: String = "",
     talkBackInstalled: Boolean = false,
     talkBackOn: Boolean = false,
     selectToSpeakOn: Boolean = false,
@@ -83,10 +83,8 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
     overrideDensity: Int = DEFAULT_DENSITY
   ) {
     val overrideLine = if (physicalDensity != overrideDensity) "\n      Override density: $overrideDensity" else ""
-    var command = POPULATE_COMMAND
-    applicationIdsInRequest.forEach { command += POPULATE_LANGUAGE_COMMAND.format(it) }
-
-    var response = """
+    val command = POPULATE_COMMAND
+    val response = """
       -- Dark Mode --
       Night mode: ${if (darkMode) "yes" else "no"}
       -- List Packages --
@@ -101,13 +99,17 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
       ${(fontSize.toFloat() / 100f)}
       -- Density --
       Physical density: $physicalDensity$overrideLine
+      -- Foreground Application --
+         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
+         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
     """.trimIndent()
-    appLocales.forEach { entry ->
-      response += "\n-- App Language --"
-      response += "\nLocales for ${entry.key} for user 0 are [${entry.value}]"
-    }
-
     adb.configureShellCommand(deviceSelector, command, response)
+
+    adb.configureShellCommand(deviceSelector, POPULATE_LANGUAGE_COMMAND.format(applicationId), """
+      -- App Language --
+      Locales for $applicationId for user 0 are [$appLocales]"
+    """.trimIndent())
+
     adb.configureShellCommand(deviceSelector, "settings get secure $ENABLED_ACCESSIBILITY_SERVICES",
                               formatAccessibilityServices(talkBackOn, selectToSpeakOn))
     adb.configureShellCommand(deviceSelector, "settings get secure $ACCESSIBILITY_BUTTON_TARGETS",

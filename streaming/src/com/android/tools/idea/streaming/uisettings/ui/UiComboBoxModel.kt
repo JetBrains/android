@@ -19,8 +19,6 @@ import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.ui.layout.ComponentPredicate
 import javax.swing.DefaultComboBoxModel
-import javax.swing.event.ListDataEvent
-import javax.swing.event.ListDataListener
 
 /**
  * A MutableComboBoxModel with a [TwoWayProperty] controlling the selection and a predicate for the presence of multiple languages.
@@ -31,21 +29,6 @@ internal class UiComboBoxModel<T>: DefaultComboBoxModel<T>() {
     override fun setFromUi(newValue: T?) {
       super.setFromUi(newValue)
       this@UiComboBoxModel.selectedItem = newValue
-    }
-  }
-
-  fun isSelected(value: T): ComponentPredicate {
-    return object : ComponentPredicate() {
-      override fun invoke(): Boolean = selectedItem == value
-      override fun addListener(listener: (Boolean) -> Unit) {
-        addListDataListener(object : ListDataListener {
-          override fun contentsChanged(event: ListDataEvent) {
-            listener(invoke())
-          }
-          override fun intervalAdded(event: ListDataEvent) {}
-          override fun intervalRemoved(event: ListDataEvent) {}
-        })
-      }
     }
   }
 

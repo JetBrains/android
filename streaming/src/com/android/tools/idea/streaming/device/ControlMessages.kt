@@ -628,33 +628,19 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
 /**
  * Queries the current UI settings from a device.
  */
-internal class UiSettingsRequest private constructor(
-  override val requestId: Int,
-  val applicationIds: List<String>
-) : CorrelatedMessage(TYPE) {
+internal class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
-  constructor(requestIdGenerator: () -> Int, applicationIds: List<String>) : this(requestIdGenerator(), applicationIds)
-
-  override fun serialize(stream: Base128OutputStream) {
-    super.serialize(stream)
-    stream.writeInt(applicationIds.size)
-    applicationIds.forEach { stream.writeBytes(it.toByteArray(UTF_8)) }
-  }
+  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 
   override fun toString(): String =
-    "UiSettingsRequest(requestId=$requestId, applicationIds=\"${applicationIds.joinToString(",")}\")"
+    "UiSettingsRequest(requestId=$requestId)"
 
   companion object : Deserializer {
     const val TYPE = 19
 
     override fun deserialize(stream: Base128InputStream): UiSettingsRequest {
       val requestId = stream.readInt()
-      val count = stream.readInt()
-      val applicationIds = mutableListOf<String>()
-      for (i in 1..count) {
-        applicationIds.add(stream.readBytes().toString(UTF_8))
-      }
-      return UiSettingsRequest(requestId, applicationIds)
+      return UiSettingsRequest(requestId)
     }
   }
 }
@@ -665,7 +651,8 @@ internal class UiSettingsRequest private constructor(
 internal data class UiSettingsResponse(
   override val requestId: Int,
   val darkMode: Boolean,
-  val appLocales: Map<String, String>,
+  val foregroundApplicationId: String,
+  val appLocale: String,
   val tackBackInstalled: Boolean,
   val talkBackOn: Boolean,
   val selectToSpeakOn: Boolean,
@@ -676,11 +663,8 @@ internal data class UiSettingsResponse(
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
-    stream.writeInt(appLocales.size)
-    appLocales.forEach { entry ->
-      stream.writeBytes(entry.key.toByteArray(UTF_8))
-      stream.writeBytes(entry.value.toByteArray(UTF_8))
-    }
+    stream.writeBytes(foregroundApplicationId.toByteArray(UTF_8))
+    stream.writeBytes(appLocale.toByteArray(UTF_8))
     stream.writeBoolean(tackBackInstalled)
     stream.writeBoolean(talkBackOn)
     stream.writeBoolean(selectToSpeakOn)
@@ -692,7 +676,8 @@ internal data class UiSettingsResponse(
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
     "darkMode=$darkMode, " +
-    "locales=\"[${appLocales.map { "(${it.key}, ${it.value})" }.joinToString(", ")}]\", " +
+    "foregroundApplicationId=\"$foregroundApplicationId\", " +
+    "appLocale=\"$appLocale\", " +
     "tackBackInstalled=$tackBackInstalled, " +
     "talkBackOn=$talkBackOn, " +
     "selectToSpeakOn=$selectToSpeakOn, " +
@@ -705,13 +690,8 @@ internal data class UiSettingsResponse(
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
-      val count = stream.readInt()
-      val appLocales = mutableMapOf<String, String>()
-      for (i in 1..count) {
-        val applicationId = stream.readBytes().toString(UTF_8)
-        val locale = stream.readBytes().toString(UTF_8)
-        appLocales[applicationId] = locale
-      }
+      val foregroundApplicationId = stream.readBytes().toString(UTF_8)
+      val appLocale = stream.readBytes().toString(UTF_8)
       val tackBackInstalled = stream.readBoolean()
       val talkBackOn = stream.readBoolean()
       val selectToSpeakOn = stream.readBoolean()
@@ -720,7 +700,8 @@ internal data class UiSettingsResponse(
       return UiSettingsResponse(
         requestId,
         darkMode,
-        appLocales,
+        foregroundApplicationId,
+        appLocale,
         tackBackInstalled,
         talkBackOn,
         selectToSpeakOn,

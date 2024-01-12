@@ -32,22 +32,17 @@ internal class DeviceUiSettingsController(
 ) : UiSettingsController(model) {
 
   override suspend fun populateModel() {
-    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
-    val response = deviceController.getUiSettings(languageInfo.keys.toList())
+    val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.fontSizeInPercent.setFromController(response.fontSize)
     model.screenDensity.setFromController(response.density)
-    for (appLocale in response.appLocales) {
-      val applicationId = appLocale.key
-      val config = languageInfo[applicationId]?.localeConfig
-      if (config != null) {
-        addLanguage(applicationId, config, appLocale.value)
-      }
+    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
+    languageInfo[response.foregroundApplicationId]?.localeConfig?.let { config ->
+      addLanguage(response.foregroundApplicationId, config, response.appLocale)
     }
-    response.appLocales.keys.firstOrNull()?.let { model.appIds.selection.setFromController(it) }
   }
 
   override fun setDarkMode(on: Boolean) {

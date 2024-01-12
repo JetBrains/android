@@ -23,13 +23,10 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeBalloon
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
-import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
-import com.android.tools.idea.streaming.uisettings.testutil.SPANISH_LANGUAGE
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -62,22 +59,14 @@ class UiSettingsPanelTest {
   @Before
   fun before() {
     model = UiSettingsModel(Dimension(1344, 2992), 480)
-    val language1 = model.addLanguageModel(APPLICATION_ID1)
-    language1.addElement(DEFAULT_LANGUAGE)
-    language1.addElement(DANISH_LANGUAGE)
-    language1.addElement(SPANISH_LANGUAGE)
-    language1.selection.setFromController(DEFAULT_LANGUAGE)
-    val language2 = model.addLanguageModel(APPLICATION_ID2)
-    language2.addElement(DEFAULT_LANGUAGE)
-    language2.addElement(RUSSIAN_LANGUAGE)
-    language2.selection.setFromController(DEFAULT_LANGUAGE)
-    model.appIds.selection.setFromController(APPLICATION_ID1)
+    model.appLanguage.addElement(DEFAULT_LANGUAGE)
+    model.appLanguage.addElement(DANISH_LANGUAGE)
+    model.appLanguage.addElement(RUSSIAN_LANGUAGE)
+    model.appLanguage.selection.setFromController(DEFAULT_LANGUAGE)
 
     panel = UiSettingsPanel(model)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
-    model.appIds.selection.uiChangeListener = ChangeListener { lastCommand = "applicationId=$it" }
-    language1.selection.uiChangeListener = ChangeListener { lastCommand = "locale1=${it?.tag}" }
-    language2.selection.uiChangeListener = ChangeListener { lastCommand = "locale2=${it?.tag}" }
+    model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
     model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
     model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
@@ -98,40 +87,18 @@ class UiSettingsPanelTest {
 
   @Test
   fun testChangeLanguageFromUi() {
-    val comboBox1 = findLanguageComboBox(APPLICATION_ID1)
-    val comboBox2 = findLanguageComboBox(APPLICATION_ID2)
-    assertThat(comboBox1.isVisible).isTrue()
-    assertThat(comboBox2.isVisible).isFalse()
-    assertThat(comboBox1.selectedIndex).isEqualTo(0)
-    assertThat(comboBox2.selectedIndex).isEqualTo(0)
+    val comboBox = AdtUiUtils.allComponents(panel).filterIsInstance<JComboBox<*>>().single { it.name == APP_LANGUAGE_TITLE }
+    assertThat(comboBox.isVisible).isTrue()
+    assertThat(comboBox.selectedIndex).isEqualTo(0)
 
-    comboBox1.selectedIndex = 1
-    waitForCondition(1.seconds) { lastCommand == "locale1=da" }
+    comboBox.selectedIndex = 1
+    waitForCondition(1.seconds) { lastCommand == "locale=da" }
 
-    comboBox1.selectedIndex = 2
-    waitForCondition(1.seconds) { lastCommand == "locale1=es" }
+    comboBox.selectedIndex = 2
+    waitForCondition(1.seconds) { lastCommand == "locale=ru" }
 
-    comboBox1.selectedIndex = 0
-    waitForCondition(1.seconds) { lastCommand == "locale1=" }
-
-    model.appIds.selection.setFromUi(APPLICATION_ID2)
-    assertThat(comboBox1.isVisible).isFalse()
-    assertThat(comboBox2.isVisible).isTrue()
-    assertThat(comboBox1.selectedIndex).isEqualTo(0)
-    assertThat(comboBox2.selectedIndex).isEqualTo(0)
-
-    comboBox2.selectedIndex = 1
-    waitForCondition(1.seconds) { lastCommand == "locale2=ru" }
-
-    comboBox2.selectedIndex = 0
-    waitForCondition(1.seconds) { lastCommand == "locale2=" }
-  }
-
-  private fun findLanguageComboBox(applicationId: String): JComboBox<*> {
-    return AdtUiUtils.allComponents(panel)
-      .filterIsInstance<JComboBox<*>>()
-      .filter { it.name == "$APP_LANGUAGE_TITLE ($applicationId)" }
-      .single()
+    comboBox.selectedIndex = 0
+    waitForCondition(1.seconds) { lastCommand == "locale=" }
   }
 
   @Test

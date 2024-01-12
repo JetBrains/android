@@ -49,10 +49,9 @@ internal abstract class UiSettingsController(
     if (applicationId.isEmpty() || languages.size < 2) {
       return false
     }
-    val languageModel = model.addLanguageModel(applicationId)
-    languageModel.addAll(languages)
-    languageModel.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
-    languageModel.selection.uiChangeListener = ChangeListener { setAppLanguage(applicationId, it) }
+    model.appLanguage.addAll(languages)
+    model.appLanguage.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
+    model.appLanguage.selection.uiChangeListener = ChangeListener { setAppLanguage(applicationId, it) }
     return true
   }
 

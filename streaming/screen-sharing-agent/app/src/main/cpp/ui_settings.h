@@ -16,18 +16,17 @@
 
 #pragma once
 
-#include <map>
-
 #include "control_messages.h"
+#include "ui_settings_state.h"
 
 namespace screensharing {
 
 // Handles requests and commands related to the UI for the settings shortcut dialog in Studio.
 class UiSettings {
 public:
-  UiSettings();
+  UiSettings() = default;
 
-  void Get(const UiSettingsRequest& request, UiSettingsResponse* response);
+  void Get(UiSettingsResponse* response);
 
   void SetDarkMode(bool dark_mode);
 
@@ -45,10 +44,11 @@ public:
 
 private:
   bool initial_settings_recorded_ = false;
-  UiSettingsResponse initial_settings_;
-  UiSettingsResponse last_settings_;
+  UiSettingsState initial_settings_;
+  UiSettingsState last_settings_;
 
-  void StoreInitialSettings(const UiSettingsResponse& response);
+  void Get(UiSettingsState* state);
+  void StoreInitialSettings(const UiSettingsState& state);
 
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };

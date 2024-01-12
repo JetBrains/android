@@ -55,10 +55,10 @@ class DeviceUiSettingsControllerTest {
 
   @Before
   fun before() {
-    agent.appLocales = mutableMapOf(APPLICATION_ID1 to "", APPLICATION_ID2 to "")
+    agent.foregroundProcess = APPLICATION_ID1
     val appLanguageServices = AppLanguageService { listOf(
-      AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("es"))),
-      AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("ru"))))
+      AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
+      AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
     }
     project.registerOrReplaceServiceInstance(AppLanguageService::class.java, appLanguageServices, testRootDisposable)
   }
@@ -80,7 +80,7 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
-    agent.appLocales = mutableMapOf(APPLICATION_ID1 to "da", APPLICATION_ID2 to "ru")
+    agent.appLocales = "da"
     agent.talkBackInstalled = true
     agent.talkBackOn = true
     agent.selectToSpeakOn = true
@@ -109,16 +109,11 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testAppSetLanguage() {
     controller.initAndWait()
-    val language1 = model.appLanguage[APPLICATION_ID1]!!
-    val language2 = model.appLanguage[APPLICATION_ID2]!!
-    language1.selection.setFromUi(language1.getElementAt(1))
-    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID1] == "da"}
-    language2.selection.setFromUi(language2.getElementAt(1))
-    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID2] == "ru"}
-    language1.selection.setFromUi(language1.getElementAt(0))
-    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID1] == ""}
-    language2.selection.setFromUi(language2.getElementAt(0))
-    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID2] == ""}
+    val appLanguage = model.appLanguage
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
+    waitForCondition(10.seconds) { agent.appLocales == "da"}
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
+    waitForCondition(10.seconds) { agent.appLocales == ""}
   }
 
   @Test

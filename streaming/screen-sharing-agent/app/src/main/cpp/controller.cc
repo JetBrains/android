@@ -572,7 +572,7 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
 
 void Controller::SendUiSettings(const UiSettingsRequest& message) {
   UiSettingsResponse response(message.request_id());
-  ui_settings_.Get(message, &response);
+  ui_settings_.Get(&response);
   response.Serialize(output_stream_);
   output_stream_.Flush();
 }

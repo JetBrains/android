@@ -42,6 +42,7 @@ private const val ACCESSIBILITY_SERVICES_DIVIDER = "-- Accessibility Services --
 private const val ACCESSIBILITY_BUTTON_TARGETS_DIVIDER = "-- Accessibility Button Targets --"
 private const val FONT_SIZE_DIVIDER = "-- Font Size --"
 private const val DENSITY_DIVIDER = "-- Density --"
+private const val FOREGROUND_APPLICATION_DIVIDER = "-- Foreground Application --"
 private const val APP_LANGUAGE_DIVIDER = "-- App Language --"
 
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
@@ -53,6 +54,7 @@ private const val SELECT_TO_SPEAK_SERVICE_CLASS = "com.google.android.accessibil
 internal const val SELECT_TO_SPEAK_SERVICE_NAME = "$TALKBACK_PACKAGE_NAME/$SELECT_TO_SPEAK_SERVICE_CLASS"
 private const val PHYSICAL_DENSITY_PATTERN = "Physical density: (\\d+)"
 private const val OVERRIDE_DENSITY_PATTERN = "Override density: (\\d+)"
+private const val FOREGROUND_PROCESS_PATTERN = "\\d*:(\\S*)/\\S* \\(top-activity\\)"
 private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[(.*)]"
 
 internal const val POPULATE_COMMAND =
@@ -67,7 +69,9 @@ internal const val POPULATE_COMMAND =
   "echo $FONT_SIZE_DIVIDER; " +
   "settings get system font_scale; " +
   "echo $DENSITY_DIVIDER; " +
-  "wm density; "
+  "wm density; " +
+  "echo $FOREGROUND_APPLICATION_DIVIDER; " +
+  "dumpsys activity processes | grep top-activity; "
 
 internal const val POPULATE_LANGUAGE_COMMAND =
   "echo $APP_LANGUAGE_DIVIDER; " +
@@ -87,29 +91,28 @@ internal class EmulatorUiSettingsController(
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US))
 
   override suspend fun populateModel() {
-    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
-    var command = POPULATE_COMMAND
-    languageInfo.keys.forEach { applicationId -> command += POPULATE_LANGUAGE_COMMAND.format(applicationId) }
-    var lines: List<String> = emptyList()
-    executeShellCommand(command) { lines = it }
-    val iterator = lines.listIterator()
-    val enabled = AccessibilityData()
-    val buttons = AccessibilityData()
-    val addedAppIds = mutableListOf<String>()
+    val context = CommandContext(project)
+    executeCommand(POPULATE_COMMAND, context)
+
+    if (context.applicationId.isNotEmpty() && context.languageInfo.keys.contains(context.applicationId)) {
+      executeCommand(POPULATE_LANGUAGE_COMMAND.format(context.applicationId), context)
+    }
+    processAccessibility(context.enabled, context.buttons)
+  }
+
+  private suspend fun executeCommand(command: String, context: CommandContext) {
+    val iterator = executeShellCommand(command).listIterator()
     while (iterator.hasNext()) {
       when (iterator.next()) {
         DARK_MODE_DIVIDER -> processDarkMode(iterator)
         LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
-        ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, enabled)
-        ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, buttons)
+        ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, context.enabled)
+        ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
         FONT_SIZE_DIVIDER -> processFontSize(iterator)
         DENSITY_DIVIDER -> processScreenDensity(iterator)
-        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, languageInfo, addedAppIds)
+        FOREGROUND_APPLICATION_DIVIDER -> processForegroundProcess(iterator, context)
+        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, context.languageInfo)
       }
-    }
-    processAccessibility(enabled, buttons)
-    if (model.appIds.size > 0) {
-      model.appIds.selection.setFromController(model.appIds.getElementAt(0))
     }
   }
 
@@ -143,7 +146,7 @@ internal class EmulatorUiSettingsController(
     model.screenDensity.setFromController(overrideDensity)
   }
 
-  private fun processAppLanguage(iterator: ListIterator<String>, info: Map<String, AppLanguageInfo>, addedAppIds: MutableList<String>) {
+  private fun processAppLanguage(iterator: ListIterator<String>, info: Map<String, AppLanguageInfo>) {
     val appLanguageLine = (if (iterator.hasNext()) iterator.next() else "")
     if (appLanguageLine.startsWith(DIVIDER_PREFIX)) {
       iterator.previous()
@@ -153,9 +156,17 @@ internal class EmulatorUiSettingsController(
     val applicationId = match.groupValues[1]
     val localeTag = match.groupValues[2].split(",").firstOrNull() ?: ""
     val localeConfig = info[applicationId]?.localeConfig ?: return
-    if (addLanguage(applicationId, localeConfig, localeTag)) {
-      addedAppIds.add(applicationId)
+    addLanguage(applicationId, localeConfig, localeTag)
+  }
+
+  private fun processForegroundProcess(iterator: ListIterator<String>, context: CommandContext) {
+    val line = if (iterator.hasNext()) iterator.next() else return
+    if (line.startsWith(DIVIDER_PREFIX)) {
+      iterator.previous()
+      return
     }
+    val match = Regex(FOREGROUND_PROCESS_PATTERN).find(line) ?: return
+    context.applicationId = match.groupValues[1]
   }
 
   private fun readDensity(iterator: ListIterator<String>, pattern: String): Int? {
@@ -213,9 +224,9 @@ internal class EmulatorUiSettingsController(
 
   private suspend fun changeSecureSetting(settingsName: String, serviceName: String, on: Boolean) {
     val settings = AccessibilityData()
-    executeShellCommand("settings get secure $settingsName") {
-      settings.servicesLine = it.singleOrNull() ?: "null"
-    }
+    val lines = executeShellCommand("settings get secure $settingsName")
+    settings.servicesLine = lines.singleOrNull() ?: "null"
+
     if (on) settings.services.add(serviceName) else settings.services.remove(serviceName)
     if (settings.services.isEmpty()) {
       executeShellCommand("settings delete secure $settingsName")
@@ -225,13 +236,15 @@ internal class EmulatorUiSettingsController(
     }
   }
 
-  private suspend fun executeShellCommand(command: String, commandProcessor: (lines: List<String>) -> Unit = {}) {
+  private suspend fun executeShellCommand(command: String): List<String> {
     val adb = AdbLibService.getSession(project).deviceServices
     val output = adb.shellAsLines(DeviceSelector.fromSerialNumber(deviceSerialNumber), command)
-    val lines = output.filterIsInstance<ShellCommandOutputElement.StdoutLine>().mapNotNull { it.contents.ifBlank { null } }.toList()
-    commandProcessor.invoke(lines)
+    return output.filterIsInstance<ShellCommandOutputElement.StdoutLine>().mapNotNull { it.contents.ifBlank { null } }.toList()
   }
 
+  /**
+   * Captured accessibility service names.
+   */
   private class AccessibilityData {
     val services = mutableSetOf<String>()
 
@@ -243,5 +256,15 @@ internal class EmulatorUiSettingsController(
           services.addAll(value.split(":"))
         }
       }
+  }
+
+  /**
+   * Context for handling adb commands.
+   */
+  private class CommandContext(project: Project) {
+    val enabled = AccessibilityData()
+    val buttons = AccessibilityData()
+    var applicationId = ""
+    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
   }
 }

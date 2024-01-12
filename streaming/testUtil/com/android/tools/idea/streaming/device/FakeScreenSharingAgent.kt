@@ -185,7 +185,9 @@ class FakeScreenSharingAgent(
   @Volatile
   var darkMode = false
   @Volatile
-  var appLocales = mutableMapOf<String, String>() // applicationId -> locale
+  var foregroundProcess = ""
+  @Volatile
+  var appLocales = ""
   @Volatile
   var talkBackInstalled = false
   @Volatile
@@ -562,7 +564,7 @@ class FakeScreenSharingAgent(
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
     sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, darkMode, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSize, screenDensity))
+      UiSettingsResponse(message.requestId, darkMode, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSize, screenDensity))
   }
 
   private fun setDarkMode(message: SetDarkModeMessage) {
@@ -570,7 +572,9 @@ class FakeScreenSharingAgent(
   }
 
   private fun setAppLanguage(message: SetAppLanguageMessage) {
-    appLocales[message.applicationId] = message.locale
+    if (foregroundProcess == message.applicationId) {
+      appLocales = message.locale
+    }
   }
 
   private fun setTalkBack(message: SetTalkBackMessage) {

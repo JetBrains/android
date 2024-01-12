@@ -43,7 +43,6 @@ import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
-internal const val APP_ID = "Application Id:"
 internal const val APP_LANGUAGE_TITLE = "App Language:"
 internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
@@ -73,19 +72,11 @@ internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayou
             .apply { component.name = DARK_THEME_TITLE }
         }
 
-        row(label(APP_ID)) {
-          comboBox(model.appIds)
-            .bindItem(model.appIds.selection)
-            .apply { component.name = APP_ID }
-        }.visibleIf(model.appIds.sizeIsAtLeast(2))
-
-        model.appLanguage.forEach { entry ->
-          row(label(APP_LANGUAGE_TITLE)) {
-            comboBox(entry.value)
-              .bindItem(entry.value.selection)
-              .apply { component.name = "$APP_LANGUAGE_TITLE (${entry.key})"}
-          }.visibleIf(model.appIds.isSelected(entry.key))
-        }
+        row(label(APP_LANGUAGE_TITLE)) {
+          comboBox(model.appLanguage)
+            .bindItem(model.appLanguage.selection)
+            .apply { component.name = APP_LANGUAGE_TITLE }
+        }.visibleIf(model.appLanguage.sizeIsAtLeast(2))
 
         row(label(TALKBACK_TITLE)) {
           checkBox("")
