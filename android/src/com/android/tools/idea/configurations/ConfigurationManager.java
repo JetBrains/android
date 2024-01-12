@@ -85,7 +85,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull private final ConfigurationModelModule myConfigurationModule;
 
   @NotNull private final Module myModule;
-  private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
+  private final Map<VirtualFile, ConfigurationForFile> myCache = ContainerUtil.createSoftValueMap();
   private Device myDefaultDevice;
   private Locale myLocale;
   private IAndroidTarget myTarget;
@@ -141,7 +141,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  public static Configuration getConfigurationForModule(@NotNull Module module) {
+  public static ConfigurationForFile getConfigurationForModule(@NotNull Module module) {
     Project project = module.getProject();
     ConfigurationManager configurationManager = getOrCreateInstance(module);
 
@@ -169,8 +169,8 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  public Configuration getConfiguration(@NotNull VirtualFile file) {
-    Configuration configuration = myCache.get(file);
+  public ConfigurationForFile getConfiguration(@NotNull VirtualFile file) {
+    ConfigurationForFile configuration = myCache.get(file);
     if (configuration == null) {
       configuration = create(file);
       myCache.put(file, configuration);
@@ -191,7 +191,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  private Configuration create(@NotNull VirtualFile file) {
+  private ConfigurationForFile create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;
@@ -199,7 +199,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
+    ConfigurationForFile configuration = ConfigurationForFile.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     if (stateManager.getProjectState().getDeviceIds().isEmpty() && fileState == null) {
       matcher.findAndSetCompatibleConfig(false);
@@ -225,14 +225,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    * @return the new configuration
    */
   @NotNull
-  public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
+  public ConfigurationForFile createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
+    ConfigurationForFile configuration = ConfigurationForFile.create(this, file, fileState, config);
     Configuration baseConfig = myCache.get(file);
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
@@ -248,7 +248,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    * Returns the associated persistence manager
    */
   @NotNull
-  private ConfigurationStateManager getStateManager() {
+  public ConfigurationStateManager getStateManager() {
     return StudioConfigurationStateManager.get(myModule.getProject());
   }
 

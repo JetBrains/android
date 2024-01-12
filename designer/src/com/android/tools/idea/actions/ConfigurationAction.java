@@ -20,6 +20,7 @@ import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationForFile;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.google.common.collect.Iterables;
@@ -93,9 +94,10 @@ public abstract class ConfigurationAction extends AnAction implements Configurat
       boolean affectsFileSelection = (myFlags & MASK_FILE_ATTRS) != 0;
       // Get the resources of the file's project.
       if (affectsFileSelection) {
-        VirtualFile file = configuration.getFile();
-        if (file != null) {
-          ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
+        ConfigurationForFile configForFile = (configuration instanceof ConfigurationForFile) ? (ConfigurationForFile)clone : null;
+        if (configForFile != null) {
+          VirtualFile file = configuration.getFile();
+          ConfigurationMatcher matcher = new ConfigurationMatcher(configForFile, file);
           List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
           if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
             // Switch files, and leave this configuration alone.

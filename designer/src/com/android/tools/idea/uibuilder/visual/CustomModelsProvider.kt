@@ -173,7 +173,7 @@ class CustomModelsProvider(
 }
 
 private fun CustomConfigurationAttribute.toNamedConfiguration(
-  defaultConfig: Configuration
+  defaultConfig: ConfigurationForFile
 ): NamedConfiguration? {
   val settings = defaultConfig.settings
   val id = deviceId ?: return null

@@ -25,7 +25,6 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationFileState
-import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.getFolderType
 import com.intellij.openapi.application.ApplicationManager
@@ -38,7 +37,7 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 class ConfigurationForFile(
   private val file: VirtualFile,
-  manager: ConfigurationSettings,
+  manager: ConfigurationManager,
   editedConfig: FolderConfiguration
 ) : Configuration(manager, editedConfig) {
   private var psiFile: PsiFile? = null
@@ -107,14 +106,17 @@ class ConfigurationForFile(
   }
 
   override fun save() {
-    val stateManager = mySettings.configModule.configurationStateManager
     val fileState = ConfigurationFileState()
     fileState.saveState(this)
-    stateManager.setConfigurationState(file, fileState)
+    settings.stateManager.setConfigurationState(file, fileState)
   }
 
-  override fun clone(): Configuration {
-    return ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
+  override fun clone(): ConfigurationForFile {
+    return ConfigurationForFile(file, settings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
+  }
+
+  override fun getSettings(): ConfigurationManager {
+    return mySettings as ConfigurationManager
   }
 
   companion object {
@@ -122,7 +124,7 @@ class ConfigurationForFile(
     fun create(manager: ConfigurationManager,
                file: VirtualFile,
                fileState: ConfigurationFileState?,
-               editedConfig: FolderConfiguration): Configuration {
+               editedConfig: FolderConfiguration): ConfigurationForFile {
       val configuration = ConfigurationForFile(file, manager, editedConfig)
       configuration.startBulkEditing()
       fileState?.loadState(configuration)
@@ -138,7 +140,7 @@ class ConfigurationForFile(
      * @return a suitable configuration
      */
     @JvmStatic
-    fun create(base: Configuration, file: VirtualFile): Configuration {
+    fun create(base: ConfigurationForFile, file: VirtualFile): ConfigurationForFile {
       // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
       val configuration = ConfigurationForFile(file, base.settings, FolderConfiguration.copyOf(base.editedConfig))
       configuration.copyFrom(base)
