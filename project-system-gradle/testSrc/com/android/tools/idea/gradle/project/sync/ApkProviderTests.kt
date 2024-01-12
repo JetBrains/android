@@ -686,7 +686,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
-        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
+        device = AndroidVersion(34)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -704,7 +704,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         viaBundle = true,
-        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
+        device = AndroidVersion(34)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -739,7 +739,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
-        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
+        device = AndroidVersion(34)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """

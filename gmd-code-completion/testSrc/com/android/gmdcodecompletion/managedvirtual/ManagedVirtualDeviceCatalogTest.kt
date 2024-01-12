@@ -224,12 +224,12 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   fun testCollectApiPreviewImage() {
     val testApiLevel = 33
     managedVirtualDeviceCatalogTestHelperWrapper(
-      "system-images;android-TiramisuPrivacySandbox;google_apis_playstore;arm64-v8a", testApiLevel) {
+      "system-images;android-UpsideDownCakePrivacySandbox;google_apis_playstore;arm64-v8a", testApiLevel) {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
       assertEquals(apiLevelEntry.apiLevel, testApiLevel)
-      assertEquals(apiLevelEntry.apiPreview, "TiramisuPrivacySandbox")
+      assertEquals(apiLevelEntry.apiPreview, "UpsideDownCakePrivacySandbox")
       assertEquals(apiLevelEntry.imageSource, "google_apis_playstore")
       assertEquals(apiLevelEntry.require64Bit, false)
     }
@@ -237,7 +237,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
 
   // Remove test after b/272562190 is fixed
   fun testFilterAndroidTvImage() {
-    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-TiramisuPrivacySandbox;android_tv;arm64-v8a") {
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-UpsideDownCakePrivacySandbox;android_tv;arm64-v8a") {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.apiLevels.isEmpty())
     }
@@ -245,7 +245,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
 
   // Remove test after b/272562193 is fixed
   fun testFilterAndroidAutoImage() {
-    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-TiramisuPrivacySandbox;android_auto;arm64-v8a") {
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-UpsideDownCakePrivacySandbox;android_auto;arm64-v8a") {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.apiLevels.isEmpty())
     }

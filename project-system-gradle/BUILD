@@ -127,14 +127,12 @@ iml_module(
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk:jdk_1_8",
-        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/android-33",
-        # TODO: Update and use platforms/latest-preview instead
-        "//prebuilts/studio/sdk:platforms/android-TiramisuPrivacySandbox",
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",

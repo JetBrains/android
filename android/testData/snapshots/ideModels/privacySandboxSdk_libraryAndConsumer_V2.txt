@@ -1799,15 +1799,14 @@ MODULE                        : project.ads-sdk-implementation
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : 34
-            CodeName                      : TiramisuPrivacySandbox
-            ApiString                     : TiramisuPrivacySandbox
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :ads-sdk-implementation
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-TiramisuPrivacySandbox
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/ads-sdk-implementation/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1852,7 +1851,7 @@ MODULE                        : project.ads-sdk-implementation
     - basicVariant:               : debug
         testApplicationId             : com.example.ads_sdk_implementation.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1863,9 +1862,8 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2022,9 +2020,8 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -2302,15 +2299,14 @@ MODULE                        : project.app
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : 34
-            CodeName                      : TiramisuPrivacySandbox
-            ApiString                     : TiramisuPrivacySandbox
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-TiramisuPrivacySandbox
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -2357,7 +2353,7 @@ MODULE                        : project.app
         testApplicationId             : com.example.rubidumconsumer.test
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -2374,9 +2370,8 @@ MODULE                        : project.app
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2543,9 +2538,8 @@ MODULE                        : project.app
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3488,15 +3482,14 @@ MODULE                        : project.app-with-dynamic-feature
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : 34
-            CodeName                      : TiramisuPrivacySandbox
-            ApiString                     : TiramisuPrivacySandbox
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app-with-dynamic-feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-TiramisuPrivacySandbox
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app-with-dynamic-feature/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -3543,7 +3536,7 @@ MODULE                        : project.app-with-dynamic-feature
         testApplicationId             : com.example.rubidumconsumer.test
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DynamicFeatures               : :feature
     ViewBindingOptions
         Enabled                       : false
@@ -3561,9 +3554,8 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3730,9 +3722,8 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : 34
-                CodeName                      : TiramisuPrivacySandbox
-                ApiString                     : TiramisuPrivacySandbox
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner

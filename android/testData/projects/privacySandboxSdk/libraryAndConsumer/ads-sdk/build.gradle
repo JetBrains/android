@@ -3,7 +3,6 @@ plugins {
 }
 
 android {
-    compileSdkPreview = 'TiramisuPrivacySandbox'
     minSdk = 33
     namespace = "com.example.adssdk"
 
