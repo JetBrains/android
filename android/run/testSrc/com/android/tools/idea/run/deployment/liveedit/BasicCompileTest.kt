@@ -37,7 +37,7 @@ import kotlin.test.fail
 @RunWith(JUnit4::class)
 class BasicCompileTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {

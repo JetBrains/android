@@ -26,7 +26,7 @@ import kotlin.test.assertNull
 
 class AnnotationTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {

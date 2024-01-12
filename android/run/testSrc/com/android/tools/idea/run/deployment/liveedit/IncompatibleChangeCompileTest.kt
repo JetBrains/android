@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
 @RunWith(JUnit4::class)
 class IncompatibleChangeCompileTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {

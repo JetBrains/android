@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.testFramework.PsiTestUtil
@@ -32,7 +32,7 @@ import org.junit.Test
 class ModuleCompileTest {
 
   @get:Rule
-  var projectRule = AndroidProjectRule.onDisk() // The light weight inMemory() version does not support modules modifications.
+  var projectRule = AndroidProjectRule.onDisk().withKotlin() // The light weight inMemory() version does not support modules modifications.
   val libModule1Name = "lib1"
   val libModule2Name = "lib2"
 
@@ -41,10 +41,12 @@ class ModuleCompileTest {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       var dir1 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule1Name);
       var lib1 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule1Name, dir1)
+      AdtTestProjectDescriptors.kotlin().configureModule(lib1)
       PsiTestUtil.addContentRoot(lib1, dir1)
 
       var dir2 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule2Name);
       var lib2 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule2Name, dir2)
+      AdtTestProjectDescriptors.kotlin().configureModule(lib2)
       PsiTestUtil.addContentRoot(lib2, dir2)
     }
     setUpComposeInProjectFixture(projectRule)

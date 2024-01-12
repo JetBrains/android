@@ -27,7 +27,7 @@ import org.junit.Test
 
 class ConfinedAnalysisTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private var files = HashMap<String, PsiFile>()
 
   @Before
