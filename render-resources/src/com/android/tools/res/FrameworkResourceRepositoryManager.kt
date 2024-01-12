@@ -83,7 +83,7 @@ class FrameworkResourceRepositoryManager {
     if (resFolderOrJar.fileName.toString().endsWith(DOT_JAR, ignoreCase = true)) {
       return null // Caching data is not used when loading framework resources from a JAR.
     }
-    val codeVersion = getAndroidPluginVersion() ?: return null
+    val codeVersion = CodeVersionAdapter.getCodeVersion() ?: return null
     val contentVersion = try {
       Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
     }

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.tools.res.AndroidPluginVersion.getAndroidPluginVersion;
-
+import com.android.tools.res.CodeVersionAdapter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.intellij.facet.ProjectFacetManager;
@@ -78,7 +77,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
   @Nullable
   public ResourceFolderRepositoryCachingData getCachingData(
       @NotNull Project project, @NotNull VirtualFile resourceDir, @Nullable Executor cacheCreationExecutor) {
-    String codeVersion = getAndroidPluginVersion();
+    String codeVersion = CodeVersionAdapter.getCodeVersion();
     if (codeVersion == null) {
       return null;
     }

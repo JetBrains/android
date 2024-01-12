@@ -22,6 +22,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
+import com.android.tools.idea.res.StudioCodeVersionAdapter;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
@@ -65,6 +66,8 @@ public class AndroidStudioInitializer extends ApplicationInitializedListenerJava
       // SystemInfoStatsMonitor collects
       new SystemInfoStatsMonitor().start();
     }
+
+    StudioCodeVersionAdapter.initialize();
   }
 
   /** Sets up collection of Android Studio specific analytics. */
