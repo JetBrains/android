@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
 
-private const val KOTLIN_VERSION = "1.8.10"
+private const val KOTLIN_VERSION = "1.9.0"
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
