@@ -909,7 +909,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         val variant = result.first
         if (variant == androidModel.selectedVariantCore) {
           val classesDirFile = sourceSet.generatedClassesDirFile
-          addToNewOrExistingLibraryData(result.second, "kaptGeneratedClasses", setOf(classesDirFile), sourceSet.isTest)
+          addToNewOrExistingLibraryData(result.second, "kaptGeneratedClasses", setOf(classesDirFile), sourceSet.isTest, true)
         }
       }
     }
@@ -918,7 +918,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       moduleDataNode: DataNode<GradleSourceSetData>,
       name: String,
       files: Set<File?>,
-      isTest: Boolean
+      isTest: Boolean,
+      isExported: Boolean = false,
     ) {
       // Code adapted from KaptProjectResolverExtension
       val newLibrary = LibraryData(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, name)
@@ -933,6 +934,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         files.forEach { file: File? -> newLibrary.addPath(LibraryPathType.BINARY, file!!.absolutePath) }
         val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, newLibrary, LibraryLevel.MODULE)
         libraryDependencyData.scope = if (isTest) DependencyScope.TEST else DependencyScope.COMPILE
+        libraryDependencyData.isExported = isExported
         moduleDataNode.createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
       }
     }

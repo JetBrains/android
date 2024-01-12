@@ -278,6 +278,7 @@ PROJECT                       : MainActivity
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
@@ -486,6 +487,7 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: kaptGeneratedClasses [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
@@ -686,6 +688,7 @@ PROJECT                       : MainActivity
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
