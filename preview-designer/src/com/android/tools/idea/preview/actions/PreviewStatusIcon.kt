@@ -46,7 +46,7 @@ class PreviewStatusIcon : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val service = IssuePanelService.getInstance(project)
-    service.setSharedIssuePanelVisibility(true) {
+    service.showSharedIssuePanel {
       e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
     }
   }

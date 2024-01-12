@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 internal const val DEFAULT_SHARED_ISSUE_PANEL_TAB_TITLE = "Designer"
 const val SHARED_ISSUE_PANEL_TAB_ID = "_Designer_Tab"
 
-/** A service to help to show the issues of Design Tools in IJ's Problems panel. */
+/** A service to help manage the shared issue panel for Design Tools in the Problems tool window. */
 @Service(Service.Level.PROJECT)
 class IssuePanelService(private val project: Project) : Disposable.Default {
 
@@ -123,43 +123,24 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   /**
-   * Set the visibility of the issue panel tab with name [tabId]. When [visible] is true, this opens
-   * the problem panel and switch the tab to the one with the given name. The optional given
+   * Opens the problem panel and switch the tab to shared issue panel tab. The optional given
    * [onAfterSettingVisibility] is executed after the visibility is changed.
    */
-  fun setIssuePanelVisibilityByTabId(
-    visible: Boolean,
-    tabId: String,
-    onAfterSettingVisibility: Runnable? = null
-  ) {
+  fun showSharedIssuePanel(focus: Boolean = false, onAfterSettingVisibility: Runnable? = null) {
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     DesignerCommonIssuePanelUsageTracker.getInstance()
-      .trackChangingCommonIssuePanelVisibility(visible, project)
-    if (visible) {
-      ProblemsViewToolWindowUtils.getContentById(project, tabId)?.let {
-        if (!isTabShowing(it)) {
-          problemsViewPanel.show {
-            problemsViewPanel.contentManager.setSelectedContent(it)
-            onAfterSettingVisibility?.run()
+      .trackChangingCommonIssuePanelVisibility(true, project)
+    ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID)?.let {
+      if (!isTabShowing(it)) {
+        problemsViewPanel.show {
+          problemsViewPanel.contentManager.setSelectedContent(it)
+          updateSharedIssuePanelTabName()
+          if (focus) {
+            problemsViewPanel.activate(null, true)
           }
+          onAfterSettingVisibility?.run()
         }
       }
-    } else {
-      problemsViewPanel.hide { onAfterSettingVisibility?.run() }
-    }
-  }
-
-  /**
-   * Set the visibility of shared issue panel. When [visible] is true, this opens the problem panel
-   * and switch the tab to shared issue panel tab. The optional given [onAfterSettingVisibility] is
-   * executed after the visibility is changed.
-   */
-  fun setSharedIssuePanelVisibility(visible: Boolean, onAfterSettingVisibility: Runnable? = null) {
-    setIssuePanelVisibilityByTabId(visible, SHARED_ISSUE_PANEL_TAB_ID) {
-      if (visible) {
-        updateSharedIssuePanelTabName()
-      }
-      onAfterSettingVisibility?.run()
     }
   }
 
@@ -232,7 +213,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   fun showIssueForComponent(surface: DesignSurface<*>, component: NlComponent) {
     val issueModel = surface.issueModel
     val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
-    setSharedIssuePanelVisibility(true)
+    showSharedIssuePanel()
     setSelectedNode(IssueNodeVisitor(issue))
   }
 
@@ -255,14 +236,6 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
       return false
     }
     return tab.isSelected
-  }
-
-  /** Focus IJ's problems pane if Problems Panel is visible. Or do nothing otherwise. */
-  fun focusIssuePanelIfVisible() {
-    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
-    if (problemsViewPanel.isVisible) {
-      problemsViewPanel.activate(null, true)
-    }
   }
 
   /** Select the node by using the given [TreeVisitor] */

@@ -154,6 +154,6 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    IssuePanelService.getInstance(project).setSharedIssuePanelVisibility(true)
+    IssuePanelService.getInstance(project).showSharedIssuePanel()
   }
 }

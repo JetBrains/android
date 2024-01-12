@@ -19,6 +19,7 @@ import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.isInResourceSubdirectory
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
@@ -112,7 +113,11 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   private inner class ResourceFileUIController : DefaultUIController() {
     override fun toggleProblemsView() {
       val issuePanelService = IssuePanelService.getInstance(project)
-      issuePanelService.setSharedIssuePanelVisibility(!issuePanelService.isIssuePanelVisible())
+      if (issuePanelService.isIssuePanelVisible()) {
+        ProblemsView.getToolWindow(project)?.hide()
+      } else {
+        issuePanelService.showSharedIssuePanel()
+      }
     }
   }
 }
