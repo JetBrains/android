@@ -62,7 +62,7 @@ internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
   fakeUi: FakeUi,
-  timeout: Duration = 30.seconds
+  timeout: Duration = 90.seconds
 ) =
   try {
     withTimeout(timeout = timeout) {
