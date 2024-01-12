@@ -14,6 +14,16 @@ iml_module(
     ],
 )
 
+py_binary(
+    name = "generate_safe_mode_scripts",
+    srcs = ["script-generation/generate_safe_mode_scripts.py"],
+    data = [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
+)
+
 py_test(
     name = "test_safe_mode",
     size = "small",
