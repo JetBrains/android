@@ -19,6 +19,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,6 +44,13 @@ class BuildProjectTest {
       studio.waitForIndex()
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
+      verifyBuildAnalyzerDidNotFail()
+    }
+  }
+
+  private fun verifyBuildAnalyzerDidNotFail() {
+    if (system.installation.ideaLog.hasMatchingLine(".*SEVERE - Build Analyzer - .*")) {
+      Assert.fail("Build Analyzer failure detected.")
     }
   }
 }
