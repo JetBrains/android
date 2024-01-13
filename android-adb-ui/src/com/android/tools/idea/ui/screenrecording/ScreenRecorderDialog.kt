@@ -34,6 +34,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.util.Locale
 import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -112,7 +113,8 @@ internal class ScreenRecorderDialog(
 
   private fun recordingTimeText(timeMillis: Long): String {
     val seconds = (timeMillis / 1000).toInt()
-    return AndroidAdbUiBundle.message("screenrecord.dialog.progress", String.format("%02d:%02d", seconds / 60, seconds % 60))
+    return AndroidAdbUiBundle.message("screenrecord.dialog.progress",
+                                      String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60))
   }
 
   private fun updateRecordingTime() {

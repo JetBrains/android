@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.beans.PropertyChangeListener
+import java.util.Locale
 import javax.swing.JComponent
 
 /**
@@ -48,7 +49,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
   private fun updatePresentation(presentation: Presentation, zoomable: Zoomable?) {
     val scale = if (zoomable != null) zoomable.scale * zoomable.screenScalingFactor else 1.0
 
-    val label = String.format("%d%% ", (100 * scale).toInt())
+    val label = String.format(Locale.ROOT, "%d%% ", (100 * scale).toInt())
     presentation.text = label
   }
 

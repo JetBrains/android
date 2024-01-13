@@ -21,6 +21,7 @@ import com.android.ddmlib.MultiLineReceiver
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import java.util.Collections
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -47,7 +48,7 @@ fun convertIDeviceToAndroidDevice(device: IDevice): AndroidDevice {
           val (ramSize, unit) = value.trim().split(' ', ignoreCase = true, limit = 2)
           val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
           when (unit) {
-            "kB" -> String.format("%.1f GB", ramSizeFloat / 1000 / 1000)
+            "kB" -> String.format(Locale.ROOT, "%.1f GB", ramSizeFloat / 1000 / 1000)
             else -> null
           }
         }

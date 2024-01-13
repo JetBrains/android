@@ -23,6 +23,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
 import java.lang.Math.min
+import java.util.Locale
 
 class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
 
@@ -113,7 +114,8 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
     private fun getSummaryLine(histogram: Histogram,
                                histogramName: String): String {
       val (totalInstances, totalBytes) = histogram.getTotals()
-      return String.format("Total - %10s: %s %s %d classes (Total instances: %d)",
+      return String.format(Locale.getDefault(),
+                    "Total - %10s: %s %s %d classes (Total instances: %d)",
                            histogramName,
                            toPaddedShortStringAsCount(totalInstances),
                            toPaddedShortStringAsSize(totalBytes),
@@ -122,7 +124,8 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
     }
 
     private fun formatEntryLineMerged(counter: Int, entry: HistogramEntry, entry2: HistogramEntry?): String {
-      return String.format("%5d: [%s/%s] [%s/%s] %s",
+      return String.format(Locale.getDefault(),
+                           "%5d: [%s/%s] [%s/%s] %s",
                            counter,
                            toPaddedShortStringAsCount(entry.totalInstances),
                            toPaddedShortStringAsSize(entry.totalBytes),
@@ -132,7 +135,8 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
     }
 
     private fun formatEntryLine(counter: Int, entry: HistogramEntry): String {
-      return String.format("%5d: [%s/%s] %s",
+      return String.format(Locale.getDefault(),
+                           "%5d: [%s/%s] %s",
                            counter,
                            toPaddedShortStringAsCount(entry.totalInstances),
                            toPaddedShortStringAsSize(entry.totalBytes),

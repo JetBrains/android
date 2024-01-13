@@ -165,6 +165,7 @@ import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
 import kotlin.math.PI
@@ -1443,7 +1444,7 @@ class EmulatorView(
 
       fun log() {
         if (frameCount != 0) {
-          val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val frameRate = String.format(Locale.ROOT, "%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""

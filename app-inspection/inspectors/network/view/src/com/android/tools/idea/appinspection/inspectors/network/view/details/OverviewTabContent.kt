@@ -47,6 +47,7 @@ import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.function.LongFunction
 import javax.swing.BoxLayout
@@ -197,7 +198,7 @@ internal class OverviewTabContent : TabContent() {
       if (image != null) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Dimension"), TabularLayout.Constraint(row, 0))
-        val dimension = JLabel(String.format("%d x %d", image.width, image.height))
+        val dimension = JLabel(String.format(Locale.getDefault(), "%d x %d", image.width, image.height))
         myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
       }
 
