@@ -33,6 +33,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class WebpSupportTest extends TestCase {
 
+  @Override
+  public void setUp() throws Exception {
+    WebpMetadata.Companion.ensureWebpRegistered();
+  }
+
   public void testRegistration() throws Exception {
     // Make sure it understands both webp and WEBP as valid format names (it's case sensitive)
     assertTrue(ImageIO.getImageWritersByFormatName("webp").hasNext());
