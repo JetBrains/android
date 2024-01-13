@@ -140,6 +140,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPlugin(plugin, revision.toString(), null)
   }
 
+  override fun addPlugin(plugin: String, classpath: String) {
+    referencesExecutor.addPlugin(plugin, classpath)
+    val buildModel = moduleGradleBuildModel ?: return
+
+    applyPluginToProjectAndModule(plugin, classpath, buildModel)
+  }
 
   override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     referencesExecutor.applyPluginInModule(plugin, module, revision, minRev)
@@ -150,6 +156,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   override fun applyPluginInModule(plugin: String, module: Module, revision: AgpVersion) {
     applyPluginInModule(plugin, module, revision.toString(), null)
+  }
+
+  private fun applyPluginToProjectAndModule(plugin: String, classpath: String, buildModel: GradleBuildModel) {
+    val projectModel = projectBuildModel ?: return
+    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
+    dependenciesHelper.addPlugin(plugin, classpath, buildModel)
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
@@ -225,16 +237,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val baseFeature = context.moduleTemplateData?.baseFeature
 
     val buildModel = when {
-      moduleDir != null -> {
-        projectBuildModel?.getModuleBuildModel(moduleDir)
-      }
-      baseFeature == null || !toBase -> {
-        moduleGradleBuildModel
-      }
-      else -> {
-        projectBuildModel?.getModuleBuildModel(baseFeature.dir)
-      }
-    } ?: return
+                       moduleDir != null -> {
+                         projectBuildModel?.getModuleBuildModel(moduleDir)
+                       }
+
+                       baseFeature == null || !toBase -> {
+                         moduleGradleBuildModel
+                       }
+
+                       else -> {
+                         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
+                       }
+                     } ?: return
 
     val resolvedMavenCoordinate =
       when {
@@ -247,8 +261,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
     val resolvedConfiguration = if (baseFeature != null && toBase && configuration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
-        GRADLE_API_CONFIGURATION
-    } else configuration
+      GRADLE_API_CONFIGURATION
+    }
+    else configuration
 
     projectBuildModel?.let {
       DependenciesHelper.withModel(it).addDependency(resolvedConfiguration,
@@ -301,6 +316,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       target.exists() -> if (!sourceFile.contentEquals(target)) {
         addFileAlreadyExistWarning(target)
       }
+
       else -> {
         val document = FileDocumentManager.getInstance().getDocument(sourceFile)
         if (document != null) {
@@ -394,7 +410,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return property.valueAsString() ?: valueIfNotFound
   }
 
-  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String): String {
     val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
     check(mavenDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
 
@@ -411,7 +427,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return valueIfNotFound
   }
 
-  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String): String {
     val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
     check(mavenDependency != null) { "$mavenCoordinate is not a valid dependency" }
 

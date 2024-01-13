@@ -20,7 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.BuildEnvironment
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_BUILD_CONFIG
+import com.android.tools.idea.testing.TestProjectPaths.MINIMAL_CATALOG_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
@@ -28,13 +29,15 @@ import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import org.apache.commons.lang3.StringUtils.countMatches
-import org.jetbrains.kotlin.idea.configuration.ChangedConfiguratorFiles
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
+import java.nio.file.Paths
 
 @RunWith(JUnit4::class)
 class DependenciesHelperTest: AndroidGradleTestCase() {
@@ -454,8 +457,6 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             val tracker = ChangedConfiguratorFiles()
-
              val changed = helper.addPlugin("com.android.application",
                               version,
                               false,
@@ -474,6 +475,149 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              val buildFileContent = project.getTextForFile("app/build.gradle")
 
              assertThat(countMatches(buildFileContent,"id 'com.android.application'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartAddPluginNoCatalog() {
+
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+
+             val changed = helper.addPlugin("com.google.gms.google-services",
+                                            "com.google.gms:google-services:4.3.14",
+                                            moduleModel)
+             assertThat(changed.size).isEqualTo(2)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             val regex = "\\R\\s*classpath 'com.google.gms:google-services:4.3.14'".toRegex()
+             assertThat(regex.findAll(projectBuildContent).toList().size).isEqualTo(1)
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(projectBuildContent).doesNotContain("plugins")
+             assertThat(project.getTextForFile("settings.gradle")).doesNotContain("plugins")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+
+             assertThat(countMatches(buildFileContent, "apply plugin: 'com.google.gms.google-services'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartAddPluginToPluginManagement() {
+    doTest(SIMPLE_APPLICATION,
+           {
+             val file = File(project.basePath, "settings.gradle")
+             val text = file.readText()
+             FileUtil.writeToFile(
+               file,
+               """
+                pluginManagement {
+                  plugins {
+                  }
+                }
+                """.trimIndent() + "\n" + text)
+           },
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+
+             val changed = helper.addPlugin("com.google.gms.google-services",
+                                            "com.google.gms:google-services:4.3.14",
+                                            moduleModel)
+             assertThat(changed.size).isEqualTo(2)
+           },
+           {
+             val settingsContent = project.getTextForFile("settings.gradle")
+             val regex = "plugins \\{\\n\\s*id 'com.google.gms.google-services'".toRegex()
+             assertThat(regex.findAll(settingsContent).toList().size).isEqualTo(1)
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("plugins")
+             assertThat(projectBuildContent).doesNotContain("classpath 'com.google.gms:google-services:4.3.14'")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+
+             assertThat(countMatches(buildFileContent,"apply plugin: 'com.google.gms.google-services'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartAddPluginNoCatalogPluginsBlock() {
+    doTest(MIGRATE_BUILD_CONFIG,
+           { _, moduleModel, helper ->
+             val changed = helper.addPlugin("com.google.gms.google-services",
+                                            "com.google.gms:google-services:4.3.14",
+                                            moduleModel)
+             assertThat(changed.size).isEqualTo(2)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             val regex = "id 'com.google.gms.google-services' version '4.3.14' apply false".toRegex()
+             assertThat(regex.findAll(projectBuildContent).toList().size).isEqualTo(1)
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+             assertThat(projectBuildContent).doesNotContain("classpath")
+
+             // root project plugins block
+             val moduleBuildContent = project.getTextForFile("app/build.gradle")
+             val regex2 = "id 'com.google.gms.google-services'".toRegex()
+             assertThat(regex2.findAll(moduleBuildContent).toList().size).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testSmartAddPluginWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { _, moduleModel, helper ->
+             val changed = helper.addPlugin("com.google.gms.google-services",
+                                            "com.google.gms:google-services:4.3.14",
+                                            moduleModel)
+             assertThat(changed.size).isEqualTo(3)
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("google-gms-google-services = { id = \"com.google.gms.google-services\", version.ref = \"")
+             assertThat(project.getTextForFile("app/build.gradle"))
+               .contains("alias(libs.plugins.google.gms.google.services)")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+
+             assertThat(projectBuildContent)
+               .contains("alias(libs.plugins.google.gms.google.services) apply false")
+
+             assertThat(project.getTextForFile("settings.gradle")).doesNotContain("plugins")
+             assertThat(projectBuildContent).doesNotContain("dependencies")
+           })
+  }
+
+
+  @Test
+  fun testSmartAddPluginToNewProject() {
+    doTest(MINIMAL_CATALOG_APPLICATION,
+           { _, moduleModel, helper ->
+             val changed = helper.addPlugin("com.google.gms.google-services",
+                                            "com.google.gms:google-services:4.3.14",
+                                            moduleModel)
+             assertThat(changed.size).isEqualTo(3)
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("google-gms-google-services = { id = \"com.google.gms.google-services\", version.ref = \"")
+             assertThat(project.getTextForFile("app/build.gradle"))
+               .contains("alias(libs.plugins.google.gms.google.services)")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+
+             assertThat(projectBuildContent)
+               .contains("alias(libs.plugins.google.gms.google.services) apply false")
+
+             assertThat(project.getTextForFile("settings.gradle")).doesNotContain("plugins")
+             assertThat(projectBuildContent).doesNotContain("dependencies") // no classpath
            })
   }
 
@@ -504,5 +648,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
     }
     assert.invoke()
   }
+
+  private fun Project.doesFileExists(relativePath:String) =
+    VfsUtil.findFile(Paths.get(basePath, relativePath), false)?.exists() ?: false
 
 }
