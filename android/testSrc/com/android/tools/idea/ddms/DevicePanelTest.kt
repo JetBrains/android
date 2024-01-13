@@ -22,31 +22,27 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ddms.DevicePanel.DeviceComboBox
 import com.google.common.util.concurrent.FutureCallback
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
-import org.junit.Before
+import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito
-
 import javax.swing.JComboBox
 
-internal class DevicePanelTest {
-  private lateinit var myProject: Project
+@RunWith(JUnit4::class)
+internal class DevicePanelTest : LightPlatformTestCase()  {
   private lateinit var myBridge: AndroidDebugBridge
 
   private lateinit var myPanel: DevicePanel
   private lateinit var myDeviceComboBox: JComboBox<IDevice>
 
-  @Before
-  fun setUp() {
-    myProject = Mockito.mock(Project::class.java)
+  public override fun setUp() {
+    super.setUp()
     myBridge = Mockito.mock(AndroidDebugBridge::class.java)
 
-    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox(), null)
+    myPanel = DevicePanel(project, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox(), null)
     myDeviceComboBox = myPanel.deviceComboBox
   }
 
@@ -59,11 +55,6 @@ internal class DevicePanelTest {
 
     override fun setSerialNumbersVisible(visible: Boolean) {
     }
-  }
-
-  @After
-  fun disposeOfProject() {
-    Disposer.dispose(myProject)
   }
 
   @Test
