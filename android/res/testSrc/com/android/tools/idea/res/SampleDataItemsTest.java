@@ -22,10 +22,8 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.truth.Truth;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.mock.MockPsiManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.LightVirtualFile;
 import java.io.IOException;
 import org.intellij.lang.annotations.Language;
@@ -57,16 +55,15 @@ public class SampleDataItemsTest {
     file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = "header0,header1\nA1,B1\nA2\nA3,B3";
 
-    SampleDataResourceItem[] item = ApplicationManager.getApplication()
-      .runReadAction((Computable<SampleDataResourceItem[]>)() -> {
-        try {
-          return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
-              .toArray(new SampleDataResourceItem[0]);
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+    SampleDataResourceItem[] item = ReadAction.compute(() -> {
+      try {
+        return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
+          .toArray(new SampleDataResourceItem[0]);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     Truth.assertThat(item).hasLength(2);
 
@@ -81,29 +78,27 @@ public class SampleDataItemsTest {
 
   @Test
   public void testJsonParsing() {
-    @Language("JSON")
-    final String content = "{\"data\":[{\"animal\":\"cat\"},{\"animal\":\"dog\"}]}";
+    @Language("JSON") final String content = "{\"data\":[{\"animal\":\"cat\"},{\"animal\":\"dog\"}]}";
 
-    MockPsiFile file = new MockPsiFile(new LightVirtualFile("test.json"), new MockPsiManager(rule.getProject())) {
+    MockPsiFile file = ReadAction.compute(() -> new MockPsiFile(new LightVirtualFile("test.json"), new MockPsiManager(rule.getProject())) {
       @Override
       @NotNull
       public String getName() {
         return "test.json";
       }
-    };
+    });
     file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = content;
 
-    SampleDataResourceItem[] item = ApplicationManager.getApplication()
-      .runReadAction((Computable<SampleDataResourceItem[]>)() -> {
-        try {
-          return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
-              .toArray(new SampleDataResourceItem[0]);
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+    SampleDataResourceItem[] item = ReadAction.compute(() -> {
+      try {
+        return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
+          .toArray(new SampleDataResourceItem[0]);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     Truth.assertThat(item).hasLength(1);
 
