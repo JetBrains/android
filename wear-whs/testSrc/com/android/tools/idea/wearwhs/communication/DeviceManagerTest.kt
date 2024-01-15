@@ -559,7 +559,7 @@ class DeviceManagerTest {
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-    var parsedCapabilities = WHS_CAPABILITIES.associate { it.key to OnDeviceCapabilityState(false, null) }
+    var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to OnDeviceCapabilityState(false, null) }
     val job = launch {
       parsedCapabilities = deviceManager.loadCurrentCapabilityStates()
     }

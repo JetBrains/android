@@ -31,7 +31,7 @@ internal class FakeDeviceManager(
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
-  private val onDeviceStates = capabilities.associate { it.key to OnDeviceCapabilityState(false, null) }
+  private val onDeviceStates = capabilities.associate { it.dataType to OnDeviceCapabilityState(false, null) }
 
   override suspend fun loadCapabilities() = if (failState) {
     throw ConnectionLostException("Failed to load capabilities")

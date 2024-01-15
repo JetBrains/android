@@ -26,7 +26,6 @@ import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.launch
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
@@ -115,8 +114,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override suspend fun applyChanges() {
     progress.emit(WhsStateManagerStatus.Syncing)
-    val capabilityUpdates = capabilityToState.entries.associate { it.key.key to it.value.value.enabled }
-    val overrideUpdates = capabilityToState.entries.associate { it.key.key to it.value.value.overrideValue }
+    val capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.enabled }
+    val overrideUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.overrideValue }
     try {
       deviceManager.setCapabilities(capabilityUpdates)
       deviceManager.overrideValues(overrideUpdates)

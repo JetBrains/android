@@ -34,12 +34,12 @@ enum class WhsDataType() {
 }
 
 /**
- * Data class representing WHS capabilities such as Heart Rate, Location. [key] is the
- * key for this data type in WHS, [label] is the user displayed label of the capability,
- * [isOverrideable] means the value of the sensor can be changed via adb commands, and
- * [unit] specifies the unit of the sensor.
+ * Data class representing WHS capabilities such as Heart Rate, Location. [dataType]
+ * corresponds to an enum for capabilities in WHS, [label] is the user displayed label
+ * of the capability, [isOverrideable] means the value of the sensor can be changed
+ * via adb commands, and [unit] specifies the unit of the sensor.
  */
-data class WhsCapability(val key: WhsDataType,
+data class WhsCapability(val dataType: WhsDataType,
                          @PropertyKey(resourceBundle = BUNDLE_NAME) val label: String,
                          @PropertyKey(resourceBundle = BUNDLE_NAME) val unit: String,
                          val isOverrideable: Boolean,
