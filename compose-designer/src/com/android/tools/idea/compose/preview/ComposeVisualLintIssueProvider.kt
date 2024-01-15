@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSuppressTask
 import com.android.tools.preview.ComposePreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
@@ -81,7 +82,7 @@ class ComposeVisualLintSuppressTask(
   private val model: NlModel,
   private val previewElement: ComposePreviewElement,
   private val issueType: VisualLintErrorType
-) : Runnable {
+) : VisualLintSuppressTask {
 
   override fun run() {
     VisualLintUsageTracker.getInstance()
@@ -112,5 +113,10 @@ class ComposeVisualLintSuppressTask(
       },
       previewElement.containingFile
     )
+  }
+
+  override fun isValid(): Boolean {
+    return previewElement.previewElementDefinitionPsi?.let { runReadAction { it.element?.isValid } }
+      ?: false
   }
 }

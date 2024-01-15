@@ -38,6 +38,7 @@ import com.android.tools.rendering.RenderResult
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
@@ -142,5 +143,96 @@ class ComposeVisualLintSuppressTaskTest {
       .run()
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(0, issueProvider.getUnsuppressedIssues().size)
+  }
+
+  @Test
+  fun testShowSuppressAction() {
+    val facet = projectRule.androidFacet(":app")
+    val previewElement =
+      runBlocking {
+          val psiFile =
+            getPsiFile(
+              projectRule.project,
+              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt"
+            )
+          runReadAction {
+            PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+              .asSequence()
+              .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
+              .mapNotNull { it.getContainingUMethod() }
+              .toSet()
+              .flatMap { getPreviewNodes(it, null, false) }
+              .filterIsInstance<ComposePreviewElementInstance>()
+              .toList()
+          }
+        }
+        .first {
+          it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
+        }
+    val file =
+      ComposeAdapterLightVirtualFile(
+        "compose-model.xml",
+        previewElement.toPreviewXml().buildString()
+      ) {
+        previewElement.previewElementDefinitionPsi?.virtualFile
+      }
+    val renderTaskFuture =
+      createRenderTaskFuture(
+        facet = facet,
+        file = file,
+        privateClassLoader = false,
+        useLayoutScanner = false,
+        classesToPreload = emptyList(),
+        customViewInfoParser = accessibilityBasedHierarchyParser,
+        configure = previewElement::applyTo
+      )
+
+    val renderResultFuture =
+      CompletableFuture.supplyAsync(
+          { renderTaskFuture.get() },
+          AppExecutorUtil.getAppExecutorService()
+        )
+        .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
+    renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
+    val renderResult = renderResultFuture.get()!!
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file
+      )
+    nlModel.dataContext = DataContext {
+      when (it) {
+        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        else -> null
+      }
+    }
+    nlModel.setModelUpdater(AccessibilityModelUpdater())
+    NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
+
+    val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val buttonIssues =
+      ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+    assertEquals(1, buttonIssues.size)
+    val textFieldIssues =
+      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+    assertEquals(1, textFieldIssues.size)
+    issueProvider.addAllIssues(buttonIssues)
+    issueProvider.addAllIssues(textFieldIssues)
+
+    run {
+      val buttonSuppressTasks = buttonIssues[0].suppresses.toList()
+      assertEquals(1, buttonSuppressTasks.size)
+    }
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      previewElement.previewElementDefinitionPsi!!.element?.delete()
+    }
+    run {
+      val buttonSuppressTasks = buttonIssues[0].suppresses.toList()
+      assertEquals(0, buttonSuppressTasks.size)
+    }
   }
 }

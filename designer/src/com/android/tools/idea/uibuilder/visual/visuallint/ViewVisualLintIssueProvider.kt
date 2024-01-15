@@ -61,7 +61,7 @@ class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
 class ViewVisualLintSuppressTask(
   private val typeToSuppress: VisualLintErrorType,
   private val components: List<NlComponent>
-) : Runnable {
+) : VisualLintSuppressTask {
 
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
@@ -106,4 +106,6 @@ class ViewVisualLintSuppressTask(
       )
     }
   }
+
+  override fun isValid(): Boolean = components.isNotEmpty()
 }

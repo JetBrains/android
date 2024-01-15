@@ -129,7 +129,8 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   private val suppressList: MutableList<Suppress> = mutableListOf()
 
   override val suppresses: Stream<Suppress>
-    get() = suppressList.stream()
+    get() =
+      suppressList.filter { it.action !is VisualLintSuppressTask || it.action.isValid() }.stream()
 
   init {
     runReadAction { updateRange() }
@@ -233,4 +234,8 @@ interface VisualLintHighlightingIssue {
    * @param model Currently displaying model.
    */
   fun shouldHighlight(model: NlModel): Boolean
+}
+
+interface VisualLintSuppressTask : Runnable {
+  fun isValid(): Boolean
 }
