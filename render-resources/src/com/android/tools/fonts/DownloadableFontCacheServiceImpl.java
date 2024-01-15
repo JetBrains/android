@@ -61,11 +61,6 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   private final FontsFolderProvider myFontsFolderProvider;
 
-  @NotNull
-  public static DownloadableFontCacheServiceImpl getInstance() {
-    return (DownloadableFontCacheServiceImpl)DownloadableFontCacheService.getInstance();
-  }
-
   @Override
   @NotNull
   public List<FontFamily> getSystemFontFamilies() {
