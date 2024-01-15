@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
@@ -30,10 +31,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
@@ -44,13 +42,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-
-private suspend fun DefaultActionGroup.findActionByText(text: String): AnAction? =
-  childActionsOrStubs.find {
-    val testEvent = TestActionEvent.createTestEvent()
-    readAction { it.update(testEvent) }
-    (testEvent.presentation.text ?: it.templateText) == text
-  }
 
 class DrawableBackgroundMenuActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

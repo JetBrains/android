@@ -72,11 +72,18 @@ internal val DEVICE_ID_TO_TOOLTIPS =
     DEVICE_CLASS_DESKTOP_ID to DEVICE_CLASS_DESKTOP_TOOLTIP
   )
 
+private val EMPTY_DEVICE_CHANGE_LISTENER =
+  object : DeviceChangeListener {
+    override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+  }
+
 /**
  * New device menu for layout editor. Because we are going to deprecate [DeviceMenuAction], some of
  * the duplicated codes are not shared between them.
  */
-class DeviceMenuAction(private val deviceChangeListener: DeviceChangeListener) :
+class DeviceMenuAction(
+  private val deviceChangeListener: DeviceChangeListener = EMPTY_DEVICE_CHANGE_LISTENER
+) :
   DropDownAction(
     "Device for Preview",
     "Device for Preview",
