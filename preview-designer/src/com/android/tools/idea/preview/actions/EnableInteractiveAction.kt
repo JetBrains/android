@@ -28,13 +28,9 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  *
  * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
  *   when Essentials Mode is enabled.
- * @param essentialsModeDescription the description that will be used when the action is disabled
- *   due to Essentials Mode.
  */
 class EnableInteractiveAction(
   private val isEssentialsModeEnabled: () -> Boolean,
-  private val essentialsModeDescription: String =
-    message("action.interactive.essentials.mode.description.default"),
 ) :
   AnActionButton(
     message("action.interactive.title"),
@@ -48,7 +44,7 @@ class EnableInteractiveAction(
     e.presentation.isEnabled = !isEssentialsModeEnabled
     e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
-      if (isEssentialsModeEnabled) essentialsModeDescription
+      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
   }
 

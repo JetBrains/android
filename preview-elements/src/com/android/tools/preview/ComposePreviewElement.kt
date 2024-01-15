@@ -303,7 +303,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
    * Whether the Composable being previewed contains animations. If true, the Preview should allow
    * opening the animation inspector.
    */
-  var hasAnimations = false
+  override var hasAnimations = false
 
   override fun resolve(): Sequence<ComposePreviewElementInstance> = sequenceOf(this)
 
@@ -399,6 +399,7 @@ ParametrizedComposePreviewElementInstance(
   val index: Int,
   val maxIndex: Int,
 ) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
+  override var hasAnimations = false
   override val instanceId: String = "$methodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings =

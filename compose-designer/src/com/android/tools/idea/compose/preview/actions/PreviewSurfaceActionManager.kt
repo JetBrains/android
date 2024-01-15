@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
@@ -83,12 +84,16 @@ internal class PreviewSurfaceActionManager(
     listOf(Separator()) +
       listOfNotNull(
           EnableUiCheckAction(),
-          AnimationInspectorAction(),
+          AnimationInspectorAction(
+            isEssentialsModeEnabled = {
+              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+            },
+            defaultModeDescription = message("action.animation.inspector.description"),
+          ),
           EnableInteractiveAction(
             isEssentialsModeEnabled = {
               ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             },
-            essentialsModeDescription = message("action.interactive.essentials.mode.description")
           ),
           DeployToDeviceAction(),
         )

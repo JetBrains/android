@@ -28,7 +28,6 @@ import com.android.tools.idea.compose.preview.actions.ComposeViewControlAction
 import com.android.tools.idea.compose.preview.actions.ComposeViewSingleWordFilter
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
-import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
@@ -37,6 +36,7 @@ import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssential
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
@@ -84,8 +84,8 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
   private inner class ComposePreviewNorthGroup :
     DefaultActionGroup(
       listOfNotNull(
-        StopInteractivePreviewAction(forceDisable = { isPreviewRefreshing(it.dataContext) }),
-        StopAnimationInspectorAction(),
+        StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+        StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {

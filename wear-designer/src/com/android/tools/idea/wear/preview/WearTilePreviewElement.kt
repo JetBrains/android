@@ -28,7 +28,8 @@ open class WearTilePreviewElement(
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
   override val methodFqn: String,
-  val configuration: WearTilePreviewConfiguration
+  val configuration: WearTilePreviewConfiguration,
+  override val hasAnimations: Boolean = false
 ) : MethodPreviewElement
 
 data class WearTilePreviewConfiguration

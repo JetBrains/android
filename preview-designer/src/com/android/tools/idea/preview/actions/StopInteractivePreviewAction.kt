@@ -26,7 +26,7 @@ import icons.StudioIcons
  * Action to stop the interactive preview (including animation inspection). Only visible when it's
  * already running and if the preview is not refreshing.
  */
-class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) -> Boolean) :
+class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
   AnActionButton(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
@@ -38,7 +38,7 @@ class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) 
     e.presentation.isEnabled =
       findPreviewModeManagersForContext(e.dataContext).any {
         it.mode.value is PreviewMode.Interactive
-      } && !forceDisable(e)
+      } && !isDisabled(e)
     e.presentation.isVisible =
       findPreviewModeManagersForContext(e.dataContext).any {
         it.mode.value is PreviewMode.Interactive

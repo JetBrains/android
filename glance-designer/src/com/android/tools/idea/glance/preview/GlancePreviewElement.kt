@@ -30,5 +30,6 @@ class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val methodFqn: String
+  override val methodFqn: String,
+  override val hasAnimations: Boolean = false
 ) : MethodPreviewElement

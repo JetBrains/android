@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
@@ -46,7 +47,10 @@ internal class WearTileAdapterLightVirtualFile(
 internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup {
-    return DefaultActionGroup(StopInteractivePreviewAction(forceDisable = { isPreviewRefreshing(it.dataContext) }))
+    return DefaultActionGroup(
+      StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+      StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+    )
   }
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf())

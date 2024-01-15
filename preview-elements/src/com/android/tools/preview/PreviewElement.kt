@@ -49,6 +49,12 @@ data class PreviewDisplaySettings(
 
 /** Definition of a preview element */
 interface PreviewElement : PreviewNode {
+
+  /**
+   * Indicates if preview element has animation that could be inspected via [AnimationInspectorAction]
+   */
+  val hasAnimations: Boolean
+
   /** Settings that affect how the [PreviewElement] is presented in the preview surface */
   val displaySettings: PreviewDisplaySettings
 

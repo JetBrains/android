@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -26,28 +24,34 @@ import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
- * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in
- * details.
+ * Action to open the Animation Preview to analyze animations in details.
+ *
+ * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
+ *   when Essentials Mode is enabled.
+ * @param defaultModeDescription the description that will be used for the action
  */
-class AnimationInspectorAction :
+class AnimationInspectorAction(
+  private val isEssentialsModeEnabled: () -> Boolean,
+  private val defaultModeDescription: String = message("action.animation.inspector.description")
+) :
   AnActionButton(
     message("action.animation.inspector.title"),
-    message("action.animation.inspector.description"),
-    ANIMATION_INSPECTOR
+    defaultModeDescription,
+    ANIMATION_INSPECTOR,
   ) {
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     e.presentation.apply {
-      val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      val isEssentialsModeEnabled = isEssentialsModeEnabled()
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible = e.dataContext.previewElement()?.hasAnimations == true
+      isVisible = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
       text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isEssentialsModeEnabled)
           message("action.animation.inspector.essentials.mode.description")
-        else message("action.animation.inspector.description")
+        else defaultModeDescription
     }
   }
 

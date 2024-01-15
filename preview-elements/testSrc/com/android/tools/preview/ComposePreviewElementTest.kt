@@ -17,13 +17,13 @@ package com.android.tools.preview
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
 import org.junit.Test
 import org.xml.sax.InputSource
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 
 class ComposePreviewElementTest {
 
@@ -123,7 +123,9 @@ $t
       override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
       override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
       override val configuration: PreviewConfiguration
-    ) : ComposePreviewElementInstance()
+    ) : ComposePreviewElementInstance() {
+      override var hasAnimations = false
+    }
 
     val composable0 =
       SingleComposePreviewElementInstance(

@@ -37,6 +37,7 @@ private class TestMethodPreviewElement(
   override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
+  override val hasAnimations: Boolean = false
 ) : MethodPreviewElement
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {

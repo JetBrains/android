@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.PreviewStatusIcon
 import com.android.tools.idea.preview.actions.disabledIf
@@ -45,7 +46,8 @@ internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibScen
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
-          EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
+        AnimationInspectorAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
+        EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
         )
         .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
         .hideIfRenderErrors()

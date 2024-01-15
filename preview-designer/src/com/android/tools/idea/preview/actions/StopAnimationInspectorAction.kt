@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.actions.navigateBack
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,7 +26,7 @@ import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
  * Action to stop the animation inspector, displayed when the inspector is open for the current
  * preview.
  */
-class StopAnimationInspectorAction :
+class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
   AnActionButton(
     message("action.stop.animation.inspector.title"),
     message("action.stop.animation.inspector.description"),
@@ -38,10 +36,14 @@ class StopAnimationInspectorAction :
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
-    e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
+    e.presentation.isEnabled =
+      findPreviewModeManagersForContext(e.dataContext).any {
+        it.mode.value is PreviewMode.AnimationInspection
+      } && !isDisabled(e)
     e.presentation.isVisible =
-      composePreviewManagers?.mode?.value is PreviewMode.AnimationInspection
+      findPreviewModeManagersForContext(e.dataContext).any {
+        it.mode.value is PreviewMode.AnimationInspection
+      }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
