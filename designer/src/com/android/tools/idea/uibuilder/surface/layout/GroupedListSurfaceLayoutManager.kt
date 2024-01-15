@@ -29,19 +29,12 @@ import kotlin.math.max
  * If there is only one visible preview, put it at the center of window. If there are more than one
  * visible preview, they would be shown as a vertical list.
  *
- * @param canvasTopPadding is the top padding from the surface.
- * @param canvasLeftPadding is the left padding from the surface.
- * @param previewFramePaddingProvider is to provide the horizontal and vertical paddings of every
- *   "preview frame". The "preview frame" is a preview with its toolbars.
- *
- * The input value is the scale value of the current [PositionableContent].
+ * @param padding layout paddings
  */
 class GroupedListSurfaceLayoutManager(
-  @SwingCoordinate private val canvasTopPadding: Int,
-  @SwingCoordinate private val canvasLeftPadding: Int,
-  @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
+  private val padding: GroupPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
-) : GroupedSurfaceLayoutManager(previewFramePaddingProvider) {
+) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   @SurfaceScale
   override fun getFitIntoScale(
@@ -121,13 +114,13 @@ class GroupedListSurfaceLayoutManager(
     }
 
     var requiredWidth = 0
-    var totalRequiredHeight = canvasTopPadding
+    var totalRequiredHeight = padding.canvasTopPadding
 
     for (view in verticalList) {
       val scale = view.scaleFunc()
       val margin = view.getMargin(scale)
       val viewSize = view.sizeFunc()
-      val framePadding = previewFramePaddingProvider(scale)
+      val framePadding = padding.previewPaddingProvider(scale)
       val viewWidth = framePadding + viewSize.width + margin.horizontal + framePadding
       val requiredHeight = framePadding + viewSize.height + margin.vertical + framePadding
 
@@ -160,15 +153,19 @@ class GroupedListSurfaceLayoutManager(
 
     val heightMap =
       verticalList.associateWith {
-        val framePadding = previewFramePaddingProvider(it.scale)
+        val framePadding = padding.previewPaddingProvider(it.scale)
         framePadding + it.scaledContentSize.height + it.margin.vertical + framePadding
       }
 
     val positionMap = mutableMapOf<PositionableContent, Point>()
-    var nextY = canvasTopPadding
+    var nextY = padding.canvasTopPadding
     for (view in verticalList) {
-      val framePadding = previewFramePaddingProvider(view.scale)
-      positionMap.setContentPosition(view, framePadding + canvasLeftPadding, nextY + framePadding)
+      val framePadding = padding.previewPaddingProvider(view.scale)
+      positionMap.setContentPosition(
+        view,
+        framePadding + padding.canvasLeftPadding,
+        nextY + framePadding
+      )
       nextY += heightMap[view]!!
     }
 

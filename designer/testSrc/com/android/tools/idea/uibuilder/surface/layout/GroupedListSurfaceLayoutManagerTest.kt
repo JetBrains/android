@@ -28,7 +28,7 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testLayoutVertically() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { 0 }) { contents ->
+      GroupedListSurfaceLayoutManager(GroupPadding(0, PREVIEW_LEFT_PADDING) { 0 }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
     val contents =
@@ -116,7 +116,7 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testLayoutMultipleContentSizes() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { 0 }) { contents ->
+      GroupedListSurfaceLayoutManager(GroupPadding(0, PREVIEW_LEFT_PADDING) { 0 }) { contents ->
         listOf(PositionableGroup(contents.take(3)), PositionableGroup(contents.drop(3)))
       }
     val contents =
@@ -207,9 +207,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 20
     val manager =
       GroupedListSurfaceLayoutManager(
-        canvasTopPadding,
-        PREVIEW_LEFT_PADDING,
-        { framePadding },
+        GroupPadding(canvasTopPadding, PREVIEW_LEFT_PADDING) { framePadding },
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
@@ -300,9 +298,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 50
     val manager =
       GroupedListSurfaceLayoutManager(
-        0,
-        PREVIEW_LEFT_PADDING,
-        { (it * framePadding).toInt() },
+        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() },
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
@@ -338,9 +334,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 50
     val manager =
       GroupedListSurfaceLayoutManager(
-        0,
-        PREVIEW_LEFT_PADDING,
-        { (it * framePadding).toInt() },
+        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() },
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
@@ -383,7 +377,7 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testFitIntoScaleWithoutPaddings() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { 0 }) { contents ->
+      GroupedListSurfaceLayoutManager(GroupPadding(0, PREVIEW_LEFT_PADDING) { 0 }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -425,7 +419,7 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testFitIntoScaleWithPaddings() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { 10 }) { contents ->
+      GroupedListSurfaceLayoutManager(GroupPadding(0, PREVIEW_LEFT_PADDING) { 10 }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -467,7 +461,9 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testZoomToFitValueIsIndependentOfContentScale() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { (it * 20).toInt() }) { contents ->
+      GroupedListSurfaceLayoutManager(
+        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * 20).toInt() }
+      ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -495,7 +491,7 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testEmptyContent() {
     val manager =
-      GroupedListSurfaceLayoutManager(0, PREVIEW_LEFT_PADDING, { 0 }) { contents ->
+      GroupedListSurfaceLayoutManager(GroupPadding(0, PREVIEW_LEFT_PADDING) { 0 }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
     val content = emptyList<PositionableContent>()

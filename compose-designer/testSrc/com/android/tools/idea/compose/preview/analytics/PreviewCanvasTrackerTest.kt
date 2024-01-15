@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.analytics
 
+import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
@@ -33,13 +34,14 @@ class PreviewCanvasTrackerTest {
 
   @Test
   fun testSetLayout() {
+    val emptyPadding = GroupPadding(0, 0) { 0 }
     val groupedGridLayout =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { content ->
+      GroupedGridSurfaceLayoutManager(emptyPadding) { content ->
         listOf(PositionableGroup(content.toList()))
       }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
     val groupedListLayout =
-      GroupedListSurfaceLayoutManager(0, 0, { 0 }) { content ->
+      GroupedListSurfaceLayoutManager(emptyPadding) { content ->
         listOf(PositionableGroup(content.toList()))
       }
     previewCanvasTracker.logSwitchLayout(groupedListLayout)
