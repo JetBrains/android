@@ -187,7 +187,7 @@ class DeviceManagerTest {
     val deviceManager = ContentProviderDeviceManager(adbSession)
 
     val job = launch {
-      deviceManager.enableCapability(WhsDataType.STEPS.toCapability())
+      deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true))
     }
     job.join()
   }
@@ -197,7 +197,7 @@ class DeviceManagerTest {
     val deviceManager = ContentProviderDeviceManager(adbSession)
 
     val job = launch {
-      deviceManager.disableCapability(WhsDataType.STEPS.toCapability())
+      deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to false))
     }
     job.join()
   }
@@ -227,11 +227,11 @@ class DeviceManagerTest {
   }
 
   private fun assertEnablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.enableCapability(dataType.toCapability()) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to true)) }, expectedAdbCommand)
   }
 
   private fun assertDisablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.disableCapability(dataType.toCapability()) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to false)) }, expectedAdbCommand)
   }
 
   @Test
@@ -311,13 +311,13 @@ class DeviceManagerTest {
     val deviceManager = ContentProviderDeviceManager(adbSession)
 
     val job = launch {
-      deviceManager.overrideValue(WhsDataType.STEPS.toCapability(), 55)
+      deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55))
     }
     job.join()
   }
 
   private fun assertOverrideSendsAdbCommand(dataType: WhsDataType, overrideValue: Number?, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValue(dataType.toCapability(), overrideValue) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(dataType to overrideValue)) }, expectedAdbCommand)
   }
 
   @Test

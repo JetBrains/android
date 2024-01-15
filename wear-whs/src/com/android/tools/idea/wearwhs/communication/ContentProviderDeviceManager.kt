@@ -40,7 +40,6 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   private var serialNumber: String? = null
   private val logger = Logger.getInstance(ContentProviderDeviceManager::class.java)
 
-  // TODO(b/309608749): Implement loadCapabilities method
   override suspend fun loadCapabilities() = capabilities
 
   override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> {
@@ -131,29 +130,6 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     return " --bind $key:$type:$value"
   }
 
-  private inline fun <reified T> contentUpdateCapability(key: String, value: T): String {
-    return "content update --uri $whsUri${bindString(key, value)}"
-  }
-
-  private suspend fun setCapability(capability: WhsCapability, newValue: Boolean) {
-    if (serialNumber == null) {
-      // TODO: Log this error
-      return
-    }
-
-    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-    val contentUpdateCommand = contentUpdateCapability(capability.key.name, newValue)
-    adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
-  }
-
-  override suspend fun enableCapability(capability: WhsCapability) {
-    setCapability(capability, true)
-  }
-
-  override suspend fun disableCapability(capability: WhsCapability) {
-    setCapability(capability, false)
-  }
-
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) {
     if (serialNumber == null) {
       // TODO: Log this error
@@ -163,24 +139,6 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     val contentUpdateCommand = contentUpdateMultipleCapabilities(capabilityUpdates)
     val device = DeviceSelector.fromSerialNumber(serialNumber!!)
 
-    adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
-  }
-
-  override suspend fun overrideValue(capability: WhsCapability, value: Number?) {
-    if (serialNumber == null) {
-      // TODO: Log this error
-      return
-    }
-
-    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-
-    val contentUpdateCommand = if (value == null) {
-      contentUpdateCapability(capability.key.name, "\"\"")
-    } else if (capability.key == WhsDataType.STEPS) {
-      contentUpdateCapability(capability.key.name, value.toInt())
-    } else {
-      contentUpdateCapability(capability.key.name, value.toFloat())
-    }
     adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
   }
 

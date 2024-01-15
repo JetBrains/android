@@ -38,30 +38,14 @@ internal interface WearHealthServicesDeviceManager {
   suspend fun loadOngoingExercise(): Boolean
 
   /**
-   * Enables a capability of WHS on the device.
-   */
-  suspend fun enableCapability(capability: WhsCapability)
-
-  /**
-   * Disables a capability of WHS on the device.
-   */
-  suspend fun disableCapability(capability: WhsCapability)
-
-  /**
    * Set multiple WHS capabilities on the device.
    */
   suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>)
 
   /**
-   * Overrides the sensor value for the given capability.
-   */
-  suspend fun overrideValue(capability: WhsCapability, value: Number?)
-
-  /**
    * Overrides the sensor value for the given capabilities.
    */
   suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>)
-
 
   /**
    * Loads the current state from WHS to compare with the current UI.
