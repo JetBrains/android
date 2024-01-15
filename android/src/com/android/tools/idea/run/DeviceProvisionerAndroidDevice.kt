@@ -35,10 +35,6 @@ import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.util.Function
-import java.util.EnumSet
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -49,6 +45,11 @@ import kotlinx.coroutines.guava.asListenableFuture
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -139,14 +140,12 @@ class DeviceTemplateAndroidDevice(
   override fun canRun(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
-    facet: AndroidFacet,
-    getRequiredHardwareFeatures: Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>>?,
+    getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
     supportedAbis: MutableSet<Abi>
   ): LaunchCompatibility {
     return LaunchCompatibility.canRunOnDevice(
       minSdkVersion,
       projectTarget,
-      facet,
       getRequiredHardwareFeatures,
       supportedAbis,
       this
@@ -196,8 +195,7 @@ class DeviceHandleAndroidDevice(
   override fun canRun(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
-    facet: AndroidFacet,
-    getRequiredHardwareFeatures: Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>>?,
+    getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
     supportedAbis: MutableSet<Abi>
   ): LaunchCompatibility {
     deviceHandle.state.error?.let {
@@ -212,7 +210,6 @@ class DeviceHandleAndroidDevice(
     return LaunchCompatibility.canRunOnDevice(
       minSdkVersion,
       projectTarget,
-      facet,
       getRequiredHardwareFeatures,
       supportedAbis,
       this

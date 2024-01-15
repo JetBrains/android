@@ -25,6 +25,7 @@ import com.intellij.util.Function;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,8 +108,7 @@ public interface AndroidDevice {
   @NotNull
   LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                              @NotNull IAndroidTarget projectTarget,
-                             @NotNull AndroidFacet facet,
-                             Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                             @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                              @NotNull Set<Abi> supportedAbis);
 
   /**

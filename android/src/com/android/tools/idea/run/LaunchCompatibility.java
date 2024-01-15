@@ -25,12 +25,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,8 +99,7 @@ public class LaunchCompatibility {
   @NotNull
   public static LaunchCompatibility canRunOnDevice(@NotNull AndroidVersion minSdkVersion,
                                                    @NotNull IAndroidTarget projectTarget,
-                                                   @NotNull AndroidFacet facet,
-                                                   Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                                                   @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                                    @NotNull Set<Abi> supportedAbis,
                                                    @NotNull AndroidDevice device) {
     // check if the device has the required minApi
@@ -118,7 +116,7 @@ public class LaunchCompatibility {
 
     EnumSet<IDevice.HardwareFeature> requiredFeatures;
     try {
-      requiredFeatures = getRequiredHardwareFeatures.fun(facet);
+      requiredFeatures = getRequiredHardwareFeatures.get();
     }
     catch (IndexNotReadyException e) {
       return new LaunchCompatibility(State.ERROR, "Required features are unsure because indices are not ready.");

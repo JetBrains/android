@@ -33,13 +33,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.Function;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 public final class LaunchableAndroidDevice implements AndroidDevice {
@@ -186,8 +185,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull AndroidFacet facet,
-                                    Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                                    @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                     @NonNull Set<Abi> supportedAbis) {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
@@ -202,7 +200,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       }
     }
     return compatibility
-      .combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this));
+      .combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, getRequiredHardwareFeatures, supportedAbis, this));
   }
 
   @NotNull

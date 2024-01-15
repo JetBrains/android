@@ -32,6 +32,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
@@ -103,8 +104,22 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       }
     }
 
-    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, myFacet,
-                                                     LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures, mySupportedAbis));
+    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget,
+                                                     new RequiredHardwareFeatures(myFacet), mySupportedAbis));
+  }
+
+  /**
+   * A supplier implemented as a static class to make its dependencies (a facet) explicit.
+   */
+  private static class RequiredHardwareFeatures implements Supplier<EnumSet<IDevice.HardwareFeature>> {
+    @NotNull private final AndroidFacet myFacet;
+
+    private RequiredHardwareFeatures(@NotNull AndroidFacet facet) { myFacet = facet; }
+
+    @Override
+    public EnumSet<IDevice.HardwareFeature> get() {
+      return getRequiredHardwareFeatures(myFacet);
+    }
   }
 
   /**
