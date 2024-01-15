@@ -125,18 +125,7 @@ internal class SceneViewPanel(
       val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
 
       val errorsPanel =
-        if (shouldRenderErrorsPanel())
-          SceneViewErrorsPanel {
-            when {
-              // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid
-              // image, never display the error panel.
-              sceneView.hasValidImage() && StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get() ->
-                SceneViewErrorsPanel.Style.HIDDEN
-              sceneView.hasRenderErrors() -> SceneViewErrorsPanel.Style.SOLID
-              else -> SceneViewErrorsPanel.Style.HIDDEN
-            }
-          }
-        else null
+        if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
 
       val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
 
