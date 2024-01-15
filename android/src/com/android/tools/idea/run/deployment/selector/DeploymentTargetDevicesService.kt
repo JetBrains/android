@@ -218,6 +218,6 @@ internal fun launchCompatibilityCheckerFlow(project: Project): Flow<LaunchCompat
       ?.configurationModule
       ?.module
       ?.let { module -> AndroidFacet.getInstance(module) }
-      ?.let { facet -> LaunchCompatibilityCheckerImpl.create(facet, null, null) }
+      ?.let { facet -> LaunchCompatibilityCheckerImpl.create(facet) }
       ?: LaunchCompatibilityChecker { LaunchCompatibility.YES }
   }

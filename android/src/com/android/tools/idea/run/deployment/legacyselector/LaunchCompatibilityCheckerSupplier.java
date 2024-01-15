@@ -80,6 +80,6 @@ class LaunchCompatibilityCheckerSupplier implements Supplier<LaunchCompatibility
       return null;
     }
 
-    return LaunchCompatibilityCheckerImpl.create(facet, null, null);
+    return LaunchCompatibilityCheckerImpl.create(facet);
   }
 }
