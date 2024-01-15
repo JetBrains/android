@@ -139,12 +139,6 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   }
 
   public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet) {
-    return create(facet, null, null);
-  }
-
-  private static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
-                                                            @Nullable ExecutionEnvironment env,
-                                                            @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
     AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       return null;
@@ -158,7 +152,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     AndroidVersion minSdkVersion = getMinSdkVersion(facet);
     Set<Abi> supportedAbis = androidModel.getSupportedAbis();
 
-    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
+    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, null, null, supportedAbis);
   }
 
   private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {
