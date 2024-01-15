@@ -18,17 +18,13 @@ package com.android.tools.idea.preview.modes
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -149,17 +145,6 @@ val LIST_LAYOUT_MANAGER_OPTION =
       GroupedListSurfaceLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
       DesignSurface.SceneViewAlignment.LEFT,
     )
-  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      message("vertical.layout"),
-      VerticalOnlyLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA,
-        SingleDirectionLayoutManager.Alignment.CENTER,
-      ),
-    )
   } else {
     SurfaceLayoutManagerOption(
       message("new.list.layout.title"),
@@ -174,17 +159,6 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
       // TODO(b/289994157) Change name to "Grid"
       message("grid.groups"),
       GroupedGridSurfaceLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
-      DesignSurface.SceneViewAlignment.LEFT,
-    )
-  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      message("grid.layout"),
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA,
-      ),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   } else {

@@ -257,28 +257,6 @@ open class SingleDirectionLayoutManager(
   }
 }
 
-/** [SingleDirectionLayoutManager] that forces the content to always be vertical. */
-class VerticalOnlyLayoutManager(
-  @SwingCoordinate horizontalPadding: Int,
-  @SwingCoordinate verticalPadding: Int,
-  @SwingCoordinate horizontalViewDelta: Int,
-  @SwingCoordinate verticalViewDelta: Int,
-  val startBorderAlignment: Alignment
-) :
-  SingleDirectionLayoutManager(
-    horizontalPadding,
-    verticalPadding,
-    horizontalViewDelta,
-    verticalViewDelta,
-    startBorderAlignment
-  ) {
-  override fun isVertical(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
-  ): Boolean = true
-}
-
 // Helper functions to improve readability
 private fun Collection<PositionableContent>.sumOf(mapFunc: PositionableContent.() -> Int) =
   map(mapFunc).sum()
