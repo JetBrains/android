@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
@@ -283,7 +284,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         assert false;
         return; // Should not happen
       }
-      final VirtualFile file = configuration.getFile();
+      final VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
       if (file == null) {
         assert false;
         return; // Should not happen

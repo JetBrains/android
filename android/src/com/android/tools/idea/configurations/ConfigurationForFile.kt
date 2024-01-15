@@ -36,13 +36,11 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 class ConfigurationForFile(
-  private val file: VirtualFile,
+  val file: VirtualFile,
   manager: ConfigurationManager,
   editedConfig: FolderConfiguration
 ) : Configuration(manager, editedConfig) {
   private var psiFile: PsiFile? = null
-
-  override fun getFile(): VirtualFile = file
 
   override fun calculateActivity(): String? {
     return ApplicationManager.getApplication().runReadAction(

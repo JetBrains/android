@@ -96,7 +96,7 @@ public abstract class ConfigurationAction extends AnAction implements Configurat
       if (affectsFileSelection) {
         ConfigurationForFile configForFile = (configuration instanceof ConfigurationForFile) ? (ConfigurationForFile)clone : null;
         if (configForFile != null) {
-          VirtualFile file = configuration.getFile();
+          VirtualFile file = configForFile.getFile();
           ConfigurationMatcher matcher = new ConfigurationMatcher(configForFile, file);
           List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
           if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {

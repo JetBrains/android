@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.configurations.virtualFile
 import com.android.tools.idea.ui.resourcechooser.CompactResourcePicker
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
@@ -106,7 +107,7 @@ fun createAndShowColorPickerPopup(
 ) {
 
   val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  val file = configuration?.file
+  val file = configuration?.virtualFile
   val resourceResolver = configuration?.resourceResolver
 
   createAndShowColorPickerPopup(initialColor, initialColorResource, facet, file, resourceResolver, resourcePickerSources,
@@ -233,7 +234,7 @@ fun createAndShowResourcePickerPopup(
   val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
   val resourcePicker = CompactResourcePicker(
     facet,
-    configuration.file,
+    configuration.virtualFile,
     configuration.resourceResolver,
     resourceType,
     resourcePickerSources,

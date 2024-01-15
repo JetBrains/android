@@ -682,7 +682,7 @@ public class ConfigurationMatcher {
   @Nullable
   public static VirtualFile getBetterMatch(@NotNull Configuration configuration, @Nullable Device device, @Nullable String stateName,
                                            @Nullable Locale locale, @Nullable IAndroidTarget target) {
-    VirtualFile file = configuration.getFile();
+    VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
     ConfigurationModelModule module = configuration.getConfigModule();
     if (file != null) {
       if (device == null) {

@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.configurations.virtualFile
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -71,7 +72,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val model = surface.model ?: return empty
     val facet = getFacet(component, model) ?: return empty
 
-    val configuration = surface.configurations.find { it.file == model.virtualFile } ?: return empty
+    val configuration = surface.configurations.find { it.virtualFile == model.virtualFile } ?: return empty
 
     val resourceUrl = ResourceUrl.parse(layout) ?: return empty
     if (resourceUrl.type != ResourceType.LAYOUT) {

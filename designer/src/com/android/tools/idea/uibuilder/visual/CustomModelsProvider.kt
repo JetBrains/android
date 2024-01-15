@@ -190,7 +190,7 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(
     state.orientation = orientation
   }
 
-  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file!!)
+  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file)
   newConfig.setEffectiveDevice(device, state)
   newConfig.target = target
   newConfig.locale = if (localeString != null) Locale.create(localeString!!) else settings.locale

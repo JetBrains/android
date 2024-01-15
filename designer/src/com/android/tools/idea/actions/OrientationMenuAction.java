@@ -27,6 +27,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationProjectState;
+import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -79,7 +80,7 @@ public class OrientationMenuAction extends DropDownAction {
 
             VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
             if (better != null) {
-              title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
+              title = ConfigurationAction.getBetterMatchLabel(stateName, better, ConfigurationFileUtil.getVirtualFile(configuration));
             }
 
             SetDeviceStateAction action = new SetDeviceStateAction(title, state, state == currentDeviceState);

@@ -39,6 +39,7 @@ import com.android.tools.idea.configurations.ReferenceDeviceType
 import com.android.tools.idea.configurations.getCanonicalDevice
 import com.android.tools.idea.configurations.getReferenceDevice
 import com.android.tools.idea.configurations.getSuitableDevices
+import com.android.tools.idea.configurations.virtualFile
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -571,7 +572,7 @@ open class SetDeviceAction(
     device: Device,
     stateName: String
   ): Boolean {
-    if (configuration.file == null) {
+    if (configuration.virtualFile == null) {
       return false
     }
     return ConfigurationMatcher.getBetterMatch(configuration, device, stateName, null, null) != null
