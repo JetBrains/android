@@ -57,6 +57,23 @@ private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   }.toInt()
 }
 
+/**
+ * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
+ * of the current [PositionableContent].
+ */
+private val ORGANIZATION_PREVIEW_PADDING_PROVIDER: (Double) -> Int = { scale ->
+  // Minimum 5 at 20% and maximum 15 at 100%, responsive.
+  val min = 5
+  val max = 15
+
+  when {
+    scale <= 0.2 -> min
+    scale >= 1.0 -> max
+    else ->
+      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
+  }.toInt()
+}
+
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
   // FIXME(b/258718991): we decide not group the previews for now.
   listOf(PositionableGroup(it.toList()))
@@ -113,6 +130,8 @@ val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<Positiona
 private val galleryPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
 private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
+private val organizationListPadding = GroupPadding(10, 10, ORGANIZATION_PREVIEW_PADDING_PROVIDER)
+private val organizationGridPadding = GroupPadding(10, 10, ORGANIZATION_PREVIEW_PADDING_PROVIDER)
 
 /** Toolbar option to select [PreviewMode.Gallery] layout. */
 val PREVIEW_LAYOUT_GALLERY_OPTION =
@@ -127,7 +146,7 @@ val LIST_LAYOUT_MANAGER_OPTION =
     SurfaceLayoutManagerOption(
       // TODO(b/289994157) Change name to "List"
       message("vertical.groups"),
-      GroupedListSurfaceLayoutManager(listPadding, GROUP_BY_BASE_COMPONENT),
+      GroupedListSurfaceLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
@@ -154,7 +173,7 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
     SurfaceLayoutManagerOption(
       // TODO(b/289994157) Change name to "Grid"
       message("grid.groups"),
-      GroupedGridSurfaceLayoutManager(gridPadding, GROUP_BY_BASE_COMPONENT),
+      GroupedGridSurfaceLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
