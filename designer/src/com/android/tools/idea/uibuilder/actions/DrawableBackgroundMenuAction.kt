@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.annotations.TestOnly
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
@@ -36,6 +37,7 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics2D
+import org.jetbrains.annotations.VisibleForTesting
 
 /** A dropdown menu used in drawable resource to change the background. */
 class DrawableBackgroundMenuAction :
@@ -101,6 +103,10 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
   override val displayName: String = "Drawable Mode"
   private var myDrawableBackgroundLayer: DrawableBackgroundLayer? = null
 
+  @TestOnly
+  fun getDrawableBackgroudType(): DrawableBackgroundType =
+    myDrawableBackgroundLayer?.backgroundType ?: defaultType
+
   fun setDrawableBackgroundType(type: DrawableBackgroundType) {
     myDrawableBackgroundLayer?.backgroundType = type
   }
@@ -133,7 +139,8 @@ private const val GRID_WIDTH = 12
 private val CHECKERED_GRID_GRAY = Color(236, 236, 236)
 
 /** The background layer of the custom [ScreenView] provided by [DrawableScreenViewProvider]. */
-private class DrawableBackgroundLayer(
+@VisibleForTesting
+class DrawableBackgroundLayer(
   private val screenView: ScreenView,
   var backgroundType: DrawableBackgroundType
 ) : Layer() {
