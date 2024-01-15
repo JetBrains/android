@@ -56,6 +56,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -461,9 +462,11 @@ class ComposePreviewRepresentationTest {
       }
 
       // Check that performing UiCheckReopenTabAction selects the UI Check tab
-      run {
+      withContext(uiThread) {
         val actionEvent = TestActionEvent.createTestEvent()
         reopenTabAction.actionPerformed(actionEvent)
+      }
+      invokeAndWaitIfNeeded {
         assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
       }
 
@@ -479,13 +482,13 @@ class ComposePreviewRepresentationTest {
       }
 
       // Check that performing UiCheckReopenTabAction recreates the UI Check tab
-      run {
+      withContext(uiThread) {
         val actionEvent = TestActionEvent.createTestEvent()
         reopenTabAction.actionPerformed(actionEvent)
+      }
+      invokeAndWaitIfNeeded {
         assertEquals(2, contentManager.contents.size)
-        withContext(uiThread) {
-          assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
-        }
+        assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
       }
 
       run {
