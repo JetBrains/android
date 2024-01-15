@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.configurations;
+package com.android.tools.idea.configurations;
 
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.configurations.Configuration;
 import com.google.common.base.Strings;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.Contract;
@@ -128,27 +129,5 @@ public class ConfigurationFileState {
     }
 
     configuration.finishBulkEditing();
-  }
-
-  /**
-   * Returns the {@link com.android.sdklib.devices.State} by the given name for the given {@link com.android.sdklib.devices.Device}
-   *
-   * @param device the device
-   * @param name   the name of the state
-   */
-  @Contract("!null, _ -> !null")
-  @Nullable
-  public static State getState(@Nullable Device device, @Nullable String name) {
-    if (device == null) {
-      return null;
-    }
-    else if (name != null) {
-      State state = device.getState(name);
-      if (state != null) {
-        return state;
-      }
-    }
-
-    return device.getDefaultState();
   }
 }

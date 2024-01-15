@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.configurations.ConfigurationFileState;
-import com.android.tools.configurations.ConfigurationProjectState;
-import com.android.tools.configurations.ConfigurationStateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;

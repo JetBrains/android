@@ -24,7 +24,7 @@ import com.android.resources.ResourceFolderType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
-import com.android.tools.configurations.ConfigurationFileState
+import com.android.tools.configurations.getDeviceState
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.getFolderType
 import com.intellij.openapi.application.ApplicationManager
@@ -56,7 +56,7 @@ class ConfigurationForFile(
   override fun computeBestDevice(): Device? {
     for (device in mySettings.recentDevices) {
       val finalStateName = stateName ?: device.defaultState.name
-      val selectedState: State = ConfigurationFileState.getState(device, finalStateName)!!
+      val selectedState: State = device.getDeviceState(finalStateName)!!
       val module = module
       val currentConfig = getFolderConfig(mySettings.configModule, selectedState, locale, target) ?: continue
       if (!myEditedConfig.isMatchFor(currentConfig)) continue

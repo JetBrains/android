@@ -47,9 +47,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationFileState;
 import com.android.tools.configurations.ConfigurationModelModule;
 import com.android.tools.configurations.ConfigurationSettings;
+import com.android.tools.configurations.DeviceState;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.res.ResourceRepositoryManager;
@@ -692,7 +692,7 @@ public class ConfigurationMatcher {
         State deviceState = configuration.getDeviceState();
         stateName = deviceState != null ? deviceState.getName() : null;
       }
-      State selectedState = ConfigurationFileState.getState(device, stateName);
+      State selectedState = DeviceState.getDeviceState(device, stateName);
       if (selectedState == null) {
         return null; // Invalid state name passed in for the current device.
       }

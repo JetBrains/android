@@ -392,7 +392,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   public State getDeviceState() {
     if (myState == null) {
       Device device = getDevice();
-      myState = ConfigurationFileState.getState(device, myStateName);
+      myState = DeviceState.getDeviceState(device, myStateName);
     }
 
     return myState;

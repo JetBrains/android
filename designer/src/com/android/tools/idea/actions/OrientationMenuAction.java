@@ -26,7 +26,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationProjectState;
+import com.android.tools.idea.configurations.ConfigurationProjectState;
 import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
