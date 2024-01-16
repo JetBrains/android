@@ -35,9 +35,7 @@ import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
@@ -115,14 +113,13 @@ public class AndroidTargetData {
 
   @Slow
   @NotNull
-  public LayoutLibrary getLayoutLibrary(
-    @NotNull Disposable parentDisposable, @NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
+  LayoutLibrary getLayoutLibrary(@NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
+          myLayoutLibrary = targetData.getLayoutLibrary(hasLayoutlibCrash);
           return myLayoutLibrary;
         }
       }
@@ -131,7 +128,6 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
-      Disposer.register(parentDisposable, () -> myLayoutLibrary.dispose());
     }
 
     return myLayoutLibrary;

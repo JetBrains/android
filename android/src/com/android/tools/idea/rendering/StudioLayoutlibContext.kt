@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.layoutlib.LayoutlibContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.Disposer
 
 /** Studio-specific implementation of [LayoutlibContext]. */
 class StudioLayoutlibContext(private val project: Project) : LayoutlibContext {
-  override val parentDisposable: Disposable
+  private val parentDisposable: Disposable
     get() = (project as ProjectEx).earlyDisposable
 
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
+  override fun register(layoutlib: LayoutLibrary) {
+    Disposer.register(parentDisposable) { layoutlib.dispose() }
+  }
 }

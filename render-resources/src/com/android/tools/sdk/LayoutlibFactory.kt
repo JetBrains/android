@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 @file:JvmName("LayoutlibFactory")
-package com.android.tools.layoutlib
+package com.android.tools.sdk
 
 import com.android.sdklib.IAndroidTarget
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
-import com.android.tools.sdk.AndroidPlatform
-import com.android.tools.sdk.AndroidTargetData
+import com.android.tools.layoutlib.LayoutlibContext
 
 @Throws(RenderingException::class)
 fun getLayoutLibrary(target: IAndroidTarget, platform: AndroidPlatform, context: LayoutlibContext): LayoutLibrary {
-  return AndroidTargetData.get(platform.sdkData, target).getLayoutLibrary(context.parentDisposable) { context.hasLayoutlibCrash() }
+  return AndroidTargetData.get(platform.sdkData, target).getLayoutLibrary { context.hasLayoutlibCrash() }.also { context.register(it) }
 }
