@@ -19,12 +19,14 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
@@ -43,16 +45,21 @@ class AskStudioBotActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  class MockStudioBot : StudioBot.StubStudioBot() {
+  private class MockStudioBot : StudioBot.StubStudioBot() {
     var available = true
+    var contextAllowed = true
 
     override fun isAvailable() = available
 
-    override fun isContextAllowed() = true
+    override fun isContextAllowed() = contextAllowed
 
-    private val myAiExcludeService = spy(object : AiExcludeService.StubAiExcludeService() {})!!
+    private val _aiExcludeService = spy(object : AiExcludeService.StubAiExcludeService() {})
 
-    override fun aiExcludeService() = myAiExcludeService
+    override fun aiExcludeService(): AiExcludeService = _aiExcludeService
+
+    private val _chatService = spy(object : ChatService.StubChatService() {})
+
+    override fun chat(project: Project): ChatService = _chatService
   }
 
   @get:Rule
@@ -131,6 +138,21 @@ class AskStudioBotActionTest {
   }
 
   @Test
+  fun update_contextNotAllowed() {
+    // The action *should* be available when the context sharing setting is
+    // disabled, but its behavior may change.
+    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
+    val event = testActionEvent(editor)
+    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
+    editor.caretModel.moveToOffset(editor.document.textLength / 2)
+    val action = AskStudioBotAction()
+
+    action.update(event)
+
+    assertThat(event.presentation.isVisible).isTrue()
+  }
+
+  @Test
   fun actionPerformed_noSelection() {
     val event = testActionEvent(editor)
     logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
@@ -182,6 +204,23 @@ class AskStudioBotActionTest {
 
     verify(StudioBot.getInstance().aiExcludeService())
       .validateQuery(project, "Explain this selection: This is the selection", emptyList())
+  }
+
+  @Test
+  fun actionPerformed_contextNotAllowed() {
+    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
+    val event = testActionEvent(editor)
+    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
+    editor.caretModel.moveToOffset(editor.document.textLength / 2)
+    val action = AskStudioBotAction()
+
+    action.actionPerformed(event)
+
+    verify(StudioBot.getInstance().chat(project))
+      .stageChatQuery(
+        "Explain this log entry: Message 1 with tag MyTag",
+        StudioBot.RequestSource.LOGCAT
+      )
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
