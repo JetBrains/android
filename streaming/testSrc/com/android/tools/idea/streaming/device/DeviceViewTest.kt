@@ -78,6 +78,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -89,8 +90,10 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.assertInstanceOf
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
+import it.unimi.dsi.fastutil.bytes.ByteArrayList
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
@@ -109,7 +112,6 @@ import java.awt.PointerInfo
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.ALT_DOWN_MASK
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
@@ -137,13 +139,23 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.Control
+import javax.sound.sampled.Line
+import javax.sound.sampled.LineListener
+import javax.sound.sampled.SourceDataLine
 import javax.swing.JButton
 import javax.swing.JEditorPane
 import javax.swing.JScrollPane
+import kotlin.math.PI
+import kotlin.math.sin
+import kotlin.test.assertEquals
 
 /**
  * Tests for [DeviceView] and [DeviceClient].
@@ -173,7 +185,7 @@ internal class DeviceViewTest {
   @Before
   fun setUp() {
     BitRateManager.getInstance().clear()
-    device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
+    device = agentRule.connectDevice("Pixel 5", 32, Dimension(1080, 2340))
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }
@@ -574,6 +586,52 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testAudio() {
+    StudioFlags.DEVICE_MIRRORING_AUDIO.override(true, testRootDisposable)
+    DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
+    val testDataLine = TestDataLine()
+    val testAudioSystemService = object : AudioSystemService() {
+      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+    }
+    ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
+    createDeviceView(100, 200)
+    waitForFrame()
+    val frequencyHz = 440.0
+    val durationMillis = 500
+    runBlocking { agent.beep(frequencyHz, durationMillis) }
+    waitForCondition(1, SECONDS) {
+      testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
+    }
+    val buf = testDataLine.dataAsByteBuffer()
+    var volumeReached = false
+    var previousValue = 0.0
+    var start = Double.NaN
+    for (i in 0 until buf.limit() / (AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16)) {
+      for (channel in 1..AUDIO_CHANNEL_COUNT) {
+        val v = buf.getShort().toDouble()
+        when {
+          start.isFinite() && i * 1000 / AUDIO_SAMPLE_RATE < durationMillis -> {
+            val expected = sin((i - start) * 2 * PI * frequencyHz / AUDIO_SAMPLE_RATE) * Short.MAX_VALUE
+            assertEquals(expected, v, Short.MAX_VALUE * 0.03,
+                         "Unexpected signal value in channel $channel at ${i * 1000.0 / AUDIO_SAMPLE_RATE} ms")
+          }
+          volumeReached -> {
+            if (channel == 1 && v >= 0 && previousValue < 0) {
+              start = i - v / (v - previousValue)
+            }
+            previousValue = v
+          }
+          else -> {
+            if (channel == 1 && v <= Short.MIN_VALUE * 0.99) {
+              volumeReached = true
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   fun testClipboardSynchronization() {
     createDeviceView(100, 200, 1.5)
     waitForFrame()
@@ -602,7 +660,7 @@ internal class DeviceViewTest {
         "<BitRateManager>\n" +
         "  <option name=\"bitRateTrackers\">\n" +
         "    <map>\n" +
-        "      <entry key=\"Google|Pixel 5|arm64-v8a|30\">\n" +
+        "      <entry key=\"Google|Pixel 5|arm64-v8a|32\">\n" +
         "        <value>\n" +
         "          <BitRateTracker>\n" +
         "            <candidates>\n" +
@@ -628,7 +686,7 @@ internal class DeviceViewTest {
         "<BitRateManager>\n" +
         "  <option name=\"bitRateTrackers\">\n" +
         "    <map>\n" +
-        "      <entry key=\"Google|Pixel 5|arm64-v8a|30\">\n" +
+        "      <entry key=\"Google|Pixel 5|arm64-v8a|32\">\n" +
         "        <value>\n" +
         "          <BitRateTracker>\n" +
         "            <candidates>\n" +
@@ -678,7 +736,7 @@ internal class DeviceViewTest {
       "\\s*manufacturer: \"Google\"\n" +
       "\\s*model: \"Pixel 5\"\n" +
       "\\s*device_type: LOCAL_PHYSICAL\n" +
-      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*build_api_level_full: \"32\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
       "\\s*connection_id: \"fakeConnectionId\"\n" +
@@ -711,7 +769,7 @@ internal class DeviceViewTest {
       "\\s*manufacturer: \"Google\"\n" +
       "\\s*model: \"Pixel 5\"\n" +
       "\\s*device_type: LOCAL_PHYSICAL\n" +
-      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*build_api_level_full: \"32\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
       "\\s*connection_id: \"fakeConnectionId\"\n" +
@@ -727,7 +785,7 @@ internal class DeviceViewTest {
     var crashReports = crashReporterRule.reports
     assertThat(crashReports.size).isEqualTo(1)
     val crashReportPattern1 =
-        Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"Crash is near\nKaput\", device=\"Pixel 5 API 30\"}")
+        Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"Crash is near\nKaput\", device=\"Pixel 5 API 32\"}")
     assertThat(crashReportPattern1.matches(crashReports[0].toPartMap().toString())).isTrue()
 
     fakeUi.layoutAndDispatchEvents()
@@ -767,7 +825,7 @@ internal class DeviceViewTest {
       "\\s*manufacturer: \"Google\"\n" +
       "\\s*model: \"Pixel 5\"\n" +
       "\\s*device_type: LOCAL_PHYSICAL\n" +
-      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*build_api_level_full: \"32\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
       "\\s*connection_id: \"fakeConnectionId\"\n" +
@@ -788,7 +846,7 @@ internal class DeviceViewTest {
 
     crashReports = crashReporterRule.reports
     assertThat(crashReports.size).isEqualTo(2)
-    val crashReportPattern2 = Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"\", device=\"Pixel 5 API 30\"}")
+    val crashReportPattern2 = Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"\", device=\"Pixel 5 API 32\"}")
     assertThat(crashReportPattern2.matches(crashReports[1].toPartMap().toString())).isTrue()
 
     // Check reconnection.
@@ -821,7 +879,7 @@ internal class DeviceViewTest {
       "\\s*manufacturer: \"Google\"\n" +
       "\\s*model: \"Pixel 5\"\n" +
       "\\s*device_type: LOCAL_PHYSICAL\n" +
-      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*build_api_level_full: \"32\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
       "\\s*connection_id: \"fakeConnectionId\"\n" +
@@ -1000,7 +1058,7 @@ internal class DeviceViewTest {
       MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0))
 
     // Disable hardware input
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project, modifiers = InputEvent.CTRL_DOWN_MASK)
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)
 
     // Check if multitouch indicator is shown again
     fakeUi.layoutAndDispatchEvents()
@@ -1107,6 +1165,115 @@ internal class DeviceViewTest {
 
   private fun isRunningInBazelTest(): Boolean {
     return System.getenv().containsKey("TEST_WORKSPACE")
+  }
+}
+
+private class TestDataLine : SourceDataLine {
+
+  private val data = ByteArrayList()
+  private var open = false
+
+  val dataSize: Int
+    get() = synchronized(data) { data.size }
+
+  fun dataAsByteBuffer(): ByteBuffer =
+    synchronized(data) { ByteBuffer.allocate(data.size).order(ByteOrder.LITTLE_ENDIAN).put(data.elements(), 0, data.size).flip() }
+
+  override fun close() {
+    open = false
+  }
+
+  override fun getLineInfo(): Line.Info {
+    TODO("Not yet implemented")
+  }
+
+  override fun open(format: AudioFormat, bufferSize: Int) {
+    open()
+  }
+
+  override fun open(format: AudioFormat) {
+    open()
+  }
+
+  override fun open() {
+    data.clear()
+    open = true
+  }
+
+  override fun isOpen(): Boolean  = open
+
+  override fun getControls(): Array<Control> {
+    TODO("Not yet implemented")
+  }
+
+  override fun isControlSupported(control: Control.Type): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getControl(control: Control.Type): Control {
+    TODO("Not yet implemented")
+  }
+
+  override fun addLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun removeLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun drain() {
+    TODO("Not yet implemented")
+  }
+
+  override fun flush() {
+  }
+
+  override fun start() {
+  }
+
+  override fun stop() {
+  }
+
+  override fun isRunning(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun isActive(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFormat(): AudioFormat {
+    TODO("Not yet implemented")
+  }
+
+  override fun getBufferSize(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun available(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFramePosition(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLongFramePosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getMicrosecondPosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLevel(): Float {
+    TODO("Not yet implemented")
+  }
+
+  override fun write(bytes: ByteArray, offset: Int, len: Int): Int {
+    synchronized(data) { data.addElements(data.size, bytes, offset, len) }
+    return len
   }
 }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.UiThread
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellV2Protocol
+import com.android.sdklib.AndroidVersionUtil
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
@@ -48,11 +49,13 @@ import kotlinx.coroutines.withContext
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
+import org.bytedeco.ffmpeg.avutil.AVChannelLayout
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_AV1
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_HEVC
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_OPUS
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VVC
@@ -68,6 +71,7 @@ import org.bytedeco.ffmpeg.global.avutil.AVERROR_EAGAIN
 import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
 import org.bytedeco.ffmpeg.global.avutil.AV_NOPTS_VALUE
 import org.bytedeco.ffmpeg.global.avutil.AV_PIX_FMT_BGR24
+import org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16
 import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
 import org.bytedeco.ffmpeg.global.avutil.av_frame_free
 import org.bytedeco.ffmpeg.global.avutil.av_frame_get_buffer
@@ -100,9 +104,12 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
+import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.math.sin
 
 /**
  * Fake Screen Sharing Agent for use in tests.
@@ -115,14 +122,17 @@ class FakeScreenSharingAgent(
 ) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
-     "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
+      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
   private val singleThreadedDispatcher = executor.asCoroutineDispatcher()
   private val agentsScope = CoroutineScope(singleThreadedDispatcher + Job())
+  private val featureLevel = AndroidVersionUtil.androidVersionFromDeviceProperties(deviceState.properties)?.featureLevel ?: 0
   private var startTime = 0L
 
   private var videoChannel: SuspendingSocketChannel? = null
+  private var audioChannel: SuspendingSocketChannel? = null
   private var controller: Controller? = null
   private val displayStreamers = Int2ObjectOpenHashMap<DisplayStreamer>()
+  private var audioStreamer: AudioStreamer? = null
 
   private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
   private val videoEncoder: AVCodec by lazy {
@@ -138,6 +148,9 @@ class FakeScreenSharingAgent(
     }
 
     avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
+  }
+  private val audioEncoder: AVCodec by lazy {
+    avcodec_find_encoder(AV_CODEC_ID_OPUS) ?: throw RuntimeException("$codecName encoder not found")
   }
 
   private val clipboardInternal = AtomicReference("")
@@ -173,7 +186,7 @@ class FakeScreenSharingAgent(
   @Volatile
   var startDelayMillis: Long = 0
   @Volatile
-  var bitRate: Int = DEFAULT_BIT_RATE
+  var bitRate: Int = VIDEO_DEFAULT_BIT_RATE
     set(value) {
       field = value
       agentsScope.launch {
@@ -200,7 +213,7 @@ class FakeScreenSharingAgent(
   var screenDensity = 480
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-  private var startVideoStream = false
+  private var agentFlags = 0
   private var deviceOrientation = 0
   private var displays = listOf(DisplayDescriptor(PRIMARY_DISPLAY_ID, displaySize, 0, DisplayType.INTERNAL))
 
@@ -220,12 +233,14 @@ class FakeScreenSharingAgent(
     startTime = System.currentTimeMillis()
 
     parseArgs(command)
-    val videoChannel = SuspendingSocketChannel.open()
-    this.videoChannel = videoChannel
+    val videoChannel = SuspendingSocketChannel.open().also { this.videoChannel = it }
+    val audioChannel = if (isAudioStreamingEnabled) SuspendingSocketChannel.open().also { this.audioChannel = it } else null
     val controlChannel = SuspendingSocketChannel.open()
+
     ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
     val socketAddress = InetSocketAddress("localhost", hostPort)
     videoChannel.connect(socketAddress)
+    audioChannel?.connect(socketAddress)
     controlChannel.connect(socketAddress)
     if (crashOnStart) {
       terminateAgent(139)
@@ -235,11 +250,15 @@ class FakeScreenSharingAgent(
       delay(startDelayMillis)
     }
     sendVideoChannelHeader(videoChannel)
+    audioChannel?.write(ByteBuffer.wrap("A".toByteArray()))
     controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
-    if (startVideoStream) {
+    if ((agentFlags and START_VIDEO_STREAM) != 0) {
       val displayStreamer = DisplayStreamer(PRIMARY_DISPLAY_ID, maxVideoResolution, true, bitRate, videoChannel)
-      this.displayStreamers.put(displayStreamer.displayId, displayStreamer)
+      displayStreamers.put(displayStreamer.displayId, displayStreamer)
       displayStreamer.renderDisplay()
+    }
+    if (audioChannel != null) {
+      audioStreamer = AudioStreamer(audioChannel)
     }
     val controller = Controller(controlChannel)
     this.controller = controller
@@ -260,9 +279,12 @@ class FakeScreenSharingAgent(
     }
   }
 
+  private val isAudioStreamingEnabled
+    get() = (agentFlags and STREAM_AUDIO) != 0 && featureLevel >= 31
+
   private suspend fun sendVideoChannelHeader(videoChannel: SuspendingSocketChannel) {
     // Send the channel header with the name of the codec.
-    val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH + 1)
+    val header = ByteBuffer.allocate(VIDEO_CHANNEL_HEADER_LENGTH + 1)
     header.put('V'.code.toByte())
     header.put(codecName.toByteArray())
     while (header.hasRemaining()) {
@@ -339,7 +361,7 @@ class FakeScreenSharingAgent(
         }
 
         arg.startsWith("--flags=") -> {
-          startVideoStream = (arg.substring("--flags=".length).toInt() and START_VIDEO_STREAM) != 0
+          agentFlags = arg.substring("--flags=".length).toInt()
         }
       }
     }
@@ -393,6 +415,12 @@ class FakeScreenSharingAgent(
   suspend fun renderDisplay(displayId: Int, flavor: Int) {
     return withContext(singleThreadedDispatcher) {
       displayStreamers[displayId]?.renderDisplay(flavor)
+    }
+  }
+
+  suspend fun beep(frequencyHz: Double, durationMillis: Int) {
+    return withContext(singleThreadedDispatcher) {
+      audioStreamer?.beep(frequencyHz, durationMillis)
     }
   }
 
@@ -615,16 +643,12 @@ class FakeScreenSharingAgent(
     @Volatile var frameNumber: UInt = 0u
       private set
 
-    /**
-     * Renders display content using the last used image flavor and sends all produced video frames.
-     */
+    /** Renders display content using the last used image flavor and sends all produced video frames. */
     suspend fun renderDisplay() {
       renderDisplay(lastImageFlavor)
     }
 
-    /**
-     * Renders display content for the given [imageFlavor] and sends all produced video frames.
-     */
+    /** Renders display content for the given [imageFlavor] and sends all produced video frames. */
     suspend fun renderDisplay(imageFlavor: Int) {
       lastImageFlavor = imageFlavor
 
@@ -633,13 +657,13 @@ class FakeScreenSharingAgent(
       val encoderContext = avcodec_alloc_context3(videoEncoder)?.apply {
         bit_rate(8000000L)
         time_base(av_make_q(1, 1000))
-        framerate(av_make_q(FRAME_RATE, 1))
+        framerate(av_make_q(VIDEO_FRAME_RATE, 1))
         gop_size(2)
         max_b_frames(1)
         pix_fmt(videoEncoder.pix_fmts().get())
         width(videoSize.width)
         height(videoSize.height)
-      } ?: throw RuntimeException("Could not allocate encoder context")
+      } ?: throw RuntimeException("Could not allocate video encoder context")
 
       if (avcodec_open2(encoderContext, videoEncoder, null as AVDictionary?) < 0) {
         throw RuntimeException("avcodec_open2 failed")
@@ -649,7 +673,7 @@ class FakeScreenSharingAgent(
         width(videoSize.width)
         height(videoSize.height)
       }
-      if (av_frame_get_buffer(encodingFrame, 0) < 0) {
+      if (av_frame_get_buffer(encodingFrame, 1) < 0) {
         throw RuntimeException("av_frame_get_buffer failed")
       }
       if (av_frame_make_writable(encodingFrame) < 0) {
@@ -701,9 +725,7 @@ class FakeScreenSharingAgent(
       }
     }
 
-    /**
-     * Sends the given frame or, if [frame] is null, sends the delayed frames.
-     */
+    /** Sends the given frame or, if [frame] is null, sends the delayed frames. */
     private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?, packet: AVPacket) {
       if (avcodec_send_frame(encoderContext, frame) < 0) {
         throw RuntimeException("avcodec_send_frame failed")
@@ -760,7 +782,7 @@ class FakeScreenSharingAgent(
       val maxResolutionWidth = min(max(maxVideoResolution.width, rotatedDisplaySize.width / 2), maxVideoEncoderResolution)
       val maxResolutionHeight = min(max(maxVideoResolution.height, rotatedDisplaySize.height / 2), maxVideoEncoderResolution)
       val scale = max(min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
-                      max(MIN_VIDEO_RESOLUTION / displayWidth, MIN_VIDEO_RESOLUTION / displayHeight))
+                      max(VIDEO_MIN_RESOLUTION / displayWidth, VIDEO_MIN_RESOLUTION / displayHeight))
       val width = (displayWidth * scale).roundToInt().roundUpToMultipleOf8()
       val height = (width * displayHeight / displayWidth).roundToInt().roundUpToMultipleOf2()
       return Dimension(width, height)
@@ -778,12 +800,6 @@ class FakeScreenSharingAgent(
 
     private fun Int.roundUpToMultipleOf2(): Int =
       (this + 1) and 1.inv()
-
-    private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
-      ImageUtils.rotateByQuadrants(this, quadrants)
-
-    private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
-      BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
   }
 
   private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, bitRate: Int, val roundDisplay: Boolean = false) {
@@ -841,6 +857,123 @@ class FakeScreenSharingAgent(
           8 + // originationTimestampUs
           8 + // presentationTimestampUs
           4   // packetSize
+    }
+  }
+
+  private inner class AudioStreamer(private val channel: SuspendingSocketChannel) {
+
+    /** Produces a monochromatic sound of the given duration. */
+    suspend fun beep(frequencyHz: Double, durationMillis: Int) {
+      val encoderContext = avcodec_alloc_context3(audioEncoder)?.apply {
+        ch_layout(AVChannelLayout().nb_channels(AUDIO_CHANNEL_COUNT))
+        sample_rate(AUDIO_SAMPLE_RATE)
+        sample_fmt(AV_SAMPLE_FMT_S16)
+        time_base(av_make_q(1, 1000000)) // Microseconds.
+      } ?: throw RuntimeException("Could not allocate audio encoder context")
+
+      var ret = avcodec_open2(encoderContext, audioEncoder, null as AVDictionary?)
+      if (ret < 0) {
+        throw RuntimeException("avcodec_open2 returned $ret")
+      }
+      val encodingFrame = av_frame_alloc().apply {
+        ch_layout(encoderContext.ch_layout())
+        nb_samples(AUDIO_SAMPLES_PER_FRAME)
+        sample_rate(encoderContext.sample_rate())
+        format(encoderContext.sample_fmt())
+      }
+
+      try {
+        ret = av_frame_get_buffer(encodingFrame, 1)
+        if (ret < 0) {
+          throw RuntimeException("av_frame_get_buffer returned $ret")
+        }
+        ret = av_frame_make_writable(encodingFrame)
+        if (ret < 0) {
+          throw RuntimeException("av_frame_make_writable returned $ret")
+        }
+
+        val angularFrequency = 2 * PI * frequencyHz
+        val numSamples = AUDIO_SAMPLE_RATE * durationMillis / 1000
+        val buf = encodingFrame.data(0).asByteBufferOfSize(encodingFrame.linesize().get())
+        var timestampUs = 0L
+        encodingFrame.pts(timestampUs)
+        for (i in 0 until numSamples) {
+          val v = (sin(i * angularFrequency / AUDIO_SAMPLE_RATE) * Short.MAX_VALUE).roundToInt().toShort()
+          buf.putShort(v)
+          buf.putShort(v)
+          if (buf.remaining() == 0) {
+            sendFrame(encodingFrame, encoderContext)
+            buf.clear()
+            timestampUs += (AUDIO_SAMPLES_PER_FRAME * 1000000.0 / AUDIO_SAMPLE_RATE).roundToLong()
+            encodingFrame.pts(timestampUs)
+          }
+        }
+        if (buf.position() > 0) {
+          sendFrame(encodingFrame, encoderContext)
+        }
+        sendFrame(null, encoderContext) // Flush the encoder.
+      }
+      finally {
+        av_frame_free(encodingFrame)
+        avcodec_free_context(encoderContext)
+      }
+    }
+
+    /** Sends the given frame or, if [frame] is null, sends the delayed frames. */
+    private suspend fun sendFrame(frame: AVFrame?, encoderContext: AVCodecContext) {
+      val packet = av_packet_alloc()
+      try {
+        var ret = avcodec_send_frame(encoderContext, frame)
+        if (ret < 0) {
+          throw RuntimeException("avcodec_send_frame returned $ret")
+        }
+
+        while (true) {
+          ret = avcodec_receive_packet(encoderContext, packet)
+          if (ret != 0) {
+            if (ret != AVERROR_EAGAIN() && ret != AVERROR_EOF()) {
+              throw RuntimeException("avcodec_receive_packet returned $ret")
+            }
+            break
+          }
+
+          val packetSize = packet.size()
+          val packetHeader = AudioPacketHeader(packet.pts() == AV_NOPTS_VALUE, packetSize)
+          val packetData = packet.data().asByteBufferOfSize(packetSize)
+          val buffer = VideoPacketHeader.createBuffer(packetSize)
+          packetHeader.serialize(buffer)
+          buffer.put(packetData)
+          buffer.flip()
+          try {
+            channel.writeFully(buffer)
+          }
+          catch (e: IOException) {
+            if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
+              throw e
+            }
+          }
+        }
+      }
+      finally {
+        av_packet_free(packet)
+      }
+    }
+  }
+
+  @JvmInline
+  value class AudioPacketHeader private constructor(private val packetSizeEncoded: Int) {
+
+    constructor(isConfig: Boolean, packetSize: Int) : this((packetSize and 0x7FFFFFFF) or (if (isConfig) 0x7FFFFFFF.inv() else 0))
+
+    fun serialize(buffer: ByteBuffer) {
+      buffer.putInt(packetSizeEncoded)
+    }
+
+    companion object {
+      fun createBuffer(packetSize: Int): ByteBuffer =
+        ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+
+      private const val WIRE_SIZE = 4
     }
   }
 
@@ -997,13 +1130,17 @@ private fun ByteBuffer.fill(b: Byte, count: Int) {
   }
 }
 
-private fun DisplayDescriptor.withDeviceOrientation(orientation: Int): DisplayDescriptor {
-  return if (type != DisplayType.INTERNAL || orientation == this.orientation) this
-         else DisplayDescriptor(displayId, size, orientation, type)
-}
+private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
+    BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
+
+private fun DisplayDescriptor.withDeviceOrientation(orientation: Int): DisplayDescriptor =
+    if (type != DisplayType.INTERNAL || orientation == this.orientation) this else DisplayDescriptor(displayId, size, orientation, type)
 
 private fun List<DisplayDescriptor>.withDeviceOrientation(orientation: Int) =
     map { it.withDeviceOrientation(orientation) }
+
+private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
+    ImageUtils.rotateByQuadrants(this, quadrants)
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
@@ -1012,8 +1149,12 @@ private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 2
                                    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
                                    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
 
-private const val FRAME_RATE = 60
-private const val DEFAULT_BIT_RATE = 10000000
-private const val CHANNEL_HEADER_LENGTH = 20
+private const val VIDEO_FRAME_RATE = 60
+private const val VIDEO_DEFAULT_BIT_RATE = 10000000
+private const val VIDEO_CHANNEL_HEADER_LENGTH = 20
+private const val VIDEO_MIN_RESOLUTION = 128.0
+const val AUDIO_CHANNEL_COUNT = 2 // Stereo.
+const val AUDIO_BYTES_PER_SAMPLE_FMT_S16 = 2
+const val AUDIO_SAMPLE_RATE = 48000
+private const val AUDIO_SAMPLES_PER_FRAME = 960
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
-private const val MIN_VIDEO_RESOLUTION = 128.0
