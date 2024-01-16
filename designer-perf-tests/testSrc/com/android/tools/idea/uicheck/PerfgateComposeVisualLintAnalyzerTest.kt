@@ -99,7 +99,6 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          null,
           facet,
           file
         )

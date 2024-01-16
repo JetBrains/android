@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.sdk.CompatibilityRenderTarget
+import kotlin.test.assertEquals
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
 fun verifyAdaptiveShapeReflected(
@@ -220,4 +221,6 @@ fun <T> verifyChangeReflected(
       modelsToVerify.forEach { model -> assertFunc(valueAfterSet, model.configuration.getValue()) }
     }
   }
+
+  modelsToVerify.forEach { assertEquals(it.configuration.toHtmlTooltip(), it.modelTooltip) }
 }

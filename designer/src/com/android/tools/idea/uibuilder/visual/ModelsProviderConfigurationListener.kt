@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
-import com.intellij.openapi.Disposable
+import com.android.tools.idea.common.model.NlModel
 import com.intellij.openapi.util.Disposer
 
 /**
@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Disposer
  * [ConfigurationListener.CFG_NIGHT_MODE] and [ConfigurationListener.CFG_UI_MODE].
  */
 class ModelsProviderConfigurationListener(
+  private val model: NlModel,
   private val sourceConfig: Configuration,
   private val responseConfig: Configuration,
   private val attributesMask: Int
@@ -69,21 +70,23 @@ class ModelsProviderConfigurationListener(
       val fontScale = sourceConfig.fontScale
       responseConfig.fontScale = fontScale
     }
+    model.setTooltip(responseConfig.toHtmlTooltip())
     return true
   }
 }
 
 /**
  * Helper function to register [ModelsProviderConfigurationListener]. The listener will be removed
- * when the given [parentDisposable] is disposed.
+ * when the given [model] is disposed.
  */
 fun registerModelsProviderConfigurationListener(
-  parentDisposable: Disposable,
+  model: NlModel,
   sourceConfig: Configuration,
   responseConfig: Configuration,
   attributesMask: Int
 ) {
-  val listener = ModelsProviderConfigurationListener(sourceConfig, responseConfig, attributesMask)
+  val listener =
+    ModelsProviderConfigurationListener(model, sourceConfig, responseConfig, attributesMask)
   sourceConfig.addListener(listener)
-  Disposer.register(parentDisposable) { sourceConfig.removeListener(listener) }
+  Disposer.register(model) { sourceConfig.removeListener(listener) }
 }

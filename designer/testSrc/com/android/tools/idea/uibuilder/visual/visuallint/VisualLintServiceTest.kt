@@ -96,7 +96,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         dashboardLayout
       )
@@ -120,7 +119,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         atfLayout
       )
@@ -151,7 +149,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         wearLayout,
         wearConfiguration
@@ -202,7 +199,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         notificationsLayout,
         phoneConfig
@@ -237,7 +233,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         notificationsLayout,
         tabletConfig
@@ -268,7 +263,6 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         atfLayout,
         phoneConfig

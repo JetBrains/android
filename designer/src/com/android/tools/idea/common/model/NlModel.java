@@ -115,7 +115,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   /** Model name. This can be used when multiple models are displayed at the same time */
   @Nullable private String myModelDisplayName = null;
   /** Text to display when displaying a tooltip related to this model */
-  @Nullable private final String myModelTooltip;
+  @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -175,7 +175,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Slow
   @NotNull
   static NlModel create(@NotNull Disposable parent,
-                        @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
                         @NotNull Configuration configuration,
@@ -183,12 +182,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@NotNull Disposable parent,
-                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
@@ -198,7 +196,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                     @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
-    myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -839,6 +836,10 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Nullable
   public String getModelDisplayName() {
     return myModelDisplayName;
+  }
+
+  public void setTooltip(@Nullable String tooltip) {
+    myModelTooltip = tooltip;
   }
 
   @Nullable

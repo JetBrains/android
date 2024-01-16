@@ -83,7 +83,6 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         layoutFile
       )
@@ -153,7 +152,6 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         layoutFile
       )
@@ -222,7 +220,6 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         layoutFile
       )

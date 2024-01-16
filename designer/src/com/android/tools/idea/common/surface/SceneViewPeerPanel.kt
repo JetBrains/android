@@ -399,6 +399,7 @@ class SceneViewPeerPanel(
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
     labelPanel.layoutData = layoutData
+    labelPanel.doLayout()
 
     //      SceneViewPeerPanel layout:
     //

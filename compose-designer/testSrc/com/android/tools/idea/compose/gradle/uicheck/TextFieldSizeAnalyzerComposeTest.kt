@@ -49,13 +49,7 @@ class TextFieldSizeAnalyzerComposeTest {
         .get()!!
     val file = renderResult.sourceFile.virtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     val issues = TextFieldSizeAnalyzer.findIssues(renderResult, nlModel)
     assertEquals(1, issues.size)
     assertEquals("The text field EditText is too wide", issues[0].message)
@@ -79,13 +73,7 @@ class TextFieldSizeAnalyzerComposeTest {
         .get()!!
     val file = renderResult.sourceFile.virtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     val issues = TextFieldSizeAnalyzer.findIssues(renderResult, nlModel)
     assertEquals(0, issues.size)
   }

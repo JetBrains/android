@@ -105,13 +105,7 @@ class ComposeVisualLintSuppressTaskTest {
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     nlModel.dataContext = DataContext {
       when (it) {
         COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
@@ -196,13 +190,7 @@ class ComposeVisualLintSuppressTaskTest {
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     nlModel.dataContext = DataContext {
       when (it) {
         COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement

@@ -162,7 +162,6 @@ internal fun createNlModelForCompose(
     create(
       parent,
       NlComponentRegistrar,
-      null,
       facet,
       file,
     )

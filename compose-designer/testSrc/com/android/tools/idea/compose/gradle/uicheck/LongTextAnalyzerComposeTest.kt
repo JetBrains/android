@@ -49,13 +49,7 @@ class LongTextAnalyzerComposeTest {
         .get()!!
     val file = renderResult.sourceFile.virtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
@@ -79,13 +73,7 @@ class LongTextAnalyzerComposeTest {
         .get()!!
     val file = renderResult.sourceFile.virtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(0, issues.size)
   }

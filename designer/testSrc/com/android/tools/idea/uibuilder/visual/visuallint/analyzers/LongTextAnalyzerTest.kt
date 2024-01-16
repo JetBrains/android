@@ -69,7 +69,6 @@ class LongTextAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration
@@ -100,7 +99,6 @@ class LongTextAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration

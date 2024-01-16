@@ -203,7 +203,7 @@ public class ModelBuilder {
       assertNotNull(document);
 
       SyncNlModel model =
-        SyncNlModel.create(myFixture.getTestRootDisposable(), myComponentRegistrar, null, myFacet, xmlFile.getVirtualFile());
+        SyncNlModel.create(myFixture.getTestRootDisposable(), myComponentRegistrar, myFacet, xmlFile.getVirtualFile());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }

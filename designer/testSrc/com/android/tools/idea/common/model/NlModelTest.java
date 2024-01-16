@@ -922,7 +922,7 @@ public class NlModelTest extends LayoutTestCase {
 
   @NotNull
   private SyncNlModel createModel(@NotNull XmlFile modelXml) {
-    return SyncNlModel.create(myFixture.getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, myFacet, modelXml.getVirtualFile());
+    return SyncNlModel.create(myFixture.getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, modelXml.getVirtualFile());
   }
 
   @NotNull

@@ -42,29 +42,29 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet.getModule());
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, facet, file, configuration);
   }
 
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file,
                                    @NotNull Configuration configuration) {
-    return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, facet, file, configuration);
   }
 
-  private SyncNlModel(@NotNull Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
-                      @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
+  private SyncNlModel(@NotNull Disposable parent,
+                      @NotNull Consumer<NlComponent> componentRegistrar,
+                      @NotNull AndroidFacet facet,
+                      @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, tooltip, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
+    super(parent, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
   }
 
   /**

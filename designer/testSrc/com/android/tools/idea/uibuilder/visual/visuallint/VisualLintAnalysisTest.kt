@@ -332,7 +332,6 @@ class VisualLintAnalysisTest {
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          null,
           facet,
           file,
           configuration

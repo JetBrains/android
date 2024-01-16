@@ -50,20 +50,20 @@ class NlModelBuilder(
       override fun build(nlModelBuilder: NlModelBuilder): NlModel =
         with(nlModelBuilder) {
           NlModel.create(
-            parentDisposable,
-            modelTooltip,
-            facet,
-            file,
-            configuration,
-            componentRegistrar,
-            xmlFileProvider,
-            modelUpdater,
-            dataContext
-          )
+              parentDisposable,
+              facet,
+              file,
+              configuration,
+              componentRegistrar,
+              xmlFileProvider,
+              modelUpdater,
+              dataContext
+            )
+            .apply { setTooltip(tooltip) }
         }
     }
 
-  private var modelTooltip: String? = null
+  private var tooltip: String? = null
   private var componentRegistrar: Consumer<NlComponent> = Consumer {}
   private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> =
     BiFunction { project, virtualFile ->
@@ -81,9 +81,7 @@ class NlModelBuilder(
     this.modelFactory = modelFactory
   }
 
-  fun withModelTooltip(modelTooltip: String): NlModelBuilder = also {
-    this.modelTooltip = modelTooltip
-  }
+  fun withModelTooltip(modelTooltip: String): NlModelBuilder = also { this.tooltip = modelTooltip }
 
   fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): NlModelBuilder = also {
     this.componentRegistrar = componentRegistrar

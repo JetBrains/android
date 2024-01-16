@@ -102,7 +102,6 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration
@@ -142,7 +141,6 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration
@@ -185,7 +183,6 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration
@@ -224,7 +221,6 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration

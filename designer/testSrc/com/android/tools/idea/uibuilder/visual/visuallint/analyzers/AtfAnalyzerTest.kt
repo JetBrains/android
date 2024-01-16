@@ -87,7 +87,6 @@ class AtfAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
         configuration

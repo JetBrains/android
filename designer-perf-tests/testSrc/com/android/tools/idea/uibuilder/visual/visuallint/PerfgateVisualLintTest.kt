@@ -89,7 +89,7 @@ class PerfgateVisualLintTest {
     val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
-    val nlModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, dashboardLayout)
+    val nlModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, dashboardLayout)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
@@ -111,7 +111,7 @@ class PerfgateVisualLintTest {
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
-    val wearModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
+    val wearModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, wearLayout, wearConfiguration)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
