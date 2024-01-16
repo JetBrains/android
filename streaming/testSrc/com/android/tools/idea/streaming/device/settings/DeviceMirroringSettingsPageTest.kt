@@ -75,7 +75,7 @@ class DeviceMirroringSettingsPageTest {
     val activateOnTestLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching a test on a physical device" }
     val redirectAudioCheckBox = ui.getComponent<JCheckBox> { it.text == "Redirect audio from local devices" }
-    val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Enable clipboard sharing" }
+    val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Synchronize clipboard" }
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()
     val turnOffDisplayWhileMirroringCheckBox = ui.getComponent<JCheckBox> { it.text == "Turn off device display while mirroring" }
 
