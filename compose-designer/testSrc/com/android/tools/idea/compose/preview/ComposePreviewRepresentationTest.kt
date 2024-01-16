@@ -264,8 +264,10 @@ class ComposePreviewRepresentationTest {
       val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
       val contentManager = ProblemsView.getToolWindow(project)!!.contentManager
-      ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
-      assertEquals(1, contentManager.contents.size)
+      withContext(uiThread) {
+        ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
+        assertEquals(1, contentManager.contents.size)
+      }
 
       // Start UI Check mode
       run {
