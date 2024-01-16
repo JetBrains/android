@@ -19,7 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
-import com.android.tools.idea.wearwhs.communication.OnDeviceCapabilityState
+import com.android.tools.idea.wearwhs.communication.CapabilityStatus
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -162,9 +162,9 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
     assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
-      capabilities[0].dataType, OnDeviceCapabilityState(false, null),
-      capabilities[1].dataType, OnDeviceCapabilityState(true, 3f),
-      capabilities[2].dataType, OnDeviceCapabilityState(true, null)
+      capabilities[0].dataType, CapabilityStatus(false, null),
+      capabilities[1].dataType, CapabilityStatus(true, 3f),
+      capabilities[2].dataType, CapabilityStatus(true, null)
     )
 
     assertThat(loggedEvents).hasSize(1)

@@ -42,7 +42,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun loadCapabilities() = capabilities
 
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> {
+  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityStatus> {
     if (serialNumber == null) {
       // TODO: Log this error
       return emptyMap()
@@ -53,7 +53,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
     val contentProviderEntryMatches = capabilityStatePattern.findAll(output.stdout)
 
-    val capabilities = mutableMapOf<WhsDataType, OnDeviceCapabilityState>()
+    val capabilities = mutableMapOf<WhsDataType, CapabilityStatus>()
 
     for (match in contentProviderEntryMatches) {
       val dataType = match.groupValues[1].toDataType()
@@ -62,7 +62,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
       }
       val isEnabled = match.groupValues[2].toBoolean()
 
-      capabilities[dataType] = OnDeviceCapabilityState(isEnabled, null)
+      capabilities[dataType] = CapabilityStatus(isEnabled, null)
     }
 
     return capabilities

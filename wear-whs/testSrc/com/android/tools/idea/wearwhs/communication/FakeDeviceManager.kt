@@ -31,7 +31,7 @@ internal class FakeDeviceManager(
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
-  private val onDeviceStates = capabilities.associate { it.dataType to OnDeviceCapabilityState(false, null) }
+  private val onDeviceStates = capabilities.associate { it.dataType to CapabilityStatus(false, null) }
 
   override suspend fun loadCapabilities() = if (failState) {
     throw ConnectionLostException("Failed to load capabilities")
@@ -61,7 +61,7 @@ internal class FakeDeviceManager(
     overrideUpdates.forEach { (capability, value) -> onDeviceStates[capability]?.overrideValue = value?.toFloat() }
   }
 
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> = if (failState) {
+  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityStatus> = if (failState) {
     throw ConnectionLostException("Failed to load capability states")
   }
   else {

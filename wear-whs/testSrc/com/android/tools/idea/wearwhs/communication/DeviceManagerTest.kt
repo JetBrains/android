@@ -551,7 +551,7 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, OnDeviceCapabilityState>) = runTest {
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandQueryContentProvider, response)
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
@@ -559,7 +559,7 @@ class DeviceManagerTest {
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-    var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to OnDeviceCapabilityState(false, null) }
+    var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to CapabilityStatus(false, null) }
     val job = launch {
       parsedCapabilities = deviceManager.loadCurrentCapabilityStates()
     }
@@ -596,17 +596,17 @@ class DeviceManagerTest {
                                                        "Row: 8 data_type=PACE, is_enabled=false, override_value=0.0\n" +
                                                        "Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0\n" +
                                                        "Row: 10 data_type=STEPS, is_enabled=true, override_value=0", mapOf(
-                                                        WhsDataType.STEPS_PER_MINUTE to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.SPEED to OnDeviceCapabilityState(true, null),
-                                                        WhsDataType.FLOORS to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.ABSOLUTE_ELEVATION to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.ELEVATION_LOSS to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.DISTANCE to OnDeviceCapabilityState(true, null),
-                                                        WhsDataType.ELEVATION_GAIN to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.TOTAL_CALORIES to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.PACE to OnDeviceCapabilityState(false, null),
-                                                        WhsDataType.HEART_RATE_BPM to OnDeviceCapabilityState(true, null),
-                                                        WhsDataType.STEPS to OnDeviceCapabilityState(true, null),
+                                                        WhsDataType.STEPS_PER_MINUTE to CapabilityStatus(false, null),
+                                                        WhsDataType.SPEED to CapabilityStatus(true, null),
+                                                        WhsDataType.FLOORS to CapabilityStatus(false, null),
+                                                        WhsDataType.ABSOLUTE_ELEVATION to CapabilityStatus(false, null),
+                                                        WhsDataType.ELEVATION_LOSS to CapabilityStatus(false, null),
+                                                        WhsDataType.DISTANCE to CapabilityStatus(true, null),
+                                                        WhsDataType.ELEVATION_GAIN to CapabilityStatus(false, null),
+                                                        WhsDataType.TOTAL_CALORIES to CapabilityStatus(false, null),
+                                                        WhsDataType.PACE to CapabilityStatus(false, null),
+                                                        WhsDataType.HEART_RATE_BPM to CapabilityStatus(true, null),
+                                                        WhsDataType.STEPS to CapabilityStatus(true, null),
                                                        ))
   }
 
@@ -615,7 +615,7 @@ class DeviceManagerTest {
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly("Row: 0 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0\n" +
                                                        "Row: 1 data_type=STEPS, is_enabled=true, override_value=0\n" +
                                                        "Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0", mapOf(
-                                                        WhsDataType.STEPS to OnDeviceCapabilityState(true, null),
+                                                        WhsDataType.STEPS to CapabilityStatus(true, null),
                                                       ))
   }
 }
