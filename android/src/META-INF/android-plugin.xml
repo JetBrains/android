@@ -460,7 +460,6 @@
 
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.SampleDataListener$Subscriber"/>
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>

@@ -21,6 +21,7 @@ import com.android.tools.idea.res.SampleDataListener.Companion.ensureSubscribed
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -59,6 +60,7 @@ class SampleDataListener(project: Project) :
    * Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS
    * and PSI changes.
    */
+  @Service(Service.Level.PROJECT)
   class Subscriber(val project: Project) :
     LazyFileListenerSubscriber<SampleDataListener>(
       SampleDataListener(project),
