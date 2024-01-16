@@ -89,7 +89,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
     val menuAction = TargetMenuAction()
 
-    manager.configModule.configurationStateManager.projectState.isPickTarget = true
+    manager.stateManager.projectState.isPickTarget = true
 
     menuAction.updateActions(dataContext)
     menuAction.getChildren(null).let { children ->

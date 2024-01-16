@@ -34,8 +34,6 @@ interface ConfigurationModelModule : Disposable {
 
   val resourceRepositoryManager: ResourceRepositoryManager?
 
-  val configurationStateManager: ConfigurationStateManager
-
   val themeInfoProvider: ThemeInfoProvider
 
   val layoutlibContext: LayoutlibContext
