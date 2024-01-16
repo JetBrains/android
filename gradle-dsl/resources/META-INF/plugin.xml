@@ -1,5 +1,6 @@
 <!-- Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
-<idea-plugin implementation-detail="true"
+<idea-plugin package="com.android.tools.idea.gradle.dsl"
+             implementation-detail="true"
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>org.jetbrains.idea.gradle.dsl</id>
   <name>Gradle DSL API</name>
@@ -12,8 +13,14 @@
 
   <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-  <depends optional="true" config-file="gradle-dsl-groovy-support.xml">org.intellij.groovy</depends>
-  <depends optional="true" config-file="gradle-dsl-kotlin-support.xml">org.jetbrains.kotlin</depends>
-  <depends optional="true" config-file="gradle-dsl-toml-support.xml">org.toml.lang</depends>
+  <dependencies>
+    <plugin id="com.intellij.gradle"/>
+  </dependencies>
+
+  <content>
+    <module name="intellij.android.gradle.dsl/groovy"/>
+    <module name="intellij.android.gradle.dsl.kotlin"/>
+    <module name="intellij.android.gradle.dsl.toml"/>
+  </content>
 
 </idea-plugin>

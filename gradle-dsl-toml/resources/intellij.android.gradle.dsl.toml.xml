@@ -1,5 +1,9 @@
 <!-- Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
-<idea-plugin>
+<idea-plugin package="com.android.tools.idea.gradle.dsl.parser.toml">
+  <dependencies>
+    <plugin id="org.toml.lang"/>
+  </dependencies>
+
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.toml.TomlDslTransformerFactory"/>
   </extensions>
