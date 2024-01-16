@@ -53,6 +53,7 @@ import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Test
 
 class TypeResolverTest {
@@ -105,6 +106,8 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType(ATTR_ELEVATION, null, null))
       .isEqualTo(NlPropertyType.DIMENSION)
     assertThat(TypeResolver.resolveType(ATTR_STATE_LIST_ANIMATOR, null, null))
+      .isEqualTo(NlPropertyType.ANIMATOR)
+    assertThat(TypeResolver.resolveType(NavigationSchema.ATTR_POP_ENTER_ANIM, null, null))
       .isEqualTo(NlPropertyType.ANIMATOR)
   }
 

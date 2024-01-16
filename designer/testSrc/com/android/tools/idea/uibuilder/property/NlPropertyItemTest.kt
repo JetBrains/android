@@ -43,6 +43,7 @@ import com.android.SdkConstants.ATTR_THEME
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.FD_RES_NAVIGATION
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
@@ -60,6 +61,7 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
@@ -89,9 +91,11 @@ import java.awt.Color
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.ComponentStack
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -823,6 +827,25 @@ class NlPropertyItemTest {
 
     // Wait for the resolver to be loaded
     delayUntilCondition(100L) { property.resolver != null }
+  }
+
+  @Test
+  fun testNavigationItems() = runBlocking {
+    withContext(uiThread) {
+      val util =
+        SupportTestUtil(
+          projectRule,
+          parentTag = "action",
+          resourceFolder = FD_RES_NAVIGATION,
+          fileName = "navigation.xml"
+        )
+      val property =
+        util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
+      assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator"))
+        .isEqualTo(EDITOR_NO_ERROR)
+      assertThat(property.editingSupport.validation("@android:animator/fade_in"))
+        .isEqualTo(EDITOR_NO_ERROR)
+    }
   }
 
   private fun createTextView(): ComponentDescriptor =
