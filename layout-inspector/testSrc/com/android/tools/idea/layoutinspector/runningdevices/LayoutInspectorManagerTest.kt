@@ -425,8 +425,8 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorShowsWarningFirstTime() = withEmbeddedLayoutInspector {
-    PropertiesComponent.getInstance().unsetValue(SHOW_EXPERIMENTAL_WARNING_KEY)
+  fun testToggleLayoutInspectorShowsOptOutFirstTime() = withEmbeddedLayoutInspector {
+    PropertiesComponent.getInstance().unsetValue(SHOW_EMBEDDED_LI_BANNER_KEY)
 
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
@@ -437,9 +437,7 @@ class LayoutInspectorManagerTest {
     assertThat(notifications1).hasSize(1)
     val firstNotification = notifications1.single()
     assertThat(firstNotification.message)
-      .isEqualTo(
-        "(Experimental) Layout Inspector is now embedded within the Running Devices window"
-      )
+      .isEqualTo("Layout Inspector is now embedded within the Running Devices window")
     assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
     assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
 
