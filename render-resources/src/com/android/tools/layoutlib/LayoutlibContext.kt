@@ -16,7 +16,6 @@
 package com.android.tools.layoutlib
 
 import com.android.tools.idea.layoutlib.LayoutLibrary
-import com.intellij.openapi.Disposable
 
 /** Context required to create Layoutlib instance. */
 interface LayoutlibContext {
