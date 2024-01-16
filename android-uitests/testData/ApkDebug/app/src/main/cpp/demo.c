@@ -208,7 +208,7 @@ static GLOBJECT * createSuperShape(const float *params)
     GLOBJECT *result;
     float baseColor[3];
     int a, longitude, latitude;
-    long currentVertex, currentQuad;
+    long currentVertex;
 
     result = newGLObject(vertices, 3, 1);
     if (result == NULL)
@@ -217,7 +217,6 @@ static GLOBJECT * createSuperShape(const float *params)
     for (a = 0; a < 3; ++a)
         baseColor[a] = ((randomUInt() % 155) + 100) / 255.f;
 
-    currentQuad = 0;
     currentVertex = 0;
 
     // longitude -pi to pi
@@ -331,7 +330,6 @@ static GLOBJECT * createSuperShape(const float *params)
                 result->vertexArray[currentVertex * 3 + 2] = FIXED(pd.z);
                 ++currentVertex;
             } // r0 && r1 && r2 && r3
-            ++currentQuad;
         } // latitude
     } // longitude
 
@@ -351,13 +349,12 @@ static GLOBJECT * createGroundPlane()
     const long vertices = triangleCount * 3;
     GLOBJECT *result;
     int x, y;
-    long currentVertex, currentQuad;
+    long currentVertex;
 
     result = newGLObject(vertices, 2, 0);
     if (result == NULL)
         return NULL;
 
-    currentQuad = 0;
     currentVertex = 0;
 
     for (y = yBegin; y < yEnd; ++y)
@@ -389,7 +386,6 @@ static GLOBJECT * createGroundPlane()
                     FIXED(ym * scale + m);
                 ++currentVertex;
             }
-            ++currentQuad;
         }
     }
     return result;
