@@ -24,8 +24,7 @@ import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -79,7 +78,7 @@ class ImportUtpResultAction(icon: Icon? = null,
                             val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
-    private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
+    private val NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Import Android Test Results")
   }
 
   /**
