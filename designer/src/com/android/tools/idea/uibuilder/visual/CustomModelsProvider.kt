@@ -31,7 +31,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.util.WeakHashMap
@@ -165,7 +164,6 @@ class CustomModelsProvider(
           .build()
       model.modelDisplayName = customConfig.name
       models.add(model)
-      Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes
     }
     return models

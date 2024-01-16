@@ -62,7 +62,6 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.MoreObjects;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -78,7 +77,7 @@ import org.jetbrains.annotations.Nullable;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration extends UserDataHolderBase implements Disposable, ModificationTracker {
+public class Configuration extends UserDataHolderBase implements ModificationTracker {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
@@ -1216,10 +1215,6 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   @NotNull
   public ConfigurationModelModule getConfigModule() {
     return mySettings.getConfigModule();
-  }
-
-  @Override
-  public void dispose() {
   }
 
   public void setEffectiveDevice(@Nullable Device device, @Nullable State state) {
