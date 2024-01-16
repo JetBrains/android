@@ -369,7 +369,7 @@ class InferAnnotationsTest {
         import androidx.annotation.*
         class InferTypes {
             fun test1(@HalfFloat d: Int) {
-                test1(arg3 = d)
+                test1(arg1 = d)
             }
 
             fun test1(arg1: Int = 0, arg2: Int = 0) { }
