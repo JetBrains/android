@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -99,18 +100,23 @@ private fun ToolWindowManager.initToolWindow(project: Project, bean: ToolWindowE
 
   @Suppress("DEPRECATION")
   val sideTool = bean.secondary || bean.side
-  @Suppress("UnstableApiUsage")
-  registerToolWindow(
-    RegisterToolWindowTask(
-      id = bean.id,
-      icon = findIconFromBean(bean, factory, plugin),
-      anchor = anchor,
-      sideTool = sideTool,
-      canCloseContent = bean.canCloseContents,
-      canWorkInDumbMode = DumbService.isDumbAware(factory),
-      shouldBeAvailable = factory.shouldBeAvailable(project),
-      contentFactory = factory,
-      stripeTitle = getStripeTitleSupplier(bean.id, project, plugin)
+
+  try {
+    @Suppress("UnstableApiUsage")
+    registerToolWindow(
+      RegisterToolWindowTask(
+        id = bean.id,
+        icon = findIconFromBean(bean, factory, plugin),
+        anchor = anchor,
+        sideTool = sideTool,
+        canCloseContent = bean.canCloseContents,
+        canWorkInDumbMode = DumbService.isDumbAware(factory),
+        shouldBeAvailable = factory.shouldBeAvailable(project),
+        contentFactory = factory,
+        stripeTitle = getStripeTitleSupplier(bean.id, project, plugin)
+      )
     )
-  )
+  } catch (e: IllegalArgumentException) {
+    thisLogger().info(e.message , e)
+  }
 }
