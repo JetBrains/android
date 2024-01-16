@@ -77,10 +77,11 @@ public abstract class RootPathTreePrinter {
                                         short visitedEssentialNominatedNodeTypesMask) {
     writer.accept(constructRootPathLine(node, prefix, isOnlyChild, isLastChild, visitedEssentialNominatedNodeTypesMask));
 
-    for (Integer type : ESSENTIAL_NOMINATED_NODE_TYPES) {
-      if (node.selfSizes[exceededClusterId][type] != null) {
-        visitedEssentialNominatedNodeTypesMask |= 1 << type;
-      }
+    if (node.isDisposedButReferenced) {
+      visitedEssentialNominatedNodeTypesMask |= 1 << DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE;
+    }
+    if (node.isLoadedWithNominatedLoader) {
+      visitedEssentialNominatedNodeTypesMask |= 1 << OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE;
     }
 
     short finalVisitedEssentialNominatedNodeTypesMask = visitedEssentialNominatedNodeTypesMask;
@@ -275,7 +276,8 @@ public abstract class RootPathTreePrinter {
                                            boolean isLastChild,
                                            short visitedEssentialNominatedNodeTypesMask) {
       if (node.isDisposedButReferenced) {
-        ObjectsStatistics nominatedObjectsInTheSubtree = nominatedObjectsStatsInTheNodeSubtree.get(node);
+        ObjectsStatistics nominatedObjectsInTheSubtree = node.instancesStatistics[exceededClusterId][nominatedNodeTypeId];
+
         if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 1_000_000) {
           disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast1mb++;
         }
