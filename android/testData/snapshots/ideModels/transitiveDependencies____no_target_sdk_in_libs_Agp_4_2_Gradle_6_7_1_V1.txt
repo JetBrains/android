@@ -1383,6 +1383,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.example.alruiz.transitive_dependencies
         testApplicationId             : com.example.alruiz.transitive_dependencies.test
@@ -2004,6 +2005,7 @@ MODULE                        : project.library1
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library1.test
     - basicVariant:               : release
@@ -2534,6 +2536,7 @@ MODULE                        : project.library2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library2.test
     - basicVariant:               : release

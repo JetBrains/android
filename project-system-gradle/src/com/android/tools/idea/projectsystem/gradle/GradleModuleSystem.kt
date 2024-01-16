@@ -535,6 +535,9 @@ class GradleModuleSystem(
       null -> null
     }
 
+  override val supportsAndroidResources: Boolean
+    get() = readFromAgpFlags { it.androidResourcesEnabled } ?: true
+
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   override fun getTestLibrariesInUse(): TestLibraries? {

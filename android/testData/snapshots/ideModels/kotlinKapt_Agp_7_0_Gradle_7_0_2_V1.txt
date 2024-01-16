@@ -1667,6 +1667,7 @@ MODULE                        : MainActivity.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : localDebug
         applicationId                 : com.example.mainactivity
         testApplicationId             : com.example.mainactivity.test
@@ -2557,6 +2558,7 @@ MODULE                        : MainActivity.lib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
     - basicVariant:               : release

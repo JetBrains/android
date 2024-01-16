@@ -716,6 +716,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     transitiveRClasses = true,
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
+    androidResourcesEnabled = true,
     unifiedTestPlatformEnabled = true,
     useAndroidX = false,
   )

@@ -184,6 +184,9 @@ class KotlinModelConverter {
     mlModelBindingEnabled = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
     }.value,
+    androidResourcesEnabled = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
+    }.value,
     unifiedTestPlatformEnabled = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM
     }.value,

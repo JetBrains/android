@@ -1247,6 +1247,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       transitiveRClasses = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
       usesCompose = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
       mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING),
+      /** Treated as enabled for AGP < 8.4. if we need to know the actual answer we could add it to LegacyAndroidGradlePluginPropertiesModelBuilder */
+      androidResourcesEnabled = true,
       unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
       useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault
     )

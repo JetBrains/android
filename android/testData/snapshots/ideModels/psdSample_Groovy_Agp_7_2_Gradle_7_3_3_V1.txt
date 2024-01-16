@@ -2491,6 +2491,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
@@ -3548,6 +3549,7 @@ MODULE                        : project.dyn_feature
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
     - basicVariant:               : release
@@ -3871,6 +3873,7 @@ MODULE                        : project.lib
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
     - basicVariant:               : release
@@ -4381,6 +4384,7 @@ MODULE                        : project.nested1
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
     - basicVariant:               : release
@@ -4687,6 +4691,7 @@ MODULE                        : project.nested1.deep
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
     - basicVariant:               : release
@@ -5003,6 +5008,7 @@ MODULE                        : project.nested2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
     - basicVariant:               : paidDebug
@@ -5459,6 +5465,7 @@ MODULE                        : project.nested2.deep
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
     - basicVariant:               : release
@@ -5777,6 +5784,7 @@ MODULE                        : project.nested2.trans.deep2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
     - basicVariant:               : release

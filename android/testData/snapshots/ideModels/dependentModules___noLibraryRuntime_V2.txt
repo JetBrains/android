@@ -971,6 +971,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : basicDebug
         applicationId                 : com.example.dependentmodules.app
         testApplicationId             : com.example.dependentmodules.app.test
@@ -2075,6 +2076,7 @@ MODULE                        : project.lib
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.dependentmodules.lib.test
     - basicVariant:               : release

@@ -374,6 +374,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.android.test.localaarsasmodules
         testApplicationId             : com.android.test.localaarsasmodules.test
@@ -715,6 +716,7 @@ MODULE                        : project.library
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.android.test.library.test
     - basicVariant:               : release

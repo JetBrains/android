@@ -897,6 +897,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : exampleDebug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test

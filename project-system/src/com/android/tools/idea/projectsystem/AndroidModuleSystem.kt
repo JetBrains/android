@@ -305,6 +305,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
   val codeShrinker: CodeShrinker? get() = null
 
+  val supportsAndroidResources: Boolean get() = true
+
   /**
    * Whether the R class generated for this module is transitive.
    *

@@ -44,6 +44,7 @@ AgpFlags
     UseAndroidX                   : false
     UsesCompose                   : false
     MlModelBindingEnabled         : false
+    AndroidResourcesEnabled       : true
 - basicVariant:               : basicBarDebug
     applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
     testApplicationId             : com.example.psd.sample.app.default.test
