@@ -29,7 +29,6 @@ import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
@@ -1769,9 +1768,11 @@ public final class StudioFlags {
   // endregion GOOGLE_LOGIN
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
-    return BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
+    // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
+    // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
+    return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
            ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
-           : IdeInfo.getInstance().isAndroidStudio();
+           : false;
   }
 
   private StudioFlags() { }
