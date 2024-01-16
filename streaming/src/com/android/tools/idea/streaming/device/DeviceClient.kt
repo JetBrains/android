@@ -226,7 +226,9 @@ internal class DeviceClient(
     }
 
     if (startVideoStream) {
-      videoStreams[PRIMARY_DISPLAY_ID] = VideoStreamArbiter(project, PRIMARY_DISPLAY_ID, maxVideoSize)
+      synchronized(videoStreams) {
+        videoStreams[PRIMARY_DISPLAY_ID] = VideoStreamArbiter(project, PRIMARY_DISPLAY_ID, maxVideoSize)
+      }
     }
   }
 
