@@ -54,6 +54,7 @@ import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -227,6 +228,14 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       setBorder(Borders.empty(2))
       isVisible = false
     }
+    // List of elements that should be hidden if there's an active exercise
+    val overrideElementsList = mutableListOf<JComponent>()
+    overrideElementsList.add(warningLabel)
+    stateManager.getOngoingExercise().onEach {
+      overrideElementsList.forEach { element ->
+        element.isVisible = it
+      }
+    }.launchIn(uiScope)
     return JPanel(VerticalFlowLayout()).apply {
       add(warningLabel)
       border = horizontalBorders
@@ -236,11 +245,8 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         }, BorderLayout.CENTER)
         add(JPanel(FlowLayout()).apply {
           add(JLabel(message("wear.whs.panel.override")).apply {
+            overrideElementsList.add(this)
             font = font.deriveFont(Font.BOLD)
-          })
-          add(JLabel(message("wear.whs.panel.unit")).apply {
-            font = font.deriveFont(Font.BOLD)
-            preferredSize = Dimension(50, preferredSize.height)
           })
         }, BorderLayout.EAST)
       })
@@ -272,6 +278,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           }
           add(checkBox, BorderLayout.CENTER)
           add(JPanel(FlowLayout()).apply {
+            overrideElementsList.add(this)
             add(JTextField().also { textField ->
               textField.addFocusListener(object : FocusListener {
                 override fun focusGained(e: FocusEvent?) {}

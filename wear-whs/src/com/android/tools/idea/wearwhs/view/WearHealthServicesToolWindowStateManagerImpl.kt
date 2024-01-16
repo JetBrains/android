@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.annotations.TestOnly
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -196,6 +197,11 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override fun dispose() { // Clear all callbacks to avoid memory leaks
     capabilityToState.clear()
+  }
+
+  @TestOnly
+  internal suspend fun forceUpdateState() {
+    updateState()
   }
 }
 
