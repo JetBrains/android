@@ -28,7 +28,7 @@ import com.intellij.util.indexing.FileBasedIndex
  * If you need to know the modification count for a single module, just use
  * `ResourceRepositoryManager.getModuleResources(facet).modificationCount` directly.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class ProjectLayoutResourcesModificationTracker(private val project: Project) :
   ModificationTracker {
   companion object {
