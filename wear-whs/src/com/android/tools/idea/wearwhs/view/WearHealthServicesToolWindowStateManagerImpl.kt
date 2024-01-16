@@ -24,6 +24,7 @@ import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +51,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
   private val workerScope = AndroidCoroutineScope(this)
 
-  // TODO(b/305924111): Update this value periodically to reflect it on the UI
   private val ongoingExercise = MutableStateFlow(false)
 
   override var serialNumber: String? = null
@@ -78,21 +78,26 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       // Panel is not bound to an emulator yet
       return
     }
-
-    val currentStates = deviceManager.loadCurrentCapabilityStatus()
-    currentStates.forEach { (dataType, state) ->
-      // Update values only if they're synced through and got changed in the background
-      capabilityToState[dataType.toCapability()]?.let { stateFlow ->
-        if (stateFlow.value.synced) {
-          stateFlow.emit(
-            stateFlow.value.copy(
-              enabled = state.enabled,
-              overrideValue = state.overrideValue,
-              synced = true
+    try {
+      ongoingExercise.emit(deviceManager.loadActiveExercise())
+      val currentStates = deviceManager.loadCurrentCapabilityStatus()
+      currentStates.forEach { (dataType, status) ->
+        // Update values only if they're synced through and got changed in the background
+        capabilityToState[dataType.toCapability()]?.let { stateFlow ->
+          if (stateFlow.value.synced) {
+            stateFlow.emit(
+              stateFlow.value.copy(
+                enabled = status.enabled,
+                overrideValue = status.overrideValue,
+                synced = true
+              )
             )
-          )
+          }
         }
       }
+    }
+    catch (e: ConnectionLostException) {
+      Logger.getInstance(WearHealthServicesToolWindowStateManager::class.java).warn(e)
     }
   }
 
@@ -109,7 +114,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   override suspend fun isWhsVersionSupported(): Boolean {
     return try {
       deviceManager.isWhsVersionSupported()
-    } catch (exception: ConnectionLostException) {
+    }
+    catch (exception: ConnectionLostException) {
       // TODO(b/320432666): For now catch this error and show whs version not supported UI, eventually show separate could not connect UI
       false
     }
@@ -120,7 +126,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   override suspend fun triggerEvent(eventTrigger: EventTrigger) {
     try {
       deviceManager.triggerEvent(eventTrigger)
-    } catch (exception: ConnectionLostException) {
+    }
+    catch (exception: ConnectionLostException) {
       progress.emit(WhsStateManagerStatus.ConnectionLost)
     }
   }
@@ -164,7 +171,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     try {
       deviceManager.setCapabilities(capabilityUpdates)
       deviceManager.overrideValues(overrideUpdates)
-    } catch (exception: ConnectionLostException) {
+    }
+    catch (exception: ConnectionLostException) {
       logger.logApplyChangesFailure()
       progress.emit(WhsStateManagerStatus.ConnectionLost)
       return

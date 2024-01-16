@@ -35,7 +35,7 @@ internal interface WearHealthServicesDeviceManager {
    *
    * @return true if there's an ongoing exercise, false otherwise.
    */
-  suspend fun loadOngoingExercise(): Boolean
+  suspend fun loadActiveExercise(): Boolean
 
   /**
    * Set multiple WHS capabilities on the device.

@@ -244,6 +244,15 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[0]).map { it.overrideValue }.waitForValue(10f)
   }
 
+  @Test
+  fun `test stateManager periodically updates the exercise status from the device`() = runBlocking {
+    stateManager.getOngoingExercise().waitForValue(false)
+    deviceManager.activeExercise = true
+
+    // Verify that the value is updated
+    stateManager.getOngoingExercise().waitForValue(true)
+  }
+
   private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 1000) {
     val received = mutableListOf<T>()
     try {

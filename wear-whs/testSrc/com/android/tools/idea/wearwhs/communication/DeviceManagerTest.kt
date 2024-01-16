@@ -31,6 +31,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceManagerTest {
+  private val adbCommandActiveExercise = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
   private val adbCommandEnableSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:b:true"
   private val adbCommandEnableDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:b:true"
   private val adbCommandEnableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:b:true"
@@ -113,8 +114,9 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertDeviceManagerFunctionSendsAdbCommand(func: suspend (WearHealthServicesDeviceManager) -> Unit, expectedAdbCommand: String) = runTest {
-    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), expectedAdbCommand,"")
+  private fun assertDeviceManagerFunctionSendsAdbCommand(func: suspend (WearHealthServicesDeviceManager) -> Unit,
+                                                         expectedAdbCommand: String) = runTest {
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), expectedAdbCommand, "")
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
@@ -422,6 +424,7 @@ class DeviceManagerTest {
     val job = launch {
       isSupported = deviceManager.isWhsVersionSupported()
     }
+
     job.join()
 
     val currentCount = adbSession.deviceServices.shellV2Requests.size
@@ -432,10 +435,48 @@ class DeviceManagerTest {
     val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
     assert(shellRequest.deviceSelector.contains(serialNumber))
-    assertEquals(adbCommandCheckWhsVersionCode, shellRequest.command)
 
+    assertEquals(adbCommandCheckWhsVersionCode, shellRequest.command)
     assertEquals(expectedIsSupportedBool, isSupported)
   }
+
+  private fun assertExerciseCommandParsesResultsCorrectly(response: String, expected: Boolean) = runTest {
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandActiveExercise,
+                                                    response)
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    val previousCount = adbSession.deviceServices.shellV2Requests.size
+
+    var isSupported = false
+    val job = launch {
+      isSupported = deviceManager.loadActiveExercise()
+    }
+    job.join()
+
+    val currentCount = adbSession.deviceServices.shellV2Requests.size
+    val newRequestsCount = currentCount - previousCount
+
+    assertEquals(1, newRequestsCount)
+
+    val shellRequest = adbSession.deviceServices.shellV2Requests.last
+
+    assert(shellRequest.deviceSelector.contains(serialNumber))
+    assertEquals(adbCommandActiveExercise, shellRequest.command)
+    assertEquals(expected, isSupported)
+  }
+
+  @Test
+  fun `load active exercise returns true when exercise is active`() = assertExerciseCommandParsesResultsCorrectly(
+    "Row: 0 active_exercise=true", true)
+
+  @Test
+  fun `load active exercise returns false when exercise is not active`() = assertExerciseCommandParsesResultsCorrectly(
+    "Row: 0 active_exercise=false", false)
+
+  @Test
+  fun `load active exercise returns false when response is unexpected`() = assertExerciseCommandParsesResultsCorrectly(
+    "This is not supposed to happen", false)
 
   @Test
   fun `unexpected ADB response results in WHS version being reported as unsupported`() {

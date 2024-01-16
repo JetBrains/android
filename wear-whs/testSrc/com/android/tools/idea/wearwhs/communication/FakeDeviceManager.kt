@@ -29,6 +29,7 @@ internal class FakeDeviceManager(
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
   private val onDeviceStates = capabilities.associate { it.dataType to CapabilityStatus(false, null) }
+  internal var activeExercise = false
 
   override suspend fun loadCapabilities() = if (failState) {
     throw ConnectionLostException("Failed to load capabilities")
@@ -37,11 +38,11 @@ internal class FakeDeviceManager(
     capabilities
   }
 
-  override suspend fun loadOngoingExercise() = if (failState) {
+  override suspend fun loadActiveExercise() = if (failState) {
     throw ConnectionLostException("Failed to load ongoing exercise")
   }
   else {
-    false
+    activeExercise
   }
 
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) = if (failState) {
