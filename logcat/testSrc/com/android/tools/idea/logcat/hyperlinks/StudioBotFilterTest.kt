@@ -4,10 +4,12 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.Filter.ResultItem
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -24,16 +26,22 @@ class StudioBotFilterTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val myMockAiExcludeService =
+  private val mockAiExcludeService =
     Mockito.spy(object : AiExcludeService.StubAiExcludeService() {})
 
-  private val myMockStudioBot =
+  private val mockChatService = Mockito.spy(object : ChatService.StubChatService() {})
+
+  private val mockStudioBot =
     object : StudioBot.StubStudioBot() {
+      var contextAllowed = true
+
       override fun isAvailable() = true
 
-      override fun isContextAllowed() = true
+      override fun isContextAllowed() = contextAllowed
 
-      override fun aiExcludeService() = myMockAiExcludeService
+      override fun aiExcludeService() = mockAiExcludeService
+
+      override fun chat(project: Project) = mockChatService
     }
 
   @get:Rule
@@ -41,7 +49,7 @@ class StudioBotFilterTest {
     RuleChain(
       projectRule,
       logcatEditorRule,
-      ApplicationServiceRule(StudioBot::class.java, myMockStudioBot),
+      ApplicationServiceRule(StudioBot::class.java, mockStudioBot),
       EdtRule()
     )
 
@@ -79,7 +87,33 @@ class StudioBotFilterTest {
       """
         .trimIndent()
 
-    verify(myMockAiExcludeService).validateQuery(project, expectedQuestion, emptyList())
+    // With the context sharing setting enabled, the AiExcludeService should be invoked
+    // to validate a query to be sent directly to the model
+    verify(mockAiExcludeService).validateQuery(project, expectedQuestion, emptyList())
+  }
+
+  @Test
+  fun applyFilter_stagesQueryWhenContextDisabled() {
+    // Disable the context sharing setting
+    mockStudioBot.contextAllowed = false
+    val filter = StudioBotFilter(editor)
+    val message = logcatMessage(message = "Exception\n" + "\tat com.example(File.kt:1)")
+    logcatEditorRule.putLogcatMessages(message, formatMessage = LogcatMessage::formatMessage)
+    val line = editor.document.text.split("\n")[0]
+    editor.caretModel.moveToOffset(editor.document.text.indexOf("StudioBot"))
+    val result = filter.applyFilter(line, line.length) ?: fail()
+
+    result.firstHyperlinkInfo?.navigate(project)
+
+    val expectedQuestion =
+      """
+      Explain: Exception
+      at com.example(File.kt:1) with tag ExampleTag
+      """
+        .trimIndent()
+
+    // With context sharing disabled, the query should be staged instead of sent
+    verify(mockChatService).stageChatQuery(expectedQuestion, StudioBot.RequestSource.LOGCAT)
   }
 }
 

@@ -50,7 +50,6 @@ internal class StudioBotFilter(private val editor: EditorEx) : Filter {
     override fun navigate(project: Project) {
       val studioBot = StudioBot.getInstance()
       if (!studioBot.isAvailable()) return
-      if (!studioBot.isContextAllowed()) return
 
       val offset = editor.caretModel.offset
       editor.document.processRangeMarkersOverlappingWith(offset, offset) {
