@@ -181,6 +181,8 @@
                         headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
     />
 
+    <ApplicationLoadListener implementation="com.intellij.android.safemode.SafeMode"/>
+
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
     <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
