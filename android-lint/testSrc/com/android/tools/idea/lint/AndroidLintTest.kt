@@ -156,12 +156,14 @@ import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler
 import com.intellij.codeInspection.CommonProblemDescriptor
 import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.QuickFix
 import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.modcommand.ActionContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
@@ -238,11 +240,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   private fun listAvailableFixes(): String {
     val intentions = IntentionsInfo()
     ShowIntentionsPass.getActionsToShow(myFixture.editor, myFixture.file, intentions, -1)
-    val sb = StringBuilder()
-    for (action in getAvailableFixes()) {
-      sb.append(action.text).append("\n")
+    return buildString {
+      for (action in getAvailableFixes()) {
+        appendLine(
+          action.asModCommandAction()?.let {
+            it.getPresentation(ActionContext.from(myFixture.editor, myFixture.file))?.name
+          } ?: action.text
+        )
+      }
     }
-    return sb.toString()
   }
 
   fun testExtraText() {
@@ -1387,8 +1393,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     var lintXml = moduleDir!!.findChild("lint.xml")
     assertThat(lintXml).isNull()
 
-    val action = SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile!!)
-    action.invoke(project, null, iconFile)
+    val action = SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile!!).asIntention()
+    assertTrue(action.isAvailable(project, myFixture.editor, iconFile))
+    ShowIntentionActionsHandler.chooseActionAndInvoke(iconFile, myFixture.editor, action, "Suppress")
     moduleDir.refresh(false, true)
 
     lintXml = moduleDir.findChild("lint.xml")

@@ -391,12 +391,17 @@ class LintIdeTest : UsefulTestCase() {
 
   private fun doTestWithAction(extension: String, action: IntentionAction) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(
-        ThrowableRunnable<Throwable?> {
-          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-        }
-      )
+    // TODO(b/319287252): Remove write command after migration to ModCommand API is complete.
+    if (action.asModCommandAction() != null) {
+      myFixture.checkPreviewAndLaunchAction(action)
+    } else {
+      WriteCommandAction.writeCommandAction(myFixture.project)
+        .run(
+          ThrowableRunnable<Throwable?> {
+            action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+          }
+        )
+    }
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
   }
 

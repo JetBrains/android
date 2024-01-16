@@ -25,6 +25,7 @@ import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.modcommand.ActionContext
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
@@ -130,7 +131,9 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                 {
                   WriteAction.run<Throwable> {
                     val startElement = issue.startElementPointer.element ?: return@run
-                    suppressLint.applyFix(startElement)
+                    suppressLint.applyFix(
+                      startElement, ActionContext.from(null, startElement.containingFile),
+                    )
                   }
                 },
                 EXECUTE_SUPPRESSION + suppressLint.name,

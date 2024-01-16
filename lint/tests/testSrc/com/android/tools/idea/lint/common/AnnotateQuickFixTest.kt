@@ -298,24 +298,16 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         // language=TOML
         """
         key1="value1"
-        key2="value2"
+        key<caret>2="value2"
         #noinspection MyId2
         key3="value3"
         """
           .trimIndent(),
       )
 
-    val element = myFixture.findElementByText("value2", PsiElement::class.java)
-    val fixes = listOf(SuppressLintIntentionAction("MyId1", element))
-
-    for (fix in fixes) {
-      assertTrue(fix.isAvailable(project, myFixture.editor, file))
-      WriteCommandAction.runWriteCommandAction(project) {
-        val editor = myFixture.editor
-        editor.caretModel.moveToOffset(element.startOffset)
-        fix.invoke(project, myFixture.editor, file)
-      }
-    }
+    val element = myFixture.elementAtCaret
+    val intention = SuppressLintIntentionAction("MyId1", element).asIntention()
+    myFixture.checkPreviewAndLaunchAction(intention)
 
     assertEquals(
       // language=TOML
