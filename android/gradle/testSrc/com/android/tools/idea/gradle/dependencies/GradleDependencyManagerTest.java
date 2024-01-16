@@ -71,12 +71,12 @@ public class GradleDependencyManagerTest {
   @Rule
   public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
-  private static final Dependency APP_COMPAT_DEPENDENCY = Dependency.Companion.parse("com.android.support:appcompat-v7:+");
-  private static final Dependency RECYCLER_VIEW_DEPENDENCY = Dependency.Companion.parse("com.android.support:recyclerview-v7:+");
-  private static final Dependency EXISTING_ROOM_DEPENDENCY = Dependency.Companion.parse("androidx.room:room-ktx:2.5.0");
-  private static final Dependency ROOM_DEPENDENCY = Dependency.Companion.parse("androidx.room:room-ktx:2.5.1");
-  private static final Dependency DUMMY_DEPENDENCY = Dependency.Companion.parse("dummy.group:dummy.artifact:0.0.0");
-  private static final Dependency VECTOR_DRAWABLE_DEPENDENCY = Dependency.Companion.parse("com.android.support:support-vector-drawable:+");
+  private static final Dependency APP_COMPAT_DEPENDENCY = Dependency.parse("com.android.support:appcompat-v7:+");
+  private static final Dependency RECYCLER_VIEW_DEPENDENCY = Dependency.parse("com.android.support:recyclerview-v7:+");
+  private static final Dependency EXISTING_ROOM_DEPENDENCY = Dependency.parse("androidx.room:room-ktx:2.5.0");
+  private static final Dependency ROOM_DEPENDENCY = Dependency.parse("androidx.room:room-ktx:2.5.1");
+  private static final Dependency DUMMY_DEPENDENCY = Dependency.parse("dummy.group:dummy.artifact:0.0.0");
+  private static final Dependency VECTOR_DRAWABLE_DEPENDENCY = Dependency.parse("com.android.support:support-vector-drawable:+");
 
   private static final List<Dependency> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
@@ -326,7 +326,7 @@ public class GradleDependencyManagerTest {
 
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<Dependency> dependencies = Collections.singletonList(Dependency.Companion.parse("junit:junit:4.13"));
+      List<Dependency> dependencies = Collections.singletonList(Dependency.parse("junit:junit:4.13"));
       dependencyManager.updateLibrariesToVersion(appModule, dependencies);
 
       ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
@@ -355,7 +355,7 @@ public class GradleDependencyManagerTest {
 
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<Dependency> dependencies = Collections.singletonList(Dependency.Companion.parse("junit:junit:4.13"));
+      List<Dependency> dependencies = Collections.singletonList(Dependency.parse("junit:junit:4.13"));
       dependencyManager.updateLibrariesToVersion(appModule, dependencies);
 
       assertBuildGradle(project, str -> str.contains("testImplementation 'junit:junit:4.13'"));

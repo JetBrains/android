@@ -406,7 +406,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
     String error = "Version ConstraintLayout library must be version 2.0.0 beta3 or later";
     if (v == null) return null;
-    if (v.compareTo(Version.Companion.parse("2.0.0-beta03")) < 0) return error;
+    if (v.compareTo(Version.parse("2.0.0-beta03")) < 0) return error;
     return null;
   }
 

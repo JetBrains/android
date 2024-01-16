@@ -155,7 +155,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   private void checkGetArchiveForComponent(String componentString, String path) {
-    Component supportComponent = Component.Companion.tryParse(componentString);
+    Component supportComponent = Component.tryParse(componentString);
     assertNotNull(supportComponent);
     File expectedFile = null;
     if (path != null) {
@@ -170,28 +170,28 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   public void testResolvedCoordinate() {
-    Dependency dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+");
+    Dependency dependency = Dependency.parse("com.google.android.gms:play-services:4.+");
     assertNotNull(dependency);
     assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
-    assertEquals(Component.Companion.parse("com.google.android.gms:play-services:4.4.52"),
+    assertEquals(Component.parse("com.google.android.gms:play-services:4.4.52"),
                  resolveDependency(dependency));
 
-    dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+@aar");
+    dependency = Dependency.parse("com.google.android.gms:play-services:4.+@aar");
     assertNotNull(dependency);
     assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
-    assertEquals(Component.Companion.parse("com.google.android.gms:play-services:4.4.52"),
+    assertEquals(Component.parse("com.google.android.gms:play-services:4.4.52"),
                  resolveDependency(dependency));
 
-    dependency = Dependency.Companion.parse("com.android.support:support-v4:+");
+    dependency = Dependency.parse("com.android.support:support-v4:+");
     assertNotNull(dependency);
     assertEquals("26.0.2", resolveDependencyRichVersion(dependency));
 
     // Make sure already resolved coordinates are handled correctly
-    dependency = Dependency.Companion.parse("com.android.support:support-v4:1.2.3");
+    dependency = Dependency.parse("com.android.support:support-v4:1.2.3");
     assertNotNull(dependency);
     assertEquals("1.2.3", resolveDependencyRichVersion(dependency));
 
-    dependency = Dependency.Companion.parse("my.group.id:my.bogus.artifact:+");
+    dependency = Dependency.parse("my.group.id:my.bogus.artifact:+");
     assertNotNull(dependency);
     assertNull(resolveDependencyRichVersion(dependency));
   }
@@ -210,7 +210,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT), mgr);
-    Dependency dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+");
+    Dependency dependency = Dependency.parse("com.google.android.gms:play-services:4.+");
     assertNotNull(dependency);
     assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
   }

@@ -43,7 +43,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
         ContainerUtil.map(myVersionNodes, DetailsTreeNode::getPackage),
         null,
         true,
-        Version.Companion::parse);
+        Version::parse);
       max = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
     }
     myMaxVersionNode = max;

@@ -149,7 +149,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       }
 
       if (component != null) {
-        if (component.getVersion().compareTo(Version.Companion.parse("25.1.0")) < 0) {
+        if (component.getVersion().compareTo(Version.parse("25.1.0")) < 0) {
           libraryComponentIdentifier = GoogleMavenArtifactId.EXIF_INTERFACE.getComponent("25.1.0").toIdentifier();
         }
       }

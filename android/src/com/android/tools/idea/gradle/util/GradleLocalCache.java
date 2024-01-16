@@ -81,7 +81,7 @@ public class GradleLocalCache {
           continue;
         }
         for (File versionFile : notNullize(versionFolder.listFiles())) {
-          Version version = Version.Companion.parse(versionFile.getName());
+          Version version = Version.parse(versionFile.getName());
           if (richVersion == null || richVersion.accepts(version)) {
             versions.add(version);
           }

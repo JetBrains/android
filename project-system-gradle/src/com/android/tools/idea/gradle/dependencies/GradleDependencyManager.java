@@ -195,14 +195,14 @@ public class GradleDependencyManager {
         && dependency.getExplicitSingletonVersion() == null
         // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
         && !dependency.getName().equals("multidex")) {
-      return Optional.of(new Dependency(group, dependency.getName(), RichVersion.Companion.parse(declaredAppCompatVersion), null, null));
+      return Optional.of(new Dependency(group, dependency.getName(), RichVersion.parse(declaredAppCompatVersion), null, null));
     }
 
     if (resolvedComponent == null) {
       return Optional.of(dependency);
     }
     else {
-      return Optional.of(new Dependency(resolvedComponent.getGroup(), resolvedComponent.getName(), RichVersion.Companion.require(resolvedComponent.getVersion()), null, null));
+      return Optional.of(new Dependency(resolvedComponent.getGroup(), resolvedComponent.getName(), RichVersion.require(resolvedComponent.getVersion()), null, null));
     }
   }
 

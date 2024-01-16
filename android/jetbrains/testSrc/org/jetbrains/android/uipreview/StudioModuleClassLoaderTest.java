@@ -389,7 +389,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     return new AndroidLibraryDependency(
       IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
-        Component.Companion.parse(artifactAddress),
+        Component.parse(artifactAddress),
         "",
         gradleCacheRoot.toPath().resolve(folder).toFile(),
         "manifest.xml",
