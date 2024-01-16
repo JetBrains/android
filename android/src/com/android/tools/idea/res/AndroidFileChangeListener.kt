@@ -60,6 +60,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.plugins.gradle.config.GradleFileType
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
@@ -213,9 +214,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
 
     private fun pathForLogging(parent: VirtualFile?, childName: String): String {
-      if (parent == null) {
-        return childName
-      }
+      if (parent == null) return childName
       return ResourceUpdateTracer.pathForLogging(parent.toPathString().resolve(childName), registry.project)
     }
 
@@ -229,9 +228,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
     companion object {
       private fun onFileOrDirectoryCreated(created: VirtualFile, repository: ResourceFolderRepository?) {
-        if (repository == null) {
-          return
-        }
+        if (repository == null) return
 
         ResourceUpdateTracer.log {
           "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" + created + ", " +
@@ -271,11 +268,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     private val psiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(project)
 
     override fun documentChanged(event: DocumentEvent) {
-      if (project.isDisposed) {
-        // Note that event may arrive from any project, not only from the project parameter.
-        // The project parameter can be temporarily disposed in light tests.
-        return
-      }
+      // Note that event may arrive from any project, not only from the project parameter.
+      // The project parameter can be temporarily disposed in light tests.
+      if (project.isDisposed) return
 
       val document = event.document
       val psiFile = psiDocumentManager.getCachedPsiFile(document)
@@ -328,9 +323,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
         notifyGradleEdit()
       }
 
-      if (sampleDataListener != null) {
-        sampleDataListener!!.childAdded(event)
-      }
+      sampleDataListener?.childAdded(event)
     }
 
     private fun dispatchChildAdded(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
@@ -342,9 +335,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     override fun childRemoved(event: PsiTreeChangeEvent) {
       val psiFile = event.file
 
-      if (psiFile != null && psiFile.virtualFile != null) {
-        computeModulesToInvalidateAttributeDefinitions(psiFile.virtualFile)
-      }
+      psiFile?.virtualFile?.let(::computeModulesToInvalidateAttributeDefinitions)
 
       if (psiFile == null) {
         val child = event.child
@@ -367,9 +358,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
         notifyGradleEdit()
       }
 
-      if (sampleDataListener != null) {
-        sampleDataListener!!.childRemoved(event)
-      }
+      sampleDataListener?.childRemoved(event)
     }
 
     private fun dispatchChildRemoved(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
@@ -383,9 +372,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       val psiFile = event.file
       if (psiFile != null) {
         val file = psiFile.virtualFile
-        if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file)
-        }
+        if (file != null) computeModulesToInvalidateAttributeDefinitions(file)
 
         if (isRelevantFile(psiFile)) {
           dispatchChildReplaced(event, file)
@@ -393,9 +380,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
           notifyGradleEdit()
         }
 
-        if (sampleDataListener != null) {
-          sampleDataListener!!.childReplaced(event)
-        }
+        sampleDataListener?.childReplaced(event)
       } else {
         val parent = event.parent
         if (parent is PsiDirectory) {
@@ -425,29 +410,20 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
 
     override fun childrenChanged(event: PsiTreeChangeEvent) {
-      val psiFile = event.file
-      if (psiFile != null) {
-        val file = psiFile.virtualFile
-        if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file)
-        }
+      val psiFile = event.file ?: return
+      val file = psiFile.virtualFile
+      if (file != null) computeModulesToInvalidateAttributeDefinitions(file)
 
-        if (isRelevantFile(psiFile)) {
-          dispatchChildrenChanged(event, file)
-        }
+      if (isRelevantFile(psiFile)) dispatchChildrenChanged(event, file)
 
-        if (sampleDataListener != null) {
-          sampleDataListener!!.childrenChanged(event)
-        }
-      }
+      sampleDataListener?.childrenChanged(event)
     }
 
     private fun dispatchChildrenChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
       dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childrenChanged(event) }
     }
 
-    override fun beforeChildMovement(event: PsiTreeChangeEvent) {
-    }
+    override fun beforeChildMovement(event: PsiTreeChangeEvent) { }
 
     override fun childMoved(event: PsiTreeChangeEvent) {
       val child = event.child
@@ -468,17 +444,12 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
         }
       } else {
         // Change inside a file
-        val file = psiFile.virtualFile
-        if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file)
-          if (isRelevantFile(file)) {
-            dispatchChildMoved(event, file)
-          }
+        val file = psiFile.virtualFile ?: return
 
-          if (sampleDataListener != null) {
-            sampleDataListener!!.childMoved(event)
-          }
-        }
+        computeModulesToInvalidateAttributeDefinitions(file)
+        if (isRelevantFile(file)) dispatchChildMoved(event, file)
+
+        sampleDataListener?.childMoved(event)
       }
     }
 
@@ -487,10 +458,8 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
       // If you moved the file between resource directories, potentially notify that previous repository as well
       if (event.file == null) {
-        val oldParent = event.oldParent
-        if (oldParent is PsiDirectory) {
-          dispatch(oldParent.virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childMoved(event) }
-        }
+        val oldParent = event.oldParent as? PsiDirectory ?: return
+        dispatch(oldParent.virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childMoved(event) }
       }
     }
 
@@ -535,18 +504,14 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
      * Invalidates attribute definitions of relevant modules after changes to a given file
      */
     private fun computeModulesToInvalidateAttributeDefinitions(file: VirtualFile) {
-      if (!isRelevantFile(file)) {
-        return
-      }
+      if (!isRelevantFile(file)) return
 
-      val facet = AndroidFacet.getInstance(file, project)
-      if (facet != null) {
-        for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
-          val moduleFacet = AndroidFacet.getInstance(module)
+      val facet = AndroidFacet.getInstance(file, project) ?: return
+      for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
+        val moduleFacet = AndroidFacet.getInstance(module)
 
-          if (moduleFacet != null) {
-            ModuleResourceManagers.getInstance(moduleFacet).localResourceManager.invalidateAttributeDefinitions()
-          }
+        if (moduleFacet != null) {
+          ModuleResourceManagers.getInstance(moduleFacet).localResourceManager.invalidateAttributeDefinitions()
         }
       }
     }
@@ -558,20 +523,14 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
 
     fun isRelevantFileType(fileType: FileType): Boolean {
-      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) { // fail fast for vital file type
-        return false
-      }
-      if (fileType === XmlFileType.INSTANCE) {
-        return true
-      }
+      // fail fast for vital file type
+      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) return false
+      if (fileType === XmlFileType.INSTANCE) return true
 
-      // TODO: ensure that only android compatible images are recognized.
-      if (fileType.isBinary) {
-        return fileType === ImageFileTypeManager.getInstance().imageFileType ||
-          fileType === FontFileType.INSTANCE
-      }
-
-      return false
+      // TODO: ensure that only Android-compatible images are recognized.
+      return fileType.isBinary &&
+             (fileType === ImageFileTypeManager.getInstance().imageFileType ||
+              fileType === FontFileType.INSTANCE)
     }
 
     /**
@@ -584,33 +543,12 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       // called, so we try to avoid it as much as possible. Instead, we will just
       // try to infer the type based on the extension.
       val extension = file.extension
-      if (StringUtil.isEmpty(extension)) {
-        return false
-      }
-
-      if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension) {
-        return false
-      }
-
-      if (XmlFileType.DEFAULT_EXTENSION == extension) {
-        return true
-      }
-
-      if (SdkConstants.FN_ANDROID_MANIFEST_XML == file.name) {
-        return true
-      }
-
-      if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION == extension) {
-        return true
-      }
-
-      val parent = file.parent
-      if (parent != null) {
-        val parentName = parent.name
-        if (parentName.startsWith(SdkConstants.FD_RES_RAW)) {
-          return true
-        }
-      }
+      if (StringUtil.isEmpty(extension)) return false
+      if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension) return false
+      if (XmlFileType.DEFAULT_EXTENSION == extension) return true
+      if (SdkConstants.FN_ANDROID_MANIFEST_XML == file.name) return true
+      if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION == extension) return true
+      if (file.parent?.name?.startsWith(SdkConstants.FD_RES_RAW) == true) return true
 
       // Unable to determine based on filename, use the slow method.
       val fileType = file.fileType
@@ -620,49 +558,32 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     @JvmStatic
     fun isRelevantFile(file: PsiFile): Boolean {
       val fileType = file.fileType
-      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) {
-        return false
-      }
+      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) return false
+      if (isRelevantFileType(fileType)) return true
 
-      if (isRelevantFileType(fileType)) {
-        return true
-      }
-
-      val parent = file.parent ?: return false
-
-      val parentName = parent.name
-      return parentName.startsWith(SdkConstants.FD_RES_RAW)
+      return file.parent?.name?.startsWith(SdkConstants.FD_RES_RAW) ?: false
     }
 
     @JvmStatic
     fun isGradleFile(psiFile: PsiFile): Boolean {
-      if (isGradleFile(psiFile)) {
-        return true
-      }
+      if (GradleFileType.isGradleFile(psiFile)) return true
+
       val fileType = psiFile.fileType
-      if (fileType.name == "Kotlin" && psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS)) {
-        return true
-      }
-      // Do not test getFileType() as this will differ depending on whether the Toml plugin is active or not.
-      if (psiFile.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) {
-        return true
-      }
+      val name = psiFile.name
+      if (fileType.name == "Kotlin" && name.endsWith(SdkConstants.EXT_GRADLE_KTS)) return true
+
+      // Do not test getFileType() as this will differ depending on whether the TOML plugin is active.
+      if (name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) return true
+
       if (fileType === PropertiesFileType.INSTANCE &&
-        (SdkConstants.FN_GRADLE_PROPERTIES == psiFile.name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == psiFile.name)
+          (SdkConstants.FN_GRADLE_PROPERTIES == name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name)
       ) {
         return true
       }
 
       if (fileType === PropertiesFileType.INSTANCE) {
-        val psiFileName = psiFile.name
-        if (SdkConstants.FN_GRADLE_PROPERTIES == psiFileName || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == psiFileName) {
-          return true
-        }
-
-        val psiParent = psiFile.parent
-        if (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == psiFileName && psiParent != null && SdkConstants.FD_GRADLE_CACHE == psiParent.name) {
-          return true
-        }
+        if (SdkConstants.FN_GRADLE_PROPERTIES == name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name) return true
+        if (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name && SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name) return true
       }
 
       return false
