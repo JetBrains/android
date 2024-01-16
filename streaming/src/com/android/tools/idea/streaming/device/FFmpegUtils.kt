@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.streaming.device
 
-#pragma once
+import org.bytedeco.ffmpeg.global.avutil.AV_ERROR_MAX_STRING_SIZE
+import org.bytedeco.ffmpeg.global.avutil.av_make_error_string
 
-namespace screensharing {
-
-constexpr int32_t START_VIDEO_STREAM = 0x01;
-constexpr int32_t TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02;
-constexpr int32_t AUTO_RESET_UI_SETTINGS = 0x04;
-constexpr int32_t STREAM_AUDIO = 0x08;
-
-}  // namespace screensharing
+internal fun describeAvError(error: Int): String {
+  val buf = ByteArray(AV_ERROR_MAX_STRING_SIZE)
+  av_make_error_string(buf, buf.size.toLong(), error)
+  return String(buf)
+}

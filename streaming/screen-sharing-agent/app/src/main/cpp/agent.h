@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "audio_streamer.h"
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
@@ -83,9 +84,11 @@ private:
   static CodecInfo* codec_info_;
   static int32_t flags_;
   static int video_socket_fd_;
+  static int audio_socket_fd_;
   static int control_socket_fd_;
   static std::map<int32_t, DisplayStreamer> display_streamers_;
   static DisplayStreamer* primary_display_streamer_;
+  static AudioStreamer* audio_streamer_;
   static Controller* controller_;
   static std::mutex environment_mutex_;
   static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)

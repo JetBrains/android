@@ -30,6 +30,7 @@ add_library(
         accessors/virtual_display.cc
         accessors/window_manager.cc
         agent.cc
+        audio_streamer.cc
         base128_input_stream.cc
         base128_output_stream.cc
         codec_output_buffer.cc
@@ -55,6 +56,7 @@ add_library(
 
 target_include_directories(screen-sharing-agent PRIVATE .)
 
+find_library(aaudio aaudio)
 find_library(log log)
 find_library(mediandk mediandk)
 
@@ -62,6 +64,7 @@ target_link_libraries(
         screen-sharing-agent
         -landroid
 
+        ${aaudio}
         ${log}
         ${mediandk}
 )

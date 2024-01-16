@@ -47,6 +47,7 @@ import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -103,12 +104,13 @@ internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
 private const val MAX_BIT_RATE_EMULATOR = 2000000
 private const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
+private const val AUDIO_CHANNEL_MARKER = 'A'.code.toByte()
 private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
 internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val AUTO_RESET_UI_SETTINGS = 0x04
-
+internal const val STREAM_AUDIO = 0x08
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -126,6 +128,8 @@ internal class DeviceClient(
 
   val deviceName: String = deviceConfig.deviceName
   @Volatile var videoDecoder: VideoDecoder? = null
+    private set
+  @Volatile var audioDecoder: AudioDecoder? = null
     private set
   @Volatile var deviceController: DeviceController? = null
     private set
@@ -217,6 +221,7 @@ internal class DeviceClient(
         }
         videoDecoder = VideoDecoder(it.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
             .apply { start(startVideoStream) }
+        audioDecoder = it.audioChannel?.let { AudioDecoder(it, clientScope).apply { start() } }
       }
     }
 
@@ -259,30 +264,39 @@ internal class DeviceClient(
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
     return withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
-      val videoChannel: SuspendingSocketChannel
-      val controlChannel: SuspendingSocketChannel
-      val channel1 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
-      val channel2 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
+      var videoChannel: SuspendingSocketChannel? = null
+      var controlChannel: SuspendingSocketChannel? = null
+      var audioChannel: SuspendingSocketChannel? = null
       // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
-      // Read the markers to assign the channels appropriately.
-      val marker1 = async { readChannelMarker(channel1) }
-      val marker2 = async { readChannelMarker(channel2) }
-      val m1 = marker1.await()
-      val m2 = marker2.await()
-      if (m1 == VIDEO_CHANNEL_MARKER && m2 == CONTROL_CHANNEL_MARKER) {
-        videoChannel = channel1
-        controlChannel = channel2
+      // Read the markers after establishing connection to assign the channels appropriately.
+      val numChannels = if (isAudioStreamingSupported()) 3 else 2
+      val deferredChannels = Array(numChannels) { _ -> serverSocketChannel.acceptAndReadMarker() }
+      for (deferred in deferredChannels) {
+        val (channel, marker) = deferred.await()
+        when (marker) {
+          VIDEO_CHANNEL_MARKER -> videoChannel = channel
+          AUDIO_CHANNEL_MARKER -> audioChannel = channel
+          CONTROL_CHANNEL_MARKER -> controlChannel = channel
+          else -> throw RuntimeException("Unexpected channel marker: $marker")
+        }
       }
-      else if (m1 == CONTROL_CHANNEL_MARKER && m2 == VIDEO_CHANNEL_MARKER) {
-        videoChannel = channel2
-        controlChannel = channel1
+      if (videoChannel == null) {
+        throw RuntimeException("Unable to establish the video channel")
       }
-      else {
-        throw RuntimeException("Unexpected channel markers: $m1, $m2")
+      if (audioChannel == null && numChannels == 3) {
+        throw RuntimeException("Unable to establish the audio channel")
+      }
+      if (controlChannel == null) {
+        throw RuntimeException("Unable to establish the control channel")
       }
       controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
-      return@withVerboseTimeout Channels(videoChannel, controlChannel)
+      return@withVerboseTimeout Channels(videoChannel, audioChannel, controlChannel)
     }
+  }
+
+  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker(): Deferred<Pair<SuspendingSocketChannel, Byte>> {
+    val channel = acceptAndEnsureClosing(this@DeviceClient)
+    return coroutineScope { async { Pair(channel, readChannelMarker(channel)) } }
   }
 
   private fun getConnectionTimeout(): Long {
@@ -376,6 +390,7 @@ internal class DeviceClient(
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
+                (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
@@ -433,6 +448,15 @@ internal class DeviceClient(
       }
     }
   }
+
+  private fun isAudioStreamingSupported(): Boolean =
+      StudioFlags.DEVICE_MIRRORING_AUDIO.get() && deviceConfig.featureLevel >= 31
+
+  private fun isAudioStreamingEnabled(): Boolean =
+      isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())
+
+  private fun isRemoteDevice(): Boolean =
+      deviceConfig.deviceProperties.isRemote ?: false
 
   private fun calculateMaxBitRate(): Int {
     if (isEmulator) {
@@ -519,7 +543,11 @@ internal class DeviceClient(
   private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
       accept().also { Disposer.register(parentDisposable, DisposableCloser(it)) }
 
-  private data class Channels(var videoChannel: SuspendingSocketChannel, var controlChannel: SuspendingSocketChannel)
+  private data class Channels(
+    var videoChannel: SuspendingSocketChannel,
+    var audioChannel: SuspendingSocketChannel?,
+    var controlChannel: SuspendingSocketChannel,
+  )
 
   interface AgentTerminationListener {
     fun agentTerminated(exitCode: Int)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.streaming.device
 
-#pragma once
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.SourceDataLine
 
-namespace screensharing {
+/** Service wrapper around the [AudioSystem] class. */
+internal open class AudioSystemService {
 
-constexpr int32_t START_VIDEO_STREAM = 0x01;
-constexpr int32_t TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02;
-constexpr int32_t AUTO_RESET_UI_SETTINGS = 0x04;
-constexpr int32_t STREAM_AUDIO = 0x08;
-
-}  // namespace screensharing
+  /** See [AudioSystem.getSourceDataLine]. */
+  open fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine =
+      AudioSystem.getSourceDataLine(audioFormat)
+}
