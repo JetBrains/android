@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 
 /** This label displays the [SceneView] model label. */
@@ -24,6 +25,7 @@ open class LabelPanel(var layoutData: LayoutData) : JBLabel() {
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = labelDefaultColor
+    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 
   final override fun doLayout() {
