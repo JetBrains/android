@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLab
 import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLabelColorBoxSize
 import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLabelOffset
 import com.android.tools.idea.compose.preview.animation.TooltipInfo
-import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.JBFont
 import java.awt.Graphics2D
 import java.awt.Point
