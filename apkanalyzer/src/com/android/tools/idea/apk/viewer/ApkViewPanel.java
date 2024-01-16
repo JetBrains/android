@@ -170,22 +170,23 @@ public class ApkViewPanel implements TreeSelectionListener {
     ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
     ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
     Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
-                        new FutureCallBackAdapter<List<Long>>() {
+                        new FutureCallBackAdapter<>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            if (myArchiveDisposed){
+                            if (myArchiveDisposed) {
                               return;
                             }
                             if (result != null) {
-                              long uncompressed = result.get(0);
+                              Long uncompressed = result.get(0);
                               Long compressed = result.get(1);
-                              setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
+                              // successfulAsList() returns null items for failed futures.
+                              setApkSizes(uncompressed == null ? 0 : uncompressed, compressed == null ? 0 : compressed);
                             }
                           }
                         }, EdtExecutorService.getInstance());
 
     Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
-                        new FutureCallBackAdapter<List<Object>>() {
+                        new FutureCallBackAdapter<>() {
                           @Override
                           public void onSuccess(@Nullable List<Object> result) {
                             if (result == null) {
@@ -200,13 +201,13 @@ public class ApkViewPanel implements TreeSelectionListener {
                                 .get(2)).packageId : "unknown";
 
                             UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                                             .setRawProjectId(applicationId)
-                                                             .setApkAnalyzerStats(
-                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                                 .setUncompressedSize(uncompressed)
-                                                                 .build()));
+                                               .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                               .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                               .setRawProjectId(applicationId)
+                                               .setApkAnalyzerStats(
+                                                 ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                   .setUncompressedSize(uncompressed)
+                                                   .build()));
                           }
                         }, MoreExecutors.directExecutor());
   }
