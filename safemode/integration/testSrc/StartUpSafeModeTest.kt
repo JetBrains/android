@@ -91,7 +91,6 @@ class StartUpSafeModeTest {
       "Jetpack Compose",
       "Kotlin",
       "Machine Learning Code Completion",
-      "Machine Learning Code Completion Models",
       "Markdown",
       "Maven server api classes",
       "Mercurial",
@@ -108,7 +107,6 @@ class StartUpSafeModeTest {
       "TestNG",
       "TextMate Bundles",
       "Toml",
-      "Turbo Complete",
       "Visual Studio Keymap",
       "WebP Support",
       "YAML"

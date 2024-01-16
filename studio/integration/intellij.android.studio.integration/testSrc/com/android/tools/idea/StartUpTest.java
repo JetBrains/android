@@ -103,7 +103,6 @@ public class StartUpTest {
         "Jetpack Compose",
         "Kotlin",
         "Machine Learning Code Completion",
-        "Machine Learning Code Completion Models",
         "Markdown",
         "Maven server api classes",
         "Mercurial",
@@ -120,7 +119,6 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
-        "Turbo Complete",
         "Visual Studio Keymap",
         "WebP Support",
         "YAML"

@@ -14,7 +14,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-clangFormat-plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-debugger-plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-completionMlRanking" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-completionMlRankingModels" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-configurationScript" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-copyright" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-dev" level="project" />
@@ -46,7 +45,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-testng" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-textmate" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-toml" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-turboComplete" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-github" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-gitlab" level="project" />

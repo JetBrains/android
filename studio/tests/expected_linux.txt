@@ -2493,7 +2493,6 @@ android-studio/plugins/cidr-clangConfig-plugin/lib/cidr-clangConfig-plugin.jar
 android-studio/plugins/cidr-clangFormat-plugin/lib/cidr-clangFormat-plugin.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/declarative-gradle-focus/lib/antlr4-runtime-4.11.1.jar
@@ -3213,7 +3212,6 @@ android-studio/plugins/textmate/lib/bundles/yaml/package.nls.json
 android-studio/plugins/textmate/lib/bundles/yaml/syntaxes/yaml.tmLanguage.json
 android-studio/plugins/textmate/lib/textmate.jar
 android-studio/plugins/toml/lib/toml.jar
-android-studio/plugins/turboComplete/lib/turboComplete.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
 android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
 android-studio/plugins/vcs-git/lib/git4idea-rt.jar
