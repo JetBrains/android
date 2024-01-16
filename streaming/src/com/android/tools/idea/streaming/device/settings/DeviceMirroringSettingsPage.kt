@@ -92,9 +92,9 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     if (StudioFlags.DEVICE_MIRRORING_AUDIO.get()) {
       row {
         streamAudioCheckBox =
-          checkBox(message("mirroring.settings.checkbox.stream.audio"))
-            .comment(message("mirroring.settings.checkbox.stream.audio.comment"))
-            .bindSelected(state::streamAudio)
+          checkBox(message("mirroring.settings.checkbox.redirect.audio"))
+            .comment(message("mirroring.settings.checkbox.redirect.audio.comment"))
+            .bindSelected(state::redirectAudio)
             .component
       }.topGap(TopGap.SMALL)
     }
@@ -136,7 +136,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     return activateOnConnectionCheckBox.isSelected != state.activateOnConnection ||
            activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
            activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
-           streamAudioCheckBox.isSelected != state.streamAudio ||
+           streamAudioCheckBox.isSelected != state.redirectAudio ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
            maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString() ||
            turnOffDisplayWhileMirroringCheckBox.isSelected != state.turnOffDisplayWhileMirroring
@@ -148,7 +148,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     state.activateOnConnection = activateOnConnectionCheckBox.isSelected
     state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
     state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
-    state.streamAudio = streamAudioCheckBox.isSelected
+    state.redirectAudio = streamAudioCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
     state.maxSyncedClipboardLength = maxSyncedClipboardLengthTextField.text.trim().toInt()
     state.turnOffDisplayWhileMirroring = turnOffDisplayWhileMirroringCheckBox.isSelected
@@ -158,7 +158,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     activateOnConnectionCheckBox.isSelected = state.activateOnConnection
     activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
     activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
-    streamAudioCheckBox.isSelected = state.streamAudio
+    streamAudioCheckBox.isSelected = state.redirectAudio
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
     maxSyncedClipboardLengthTextField.text = state.maxSyncedClipboardLength.toString()
     turnOffDisplayWhileMirroringCheckBox.isSelected = state.turnOffDisplayWhileMirroring

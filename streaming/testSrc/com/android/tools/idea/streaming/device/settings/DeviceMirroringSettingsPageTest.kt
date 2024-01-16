@@ -74,7 +74,7 @@ class DeviceMirroringSettingsPageTest {
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching an app on a physical device" }
     val activateOnTestLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching a test on a physical device" }
-    val streamAudioCheckBox = ui.getComponent<JCheckBox> { it.text == "Stream audio" }
+    val redirectAudioCheckBox = ui.getComponent<JCheckBox> { it.text == "Redirect audio from local devices" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Enable clipboard sharing" }
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()
     val turnOffDisplayWhileMirroringCheckBox = ui.getComponent<JCheckBox> { it.text == "Turn off device display while mirroring" }
@@ -83,14 +83,14 @@ class DeviceMirroringSettingsPageTest {
     assertThat(activateOnConnectionCheckBox.isEnabled).isTrue()
     assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
     assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
-    assertThat(streamAudioCheckBox.isEnabled).isTrue()
+    assertThat(redirectAudioCheckBox.isEnabled).isTrue()
     assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isTrue()
     assertThat(turnOffDisplayWhileMirroringCheckBox.isEnabled).isTrue()
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(activateOnAppLaunchCheckBox.isSelected).isFalse()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isFalse()
-    assertThat(streamAudioCheckBox.isSelected).isTrue()
+    assertThat(redirectAudioCheckBox.isSelected).isFalse()
     assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
     assertThat(turnOffDisplayWhileMirroringCheckBox.isSelected).isFalse()
@@ -120,12 +120,12 @@ class DeviceMirroringSettingsPageTest {
     assertThat(settings.activateOnTestLaunch).isTrue()
     assertThat(settingsPage.isModified).isFalse()
 
-    streamAudioCheckBox.isSelected = false
+    redirectAudioCheckBox.isSelected = true
     assertThat(settingsPage.isModified).isTrue()
     settingsPage.apply()
-    assertThat(settings.streamAudio).isFalse()
+    assertThat(settings.redirectAudio).isTrue()
     assertThat(settingsPage.isModified).isFalse()
-    streamAudioCheckBox.isSelected = true
+    redirectAudioCheckBox.isSelected = false
     assertThat(settingsPage.isModified).isTrue()
 
     maxSyncedClipboardLengthTextField.text = " 3000 "
@@ -157,7 +157,7 @@ class DeviceMirroringSettingsPageTest {
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(activateOnAppLaunchCheckBox.isSelected).isFalse()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isFalse()
-    assertThat(streamAudioCheckBox.isSelected).isTrue()
+    assertThat(redirectAudioCheckBox.isSelected).isFalse()
     assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
     assertThat(turnOffDisplayWhileMirroringCheckBox.isSelected).isFalse()
