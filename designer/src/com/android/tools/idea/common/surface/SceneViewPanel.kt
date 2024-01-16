@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
+import com.android.tools.idea.common.surface.organization.paintLines
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
@@ -37,6 +38,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -94,6 +96,8 @@ internal class SceneViewPanel(
     invalidate()
   }
 
+  val groups = mutableMapOf<String, MutableList<JComponent>>()
+
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
@@ -110,12 +114,9 @@ internal class SceneViewPanel(
       if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders()
       else mutableMapOf()
 
+    groups.clear()
+
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-
-      // Add header to layout.
-      val organizationGroup = sceneView.scene.sceneManager.model.organizationGroup
-      headers.remove(organizationGroup)?.let { add(it) }
-
       val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
       val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
       val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
@@ -128,8 +129,7 @@ internal class SceneViewPanel(
         if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
 
       val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
-
-      add(
+      val peerPanel =
         SceneViewPeerPanel(
             sceneView,
             labelPanel,
@@ -141,7 +141,16 @@ internal class SceneViewPanel(
             errorsPanel,
           )
           .also { it.alignmentX = sceneViewAlignment }
-      )
+
+      // Add header to layout and store information about created group.
+      sceneView.scene.sceneManager.model.organizationGroup?.let { organizationGroup ->
+        headers.remove(organizationGroup)?.let {
+          add(it)
+          groups.putIfAbsent(organizationGroup, mutableListOf())
+        }
+        groups[organizationGroup]?.add(peerPanel)
+      }
+      add(peerPanel)
     }
   }
 
@@ -162,6 +171,8 @@ internal class SceneViewPanel(
     if (sceneViewPeerPanels.isEmpty()) {
       return
     }
+
+    groups.values.paintLines(graphics.create() as Graphics2D)
 
     val g2d = graphics.create() as Graphics2D
     try {
