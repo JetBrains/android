@@ -657,13 +657,11 @@ LIBRARY_TABLE
         sourceSet                     : MAIN
     - library                     : <ROOT>::library1@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/library1/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :library1
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::library2@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/library2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :library2
         sourceSet                     : MAIN
         variant                       : debug

@@ -560,7 +560,6 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>/firstapp::app:mysharedlibrary@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>/firstapp
-        lintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :app:mysharedlibrary
         sourceSet                     : MAIN
         variant                       : debug

@@ -30,13 +30,13 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>::library@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
+        lintJar                       : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
         projectPath                   : :library
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
+        lintJar                       : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
         projectPath                   : :library-remote
         sourceSet                     : MAIN
         variant                       : debug

@@ -307,7 +307,6 @@ MODULE                        : TestCompositeLib1.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -989,7 +988,6 @@ MODULE                        : TestCompositeLib1.lib
                 ProjectPath                   : :
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -1635,7 +1633,6 @@ MODULE                        : TestCompositeLib3.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -2278,7 +2275,6 @@ MODULE                        : TestCompositeLib3.lib
                 ProjectPath                   : :
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -2932,7 +2928,6 @@ MODULE                        : project.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -3593,7 +3588,6 @@ MODULE                        : project.lib
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar

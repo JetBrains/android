@@ -342,7 +342,6 @@ MODULE                        : project.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@testFixtures
@@ -1081,7 +1080,6 @@ MODULE                        : project.lib
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@testFixtures

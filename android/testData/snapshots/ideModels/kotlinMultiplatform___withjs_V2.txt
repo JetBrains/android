@@ -578,7 +578,6 @@
             variant                       : debug
         - library                     : <ROOT>::module2@debug (IdeModuleLibraryImpl)
             buildId                       : <ROOT>
-            lintJar                       : <ROOT>/module2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
             projectPath                   : :module2
             sourceSet                     : MAIN
             variant                       : debug

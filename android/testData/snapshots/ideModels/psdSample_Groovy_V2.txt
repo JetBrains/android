@@ -692,37 +692,31 @@ LIBRARY_TABLE
         sourceSet                     : MAIN
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2@basicDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2
         sourceSet                     : MAIN
         variant                       : basicDebug
     - library                     : <ROOT>::nested2:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2:trans:deep2@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:trans:deep2
         sourceSet                     : MAIN
         variant                       : debug

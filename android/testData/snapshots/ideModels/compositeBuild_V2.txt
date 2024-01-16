@@ -552,7 +552,6 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
@@ -563,7 +562,6 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>/TestCompositeLib1
-        lintJar                       : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
@@ -582,7 +580,6 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>/TestCompositeLib3
-        lintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug

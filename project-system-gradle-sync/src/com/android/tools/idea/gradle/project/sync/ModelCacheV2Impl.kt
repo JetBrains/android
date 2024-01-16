@@ -1271,10 +1271,8 @@ internal fun modelCacheV2Impl(
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel)
-    val desugarLibConfig = if (agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false))
-      project.desugarLibConfig
-    else
-      listOf()
+    val desugarLibConfig = project.takeIf { agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false) }?.desugarLibConfig.orEmpty()
+    val lintJar = project.takeIf { agpVersion.isAtLeast(8, 4, 0, "alpha", 6, false) }?.lintJar?.deduplicateFile()
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
@@ -1316,7 +1314,8 @@ internal fun modelCacheV2Impl(
         agpFlags = agpFlags,
         isKaptEnabled = false,
         desugarLibraryConfigFiles = desugarLibConfig,
-        defaultVariantName = defaultVariantName
+        defaultVariantName = defaultVariantName,
+        lintJar = lintJar
       )
     }
   }

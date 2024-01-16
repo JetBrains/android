@@ -1194,7 +1194,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     lintChecksJars = listOf(),
     isKaptEnabled = false,
     desugarLibraryConfigFiles = listOf(),
-    defaultVariantName = defaultVariantName
+    defaultVariantName = defaultVariantName,
+    lintJar = null
   )
 }
 

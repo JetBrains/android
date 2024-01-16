@@ -20,7 +20,6 @@ import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -100,7 +99,7 @@ class IdeModelFactoryV2(
   ) : IdeUnresolvedLibrary {
     val projectInfo = library.projectInfo!!
     val projectPath = projectInfo.projectPath
-    val lintJar = library.lintJar
+    val libraryLintJar = library.lintJar
     val buildId = buildPathMap.buildPathToBuildId(projectInfo)
     // TODO(b/203750717): Model this explicitly in the tooling model.
     val artifact : ArtifactRef =
@@ -111,7 +110,7 @@ class IdeModelFactoryV2(
           androidProjectPathResolver.resolve(buildId, projectInfo.projectPath)
           ?: error("Cannot find an Android module: ${projectInfo.displayName}")
         val variantName = androidModule.resolveVariantName(projectInfo, buildId)
-        AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
+        AndroidArtifactRef(variantName, projectInfo.isTestFixtures, androidModule.androidProject.lintJar)
       } else {
         library.artifact?.let {NonAndroidAndroidArtifactRef(it)} ?: error(
           "Unresolved module dependency ${projectInfo.displayName} in " +
@@ -125,21 +124,21 @@ class IdeModelFactoryV2(
           buildId = buildId.asString,
           projectPath = projectPath,
           variant = artifact.variantName,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = artifact.lintJar ?: libraryLintJar?.path?.let { File(it) },
           sourceSet = if (artifact.isTestFixture) IdeModuleWellKnownSourceSet.TEST_FIXTURES else IdeModuleWellKnownSourceSet.MAIN
         )
       is KmpAndroidArtifactRef ->
         IdeUnresolvedKmpAndroidModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = libraryLintJar?.path?.let { File(it) },
         )
       is NonAndroidAndroidArtifactRef ->
         IdeUnresolvedModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
           variant = null,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = libraryLintJar?.path?.let { File(it) },
           artifact = artifact.artifactFile
         )
     }
@@ -197,7 +196,7 @@ class IdeModelFactoryV2(
 
 private sealed class ArtifactRef
 private object KmpAndroidArtifactRef : ArtifactRef()
-private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean) : ArtifactRef()
+private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean, val lintJar: File?) : ArtifactRef()
 private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : ArtifactRef()
 
 /**

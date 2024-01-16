@@ -514,7 +514,6 @@ LIBRARY_TABLE
         variant                       : basicDebug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug

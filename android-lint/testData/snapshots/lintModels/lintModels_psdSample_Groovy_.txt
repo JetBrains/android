@@ -347,7 +347,6 @@ MODULE                        : project.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -1172,7 +1171,6 @@ MODULE                        : project.lib
                 ProjectPath                   : :jav
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -1593,7 +1591,6 @@ MODULE                        : project.nested1
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:nested1)
                 Identifier                    : :nested1@main
-                LintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :nested1
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
@@ -1686,7 +1683,6 @@ MODULE                        : project.nested1.deep
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:nested1:deep)
                 Identifier                    : :nested1:deep@main
-                LintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :nested1:deep
 MODULE                        : project.nested1.deep.androidTest
 MODULE                        : project.nested1.deep.main
@@ -1801,7 +1797,6 @@ MODULE                        : project.nested2
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:nested2)
                 Identifier                    : :nested2@main
-                LintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :nested2
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
@@ -1892,7 +1887,6 @@ MODULE                        : project.nested2.deep
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:nested2:deep)
                 Identifier                    : :nested2:deep@main
-                LintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :nested2:deep
 MODULE                        : project.nested2.deep.androidTest
 MODULE                        : project.nested2.deep.main
@@ -1987,7 +1981,6 @@ MODULE                        : project.nested2.trans.deep2
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:nested2:trans:deep2)
                 Identifier                    : :nested2:trans:deep2@main
-                LintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :nested2:trans:deep2
 MODULE                        : project.nested2.trans.deep2.androidTest
 MODULE                        : project.nested2.trans.deep2.main

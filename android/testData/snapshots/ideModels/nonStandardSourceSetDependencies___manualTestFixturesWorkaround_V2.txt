@@ -693,13 +693,11 @@ LIBRARY_TABLE
             canBeConsumed                 : true
     - library                     : <ROOT>::feature-a@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-a/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :feature-a
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::feature-b@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :feature-b
         sourceSet                     : MAIN
         variant                       : debug
@@ -714,13 +712,11 @@ LIBRARY_TABLE
             canBeConsumed                 : true
     - library                     : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmp-java/sample-test/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmp-java:sample-test
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug

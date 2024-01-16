@@ -175,6 +175,9 @@ interface IdeAndroidProject : Serializable {
    * The default variant of a module, if set in the AGP DSL.
    */
   val defaultVariantName: String?
+
+  /** Lint jar published from the project, if any. */
+  val lintJar: File?
 }
 
 val IdeAndroidProject.variantNames: Collection<String> get() = basicVariants.map { it.name }

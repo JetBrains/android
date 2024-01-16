@@ -1371,7 +1371,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         agpFlags = agpFlags,
         isKaptEnabled = false,
         desugarLibraryConfigFiles = listOf(),
-        defaultVariantName = null
+        defaultVariantName = null,
+        lintJar = null,
       )
     }
   }

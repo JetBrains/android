@@ -281,7 +281,6 @@ MODULE                        : My_First_App.app
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 Identifier                    : :app:mysharedlibrary@main
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : LocalLibrary(:app)
                 Identifier                    : :app@main
@@ -957,7 +956,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 Identifier                    : :app:mysharedlibrary@main
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar

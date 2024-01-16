@@ -785,7 +785,6 @@ LIBRARY_TABLE
         component                     : org.jetbrains:annotations:13.0
     - library                     : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/ads-sdk-implementation/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :ads-sdk-implementation
         sourceSet                     : MAIN
         variant                       : debug

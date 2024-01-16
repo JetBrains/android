@@ -461,7 +461,8 @@ class KotlinModelConverter {
           testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace
         )
       ),
-      defaultVariantName = kotlinMultiplatformAndroidVariantName
+      defaultVariantName = kotlinMultiplatformAndroidVariantName,
+      lintJar = null
     )
 
     val mainArtifact = IdeAndroidArtifactCoreImpl(

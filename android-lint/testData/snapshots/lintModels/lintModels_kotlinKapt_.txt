@@ -715,7 +715,6 @@ MODULE                        : MainActivity.lib
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
