@@ -35,6 +35,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -88,14 +89,14 @@ import org.jetbrains.kotlin.idea.KotlinFileType
  *  * [EditorNotifications] when a Gradle file is modified
  *
  */
-class AndroidFileChangeListener(private val myProject: Project) : Disposable {
-  private val myRegistry = ResourceFolderRegistry.getInstance(myProject)
-  private val myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject)
-  private val myEditorNotifications = EditorNotifications.getInstance(myProject)
+class AndroidFileChangeListener(private val project: Project) : Disposable {
+  private val registry = ResourceFolderRegistry.getInstance(project)
+  private val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
+  private val editorNotifications = EditorNotifications.getInstance(project)
 
-  private var mySampleDataListener: SampleDataListener? = null
+  private var sampleDataListener: SampleDataListener? = null
 
-  class MyStartupActivity : DumbAware {
+  class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
       val listener = getInstance(project)
       listener.onProjectOpened()
@@ -103,12 +104,12 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
   }
 
   private fun onProjectOpened() {
-    PsiManager.getInstance(myProject).addPsiTreeChangeListener(MyPsiListener(), this)
-    EditorFactory.getInstance().eventMulticaster.addDocumentListener(MyDocumentListener(myProject, myRegistry), this)
+    PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(), this)
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(MyDocumentListener(project, registry), this)
 
-    val connection = myProject.messageBus.connect(this)
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, MyVfsListener(myRegistry))
-    connection.subscribe(FileDocumentManagerListener.TOPIC, MyFileDocumentManagerListener(myRegistry))
+    val connection = project.messageBus.connect(this)
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, MyVfsListener(registry))
+    connection.subscribe(FileDocumentManagerListener.TOPIC, MyFileDocumentManagerListener(registry))
   }
 
   override fun dispose() {}
@@ -126,19 +127,19 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
    * @param sampleDataListener the project's [SampleDataListener]
    */
   fun setSampleDataListener(sampleDataListener: SampleDataListener?) {
-    assert(mySampleDataListener == null) { "SampleDataListener already set!" }
-    mySampleDataListener = sampleDataListener
+    assert(this.sampleDataListener == null) { "SampleDataListener already set!" }
+    this.sampleDataListener = sampleDataListener
   }
 
   private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener?>) {
     if (file != null) {
-      myRegistry.dispatchToRepositories(file, invokeCallback)
+      registry.dispatchToRepositories(file, invokeCallback)
     }
     dispatchToResourceNotificationManager(invokeCallback)
   }
 
   private fun dispatchToResourceNotificationManager(invokeCallback: Consumer<PsiTreeChangeListener?>) {
-    val resourceNotificationPsiListener = myResourceNotificationManager.psiListener
+    val resourceNotificationPsiListener = resourceNotificationManager.psiListener
     if (resourceNotificationPsiListener != null) {
       invokeCallback.consume(resourceNotificationPsiListener)
     }
@@ -149,7 +150,7 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
    * When an event happens on a file within a folder with a corresponding
    * [ResourceFolderRepository], the event is delegated to it.
    */
-  internal class MyVfsListener(private val myRegistry: ResourceFolderRegistry) : BulkFileListener {
+  internal class MyVfsListener(private val registry: ResourceFolderRegistry) : BulkFileListener {
     @UiThread
     override fun before(events: List<VFileEvent>) {
       for (event in events) {
@@ -202,7 +203,7 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
 
       val resDir = if (created.isDirectory) parent else parent.parent
       if (resDir != null) {
-        myRegistry.dispatchToRepositories(resDir) { repository: ResourceFolderRepository?, dir: VirtualFile? ->
+        registry.dispatchToRepositories(resDir) { repository: ResourceFolderRepository?, dir: VirtualFile? ->
           onFileOrDirectoryCreated(
             created,
             repository
@@ -215,11 +216,11 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
       if (parent == null) {
         return childName
       }
-      return ResourceUpdateTracer.pathForLogging(parent.toPathString().resolve(childName), myRegistry.project)
+      return ResourceUpdateTracer.pathForLogging(parent.toPathString().resolve(childName), registry.project)
     }
 
     private fun onFileOrDirectoryRemoved(file: VirtualFile) {
-      myRegistry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, file: VirtualFile? ->
+      registry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, file: VirtualFile? ->
         obj!!.onFileOrDirectoryRemoved(
           file!!
         )
@@ -254,9 +255,9 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
     }
   }
 
-  internal class MyFileDocumentManagerListener(private val myRegistry: ResourceFolderRegistry) : FileDocumentManagerListener {
+  internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) : FileDocumentManagerListener {
     override fun fileWithNoDocumentChanged(file: VirtualFile) {
-      myRegistry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
+      registry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
         obj!!.scheduleScan(
           virtualFile!!
         )
@@ -264,25 +265,25 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
     }
   }
 
-  internal class MyDocumentListener internal constructor(private val myProject: Project, private val myRegistry: ResourceFolderRegistry) :
+  internal class MyDocumentListener internal constructor(private val project: Project, private val registry: ResourceFolderRegistry) :
     DocumentListener {
-    private val myFileDocumentManager = FileDocumentManager.getInstance()
-    private val myPsiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(myProject)
+    private val fileDocumentManager = FileDocumentManager.getInstance()
+    private val psiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(project)
 
     override fun documentChanged(event: DocumentEvent) {
-      if (myProject.isDisposed) {
-        // Note that event may arrive from any project, not only from myProject.
-        // myProject can be temporarily disposed in light tests
+      if (project.isDisposed) {
+        // Note that event may arrive from any project, not only from the project parameter.
+        // The project parameter can be temporarily disposed in light tests.
         return
       }
 
       val document = event.document
-      val psiFile = myPsiDocumentManager.getCachedPsiFile(document)
+      val psiFile = psiDocumentManager.getCachedPsiFile(document)
       if (psiFile == null) {
-        val virtualFile = myFileDocumentManager.getFile(document)
+        val virtualFile = fileDocumentManager.getFile(document)
         if (virtualFile != null && virtualFile !is LightVirtualFile && isRelevantFile(virtualFile)) {
           runInWriteAction {
-            myRegistry.dispatchToRepositories(virtualFile) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
+            registry.dispatchToRepositories(virtualFile) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
               obj!!.scheduleScan(
                 virtualFile!!
               )
@@ -327,8 +328,8 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
         notifyGradleEdit()
       }
 
-      if (mySampleDataListener != null) {
-        mySampleDataListener!!.childAdded(event)
+      if (sampleDataListener != null) {
+        sampleDataListener!!.childAdded(event)
       }
     }
 
@@ -366,8 +367,8 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
         notifyGradleEdit()
       }
 
-      if (mySampleDataListener != null) {
-        mySampleDataListener!!.childRemoved(event)
+      if (sampleDataListener != null) {
+        sampleDataListener!!.childRemoved(event)
       }
     }
 
@@ -392,8 +393,8 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
           notifyGradleEdit()
         }
 
-        if (mySampleDataListener != null) {
-          mySampleDataListener!!.childReplaced(event)
+        if (sampleDataListener != null) {
+          sampleDataListener!!.childReplaced(event)
         }
       } else {
         val parent = event.parent
@@ -408,7 +409,7 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
     }
 
     private fun notifyGradleEdit() {
-      myEditorNotifications.updateAllNotifications()
+      editorNotifications.updateAllNotifications()
     }
 
     override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
@@ -435,8 +436,8 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
           dispatchChildrenChanged(event, file)
         }
 
-        if (mySampleDataListener != null) {
-          mySampleDataListener!!.childrenChanged(event)
+        if (sampleDataListener != null) {
+          sampleDataListener!!.childrenChanged(event)
         }
       }
     }
@@ -474,8 +475,8 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
             dispatchChildMoved(event, file)
           }
 
-          if (mySampleDataListener != null) {
-            mySampleDataListener!!.childMoved(event)
+          if (sampleDataListener != null) {
+            sampleDataListener!!.childMoved(event)
           }
         }
       }
@@ -538,7 +539,7 @@ class AndroidFileChangeListener(private val myProject: Project) : Disposable {
         return
       }
 
-      val facet = AndroidFacet.getInstance(file, myProject)
+      val facet = AndroidFacet.getInstance(file, project)
       if (facet != null) {
         for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
           val moduleFacet = AndroidFacet.getInstance(module)
