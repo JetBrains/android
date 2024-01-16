@@ -30,6 +30,8 @@ internal fun getAdditionalClassifierArtifactsModel(
   cachedLibraries: Collection<String>,
   useMultiVariantAdditionalArtifactSupport: Boolean,
 ) {
+  if (isSourcesDownloadDisabled()) return
+
   actionRunner.runActions(
     inputModules.map { module ->
       ActionToRun(fun(controller: BuildController) {
@@ -61,4 +63,11 @@ internal fun getAdditionalClassifierArtifactsModel(
 
 fun idToString(identifier: ArtifactIdentifier): String {
   return identifier.groupId + ":" + identifier.artifactId + ":" + identifier.version
+}
+
+// IDEA might disable source fetching
+private fun isSourcesDownloadDisabled(): Boolean {
+  val isJetBrains = "JetBrains" == System.getProperty("idea.vendor.name")
+  val isDownloadSources = System.getProperty("idea.gradle.download.sources", "true").toBoolean()
+  return isJetBrains && !isDownloadSources
 }
