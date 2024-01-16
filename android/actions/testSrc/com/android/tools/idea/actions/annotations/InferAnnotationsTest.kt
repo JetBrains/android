@@ -1512,11 +1512,12 @@ class InferAnnotationsTest {
         package test.pkg
         import androidx.annotation.*
         import androidx.annotation.Dimension.DP
+        import androidx.annotation.Dimension.SP
         fun test11(p1: Int, p2: Int, p3: Int) {
             paint(p1, p2, p3)
         }
         // @Dimension without unit defaults to PX, equivalent to @Px
-        fun paint(@Dimension d: Int, @Dimension(unit = Dimension.SP) s: Int, @Dimension(unit = DP) d2: Int) { }
+        fun paint(@Dimension d: Int, @Dimension(unit = SP) s: Int, @Dimension(unit = DP) d2: Int) { }
       """,
       expectedReport =
         """
@@ -1530,10 +1531,10 @@ class InferAnnotationsTest {
         """,
       expectedDiffs =
         """
-        @@ -4 +4
-          import androidx.annotation.Dimension.DP
+        @@ -5 +5
+          import androidx.annotation.Dimension.SP
         - fun test11(p1: Int, p2: Int, p3: Int) {
-        + fun test11(@Px p1: Int, @Dimension(Dimension.SP) p2: Int, @Dimension(DP) p3: Int) {
+        + fun test11(@Px p1: Int, @Dimension(SP) p2: Int, @Dimension(DP) p3: Int) {
               paint(p1, p2, p3)
         """
     )
