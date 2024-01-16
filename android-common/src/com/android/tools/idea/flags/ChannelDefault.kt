@@ -22,7 +22,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Utility API allowing specification of a different default flag value depending on the release channel of Android Studio.
  *
- * Example usage: `ChannelDefault.of(100).withBetaOverride(200)`.
+ * Example usage: `ChannelDefault.of(100).withOverride(200, BETA)`.
  */
 class ChannelDefault<T>
 private constructor(default: T, private val versionProvider: (() -> String)? = null) : Supplier<T> {
