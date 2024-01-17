@@ -89,12 +89,6 @@ import org.jetbrains.plugins.gradle.config.GradleFileType
  */
 @Service(Service.Level.PROJECT)
 class AndroidFileChangeListener(private val project: Project) : Disposable {
-  private val registry = ResourceFolderRegistry.getInstance(project)
-  private val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
-  private val editorNotifications = EditorNotifications.getInstance(project)
-
-  private val sampleDataListener
-    get() = SampleDataListener.getInstanceIfCreated(project)
 
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
@@ -103,30 +97,26 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   }
 
   private fun onProjectOpened() {
-    PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(), this)
+    PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(project), this)
     EditorFactory.getInstance()
       .eventMulticaster
-      .addDocumentListener(MyDocumentListener(project, registry), this)
+      .addDocumentListener(
+        MyDocumentListener(project, ResourceFolderRegistry.getInstance(project)),
+        this,
+      )
 
     val connection = project.messageBus.connect(this)
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, MyVfsListener(registry))
-    connection.subscribe(FileDocumentManagerListener.TOPIC, MyFileDocumentManagerListener(registry))
+    connection.subscribe(
+      VirtualFileManager.VFS_CHANGES,
+      MyVfsListener(ResourceFolderRegistry.getInstance(project)),
+    )
+    connection.subscribe(
+      FileDocumentManagerListener.TOPIC,
+      MyFileDocumentManagerListener(ResourceFolderRegistry.getInstance(project)),
+    )
   }
 
   override fun dispose() {}
-
-  private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {
-    if (file != null) {
-      registry.dispatchToRepositories(file, invokeCallback)
-    }
-    dispatchToResourceNotificationManager(invokeCallback)
-  }
-
-  private fun dispatchToResourceNotificationManager(
-    invokeCallback: Consumer<PsiTreeChangeListener>
-  ) {
-    resourceNotificationManager.psiListener?.let(invokeCallback::consume)
-  }
 
   /**
    * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
@@ -251,7 +241,10 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
   }
 
-  private inner class MyPsiListener : PsiTreeChangeListener {
+  private class MyPsiListener(private val project: Project) : PsiTreeChangeListener {
+    private val sampleDataListener
+      get() = SampleDataListener.getInstanceIfCreated(project)
+
     override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
 
     override fun childAdded(event: PsiTreeChangeEvent) {
@@ -332,7 +325,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
 
     private fun notifyGradleEdit() {
-      editorNotifications.updateAllNotifications()
+      EditorNotifications.getInstance(project).updateAllNotifications()
     }
 
     override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
@@ -432,6 +425,12 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
             .invalidateAttributeDefinitions()
         }
       }
+    }
+
+    private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {
+      if (file != null)
+        ResourceFolderRegistry.getInstance(project).dispatchToRepositories(file, invokeCallback)
+      ResourceNotificationManager.getInstance(project).psiListener?.let(invokeCallback::consume)
     }
   }
 

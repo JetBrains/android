@@ -29,6 +29,7 @@ import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.Project
@@ -208,9 +209,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   companion object {
 
     @JvmStatic
-    fun getInstance(project: Project): ResourceFolderRegistry {
-      return project.getService(ResourceFolderRegistry::class.java)
-    }
+    fun getInstance(project: Project): ResourceFolderRegistry = project.service()
   }
 
   /** Populate the registry's in-memory ResourceFolderRepository caches (if not already cached). */
