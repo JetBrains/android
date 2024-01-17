@@ -40,10 +40,7 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
         },
-        "other": {
-            # b/182573662, b/217469630
-            "tags": ["very_flaky"],
-        },
+        "other": {},
     },
     test_class = "com.android.tools.idea.DatabaseInspectorTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
