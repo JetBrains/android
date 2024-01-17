@@ -165,7 +165,10 @@ class TemplateDiffTest(private val testMode: TestMode) {
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
       projectRenderer.renderProject(project, *customizers)
-      printUnzipInstructions()
+
+      if (testMode == TestMode.GENERATING) {
+        printUnzipInstructions()
+      }
     }
     println("Checked $name ($goldenDirName) successfully in ${msToCheck}ms\n")
     validationFailed = false
