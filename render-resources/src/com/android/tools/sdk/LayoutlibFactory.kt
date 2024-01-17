@@ -23,5 +23,5 @@ import com.android.tools.layoutlib.LayoutlibContext
 
 @Throws(RenderingException::class)
 fun getLayoutLibrary(target: IAndroidTarget, platform: AndroidPlatform, context: LayoutlibContext): LayoutLibrary {
-  return AndroidTargetData.get(platform.sdkData, target).getLayoutLibrary { context.hasLayoutlibCrash() }.also { context.register(it) }
+  return AndroidTargetData.get(platform.sdkData, target).getLayoutLibrary(context::register) { context.hasLayoutlibCrash() }
 }

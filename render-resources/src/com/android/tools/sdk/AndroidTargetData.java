@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
@@ -113,13 +114,15 @@ public class AndroidTargetData {
 
   @Slow
   @NotNull
-  LayoutLibrary getLayoutLibrary(@NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
+  LayoutLibrary getLayoutLibrary(
+    @NotNull Consumer<LayoutLibrary> register,
+    @NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(hasLayoutlibCrash);
+          myLayoutLibrary = targetData.getLayoutLibrary(register, hasLayoutlibCrash);
           return myLayoutLibrary;
         }
       }
@@ -128,6 +131,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
+      register.accept(myLayoutLibrary);
     }
 
     return myLayoutLibrary;
