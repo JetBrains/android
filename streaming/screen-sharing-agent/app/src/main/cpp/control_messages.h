@@ -295,6 +295,42 @@ private:
   DISALLOW_COPY_AND_ASSIGN(StopVideoStreamMessage);
 };
 
+// Starts audio stream if it was stopped, otherwise has no effect.
+class StartAudioStreamMessage : ControlMessage {
+public:
+  StartAudioStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StartAudioStreamMessage() {};
+
+  static constexpr int TYPE = 8;
+
+private:
+  friend class ControlMessage;
+
+  static StartAudioStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StartAudioStreamMessage);
+};
+
+// Stops audio stream if it was started, otherwise has no effect.
+class StopAudioStreamMessage : ControlMessage {
+public:
+  StopAudioStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StopAudioStreamMessage() {};
+
+  static constexpr int TYPE = 9;
+
+private:
+  friend class ControlMessage;
+
+  static StopAudioStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StopAudioStreamMessage);
+};
+
 // Sets contents of the clipboard and requests notifications of clipboard changes.
 class StartClipboardSyncMessage : ControlMessage {
 public:
@@ -308,7 +344,7 @@ public:
   const std::string& text() const { return text_; }
   int max_synced_length() const { return max_synced_length_; }
 
-  static constexpr int TYPE = 8;
+  static constexpr int TYPE = 10;
 
 private:
   friend class ControlMessage;
@@ -329,7 +365,7 @@ public:
   }
   virtual ~StopClipboardSyncMessage() {};
 
-  static constexpr int TYPE = 9;
+  static constexpr int TYPE = 11;
 
 private:
   friend class ControlMessage;
@@ -354,7 +390,7 @@ public:
 
   static constexpr int PHYSICAL_STATE = -1;
 
-  static constexpr int TYPE = 10;
+  static constexpr int TYPE = 12;
 
 private:
   friend class ControlMessage;
@@ -374,7 +410,7 @@ public:
   }
   virtual ~DisplayConfigurationRequest() {};
 
-  static constexpr int TYPE = 11;
+  static constexpr int TYPE = 13;
 
 private:
   friend class ControlMessage;
@@ -403,7 +439,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 12;
+  static constexpr int TYPE = 14;
 
 private:
   friend class ControlMessage;
@@ -426,7 +462,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 13;
+  static constexpr int TYPE = 15;
 
 private:
   friend class ControlMessage;
@@ -453,7 +489,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 14;
+  static constexpr int TYPE = 16;
 
 private:
   friend class ControlMessage;
@@ -480,7 +516,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 15;
+  static constexpr int TYPE = 17;
 
 private:
   friend class ControlMessage;
@@ -504,7 +540,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 16;
+  static constexpr int TYPE = 18;
 
 private:
   friend class ControlMessage;
@@ -527,7 +563,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 17;
+  static constexpr int TYPE = 19;
 
 private:
   friend class ControlMessage;
@@ -550,7 +586,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 18;
+  static constexpr int TYPE = 20;
 
 private:
   friend class ControlMessage;
@@ -570,7 +606,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 19;
+  static constexpr int TYPE = 21;
 
 private:
   friend class ControlMessage;
@@ -665,7 +701,7 @@ public:
     return density_;
   }
 
-  static constexpr int TYPE = 20;
+  static constexpr int TYPE = 22;
 
 private:
   friend class ControlMessage;
@@ -697,7 +733,7 @@ public:
     return dark_mode_;
   }
 
-  static constexpr int TYPE = 21;
+  static constexpr int TYPE = 23;
 
 private:
   friend class ControlMessage;
@@ -726,7 +762,7 @@ public:
     return font_size_;
   }
 
-  static constexpr int TYPE = 22;
+  static constexpr int TYPE = 24;
 
 private:
   friend class ControlMessage;
@@ -753,7 +789,7 @@ public:
     return density_;
   }
 
-  static constexpr int TYPE = 23;
+  static constexpr int TYPE = 25;
 
 private:
   friend class ControlMessage;
@@ -780,7 +816,7 @@ public:
     return talkback_on_;
   }
 
-  static constexpr int TYPE = 24;
+  static constexpr int TYPE = 26;
 
 private:
   friend class ControlMessage;
@@ -807,7 +843,7 @@ public:
     return select_to_speak_on_;
   }
 
-  static constexpr int TYPE = 25;
+  static constexpr int TYPE = 27;
 
 private:
   friend class ControlMessage;
@@ -839,7 +875,7 @@ public:
     return locale_;
   }
 
-  static constexpr int TYPE = 26;
+  static constexpr int TYPE = 28;
 
 private:
   friend class ControlMessage;

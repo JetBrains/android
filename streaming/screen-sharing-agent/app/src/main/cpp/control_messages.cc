@@ -50,6 +50,12 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case StopVideoStreamMessage::TYPE:
       return unique_ptr<ControlMessage>(StopVideoStreamMessage::Deserialize(stream));
 
+    case StartAudioStreamMessage::TYPE:
+      return unique_ptr<ControlMessage>(StartAudioStreamMessage::Deserialize(stream));
+
+    case StopAudioStreamMessage::TYPE:
+      return unique_ptr<ControlMessage>(StopAudioStreamMessage::Deserialize(stream));
+
     case StartClipboardSyncMessage::TYPE:
       return unique_ptr<ControlMessage>(StartClipboardSyncMessage::Deserialize(stream));
 
@@ -160,6 +166,14 @@ StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream
 StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
   int32_t display_id = stream.ReadInt32();
   return new StopVideoStreamMessage(display_id);
+}
+
+StartAudioStreamMessage* StartAudioStreamMessage::Deserialize(Base128InputStream& stream) {
+  return new StartAudioStreamMessage();
+}
+
+StopAudioStreamMessage* StopAudioStreamMessage::Deserialize(Base128InputStream& stream) {
+  return new StopAudioStreamMessage();
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {

@@ -233,7 +233,7 @@ void Controller::Run() {
 
 void Controller::ProcessMessage(const ControlMessage& message) {
   if (message.type() != MotionEventMessage::TYPE) { // Exclude
-    Log::W("Controller::ProcessMessage %d", message.type());
+    Log::I("Controller::ProcessMessage %d", message.type());
   }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
@@ -262,6 +262,14 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case StopVideoStreamMessage::TYPE:
       StopVideoStream((const StopVideoStreamMessage&) message);
+      break;
+
+    case StartAudioStreamMessage::TYPE:
+      StartAudioStream((const StartAudioStreamMessage&) message);
+      break;
+
+    case StopAudioStreamMessage::TYPE:
+      StopAudioStream((const StopAudioStreamMessage&) message);
       break;
 
     case StartClipboardSyncMessage::TYPE:
@@ -466,15 +474,23 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
   }
 }
 
-void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
-  Agent::StopVideoStream(message.display_id());
-}
-
 void Controller::StartVideoStream(const StartVideoStreamMessage& message) {
   if (CheckVideoSize(message.max_video_size())) {
     Agent::StartVideoStream(message.display_id(), message.max_video_size());
     WakeUpDevice();
   }
+}
+
+void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
+  Agent::StopVideoStream(message.display_id());
+}
+
+void Controller::StartAudioStream(const StartAudioStreamMessage& message) {
+  Agent::StartAudioStream();
+}
+
+void Controller::StopAudioStream(const StopAudioStreamMessage& message) {
+  Agent::StopAudioStream();
 }
 
 void Controller::WakeUpDevice() {

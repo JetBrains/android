@@ -152,6 +152,8 @@ class FakeScreenSharingAgent(
   private val audioEncoder: AVCodec by lazy {
     avcodec_find_encoder(AV_CODEC_ID_OPUS) ?: throw RuntimeException("$codecName encoder not found")
   }
+  private val isAudioStreamingSupported: Boolean
+    get() = featureLevel >= 31 && (agentFlags and AUDIO_STREAMING_SUPPORTED) != 0
 
   private val clipboardInternal = AtomicReference("")
   private val clipboardSynchronizationActive = AtomicBoolean()
@@ -181,6 +183,8 @@ class FakeScreenSharingAgent(
     private set
   val videoStreamActive: Boolean
       get() = displayStreamers.isNotEmpty()
+  val audioStreamActive: Boolean
+    get() = audioStreamer != null
   @Volatile
   var crashOnStart: Boolean = false
   @Volatile
@@ -234,7 +238,7 @@ class FakeScreenSharingAgent(
 
     parseArgs(command)
     val videoChannel = SuspendingSocketChannel.open().also { this.videoChannel = it }
-    val audioChannel = if (isAudioStreamingEnabled) SuspendingSocketChannel.open().also { this.audioChannel = it } else null
+    val audioChannel = if (isAudioStreamingSupported) SuspendingSocketChannel.open().also { this.audioChannel = it } else null
     val controlChannel = SuspendingSocketChannel.open()
 
     ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
@@ -257,7 +261,7 @@ class FakeScreenSharingAgent(
       displayStreamers.put(displayStreamer.displayId, displayStreamer)
       displayStreamer.renderDisplay()
     }
-    if (audioChannel != null) {
+    if (audioChannel != null && (agentFlags and STREAM_AUDIO) != 0) {
       audioStreamer = AudioStreamer(audioChannel)
     }
     val controller = Controller(controlChannel)
@@ -278,9 +282,6 @@ class FakeScreenSharingAgent(
       }
     }
   }
-
-  private val isAudioStreamingEnabled
-    get() = (agentFlags and STREAM_AUDIO) != 0 && featureLevel >= 31
 
   private suspend fun sendVideoChannelHeader(videoChannel: SuspendingSocketChannel) {
     // Send the channel header with the name of the codec.
@@ -558,6 +559,16 @@ class FakeScreenSharingAgent(
 
   private fun stopVideoStream(message: StopVideoStreamMessage) {
     displayStreamers.remove(message.displayId)
+  }
+
+  private fun startAudioStream() {
+    audioChannel?.let { channel ->
+      audioStreamer = AudioStreamer(channel)
+    }
+  }
+
+  private fun stopAudioStream() {
+    audioStreamer = null
   }
 
   private fun startClipboardSync(message: StartClipboardSyncMessage) {
@@ -1050,6 +1061,8 @@ class FakeScreenSharingAgent(
         is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
         is StartVideoStreamMessage -> startVideoStream(message)
         is StopVideoStreamMessage -> stopVideoStream(message)
+        is StartAudioStreamMessage -> startAudioStream()
+        is StopAudioStreamMessage -> stopAudioStream()
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)

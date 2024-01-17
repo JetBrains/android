@@ -95,7 +95,7 @@ void WriteVideoChannelHeader(const string& codec_name, int socket_fd) {
   string buf;
   int buf_size = 1 + CHANNEL_HEADER_LENGTH;
   buf.reserve(buf_size);  // Single-byte channel marker followed by header.
-  buf.append("V");  // Video channel marker.
+  buf.push_back('V');  // Video channel marker.
   buf.append(codec_name);
   // Pad with spaces to the fixed length.
   while (buf.length() < buf_size) {
@@ -197,8 +197,10 @@ void Agent::Run(const vector<string>& args) {
 
   assert(display_streamers_.empty());
   video_socket_fd_ = CreateAndConnectSocket(socket_name_);
-  if (feature_level_ >= 31 && (flags_ & STREAM_AUDIO) != 0) {
+  if (feature_level_ >= 31 && (flags_ & AUDIO_STREAMING_SUPPORTED) != 0) {
     audio_socket_fd_ = CreateAndConnectSocket(socket_name_);
+    char channel_marker = 'A';
+    write(audio_socket_fd_, &channel_marker, sizeof(channel_marker));  // Audio channel marker.
   }
   control_socket_fd_ = CreateAndConnectSocket(socket_name_);
   Log::D("Agent::Run: video_socket_fd_=%d audio_socket_fd_=%d control_socket_fd_=%d", video_socket_fd_, audio_socket_fd_, control_socket_fd_);
@@ -213,7 +215,7 @@ void Agent::Run(const vector<string>& args) {
       PRIMARY_DISPLAY_ID, codec_info_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, video_socket_fd_);
   primary_display_streamer_ = &ret.first->second;
 
-  if (audio_socket_fd_ >= 0) {
+  if (audio_socket_fd_ >= 0 && (flags_ & STREAM_AUDIO) != 0) {
     audio_streamer_ = new AudioStreamer(audio_socket_fd_);
     audio_streamer_->Start();
   }
@@ -271,6 +273,21 @@ void Agent::SetMaxVideoResolution(int32_t display_id, Size max_video_resolution)
   if (it != display_streamers_.end()) {
     DisplayStreamer& display_streamer = it->second;
     display_streamer.SetMaxVideoResolution(max_video_resolution);
+  }
+}
+
+void Agent::StartAudioStream() {
+  if (audio_socket_fd_ >= 0 && audio_streamer_ == nullptr) {
+    audio_streamer_ = new AudioStreamer(audio_socket_fd_);
+    audio_streamer_->Start();
+  }
+}
+
+void Agent::StopAudioStream() {
+  if (audio_streamer_ != nullptr) {
+    audio_streamer_->Stop();
+    delete audio_streamer_;
+    audio_streamer_ = nullptr;
   }
 }
 

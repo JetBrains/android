@@ -132,8 +132,6 @@ struct CodecInputBuffer {
 AudioStreamer::AudioStreamer(int socket_fd)
     : socket_fd_(socket_fd) {
   assert(socket_fd > 0);
-  char channel_marker = 'A';
-  write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Audio channel marker.
 }
 
 AudioStreamer::~AudioStreamer() {
@@ -168,7 +166,6 @@ void AudioStreamer::Run() {
   }
 
   bool continue_streaming = true;
-  Log::D("AudioStreamer::Run: streamer_stopped_=%s", streamer_stopped_ ? "true" : "false");
   while (continue_streaming && !streamer_stopped_) {
     CodecOutputBuffer codec_buffer(codec_, "Audio: ");
     if (!codec_buffer.Deque(-1)) {
@@ -179,8 +176,6 @@ void AudioStreamer::Run() {
     AudioPacketHeader packet_header(codec_buffer.IsConfig(), codec_buffer.size());
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Audio: writing %s", packet_header.ToDebugString().c_str());
-    } else if (duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime() < 500) {
-      Log::D("Audio: writing %s %s", packet_header.ToDebugString().c_str(), HexString(codec_buffer.buffer(), codec_buffer.size()).c_str());
     }
     iovec buffers[] = { { &packet_header, AudioPacketHeader::SIZE }, { codec_buffer.buffer(), static_cast<size_t>(codec_buffer.size()) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
@@ -227,10 +222,6 @@ aaudio_data_callback_result_t AudioStreamer::ConsumeAudioData(AAudioStream* stre
   last_presentation_timestamp_us_ = presentation_time_us;
   num_frames_in_last_sample_ = num_frames;
 
-//  if (duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime() < 500) {
-//    Log::D("AudioStreamer::ConsumeAudioData: num_frames=%d timestamp_ns=%" PRIi64 " presentation_time_us=%" PRIi64, num_frames, timestamp_ns, presentation_time_us);
-//  }
-
   size_t data_size = num_frames * BYTES_PER_FRAME;
   while (data_size > 0) {
     unique_lock lock(mutex_);
@@ -244,9 +235,6 @@ aaudio_data_callback_result_t AudioStreamer::ConsumeAudioData(AAudioStream* stre
     if (streamer_stopped_) {
       return AAUDIO_CALLBACK_RESULT_STOP;
     }
-//    if (duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime() < 500) {
-//      Log::D("AudioStreamer::ConsumeAudioData: codec_input.size=%zu, presentation_time_us=%" PRIi64, codec_input.size, presentation_time_us);
-//    }
     auto size = min(data_size, codec_input.size);
     memcpy(codec_input.buffer, audio_data, size);
     audio_data += size;

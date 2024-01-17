@@ -94,6 +94,8 @@ private:
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   static void StartVideoStream(const StartVideoStreamMessage& message);
   static void StopVideoStream(const StopVideoStreamMessage& message);
+  static void StartAudioStream(const StartAudioStreamMessage& message);
+  static void StopAudioStream(const StopAudioStreamMessage& message);
   static void WakeUpDevice();
 
   void StartClipboardSync(const StartClipboardSyncMessage& message);

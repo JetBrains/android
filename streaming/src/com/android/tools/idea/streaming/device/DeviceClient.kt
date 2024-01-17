@@ -30,6 +30,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -111,6 +112,7 @@ internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val AUTO_RESET_UI_SETTINGS = 0x04
 internal const val STREAM_AUDIO = 0x08
+internal const val AUDIO_STREAMING_SUPPORTED = 0x10
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -212,16 +214,21 @@ internal class DeviceClient(
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
-      channels?.let {
+      channels?.let { channels ->
         try {
-          deviceController = DeviceController(this, it.controlChannel)
+          deviceController = DeviceController(this, channels.controlChannel)
         }
         catch (e: IncorrectOperationException) {
           return // Already disposed.
         }
-        videoDecoder = VideoDecoder(it.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+        videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
             .apply { start(startVideoStream) }
-        audioDecoder = it.audioChannel?.let { AudioDecoder(it, clientScope).apply { start() } }
+        audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
+
+        if (isAudioStreamingSupported() && !isRemoteDevice()) {
+          val messageBusConnection = project.messageBus.connect(this)
+          messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
+        }
       }
     }
 
@@ -392,6 +399,7 @@ internal class DeviceClient(
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
+                (if (isAudioStreamingSupported()) AUDIO_STREAMING_SUPPORTED else 0) or
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0)
@@ -447,6 +455,19 @@ internal class DeviceClient(
       catch (e: Throwable) {
         adbSession.throwIfCancellationOrDeviceDisconnected(e)
         throw RuntimeException("Command \"$command\" failed", e)
+      }
+    }
+  }
+
+  private fun updateAudioStreaming() {
+    if (DeviceMirroringSettings.getInstance().redirectAudio) {
+      if (audioDecoder?.unmute() == true) {
+        deviceController?.sendControlMessage(StartAudioStreamMessage())
+      }
+    }
+    else {
+      if (audioDecoder?.mute() == true) {
+        deviceController?.sendControlMessage(StopAudioStreamMessage())
       }
     }
   }
@@ -507,6 +528,8 @@ internal class DeviceClient(
     deviceController = null
     videoDecoder?.closeChannel()
     videoDecoder = null
+    audioDecoder?.closeChannel()
+    audioDecoder = null
     connectionState.set(null)
   }
 
@@ -527,7 +550,6 @@ internal class DeviceClient(
       isDeviceConnected() == false -> throw CancellationException()
     }
   }
-
 
   /** Checks if the device is connected. Returns null if it cannot be determined. */
   private suspend fun AdbSession.isDeviceConnected(): Boolean? {

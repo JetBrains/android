@@ -426,6 +426,34 @@ class DeviceToolWindowPanelTest {
     }
   }
 
+  @Test
+  fun testAudioEnablementDisablement() {
+    StudioFlags.DEVICE_MIRRORING_AUDIO.override(true, testRootDisposable)
+    val testDataLine = TestDataLine()
+    val testAudioSystemService = object : AudioSystemService() {
+      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+    }
+    ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
+
+    device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(false)
+    assertThat(panel.primaryDisplayView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
+    assertThat(agent.getNextControlMessage(1, SECONDS)).isEqualTo(StartAudioStreamMessage())
+    waitForCondition(1, SECONDS) { agent.audioStreamActive }
+
+    DeviceMirroringSettings.getInstance().redirectAudio = false
+    assertThat(agent.getNextControlMessage(1, SECONDS)).isEqualTo(StopAudioStreamMessage())
+    waitForCondition(1, SECONDS) { !agent.audioStreamActive }
+  }
+
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
     mouse.press(location.x, location.y)

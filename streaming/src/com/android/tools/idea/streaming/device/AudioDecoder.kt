@@ -78,23 +78,26 @@ internal class AudioDecoder(
   @Volatile private var endOfAudioStream = false
 
   /**
-   * Disables audio playback if it is active. Returns true if audio playback was not disabled already.
+   * Deactivated audio playback if it is active. Returns true if audio playback was not already active.
    */
   fun mute(): Boolean =
     decodingContext.getAndSet(null)?.closeAsynchronously() != null
 
   /**
-   * Enables audio playback unless it is already active. Returns true if audio playback was not already inactive.
+   * Activates audio playback unless it is already active. Returns true if audio playback was not already inactive.
    */
   fun unmute(): Boolean =
       decodingContext.getAndUpdate { context -> context ?: DecodingContext() } == null
 
   /**
    * Starts reading the audio channel and returns. The decoder will continue to run until the audio channel
-   * is disconnected or [decoderScope] is cancelled.
+   * is disconnected or [decoderScope] is cancelled. The value of the [playAudio] parameter determines whether
+   * audio playback will be enabled or not.
    */
-  fun start() {
-    decodingContext.set(DecodingContext())
+  fun start(playAudio: Boolean) {
+    if (playAudio) {
+      decodingContext.set(DecodingContext())
+    }
 
     decoderScope.launch {
       val packetReader = PacketReader()

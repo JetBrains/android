@@ -38,6 +38,8 @@ public:
 
   static void StartVideoStream(int32_t display_id, Size max_video_resolution);
   static void StopVideoStream(int32_t display_id);
+  static void StartAudioStream();
+  static void StopAudioStream();
 
   static void Shutdown();
 
