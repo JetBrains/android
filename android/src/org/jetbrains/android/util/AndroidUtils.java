@@ -160,7 +160,8 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Override
   public boolean isAndroidProject(@NotNull Project project) {
-    return hasAndroidFacets(project);
+    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
+    return facetManager.hasFacets(AndroidFacet.ID);
   }
 
   // TODO(b/291955340): Should have @RequiresBackgroundThread
@@ -645,9 +646,12 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   /**
-   * Checks if the project contains a module with an Android facet.
+   * Do not use. Use {@code CommonAndroidutil.getInstance().isAndroidProject()} to test whether
+   * a project is an Android project.
    */
+  @Deprecated(forRemoval = true)
   public static boolean hasAndroidFacets(@NotNull Project project) {
+    LOG.error("hasAndroidFacets is to be removed. Use CommonAndroidutil.getInstance().isAndroidProject().");
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
     return facetManager.hasFacets(AndroidFacet.ID);
   }

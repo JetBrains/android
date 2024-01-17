@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.Executor
 import com.intellij.execution.Executor.ActionWrapper
 import com.intellij.execution.ExecutorRegistry
@@ -25,7 +26,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
 
 class ProfileRunExecutor : DefaultRunExecutor() {
@@ -45,7 +45,7 @@ class ProfileRunExecutor : DefaultRunExecutor() {
 
   override fun getHelpId(): String? = null
 
-  override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
+  override fun isApplicable(project: Project): Boolean = CommonAndroidUtil.getInstance().isAndroidProject(project)
 
   /**
    * Wraps the original action so that it's only visible when the feature flag is true or if the project's system doesn't support profiling

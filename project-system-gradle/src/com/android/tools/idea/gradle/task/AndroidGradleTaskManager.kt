@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.task
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.util.Key
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
 import org.jetbrains.plugins.gradle.settings.DistributionType
@@ -79,6 +79,7 @@ val ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE =
   Key.create<Boolean>("ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE")
 
 private fun findGradleInvoker(id: ExternalSystemTaskId): GradleBuildInvoker? {
-  val project = id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(it) } ?: return null
+  val project = id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio || CommonAndroidUtil.getInstance().isAndroidProject(it) }
+    ?: return null
   return GradleBuildInvoker.getInstance(project)
 }

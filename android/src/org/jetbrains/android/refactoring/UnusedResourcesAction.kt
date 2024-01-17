@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -22,7 +23,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Deletes unused resources, if any.
@@ -37,7 +37,7 @@ import org.jetbrains.android.util.AndroidUtils
 class UnusedResourcesAction : BaseRefactoringAction() {
   override fun update(e: AnActionEvent) {
     val project = e.getData(CommonDataKeys.PROJECT)
-    e.presentation.setEnabledAndVisible(project != null && AndroidUtils.hasAndroidFacets(project))
+    e.presentation.setEnabledAndVisible(project != null && CommonAndroidUtil.getInstance().isAndroidProject(project))
   }
 
   override fun isEnabledOnDataContext(dataContext: DataContext) = true

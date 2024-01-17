@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -138,9 +139,11 @@ class AndroidModularizeActionTest {
     @Test
     fun `isAvailableForFile only for Java Android`() {
       val action = TestableAndroidModularizeAction()
-      mockStatic<AndroidUtils>().use {
+      mockStatic<CommonAndroidUtil>().use {
         case.fileInfo?.let { fileInfo ->
-          whenever(AndroidUtils.hasAndroidFacets(case.project)).thenReturn(fileInfo.hasAndroidFacets)
+          val commonAndroidUtil = mock<CommonAndroidUtil>()
+          whenever(CommonAndroidUtil.getInstance()).thenReturn(commonAndroidUtil)
+          whenever(commonAndroidUtil.isAndroidProject(case.project)).thenReturn(fileInfo.hasAndroidFacets)
         }
         assertThat(action.isAvailableForFile(case.file)).isEqualTo(case.expected)
       }

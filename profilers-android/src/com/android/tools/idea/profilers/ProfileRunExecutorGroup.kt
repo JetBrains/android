@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
@@ -29,7 +30,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
 
 /**
@@ -103,7 +103,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getHelpId(): String? = null
 
-  override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
+  override fun isApplicable(project: Project): Boolean = CommonAndroidUtil.getInstance().isAndroidProject(project)
 
   override fun getRunToolbarActionText(param: String): String = "Profile"
 

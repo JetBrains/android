@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.legacyselector;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.execution.common.DeployableToDevice;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -27,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,7 +128,7 @@ final class Updater {
   }
 
   void update() {
-    if (!AndroidUtils.hasAndroidFacets(myProject)) {
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(myProject)) {
       myPresentation.setVisible(false);
       return;
     }

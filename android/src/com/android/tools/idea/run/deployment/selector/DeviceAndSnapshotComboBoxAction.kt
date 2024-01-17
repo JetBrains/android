@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.run.LaunchCompatibility
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManager
 import com.intellij.ide.HelpTooltip
@@ -43,7 +44,6 @@ import java.util.function.IntUnaryOperator
 import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.jetbrains.android.util.AndroidUtils
 
 class DeviceAndSnapshotComboBoxAction
 internal constructor(
@@ -135,7 +135,7 @@ internal constructor(
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val project = event.project
-    if (project == null || !AndroidUtils.hasAndroidFacets(project)) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       presentation.setVisible(false)
       return
     }
