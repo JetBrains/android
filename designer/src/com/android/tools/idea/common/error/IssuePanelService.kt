@@ -39,9 +39,11 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.content.Content
 import com.intellij.ui.tree.TreeVisitor
+import com.intellij.util.SlowOperations
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
@@ -97,16 +99,20 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   private fun updateIssuePanelVisibility(newFile: VirtualFile, newEditor: FileEditor?) {
-    if (isSupportedDesignerFileType(newFile)) {
-      updateIssuePanelVisibility(newFile)
-      return
-    }
-    val surface = newEditor?.getDesignSurface()
-    if (surface != null) {
-      updateIssuePanelVisibility(newFile)
-    } else {
-      ProblemsViewToolWindowUtils.removeTab(project, SHARED_ISSUE_PANEL_TAB_ID)
-    }
+    // TODO b/320563607
+    SlowOperations.allowSlowOperations(ThrowableComputable {
+        if (isSupportedDesignerFileType(newFile)) {
+          updateIssuePanelVisibility(newFile)
+          return@ThrowableComputable
+        }
+        val surface = newEditor?.getDesignSurface()
+        if (surface != null) {
+          updateIssuePanelVisibility(newFile)
+        } else {
+          ProblemsViewToolWindowUtils.removeTab(project, SHARED_ISSUE_PANEL_TAB_ID)
+        }
+      }
+    )
   }
 
   private fun updateIssuePanelVisibility(file: VirtualFile) {
