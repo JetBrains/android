@@ -25,6 +25,7 @@ import com.google.common.collect.Multimaps;
 import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.ULocale;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -40,6 +41,7 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.HierarchyEvent;
 import java.text.DecimalFormat;
@@ -50,6 +52,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
@@ -155,12 +158,43 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   @NotNull
   private Device getDefaultDefinition(@NotNull Category category) {
+    var logger = Logger.getInstance(DeviceDefinitionList.class);
+
+    logger.info("currentThread = " + Thread.currentThread());
+    logger.info("dispatchThread = " + EventQueue.isDispatchThread());
+
     var id = category.getDefaultDefinitionId();
 
     return myCategoryToDefinitionMultimap.get(category).stream()
       .filter(definition -> definition.getId().equals(id))
       .findFirst()
-      .orElseThrow();
+      .orElseThrow(() -> new NoSuchElementException(getMessage(category)));
+  }
+
+  private @NotNull String getMessage(@NotNull Category category) {
+    var builder = new StringBuilder();
+    var separator = System.lineSeparator();
+
+    builder.append(separator);
+    builder.append(toString(category)).append(separator);
+
+    Arrays.asList(Category.values())
+      .forEach(c -> builder.append(toString(c)).append(" = ").append(mapDefinitionsToIds((c))).append(separator));
+
+    var length = builder.length();
+    builder.delete(length - separator.length(), length);
+
+    return builder.toString();
+  }
+
+  private static @NotNull String toString(@NotNull Category category) {
+    return category + "[" + category.getDefaultDefinitionId() + "]";
+  }
+
+  private @NotNull Object mapDefinitionsToIds(@NotNull Category category) {
+    return myCategoryToDefinitionMultimap.get(category).stream()
+      .map(Device::getId)
+      .toList();
   }
 
   @NotNull
