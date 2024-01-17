@@ -89,7 +89,7 @@ class LayoutBindingModuleCache(private val module: Module) {
       synchronized(lock) {
         if (_viewBindingEnabled != value) {
           _viewBindingEnabled = value
-          ViewBindingEnabledTrackingService.instance.incModificationCount()
+          ViewBindingEnabledTrackingService.getInstance().incModificationCount()
         }
       }
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.SimpleModificationTracker
 import net.jcip.annotations.ThreadSafe
 
@@ -30,9 +31,7 @@ import net.jcip.annotations.ThreadSafe
 class ViewBindingEnabledTrackingService : SimpleModificationTracker() {
   companion object {
     @JvmStatic
-    val instance: ViewBindingEnabledTrackingService
-      get() =
-        ApplicationManager.getApplication()
-          .getService(ViewBindingEnabledTrackingService::class.java)
+    fun getInstance(): ViewBindingEnabledTrackingService =
+      ApplicationManager.getApplication().service()
   }
 }
