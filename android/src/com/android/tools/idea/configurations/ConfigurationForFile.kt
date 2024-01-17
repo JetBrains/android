@@ -46,7 +46,7 @@ class ConfigurationForFile(
     return ApplicationManager.getApplication().runReadAction(
         Computable {
           if (psiFile == null) {
-            psiFile = PsiManager.getInstance(mySettings.project).findFile(file);
+            psiFile = PsiManager.getInstance(settings.project).findFile(file);
           }
           val psiXmlFile = psiFile as? XmlFile
           psiXmlFile?.rootTag?.getAttribute(SdkConstants.ATTR_CONTEXT, SdkConstants.TOOLS_URI)?.value
@@ -95,7 +95,7 @@ class ConfigurationForFile(
       else if ("Kotlin" == file.fileType.name) {
         return device
       }
-      else if (file == mySettings.project.projectFile) {
+      else if (file == settings.project.projectFile) {
         return device // Takes care of correct device selection for Theme Editor.
       }
     }

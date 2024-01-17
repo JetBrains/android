@@ -356,7 +356,6 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return myModule;
   }
 
-  @Override
   @NotNull
   public Project getProject() {
     return myConfigurationModule.getProject();
