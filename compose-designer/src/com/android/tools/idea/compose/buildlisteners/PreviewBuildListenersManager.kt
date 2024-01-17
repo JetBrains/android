@@ -24,8 +24,11 @@ import com.android.tools.idea.projectsystem.setupBuildListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.util.SlowOperations
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.util.module
@@ -54,7 +57,11 @@ class PreviewBuildListenersManager(
   ) {
     val psiFile = psiFilePointerProvider().element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val module = runReadAction { psiFile.module }
+    val module = runReadAction {
+      SlowOperations.allowSlowOperations(ThrowableComputable {
+        psiFile.module
+      })
+    }
     val project =
       module?.project
         ?: run {
