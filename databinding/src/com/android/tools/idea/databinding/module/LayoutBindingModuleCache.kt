@@ -36,7 +36,9 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
@@ -51,15 +53,13 @@ private val LIGHT_BINDING_CLASSES_KEY =
   Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
 @ThreadSafe
-class LayoutBindingModuleCache(private val module: Module) {
+class LayoutBindingModuleCache(private val module: Module) : Disposable {
   companion object {
     // We are using facet.mainModule as a temporary workaround. This is needed because main,
-    // unitTest and androidTest modules
-    // all access the same resources (all the resources). Ideally, they should only access their own
-    // resources.
+    // unitTest and androidTest modules all access the same resources (all the resources). Ideally,
+    // they should only access their own resources.
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) =
-      facet.mainModule.getService(LayoutBindingModuleCache::class.java)!!
+    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.mainModule.service()
   }
 
   private val lock = Any()
@@ -80,7 +80,7 @@ class LayoutBindingModuleCache(private val module: Module) {
     }
 
   @GuardedBy("lock") private var _viewBindingEnabled = false
-  var viewBindingEnabled: Boolean
+  private var viewBindingEnabled: Boolean
     get() =
       synchronized(lock) {
         return _viewBindingEnabled
@@ -103,14 +103,10 @@ class LayoutBindingModuleCache(private val module: Module) {
     }
 
     module.project.messageBus
-      .connect(module)
+      .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        object : ProjectSystemSyncManager.SyncResultListener {
-          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-            syncModeWithDependencies()
-          }
-        }
+        ProjectSystemSyncManager.SyncResultListener { syncModeWithDependencies() }
       )
     syncModeWithDependencies()
   }
@@ -171,9 +167,6 @@ class LayoutBindingModuleCache(private val module: Module) {
         return _lightDataBindingComponentClass
       }
     }
-
-  private val BindingLayoutGroup.layoutFileName: String
-    get() = mainLayout.file.name
 
   /**
    * A modification tracker for module resources.
@@ -276,4 +269,6 @@ class LayoutBindingModuleCache(private val module: Module) {
       return bindingClasses
     }
   }
+
+  override fun dispose() {}
 }
