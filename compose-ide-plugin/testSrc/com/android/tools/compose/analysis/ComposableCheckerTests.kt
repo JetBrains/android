@@ -934,9 +934,11 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     doTest(
       """
           import androidx.compose.runtime.*
-          fun foo(<error descr="Parameter name expected"><</error><error descr="[VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION] A type annotation is required on a value parameter"><error descr="Expecting comma or ')'">e</error>rror</error><error descr="Expecting comma or ')'"> </error><error descr="[VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION] A type annotation is required on a value parameter">descr=<error descr="[UNSUPPORTED] Unsupported [Collection literals outside of annotations]">[<error descr="[UNRESOLVED_REFERENCE] Unresolved reference: WRONG_ANNOTATION_TARGET">WRONG_ANNOTATION_TARGET</error>]</error> <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: This">This</error> <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: annotation">annotation</error> is <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: not">not</error></error><error descr="Expecting comma or ')'"> </error><error descr="[VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION] A type annotation is required on a value parameter">applicable</error><error descr="Expecting comma or ')'"> </error><error descr="[VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION] A type annotation is required on a value parameter">to</error><error descr="Expecting comma or ')'"> </error><error descr="[VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION] A type annotation is required on a value parameter">target</error><error descr="Expecting comma or ')'"> </error><error descr="Expecting ')'">'value parameter'</error><error descr="Expecting a top level declaration">></error>@Composable<<error descr="Type expected">/</error><error descr="Expecting a top level declaration"><error descr="Expecting a '>'">e</error>rror</error><error descr="Expecting a top level declaration">></error> <error descr="Expecting a top level declaration">bar</error><error descr="Expecting a top level declaration">:</error> <error descr="Expecting a top level declaration">(</error><error descr="Expecting a top level declaration">)</error><error descr="Expecting a top level declaration">-></error><error descr="Expecting a top level declaration">Unit</error><error descr="Expecting a top level declaration">)</error> <error descr="[FUNCTION_DECLARATION_WITH_NO_NAME] Function declaration must have a name"><error descr="Expecting a top level declaration">{</error>
-              print(<error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bar">bar</error>)
-          }</error>
+          fun foo(<error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'value parameter'${
+        if (isK2Plugin()) "." else ""
+      }">@Composable</error> bar: ()->Unit) {
+              println(bar)
+          }
           """
     )
   }
