@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.util.SimpleModificationTracker;
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
  * Service that owns an atomic counter for how many times the data binding setting is changed. This
- * service implements the {@link com.intellij.openapi.util.ModificationTracker} interface, which is
+ * service implements the [com.intellij.openapi.util.ModificationTracker] interface, which is
  * used by IntelliJ for knowing when to clear caches, etc., to expose the counter value.
  */
 @Service(Service.Level.APP)
-public final class DataBindingModeTrackingService extends SimpleModificationTracker {
-  public static DataBindingModeTrackingService getInstance() {
-    return ApplicationManager.getApplication().getService(DataBindingModeTrackingService.class);
-  }
+object DataBindingModeTrackingService : SimpleModificationTracker() {
+  @JvmStatic
+  val instance: DataBindingModeTrackingService
+    get() = ApplicationManager.getApplication().getService(
+      DataBindingModeTrackingService::class.java
+    )
 }
