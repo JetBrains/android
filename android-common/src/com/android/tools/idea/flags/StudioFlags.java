@@ -914,7 +914,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = Flag.create(
     EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
     "Enables the settings picker to be shown for testing an application",
-    false);
+    true);
   //endregion
 
   //region Device Mirroring
