@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
 import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
+import com.android.tools.idea.util.toPathString
 import com.android.utils.TraceUtils.simpleId
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
@@ -40,6 +42,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.testFramework.LightVirtualFile
@@ -64,16 +74,17 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private val cacheList = ImmutableList.of(namespacedCache, nonNamespacedCache)
 
   init {
-    project.messageBus
-      .connect(this)
-      .subscribe(
-        ModuleRootListener.TOPIC,
-        object : ModuleRootListener {
-          override fun rootsChanged(event: ModuleRootEvent) {
-            removeStaleEntries()
-          }
-        },
-      )
+    val moduleRootListener =
+      object : ModuleRootListener {
+        override fun rootsChanged(event: ModuleRootEvent) {
+          removeStaleEntries()
+        }
+      }
+    val resourceFolderVfsListener = ResourceFolderVfsListener(this)
+    with(project.messageBus.connect(this)) {
+      subscribe(ModuleRootListener.TOPIC, moduleRootListener)
+      subscribe(VirtualFileManager.VFS_CHANGES, resourceFolderVfsListener)
+    }
 
     EditorFactory.getInstance()
       .eventMulticaster
@@ -105,8 +116,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
    * already exist.
    */
   fun getCached(dir: VirtualFile, namespacing: Namespacing): ResourceFolderRepository? {
-    val cache =
-      if (namespacing === Namespacing.REQUIRED) namespacedCache else nonNamespacedCache
+    val cache = if (namespacing === Namespacing.REQUIRED) namespacedCache else nonNamespacedCache
     return cache.getIfPresent(dir)
   }
 
@@ -218,8 +228,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
   companion object {
 
-    @JvmStatic
-    fun getInstance(project: Project): ResourceFolderRegistry = project.service()
+    @JvmStatic fun getInstance(project: Project): ResourceFolderRegistry = project.service()
   }
 
   /** Populate the registry's in-memory ResourceFolderRepository caches (if not already cached). */
@@ -281,8 +290,10 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 }
 
-private class ResourceFolderDocumentListener(private val project: Project, private val registry: ResourceFolderRegistry) :
-  DocumentListener {
+private class ResourceFolderDocumentListener(
+  private val project: Project,
+  private val registry: ResourceFolderRegistry,
+) : DocumentListener {
 
   override fun documentChanged(event: DocumentEvent) {
     // Note that event may arrive from any project, not only from the project parameter.
@@ -292,7 +303,8 @@ private class ResourceFolderDocumentListener(private val project: Project, priva
     val document = event.document
     if (PsiDocumentManager.getInstance(project).getCachedPsiFile(document) == null) {
       val virtualFile = FileDocumentManager.getInstance().getFile(document) ?: return
-      if (virtualFile is LightVirtualFile || !AndroidFileChangeListener.isRelevantFile(virtualFile)) return
+      if (virtualFile is LightVirtualFile || !AndroidFileChangeListener.isRelevantFile(virtualFile))
+        return
 
       runInWriteAction {
         registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
@@ -307,3 +319,82 @@ private class ResourceFolderDocumentListener(private val project: Project, priva
   }
 }
 
+/**
+ * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
+ * file within a folder with a corresponding [ResourceFolderRepository], the event is delegated to
+ * it.
+ */
+private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) :
+  BulkFileListener {
+  @UiThread
+  override fun before(events: List<VFileEvent>) {
+    for (event in events) {
+      when (event) {
+        is VFileMoveEvent -> onFileOrDirectoryRemoved(event.file)
+        is VFileDeleteEvent -> onFileOrDirectoryRemoved(event.file)
+        is VFilePropertyChangeEvent -> if (event.isRename) onFileOrDirectoryRemoved(event.file)
+      }
+    }
+  }
+
+  override fun after(events: List<VFileEvent>) {
+    for (event in events) {
+      when (event) {
+        is VFileCreateEvent -> onFileOrDirectoryCreated(event.parent, event.childName)
+        is VFileCopyEvent -> onFileOrDirectoryCreated(event.newParent, event.newChildName)
+        is VFileMoveEvent -> onFileOrDirectoryCreated(event.newParent, event.file.name)
+        is VFilePropertyChangeEvent ->
+          if (event.isRename) {
+            event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
+          }
+      // VFileContentChangeEvent changes are not handled at the VFS level, but either in
+      // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
+      }
+    }
+  }
+
+  private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
+    ResourceUpdateTracer.log {
+      val pathToLog =
+        if (parent == null) childName
+        else pathForLogging(parent.toPathString().resolve(childName), registry.project)
+      "ResourceFolderVfsListener.onFileOrDirectoryCreated($pathToLog)"
+    }
+    val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
+    val resDir = if (created.isDirectory) parent else parent.parent ?: return
+
+    registry.dispatchToRepositories(resDir) { repo, _ -> onFileOrDirectoryCreated(created, repo) }
+  }
+
+  private fun onFileOrDirectoryRemoved(file: VirtualFile) {
+    registry.dispatchToRepositories(file) { repo, f -> repo.onFileOrDirectoryRemoved(f) }
+  }
+
+  companion object {
+    private fun onFileOrDirectoryCreated(
+      created: VirtualFile,
+      repository: ResourceFolderRepository?,
+    ) {
+      if (repository == null) return
+
+      ResourceUpdateTracer.log {
+        "ResourceFolderVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})"
+      }
+      if (!created.isDirectory) {
+        repository.onFileCreated(created)
+      } else {
+        // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the
+        // children.
+        for (child in created.children) {
+          if (!child.isDirectory) {
+            // There is no need to visit subdirectories because Android does not support them.
+            // If a base resource directory is created (e.g res/), a whole
+            // ResourceFolderRepository will be created separately, so we don't need to handle
+            // this case here.
+            repository.onFileCreated(child)
+          }
+        }
+      }
+    }
+  }
+}

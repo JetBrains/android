@@ -17,43 +17,28 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.UiThread
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.fileTypes.FontFileType
 import com.android.tools.idea.lang.aidl.AidlFileType
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
-import com.android.tools.idea.util.toPathString
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
-import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.Consumer
 import org.intellij.images.fileTypes.ImageFileTypeManager
@@ -101,101 +86,12 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
     val connection = project.messageBus.connect(this)
     connection.subscribe(
-      VirtualFileManager.VFS_CHANGES,
-      MyVfsListener(ResourceFolderRegistry.getInstance(project)),
-    )
-    connection.subscribe(
       FileDocumentManagerListener.TOPIC,
-      MyFileDocumentManagerListener(ResourceFolderRegistry.getInstance(project)),
+      MyFileDocumentManagerListener(ResourceFolderRegistry.getInstance(project))
     )
   }
 
   override fun dispose() {}
-
-  /**
-   * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
-   * file within a folder with a corresponding [ResourceFolderRepository], the event is delegated to
-   * it.
-   */
-  internal class MyVfsListener(private val registry: ResourceFolderRegistry) : BulkFileListener {
-    @UiThread
-    override fun before(events: List<VFileEvent>) {
-      for (event in events) {
-        when (event) {
-          is VFileMoveEvent -> onFileOrDirectoryRemoved(event.file)
-          is VFileDeleteEvent -> onFileOrDirectoryRemoved(event.file)
-          is VFilePropertyChangeEvent -> if (event.isRename) onFileOrDirectoryRemoved(event.file)
-        }
-      }
-    }
-
-    override fun after(events: List<VFileEvent>) {
-      for (event in events) {
-        when (event) {
-          is VFileCreateEvent -> onFileOrDirectoryCreated(event.parent, event.childName)
-          is VFileCopyEvent -> onFileOrDirectoryCreated(event.newParent, event.newChildName)
-          is VFileMoveEvent -> onFileOrDirectoryCreated(event.newParent, event.file.name)
-          is VFilePropertyChangeEvent ->
-            if (event.isRename) {
-              event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
-            }
-        // VFileContentChangeEvent changes are not handled at the VFS level, but either in
-        // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
-        }
-      }
-    }
-
-    private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
-      ResourceUpdateTracer.log {
-        "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(${pathForLogging(parent, childName)})"
-      }
-      val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
-      val resDir = if (created.isDirectory) parent else parent.parent ?: return
-
-      registry.dispatchToRepositories(resDir) { repo, _ -> onFileOrDirectoryCreated(created, repo) }
-    }
-
-    private fun pathForLogging(parent: VirtualFile?, childName: String) =
-      if (parent == null) childName
-      else {
-        ResourceUpdateTracer.pathForLogging(
-          parent.toPathString().resolve(childName),
-          registry.project,
-        )
-      }
-
-    private fun onFileOrDirectoryRemoved(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { repo, f -> repo.onFileOrDirectoryRemoved(f) }
-    }
-
-    companion object {
-      private fun onFileOrDirectoryCreated(
-        created: VirtualFile,
-        repository: ResourceFolderRepository?,
-      ) {
-        if (repository == null) return
-
-        ResourceUpdateTracer.log {
-          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})"
-        }
-        if (!created.isDirectory) {
-          repository.onFileCreated(created)
-        } else {
-          // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the
-          // children.
-          for (child in created.children) {
-            if (!child.isDirectory) {
-              // There is no need to visit subdirectories because Android does not support them.
-              // If a base resource directory is created (e.g res/), a whole
-              // ResourceFolderRepository will be created separately, so we don't need to handle
-              // this case here.
-              repository.onFileCreated(child)
-            }
-          }
-        }
-      }
-    }
-  }
 
   internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) :
     FileDocumentManagerListener {
