@@ -21,11 +21,13 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
+import org.junit.Assert
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 @RunsInEdt
@@ -97,9 +99,17 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     everythingDisabledNoEffectOn("GMavenRepository/AGP2Project")
   }
 
-  @Ignore("b/303111009") // TODO(b/152854665)
+  @Test
   fun testEverythingDisabledNoEffectOnGradleVersion() {
-    everythingDisabledNoEffectOn("GradleVersion/OldGradleVersion")
+    writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
+    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+    processor.run()
+
+    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion").toFile(testDataPath, ""))
+    val actualText = VfsUtilCore.loadText(gradleWrapperPropertiesFile)
+    Assert.assertEquals(expectedText, actualText)
   }
 
   @Test
@@ -229,13 +239,16 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
   }
 
-  @Ignore("b/303111009") // TODO(b/152854665)
+  @Test
   fun testEnabledEffectOnGradleVersion() {
-    writeToBuildFile(TestFileName("GradleVersion/OldGradleVersion"))
+    writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GradleVersionRefactoringProcessor }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("GradleVersion/OldGradleVersion410Expected"))
+
+    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion410Expected").toFile(testDataPath, ""))
+    val actualText = VfsUtilCore.loadText(gradleWrapperPropertiesFile)
+    Assert.assertEquals(expectedText, actualText)
   }
 
   @Test
