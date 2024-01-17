@@ -27,6 +27,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
@@ -37,6 +39,8 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDe
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
+import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -48,6 +52,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -55,8 +60,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
+import it.unimi.dsi.fastutil.bytes.ByteArrayList
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -70,10 +78,20 @@ import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_P
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.Control
+import javax.sound.sampled.Line
+import javax.sound.sampled.LineListener
+import javax.sound.sampled.SourceDataLine
 import javax.swing.JViewport
+import kotlin.math.PI
+import kotlin.math.sin
+import kotlin.test.assertEquals
 
 /**
  * Tests for [DeviceToolWindowPanel], [DeviceDisplayPanel] and toolbar actions that produce Android key events.
@@ -352,6 +370,62 @@ class DeviceToolWindowPanelTest {
     waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
+
+  @Test
+  fun testAudio() {
+    StudioFlags.DEVICE_MIRRORING_AUDIO.override(true, testRootDisposable)
+    DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
+    val testDataLine = TestDataLine()
+    val testAudioSystemService = object : AudioSystemService() {
+      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+    }
+    ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
+
+    device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(false)
+    assertThat(panel.primaryDisplayView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    val frequencyHz = 440.0
+    val durationMillis = 500
+    runBlocking { agent.beep(frequencyHz, durationMillis) }
+    waitForCondition(1, SECONDS) {
+      testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
+    }
+    val buf = testDataLine.dataAsByteBuffer()
+    var volumeReached = false
+    var previousValue = 0.0
+    var start = Double.NaN
+    for (i in 0 until buf.limit() / (AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16)) {
+      for (channel in 1..AUDIO_CHANNEL_COUNT) {
+        val v = buf.getShort().toDouble()
+        when {
+          start.isFinite() && i * 1000 / AUDIO_SAMPLE_RATE < durationMillis -> {
+            val expected = sin((i - start) * 2 * PI * frequencyHz / AUDIO_SAMPLE_RATE) * Short.MAX_VALUE
+            assertEquals(expected, v, Short.MAX_VALUE * 0.03,
+                         "Unexpected signal value in channel $channel at ${i * 1000.0 / AUDIO_SAMPLE_RATE} ms")
+          }
+          volumeReached -> {
+            if (channel == 1 && v >= 0 && previousValue < 0) {
+              start = i - v / (v - previousValue)
+            }
+            previousValue = v
+          }
+          else -> {
+            if (channel == 1 && v <= Short.MIN_VALUE * 0.99) {
+              volumeReached = true
+            }
+          }
+        }
+      }
+    }
+  }
+
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
     mouse.press(location.x, location.y)
@@ -422,6 +496,116 @@ class DeviceToolWindowPanelTest {
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
     if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
+}
+
+
+private class TestDataLine : SourceDataLine {
+
+  private val data = ByteArrayList()
+  private var open = false
+
+  val dataSize: Int
+    get() = synchronized(data) { data.size }
+
+  fun dataAsByteBuffer(): ByteBuffer =
+    synchronized(data) { ByteBuffer.allocate(data.size).order(ByteOrder.LITTLE_ENDIAN).put(data.elements(), 0, data.size).flip() }
+
+  override fun close() {
+    open = false
+  }
+
+  override fun getLineInfo(): Line.Info {
+    TODO("Not yet implemented")
+  }
+
+  override fun open(format: AudioFormat, bufferSize: Int) {
+    open()
+  }
+
+  override fun open(format: AudioFormat) {
+    open()
+  }
+
+  override fun open() {
+    data.clear()
+    open = true
+  }
+
+  override fun isOpen(): Boolean  = open
+
+  override fun getControls(): Array<Control> {
+    TODO("Not yet implemented")
+  }
+
+  override fun isControlSupported(control: Control.Type): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getControl(control: Control.Type): Control {
+    TODO("Not yet implemented")
+  }
+
+  override fun addLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun removeLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun drain() {
+    TODO("Not yet implemented")
+  }
+
+  override fun flush() {
+  }
+
+  override fun start() {
+  }
+
+  override fun stop() {
+  }
+
+  override fun isRunning(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun isActive(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFormat(): AudioFormat {
+    TODO("Not yet implemented")
+  }
+
+  override fun getBufferSize(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun available(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFramePosition(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLongFramePosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getMicrosecondPosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLevel(): Float {
+    TODO("Not yet implemented")
+  }
+
+  override fun write(bytes: ByteArray, offset: Int, len: Int): Int {
+    synchronized(data) { data.addElements(data.size, bytes, offset, len) }
+    return len
+  }
 }
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceToolWindowPanelTest/golden"
