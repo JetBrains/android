@@ -28,7 +28,7 @@ index a89d199abe2..9d46a0c48d0 100755
  $SCRIPT_DIR/../../../../prebuilts/androidx/konan/copy-linux-sysroot.sh \
      --kotlin-version $KOTLIN_NATIVE_VERSION \
 diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-index 9911b1ba626..83f3577e4fc 100644
+index a36c0324f36..c173534a2dc 100644
 --- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
 +++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
 @@ -243,6 +243,28 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
@@ -78,11 +78,60 @@ index 9911b1ba626..83f3577e4fc 100644
 +
          fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
              try {
--                val KOTLIN_VERSION_EXPECTATION = "1.9.22"
-+                val KOTLIN_VERSION_EXPECTATION = "2.0.0-Beta1"
+-                val KOTLIN_VERSION_EXPECTATION = "2.0.0-Beta1"
++                val EXPECTED_KOTLIN_VERSIONS = listOf("2.0.0-dev-10944", "2.0.0-Beta1")
                  KotlinCompilerVersion.getVersion()?.let { version ->
                      val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
                      val suppressKotlinVersionCheck = configuration.get(
+@@ -294,24 +321,35 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+                             )
+                         }
+                     }
+-                    if (suppressKotlinVersionCheck == KOTLIN_VERSION_EXPECTATION) {
+-                        msgCollector?.report(
+-                            CompilerMessageSeverity.STRONG_WARNING,
+-                            " `suppressKotlinVersionCompatibilityCheck` is set to the" +
+-                                " same version of Kotlin that the Compose Compiler was already" +
+-                                " expecting (Kotlin $suppressKotlinVersionCheck), and thus has" +
+-                                " no effect and should be removed."
+-                        )
++
++                    var kotlinVersionMatch = false
++                    EXPECTED_KOTLIN_VERSIONS.forEach { expectedKotlinVersion ->
++                        if (kotlinVersionMatch) return@forEach
++                        if (suppressKotlinVersionCheck == expectedKotlinVersion) {
++                            msgCollector?.report(
++                                CompilerMessageSeverity.STRONG_WARNING,
++                                " `suppressKotlinVersionCompatibilityCheck` is set to the" +
++                                    " same version of Kotlin that the Compose Compiler was" +
++                                    " already expecting (Kotlin $suppressKotlinVersionCheck)," +
++                                    " and thus has no effect and should be removed."
++                            )
++                        }
++                        if (suppressKotlinVersionCheck != "true" &&
++                            version != expectedKotlinVersion &&
++                            version != suppressKotlinVersionCheck
++                        ) {
++                            return@forEach
++                        }
++                        kotlinVersionMatch = true
+                     }
+-                    if (suppressKotlinVersionCheck != "true" &&
+-                        version != KOTLIN_VERSION_EXPECTATION &&
+-                        version != suppressKotlinVersionCheck
+-                    ) {
++
++                    if (!kotlinVersionMatch) {
+                         msgCollector?.report(
+                             CompilerMessageSeverity.ERROR,
+                             "This version (${VersionChecker.compilerVersion}) of the" +
+                                 " Compose Compiler requires Kotlin version" +
+-                                " $KOTLIN_VERSION_EXPECTATION but you appear to be using Kotlin" +
++                                " ${EXPECTED_KOTLIN_VERSIONS.joinToString(separator = ", or ")}" +
++                                " but you appear to be using Kotlin" +
+                                 " version $version which is not known to be compatible.  Please" +
+                                 " consult the Compose-Kotlin compatibility map located at" +
+                                 " https://developer.android.com" +
 diff --git a/compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar b/compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 new file mode 100644
 index 00000000000..46e96658b7c
@@ -92,10 +141,24 @@ index 00000000000..46e96658b7c
 +androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrarForK2
 \ No newline at end of file
 diff --git a/datastore/datastore-compose-samples/build.gradle b/datastore/datastore-compose-samples/build.gradle
-index 698b179ccdb..a00b9fdf1a8 100644
+index dcb75af309a..a00b9fdf1a8 100644
 --- a/datastore/datastore-compose-samples/build.gradle
 +++ b/datastore/datastore-compose-samples/build.gradle
-@@ -32,6 +32,12 @@ plugins {
+@@ -14,6 +14,13 @@
+  * limitations under the License.
+  */
+ 
++/**
++ * This file was created using the `create_project.py` script located in the
++ * `<AndroidX root>/development/project-creator` directory.
++ *
++ * Please use that script when creating a new project, rather than copying an existing project and
++ * modifying its settings.
++ */
+ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+ 
+ plugins {
+@@ -25,6 +32,12 @@ plugins {
      alias(libs.plugins.kotlinSerialization)
  }
  
@@ -108,7 +171,7 @@ index 698b179ccdb..a00b9fdf1a8 100644
  dependencies {
      implementation(libs.protobufLite)
      implementation(libs.kotlinStdlib)
-@@ -57,6 +63,9 @@ android {
+@@ -50,6 +63,9 @@ android {
      defaultConfig {
          minSdk 28
      }

@@ -2,7 +2,7 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2024-01-06T01:33:55Z",
+    "created" : "2024-01-17T02:09:57Z",
     "creators" : [
       "Organization: Google LLC",
       "Person: jaebaek@google.com" ]
@@ -18,10 +18,10 @@
     "SPDXID" : "SPDXRef-PREBUILT-compose-compiler-hosted",
     "checksums" : [ {
       "algorithm" : "SHA256",
-      "checksumValue" : "e66d868dca8fc59c930d635d6e0021b7f435ef97b5e85bb8c48b4e88633e1aba"
+      "checksumValue" : "769bac079fca773ea87f0f013f4dd327948b2ca54fef9aaf517afd40426311cc"
     }, {
       "algorithm" : "SHA1",
-      "checksumValue" : "003dae3469193f15f13b2205425b7efa2ffe11f3"
+      "checksumValue" : "968e5eb857757d9a230fb369096524a803831680"
     } ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NONE",
@@ -31,18 +31,16 @@
     "name" : "Patched Compose Compiler",
     "packageFileName" : "compiler-hosted.jar",
     "supplier" : "Organization: Google LLC",
-
-
-    "versionInfo" : "1.5.8-dev-k2.0.0-Beta1-199331175ef",
-    "sourceInfo" : "Obtained by applying support-k2-registrar-for-1.5.8-k2.0.0-Beta1-199331175ef.patch to SSPDXRef-SOURCE-AOSP-androidx-compiler-hosted. Built at ab/P67549876"
+    "versionInfo" : "1.5.8-dev-k2.0.0-Beta1-b10d9239858",
+    "sourceInfo" : "Obtained by applying support-k2-registrar-for-1.5.8-k2.0.0-Beta1-b10d9239858.patch to SSPDXRef-SOURCE-AOSP-androidx-compiler-hosted. Built at ab/P68148472"
   }, {
     "SPDXID" : "SPDXRef-SOURCE-AOSP-androidx-compiler-hosted-patch",
     "checksums" : [ {
       "algorithm" : "SHA256",
-      "checksumValue" : "2fd6b27576ed94305e50b685f70d9a9f1651f507e615fc0013c23eba4ffc2c5f"
+      "checksumValue" : "3bc0695a25a8075ebd248ffe8ea4d893c0fec14500a968c07a2344fe922ac34f"
     }, {
       "algorithm" : "SHA1",
-      "checksumValue" : "9a8d2fd51cffb3aa6b43101fda97d3a20dce6bf9"
+      "checksumValue" : "a82777acda6d81866c74c0f8d1d3822918a12f3c"
     } ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NONE",
@@ -51,12 +49,12 @@
     "licenseDeclared" : "NOASSERTION",
     "name" : "A patch for compose compiler-hosted to make it compatible with KT 2.0.0-Beta1 and IntelliJ 233",
     "supplier" : "Organization: Google LLC",
-    "packageFileName" : "support-k2-registrar-for-1.5.8-k2.0.0-Beta1-199331175ef.patch",
+    "packageFileName" : "support-k2-registrar-for-1.5.8-k2.0.0-Beta1-b10d9239858.patch",
     "versionInfo" : "1.0"
   }, {
     "SPDXID" : "SPDXRef-SOURCE-AOSP-androidx-compiler-hosted",
     "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "git+android.googlesource.com/platform/frameworks/support@199331175efdc982e74906690b66452ccb6597a7#compose/compiler/compiler-hosted",
+    "downloadLocation" : "git+android.googlesource.com/platform/frameworks/support@b10d9239858faaef35bf7f1ff5d1069d6375377a#compose/compiler/compiler-hosted",
     "externalRefs" : [ {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:generic/androidx?vcs_url=git%2Bhttps://android.googlesource.com/platform/frameworks/support%40ed5efa3ce81b267da6a43962d680240b0534a33e",
@@ -67,7 +65,7 @@
     "licenseDeclared" : "LicenseRef-SPDXRef-SOURCE-AOSP-androidx",
     "name" : "Compose Compiler",
     "supplier" : "Organization: Google LLC",
-    "versionInfo" : "1.5.8-k2.0.0-Beta1-199331175ef"
+    "versionInfo" : "1.5.8-k2.0.0-Beta1-b10d9239858"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",

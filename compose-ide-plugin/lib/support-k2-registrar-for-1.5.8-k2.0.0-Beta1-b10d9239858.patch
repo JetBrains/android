@@ -1,42 +1,105 @@
-commit ee81c93ee7432c6598227bbcd16b2164c394e2af
-Author: Jaebaek Seo <jaebaek@google.com>
-Date:   Thu Jan 4 15:04:50 2024 -0800
+From b10d9239858faaef35bf7f1ff5d1069d6375377a Mon Sep 17 00:00:00 2001
+From: Jaebaek Seo <jaebaek@google.com>
+Date: Thu, 4 Jan 2024 15:04:50 -0800
+Subject: [PATCH] [PATCH] [do not merge] Support K2 registrar for
+ 1.5.6-k2.0.0-Beta1
 
-    [PATCH] [do not merge] Support K2 registrar for 1.5.6-k2.0.0-Beta1
-    
-    Because of the known memory leak issue
-    (https://youtrack.jetbrains.com/issue/KT-60952), Compose compiler plugin
-    1.5.6-k2.0.0-Beta1 uses the deprecated API `ComponentRegistrar` that is
-    not supported by IJ 233 for K2 anymore.
-    
-    This patch simply adds `ComposePluginRegistrarForK2` to Patchset 19 of
-    "Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c":
-    
-        Author: Jim S <jsproch@google.com>
-        Date:   Wed Nov 15 13:53:36 2023 -0800
-    
-            Kotlin 2.0.0 Rebase
-    
-            Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c
-    
-    (1.5.6-k2.0.0-Beta1).
-    
-    `ComposePluginRegistrarForK2` is a child of the new registrar class
-    `CompilerPluginRegistrar` that allows IJ 233 to enable Compose compiler
-    plugin for K2.
-    
-    Note that the memory leak will not happen with
-    `ComposePluginRegistrarForK2`. In KT-60952, we concluded
-    `ComposeDiagnosticSuppressor` is not cleaned up by GC. It is K1
-    specific class, and `ComposePluginRegistrarForK2` does not use it.
-    
-    If we find memory leaks related to this new registrar, we have to
-    remove the problematic extensions from the ExtensionStorage i.e., user
-    of `ComposePluginRegistrarForK2`.
-    
-    Test: ComposableCheckerTests
-    Bug: 316022748
-    Change-Id: Ia83598063b2784f88cf8bcbbb2cd91327eb4da9a
+Because of the known memory leak issue
+(https://youtrack.jetbrains.com/issue/KT-60952), Compose compiler plugin
+1.5.6-k2.0.0-Beta1 uses the deprecated API `ComponentRegistrar` that is
+not supported by IJ 233 for K2 anymore.
+
+This patch simply adds `ComposePluginRegistrarForK2` to Patchset 19 of
+"Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c":
+
+    Author: Jim S <jsproch@google.com>
+    Date:   Wed Nov 15 13:53:36 2023 -0800
+
+        Kotlin 2.0.0 Rebase
+
+        Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c
+
+(1.5.6-k2.0.0-Beta1).
+
+`ComposePluginRegistrarForK2` is a child of the new registrar class
+`CompilerPluginRegistrar` that allows IJ 233 to enable Compose compiler
+plugin for K2.
+
+Note that the memory leak will not happen with
+`ComposePluginRegistrarForK2`. In KT-60952, we concluded
+`ComposeDiagnosticSuppressor` is not cleaned up by GC. It is K1
+specific class, and `ComposePluginRegistrarForK2` does not use it.
+
+If we find memory leaks related to this new registrar, we have to
+remove the problematic extensions from the ExtensionStorage i.e., user
+of `ComposePluginRegistrarForK2`.
+
+Test: ComposableCheckerTests
+Bug: 316022748
+Change-Id: Ia83598063b2784f88cf8bcbbb2cd91327eb4da9a
+---
+ .../uptodatedness/TaskUpToDateValidator.kt    |  8 ++-
+ buildSrc/repos.gradle                         |  3 +
+ busytown/impl/prepare-linux-sysroot.sh        |  4 ++
+ .../CameraViewfinderFoldableFragment.kt       |  2 +-
+ .../kotlin/ClassStabilityTransformTests.kt    |  3 +
+ .../kotlin/ComposerParamTransformTests.kt     |  3 +
+ .../kotlin/StaticExpressionDetectionTests.kt  |  3 +
+ .../ComposableDeclarationCheckerTests.kt      |  2 +-
+ .../plugins/kotlin/facade/K2CompilerFacade.kt | 18 ++---
+ ...ariousTypesInSameModule[useFir = true].txt |  4 +-
+ ...TransformOfVariousTypes[useFir = true].txt |  4 +-
+ .../testElvis[useFir = true].txt              |  6 +-
+ .../testReturnNull[useFir = true].txt         |  6 +-
+ .../testAdaptedFunctionRef[useFir = true].txt |  4 +-
+ ...sableCaptureInDelegates[useFir = true].txt |  8 +--
+ ...ctionReferenceWReceiver[useFir = true].txt |  2 +-
+ ...tLocalFunctionReference[useFir = true].txt |  2 +-
+ ...ithArgumentsMemoization[useFir = true].txt |  2 +-
+ ...hNoArgumentsMemoization[useFir = true].txt |  2 +-
+ ...sionReceiverMemoization[useFir = true].txt |  2 +-
+ .../compiler/plugins/kotlin/BuildMetrics.kt   |  2 +
+ .../compiler/plugins/kotlin/ComposeFqNames.kt |  2 +
+ .../kotlin/ComposeIrGenerationExtension.kt    |  4 +-
+ .../compiler/plugins/kotlin/ComposePlugin.kt  | 66 +++++++++++++++----
+ .../compiler/plugins/kotlin/VersionChecker.kt |  2 +
+ .../plugins/kotlin/analysis/Stability.kt      |  3 +
+ .../k2/ComposableCallableReferenceChecker.kt  |  4 +-
+ .../compiler/plugins/kotlin/k2/FirUtils.kt    |  4 +-
+ .../kotlin/lower/AbstractComposeLowering.kt   |  3 +
+ .../kotlin/lower/ClassStabilityTransformer.kt |  3 +
+ .../lower/ComposableFunInterfaceLowering.kt   |  3 +
+ .../ComposableFunctionBodyTransformer.kt      |  3 +
+ .../kotlin/lower/ComposableLambdaAnnotator.kt |  3 +
+ .../ComposableTargetAnnotationsTransformer.kt |  3 +
+ .../kotlin/lower/ComposableTypeRemapper.kt    |  3 +
+ .../lower/ComposerIntrinsicTransformer.kt     |  3 +
+ .../kotlin/lower/ComposerLambdaMemoization.kt |  3 +
+ .../kotlin/lower/ComposerParamTransformer.kt  |  7 +-
+ .../CopyDefaultValuesFromExpectLowering.kt    |  3 +
+ .../lower/DurableFunctionKeyTransformer.kt    |  3 +
+ .../kotlin/lower/DurableKeyTransformer.kt     |  3 +
+ .../kotlin/lower/FunctionReferenceBuilder.kt  |  3 +
+ .../kotlin/lower/IrInlineReferenceLocator.kt  |  3 +
+ .../plugins/kotlin/lower/IrSourcePrinter.kt   |  3 +
+ .../lower/KlibAssignableParamTransformer.kt   |  3 +
+ .../kotlin/lower/LiveLiteralTransformer.kt    |  3 +
+ .../lower/WrapJsComposableLambdaLowering.kt   |  7 +-
+ .../lower/decoys/AbstractDecoysLowering.kt    |  7 +-
+ .../lower/decoys/CreateDecoysTransformer.kt   |  7 +-
+ .../kotlin/lower/decoys/DecoyTransformBase.kt |  7 +-
+ .../RecordDecoySignaturesTransformer.kt       |  7 +-
+ .../decoys/SubstituteDecoyCallsTransformer.kt |  7 +-
+ ...in.compiler.plugin.CompilerPluginRegistrar |  1 +
+ .../datastore-compose-samples/build.gradle    |  9 +++
+ gradle/libs.versions.toml                     | 12 ++--
+ gradle/verification-metadata.xml              | 18 ++---
+ .../util/compiler/DelegatingTestRegistrar.kt  |  4 ++
+ .../util/compiler/KotlinCliRunner.kt          |  4 ++
+ .../util/compiler/TestKapt3Registrar.kt       |  8 +--
+ .../compiler/steps/KaptCompilationStep.kt     |  6 +-
+ 60 files changed, 245 insertions(+), 92 deletions(-)
+ create mode 100644 compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 
 diff --git a/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt b/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt
 index 5ccd97ab47a..a267f6515fc 100644
@@ -492,10 +555,10 @@ index 9ffd47dce89..92e2ef407cb 100644
                  DeclarationTable(JsGlobalDeclarationTable(pluginContext.irBuiltIns))
              )
 diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-index 9911b1ba626..f63549e3a5d 100644
+index 9911b1ba626..c173534a2dc 100644
 --- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
 +++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-@@ -243,6 +243,29 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+@@ -243,6 +243,28 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
      }
  }
  
@@ -509,8 +572,7 @@ index 9911b1ba626..f63549e3a5d 100644
 +        if (!configuration.languageVersionSettings.languageVersion.usesK2) return
 +
 +        // Avoid the conflict with [ComposePluginRegistrar].
-+        if (ComposePluginRegistrar.pluginRegistered) return
-+        ComposePluginRegistrar.pluginRegistered = true
++        if (ComposePluginRegistrar.usedOldRegistrar) return
 +
 +        if (ComposePluginRegistrar.checkCompilerVersion(configuration)) {
 +            DescriptorSerializerPlugin.registerExtension(ClassStabilityFieldSerializationPlugin())
@@ -525,30 +587,78 @@ index 9911b1ba626..f63549e3a5d 100644
  @Suppress("DEPRECATION") // CompilerPluginRegistrar does not expose project (or disposable) causing
                           // memory leaks, see: https://youtrack.jetbrains.com/issue/KT-60952
  @OptIn(ExperimentalCompilerApi::class)
-@@ -254,6 +277,10 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+@@ -254,6 +276,9 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
          project: MockProject,
          configuration: CompilerConfiguration
      ) {
 +        // Avoid the conflict with [ComposePluginRegistrarForK2].
-+        if (pluginRegistered) return
-+        pluginRegistered = true
++        usedOldRegistrar = true
 +
          if (checkCompilerVersion(configuration)) {
              registerCommonExtensions(project)
              IrGenerationExtension.registerExtension(
-@@ -264,9 +291,11 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+@@ -264,9 +289,11 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
      }
  
      companion object {
-+        internal var pluginRegistered = false
++        internal var usedOldRegistrar = false
 +
          fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
              try {
 -                val KOTLIN_VERSION_EXPECTATION = "1.9.22"
-+                val KOTLIN_VERSION_EXPECTATION = "2.0.0-Beta1"
++                val EXPECTED_KOTLIN_VERSIONS = listOf("2.0.0-dev-10944", "2.0.0-Beta1")
                  KotlinCompilerVersion.getVersion()?.let { version ->
                      val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
                      val suppressKotlinVersionCheck = configuration.get(
+@@ -294,24 +321,35 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+                             )
+                         }
+                     }
+-                    if (suppressKotlinVersionCheck == KOTLIN_VERSION_EXPECTATION) {
+-                        msgCollector?.report(
+-                            CompilerMessageSeverity.STRONG_WARNING,
+-                            " `suppressKotlinVersionCompatibilityCheck` is set to the" +
+-                                " same version of Kotlin that the Compose Compiler was already" +
+-                                " expecting (Kotlin $suppressKotlinVersionCheck), and thus has" +
+-                                " no effect and should be removed."
+-                        )
++
++                    var kotlinVersionMatch = false
++                    EXPECTED_KOTLIN_VERSIONS.forEach { expectedKotlinVersion ->
++                        if (kotlinVersionMatch) return@forEach
++                        if (suppressKotlinVersionCheck == expectedKotlinVersion) {
++                            msgCollector?.report(
++                                CompilerMessageSeverity.STRONG_WARNING,
++                                " `suppressKotlinVersionCompatibilityCheck` is set to the" +
++                                    " same version of Kotlin that the Compose Compiler was" +
++                                    " already expecting (Kotlin $suppressKotlinVersionCheck)," +
++                                    " and thus has no effect and should be removed."
++                            )
++                        }
++                        if (suppressKotlinVersionCheck != "true" &&
++                            version != expectedKotlinVersion &&
++                            version != suppressKotlinVersionCheck
++                        ) {
++                            return@forEach
++                        }
++                        kotlinVersionMatch = true
+                     }
+-                    if (suppressKotlinVersionCheck != "true" &&
+-                        version != KOTLIN_VERSION_EXPECTATION &&
+-                        version != suppressKotlinVersionCheck
+-                    ) {
++
++                    if (!kotlinVersionMatch) {
+                         msgCollector?.report(
+                             CompilerMessageSeverity.ERROR,
+                             "This version (${VersionChecker.compilerVersion}) of the" +
+                                 " Compose Compiler requires Kotlin version" +
+-                                " $KOTLIN_VERSION_EXPECTATION but you appear to be using Kotlin" +
++                                " ${EXPECTED_KOTLIN_VERSIONS.joinToString(separator = ", or ")}" +
++                                " but you appear to be using Kotlin" +
+                                 " version $version which is not known to be compatible.  Please" +
+                                 " consult the Compose-Kotlin compatibility map located at" +
+                                 " https://developer.android.com" +
 diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt
 index db4656d5d1d..ac846d9d0f6 100644
 --- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt
@@ -1457,3 +1567,6 @@ index 2665543b366..4919453a1a1 100644
  
  /**
   * Runs KAPT to run annotation processors.
+-- 
+2.43.0.381.gb435a96ce8-goog
+
