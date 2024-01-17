@@ -55,7 +55,7 @@ class SampleDataListener(project: Project) :
     }
   }
 
-  fun ensureSubscribed() {
+  private fun ensureSubscribed() {
     subscriber.ensureSubscribed()
   }
 
@@ -117,7 +117,7 @@ class SampleDataListener(project: Project) :
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
 
     @JvmStatic
-    fun getInstance(project: Project): SampleDataListener = project.service()
+    fun getInstance(project: Project) = project.service<SampleDataListener>().also(SampleDataListener::ensureSubscribed)
   }
 }
 
