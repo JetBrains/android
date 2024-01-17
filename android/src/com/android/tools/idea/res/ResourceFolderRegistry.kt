@@ -36,6 +36,7 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.Project
@@ -80,10 +81,13 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
           removeStaleEntries()
         }
       }
-    val resourceFolderVfsListener = ResourceFolderVfsListener(this)
+    val vfsListener = ResourceFolderVfsListener(this)
+    val fileDocumentManagerListener = ResourceFolderFileDocumentManagerListener(this)
+
     with(project.messageBus.connect(this)) {
       subscribe(ModuleRootListener.TOPIC, moduleRootListener)
-      subscribe(VirtualFileManager.VFS_CHANGES, resourceFolderVfsListener)
+      subscribe(VirtualFileManager.VFS_CHANGES, vfsListener)
+      subscribe(FileDocumentManagerListener.TOPIC, fileDocumentManagerListener)
     }
 
     EditorFactory.getInstance()
@@ -396,5 +400,13 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
         }
       }
     }
+  }
+}
+
+private class ResourceFolderFileDocumentManagerListener(
+  private val registry: ResourceFolderRegistry
+) : FileDocumentManagerListener {
+  override fun fileWithNoDocumentChanged(file: VirtualFile) {
+    registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
   }
 }

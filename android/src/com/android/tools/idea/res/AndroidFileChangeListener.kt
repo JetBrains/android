@@ -83,22 +83,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
   private fun onProjectOpened() {
     PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(project), this)
-
-    val connection = project.messageBus.connect(this)
-    connection.subscribe(
-      FileDocumentManagerListener.TOPIC,
-      MyFileDocumentManagerListener(ResourceFolderRegistry.getInstance(project))
-    )
   }
 
   override fun dispose() {}
-
-  internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) :
-    FileDocumentManagerListener {
-    override fun fileWithNoDocumentChanged(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
-    }
-  }
 
   private class MyPsiListener(private val project: Project) : PsiTreeChangeListener {
     private val sampleDataListener
