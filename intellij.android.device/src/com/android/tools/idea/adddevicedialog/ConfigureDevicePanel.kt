@@ -63,10 +63,12 @@ private fun Tabs(
     }
   )
 
+  val state = remember { AdditionalSettingsPanelState(device) }
+
   when (selectedTab) {
     Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(device, skins, onDeviceChange, onImportButtonClick)
+      AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)
   }
 }
 
