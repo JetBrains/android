@@ -53,9 +53,9 @@ import org.jetbrains.annotations.VisibleForTesting
  * directory a namespaced and non-namespaced repository may be created, if needed.
  */
 class ResourceFolderRegistry(val project: Project) : Disposable {
-  private val myNamespacedCache = buildCache()
-  private val myNonNamespacedCache = buildCache()
-  private val myCaches = ImmutableList.of(myNamespacedCache, myNonNamespacedCache)
+  private val namespacedCache = buildCache()
+  private val nonNamespacedCache = buildCache()
+  private val cacheList = ImmutableList.of(namespacedCache, nonNamespacedCache)
 
   init {
     project.messageBus
@@ -80,7 +80,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     namespace: ResourceNamespace,
   ): ResourceFolderRepository {
     val cache =
-      if (namespace === ResourceNamespace.RES_AUTO) myNonNamespacedCache else myNamespacedCache
+      if (namespace === ResourceNamespace.RES_AUTO) nonNamespacedCache else namespacedCache
     val repository = cache.getAndUnwrap(dir) { createRepository(facet, dir, namespace) }
     assert(repository.namespace == namespace)
 
@@ -96,14 +96,14 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
    */
   fun getCached(dir: VirtualFile, namespacing: Namespacing): ResourceFolderRepository? {
     val cache =
-      if (namespacing === Namespacing.REQUIRED) myNamespacedCache else myNonNamespacedCache
+      if (namespacing === Namespacing.REQUIRED) namespacedCache else nonNamespacedCache
     return cache.getIfPresent(dir)
   }
 
   fun reset(facet: AndroidFacet) {
     ResourceUpdateTracer.logDirect { "$simpleId.reset()" }
-    reset(myNamespacedCache, facet)
-    reset(myNonNamespacedCache, facet)
+    reset(namespacedCache, facet)
+    reset(nonNamespacedCache, facet)
   }
 
   private fun reset(cache: Cache<VirtualFile, ResourceFolderRepository>, facet: AndroidFacet) {
@@ -125,8 +125,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories
     // which are no longer needed.
     ResourceUpdateTracer.logDirect { "$simpleId.removeStaleEntries()" }
-    removeStaleEntries(myNamespacedCache)
-    removeStaleEntries(myNonNamespacedCache)
+    removeStaleEntries(namespacedCache)
+    removeStaleEntries(nonNamespacedCache)
   }
 
   private fun removeStaleEntries(cache: Cache<VirtualFile, ResourceFolderRepository>) {
@@ -152,8 +152,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 
   override fun dispose() {
-    myNamespacedCache.invalidateAll()
-    myNonNamespacedCache.invalidateAll()
+    namespacedCache.invalidateAll()
+    nonNamespacedCache.invalidateAll()
   }
 
   fun dispatchToRepositories(
@@ -166,7 +166,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
-      for (cache in myCaches) {
+      for (cache in cacheList) {
         cache.getIfPresent(dir)?.let { handler.accept(it, file) }
       }
       dir = dir.parent
@@ -180,7 +180,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
-      for (cache in myCaches) {
+      for (cache in cacheList) {
         cache.getIfPresent(dir)?.let { invokeCallback.consume(it.psiListener) }
       }
       dir = dir.parent
