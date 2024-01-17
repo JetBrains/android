@@ -110,6 +110,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.math.sin
+import kotlin.time.Duration
 
 /**
  * Fake Screen Sharing Agent for use in tests.
@@ -441,9 +442,8 @@ class FakeScreenSharingAgent(
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextControlMessage(timeout: Long, unit: TimeUnit,
-                            filter: Predicate<ControlMessage> = defaultControlMessageFilter): ControlMessage {
-    val timeoutMillis = unit.toMillis(timeout)
+  fun getNextControlMessage(timeout: Duration, filter: Predicate<ControlMessage> = defaultControlMessageFilter): ControlMessage {
+    val timeoutMillis = timeout.inWholeMilliseconds
     val deadline = System.currentTimeMillis() + timeoutMillis
     var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
     while (waitUnit > 0) {

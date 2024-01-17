@@ -24,18 +24,16 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-
-@JvmSynthetic
-fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
-  waitForCondition(timeout.inWholeMicroseconds, TimeUnit.MICROSECONDS, condition)
-}
+import kotlin.time.toDuration
+import kotlin.time.toDurationUnit
 
 /**
  * Waits until the given condition is satisfied while processing events.
  */
+@JvmSynthetic
 @Throws(TimeoutException::class)
-fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-  val timeoutMillis = unit.toMillis(timeout)
+fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
+  val timeoutMillis = timeout.inWholeMilliseconds
   val deadline = System.currentTimeMillis() + timeoutMillis
   var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
   val isEdt = EDT.isCurrentThreadEdt()
@@ -50,6 +48,11 @@ fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
     waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
   }
   throw TimeoutException()
+}
+
+@Throws(TimeoutException::class)
+fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean) {
+  waitForCondition(timeout.toDuration(timeUnit.toDurationUnit()), condition)
 }
 
 /**

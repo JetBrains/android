@@ -29,7 +29,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Allows tests to create [EmulatorView]s connected to [FakeEmulator]s.
@@ -72,7 +72,7 @@ class EmulatorViewRule : TestRule {
     val emulators = catalog.updateNow().get()
     val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
     val view = EmulatorView(disposable, emulatorController, PRIMARY_DISPLAY_ID, null, true)
-    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return view
   }
 

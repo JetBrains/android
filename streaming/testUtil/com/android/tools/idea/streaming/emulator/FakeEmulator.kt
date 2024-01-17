@@ -116,6 +116,7 @@ import java.util.function.Predicate
 import javax.imageio.ImageIO
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -320,8 +321,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
-      grpcCallLog.get(timeout, unit, filter)
+  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+      grpcCallLog.get(timeout, filter)
 
   /**
    * Clears the gRPC call log.
@@ -847,17 +848,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     /** Completed or cancelled when the gRPC call is completed or cancelled. */
     val completion: SettableFuture<Unit> = SettableFuture.create()
 
-    fun waitForResponse(timeout: Long, unit: TimeUnit) {
-      responseMessageCounter.poll(timeout, unit)
+    fun waitForResponse(timeout: Duration) {
+      responseMessageCounter.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
     }
 
-    private fun waitForCompletion(timeout: Long, unit: TimeUnit) {
-      completion.get(timeout, unit)
+    private fun waitForCompletion(timeout: Duration) {
+      completion.get(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
     }
 
-    fun waitForCancellation(timeout: Long, unit: TimeUnit) {
+    fun waitForCancellation(timeout: Duration) {
       try {
-        waitForCompletion(timeout, unit)
+        waitForCompletion(timeout)
         fail("The $methodName call was not cancelled")
       }
       catch (_: CancellationException) {
@@ -872,7 +873,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @UiThread
     @Throws(TimeoutException::class)
-    fun getNextRequest(timeout: Long, unit: TimeUnit): MessageOrBuilder = requestMessages.get(timeout, unit)
+    fun getNextRequest(timeout: Duration): MessageOrBuilder = requestMessages.get(timeout)
 
     override fun toString(): String {
       return requestMessages.firstOrNull()?.let { "$methodName(${shortDebugString(it)})" } ?: methodName
@@ -1597,8 +1598,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @UiThread
     @Throws(TimeoutException::class)
-    private fun <T> LinkedBlockingDeque<T>.get(timeout: Long, unit: TimeUnit, filter: Predicate<T> = alwaysTrue()): T {
-      val timeoutMillis = unit.toMillis(timeout)
+    private fun <T> LinkedBlockingDeque<T>.get(timeout: Duration, filter: Predicate<T> = alwaysTrue()): T {
+      val timeoutMillis = timeout.inWholeMilliseconds
       val deadline = System.currentTimeMillis() + timeoutMillis
       var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
       while (waitUnit > 0) {

@@ -54,6 +54,9 @@ import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListCellRenderer
 import javax.swing.event.HyperlinkListener
+import kotlin.time.Duration
+import kotlin.time.toDuration
+import kotlin.time.toDurationUnit
 
 /**
  * A fake implementation of [JBPopupFactory] for testing.
@@ -107,10 +110,19 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
    * Type safety is the responsibility of the caller.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U {
-    waitForCondition(timeout, timeUnit) { popups.isNotEmpty() }
+  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Duration): U {
+    waitForCondition(timeout) { popups.isNotEmpty() }
     return popups.removeFirst() as U
   }
+
+  /**
+   * Returns the oldest popup that was created using this factory and removes it from the factory.
+   * If no popups have been created yet, waits for one to be created.
+   *
+   * Type safety is the responsibility of the caller.
+   */
+  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U =
+      getNextPopup(timeout.toDuration(timeUnit.toDurationUnit()))
 
   /**
    * Returns a balloon that has been created using this factory.

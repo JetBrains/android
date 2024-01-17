@@ -58,7 +58,7 @@ import org.mockito.Mockito.doReturn
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 @IgnoreWithCondition(reason = "b/156983404", condition = OnMac::class)
 @RunsInEdt
@@ -137,7 +137,7 @@ class FindEmulatorAndSetupRetentionTest {
     val emulators = RunningEmulatorCatalog.getInstance().updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
 
     val anActionEvent = AnActionEvent(null, dataContext,
                                       ActionPlaces.UNKNOWN, Presentation(),
@@ -153,9 +153,9 @@ class FindEmulatorAndSetupRetentionTest {
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5.seconds).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5.seconds).methodName)
       .matches("android.emulation.control.SnapshotService/LoadSnapshot")
   }
 
@@ -167,7 +167,7 @@ class FindEmulatorAndSetupRetentionTest {
     val emulators = RunningEmulatorCatalog.getInstance().updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
 
     val anActionEvent = AnActionEvent(null, dataContext,
                                       ActionPlaces.UNKNOWN, Presentation(),
@@ -184,9 +184,9 @@ class FindEmulatorAndSetupRetentionTest {
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5.seconds).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5.seconds).methodName)
       .matches("android.emulation.control.SnapshotService/LoadSnapshot")
   }
 
