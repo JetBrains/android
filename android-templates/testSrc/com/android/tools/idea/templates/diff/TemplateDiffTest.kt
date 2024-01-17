@@ -89,6 +89,17 @@ class TemplateDiffTest(private val testMode: TestMode) {
     private fun shouldGenerateGolden(): Boolean {
       return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
     }
+
+    /**
+     * Gets the system property for whether to fail the test suite on first error with "previous
+     * validation failed" or to run all of the validation tests. The former is enabled by default
+     * and could be more useful for people not expecting errors, since te full suite takes a long
+     * time (~45+ minutes) to run. The latter is more useful for people making large-scale changes
+     * who want to fix more errors at once.
+     */
+    private fun shouldFailEarly(): Boolean {
+      return !(System.getenv("RUN_FULL_VALIDATION")?.equals("true") ?: false)
+    }
   }
 
   @Before
@@ -99,7 +110,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
       System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
     )
 
-    assertFalse("Previous validation failed", validationFailed)
+    // By default, this makes the suite fail early if there is a validation error. If
+    // RUN_FULL_VALIDATION is set, then all validation is run, but golden generation is still
+    // cancelled
+    if (shouldFailEarly() || testMode == TestMode.GENERATING) {
+      assertFalse("Previous validation failed", validationFailed)
+    }
 
     println("Current test mode: $testMode")
     if (testMode != TestMode.DIFFING) {
