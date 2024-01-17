@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.atomic.AtomicLong
 import net.jcip.annotations.ThreadSafe
@@ -26,6 +27,7 @@ import net.jcip.annotations.ThreadSafe
  * caches, etc.
  */
 @ThreadSafe
+@Service(Service.Level.APP)
 class ViewBindingEnabledTrackingService : ModificationTracker {
   companion object {
     @JvmStatic

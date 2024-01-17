@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.util.ModificationTracker;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * This service implements the {@link ModificationTracker} interface, which is used by IntelliJ
  * for knowing* when to clear caches, etc., to expose the counter value.
  */
+@Service(Service.Level.APP)
 public final class DataBindingModeTrackingService implements ModificationTracker {
   public static DataBindingModeTrackingService getInstance() {
     return ApplicationManager.getApplication().getService(DataBindingModeTrackingService.class);
