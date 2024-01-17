@@ -18,6 +18,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
@@ -214,6 +215,7 @@ fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> 
 }
 
 /** Obtain the [DesignSurface] associated to a [FileEditor] if any. */
+@UiThread
 fun FileEditor.getDesignSurface(): DesignSurface<*>? =
   when (this) {
     is TextEditorWithPreview -> previewEditor.getDesignSurface()

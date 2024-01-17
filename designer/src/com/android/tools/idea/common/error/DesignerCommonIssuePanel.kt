@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.google.common.annotations.VisibleForTesting
@@ -55,6 +59,8 @@ import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
 
@@ -74,10 +80,11 @@ class DesignerCommonIssuePanel(
   private val tabId: String,
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
-  private val emptyMessageProvider: () -> String,
+  @WorkerThread private val emptyMessageProvider: () -> String,
   private val onContentPopulated: (Content) -> Unit = {}
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
+  private val coroutineScope = AndroidCoroutineScope(this)
   private val issueListeners = mutableListOf<IssueListener>()
 
   var sidePanelVisible =
@@ -253,9 +260,11 @@ class DesignerCommonIssuePanel(
 
   private fun updateEmptyMessageIfNeed() {
     if (issueProvider.getFilteredIssues().isEmpty()) {
-      val newEmptyString = emptyMessageProvider()
-      if (newEmptyString != tree.emptyText.text) {
-        tree.emptyText.text = newEmptyString
+      coroutineScope.launch(workerThread) {
+        val newEmptyString = emptyMessageProvider()
+        if (newEmptyString != tree.emptyText.text) {
+          withContext(uiThread) { tree.emptyText.text = newEmptyString }
+        }
       }
     }
   }

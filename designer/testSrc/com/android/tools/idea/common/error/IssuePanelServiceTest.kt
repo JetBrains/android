@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.TestToolWindow
@@ -31,10 +32,13 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.waitUntil
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -70,10 +74,12 @@ class IssuePanelServiceTest {
 
   @Test
   fun testInitWithOtherFile() {
-    val file = rule.fixture.addFileToProject("/src/file.kt", "")
-    runInEdtAndWait { rule.fixture.openFileInEditor(file.virtualFile) }
-    assertEquals("Current File", toolWindow.contentManager.selectedContent!!.displayName)
-    assertEquals(1, toolWindow.contentManager.contents.size)
+    runBlocking {
+      val file = rule.fixture.addFileToProject("/src/file.kt", "")
+      withContext(uiThread) { rule.fixture.openFileInEditor(file.virtualFile) }
+      waitUntil(timeout = 1.seconds) { toolWindow.contentManager.contents.size == 1 }
+      assertEquals("Current File", toolWindow.contentManager.selectedContent!!.displayName)
+    }
   }
 
   @Test
@@ -151,35 +157,32 @@ class IssuePanelServiceTest {
 
   @Test
   fun testTabName() {
-    rule.projectRule.initAndroid(true)
-    val messageBus = rule.project.messageBus
-    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
-    val layoutFile = runInEdtAndGet {
-      val file =
-        rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
-      rule.fixture.openFileInEditor(file)
-      service.showSharedIssuePanel()
-      file
-    }
-    val issueSource = IssueSourceWithFile(layoutFile)
-    val content = toolWindow.contentManager.selectedContent!!
-    val source = Any()
+    runBlocking {
+      rule.projectRule.initAndroid(true)
+      val messageBus = rule.project.messageBus
+      val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
+      val layoutFile =
+        withContext(uiThread) {
+          val file =
+            rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
+          rule.fixture.openFileInEditor(file)
+          service.showSharedIssuePanel()
+          file
+        }
+      val issueSource = IssueSourceWithFile(layoutFile)
+      val content = toolWindow.contentManager.selectedContent!!
+      val source = Any()
 
-    // The tab name is updated in EDT thread, we need to wait for updating
-    runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
-    }
+      waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle() == content.displayName }
 
-    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
-
-    runInEdtAndWait {
       messageBus
         .syncPublisher(IssueProviderListener.TOPIC)
         .issueUpdated(source, listOf(TestIssue(source = issueSource)))
-    }
-    assertEquals("Layout and Qualifiers".toTabTitle(1), content.displayName)
+      waitUntil(timeout = 1.seconds) {
+        "Layout and Qualifiers".toTabTitle(1) == content.displayName
+      }
 
-    runInEdtAndWait {
       messageBus
         .syncPublisher(IssueProviderListener.TOPIC)
         .issueUpdated(
@@ -189,13 +192,13 @@ class IssuePanelServiceTest {
             TestIssue(summary = "2", source = issueSource)
           )
         )
-    }
-    assertEquals("Layout and Qualifiers".toTabTitle(2), content.displayName)
+      waitUntil(timeout = 1.seconds) {
+        "Layout and Qualifiers".toTabTitle(2) == content.displayName
+      }
 
-    runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
+      waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle() == content.displayName }
     }
-    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
   }
 
   /**

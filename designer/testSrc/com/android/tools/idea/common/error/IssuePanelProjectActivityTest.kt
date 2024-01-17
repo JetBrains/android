@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.TestToolWindowManager
@@ -23,7 +24,10 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.waitUntil
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -51,32 +55,33 @@ class IssuePanelProjectActivityTest {
   }
 
   /** Regression test for b/235316289. */
-  @RunsInEdt
   @Test
   fun testHavingIssuePanelEvenThereIsNoDesignSurface() {
-    var called = 0
-    rule.project.messageBus
-      .connect()
-      .subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
+    runBlocking {
+      var called = 0
+      rule.project.messageBus
+        .connect()
+        .subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
 
-    // Before calling IssuePanelStartupActivity().setupIssuePanel(), there is only "Current File"
-    // tab.
-    assertEquals(1, toolWindow.contentManager.contentCount)
+      // Before calling IssuePanelStartupActivity().setupIssuePanel(), there is only "Current File"
+      // tab.
+      assertEquals(1, toolWindow.contentManager.contentCount)
 
-    IssuePanelProjectActivity().setupIssuePanel(rule.project)
+      IssuePanelProjectActivity().setupIssuePanel(rule.project)
 
-    val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-    rule.fixture.openFileInEditor(layoutFile.virtualFile)
+      val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+      withContext(uiThread) { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
 
-    // The instance of IssuePanelService should be setup already because of
-    // IssuePanelStartupActivity.
-    assertEquals(2, toolWindow.contentManager.contentCount)
-    assertEquals(
-      "Layout and Qualifiers".toTabTitle(),
-      toolWindow.contentManager.getContent(1)!!.displayName
-    )
+      // The instance of IssuePanelService should be setup already because of
+      // IssuePanelStartupActivity.
+      waitUntil(timeout = 1.seconds) { toolWindow.contentManager.contentCount == 2 }
+      assertEquals(
+        "Layout and Qualifiers".toTabTitle(),
+        toolWindow.contentManager.getContent(1)!!.displayName
+      )
 
-    // Verify the issue panel exists even there is no IssueModel created.
-    assertEquals(0, called)
+      // Verify the issue panel exists even there is no IssueModel created.
+      assertEquals(0, called)
+    }
   }
 }
