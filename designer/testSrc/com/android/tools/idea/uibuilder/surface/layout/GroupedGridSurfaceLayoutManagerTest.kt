@@ -611,15 +611,6 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertNotEquals(scaledSize1, scaledSize2)
       assertNotEquals(scaledSize1, scaledSize3)
     }
-
-    run {
-      // Even the scale are different, the preferred size should be same.
-      val scaledSize1 = manager.getPreferredSize(contents1, width, height, null)
-      val scaledSize2 = manager.getPreferredSize(contents2, width, height, null)
-      val scaledSize3 = manager.getPreferredSize(contents3, width, height, null)
-      assertEquals(scaledSize1, scaledSize2)
-      assertEquals(scaledSize1, scaledSize3)
-    }
   }
 
   @Test

@@ -53,21 +53,6 @@ open class SingleDirectionLayoutManager(
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ): Dimension {
-    return getSize(
-      content,
-      PositionableContent::contentSize,
-      availableWidth,
-      availableHeight,
-      dimension
-    )
-  }
-
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,

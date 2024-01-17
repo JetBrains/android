@@ -86,27 +86,6 @@ fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
 interface SurfaceLayoutManager {
 
   /**
-   * Get the total content size of [PositionableContent]s when available display size is
-   * [availableWidth] x [availableHeight]. The size is for containing the raw size of
-   * [PositionableContent]s. It doesn't consider the zoom level of the given [PositionableContent]s.
-   *
-   * @param content all [PositionableContent]s to be measured.
-   * @param availableWidth the width of current visible area, which doesn't include the hidden part
-   *   in the scroll view.
-   * @param availableHeight the height of current visible area, which doesn't include the hidden
-   *   part in the scroll view.
-   * @param dimension used to store the result size. The new [Dimension] instance is created if the
-   *   given instance is null.
-   * @see [getRequiredSize]
-   */
-  fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ): Dimension
-
-  /**
    * Get the total content size of the given [PositionableContent]s when available display size is
    * [availableWidth] x [availableHeight]. Not like [getPreferredSize], this considers the current
    * zoom level of the given [PositionableContent]s.

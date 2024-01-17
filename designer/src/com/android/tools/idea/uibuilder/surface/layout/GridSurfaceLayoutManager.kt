@@ -47,13 +47,6 @@ open class GridSurfaceLayoutManager(
 
   private var fitIntoCache: Pair<FitIntoScaleData, Double>? = null
 
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ) = getSize(content, PositionableContent::contentSize, { 1.0 }, availableWidth, dimension)
-
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,

@@ -31,15 +31,6 @@ abstract class GroupedSurfaceLayoutManager(
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
 ) : SurfaceLayoutManager {
 
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ): Dimension {
-    return getSize(content, PositionableContent::contentSize, { 1.0 }, availableWidth, dimension)
-  }
-
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
