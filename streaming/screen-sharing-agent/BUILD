@@ -26,6 +26,7 @@ cc_library(
 cc_binary(
     name = "screen-sharing-agent.so",
     linkopts = ANDROID_LINKOPTS + [
+        "-laaudio",
         "-landroid",
         "-lmediandk",
     ],
