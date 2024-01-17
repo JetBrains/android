@@ -30,13 +30,19 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Consumer
 import java.io.IOException
 import java.util.concurrent.ExecutionException
@@ -68,6 +74,10 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
           }
         },
       )
+
+    EditorFactory.getInstance()
+      .eventMulticaster
+      .addDocumentListener(ResourceFolderDocumentListener(project, this), this)
   }
 
   operator fun get(facet: AndroidFacet, dir: VirtualFile) =
@@ -270,3 +280,30 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     }
   }
 }
+
+private class ResourceFolderDocumentListener(private val project: Project, private val registry: ResourceFolderRegistry) :
+  DocumentListener {
+
+  override fun documentChanged(event: DocumentEvent) {
+    // Note that event may arrive from any project, not only from the project parameter.
+    // The project parameter can be temporarily disposed in light tests.
+    if (project.isDisposed) return
+
+    val document = event.document
+    if (PsiDocumentManager.getInstance(project).getCachedPsiFile(document) == null) {
+      val virtualFile = FileDocumentManager.getInstance().getFile(document) ?: return
+      if (virtualFile is LightVirtualFile || !AndroidFileChangeListener.isRelevantFile(virtualFile)) return
+
+      runInWriteAction {
+        registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
+      }
+    }
+  }
+
+  private fun runInWriteAction(runnable: Runnable) {
+    val application = ApplicationManager.getApplication()
+    if (application.isWriteAccessAllowed) runnable.run()
+    else application.invokeLater { application.runWriteAction(runnable) }
+  }
+}
+

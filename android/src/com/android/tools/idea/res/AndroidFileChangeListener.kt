@@ -98,12 +98,6 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
   private fun onProjectOpened() {
     PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(project), this)
-    EditorFactory.getInstance()
-      .eventMulticaster
-      .addDocumentListener(
-        MyDocumentListener(project, ResourceFolderRegistry.getInstance(project)),
-        this,
-      )
 
     val connection = project.messageBus.connect(this)
     connection.subscribe(
@@ -207,37 +201,6 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     FileDocumentManagerListener {
     override fun fileWithNoDocumentChanged(file: VirtualFile) {
       registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
-    }
-  }
-
-  internal class MyDocumentListener
-  internal constructor(private val project: Project, private val registry: ResourceFolderRegistry) :
-    DocumentListener {
-    private val fileDocumentManager = FileDocumentManager.getInstance()
-    private val psiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(project)
-
-    override fun documentChanged(event: DocumentEvent) {
-      // Note that event may arrive from any project, not only from the project parameter.
-      // The project parameter can be temporarily disposed in light tests.
-      if (project.isDisposed) return
-
-      val document = event.document
-      if (psiDocumentManager.getCachedPsiFile(document) == null) {
-        val virtualFile = fileDocumentManager.getFile(document) ?: return
-        if (virtualFile is LightVirtualFile || !isRelevantFile(virtualFile)) return
-        runInWriteAction {
-          registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
-        }
-      }
-    }
-
-    private fun runInWriteAction(runnable: Runnable) {
-      val application = ApplicationManager.getApplication()
-      if (application.isWriteAccessAllowed) {
-        runnable.run()
-      } else {
-        application.invokeLater { application.runWriteAction(runnable) }
-      }
     }
   }
 
