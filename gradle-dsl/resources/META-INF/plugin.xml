@@ -12,10 +12,7 @@
 
   <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-  <dependencies>
-    <plugin id="com.intellij.gradle"/>
-  </dependencies>
-
+  <depends>com.intellij.gradle</depends>
   <depends optional="true" config-file="gradle-dsl-groovy-support.xml">org.intellij.groovy</depends>
   <depends optional="true" config-file="gradle-dsl-kotlin-support.xml">org.jetbrains.kotlin</depends>
   <depends optional="true" config-file="gradle-dsl-toml-support.xml">org.toml.lang</depends>
