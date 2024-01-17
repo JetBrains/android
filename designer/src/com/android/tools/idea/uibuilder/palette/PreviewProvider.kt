@@ -24,6 +24,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
@@ -160,7 +161,7 @@ class PreviewProvider(
   }
 
   private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
-    val module = configuration.module ?: return CompletableFuture.completedFuture(null)
+    val module = ConfigurationManager.getFromConfiguration(configuration).module
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
     return renderService.taskBuilderWithHtmlLogger(facet, configuration).build()

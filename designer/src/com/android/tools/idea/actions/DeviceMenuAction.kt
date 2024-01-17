@@ -555,7 +555,8 @@ open class SetDeviceAction(
     // (its default) unless of course there is a different layout that is the best fit for that
     // device.
     val prevDevice = configuration.cachedDevice
-    val projectState = (configuration.settings as ConfigurationManager).stateManager.projectState
+    val projectState =
+      ConfigurationManager.getFromConfiguration(configuration).stateManager.projectState
     val lastSelectedNonWearStateName = projectState.nonWearDeviceLastSelectedStateName
     val newDefaultStateName: String = device.defaultState.name
     val wantedState: State? = lastSelectedNonWearStateName?.let { getMatchingState(device, it) }

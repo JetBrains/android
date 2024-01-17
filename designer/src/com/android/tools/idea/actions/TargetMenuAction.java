@@ -186,7 +186,7 @@ public class TargetMenuAction extends DropDownAction {
       return true;
     }
 
-    ConfigurationManager settings = (ConfigurationManager)configuration.getSettings();
+    ConfigurationManager settings = ConfigurationManager.getFromConfiguration(configuration);
     add(new TogglePickBestAction(settings));
     addSeparator();
 
@@ -314,7 +314,7 @@ public class TargetMenuAction extends DropDownAction {
       }
       Configuration config = Iterables.getFirst(configurations, null);
       if (config != null) {
-        ConfigurationManager configManager = (ConfigurationManager)config.getSettings();
+        ConfigurationManager configManager = ConfigurationManager.getFromConfiguration(config);
         configManager.getStateManager().getProjectState().setPickTarget(false);
       }
       Toggleable.setSelected(e.getPresentation(), true);

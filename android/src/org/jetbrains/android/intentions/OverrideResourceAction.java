@@ -400,7 +400,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     else {
       // First create a compatible configuration based on the current configuration
       if (configuration != null) {
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(configuration.getModule());
+        ConfigurationManager configurationManager = ConfigurationManager.getFromConfiguration(configuration);
         configurationManager.createSimilar(newFile, file);
       }
 

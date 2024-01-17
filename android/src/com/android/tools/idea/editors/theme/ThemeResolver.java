@@ -35,6 +35,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationModelModule;
 import com.android.tools.configurations.ResourceResolverCache;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.res.ResourceNamespacing;
@@ -168,7 +169,7 @@ public class ThemeResolver {
    */
   @NotNull
   private List<Pair<StyleResourceValue, Module>> resolveLocallyDefinedModuleThemes() {
-    Module module = myConfiguration.getModule();
+    Module module = ConfigurationManager.getFromConfiguration(myConfiguration).getModule();
     ConfigurationModelModule configModule = myConfiguration.getConfigModule();
     List<Pair<StyleResourceValue, Module>> result = new ArrayList<>();
 

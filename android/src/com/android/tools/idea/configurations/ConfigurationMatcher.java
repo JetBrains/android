@@ -659,7 +659,7 @@ public class ConfigurationMatcher {
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && file.getFileType() == XmlFileType.INSTANCE
             && ResourceFilesUtil.getFolderType(myFile) == ResourceFilesUtil.getFolderType(file)) {
-          Configuration configuration = ConfigurationManager.getOrCreateInstance(myConfiguration.getModule()).getConfiguration(file);
+          Configuration configuration = myConfiguration.getSettings().getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
             if (fullConfig.equals(match.testConfig)) {

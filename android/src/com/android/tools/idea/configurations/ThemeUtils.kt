@@ -181,7 +181,7 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
     module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
 
   override fun getDefaultTheme(configuration: Configuration): String {
-    val module = configuration.module
+    val module = ConfigurationManager.getFromConfiguration(configuration).module
 
     val modificationTracker = MergedManifestModificationTracker.getInstance(module)
     val provider = CachedValueProvider {

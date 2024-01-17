@@ -20,7 +20,6 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.module.Module
 
 /** Provides default values for [Configuration] fields and construction. */
 interface ConfigurationSettings {
@@ -39,9 +38,6 @@ interface ConfigurationSettings {
   val configModule: ConfigurationModelModule
 
   val resolverCache: ResourceResolverCache
-
-  @Deprecated("Module should not be used outside of studio. We should replace all Module usage with ConfigurationModelModule.")
-  val module: Module
 
   val localesInProject: ImmutableList<Locale>
 

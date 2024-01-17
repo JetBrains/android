@@ -350,7 +350,6 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return false;
   }
 
-  @Override
   @NotNull
   public final Module getModule() {
     return myModule;
@@ -655,5 +654,15 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
       .filter(Objects::nonNull)
       .map(this::createDeviceForAvd)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * All {@link Configuration}s in studio has {@link ConfigurationManager} as {@link Configuration#getSettings()} since this is the only
+   * implementation, so this is a safe cast. We can't make {@link ConfigurationManager} as the return type of
+   * {@link Configuration#getSettings()} because {@link Configuration} is also used outside of studio.
+   */
+  @NotNull
+  public static ConfigurationManager getFromConfiguration(@NotNull Configuration configuration) {
+    return (ConfigurationManager)configuration.getSettings();
   }
 }

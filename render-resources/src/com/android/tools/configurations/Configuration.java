@@ -62,7 +62,6 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.MoreObjects;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.UserDataHolderBase;
 import java.awt.image.BufferedImage;
@@ -1205,11 +1204,6 @@ public class Configuration extends UserDataHolderBase implements ModificationTra
       .add("uimode", myUiMode)
       .add("nightmode", myNightMode)
       .toString();
-  }
-
-  @NotNull
-  public Module getModule() {
-    return mySettings.getModule();
   }
 
   @NotNull

@@ -57,7 +57,7 @@ class ConfigurationForFile(
     for (device in mySettings.recentDevices) {
       val finalStateName = stateName ?: device.defaultState.name
       val selectedState: State = device.getDeviceState(finalStateName)!!
-      val module = module
+      val module = settings.module
       val currentConfig = getFolderConfig(mySettings.configModule, selectedState, locale, target) ?: continue
       if (!myEditedConfig.isMatchFor(currentConfig)) continue
       val repositoryManager = mySettings.configModule.resourceRepositoryManager ?: continue
