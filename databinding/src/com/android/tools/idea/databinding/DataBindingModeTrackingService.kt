@@ -17,18 +17,19 @@ package com.android.tools.idea.databinding
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
  * Service that owns an atomic counter for how many times the data binding setting is changed. This
- * service implements the [com.intellij.openapi.util.ModificationTracker] interface, which is
- * used by IntelliJ for knowing when to clear caches, etc., to expose the counter value.
+ * service implements the [com.intellij.openapi.util.ModificationTracker] interface, which is used
+ * by IntelliJ for knowing when to clear caches, etc., to expose the counter value.
  */
 @Service(Service.Level.APP)
-object DataBindingModeTrackingService : SimpleModificationTracker() {
-  @JvmStatic
-  val instance: DataBindingModeTrackingService
-    get() = ApplicationManager.getApplication().getService(
-      DataBindingModeTrackingService::class.java
-    )
+class DataBindingModeTrackingService : SimpleModificationTracker() {
+  companion object {
+    @JvmStatic
+    fun getInstance(): DataBindingModeTrackingService =
+      ApplicationManager.getApplication().service()
+  }
 }
