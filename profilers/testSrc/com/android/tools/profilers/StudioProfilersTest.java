@@ -40,6 +40,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler;
 import com.google.common.collect.ImmutableList;
@@ -1709,8 +1710,8 @@ public final class StudioProfilersTest {
     // Setup of conditions to allow for startup task to be performed. This includes enabling the Task-Based UX feature flag, the startup
     // task feature, setting a selected task handler (and supplying its corresponding task handler), and providing a preferred device.
     myIdeProfilerServices.enableTaskBasedUx(true);
-    myProfilers.getTaskHomeTabModel().setIsProfilingFromProcessStart(true);
-    myProfilers.getTaskHomeTabModel().getTaskGridModel().onTaskSelection(ProfilerTaskType.SYSTEM_TRACE);
+    myProfilers.getTaskHomeTabModel().setSelectionStateOnTaskEnter(
+      new TaskHomeTabModel.SelectionStateOnTaskEnter(true, ProfilerTaskType.SYSTEM_TRACE));
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(), false));
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);

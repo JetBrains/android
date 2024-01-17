@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,16 +34,24 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   private val _isProfilingFromProcessStart = MutableStateFlow(false)
   val isProfilingFromProcessStart = _isProfilingFromProcessStart.asStateFlow()
 
+  var selectionStateOnTaskEnter = SelectionStateOnTaskEnter(false, ProfilerTaskType.UNSPECIFIED)
+
   @VisibleForTesting
   val processListModel = ProcessListModel(profilers, isProfilingFromProcessStart, taskGridModel::resetTaskSelection)
 
   fun setIsProfilingFromProcessStart(isProfilingFromProcessStart: Boolean) {
-    if (!isProfilingFromProcessStart) {
-      profilers.ideServices.disableStartupTasks()
-    }
     _isProfilingFromProcessStart.value = isProfilingFromProcessStart
     // Task selection should be reset when toggling the startup tasks feature as the task enablement criteria changes.
     taskGridModel.resetTaskSelection()
+  }
+
+  data class SelectionStateOnTaskEnter(
+    val isStartupTaskEnabled: Boolean,
+    val selectedStartupTaskType: ProfilerTaskType
+  )
+
+  private fun setSelectionState() {
+    selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_isProfilingFromProcessStart.value, selectedTaskType)
   }
 
   @VisibleForTesting
@@ -51,11 +60,17 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
   override fun onEnterTaskButtonClick() {
+    // Save snapshot of the task home selections made just in case user changes any selection in between enter task button click and usage
+    // of the selection state.
+    setSelectionState()
+
     if (_isProfilingFromProcessStart.value) {
       val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
       profilers.ideServices.buildAndLaunchAction(prefersProfileable)
     }
     else {
+      // If the user clicks to enter the task with startup profiling disabled, startup config selections should be reset.
+      profilers.ideServices.disableStartupTasks()
       profilers.setProcess(selectedDevice, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
     }
   }

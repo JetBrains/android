@@ -539,8 +539,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
 
         if (isTaskBasedUXEnabled) {
-          boolean isProfilingFromProcessStart = getTaskHomeTabModel().isProfilingFromProcessStart().getValue();
-          ProfilerTaskType selectedTaskType = getTaskHomeTabModel().getSelectedTaskType();
+          TaskHomeTabModel.SelectionStateOnTaskEnter selectionStateOnTaskEnter = getTaskHomeTabModel().getSelectionStateOnTaskEnter();
+          boolean isProfilingFromProcessStart = selectionStateOnTaskEnter.isStartupTaskEnabled();
+          ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
           // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
           // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
           // setProcess with the same parameters are harmless, as setProcess prevents starting a session/task with the same device and
