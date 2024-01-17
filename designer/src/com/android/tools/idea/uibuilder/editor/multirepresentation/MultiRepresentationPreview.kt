@@ -42,8 +42,10 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -276,7 +278,11 @@ open class MultiRepresentationPreview(
       }
       shortcutsApplicableComponent?.let {
         launch(uiThread) {
-          if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
+          SlowOperations.allowSlowOperations(
+            ThrowableComputable {
+              if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
+            }
+          )
         }
       }
       newRepresentations[provider.displayName] = representation
