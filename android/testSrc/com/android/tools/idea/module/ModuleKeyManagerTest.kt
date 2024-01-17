@@ -1,4 +1,4 @@
-package com.android.tools.module
+package com.android.tools.idea.module
 
 import com.android.testutils.MockitoKt.mock
 import com.intellij.openapi.module.Module

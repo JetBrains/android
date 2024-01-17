@@ -66,7 +66,7 @@ import com.android.resources.base.ResourceSourceFile;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.util.FileExtensions;
-import com.android.tools.module.ModuleKeyManager;
+import com.android.tools.idea.module.ModuleKeyManager;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.Base128InputStream;

@@ -26,7 +26,7 @@ import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.module.ModuleKeyManager
+import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.CompatibilityRenderTarget

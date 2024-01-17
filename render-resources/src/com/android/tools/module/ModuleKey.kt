@@ -15,8 +15,6 @@
  */
 package com.android.tools.module
 
-import com.intellij.openapi.module.Module
-
 /**
  * A key to use instead of [Module] avoiding direct references from Layoutlib.
  */

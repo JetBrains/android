@@ -25,7 +25,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.module.ModuleKeyManager
+import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.EnvironmentContext
