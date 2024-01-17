@@ -17,28 +17,16 @@ package com.android.tools.idea.databinding;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.util.ModificationTracker;
-import java.util.concurrent.atomic.AtomicLong;
+import com.intellij.openapi.util.SimpleModificationTracker;
 
 /**
- * Service that owns an atomic counter for how many times the data binding setting is changed.
- * This service implements the {@link ModificationTracker} interface, which is used by IntelliJ
- * for knowing* when to clear caches, etc., to expose the counter value.
+ * Service that owns an atomic counter for how many times the data binding setting is changed. This
+ * service implements the {@link com.intellij.openapi.util.ModificationTracker} interface, which is
+ * used by IntelliJ for knowing when to clear caches, etc., to expose the counter value.
  */
 @Service(Service.Level.APP)
-public final class DataBindingModeTrackingService implements ModificationTracker {
+public final class DataBindingModeTrackingService extends SimpleModificationTracker {
   public static DataBindingModeTrackingService getInstance() {
     return ApplicationManager.getApplication().getService(DataBindingModeTrackingService.class);
-  }
-
-  private final AtomicLong myEnabledModificationCount = new AtomicLong(0);
-
-  public void incrementModificationCount() {
-    myEnabledModificationCount.incrementAndGet();
-  }
-
-  @Override
-  public long getModificationCount() {
-    return myEnabledModificationCount.longValue();
   }
 }
