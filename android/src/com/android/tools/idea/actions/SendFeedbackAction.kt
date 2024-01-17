@@ -33,7 +33,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.progress.withBackgroundProgress
-import com.intellij.platform.util.progress.indeterminateStep
+import com.intellij.platform.util.progress.reportSequentialProgress
 import com.intellij.util.io.URLUtil
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -73,17 +73,19 @@ class SendFeedbackAction : AnAction(), DumbAware {
       if (project == null) return
       service<ReportFeedbackService>().coroutineScope.launch {
         withBackgroundProgress(project, IdeBundle.message("progress.title.collecting.data"), true) {
-          indeterminateStep(IdeBundle.message("progress.text.collecting.feedback.information")) {
-            val applicationInfo = ApplicationInfoEx.getInstanceEx()
-            var feedbackUrl = if (StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
-            ) newFeedbackUrl
-            else applicationInfo.getFeedbackUrl()
+          reportSequentialProgress { reporter ->
+            reporter.indeterminateStep(IdeBundle.message("progress.text.collecting.feedback.information")) {
+              val applicationInfo = ApplicationInfoEx.getInstanceEx()
+              var feedbackUrl = if (StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
+              ) newFeedbackUrl
+              else applicationInfo.getFeedbackUrl()
 
-            val version = getVersion(applicationInfo)
-            feedbackUrl = feedbackUrl.replace("\$STUDIO_VERSION", version)
+              val version = getVersion(applicationInfo)
+              feedbackUrl = feedbackUrl.replace("\$STUDIO_VERSION", version)
 
-            val description = getDescription(project)
-            submit(project, feedbackUrl, description + extraDescriptionDetails)
+              val description = getDescription(project)
+              submit(project, feedbackUrl, description + extraDescriptionDetails)
+            }
           }
         }
       }
