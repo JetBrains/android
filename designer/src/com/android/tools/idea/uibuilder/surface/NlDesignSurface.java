@@ -913,8 +913,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     // If there is no content, use 100% as zoom-to-fit level.
     double scale = positionableContents.isEmpty() ? 1.0 :
                    ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-                     .getLayoutManager()
-                     .getFitIntoScale(getPositionableContent(), extent.width, extent.height);
+                     .getFitIntoScale(getPositionableContent(), extent);
 
     return Math.min(scale, myMaxFitIntoScale);
   }

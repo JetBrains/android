@@ -44,6 +44,14 @@ class NlDesignSurfacePositionableContentLayoutManager(
     )
   }
 
+  /**
+   * Get the fit into scale value which can display all the [PositionableContent] in the given
+   * [availableSize].
+   */
+  fun getFitIntoScale(content: Collection<PositionableContent>, availableSize: Dimension): Double {
+    return layoutManager.getFitIntoScale(content, availableSize.width, availableSize.height)
+  }
+
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
