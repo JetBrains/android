@@ -1391,6 +1391,11 @@
     <option name="of" hit="Maximum length of synchronized clipboard text:" />
     <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
     <option name="text" hit="Maximum length of synchronized clipboard text:" />
+    <option name="audio" hit="Redirect audio from local devices" />
+    <option name="devices" hit="Redirect audio from local devices" />
+    <option name="from" hit="Redirect audio from local devices" />
+    <option name="local" hit="Redirect audio from local devices" />
+    <option name="redirect" hit="Redirect audio from local devices" />
     <option name="clipboard" hit="Synchronize clipboard" />
     <option name="synchronize" hit="Synchronize clipboard" />
     <option name="device" hit="Turn off device display while mirroring" />
