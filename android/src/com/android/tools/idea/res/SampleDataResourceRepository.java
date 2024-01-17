@@ -78,7 +78,7 @@ final class SampleDataResourceRepository extends LocalResourceRepository<Virtual
     myNamespace = repositoryManager.getNamespace();
     loadItems();
 
-    SampleDataListener.ensureSubscribed(androidFacet.getModule().getProject());
+    SampleDataListener.getInstance(androidFacet.getModule().getProject()).ensureSubscribed();
   }
 
   @Override

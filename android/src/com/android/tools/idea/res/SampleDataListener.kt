@@ -17,11 +17,12 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.SampleDataListener.Companion.ensureSubscribed
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -44,33 +45,18 @@ import org.jetbrains.android.facet.AndroidFacet
  * When a [SampleDataResourceRepository] is created, it calls [ensureSubscribed] to make sure that
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
+@Service(Service.Level.PROJECT)
 class SampleDataListener(project: Project) :
   PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
-
-  companion object {
-    private val LOG = Logger.getInstance(SampleDataListener::class.java)
-
-    @JvmStatic
-    fun ensureSubscribed(project: Project) {
-      project.getService(Subscriber::class.java)!!.ensureSubscribed()
-    }
-  }
-
-  /**
-   * Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS
-   * and PSI changes.
-   */
-  @Service(Service.Level.PROJECT)
-  class Subscriber(val project: Project) :
-    LazyFileListenerSubscriber<SampleDataListener>(
-      SampleDataListener(project),
-      AndroidPluginDisposable.getProjectInstance(project)
-    ) {
-
+  val subscriber = object: LazyFileListenerSubscriber<SampleDataListener>(this, AndroidPluginDisposable.getProjectInstance(project)) {
     override fun subscribe() {
       VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
       AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
     }
+  }
+
+  fun ensureSubscribed() {
+    subscriber.ensureSubscribed()
   }
 
   /**
@@ -126,6 +112,13 @@ class SampleDataListener(project: Project) :
   override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
 
   override fun propertyChanged(event: PsiTreeChangeEvent) {}
+
+  companion object {
+    private val LOG = Logger.getInstance(SampleDataListener::class.java)
+
+    @JvmStatic
+    fun getInstance(project: Project): SampleDataListener = project.service()
+  }
 }
 
 /**
