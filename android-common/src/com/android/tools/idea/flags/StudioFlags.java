@@ -1736,9 +1736,15 @@ public final class StudioFlags {
                     ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
-    Flag.create(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
-                "Enable sending inline code completion metrics to the AIDA CES service",
-                "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
+                    "Enable sending inline code completion metrics to the AIDA CES service",
+                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
+                    "Enable sending additional file context with completion requests",
+                    "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
+                    false);
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
