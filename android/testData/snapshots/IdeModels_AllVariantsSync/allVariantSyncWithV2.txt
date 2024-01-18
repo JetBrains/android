@@ -150,6 +150,7 @@ BuildTypes
         Name                          : debug
         IsDebuggable                  : true
         IsJniDebuggable               : false
+        IsPseudoLocalesEnabled        : true
         IsRenderscriptDebuggable      : false
         RenderscriptOptimLevel        : 3
         IsMinifyEnabled               : false
@@ -205,6 +206,7 @@ BuildTypes
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         IsDebuggable                  : false
         IsJniDebuggable               : false
+        IsPseudoLocalesEnabled        : false
         IsRenderscriptDebuggable      : false
         RenderscriptOptimLevel        : 2
         IsMinifyEnabled               : false
@@ -241,6 +243,7 @@ BuildTypes
         VersionNameSuffix             : vnsSpecial
         IsDebuggable                  : false
         IsJniDebuggable               : false
+        IsPseudoLocalesEnabled        : false
         IsRenderscriptDebuggable      : false
         RenderscriptOptimLevel        : 3
         IsMinifyEnabled               : false

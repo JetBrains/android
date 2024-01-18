@@ -391,6 +391,7 @@ internal fun modelCacheV2Impl(
       multiDexEnabled = buildType.multiDexEnabled,
       isDebuggable = buildType.isDebuggable,
       isJniDebuggable = buildType.isJniDebuggable,
+      isPseudoLocalesEnabled = buildType.isPseudoLocalesEnabled,
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,

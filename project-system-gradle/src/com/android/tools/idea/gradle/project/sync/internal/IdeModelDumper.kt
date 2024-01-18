@@ -642,6 +642,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         dump(ideBuildTypeContainer.buildType as IdeBaseConfig)
         prop("IsDebuggable") { ideBuildTypeContainer.buildType.isDebuggable.toString() }
         prop("IsJniDebuggable") { ideBuildTypeContainer.buildType.isJniDebuggable.toString() }
+        prop("IsPseudoLocalesEnabled") { ideBuildTypeContainer.buildType.isPseudoLocalesEnabled.toString() }
         prop("IsRenderscriptDebuggable") { ideBuildTypeContainer.buildType.isRenderscriptDebuggable.toString() }
         prop("RenderscriptOptimLevel") { ideBuildTypeContainer.buildType.renderscriptOptimLevel.toString() }
         prop("IsMinifyEnabled") { ideBuildTypeContainer.buildType.isMinifyEnabled.toString() }

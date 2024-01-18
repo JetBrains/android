@@ -56,6 +56,9 @@ android {
             setMatchingFallbacks(listOf("release", "debug"))
             versionNameSuffix = "vnsSpecial"
         }
+        debug {
+            isPseudoLocalesEnabled = true
+        }
     }
     flavorDimensions("foo", "bar")
     productFlavors {

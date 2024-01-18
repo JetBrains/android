@@ -271,6 +271,7 @@ MODULE                        : gradle_project_1.app
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -323,6 +324,7 @@ MODULE                        : gradle_project_1.app
             ProguardFiles                 : <ROOT>/gradle_project_1/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1434,6 +1436,7 @@ MODULE                        : gradle_project_name.app
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1486,6 +1489,7 @@ MODULE                        : gradle_project_name.app
             ProguardFiles                 : <ROOT>/gradle_project_2/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false

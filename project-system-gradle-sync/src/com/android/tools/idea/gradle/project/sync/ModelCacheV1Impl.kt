@@ -291,6 +291,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       multiDexEnabled = copyNewProperty(buildType::multiDexEnabled),
       isDebuggable = buildType.isDebuggable,
       isJniDebuggable = buildType.isJniDebuggable,
+      isPseudoLocalesEnabled = buildType.isPseudoLocalesEnabled,
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,

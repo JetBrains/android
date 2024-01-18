@@ -1300,6 +1300,7 @@
                 Name                          : debug
                 IsDebuggable                  : true
                 IsJniDebuggable               : false
+                IsPseudoLocalesEnabled        : false
                 IsRenderscriptDebuggable      : false
                 RenderscriptOptimLevel        : 3
                 IsMinifyEnabled               : false
@@ -1350,6 +1351,7 @@
                 Name                          : release
                 IsDebuggable                  : false
                 IsJniDebuggable               : false
+                IsPseudoLocalesEnabled        : false
                 IsRenderscriptDebuggable      : false
                 RenderscriptOptimLevel        : 3
                 IsMinifyEnabled               : false
@@ -2602,6 +2604,7 @@ Required by:
                 Name                          : debug
                 IsDebuggable                  : true
                 IsJniDebuggable               : false
+                IsPseudoLocalesEnabled        : false
                 IsRenderscriptDebuggable      : false
                 RenderscriptOptimLevel        : 3
                 IsMinifyEnabled               : false
@@ -2670,6 +2673,7 @@ Required by:
                 Name                          : release
                 IsDebuggable                  : false
                 IsJniDebuggable               : false
+                IsPseudoLocalesEnabled        : false
                 IsRenderscriptDebuggable      : false
                 RenderscriptOptimLevel        : 3
                 IsMinifyEnabled               : false

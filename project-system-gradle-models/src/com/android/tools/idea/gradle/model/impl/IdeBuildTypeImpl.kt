@@ -30,6 +30,7 @@ data class IdeBuildTypeImpl(
   override val multiDexEnabled: Boolean?,
   override val isDebuggable: Boolean,
   override val isJniDebuggable: Boolean,
+  override val isPseudoLocalesEnabled: Boolean,
   override val isRenderscriptDebuggable: Boolean,
   override val renderscriptOptimLevel: Int,
   override val isMinifyEnabled: Boolean,
