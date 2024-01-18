@@ -31,10 +31,13 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
+import com.intellij.util.Processor
 import java.util.concurrent.Callable
 
 // Upper limit on the number of files we will count. Only 1% of projects have more files than this
@@ -118,11 +121,17 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     else {
       val cap = ServerFlagService.instance.getInt("analytics/projectsize/filecap", FILE_CAP)
       var numFiles = 0
-      FileTypeIndex.processFiles(
-        fileType.languageFileType(),
-        { numFiles++; numFiles < cap },
-        ProjectScope.getProjectScope(project)
-      )
+      FileTypeIndex.processFiles(fileType.languageFileType(), object : Processor<VirtualFile> {
+
+        override fun process(t: VirtualFile?): Boolean {
+          if (numFiles % 100 == 0) {
+            // Make sure to check if cancelled to avoid UI freezes - see https://issuetracker.google.com/316496921
+            ProgressManager.checkCanceled()
+          }
+          numFiles++
+          return (numFiles < cap)
+        }
+      }, ProjectScope.getProjectScope(project))
       return numFiles;
     }
   }
