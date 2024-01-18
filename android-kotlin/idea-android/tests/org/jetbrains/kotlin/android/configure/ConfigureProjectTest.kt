@@ -99,7 +99,9 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$").replace(rawKtxCoreVersion, "\$CORE_KTX_VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile)) {
+      it.replace("\$VERSION$", rawVersion).replace("\$CORE_KTX_VERSION$", rawKtxCoreVersion)
+    }
 
     // Clear JDK table
     ProjectJdkTable.getInstance().allJdks.forEach {

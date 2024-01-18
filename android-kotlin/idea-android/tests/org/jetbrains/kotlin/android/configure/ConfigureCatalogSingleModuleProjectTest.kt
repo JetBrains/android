@@ -98,8 +98,9 @@ class ConfigureCatalogSingleModuleProjectTest {
         assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile))
 
         val afterCatalogFile = File(testRoot, "${path}_after.versions.toml")
-        val catalog = afterCatalogFile.readText().replace("\$VERSION$", DEFAULT_VERSION)
-        assertEquals(catalog, VfsUtil.loadText(catalogFile))
+        assertEqualsToFile(afterCatalogFile, VfsUtil.loadText(catalogFile)) {
+            it.replace("\$VERSION$", DEFAULT_VERSION)
+        }
 
         // Clear JDK table
         ProjectJdkTable.getInstance().allJdks.forEach {
