@@ -42,8 +42,9 @@ class FontIconProvider(
 
   private val fontIcon = FontFamilyIcon()
 
-  private val projectFonts =
-    ProjectFonts(StudioDownloadableFontCacheService.getInstance(), StudioResourceRepositoryManager.getInstance(facet))
+  private val projectFonts = ProjectFonts(
+    StudioDownloadableFontCacheService.getInstance(),
+    StudioResourceRepositoryManager.getInstance(facet))
 
   override val supportsTransparency: Boolean = false
 
@@ -73,7 +74,7 @@ private class FontFamilyIcon: Icon {
   var height: Int = 0
 
   private var fonts: List<FontIconData> = emptyList()
-  private val fontService = DownloadableFontCacheService.getInstance()
+  private val fontService = StudioDownloadableFontCacheService.getInstance()
 
   fun setFontFamily(fontFamily: FontFamily) {
     fonts = fontFamily.fonts.mapNotNull{ fontDetail ->

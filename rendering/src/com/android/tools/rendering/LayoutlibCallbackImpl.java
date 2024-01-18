@@ -209,7 +209,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     }
 
-    myFontCacheService = DownloadableFontCacheService.getInstance();
+    myFontCacheService = renderModule.getEnvironment().getDownloadableFontCacheService();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
     renderModule.getResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
@@ -345,7 +345,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (myProjectFonts == null) {
           myProjectFonts =
             new ProjectFonts(
-              DownloadableFontCacheService.getInstance(),
+              myRenderModule.getEnvironment().getDownloadableFontCacheService(),
               myRenderModule.getResourceRepositoryManager(),
               ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
             );

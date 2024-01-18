@@ -406,7 +406,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
 
     private FontFamilyRenderer() {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
       myTitle = new HeaderLabel();
       myTitle.setBorder(JBUI.Borders.empty(0, 35, 0, 5));
 
@@ -510,7 +510,7 @@ public class MoreFontsDialog extends DialogWrapper {
     private final DownloadableFontCacheService myFontService;
 
     private FontDetailRenderer() {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
     }
 
     @Override
@@ -550,7 +550,7 @@ public class MoreFontsDialog extends DialogWrapper {
     private boolean myShowFrameworkFonts;
 
     private FontListModel(@Nullable ProjectFonts projectFonts, @NotNull Boolean showFrameworkFonts) {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
       myProjectFonts = projectFonts;
       myComparator = new SpeedSearchComparator();
       myFilteredList = new ArrayList<>();

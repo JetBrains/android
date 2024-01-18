@@ -203,7 +203,7 @@ public class LayoutPullParsers {
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
         ResourceIdResolver resolver = ResourceIdManagerHelper.getResolver(renderTask.getContext().getModule().getResourceIdManager());
-        DownloadableFontCacheService fontService = DownloadableFontCacheService.getInstance();
+        DownloadableFontCacheService fontService = renderTask.getContext().getModule().getEnvironment().getDownloadableFontCacheService();
         return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(fontService, manager, resolver)).getFont(fontName), renderTask.getDefaultForegroundColor());
       default:
         // Should have been prevented by isSupported(PsiFile)

@@ -90,7 +90,7 @@ public class FontFamilyCreator {
     Module module = InstantApps.findBaseFeature(facet);
     myFacet = module != null ? AndroidFacet.getInstance(module) : facet;
     myProject = facet.getModule().getProject();
-    myService = DownloadableFontCacheService.getInstance();
+    myService = StudioDownloadableFontCacheService.getInstance();
   }
 
   @NotNull

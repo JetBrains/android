@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
+import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.RenderProblem
@@ -66,4 +67,6 @@ interface EnvironmentContext {
   fun createCrashReport(t: Throwable): CrashReport
 
   fun isInTest(): Boolean
+
+  val downloadableFontCacheService: DownloadableFontCacheService
 }

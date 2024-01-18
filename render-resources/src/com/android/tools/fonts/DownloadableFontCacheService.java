@@ -18,7 +18,6 @@ package com.android.tools.fonts;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -35,12 +34,6 @@ import java.util.List;
  * This service maintain a sorted list of fonts {@link #getFontFamilies} and holds methods for getting individual fonts.
  */
 public interface DownloadableFontCacheService {
-
-  @NotNull
-  static DownloadableFontCacheService getInstance() {
-    return ApplicationManager.getApplication().getService(DownloadableFontCacheService.class);
-  }
-
   /**
    * Returns a list of downloadable fonts sorted by name.
    * The returned list can be modified without affecting the font cache.

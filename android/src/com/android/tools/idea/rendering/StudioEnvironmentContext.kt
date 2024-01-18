@@ -20,9 +20,11 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
+import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
+import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
@@ -140,4 +142,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   // We only track allocations in testing mode
   override fun isInTest(): Boolean = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
                                          ApplicationManager.getApplication()?.isUnitTestMode == true
+
+  override val downloadableFontCacheService: DownloadableFontCacheService
+    get() = StudioDownloadableFontCacheService.getInstance()
 }
