@@ -23,21 +23,23 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-@RunWith(JUnit4::class)
-class SlotsPanelTest{
-  private lateinit var slotsPanel : SlotsPanel
+class SlotsPanelTest {
+  @get:Rule
+  val appRule = ApplicationRule()
+
+  private lateinit var slotsPanel: SlotsPanel
   private lateinit var topSlot: JPanel
   private val allAvailableTypes = arrayOf(ComplicationType.SHORT_TEXT,
                                           ComplicationType.LONG_TEXT,
@@ -49,6 +51,7 @@ class SlotsPanelTest{
 
   private fun getPanelForSlot(slotNum: Int) =
     ((slotsPanel.slotsUiPanel.getComponent(0) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
+
   private fun JPanel.getComboBox() = getComponent(2) as ComboBox<*>
   private fun JPanel.hasComboBox() = componentCount == 3
   private fun JPanel.getCheckBox() = getComponent(0) as JCheckBox
@@ -140,10 +143,10 @@ class SlotsPanelTest{
   @Test
   fun switchAllTypes() {
     val typesToSet = arrayOf(ComplicationType.SHORT_TEXT,
-                           ComplicationType.ICON,
-                           ComplicationType.LONG_TEXT,
-                           ComplicationType.RANGED_VALUE,
-                           ComplicationType.LARGE_IMAGE)
+                             ComplicationType.ICON,
+                             ComplicationType.LONG_TEXT,
+                             ComplicationType.RANGED_VALUE,
+                             ComplicationType.LARGE_IMAGE)
     val complicationSlots = listOf(
       ComplicationSlot("Top", 0, allAvailableTypes),
       ComplicationSlot("Right", 1, allAvailableTypes),
