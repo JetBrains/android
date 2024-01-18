@@ -70,16 +70,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
       }
       val facet = AndroidFacet.getInstance(module) ?: return false
       if (!module.isHolderModule()) return false
-      return when (facet.getModuleSystem().type) {
-        AndroidModuleSystem.Type.TYPE_NON_ANDROID -> false
-        AndroidModuleSystem.Type.TYPE_APP -> true
-        AndroidModuleSystem.Type.TYPE_LIBRARY -> false
-        AndroidModuleSystem.Type.TYPE_TEST -> false
-        AndroidModuleSystem.Type.TYPE_ATOM -> false
-        AndroidModuleSystem.Type.TYPE_INSTANTAPP -> false
-        AndroidModuleSystem.Type.TYPE_FEATURE -> false
-        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
-      }
+      return facet.getModuleSystem().type == AndroidModuleSystem.Type.TYPE_APP
     }
   }
 
@@ -105,7 +96,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
           if (module == null || DumbService.isDumb(project)) {
             return
           }
-          availableComponents = ApplicationManager.getApplication().runReadAction(Computable {findAvailableComponents(module)})
+          availableComponents = ApplicationManager.getApplication().runReadAction(Computable { findAvailableComponents(module) })
         }
 
         override fun onFinished() {
