@@ -307,7 +307,7 @@ private class ResourceFolderDocumentListener(
     val document = event.document
     if (PsiDocumentManager.getInstance(project).getCachedPsiFile(document) == null) {
       val virtualFile = FileDocumentManager.getInstance().getFile(document) ?: return
-      if (virtualFile is LightVirtualFile || !AndroidFileChangeListener.isRelevantFile(virtualFile))
+      if (virtualFile is LightVirtualFile || !isRelevantFile(virtualFile))
         return
 
       runInWriteAction {

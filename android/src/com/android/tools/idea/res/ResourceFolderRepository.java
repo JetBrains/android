@@ -29,7 +29,7 @@ import static com.android.resources.ResourceFolderType.VALUES;
 import static com.android.resources.base.RepositoryLoader.portableFileName;
 import static com.android.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.resources.base.ResourceSerializationUtil.writeResourcesToStream;
-import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
+import static com.android.tools.idea.res.FileRelevanceKt.isRelevantFile;
 import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
 import static com.android.utils.TraceUtils.getSimpleId;
 import static java.nio.charset.StandardCharsets.UTF_8;

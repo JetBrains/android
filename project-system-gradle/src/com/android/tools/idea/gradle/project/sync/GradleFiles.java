@@ -28,7 +28,7 @@ import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.res.AndroidFileChangeListener;
+import com.android.tools.idea.res.FileRelevanceKt;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -492,7 +492,7 @@ public class GradleFiles implements Disposable.Default {
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
-    return AndroidFileChangeListener.isGradleFile(psiFile);
+    return FileRelevanceKt.isGradleFile(psiFile);
   }
 
   public boolean isExternalBuildFile(@NotNull PsiFile psiFile) {
