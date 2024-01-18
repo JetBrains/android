@@ -160,7 +160,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
-    return sequence<AndroidTestResults> {
+    return sequence {
       yield(testRow)
       var parent = testRow.parent
       while (parent != null) {
@@ -340,7 +340,7 @@ private class FailedTestsNavigator(private val treetableView: AndroidTestResults
   }
 
   private fun getSequence(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): Sequence<AndroidTestResultsRow> {
-    return sequence<AndroidTestResultsRow> {
+    return sequence {
       if (treetableView.rowCount == 0) {
         return@sequence
       }
