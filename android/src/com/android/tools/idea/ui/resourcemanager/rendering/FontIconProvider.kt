@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.ide.common.fonts.FontFamily
 import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.fonts.ProjectFonts
+import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.util.ui.JBUI
@@ -41,7 +42,8 @@ class FontIconProvider(
 
   private val fontIcon = FontFamilyIcon()
 
-  private val projectFonts = ProjectFonts(StudioResourceRepositoryManager.getInstance(facet))
+  private val projectFonts =
+    ProjectFonts(StudioDownloadableFontCacheService.getInstance(), StudioResourceRepositoryManager.getInstance(facet))
 
   override val supportsTransparency: Boolean = false
 

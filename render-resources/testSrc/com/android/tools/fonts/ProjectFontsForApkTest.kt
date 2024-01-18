@@ -21,31 +21,10 @@ import com.android.tools.res.apk.ApkResourceRepository
 import com.android.tools.res.apk.TEST_DATA_DIR
 import com.android.tools.res.ids.apk.ApkResourceIdManager
 import com.android.tools.res.ids.resolver
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 
 class ProjectFontsForApkTest {
-  private val rootDisposable: Disposable = Disposer.newDisposable()
-  private val application: MockApplication = MockApplication(rootDisposable)
-
-  @Before
-  fun setUp() {
-    ApplicationManager.setApplication(application, rootDisposable)
-    val downloadable = object : DownloadableFontCacheServiceImpl(FontDownloader.NOOP_FONT_DOWNLOADER, { null }) { }
-    application.registerService(DownloadableFontCacheService::class.java, downloadable)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(rootDisposable)
-  }
-
   @Test
   fun testApkXmlFont() {
     val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-all-resources.ap_")
@@ -53,8 +32,9 @@ class ProjectFontsForApkTest {
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val manager = SingleRepoResourceRepositoryManager(apkRes)
+    val fontService = object : DownloadableFontCacheServiceImpl(FontDownloader.NOOP_FONT_DOWNLOADER, { null }) { }
 
-    val projectFonts = ProjectFonts(manager, idManager.resolver)
+    val projectFonts = ProjectFonts(fontService, manager, idManager.resolver)
 
     val fontFamily = projectFonts.getFont("@font/aclonica")
 

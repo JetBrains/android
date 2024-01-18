@@ -65,14 +65,17 @@ public class ProjectFonts {
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
-    this(resourceRepositoryManager, ResourceIdResolver.NO_RESOLUTION);
+  public ProjectFonts(
+    @NotNull DownloadableFontCacheService fontService,
+    @NotNull ResourceRepositoryManager resourceRepositoryManager) {
+    this(fontService, resourceRepositoryManager, ResourceIdResolver.NO_RESOLUTION);
   }
 
   public ProjectFonts(
+    @NotNull DownloadableFontCacheService fontService,
     @NotNull ResourceRepositoryManager resourceRepositoryManager,
     @NotNull ResourceIdResolver resourceIdResolver) {
-    myService = DownloadableFontCacheService.getInstance();
+    myService = fontService;
     myResourceRepository = resourceRepositoryManager;
     myResourceIdResolver = resourceIdResolver;
     myProjectFonts = new TreeMap<>();

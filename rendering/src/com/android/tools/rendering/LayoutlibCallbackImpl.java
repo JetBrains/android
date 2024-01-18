@@ -345,6 +345,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (myProjectFonts == null) {
           myProjectFonts =
             new ProjectFonts(
+              DownloadableFontCacheService.getInstance(),
               myRenderModule.getResourceRepositoryManager(),
               ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
             );
