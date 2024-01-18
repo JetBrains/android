@@ -911,10 +911,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery",
     false);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = Flag.create(
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = new BooleanFlag(
     EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
     "Enables the settings picker to be shown for testing an application",
-    true);
+    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
   //endregion
 
   //region Device Mirroring
