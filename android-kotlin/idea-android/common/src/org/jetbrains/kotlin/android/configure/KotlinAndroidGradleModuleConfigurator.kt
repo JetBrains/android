@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -270,7 +271,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
         else {
             if (file.project.isAndroidx()) {
-                (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_GROUP, CORE_KTX, "+") +
+                val ktxCoreVersion = IdeGoogleMavenRepository.findVersion(ANDROIDX_CORE_GROUP, CORE_KTX)?.toString() ?: "+"
+                (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_GROUP, CORE_KTX, ktxCoreVersion) +
                  addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
                   .let {
                       changedFiles.addAll(it)

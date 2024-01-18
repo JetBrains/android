@@ -17,6 +17,7 @@ package org.jetbrains.kotlin.android.configure
 
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
@@ -81,6 +82,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
     val rawVersion = versionFromFile ?: DEFAULT_VERSION
+    val rawKtxCoreVersion = IdeGoogleMavenRepository.findVersion("androidx.core", "core-ktx").toString()
     val version = IdeKotlinVersion.get(rawVersion)
 
     val project = projectRule.project
@@ -97,7 +99,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$").replace(rawKtxCoreVersion, "\$CORE_KTX_VERSION$"))
 
     // Clear JDK table
     ProjectJdkTable.getInstance().allJdks.forEach {
