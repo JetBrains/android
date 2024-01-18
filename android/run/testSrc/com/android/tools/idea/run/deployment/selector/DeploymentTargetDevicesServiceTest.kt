@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.testutils.MockitoKt.mock
@@ -25,13 +26,17 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.google.common.truth.Truth.assertThat
+import icons.StudioIcons
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.Test
 
 class DeploymentTargetDevicesServiceTest {
@@ -46,7 +51,7 @@ class DeploymentTargetDevicesServiceTest {
   }
 
   /** This fixture does not rely on the base fixture since it doesn't need a Project. */
-  class Fixture(testScope: TestScope) {
+  class Fixture(val testScope: TestScope) {
     val scope = testScope.createChildScope()
     val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
     val templatesFlow = MutableStateFlow(emptyList<DeviceTemplate>())
@@ -140,5 +145,36 @@ class DeploymentTargetDevicesServiceTest {
     device = devices.first()
     assertThat(device.id).isEqualTo(id)
     assertThat(device.templateId).isEqualTo(templateId)
+  }
+
+  @Test
+  fun deviceHandleLateUpdate() = runTestWithFixture {
+    val deviceHandle1 = FakeDeviceHandle(scope, null, handleId("1"))
+    val deviceHandle2 = FakeDeviceHandle(scope, null, handleId("2"))
+    devicesFlow.value = listOf(deviceHandle1, deviceHandle2)
+    sendLaunchCompatibility()
+
+    devicesService.loadedDevices.first { it.isNotEmpty() }
+
+    devicesFlow.value = listOf(deviceHandle2)
+
+    devicesService.loadedDevices.first { it.size == 1 }
+
+    // This should not cause an update
+    deviceHandle1.stateFlow.update {
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest {
+          model = "Updated"
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
+      )
+    }
+
+    // Remove deviceHandle2 to cause an update, which should not contain deviceHandle1
+    devicesFlow.value = emptyList()
+
+    testScope.advanceUntilIdle()
+
+    withTimeout(1.seconds) { devicesService.loadedDevices.first { it.isEmpty() } }
   }
 }
