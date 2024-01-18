@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
@@ -184,6 +185,7 @@ class AndroidBaselineProfileConfigurationExecutor(
                        }, AppExecutorUtil.getAppExecutorService())
       }
 
+    AndroidSessionInfo.create(handler, devices, "Baseline Profile Task: ${externalTaskId.id}")
     return createRunContentDescriptor(handler, console, env)
   }
 
