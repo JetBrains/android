@@ -494,7 +494,7 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
  * An [ApplicationProjectContextProvider] for the Gradle project system.
  */
 class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
-  override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext {
     // This hard code might not make b/305650392 feasible anymore
     if (client.clientData.packageName == SANDBOX_SDK_APPLICATION_ID) {
       return object : ApplicationProjectContext {

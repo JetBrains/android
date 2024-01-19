@@ -82,7 +82,7 @@ class TestProjectSystem @JvmOverloads constructor(
     val provider = object : ApplicationProjectContextProvider, TestToken {
       override val expectedInstance: TestProjectSystem = this@TestProjectSystem
 
-      override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+      override fun getApplicationProjectContext(client: Client): ApplicationProjectContext {
         return TestApplicationProjectContext(client.clientData.packageName ?: error("packagename must not be empty"))
       }
     }

@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
  * An [ApplicationProjectContextProvider] for the default project system.
  */
 class DefaultApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, DefaultToken {
-  override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext {
     val result = FacetFinder.findFacetForProcess(project, client.clientData)
     return FacetBasedApplicationProjectContext(
       result.applicationId,
