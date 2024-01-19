@@ -29,7 +29,7 @@ class ModelsProviderConfigurationListener(
   private val model: NlModel,
   private val sourceConfig: Configuration,
   private val responseConfig: Configuration,
-  private val attributesMask: Int
+  private val attributesMask: Int,
 ) : ConfigurationListener {
   override fun changed(flags: Int): Boolean {
     val effectiveFlags = flags and attributesMask
@@ -83,7 +83,7 @@ fun registerModelsProviderConfigurationListener(
   model: NlModel,
   sourceConfig: Configuration,
   responseConfig: Configuration,
-  attributesMask: Int
+  attributesMask: Int,
 ) {
   val listener =
     ModelsProviderConfigurationListener(model, sourceConfig, responseConfig, attributesMask)

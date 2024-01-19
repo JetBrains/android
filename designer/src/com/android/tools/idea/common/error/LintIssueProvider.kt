@@ -134,7 +134,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                   }
                 },
                 EXECUTE_SUPPRESSION + suppressLint.name,
-                null
+                null,
               )
           }
         return Stream.of(suppress)
@@ -178,12 +178,12 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                   fix.apply(
                     startElement,
                     endElement,
-                    AndroidQuickfixContexts.BatchContext.getInstance()
+                    AndroidQuickfixContexts.BatchContext.getInstance(),
                   )
                 }
               },
               EXECUTE_FIX + fix.name,
-              null
+              null,
             )
         }
       }
@@ -201,7 +201,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
               project,
               { fix.invoke(project, editor, model.file) },
               EXECUTE_FIX + fix.familyName,
-              null
+              null,
             )
         }
       }

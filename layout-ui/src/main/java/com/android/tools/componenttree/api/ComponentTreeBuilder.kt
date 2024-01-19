@@ -170,7 +170,7 @@ class ComponentTreeBuilder {
         autoScroll,
         installTreeSearch,
         expandAllOnRootChange,
-        headerRenderer
+        headerRenderer,
       )
     table.name = componentName // For UI tests
     if (dndSupport) {
@@ -194,7 +194,7 @@ class ComponentTreeBuilder {
       tree,
       model,
       table.treeTableSelectionModel,
-      table
+      table,
     )
   }
 }
@@ -231,5 +231,5 @@ class ComponentTreeBuildResult(
    *
    * The visibility of the header and the columns are supported.
    */
-  val interactions: TableVisibility
+  val interactions: TableVisibility,
 )

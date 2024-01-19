@@ -74,7 +74,7 @@ class TableController(
   override val closeTabInvoked: () -> Unit,
   private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseInspectorController.TabController {
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
@@ -248,7 +248,7 @@ class TableController(
   private fun performRowsDiff(
     oldRow: SqliteRow,
     newRow: SqliteRow,
-    rowIndex: Int
+    rowIndex: Int,
   ): List<RowDiffOperation.UpdateCell> {
     val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
 
@@ -313,7 +313,7 @@ class TableController(
 
       databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
         connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT,
       )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running
       // query.
@@ -397,7 +397,7 @@ class TableController(
     override fun updateCellInvoked(
       targetRowIndex: Int,
       targetColumn: ViewColumn,
-      newValue: SqliteValue
+      newValue: SqliteValue,
     ) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
@@ -422,7 +422,7 @@ class TableController(
               view.stopTableLoading()
               view.reportError("Can't execute update: ", t)
             }
-          }
+          },
         )
     }
   }
@@ -440,7 +440,7 @@ class TableController(
     return ViewColumn(
       name,
       schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
-      schemaColumn?.isNullable ?: isNullable ?: true
+      schemaColumn?.isNullable ?: isNullable ?: true,
     )
   }
 }

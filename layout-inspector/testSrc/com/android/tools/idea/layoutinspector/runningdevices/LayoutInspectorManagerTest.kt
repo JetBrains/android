@@ -87,14 +87,14 @@ class LayoutInspectorManagerTest {
         DeviceId.ofPhysicalDevice("tab1"),
         JPanel(),
         JPanel(),
-        spy(displayViewRule.newEmulatorView())
+        spy(displayViewRule.newEmulatorView()),
       )
     tab2 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab2"),
         JPanel(),
         JPanel(),
-        spy(displayViewRule.newEmulatorView())
+        spy(displayViewRule.newEmulatorView()),
       )
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1, tab2))
 
@@ -102,7 +102,7 @@ class LayoutInspectorManagerTest {
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
       fakeToolWindowManager,
-      displayViewRule.disposable
+      displayViewRule.disposable,
     )
 
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
@@ -134,14 +134,14 @@ class LayoutInspectorManagerTest {
         launcher = launcher,
         layoutInspectorModel = model(displayViewRule.disposable) {},
         notificationModel = notificationModel,
-        treeSettings = FakeTreeSettings()
+        treeSettings = FakeTreeSettings(),
       )
 
     whenever(mockLayoutInspectorProjectService.getLayoutInspector()).thenAnswer { layoutInspector }
     displayViewRule.project.replaceService(
       LayoutInspectorProjectService::class.java,
       mockLayoutInspectorProjectService,
-      displayViewRule.disposable
+      displayViewRule.disposable,
     )
 
     RunningDevicesStateObserver.getInstance(displayViewRule.project).update(true)

@@ -53,8 +53,8 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
         TypeNullabilityMapping(
           "test.safeargs.MyCustomType",
           "MyCustomType",
-          true
-        ) // e.g Parcelable, Serializable
+          true,
+        ), // e.g Parcelable, Serializable
       )
   }
 
@@ -80,7 +80,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -101,13 +101,13 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
       methods[0].checkSignaturesAndReturnType(
         name = "setArg1",
         returnType = "Builder",
-        parameters = listOf(Parameter("arg1", typeNullabilityMapping.after))
+        parameters = listOf(Parameter("arg1", typeNullabilityMapping.after)),
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = typeNullabilityMapping.after,
-        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable
+        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable,
       )
 
       methods[2].checkSignaturesAndReturnType(name = "build", returnType = "FragmentArgs")
@@ -136,7 +136,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -153,13 +153,13 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = typeNullabilityMapping.after,
-        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable
+        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable,
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[2].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
@@ -170,10 +170,10 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
 data class TypeNullabilityMapping(
   val before: String,
   val after: String,
-  val isReturnTypeNullable: Boolean
+  val isReturnTypeNullable: Boolean,
 ) {
   constructor(
     beforeAndAfter: String,
-    nullability: Boolean
+    nullability: Boolean,
   ) : this(beforeAndAfter, beforeAndAfter, nullability)
 }

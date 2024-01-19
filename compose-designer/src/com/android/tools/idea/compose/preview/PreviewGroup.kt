@@ -28,7 +28,7 @@ sealed interface PreviewGroup {
   data class Named(
     override val displayName: String,
     override val icon: Icon?,
-    override val name: String?
+    override val name: String?,
   ) : PreviewGroup
 
   /** [PreviewGroup] to be used when no filtering is to be applied to the preview. */

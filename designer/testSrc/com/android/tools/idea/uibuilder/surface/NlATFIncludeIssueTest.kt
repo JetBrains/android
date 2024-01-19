@@ -58,7 +58,7 @@ class NlATFIncludeIssueTest : LayoutTestCase() {
             .id("@id/linear")
             .matchParentWidth()
             .matchParentHeight()
-            .children(component(SdkConstants.VIEW_INCLUDE))
+            .children(component(SdkConstants.VIEW_INCLUDE)),
         )
         .build()
 
@@ -69,7 +69,7 @@ class NlATFIncludeIssueTest : LayoutTestCase() {
     ignore.action.run()
     assertEquals(
       SdkConstants.ATTR_IGNORE_A11Y_LINTS,
-      source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+      source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE),
     )
   }
 
@@ -83,7 +83,7 @@ class NlATFIncludeIssueTest : LayoutTestCase() {
             .id("@id/linear")
             .matchParentWidth()
             .matchParentHeight()
-            .children(component(SdkConstants.VIEW_INCLUDE))
+            .children(component(SdkConstants.VIEW_INCLUDE)),
         )
         .build()
 

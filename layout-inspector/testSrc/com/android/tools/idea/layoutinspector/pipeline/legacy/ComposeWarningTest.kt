@@ -58,7 +58,7 @@ class ComposeWarningTest {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
     val moduleSystem = Mockito.spy(DefaultModuleSystem(projectRule.module))

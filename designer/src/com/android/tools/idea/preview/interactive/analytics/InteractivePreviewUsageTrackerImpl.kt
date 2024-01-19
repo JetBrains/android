@@ -28,7 +28,7 @@ private val LOG: Logger
 /** Usage tracking implementation for interactive previews */
 class InteractivePreviewUsageTrackerImpl(
   private val myExecutor: Executor,
-  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>
+  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>,
 ) : InteractivePreviewUsageTracker {
 
   override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {
@@ -52,7 +52,7 @@ class InteractivePreviewUsageTrackerImpl(
    */
   private fun logInteractiveEvent(
     type: InteractivePreviewEvent.InteractivePreviewEventType,
-    consumer: (InteractivePreviewEvent.Builder) -> Unit
+    consumer: (InteractivePreviewEvent.Builder) -> Unit,
   ) {
     try {
       myExecutor.execute {

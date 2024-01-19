@@ -28,7 +28,7 @@ interface TableUIProvider {
 /** A [TableUIProvider] for editing of property values only. */
 inline fun <reified P : PropertyItem> TableUIProvider(
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>
+  valueEditorProvider: EditorProvider<P>,
 ): TableUIProvider {
   return TableUIProviderImpl(
     NewPropertyItem::class.java,
@@ -36,7 +36,7 @@ inline fun <reified P : PropertyItem> TableUIProvider(
     EditorProvider.createForNames(),
     P::class.java,
     valueControlTypeProvider,
-    valueEditorProvider
+    valueEditorProvider,
   )
 }
 
@@ -45,7 +45,7 @@ inline fun <reified P : PropertyItem, reified N : NewPropertyItem> TableUIProvid
   nameControlTypeProvider: ControlTypeProvider<N>,
   nameEditorProvider: EditorProvider<N>,
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>
+  valueEditorProvider: EditorProvider<P>,
 ): TableUIProvider {
 
   return TableUIProviderImpl(
@@ -54,6 +54,6 @@ inline fun <reified P : PropertyItem, reified N : NewPropertyItem> TableUIProvid
     nameEditorProvider,
     P::class.java,
     valueControlTypeProvider,
-    valueEditorProvider
+    valueEditorProvider,
   )
 }

@@ -76,7 +76,7 @@ class PreviewEntryPointTest {
       fixture
         .doHighlighting()
         .single { it?.description?.startsWith("Function") ?: false }
-        .description
+        .description,
     )
   }
 
@@ -117,7 +117,7 @@ class PreviewEntryPointTest {
       fixture
         .doHighlighting()
         .single { it?.description?.startsWith("Function") ?: false }
-        .description
+        .description,
     )
   }
 }

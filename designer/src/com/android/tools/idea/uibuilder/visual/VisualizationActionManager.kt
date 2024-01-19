@@ -44,7 +44,7 @@ import javax.swing.JPanel
 
 class VisualizationActionManager(
   surface: NlDesignSurface,
-  private val visualizationModelsProvider: () -> VisualizationModelsProvider
+  private val visualizationModelsProvider: () -> VisualizationModelsProvider,
 ) : NlActionManager(surface) {
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
@@ -73,14 +73,14 @@ class VisualizationActionManager(
           ColoredIconGenerator.generateColoredIcon(
             StudioIcons.Common.WARNING_INLINE,
             JBColor.background(),
-          ),
+          )
         ) {
         private val issueListener =
           object : IssueListener {
             override fun onIssueSelected(issue: Issue?) {
               isVisible =
                 (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
-                  sceneView.sceneManager.model,
+                  sceneView.sceneManager.model
                 ) ?: false
             }
           }

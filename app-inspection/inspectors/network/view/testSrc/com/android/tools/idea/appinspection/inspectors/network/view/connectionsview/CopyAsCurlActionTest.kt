@@ -38,22 +38,14 @@ class CopyAsCurlActionTest {
 
   @Test
   fun update_missingUrl() {
-    copyAsCurlAction(
-        url = "",
-        method = "GET",
-      )
-      .update(actionEvent)
+    copyAsCurlAction(url = "", method = "GET").update(actionEvent)
 
     assertThat(actionEvent.presentation.isEnabled).isFalse()
   }
 
   @Test
   fun update_missingMethod() {
-    val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "",
-      )
+    val action = copyAsCurlAction(url = "http://google.com", method = "")
 
     action.update(actionEvent)
 
@@ -62,11 +54,7 @@ class CopyAsCurlActionTest {
 
   @Test
   fun update() {
-    val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "GET",
-      )
+    val action = copyAsCurlAction(url = "http://google.com", method = "GET")
 
     action.update(actionEvent)
 
@@ -75,11 +63,7 @@ class CopyAsCurlActionTest {
 
   @Test
   fun actionPerformed() {
-    val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "GET",
-      )
+    val action = copyAsCurlAction(url = "http://google.com", method = "GET")
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
@@ -95,11 +79,7 @@ class CopyAsCurlActionTest {
 
   @Test
   fun actionPerformed_withNonDefaultMethod() {
-    val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "PUT",
-      )
+    val action = copyAsCurlAction(url = "http://google.com", method = "PUT")
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
@@ -117,11 +97,7 @@ class CopyAsCurlActionTest {
   @Test
   fun actionPerformed_withPayload() {
     val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "PUT",
-        payload = "payload".toByteArray(),
-      )
+      copyAsCurlAction(url = "http://google.com", method = "PUT", payload = "payload".toByteArray())
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
@@ -141,12 +117,7 @@ class CopyAsCurlActionTest {
   fun actionPerformed_withBinaryPayload() {
     val payload = Random(0).nextBytes(10)
     val payloadBase64 = Base64.getEncoder().encodeToString(payload)
-    val action =
-      copyAsCurlAction(
-        url = "http://google.com",
-        method = "PUT",
-        payload = payload,
-      )
+    val action = copyAsCurlAction(url = "http://google.com", method = "PUT", payload = payload)
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
@@ -193,7 +164,7 @@ class CopyAsCurlActionTest {
     url: String,
     method: String,
     payload: ByteArray = ByteArray(0),
-    vararg headers: Header
+    vararg headers: Header,
   ) =
     CopyAsCurlAction(
       HttpData.createHttpData(

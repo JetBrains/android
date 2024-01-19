@@ -42,9 +42,9 @@ class LongTextAnalyzerComposeTest {
             configuration =
               PreviewConfiguration.cleanAndGet(
                 device = "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" // Tablet
-              )
+              ),
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()!!
     val file = renderResult.sourceFile.virtualFile
@@ -66,9 +66,9 @@ class LongTextAnalyzerComposeTest {
             configuration =
               PreviewConfiguration.cleanAndGet(
                 device = "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" // Tablet
-              )
+              ),
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()!!
     val file = renderResult.sourceFile.virtualFile

@@ -31,7 +31,7 @@ class InspectorTableBuilder(
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
   controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
   private val itemComparator: Comparator<PTableItem> = FilteredPTableModel.alphabeticalSortOrder,
-  private val searchable: Boolean = false
+  private val searchable: Boolean = false,
 ) : InspectorBuilder<InspectorPropertyItem> {
 
   private val editorProvider =
@@ -40,7 +40,7 @@ class InspectorTableBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<InspectorPropertyItem>
+    properties: PropertiesTable<InspectorPropertyItem>,
   ) {
     val tableModel =
       FilteredPTableModel(
@@ -52,7 +52,7 @@ class InspectorTableBuilder(
         }, // links must be editable for accessibility
         hasCustomCursor = {
           editorProvider.isValueClickable(it)
-        } // enables cursor changes for items not being edited
+        }, // enables cursor changes for items not being edited
       )
     if (tableModel.items.isEmpty()) {
       return

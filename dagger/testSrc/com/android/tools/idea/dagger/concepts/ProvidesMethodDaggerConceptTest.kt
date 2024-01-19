@@ -79,7 +79,7 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater) : Heater {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -104,7 +104,7 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater) : Heater {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -127,7 +127,7 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -154,7 +154,7 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -167,7 +167,7 @@ class ProvidesMethodDaggerConceptTest {
         "ElectricHeater",
         setOf(
           ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater"),
-          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater2")
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater2"),
         ),
       )
   }
@@ -190,7 +190,7 @@ class ProvidesMethodDaggerConceptTest {
           abstract fun bindHeater(electricHeater: ElectricHeater) : Heater
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("bind|Heater")
@@ -201,9 +201,7 @@ class ProvidesMethodDaggerConceptTest {
         "Heater",
         setOf(ProvidesMethodIndexValue(HEATER_MODULE_ID, "bindHeater")),
         "ElectricHeater",
-        setOf(
-          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater"),
-        ),
+        setOf(ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")),
       )
   }
 
@@ -227,7 +225,7 @@ class ProvidesMethodDaggerConceptTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -242,13 +240,13 @@ class ProvidesMethodDaggerConceptTest {
           ProvidesMethodParameterIndexValue(
             HEATER_MODULE_COMPANION_ID,
             "provideHeater",
-            "electricHeater"
+            "electricHeater",
           ),
           ProvidesMethodParameterIndexValue(
             HEATER_MODULE_COMPANION_ID,
             "provideHeater",
-            "electricHeater2"
-          )
+            "electricHeater2",
+          ),
         ),
       )
   }
@@ -271,7 +269,7 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -298,7 +296,7 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("provide|Heater")
@@ -341,7 +339,7 @@ class ProvidesMethodDaggerConceptTest {
         fun bindHeater(electricHeater: ElectricHeater) : Heater {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "provideHeater")
@@ -388,7 +386,7 @@ class ProvidesMethodDaggerConceptTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater")
@@ -433,7 +431,7 @@ class ProvidesMethodDaggerConceptTest {
         Heater bindHeater(ElectricHeater electricHeater) {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "provideHeater")
@@ -484,7 +482,7 @@ class ProvidesMethodDaggerConceptTest {
         fun bindHeater(electricHeater: ElectricHeater) : Heater {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 =
@@ -537,20 +535,20 @@ class ProvidesMethodDaggerConceptTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 =
       ProvidesMethodParameterIndexValue(
         HEATER_MODULE_COMPANION_ID,
         "provideHeater",
-        "electricHeater"
+        "electricHeater",
       )
     val indexValue2 =
       ProvidesMethodParameterIndexValue(
         HEATER_MODULE_COMPANION_ID,
         "dontProvideHeater",
-        "electricHeater"
+        "electricHeater",
       )
     val indexValue3 =
       ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "bindHeater", "electricHeater")
@@ -596,7 +594,7 @@ class ProvidesMethodDaggerConceptTest {
         Heater bindHeater(ElectricHeater electricHeater) {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 =

@@ -83,7 +83,7 @@ internal class PreviewIssueNotificationActionTest {
     action.update(event)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
-      event.presentation.toString()
+      event.presentation.toString(),
     )
 
     composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
@@ -101,7 +101,7 @@ internal class PreviewIssueNotificationActionTest {
     action.update(event)
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.toString(),
     )
 
     composePreviewManager.currentStatus = originStatus.copy(isRefreshing = true)
@@ -115,7 +115,7 @@ internal class PreviewIssueNotificationActionTest {
     assertEquals(ComposeStatus.Presentation.Warning, statusInfo.presentation)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
-      event.presentation.toString()
+      event.presentation.toString(),
     )
   }
 
@@ -130,7 +130,7 @@ internal class PreviewIssueNotificationActionTest {
     // Syntax errors take precedence over out of date when Fast Preview is Enabled
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.toString(),
     )
 
     try {
@@ -148,7 +148,7 @@ internal class PreviewIssueNotificationActionTest {
         hasSyntaxErrors = true,
         hasRuntimeErrors = true,
         isOutOfDate = true,
-        isRefreshing = true
+        isRefreshing = true,
       )
     action.update(event)
     assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
@@ -159,16 +159,13 @@ internal class PreviewIssueNotificationActionTest {
         hasSyntaxErrors = true,
         hasRuntimeErrors = true,
         isOutOfDate = true,
-        isRefreshing = true
+        isRefreshing = true,
       )
     action.update(event)
     assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
 
     composePreviewManager.currentStatus =
-      originStatus.copy(
-        hasRuntimeErrors = true,
-        isOutOfDate = true,
-      )
+      originStatus.copy(hasRuntimeErrors = true, isOutOfDate = true)
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
 
@@ -180,14 +177,11 @@ internal class PreviewIssueNotificationActionTest {
     }
 
     composePreviewManager.currentStatus =
-      originStatus.copy(
-        hasRuntimeErrors = true,
-        hasSyntaxErrors = true,
-      )
+      originStatus.copy(hasRuntimeErrors = true, hasSyntaxErrors = true)
     action.update(event)
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.toString(),
     )
   }
 
@@ -228,7 +222,7 @@ internal class PreviewIssueNotificationActionTest {
         val popup = defaultCreateInformationPopup(projectRule.project, context)!!
         assertEquals(
           "The code might contain errors or might not work with Preview Live Edit.",
-          popup.labelsDescription()
+          popup.labelsDescription(),
         )
         assertEquals(
           """
@@ -238,7 +232,7 @@ internal class PreviewIssueNotificationActionTest {
           View Details
         """
             .trimIndent(),
-          popup.linksDescription()
+          popup.linksDescription(),
         )
       } finally {
         fastPreviewManager.enable()
@@ -264,7 +258,7 @@ internal class PreviewIssueNotificationActionTest {
         originStatus.copy(
           isRefreshing = true,
           isOutOfDate =
-            true // Leaving out of date to true to verify it does not take precedence over refresh
+            true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
       val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals("The preview is updating...", popup.labelsDescription())
@@ -277,19 +271,19 @@ internal class PreviewIssueNotificationActionTest {
         originStatus.copy(
           hasSyntaxErrors = true,
           isOutOfDate =
-            true // Leaving out of date to true to verify it does not take precedence over refresh
+            true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
       val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals(
         "The preview will not update while your project contains syntax errors.",
-        popup.labelsDescription()
+        popup.labelsDescription(),
       )
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
         View Problems"""
           .trimIndent(),
-        popup.linksDescription()
+        popup.linksDescription(),
       )
     }
 
@@ -299,14 +293,14 @@ internal class PreviewIssueNotificationActionTest {
       val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals(
         "Some problems were found while rendering the preview",
-        popup.labelsDescription()
+        popup.labelsDescription(),
       )
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
         View Problems"""
           .trimIndent(),
-        popup.linksDescription()
+        popup.linksDescription(),
       )
     }
   }
@@ -337,7 +331,7 @@ internal class PreviewIssueNotificationActionTest {
       TestActionEvent.createTestEvent(
         action,
         context,
-        MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
+        MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1),
       )
     action.update(event)
     assertEquals(0, popupRequested)

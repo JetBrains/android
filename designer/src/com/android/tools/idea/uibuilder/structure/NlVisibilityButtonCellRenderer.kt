@@ -28,7 +28,7 @@ class NlVisibilityButtonCellRenderer : ListCellRenderer<ButtonPresentation> {
     value: ButtonPresentation,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean
+    cellHasFocus: Boolean,
   ): Component {
     list as NlVisibilityJBList
     value.isHovered = index == list.currHovered

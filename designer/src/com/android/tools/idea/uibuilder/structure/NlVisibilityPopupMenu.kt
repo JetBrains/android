@@ -40,7 +40,7 @@ import javax.swing.JPopupMenu
  */
 class NlVisibilityPopupMenu(
   onClick: (visibility: Visibility, uri: String) -> Unit,
-  onClose: (() -> Unit)
+  onClose: (() -> Unit),
 ) {
   val content = VisibilityPopupContent(onClick)
   val popupMenu = LightCalloutPopup(content, onClose)
@@ -83,7 +83,7 @@ class VisibilityPopupContent(private val onClick: (visibility: Visibility, uri: 
         MENU_OUTER_PADDING,
         MENU_OUTER_PADDING,
         MENU_OUTER_PADDING,
-        MENU_OUTER_PADDING
+        MENU_OUTER_PADDING,
       )
 
     val c = GridBagConstraints()
@@ -133,7 +133,7 @@ class VisibilityPopupContent(private val onClick: (visibility: Visibility, uri: 
   private fun addButtons(
     panel: JPanel,
     c: GridBagConstraints,
-    uri: String
+    uri: String,
   ): VisibilityPopupButtons {
     val buttons = VisibilityPopupButtons(uri, onClick)
     buttons.buttons.forEach {
@@ -146,7 +146,7 @@ class VisibilityPopupContent(private val onClick: (visibility: Visibility, uri: 
 
 class VisibilityPopupButtons(
   private val uri: String,
-  private val onClickListener: (visibility: Visibility, uri: String) -> Unit
+  private val onClickListener: (visibility: Visibility, uri: String) -> Unit,
 ) {
 
   private val isToolsAttr = uri == SdkConstants.TOOLS_URI

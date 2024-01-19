@@ -119,7 +119,7 @@ class DependencyManagerTest {
       listOf(
           FLOATING_ACTION_BUTTON.defaultName(),
           RECYCLER_VIEW.defaultName(),
-          CARD_VIEW.defaultName()
+          CARD_VIEW.defaultName(),
         )
         .map(this::findItem)
 
@@ -199,7 +199,7 @@ class DependencyManagerTest {
           tempProject,
           Computable<Module> {
             ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
-          }
+          },
         )
 
       localDependencyManager = DependencyManager(tempProject)

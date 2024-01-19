@@ -334,7 +334,7 @@ class NlComponentTreeDefinitionTest {
       data,
       before = referenceB,
       isMove = true,
-      draggedFromTree = listOf(checkBox)
+      draggedFromTree = listOf(checkBox),
     )
     UIUtil.dispatchAllInvocationEvents()
 
@@ -380,7 +380,7 @@ class NlComponentTreeDefinitionTest {
       data,
       before = referenceC,
       isMove = true,
-      draggedFromTree = listOf(textView)
+      draggedFromTree = listOf(textView),
     )
     UIUtil.dispatchAllInvocationEvents()
 
@@ -601,7 +601,7 @@ class NlComponentTreeDefinitionTest {
         y,
         0,
         false,
-        MouseEvent.BUTTON1
+        MouseEvent.BUTTON1,
       )
     )
 
@@ -664,22 +664,22 @@ class NlComponentTreeDefinitionTest {
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.CONSTRAINT_REFERENCED_IDS,
-                "a,b,c,include,linear"
+                "a,b,c,include,linear",
               ),
             component(SdkConstants.VIEW_INCLUDE)
               .id("@+id/include")
@@ -692,26 +692,26 @@ class NlComponentTreeDefinitionTest {
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-                "parent"
+                "parent",
               )
               .children(
                 component(SdkConstants.CHECK_BOX)
                   .withBounds(0, 500, 100, 100)
                   .id("@+id/d")
                   .width("100dp")
-                  .height("100dp"),
-              )
-          )
+                  .height("100dp")
+              ),
+          ),
       )
       .build()
       .also {
@@ -744,7 +744,7 @@ class NlComponentTreeDefinitionTest {
         Side.LEFT,
         Split.TOP,
         AutoHide.DOCKED,
-        isPassThroughQueue = true
+        isPassThroughQueue = true,
       )
     return definition.factory.apply(projectRule.testRootDisposable)
   }

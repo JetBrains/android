@@ -171,7 +171,7 @@ class ComposeViewNode(
   var composeFlags: Int,
 
   /** The hash of an anchor which can identify the composable after a recomposition. */
-  var anchorHash: Int
+  var anchorHash: Int,
 ) :
   ViewNode(
     drawId,
@@ -181,7 +181,7 @@ class ComposeViewNode(
     renderBounds,
     viewId,
     textValue,
-    layoutFlags
+    layoutFlags,
   ) {
   @TestOnly
   constructor(
@@ -199,7 +199,7 @@ class ComposeViewNode(
     composeOffset: Int,
     composeLineNumber: Int,
     composeFlags: Int,
-    anchorHash: Int
+    anchorHash: Int,
   ) : this(
     drawId,
     qualifiedName,
@@ -216,7 +216,7 @@ class ComposeViewNode(
     composeOffset,
     composeLineNumber,
     composeFlags,
-    anchorHash
+    anchorHash,
   )
 
   val recompositions = RecompositionData(recomposeCount, recomposeSkips)

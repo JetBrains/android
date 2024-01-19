@@ -50,7 +50,7 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   override fun createEvaluatorView(
     project: Project,
     schemaProvider: SchemaProvider,
-    tableView: TableView
+    tableView: TableView,
   ): SqliteEvaluatorView = sqliteEvaluatorView
 
   override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
@@ -61,12 +61,12 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   override fun createExportToFileView(
     project: Project,
     params: ExportDialogParams,
-    analyticsTracker: DatabaseInspectorAnalyticsTracker
+    analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView = exportToFileDialogView
 
   override fun createExportInProgressView(
     project: Project,
     job: Job,
-    taskDispatcher: CoroutineDispatcher
+    taskDispatcher: CoroutineDispatcher,
   ) = exportInProgressView
 }

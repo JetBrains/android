@@ -43,12 +43,12 @@ class ComposeViewControlAction(
   layoutManagers: List<SurfaceLayoutManagerOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
   updateMode: (SurfaceLayoutManagerOption, ComposePreviewManager) -> Unit,
-  additionalActionProvider: AnAction? = null
+  additionalActionProvider: AnAction? = null,
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
-    copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
+    copyIcon(AllIcons.Debugger.RestoreLayout, null, true),
   ) {
   init {
     if (
@@ -107,7 +107,7 @@ class ComposeViewControlAction(
    */
   private inner class WrappedZoomAction(
     private val action: AnAction,
-    private val overwriteText: String? = null
+    private val overwriteText: String? = null,
   ) : AnAction() {
 
     init {

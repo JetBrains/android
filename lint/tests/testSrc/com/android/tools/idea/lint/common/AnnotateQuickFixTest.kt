@@ -57,7 +57,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
         @Suppress("SomeInspection")
         const val someProperty = ""
-        """
+        """,
     )
   }
 
@@ -79,7 +79,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         /** Class */
         @Suppress("SomeInspection")
         class AnnotateTest
-        """
+        """,
     )
   }
 
@@ -106,7 +106,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         @SuppressWarnings("SomeIssueId")
         class AnnotateTest {
         }
-        """
+        """,
     )
   }
 
@@ -134,7 +134,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         @SuppressWarnings("SomeIssueId2")
         class AnnotateTest {
         }
-        """
+        """,
     )
   }
 
@@ -158,7 +158,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
         @get:JvmSynthetic
         const val someProperty = ""
-        """
+        """,
     )
   }
 
@@ -175,7 +175,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       annotations =
         listOf(
           Triple("Add @Suppress(SomeInspection1)", "@kotlin.Suppress(\"SomeInspection1\")", false),
-          Triple("Add @Suppress(SomeInspection2)", "@kotlin.Suppress(\"SomeInspection2\")", false)
+          Triple("Add @Suppress(SomeInspection2)", "@kotlin.Suppress(\"SomeInspection2\")", false),
         ),
       // language=kotlin
       expected =
@@ -185,7 +185,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         @Suppress("SomeInspection2")
         @Suppress("SomeInspection1")
         const val someProperty = ""
-        """
+        """,
     )
   }
 
@@ -211,7 +211,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
         @Suppress("SomeInspection2")
         const val someProperty = ""
-        """
+        """,
     )
   }
 
@@ -245,7 +245,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
                 }
             }
            """
-              .trimIndent()
+              .trimIndent(),
           )
       },
       selected = "test",
@@ -270,7 +270,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         Location.create(
           targetFile.virtualFile.toNioPath().toFile(),
           DefaultPosition(-1, -1, offset),
-          DefaultPosition(-1, -1, text.indexOf('\n', offset))
+          DefaultPosition(-1, -1, text.indexOf('\n', offset)),
         )
       },
       extraVerify = {
@@ -285,9 +285,9 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
           }
           """
             .trimIndent(),
-          unrelatedFile?.text
+          unrelatedFile?.text,
         )
-      }
+      },
     )
   }
 
@@ -302,7 +302,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         #noinspection MyId2
         key3="value3"
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val element = myFixture.findElementByText("value2", PsiElement::class.java)
@@ -327,7 +327,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       key3="value3"
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 
@@ -339,7 +339,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       Location.create(
         VfsUtilCore.virtualToIoFile(file.virtualFile),
         DefaultPosition(-1, -1, startOffset),
-        DefaultPosition(-1, -1, endOffset)
+        DefaultPosition(-1, -1, endOffset),
       )
     return Incident().location(location)
   }
@@ -348,7 +348,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     element: PsiElement,
     annotations: List<Triple<String, String, Boolean>>,
     rangeFactory: ((String) -> Location?)?,
-    useLintFix: Boolean
+    useLintFix: Boolean,
   ): Array<LintIdeQuickFix> {
     if (useLintFix) {
       val fixes = mutableListOf<LintFix>()
@@ -372,7 +372,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         element.containingFile,
         element.getIncident(),
         composite,
-        true
+        true,
       )
     } else {
       val fixes = mutableListOf<AnnotateQuickFix>()
@@ -384,12 +384,12 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       class CompositeLintFix(
         displayName: String?,
         familyName: String?,
-        private val myFixes: Array<LintIdeQuickFix>
+        private val myFixes: Array<LintIdeQuickFix>,
       ) : DefaultLintQuickFix(displayName ?: "Fix", familyName) {
         override fun apply(
           startElement: PsiElement,
           endElement: PsiElement,
-          context: AndroidQuickfixContexts.Context
+          context: AndroidQuickfixContexts.Context,
         ) {
           for (fix in myFixes) {
             fix.apply(startElement, endElement, context)
@@ -399,7 +399,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         override fun isApplicable(
           startElement: PsiElement,
           endElement: PsiElement,
-          contextType: AndroidQuickfixContexts.ContextType
+          contextType: AndroidQuickfixContexts.ContextType,
         ): Boolean {
           for (fix in myFixes) {
             if (!fix.isApplicable(startElement, endElement, contextType)) {
@@ -424,7 +424,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     expected: String,
     extraSetup: (() -> Unit)? = null,
     rangeFactory: ((String) -> Location?)? = null,
-    extraVerify: (() -> Unit)? = null
+    extraVerify: (() -> Unit)? = null,
   ) {
     check(
       fileName,
@@ -434,7 +434,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       extraSetup,
       rangeFactory,
       extraVerify,
-      expected
+      expected,
     )
   }
 
@@ -446,7 +446,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     extraSetup: (() -> Unit)? = null,
     rangeFactory: ((String) -> Location?)? = null,
     extraVerify: (() -> Unit)? = null,
-    expected: String
+    expected: String,
   ) {
     // Test with PSI-based annotation insertion (AnnotateQuickFix)
     check(
@@ -458,7 +458,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       extraSetup,
       rangeFactory,
       extraVerify,
-      false
+      false,
     )
     // Test with lint-based annotation insertion (LintIdeFixPerformer)
     check(
@@ -470,7 +470,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       extraSetup,
       rangeFactory,
       extraVerify,
-      true
+      true,
     )
   }
 
@@ -483,7 +483,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     extraSetup: (() -> Unit)? = null,
     rangeFactory: ((String) -> Location?)?,
     extraVerify: (() -> Unit)?,
-    useLintFix: Boolean
+    useLintFix: Boolean,
   ) {
     extraSetup?.invoke()
 

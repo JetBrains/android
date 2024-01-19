@@ -101,7 +101,7 @@ class CliDatabaseConnection(
   private val databasePath: Path,
   private val client: SqliteCliClient,
   private val columnSeparator: Char,
-  executor: Executor
+  executor: Executor,
 ) : DatabaseConnection {
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
 
@@ -171,7 +171,7 @@ class CliDatabaseConnection(
         override fun getRowBatch(
           rowOffset: Int,
           rowBatchSize: Int,
-          responseSizeByteLimitHint: Long?
+          responseSizeByteLimitHint: Long?,
         ): ListenableFuture<List<SqliteRow>> =
           Futures.immediateFuture(
             let {

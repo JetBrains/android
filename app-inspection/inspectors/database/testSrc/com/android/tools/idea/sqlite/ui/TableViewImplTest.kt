@@ -86,7 +86,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     whenever(
         mockActionManager.createActionPopupMenu(
           any(String::class.java),
-          any(ActionGroup::class.java)
+          any(ActionGroup::class.java),
         )
       )
       .thenReturn(mockPopUpMenu)
@@ -313,7 +313,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     view.startTableLoading()
@@ -402,7 +402,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rowsToAdd =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     // Act
@@ -416,9 +416,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val")),
           0,
-          0
+          0,
         ),
-        RowDiffOperation.RemoveLastRows(1)
+        RowDiffOperation.RemoveLastRows(1),
       )
     )
 
@@ -437,7 +437,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rowsToAdd =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     // Act
@@ -451,7 +451,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val")),
           0,
-          0
+          0,
         )
       )
     )
@@ -461,14 +461,14 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val1")),
           0,
-          0
+          0,
         ),
         RowDiffOperation.AddRow(
           SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))
         ),
         RowDiffOperation.AddRow(
           SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4"))))
-        )
+        ),
       )
     )
 
@@ -482,14 +482,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -513,7 +513,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -542,14 +542,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT, c2 INT)",
-        insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -573,7 +573,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -602,14 +602,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -633,7 +633,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -662,14 +662,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -693,7 +693,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -729,15 +729,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -774,15 +774,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -817,15 +817,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -932,14 +932,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -960,7 +960,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())

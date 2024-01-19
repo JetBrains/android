@@ -39,6 +39,6 @@ class LintInspectionExtensionsFactory : InspectionExtensionsFactory() {
   override fun isProjectConfiguredToRunInspections(
     project: Project,
     online: Boolean,
-    rerunAction: Runnable
+    rerunAction: Runnable,
   ): Boolean = true
 }

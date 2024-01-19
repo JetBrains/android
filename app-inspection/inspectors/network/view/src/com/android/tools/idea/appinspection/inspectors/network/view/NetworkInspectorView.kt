@@ -111,7 +111,7 @@ internal class NetworkInspectorView(
   private val parentPane: TooltipLayeredPane,
   inspectorServices: NetworkInspectorServices,
   scope: CoroutineScope,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : AspectObserver(), Disposable {
 
   val component = JPanel(BorderLayout())
@@ -161,7 +161,7 @@ internal class NetworkInspectorView(
     messageBusConnection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
     messageBusConnection.subscribe(
       LafManagerListener.TOPIC,
-      LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() }
+      LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() },
     )
     val connectionsPanel = JPanel(CardLayout())
     val connectionsTab = CommonTabbedPane()
@@ -207,19 +207,19 @@ internal class NetworkInspectorView(
       InstructionsPanel.Builder(
           TextInstruction(
             UIUtilities.getFontMetrics(infoPanel, H3_FONT),
-            "Network inspector data unavailable"
+            "Network inspector data unavailable",
           ),
           NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
           TextInstruction(
             UIUtilities.getFontMetrics(infoPanel, STANDARD_FONT),
-            "There is no information for the network traffic you've selected."
+            "There is no information for the network traffic you've selected.",
           ),
           NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
           HyperlinkInstruction(
             STANDARD_FONT,
             "Learn More",
-            "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"
-          )
+            "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html",
+          ),
         )
         .setColors(JBColor.foreground(), null)
         .build()

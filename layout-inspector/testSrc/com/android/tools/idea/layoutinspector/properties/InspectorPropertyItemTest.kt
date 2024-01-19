@@ -61,7 +61,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
         projectRule.testRootDisposable,
         project,
         FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture)
+        body = DemoExample.setUpDemo(projectRule.fixture),
       )
     }
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
@@ -82,7 +82,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       fakeComposeNode,
-      model!!
+      model!!,
     )
 
   protected suspend fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem =
@@ -93,7 +93,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       fakeComposeNode,
-      model!!
+      model!!,
     )
 
   protected suspend fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem =
@@ -104,7 +104,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       fakeComposeNode,
-      model!!
+      model!!,
     )
 
   protected suspend fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
@@ -116,7 +116,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       node,
-      model!!
+      model!!,
     )
   }
 
@@ -129,7 +129,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       node,
-      model!!
+      model!!,
     )
   }
 
@@ -142,7 +142,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       node,
-      model!!
+      model!!,
     )
   }
 
@@ -162,13 +162,13 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       composeOffset = 420,
       composeLineNumber = 17,
       0,
-      0
+      0,
     )
 
   protected suspend fun browseProperty(
     attrName: String,
     type: PropertyType,
-    source: ResourceReference?
+    source: ResourceReference?,
   ) {
     val node = model!!["title"]!!
     val property =
@@ -184,7 +184,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       null,
       emptyList(),
       fakeComposeNode,
-      model!!
+      model!!,
     )
 }
 
@@ -413,7 +413,7 @@ class InspectorPropertyItemTestWithSdk :
     fileOpenCaptureRule.checkEditor(
       "styles_material.xml",
       228,
-      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>"
+      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>",
     )
   }
 }

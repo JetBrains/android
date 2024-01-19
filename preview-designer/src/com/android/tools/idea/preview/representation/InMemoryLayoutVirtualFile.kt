@@ -37,7 +37,7 @@ private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 open class InMemoryLayoutVirtualFile(
   name: String,
   content: String,
-  private val originFileProvider: () -> VirtualFile?
+  private val originFileProvider: () -> VirtualFile?,
 ) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 

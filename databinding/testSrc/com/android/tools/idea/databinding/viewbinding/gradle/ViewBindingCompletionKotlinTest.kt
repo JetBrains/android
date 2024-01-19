@@ -54,7 +54,7 @@ class ViewBindingCompletionKotlinTest {
                 viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
               )
               .build(),
-        )
+        ),
       )
   }
 
@@ -82,7 +82,7 @@ class ViewBindingCompletionKotlinTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -103,7 +103,7 @@ class ViewBindingCompletionKotlinTest {
             binding.test${caret}
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)

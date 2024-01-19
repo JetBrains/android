@@ -358,7 +358,7 @@ class LayoutInspectorTreePanelTest {
     model.update(
       window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) },
       listOf(ROOT, VIEW2),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     // Still 5: the dimmer is drawn but isn't in the tree
@@ -389,7 +389,7 @@ class LayoutInspectorTreePanelTest {
     model.update(
       window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } },
       listOf(ROOT),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
@@ -408,7 +408,7 @@ class LayoutInspectorTreePanelTest {
         view(VIEW3, layout = demo)
       },
       listOf(ROOT, VIEW2),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
@@ -670,7 +670,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
@@ -731,7 +731,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
@@ -791,7 +791,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val tree = treePanel.tree
@@ -804,7 +804,7 @@ class LayoutInspectorTreePanelTest {
           compose(
             4,
             "Text",
-            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS
+            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS,
           )
           compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
             compose(6, "Row") {

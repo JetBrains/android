@@ -121,7 +121,7 @@ class LayoutInspectorToolWindowFactoryTest {
   private val inspectorRule =
     LayoutInspectorRule(
       listOf(LegacyClientProvider({ projectRule.testRootDisposable })),
-      projectRule
+      projectRule,
     ) {
       it.name == LEGACY_PROCESS.name
     }
@@ -138,7 +138,7 @@ class LayoutInspectorToolWindowFactoryTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -268,7 +268,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
     ApplicationManager.getApplication()
       .replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
@@ -303,7 +303,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(
         project,
-        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name)
+        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name),
       )
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)

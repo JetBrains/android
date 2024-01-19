@@ -37,7 +37,7 @@ interface InteractivePreviewUsageTracker {
     private val MANAGER =
       DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
         { executor, _, eventLogger -> InteractivePreviewUsageTrackerImpl(executor, eventLogger) },
-        NOP_TRACKER
+        NOP_TRACKER,
       )
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)

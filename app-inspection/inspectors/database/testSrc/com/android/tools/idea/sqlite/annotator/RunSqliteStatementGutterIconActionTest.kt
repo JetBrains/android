@@ -40,11 +40,11 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
-import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
@@ -111,7 +111,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockDatabaseInspectorProjectService)
       .runSqliteStatement(
         sqliteDatabaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo"),
       )
   }
 
@@ -130,7 +130,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockDatabaseInspectorProjectService)
       .runSqliteStatement(
         sqliteDatabaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo"),
       )
   }
 
@@ -163,7 +163,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockDatabaseInspectorProjectService)
       .runSqliteStatement(
         sqliteDatabaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo"),
       )
   }
 
@@ -182,7 +182,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockDatabaseInspectorProjectService)
       .runSqliteStatement(
         sqliteDatabaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo where id = 42")
+        SqliteStatement(SqliteStatementType.SELECT, "select * from Foo where id = 42"),
       )
   }
 
@@ -210,8 +210,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -230,7 +230,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     listener.bindingCompletedInvoked(
       mapOf(
         SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
-        SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+        SqliteParameter("name") to SqliteParameterValue.fromAny("name"),
       )
     )
 
@@ -242,8 +242,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ? and name = ?",
           listOf("1", "name").toSqliteValues(),
-          "select * from Foo where id = '1' and name = 'name'"
-        )
+          "select * from Foo where id = '1' and name = 'name'",
+        ),
       )
   }
 
@@ -262,7 +262,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     listener.bindingCompletedInvoked(
       mapOf(
         SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
-        SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+        SqliteParameter("name") to SqliteParameterValue.fromAny("name"),
       )
     )
 
@@ -274,8 +274,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ? and name = ?",
           listOf("1", "name").toSqliteValues(),
-          "select * from Foo where id = '1' and name = 'name'"
-        )
+          "select * from Foo where id = '1' and name = 'name'",
+        ),
       )
   }
 
@@ -303,8 +303,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id > ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id > '1'"
-        )
+          "select * from Foo where id > '1'",
+        ),
       )
   }
 
@@ -332,8 +332,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = (? >> name)",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = ('1' >> name)"
-        )
+          "select * from Foo where id = ('1' >> name)",
+        ),
       )
   }
 
@@ -361,8 +361,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -381,7 +381,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     listener.bindingCompletedInvoked(
       mapOf(
         SqliteParameter(":anId") to SqliteParameterValue.fromAny("1"),
-        SqliteParameter(":aName") to SqliteParameterValue.fromAny("name")
+        SqliteParameter(":aName") to SqliteParameterValue.fromAny("name"),
       )
     )
 
@@ -393,8 +393,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ? and name = ?",
           listOf("1", "name").toSqliteValues(),
-          "select * from Foo where id = '1' and name = 'name'"
-        )
+          "select * from Foo where id = '1' and name = 'name'",
+        ),
       )
   }
 
@@ -422,8 +422,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -451,8 +451,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -480,8 +480,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -509,8 +509,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           SqliteStatementType.SELECT,
           "select * from Foo where id = ?",
           listOf("1").toSqliteValues(),
-          "select * from Foo where id = '1'"
-        )
+          "select * from Foo where id = '1'",
+        ),
       )
   }
 
@@ -519,7 +519,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
@@ -535,7 +535,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockTrackerService)
       .trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT,
       )
   }
 
@@ -544,7 +544,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     val databases =
@@ -569,7 +569,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     verify(mockTrackerService)
       .trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT,
       )
   }
 
@@ -625,7 +625,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
         hostElement.project,
         hostElement,
         viewFactory,
-        mockDatabaseInspectorProjectService
+        mockDatabaseInspectorProjectService,
       )
     anActionEvent =
       TestActionEvent.createFromAnAction(anAction, mouseEvent, "", DataContext.EMPTY_CONTEXT)
@@ -644,7 +644,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
             }
           }
           """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -662,7 +662,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)

@@ -345,13 +345,13 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       hasDatabasePossiblyChangedFunction,
       handleDatabaseClosedFunction,
       executor,
-      scope
+      scope,
     )
   }
 
   private class FakeAppInspectorMessenger(
     override val scope: CoroutineScope,
-    private val singleRawCommandResponse: ByteArray = ByteArray(0)
+    private val singleRawCommandResponse: ByteArray = ByteArray(0),
   ) : AppInspectorMessenger {
     lateinit var rawDataSent: ByteArray
 

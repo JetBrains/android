@@ -76,7 +76,7 @@ class DesignerCommonIssuePanelTest {
 
     val root = (treeModel.root!! as DesignerCommonIssueRoot)
     root.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true),
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
     )
 
     val provider = panel.issueProvider
@@ -147,7 +147,7 @@ class DesignerCommonIssuePanelTest {
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)
     root.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true),
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
     )
     val fileNode = root.getChildren().single() as NoFileNode
     val issueNode = fileNode.getChildren().single()
@@ -175,7 +175,7 @@ class DesignerCommonIssuePanelTest {
     val fileIssue =
       TestIssue(
         source = IssueSourceWithFile(file.virtualFile, "my_layout"),
-        description = "layout issue"
+        description = "layout issue",
       )
     val noFileIssue = TestIssue(description = "other issue")
 

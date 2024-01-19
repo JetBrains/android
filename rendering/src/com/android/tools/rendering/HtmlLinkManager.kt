@@ -31,7 +31,7 @@ interface HtmlLinkManager {
     module: Module?,
     file: PsiFile?,
     hasRenderResult: Boolean,
-    surface: RefreshableSurface
+    surface: RefreshableSurface,
   )
 
   fun createBuildModuleUrl(): String = URL_BUILD_MODULE
@@ -56,7 +56,7 @@ interface HtmlLinkManager {
     className: String,
     methodName: String,
     fileName: String,
-    lineNumber: Int
+    lineNumber: Int,
   ): String = "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
 
   fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
@@ -79,7 +79,7 @@ interface HtmlLinkManager {
   fun createReplaceAttributeValueUrl(
     attribute: String,
     oldValue: String,
-    newValue: String
+    newValue: String,
   ): String = "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
@@ -127,7 +127,7 @@ interface HtmlLinkManager {
           module: Module?,
           file: PsiFile?,
           hasRenderResult: Boolean,
-          surface: RefreshableSurface
+          surface: RefreshableSurface,
         ) {}
 
         override fun createCommandLink(command: CommandLink): String = ""

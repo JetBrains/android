@@ -43,7 +43,7 @@ class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRendere
     isSelected: Boolean,
     hasFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component {
     val intValue = columnInfo.getInt(value).takeIf { it != 0 }
     val focused = table.hasFocus()

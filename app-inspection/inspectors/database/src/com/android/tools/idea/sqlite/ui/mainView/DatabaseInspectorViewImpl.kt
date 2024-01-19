@@ -78,7 +78,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
 
     addEmptyStatePanel(
       DatabaseInspectorBundle.message("waiting.for.connection"),
-      databaseInspectorHelpUrl
+      databaseInspectorHelpUrl,
     )
 
     tabs.name = "right-panel-tabs-panel"
@@ -118,7 +118,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
           leftPanelView.addDatabaseSchema(
             databaseDiffOperation.viewDatabase,
             databaseDiffOperation.schema,
-            databaseDiffOperation.index
+            databaseDiffOperation.index,
           )
         }
         is DatabaseDiffOperation.RemoveDatabase ->
@@ -129,14 +129,14 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
       addEmptyStatePanel(
         DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl
+        databaseInspectorHelpUrl,
       )
     }
   }
 
   override fun updateDatabaseSchema(
     viewDatabase: ViewDatabase,
-    diffOperations: List<SchemaDiffOperation>
+    diffOperations: List<SchemaDiffOperation>,
   ) {
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
@@ -163,7 +163,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     if (openTabs.isEmpty()) {
       addEmptyStatePanel(
         DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl
+        databaseInspectorHelpUrl,
       )
     }
   }
@@ -185,7 +185,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
             NewLineChunk,
             TextChunk("($filesDownloaded/$totalFilesToDownload) databases downloaded..."),
           ),
-        actionData = ActionData("Cancel") { listeners.forEach { it.cancelOfflineModeInvoked() } }
+        actionData = ActionData("Cancel") { listeners.forEach { it.cancelOfflineModeInvoked() } },
       )
     enterOfflineModePanel.name = "right-panel-offline-mode"
 
@@ -213,7 +213,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabId: TabId,
     tabName: String,
     tabIcon: Icon,
-    tabContent: JComponent
+    tabContent: JComponent,
   ): TabInfo {
     val tab = TabInfo(tabContent)
     tab.`object` = tabId
@@ -224,7 +224,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
         AnAction(
           DatabaseInspectorBundle.message("action.close.tab"),
           DatabaseInspectorBundle.message("action.close.tab.desc"),
-          AllIcons.Actions.Close
+          AllIcons.Actions.Close,
         ) {
         override fun actionPerformed(e: AnActionEvent) {
           listeners.forEach { it.closeTabActionInvoked(tabId) }
@@ -261,7 +261,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
       AutoHide.DOCKED,
       ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-      ToolWindowDefinition.ALLOW_BASICS
+      ToolWindowDefinition.ALLOW_BASICS,
     ) {
       SchemaPanelToolContent()
     }

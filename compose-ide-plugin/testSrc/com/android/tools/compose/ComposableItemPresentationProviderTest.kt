@@ -42,7 +42,7 @@ class ComposableItemPresentationProviderTest {
       val testFunction = <caret>{ }
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadAction {
@@ -63,7 +63,7 @@ class ComposableItemPresentationProviderTest {
       fun testFun<caret>ction(arg0: Int, arg1: Int) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadAction {
@@ -84,7 +84,7 @@ class ComposableItemPresentationProviderTest {
       annotation class Composable
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     projectRule.fixture.configureByText(
@@ -98,7 +98,7 @@ class ComposableItemPresentationProviderTest {
       fun testFun<caret>ction(arg0: Int, arg1: Int = 0) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadAction {
@@ -120,7 +120,7 @@ class ComposableItemPresentationProviderTest {
       annotation class Composable
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     projectRule.fixture.configureByText(
@@ -134,7 +134,7 @@ class ComposableItemPresentationProviderTest {
       fun testFun<caret>ction(arg0: Int, arg1: Int = 0, arg2: @Composable () -> Unit) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadAction {

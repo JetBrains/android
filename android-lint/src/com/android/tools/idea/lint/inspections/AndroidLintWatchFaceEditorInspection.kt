@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WatchFaceEditorDetector
 class AndroidLintWatchFaceEditorInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.watch.face.editor"),
-    WatchFaceEditorDetector.ISSUE
+    WatchFaceEditorDetector.ISSUE,
   )

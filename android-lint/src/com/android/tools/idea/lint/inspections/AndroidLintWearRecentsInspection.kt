@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WearRecentsDetector
 class AndroidLintWearRecentsInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wear.recents"),
-    WearRecentsDetector.ISSUE
+    WearRecentsDetector.ISSUE,
   )

@@ -29,12 +29,12 @@ import com.android.tools.lint.client.api.PlatformLookup
  */
 class SdkManagerPlatformLookup(
   private val sdkHandler: AndroidSdkHandler,
-  private val logger: ProgressIndicatorAdapter
+  private val logger: ProgressIndicatorAdapter,
 ) : PlatformLookup {
   override fun getLatestSdkTarget(
     minApi: Int,
     includePreviews: Boolean,
-    includeAddOns: Boolean
+    includeAddOns: Boolean,
   ): IAndroidTarget? {
     val targets = getTargets(includeAddOns)
     for (i in targets.indices.reversed()) {

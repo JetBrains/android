@@ -43,7 +43,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -151,7 +151,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -244,7 +244,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 150, 150),
         TestPositionableContent(0, 0, 200, 200),
-        TestPositionableContent(0, 0, 300, 300)
+        TestPositionableContent(0, 0, 300, 300),
       )
 
     run {
@@ -309,7 +309,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -355,7 +355,7 @@ class GroupedGridSurfaceLayoutManagerTest {
       GroupedGridSurfaceLayoutManager(GroupPadding(0, 0, { 0 })) { contents ->
         listOf(
           PositionableGroup(emptyList(), contents.first()),
-          PositionableGroup(contents.drop(1))
+          PositionableGroup(contents.drop(1)),
         )
       }
 
@@ -389,7 +389,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
     run {
       // test single rows. (5)
@@ -438,7 +438,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
     // Two groups.
     val manager =
@@ -523,7 +523,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100, scale = 0.5),
         TestPositionableContent(0, 0, 100, 100, scale = 1.0),
         TestPositionableContent(0, 0, 100, 100, scale = 1.0),
-        TestPositionableContent(0, 0, 100, 100, scale = 2.0)
+        TestPositionableContent(0, 0, 100, 100, scale = 2.0),
       )
 
     run {
@@ -592,7 +592,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100, scale = it),
         TestPositionableContent(0, 0, 100, 100, scale = it),
         TestPositionableContent(0, 0, 100, 100, scale = it),
-        TestPositionableContent(0, 0, 100, 100, scale = it)
+        TestPositionableContent(0, 0, 100, 100, scale = it),
       )
     }
 
@@ -628,7 +628,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {

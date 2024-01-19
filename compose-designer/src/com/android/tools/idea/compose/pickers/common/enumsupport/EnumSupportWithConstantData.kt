@@ -30,7 +30,7 @@ import javax.swing.ListCellRenderer
 internal class EnumSupportWithConstantData(
   enumSupportValuesProvider: EnumSupportValuesProvider,
   key: String,
-  private val customCreateValue: ((String) -> EnumValue)? = null
+  private val customCreateValue: ((String) -> EnumValue)? = null,
 ) : EnumSupport {
   override val values: List<EnumValue> by lazy {
     return@lazy enumSupportValuesProvider.getValuesProvider(key)?.invoke() ?: emptyList()

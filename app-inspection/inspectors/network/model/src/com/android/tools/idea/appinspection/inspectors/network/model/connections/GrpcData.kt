@@ -101,8 +101,7 @@ private constructor(
       updateTimeUs = timestamp,
       responseStartTimeUs = timestamp,
       address = event.grpcEvent.grpcStreamCreated.address,
-      requestHeaders =
-        requestHeaders + event.grpcEvent.grpcStreamCreated.requestHeadersList.toMap(),
+      requestHeaders = requestHeaders + event.grpcEvent.grpcStreamCreated.requestHeadersList.toMap(),
     )
   }
 
@@ -123,7 +122,7 @@ private constructor(
     return copy(
       id = id,
       updateTimeUs = timestamp,
-      responseHeaders = event.grpcEvent.grpcResponseHeaders.responseHeadersList.toMap()
+      responseHeaders = event.grpcEvent.grpcResponseHeaders.responseHeadersList.toMap(),
     )
   }
 
@@ -141,11 +140,7 @@ private constructor(
 
   internal fun withGrpcThread(event: NetworkInspectorProtocol.Event): GrpcData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      id = id,
-      updateTimeUs = timestamp,
-      threads = threads + event.toJavaThread(),
-    )
+    return copy(id = id, updateTimeUs = timestamp, threads = threads + event.toJavaThread())
   }
 
   internal fun intersectsRange(range: Range): Boolean {

@@ -53,7 +53,7 @@ internal fun getPreferredThemeName(theme: String): String {
 fun createFilter(
   resolver: ThemeResolver,
   excludedNames: Set<String>,
-  vararg baseThemes: StyleResourceValue
+  vararg baseThemes: StyleResourceValue,
 ): ThemeStyleFilter {
   if (baseThemes.isEmpty()) {
     return { style: ConfiguredThemeEditorStyle -> !excludedNames.contains(style.qualifiedName) }
@@ -80,7 +80,7 @@ fun getProjectThemeNames(themeResolver: ThemeResolver, filter: ThemeStyleFilter)
 fun getLibraryThemes(themeResolver: ThemeResolver): List<ConfiguredThemeEditorStyle> =
   getFilteredByPrefixSortedByName(
     getPublicThemes(themeResolver.externalLibraryThemes),
-    setOf("Base.", "Platform.")
+    setOf("Base.", "Platform."),
   )
 
 fun getLibraryThemeNames(themeResolver: ThemeResolver, filter: ThemeStyleFilter) =
@@ -123,7 +123,7 @@ private fun getPublicThemes(themes: List<ConfiguredThemeEditorStyle>) =
  */
 private fun getFilteredByPrefixSortedByName(
   themes: List<ConfiguredThemeEditorStyle>,
-  excludedPrefixes: Set<String> = emptySet()
+  excludedPrefixes: Set<String> = emptySet(),
 ): List<ConfiguredThemeEditorStyle> =
   themes
     .filter { theme -> excludedPrefixes.none({ prefix -> theme.name.startsWith(prefix) }) }

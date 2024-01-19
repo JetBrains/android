@@ -48,7 +48,7 @@ internal class PreviewSurfaceActionManager(
   private val copyResultImageAction =
     CopyResultImageAction(
       message("copy.result.image.action.title"),
-      message("copy.result.image.action.done.text")
+      message("copy.result.image.action.done.text"),
     )
 
   override fun registerActionsShortcuts(component: JComponent) {
@@ -59,7 +59,7 @@ internal class PreviewSurfaceActionManager(
     return InteractiveLabelPanel(
       LayoutData.fromSceneView(sceneView),
       surface,
-      suspend { navigationHandler.handleNavigate(sceneView, false) }
+      suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
   }
 
@@ -93,7 +93,7 @@ internal class PreviewSurfaceActionManager(
           EnableInteractiveAction(
             isEssentialsModeEnabled = {
               ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
+            }
           ),
           DeployToDeviceAction(),
         )

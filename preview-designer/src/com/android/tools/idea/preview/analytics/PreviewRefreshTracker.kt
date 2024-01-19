@@ -59,7 +59,7 @@ private val PreviewRefreshNopTracker =
 private class PreviewRefreshDefaultTracker(
   private val executor: Executor,
   private val facet: AndroidFacet?,
-  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
+  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>,
 ) : PreviewRefreshTracker {
   override fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder {
     event.createAndroidStudioEvent().setApplicationId(facet).let {
@@ -72,7 +72,7 @@ private class PreviewRefreshDefaultTracker(
 class PreviewRefreshEventBuilder(
   type: PreviewRefreshEvent.PreviewType,
   private val tracker: PreviewRefreshTracker,
-  private val logger: Logger = Logger.getInstance(PreviewRefreshEventBuilder::class.java)
+  private val logger: Logger = Logger.getInstance(PreviewRefreshEventBuilder::class.java),
 ) {
   private val eventBuilder = PreviewRefreshEvent.newBuilder().setType(type)
   private var enqueueMs: Long? = null
@@ -91,7 +91,7 @@ class PreviewRefreshEventBuilder(
     renderError: Boolean,
     inflate: Boolean,
     renderQuality: Float,
-    renderTimeMillis: Long
+    renderTimeMillis: Long,
   ) {
     if (renderQuality < 0f || 1f < renderQuality) {
       logger.warn("Attempted to log a render with not valid quality: $renderQuality")

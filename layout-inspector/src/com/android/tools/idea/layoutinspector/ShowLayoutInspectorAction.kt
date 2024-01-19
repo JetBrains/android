@@ -37,7 +37,7 @@ class ShowLayoutInspectorAction :
   DumbAwareAction(
     AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
     AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
+    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR,
   ) {
   override fun update(e: AnActionEvent) {
     val project = e.project
@@ -66,7 +66,7 @@ class ShowLayoutInspectorAction :
       notificationGroup.createNotification(
         LayoutInspectorBundle.message("layout.inspector.discovery.title"),
         LayoutInspectorBundle.message("layout.inspector.discovery.description"),
-        NotificationType.INFORMATION
+        NotificationType.INFORMATION,
       )
     notification.addAction(
       object : NotificationAction(LayoutInspectorBundle.message("opt.out")) {

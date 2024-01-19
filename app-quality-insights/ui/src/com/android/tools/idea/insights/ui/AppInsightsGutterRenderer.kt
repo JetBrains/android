@@ -28,7 +28,7 @@ import javax.swing.Icon
  */
 data class AppInsightsGutterRenderer(
   val insights: List<AppInsight>,
-  val itemChosenCallback: (AppInsight) -> Unit
+  val itemChosenCallback: (AppInsight) -> Unit,
 ) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE

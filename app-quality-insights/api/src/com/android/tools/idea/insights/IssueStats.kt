@@ -40,7 +40,7 @@ data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsG
 data class StatsGroup<T : Number>(
   val groupName: String,
   val percentage: T,
-  val breakdown: List<DataPoint<T>>
+  val breakdown: List<DataPoint<T>>,
 )
 
 /** Represents a leaf named data point. */
@@ -65,7 +65,7 @@ fun List<Double>.resolveElementCountBy(minElementCount: Int, threshold: Double):
  */
 fun List<WithCount<OperatingSystemInfo>>.summarizeOsesFromRawDataPoints(
   minGroupSize: Int,
-  minPercentage: Double
+  minPercentage: Double,
 ): IssueStats<Double> {
   if (isEmpty()) return IssueStats(null, emptyList())
 
@@ -99,9 +99,9 @@ fun List<WithCount<OperatingSystemInfo>>.summarizeOsesFromRawDataPoints(
                     listOf(
                       DataPoint(OTHER_GROUP, points.drop(minGroupSize).sumOf { it.percentage })
                     )
-              }
+              },
           )
-        )
+        ),
   )
 }
 
@@ -112,7 +112,7 @@ fun List<WithCount<OperatingSystemInfo>>.summarizeOsesFromRawDataPoints(
  */
 fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(
   minGroupSize: Int,
-  minPercentage: Double
+  minPercentage: Double,
 ): IssueStats<Double> {
   if (isEmpty()) return IssueStats(null, emptyList())
 
@@ -142,7 +142,7 @@ fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(
             else
               listOf(
                 DataPoint(OTHER_GROUP, groupEvents.percentOf(totalEvents) - topGroupSizePercentages)
-              )
+              ),
         )
       }
       .sortedByDescending { it.percentage }
@@ -170,8 +170,8 @@ fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(
                     listOf(
                       DataPoint(OTHER_GROUP, points.drop(minGroupSize).sumOf { it.percentage })
                     )
-              }
+              },
           )
-        )
+        ),
   )
 }

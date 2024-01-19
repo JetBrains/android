@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project
 
 class CommonAttributesInspectorBuilder(
   project: Project,
-  private val editorProvider: EditorProvider<NlPropertyItem>
+  private val editorProvider: EditorProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
 
   private val viewInspector = ViewInspectorBuilder(project, editorProvider)
@@ -42,7 +42,7 @@ class CommonAttributesInspectorBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (!InspectorSection.COMMON.visible) {
       return
@@ -74,7 +74,7 @@ class CommonAttributesInspectorBuilder(
   private fun addCommonForAll(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    generator: TitleGenerator
+    generator: TitleGenerator,
   ) {
     if (!generator.titleAdded) {
       // Only add the common elements if the basic section was added already.
@@ -86,7 +86,7 @@ class CommonAttributesInspectorBuilder(
   private fun addIfExist(
     inspector: InspectorPanel,
     property: NlPropertyItem?,
-    title: InspectorLineModel
+    title: InspectorLineModel,
   ) {
     if (property != null) {
       inspector.addEditor(editorProvider.createEditor(property), title)

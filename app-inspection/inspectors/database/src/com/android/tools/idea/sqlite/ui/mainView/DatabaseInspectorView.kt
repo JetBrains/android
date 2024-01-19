@@ -110,7 +110,7 @@ sealed class SchemaDiffOperation
 
 data class AddTable(
   val indexedSqliteTable: IndexedSqliteTable,
-  val columns: List<IndexedSqliteColumn>
+  val columns: List<IndexedSqliteColumn>,
 ) : SchemaDiffOperation()
 
 data class RemoveTable(val tableName: String) : SchemaDiffOperation()
@@ -118,13 +118,13 @@ data class RemoveTable(val tableName: String) : SchemaDiffOperation()
 data class AddColumns(
   val tableName: String,
   val columns: List<IndexedSqliteColumn>,
-  val newTable: SqliteTable
+  val newTable: SqliteTable,
 ) : SchemaDiffOperation()
 
 data class RemoveColumns(
   val tableName: String,
   val columnsToRemove: List<SqliteColumn>,
-  val newTable: SqliteTable
+  val newTable: SqliteTable,
 ) : SchemaDiffOperation()
 
 /**
@@ -135,7 +135,7 @@ sealed class DatabaseDiffOperation {
   data class AddDatabase(
     val viewDatabase: ViewDatabase,
     val schema: SqliteSchema?,
-    val index: Int
+    val index: Int,
   ) : DatabaseDiffOperation()
 
   data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()

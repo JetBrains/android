@@ -44,7 +44,7 @@ class SelectedIssueChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
       )
 
     val transition =
@@ -63,7 +63,7 @@ class SelectedIssueChangedTest {
           Action.FetchIssueVariants(ISSUE2.id),
           Action.FetchDetails(ISSUE2.id),
           Action.FetchNotes(ISSUE2.id),
-          Action.ListEvents(ISSUE2.id, null, null)
+          Action.ListEvents(ISSUE2.id, null, null),
         )
     }
   }
@@ -74,7 +74,7 @@ class SelectedIssueChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
       )
 
     val transition =
@@ -89,7 +89,7 @@ class SelectedIssueChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
       )
 
     val transition =

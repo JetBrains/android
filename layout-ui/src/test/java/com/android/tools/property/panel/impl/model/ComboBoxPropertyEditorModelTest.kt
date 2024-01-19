@@ -61,7 +61,7 @@ class ComboBoxPropertyEditorModelTest {
 
   private fun createModel(
     enumSupport: EnumSupport,
-    editable: Boolean = true
+    editable: Boolean = true,
   ): ComboBoxPropertyEditorModel {
     val property =
       FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
@@ -125,7 +125,7 @@ class ComboBoxPropertyEditorModelTest {
         property =
           FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
         enumSupport = createEnumSupport(),
-        editable = false
+        editable = false,
       )
 
     assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))

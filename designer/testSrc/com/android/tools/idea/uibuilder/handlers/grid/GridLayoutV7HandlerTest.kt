@@ -149,8 +149,8 @@ class GridLayoutV7HandlerTest : SceneTest() {
               .width("20dp")
               .height("20dp")
               .withAttribute("app:layout_row", "1")
-              .withAttribute("app:layout_column", "1")
-          )
+              .withAttribute("app:layout_column", "1"),
+          ),
       )
     val model = builder.build()
     assertEquals(1, model.components.size)
@@ -158,7 +158,7 @@ class GridLayoutV7HandlerTest : SceneTest() {
       "NlComponent{tag=<android.support.v7.widget.GridLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
         "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
-      NlTreeDumper.dumpTree(model.components)
+      NlTreeDumper.dumpTree(model.components),
     )
 
     format(model.file)
@@ -183,7 +183,7 @@ class GridLayoutV7HandlerTest : SceneTest() {
         "        app:layout_column=\"1\" />\n" +
         "\n" +
         "</android.support.v7.widget.GridLayout>\n",
-      model.file.text
+      model.file.text,
     )
     return builder
   }

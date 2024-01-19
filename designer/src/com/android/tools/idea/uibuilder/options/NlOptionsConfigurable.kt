@@ -109,21 +109,21 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           editorModeComboBox()
             .bindItem(
               { state.preferredPreviewableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
-              state::setPreferredPreviewableEditorMode
+              state::setPreferredPreviewableEditorMode,
             )
         }
         row("Compose files without previews:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredComposableEditorMode
+              state::setPreferredComposableEditorMode,
             )
         }
         row("Other Kotlin files:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredKotlinEditorMode
+              state::setPreferredKotlinEditorMode,
             )
         }
       }
@@ -142,13 +142,13 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   minSensitivityPercentage,
                   maxSensitivityPercentage,
                   0,
-                  (maxSensitivityPercentage - minSensitivityPercentage) / 4
+                  (maxSensitivityPercentage - minSensitivityPercentage) / 4,
                 )
                 .labelTable(
                   mapOf(
                     minSensitivityPercentage to JLabel("Slow"),
                     defaultSensitivityPercentage to JLabel("Default"),
-                    maxSensitivityPercentage to JLabel("Fast")
+                    maxSensitivityPercentage to JLabel("Fast"),
                   )
                 )
                 .applyToComponent { value = percentageValue }
@@ -219,7 +219,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       .connect(disposable!!)
       .subscribe(
         essentialsModeMessagingService.TOPIC,
-        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) }
+        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) },
       )
     return essentialsModeEnabled
   }
@@ -287,7 +287,7 @@ class NlOptionConfigurableSearchableOptionContributor : SearchableOptionContribu
         LABEL_MAGNIFY_ZOOMING_SENSITIVITY,
         CONFIGURABLE_ID,
         DISPLAY_NAME,
-        false
+        false,
       )
     }
   }

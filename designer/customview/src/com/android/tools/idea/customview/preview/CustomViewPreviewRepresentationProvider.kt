@@ -32,7 +32,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
     CommonRepresentationEditorFileType(
       CustomViewLightVirtualFile::class.java,
       LayoutEditorState.Type.CUSTOM_VIEWS,
-      ::CustomViewPreviewToolbar
+      ::CustomViewPreviewToolbar,
     ) {
     override fun isEditable() = true
   }

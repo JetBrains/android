@@ -76,7 +76,7 @@ private class SpeedIcon(var text: String) : Icon {
 
     (g as Graphics2D).setRenderingHint(
       RenderingHints.KEY_TEXT_ANTIALIASING,
-      RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+      RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
     )
 
     val metrics = g.fontMetrics

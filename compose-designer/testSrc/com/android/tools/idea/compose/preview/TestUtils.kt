@@ -81,7 +81,7 @@ internal fun getRepresentationForFile(
   file: PsiFile,
   project: Project,
   fixture: CodeInsightTestFixture,
-  previewProvider: ComposePreviewRepresentationProvider
+  previewProvider: ComposePreviewRepresentationProvider,
 ): PreviewRepresentation {
   ApplicationManager.getApplication().invokeAndWait {
     runWriteAction { fixture.configureFromExistingVirtualFile(file.virtualFile) }
@@ -91,11 +91,7 @@ internal fun getRepresentationForFile(
   }
 
   val multiRepresentationPreview =
-    MultiRepresentationPreview(
-      file,
-      fixture.editor,
-      listOf(previewProvider),
-    )
+    MultiRepresentationPreview(file, fixture.editor, listOf(previewProvider))
   Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
 
   runBlocking { multiRepresentationPreview.onInit() }
@@ -116,7 +112,7 @@ suspend fun waitForSmartMode(project: Project, logger: Logger? = null) =
 internal data class DebugStatus(
   val status: ComposePreviewManager.Status,
   val renderResult: List<RenderResult>,
-  private val loggerContents: String
+  private val loggerContents: String,
 )
 
 private fun RenderLogger.toDebugString(): String {
@@ -144,6 +140,6 @@ internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
   return DebugStatus(
     status(),
     renderResults,
-    renderResults.joinToString { it.logger.toDebugString() }
+    renderResults.joinToString { it.logger.toDebugString() },
   )
 }

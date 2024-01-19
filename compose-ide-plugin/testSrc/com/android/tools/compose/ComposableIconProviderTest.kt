@@ -42,7 +42,7 @@ class ComposableIconProviderTest {
       """
 package androidx.compose.runtime
 
-annotation class Composable"""
+annotation class Composable""",
     )
   }
 
@@ -55,7 +55,7 @@ package com.example
 
 val fo<caret>o = 1234
 
-"""
+""",
     )
 
     runReadAction {
@@ -75,7 +75,7 @@ package com.example
 
 fun testFun<caret>ction() {}
 
-"""
+""",
     )
 
     runReadAction {
@@ -98,7 +98,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun testFun<caret>ction() {}
 
-"""
+""",
     )
 
     runReadAction {
@@ -126,7 +126,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun testFun<caret>ction() {}
 
-"""
+""",
     )
 
     runReadAction {

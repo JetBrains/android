@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.FineLocationDetector
 class AndroidLintCoarseFineLocationInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.coarse.fine.location"),
-    FineLocationDetector.ISSUE
+    FineLocationDetector.ISSUE,
   )

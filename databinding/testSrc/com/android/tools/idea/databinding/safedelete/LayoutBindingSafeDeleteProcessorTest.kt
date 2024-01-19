@@ -58,7 +58,7 @@ class LayoutBindingSafeDeleteProcessorTest {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
@@ -82,7 +82,7 @@ class LayoutBindingSafeDeleteProcessorTest {
             android:layout_height="fill_parent" />
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val activityWithoutUsagesFile =
@@ -97,7 +97,7 @@ class LayoutBindingSafeDeleteProcessorTest {
             android:layout_height="fill_parent" />
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val activityWithoutBindingFile =
@@ -110,7 +110,7 @@ class LayoutBindingSafeDeleteProcessorTest {
           android:layout_width="fill_parent"
           android:layout_height="fill_parent" />
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val nonLayoutResourceFile =
@@ -123,7 +123,7 @@ class LayoutBindingSafeDeleteProcessorTest {
           <string name="hello">Hello World</string>
       </resources>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val classFile =
@@ -147,7 +147,7 @@ class LayoutBindingSafeDeleteProcessorTest {
           }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // Make sure we take precedence over the regular android resource file SafeDeleteProcessor
@@ -185,7 +185,7 @@ class LayoutBindingSafeDeleteProcessorTest {
     SafeDeleteHandler.invoke(
       projectRule.project,
       arrayOf(activityWithoutBindingFile, nonLayoutResourceFile),
-      true
+      true,
     )
     assertThat(activityWithoutBindingFile.virtualFile.exists()).isFalse()
     assertThat(nonLayoutResourceFile.virtualFile.exists()).isFalse()

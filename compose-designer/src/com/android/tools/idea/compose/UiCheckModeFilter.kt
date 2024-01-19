@@ -43,7 +43,7 @@ private val idToName =
     DEVICE_CLASS_FOLDABLE_ID to "Unfolded Foldable",
     DEVICE_CLASS_TABLET_ID to "Medium Tablet",
     DEVICE_CLASS_DESKTOP_ID to "Desktop",
-    DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape"
+    DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape",
   )
 private val fontScales =
   mapOf(
@@ -100,13 +100,8 @@ sealed class UiCheckModeFilter {
         is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
         is FlowableCollection.Present ->
           if (basePreviewInstance in previewInstances.asCollection())
-            FlowableCollection.Present(
-              uiCheckPreviews,
-            )
-          else
-            FlowableCollection.Present(
-              emptyList(),
-            )
+            FlowableCollection.Present(uiCheckPreviews)
+          else FlowableCollection.Present(emptyList())
       }
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
@@ -142,7 +137,7 @@ private fun deviceSizePreviews(
     referenceDeviceIds +
       mapOf(
         "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
-          DEVICE_CLASS_LANDSCAPE_PHONE_ID,
+          DEVICE_CLASS_LANDSCAPE_PHONE_ID
       )
   return effectiveDeviceIds.keys.map { device ->
     val config = baseConfig.copy(deviceSpec = device)
@@ -197,7 +192,7 @@ private fun colorBlindPreviews(
   return ColorBlindMode.values().map { colorBlindMode ->
     val colorFilterBaseConfig =
       baseConfig.copy(
-        imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) },
+        imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) }
       )
     val displaySettings =
       baseDisplaySettings.copy(
@@ -215,7 +210,7 @@ private fun colorBlindPreviews(
  */
 private fun ComposePreviewElementInstance.createDerivedInstance(
   displaySettings: PreviewDisplaySettings,
-  config: PreviewConfiguration
+  config: PreviewConfiguration,
 ): ComposePreviewElementInstance {
   val singleInstance =
     SingleComposePreviewElementInstance(

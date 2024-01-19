@@ -35,7 +35,7 @@ typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
 class InspectorPanelImpl(
   val model: InspectorPanelModel,
   nameColumnFraction: ColumnFraction,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) :
   AdtSecondaryPanel(InspectorLayoutManager(nameColumnFraction)), Disposable, ValueChangedListener {
 
@@ -73,7 +73,7 @@ class InspectorPanelImpl(
       this,
       component.model.editorModel?.property,
       forValue = false,
-      text = ""
+      text = "",
     )
     return null
   }

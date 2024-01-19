@@ -38,7 +38,7 @@ object TypeResolver {
   fun resolveType(
     name: String,
     attribute: AttributeDefinition?,
-    componentClass: PsiClass?
+    componentClass: PsiClass?,
   ): NlPropertyType {
     return lookupByName(name, componentClass)
       ?: bySpecialType(name)

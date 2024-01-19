@@ -83,7 +83,7 @@ private suspend fun onPanelVisible(
   logcatPresenter: LogcatPresenter,
   id: String,
   messagesFile: MessagesFile,
-  isPanelVisible: AtomicBoolean
+  isPanelVisible: AtomicBoolean,
 ) {
   logger.debug { "Panel for $id is now visible. Loading messages from file cleaning up" }
   isPanelVisible.set(true)
@@ -94,7 +94,7 @@ private suspend fun onPanelInvisible(
   logcatPresenter: LogcatPresenter,
   id: String,
   messagesFile: MessagesFile,
-  isPanelVisible: AtomicBoolean
+  isPanelVisible: AtomicBoolean,
 ) {
   logger.debug {
     "Panel for $id is now invisible. Initializing message file and entering invisible mode"

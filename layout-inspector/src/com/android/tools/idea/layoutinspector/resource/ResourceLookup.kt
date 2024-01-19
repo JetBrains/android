@@ -101,7 +101,7 @@ class ResourceLookup(private val project: Project) {
     fontScaleFromConfig: Float = 0f,
     mainDisplayOrientation: Int = 0,
     screenSize: Dimension? = null,
-    isRunningInMainDisplay: Boolean? = null
+    isRunningInMainDisplay: Boolean? = null,
   ) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
@@ -127,7 +127,7 @@ class ResourceLookup(private val project: Project) {
   private fun createResolver(
     folderConfig: FolderConfiguration,
     theme: ResourceReference?,
-    process: ProcessDescriptor
+    process: ProcessDescriptor,
   ): ResourceLookupResolver? {
     val facet =
       ReadAction.compute<AndroidFacet?, RuntimeException> {
@@ -157,7 +157,7 @@ class ResourceLookup(private val project: Project) {
     view: ViewNode,
     source: ResourceReference?,
     sourceLocations: MutableList<SourceLocation>,
-    max: Int = MAX_RESOURCE_INDIRECTION
+    max: Int = MAX_RESOURCE_INDIRECTION,
   ) = readAction { resolver?.findFileLocations(property, view, source, sourceLocations, max) }
 
   /** Find the location of the specified [view]. */
@@ -169,7 +169,7 @@ class ResourceLookup(private val project: Project) {
   suspend fun findAttributeValue(
     property: InspectorPropertyItem,
     view: ViewNode,
-    location: ResourceReference
+    location: ResourceReference,
   ): String? = readAction { resolver?.findAttributeValue(property, view, location) }
 
   /** Find the lambda source location. */
@@ -180,7 +180,7 @@ class ResourceLookup(private val project: Project) {
     lambdaName: String,
     functionName: String,
     startLine: Int,
-    endLine: Int
+    endLine: Int,
   ): SourceLocation = readAction {
     composeResolver.findLambdaLocation(
       packageName,
@@ -188,7 +188,7 @@ class ResourceLookup(private val project: Project) {
       lambdaName,
       functionName,
       startLine,
-      endLine
+      endLine,
     )
   }
 

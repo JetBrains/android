@@ -148,6 +148,6 @@ class HorizontalEditorPanelModelTest {
     val model: HorizontalEditorPanelModel,
     val toggle1: FakeEditorModel,
     val toggle2: FakeEditorModel,
-    val toggle3: FakeEditorModel
+    val toggle3: FakeEditorModel,
   )
 }

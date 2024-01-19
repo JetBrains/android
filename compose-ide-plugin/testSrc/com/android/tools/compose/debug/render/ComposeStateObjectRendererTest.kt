@@ -50,7 +50,7 @@ class ComposeStateObjectRendererTest {
         .trimIndent()
     projectRule.fixture.addFileToProject(
       "src/androidx/compose/runtime/snapshots/SnapshotStateList.kt",
-      source
+      source,
     )
 
     // prepare
@@ -112,7 +112,7 @@ class ComposeStateObjectRendererTest {
         .trimIndent()
     projectRule.fixture.addFileToProject(
       "src/androidx/compose/runtime/snapshots/SnapshotStateMap.kt",
-      source
+      source,
     )
 
     // prepare
@@ -174,7 +174,7 @@ class ComposeStateObjectRendererTest {
         .trimIndent()
     projectRule.fixture.addFileToProject(
       "src/androidx/compose/runtime/SnapshotMutableStateImpl.kt",
-      source
+      source,
     )
 
     val debugProcess: DebugProcessImpl =
@@ -188,7 +188,7 @@ class ComposeStateObjectRendererTest {
 
         classType(
           "androidx.compose.runtime.ParcelableSnapshotMutableState",
-          snapshotMutableStateImplType as ClassType
+          snapshotMutableStateImplType as ClassType,
         ) {
           method("getDebuggerDisplayValue") { value(MockIntegerValue(2, vm)) }
         }
@@ -240,7 +240,7 @@ class ComposeStateObjectRendererTest {
         .trimIndent()
     projectRule.fixture.addFileToProject(
       "src/androidx/compose/runtime/DerivedSnapshotState.kt",
-      source
+      source,
     )
 
     val debugProcess: DebugProcessImpl =
@@ -301,7 +301,7 @@ class ComposeStateObjectRendererTest {
         .trimIndent()
     projectRule.fixture.addFileToProject(
       "src/androidx/compose/runtime/snapshots/SnapshotStateList.kt",
-      source
+      source,
     )
 
     // prepare

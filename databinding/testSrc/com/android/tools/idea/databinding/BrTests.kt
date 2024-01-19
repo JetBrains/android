@@ -84,7 +84,7 @@ class BrTests(private val mode: DataBindingMode) {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
@@ -102,7 +102,7 @@ class BrTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val activityWithBr =
@@ -141,7 +141,7 @@ class BrTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val activityWithBr =
@@ -161,7 +161,7 @@ class BrTests(private val mode: DataBindingMode) {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(activityWithBr.containingFile.virtualFile)
@@ -182,7 +182,7 @@ class BrTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val activityWithBr =
@@ -224,7 +224,7 @@ class BrTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the

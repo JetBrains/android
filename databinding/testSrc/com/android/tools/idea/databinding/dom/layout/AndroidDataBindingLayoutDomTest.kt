@@ -74,7 +74,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingHighlighting_handlesEnumMap() {
     projectRule.fixture.copyFileToProject(
       "DataBindingWithEnumMap.java",
-      "src/p1/p2/DataBindingWithEnumMap.java"
+      "src/p1/p2/DataBindingWithEnumMap.java",
     )
     domRule.testHighlighting("databinding_highlighting_enum_map.xml")
   }
@@ -124,7 +124,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingCompletion_caretInVariableBlockStartingNameParam() {
     domRule.testCompletion(
       "databinding_completion_variable_name_param.xml",
-      "databinding_completion_variable_name_param_after.xml"
+      "databinding_completion_variable_name_param_after.xml",
     )
   }
 
@@ -132,7 +132,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingCompletion_caretInVariableBlockTypeParam() {
     domRule.testCompletion(
       "databinding_completion_variable_type_param.xml",
-      "databinding_completion_variable_type_param_after.xml"
+      "databinding_completion_variable_type_param_after.xml",
     )
   }
 
@@ -140,7 +140,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingCompletion_caretInExpression() {
     domRule.testCompletion(
       "databinding_completion_expression.xml",
-      "databinding_completion_expression_after.xml"
+      "databinding_completion_expression_after.xml",
     )
   }
 
@@ -153,7 +153,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingCompletion_caretInAndroidAttribute() {
     domRule.testCompletion(
       "databinding_completion_attribute.xml",
-      "databinding_completion_attribute_after.xml"
+      "databinding_completion_attribute_after.xml",
     )
   }
 
@@ -161,7 +161,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   fun dataBindingCompletion_caretInMerge() {
     domRule.testCompletion(
       "databinding_completion_merge.xml",
-      "databinding_completion_merge_after.xml"
+      "databinding_completion_merge_after.xml",
     )
   }
 }

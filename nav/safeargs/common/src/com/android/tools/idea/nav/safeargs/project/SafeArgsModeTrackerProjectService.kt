@@ -46,7 +46,7 @@ class SafeArgsModeTrackerProjectService(project: Project) :
         SafeArgsModeModuleService.MODE_CHANGED,
         SafeArgsModeModuleService.SafeArgsModeChangedListener { _, _ ->
           tracker.incModificationCount()
-        }
+        },
       )
   }
 

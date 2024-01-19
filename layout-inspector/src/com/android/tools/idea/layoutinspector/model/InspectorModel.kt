@@ -52,7 +52,7 @@ class InspectorModel(
   val project: Project,
   override val scope: CoroutineScope,
   val scheduler: ScheduledExecutorService? = null,
-  processesModel: ProcessesModel? = null
+  processesModel: ProcessesModel? = null,
 ) : ViewNodeAndResourceLookup {
 
   fun interface SelectionListener {
@@ -67,7 +67,7 @@ class InspectorModel(
     fun onModification(
       oldWindow: AndroidWindow?,
       newWindow: AndroidWindow?,
-      isStructuralChange: Boolean
+      isStructuralChange: Boolean,
     )
   }
 
@@ -308,7 +308,7 @@ class InspectorModel(
     newWindow: AndroidWindow?,
     allIds: List<*>,
     generation: Int,
-    notifyUpdateCompleted: () -> Unit = {}
+    notifyUpdateCompleted: () -> Unit = {},
   ) {
     if (windows.isEmpty()) {
       // Reset the recomposition counters if this is a new connection:
@@ -501,7 +501,7 @@ class InspectorModel(
   private class Updater(
     private val oldRoot: ViewNode,
     private val newRoot: ViewNode,
-    private val access: ViewNode.WriteAccess
+    private val access: ViewNode.WriteAccess,
   ) {
     private val oldNodes =
       access.run {
@@ -523,7 +523,7 @@ class InspectorModel(
     private fun ViewNode.WriteAccess.update(
       oldNode: ViewNode,
       parent: ViewNode?,
-      newNode: ViewNode
+      newNode: ViewNode,
     ): Boolean {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?

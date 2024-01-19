@@ -42,7 +42,7 @@ internal val GLANCE_SCREEN_VIEW_PROVIDER =
 
     override fun createPrimarySceneView(
       surface: NlDesignSurface,
-      manager: LayoutlibSceneManager
+      manager: LayoutlibSceneManager,
     ): ScreenView =
       ScreenView.newBuilder(surface, manager)
         .withLayersProvider {

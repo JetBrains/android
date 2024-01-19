@@ -37,7 +37,7 @@ interface DaggerIndexMethodWrapper : DaggerIndexAnnotatedWrapper {
 
 internal class KtFunctionWrapper(
   private val ktFunction: KtFunction,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexAnnotatedKotlinWrapper(ktFunction, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = ktFunction.name!!
 
@@ -55,7 +55,7 @@ internal class KtFunctionWrapper(
 
 internal class PsiMethodWrapper(
   private val psiMethod: PsiMethod,
-  private val importHelper: JavaImportHelper
+  private val importHelper: JavaImportHelper,
 ) : DaggerIndexAnnotatedJavaWrapper(psiMethod, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = psiMethod.name
 

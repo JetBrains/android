@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WebViewApiAvailabilityDetector
 class AndroidLintWebViewApiAvailabilityInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.web.view.api.availability"),
-    WebViewApiAvailabilityDetector.ISSUE
+    WebViewApiAvailabilityDetector.ISSUE,
   )

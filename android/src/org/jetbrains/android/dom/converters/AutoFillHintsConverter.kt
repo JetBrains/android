@@ -53,7 +53,7 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
     return CachedValuesManager.getManager(project).getCachedValue(project) {
       CachedValueProvider.Result(
         calculateAutoFillHints(project),
-        ProjectRootModificationTracker.getInstance(project)
+        ProjectRootModificationTracker.getInstance(project),
       )
     }
   }

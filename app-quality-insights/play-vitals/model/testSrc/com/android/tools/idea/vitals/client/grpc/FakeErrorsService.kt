@@ -234,11 +234,11 @@ class FakeErrorsService(
   private val connection: VitalsConnection,
   private val database: FakeVitalsDatabase,
   private val clock: Clock,
-  private val requestChannel: SendChannel<GeneratedMessageV3>? = null
+  private val requestChannel: SendChannel<GeneratedMessageV3>? = null,
 ) : VitalsErrorsServiceGrpc.VitalsErrorsServiceImplBase() {
   override fun searchErrorReports(
     request: SearchErrorReportsRequest,
-    responseObserver: StreamObserver<SearchErrorReportsResponse>
+    responseObserver: StreamObserver<SearchErrorReportsResponse>,
   ) {
     requestChannel?.trySend(request)
     val regex = Regex(".*errorIssueId = (\\w+).*")
@@ -259,7 +259,7 @@ class FakeErrorsService(
 
   override fun searchErrorIssues(
     request: SearchErrorIssuesRequest,
-    responseObserver: StreamObserver<SearchErrorIssuesResponse>
+    responseObserver: StreamObserver<SearchErrorIssuesResponse>,
   ) {
     requestChannel?.trySend(request)
     responseObserver.onNext(
@@ -272,7 +272,7 @@ class FakeErrorsService(
 
   override fun getErrorCountMetricSet(
     request: GetErrorCountMetricSetRequest,
-    responseObserver: StreamObserver<ErrorCountMetricSet>
+    responseObserver: StreamObserver<ErrorCountMetricSet>,
   ) {
     requestChannel?.trySend(request)
     responseObserver.onNext(
@@ -300,7 +300,7 @@ class FakeErrorsService(
 
   override fun queryErrorCountMetricSet(
     request: QueryErrorCountMetricSetRequest,
-    responseObserver: StreamObserver<QueryErrorCountMetricSetResponse>
+    responseObserver: StreamObserver<QueryErrorCountMetricSetResponse>,
   ) {
     requestChannel?.trySend(request)
     val responseText =
@@ -315,7 +315,7 @@ class FakeErrorsService(
     val response =
       TextFormat.parse(
         responseText.replace(METRIC_TYPE, metricType),
-        QueryErrorCountMetricSetResponse::class.java
+        QueryErrorCountMetricSetResponse::class.java,
       )
 
     responseObserver.onNext(response)

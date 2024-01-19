@@ -48,7 +48,7 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
 /** [AnAction] that copies the result image from the given [LayoutlibSceneManager]. */
 class CopyResultImageAction(
   title: String = "Copy Image",
-  private val actionCompleteText: String = "Image copied"
+  private val actionCompleteText: String = "Image copied",
 ) : AnAction(title) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

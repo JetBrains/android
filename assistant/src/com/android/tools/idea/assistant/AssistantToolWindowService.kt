@@ -58,7 +58,7 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
           false,
           ToolWindowAnchor.RIGHT,
           this,
-          true
+          true,
         )
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT)
     }
@@ -73,7 +73,7 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
   private fun createAssistantContent(
     bundleId: String,
     toolWindow: ToolWindow,
-    defaultTutorialCardId: String?
+    defaultTutorialCardId: String?,
   ) {
     var content: Content? = null
     assistSidePanel.showBundle(bundleId, defaultTutorialCardId) { content?.displayName = it.name }

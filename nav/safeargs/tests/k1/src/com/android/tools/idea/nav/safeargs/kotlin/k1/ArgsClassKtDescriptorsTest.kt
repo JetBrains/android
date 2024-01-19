@@ -63,7 +63,7 @@ class ArgsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -85,7 +85,7 @@ class ArgsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val argsClassMetadata =
@@ -110,7 +110,7 @@ class ArgsClassKtDescriptorsTest {
       .containsExactly(
         "val argOne: kotlin.String",
         "val argTwo: kotlin.IntArray",
-        "val argThree: test.safeargs.Fragment1"
+        "val argThree: test.safeargs.Fragment1",
       )
 
     assertThat(argsClassMetadata.functions.map { it.toString() })
@@ -121,7 +121,7 @@ class ArgsClassKtDescriptorsTest {
         "component3(): test.safeargs.Fragment1",
         "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
         // normal functions
-        "toBundle(): android.os.Bundle"
+        "toBundle(): android.os.Bundle",
       )
   }
 
@@ -155,7 +155,7 @@ class ArgsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -177,7 +177,7 @@ class ArgsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val argsClassMetadata =
@@ -205,7 +205,7 @@ class ArgsClassKtDescriptorsTest {
       .containsExactly(
         "val argOne: kotlin.String",
         "val argTwo: kotlin.IntArray",
-        "val argThree: test.safeargs.Fragment1"
+        "val argThree: test.safeargs.Fragment1",
       )
 
     assertThat(argsClassMetadata.functions.map { it.toString() })
@@ -217,7 +217,7 @@ class ArgsClassKtDescriptorsTest {
         "copy(argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1, argOne: kotlin.String): test.safeargs.Fragment1Args",
         // normal functions
         "toSavedStateHandle(): androidx.lifecycle.SavedStateHandle",
-        "toBundle(): android.os.Bundle"
+        "toBundle(): android.os.Bundle",
       )
   }
 
@@ -250,7 +250,7 @@ class ArgsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -272,7 +272,7 @@ class ArgsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val argsClassMetadata =
@@ -300,7 +300,7 @@ class ArgsClassKtDescriptorsTest {
       .containsExactly(
         "val argOne: kotlin.String",
         "val argTwo: kotlin.IntArray",
-        "val argThree: test.safeargs.Fragment1"
+        "val argThree: test.safeargs.Fragment1",
       )
 
     assertThat(argsClassMetadata.functions.map { it.toString() })
@@ -312,7 +312,7 @@ class ArgsClassKtDescriptorsTest {
         "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
         // normal functions
         "toSavedStateHandle(): androidx.lifecycle.SavedStateHandle",
-        "toBundle(): android.os.Bundle"
+        "toBundle(): android.os.Bundle",
       )
   }
 
@@ -345,7 +345,7 @@ class ArgsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -367,7 +367,7 @@ class ArgsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val argsClassMetadata =
@@ -395,7 +395,7 @@ class ArgsClassKtDescriptorsTest {
       .containsExactly(
         "val argOne: kotlin.String",
         "val argTwo: kotlin.IntArray",
-        "val argThree: test.safeargs.Fragment1"
+        "val argThree: test.safeargs.Fragment1",
       )
 
     assertThat(argsClassMetadata.functions.map { it.toString() })
@@ -406,7 +406,7 @@ class ArgsClassKtDescriptorsTest {
         "component3(): test.safeargs.Fragment1",
         "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
         // normal functions
-        "toBundle(): android.os.Bundle"
+        "toBundle(): android.os.Bundle",
       )
   }
 }

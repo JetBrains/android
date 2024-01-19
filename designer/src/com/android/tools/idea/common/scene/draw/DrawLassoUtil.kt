@@ -42,7 +42,7 @@ fun drawLasso(
   @SwingCoordinate mouseY: Int,
   @AndroidDpCoordinate dpWidth: Int,
   @AndroidDpCoordinate dpHeight: Int,
-  showSize: Boolean
+  showSize: Boolean,
 ) {
   val originalColor = g.color
 
@@ -70,7 +70,7 @@ fun drawLasso(
       rect.width.toInt() + SIZE_TIP_MARGIN * 2,
       rect.height.toInt() + SIZE_TIP_MARGIN * 2,
       SIZE_TIP_BACKGROUND_ARC,
-      SIZE_TIP_BACKGROUND_ARC
+      SIZE_TIP_BACKGROUND_ARC,
     )
 
     g.color = SIZE_TIP_TEXT_COLOR

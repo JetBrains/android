@@ -72,7 +72,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
       { ComposeBundle.message("composable.line.marker.tooltip") },
       /* navHandler = */ null,
       GutterIconRenderer.Alignment.RIGHT,
-      { ComposeBundle.message("composable.line.marker.tooltip") }
+      { ComposeBundle.message("composable.line.marker.tooltip") },
     )
   }
 
@@ -99,7 +99,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
             containingFile,
             ANALYSIS_RESULT_KEY,
             getCachedValueProvider(containingFile),
-            /* trackValue = */ false
+            /* trackValue = */ false,
           )
 
       return parentFunction.getResolvedCall(analysisResult.bindingContext)?.isComposableInvocation()
@@ -110,7 +110,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
       CachedValueProvider.Result.create(
         ktFile.analyzeWithAllCompilerChecks(),
         ktFile,
-        PsiModificationTracker.MODIFICATION_COUNT
+        PsiModificationTracker.MODIFICATION_COUNT,
       )
     }
   }

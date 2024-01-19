@@ -43,7 +43,7 @@ class LayoutInspectorViewIntegrationTest {
           // Disable running devices: b/287696923
           "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=false",
         ),
-        "\n"
+        "\n",
       )
     )
 
@@ -69,19 +69,19 @@ class LayoutInspectorViewIntegrationTest {
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for " +
               "launched app: com\\.example\\.emptyapplication",
             300,
-            TimeUnit.SECONDS
+            TimeUnit.SECONDS,
           )
           adb.runCommand(
             "shell",
             "settings",
             "put global debug_view_attributes 1",
-            emulator = emulator
+            emulator = emulator,
           )
           studio.executeAction("Android.RunLayoutInspector")
           ideaLog.waitForMatchingLine(
             ".*g:1 Model Updated for process: com.example.emptyapplication",
             120,
-            TimeUnit.SECONDS
+            TimeUnit.SECONDS,
           )
         }
       }

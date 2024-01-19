@@ -1389,7 +1389,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
           .trimIndent(),
         highlights
           .filter { (highlight, _) -> highlight.type == COMPOSABLE_CALL_TEXT_TYPE }
-          .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" }
+          .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" },
       )
     }
 

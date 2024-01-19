@@ -85,7 +85,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     item: EnumValue?,
     index: Int,
     selected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component? {
     clear()
     when (item) {
@@ -107,7 +107,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     item: EnumValue,
     index: Int,
     selected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ) {
     ipad.left = indent(item, index)
     customize(item)

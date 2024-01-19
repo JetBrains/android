@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.ReturnThisDetector
 class AndroidLintReturnThisInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.return.this"),
-    ReturnThisDetector.ISSUE
+    ReturnThisDetector.ISSUE,
   )

@@ -108,7 +108,7 @@ internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName:
     internal val identifiers =
       DaggerElementIdentifiers(
         ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 

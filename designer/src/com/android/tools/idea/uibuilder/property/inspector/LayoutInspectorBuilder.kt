@@ -54,7 +54,7 @@ class LayoutInspectorBuilder(project: Project, val editorProvider: EditorProvide
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     val attributes = getLayoutAttributes(properties)
     val custom = setupCustomPanel(properties)
@@ -81,7 +81,7 @@ class LayoutInspectorBuilder(project: Project, val editorProvider: EditorProvide
   private fun isApplicable(
     attributes: List<String>,
     custom: JPanel?,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ): Boolean {
     if (!InspectorSection.LAYOUT.visible) return false
     if (custom != null) return true
@@ -98,7 +98,7 @@ class LayoutInspectorBuilder(project: Project, val editorProvider: EditorProvide
 
   private fun addAttributesFromViewHandler(
     properties: PropertiesTable<NlPropertyItem>,
-    attributes: MutableList<String>
+    attributes: MutableList<String>,
   ) {
     val parent = getParentComponent(properties) ?: return
     val handler = viewHandlerManager.getHandler(parent) {} ?: return

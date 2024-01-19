@@ -70,7 +70,7 @@ internal class GalleryTabs<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
-  private val tabChangeListener: (DataContext, Key?) -> Unit
+  private val tabChangeListener: (DataContext, Key?) -> Unit,
 ) : JPanel(BorderLayout()) {
 
   companion object {
@@ -112,7 +112,7 @@ internal class GalleryTabs<Key : TitledKey>(
               }
 
               override fun focusLost(e: FocusEvent) {}
-            },
+            }
           )
         }
 
@@ -265,7 +265,7 @@ internal class GalleryTabs<Key : TitledKey>(
         createToolbarWithNavigation(
             root,
             "Gallery Tabs",
-            GalleryActionGroup(labelActions.values.toList())
+            GalleryActionGroup(labelActions.values.toList()),
           )
           .component
 

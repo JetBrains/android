@@ -34,7 +34,7 @@ class ComposeFoldingBuilder : CustomFoldingBuilder() {
     descriptors: MutableList<FoldingDescriptor>,
     root: PsiElement,
     document: Document,
-    quick: Boolean
+    quick: Boolean,
   ) {
     if (root !is KtFile || DumbService.isDumb(root.project) || !isComposeEnabled(root)) {
       return

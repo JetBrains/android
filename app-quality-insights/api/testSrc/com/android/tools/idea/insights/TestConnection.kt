@@ -23,7 +23,7 @@ data class TestConnection(
   val variantName: String = "variant1",
   val moduleShortName: String = "app1",
   override val isConfigured: Boolean = true,
-  val isPreferred: Boolean = true
+  val isPreferred: Boolean = true,
 ) : Connection {
   override val clientId: String = "android:${appId}"
 

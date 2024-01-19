@@ -101,7 +101,7 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
         abiListLabel,
         availableStorageLabel,
         sizeOnDiskLabel,
-      )
+      ),
     )
 
   var copyPropertiesButton: JComponent = JPanel()

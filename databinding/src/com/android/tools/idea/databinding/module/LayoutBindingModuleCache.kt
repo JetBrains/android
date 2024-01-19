@@ -108,7 +108,7 @@ class LayoutBindingModuleCache(private val module: Module) : Disposable {
       .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { syncModeWithDependencies() }
+        ProjectSystemSyncManager.SyncResultListener { syncModeWithDependencies() },
       )
     syncModeWithDependencies()
   }

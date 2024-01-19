@@ -63,7 +63,7 @@ open class ComposeResolver(val project: Project) {
   private fun findKotlinFileInScope(
     scope: GlobalSearchScope,
     fileName: String,
-    packageNameMatcher: (String) -> Boolean
+    packageNameMatcher: (String) -> Boolean,
   ): KtFile? {
     val files = FilenameIndex.getVirtualFilesByName(fileName, scope)
     val psiManager = PsiManager.getInstance(project)

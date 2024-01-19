@@ -43,7 +43,7 @@ class ComposeKDocLinkResolutionService : KDocLinkResolutionService {
     context: BindingContext,
     fromDescriptor: DeclarationDescriptor,
     resolutionFacade: ResolutionFacade,
-    qualifiedName: List<String>
+    qualifiedName: List<String>,
   ): Collection<DeclarationDescriptor> {
     val project = resolutionFacade.project
     val descriptors =

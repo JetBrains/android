@@ -44,7 +44,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
   override fun createTimelineElement(
     parent: JComponent,
     minY: Int,
-    positionProxy: PositionProxy
+    positionProxy: PositionProxy,
   ): TimelineElement {
     return UnsupportedLabel(parent, elementState, minY, positionProxy)
   }

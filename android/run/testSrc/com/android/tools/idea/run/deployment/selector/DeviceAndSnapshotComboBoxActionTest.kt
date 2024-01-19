@@ -83,7 +83,7 @@ class DeviceAndSnapshotComboBoxActionTest {
     devicesFlow.value =
       listOf(
         FakeDeviceHandle(scope, null, handleId("1")),
-        FakeDeviceHandle(scope, null, handleId("2"))
+        FakeDeviceHandle(scope, null, handleId("2")),
       )
     sendLaunchCompatibility()
 

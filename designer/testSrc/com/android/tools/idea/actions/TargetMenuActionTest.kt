@@ -155,7 +155,7 @@ class TargetMenuActionTest : AndroidTestCase() {
         createApiTarget(32),
         createApiTarget(33),
         createApiTarget(33, 1),
-        createApiTarget(33, 2)
+        createApiTarget(33, 2),
       )
 
     doReturn(targets).whenever(spied).targets

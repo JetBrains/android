@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ProviderPermissionDetector
 class AndroidLintProviderReadPermissionOnlyInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.provider.read.permission.only"),
-    ProviderPermissionDetector.PROVIDER_READ_PERMISSION_ONLY
+    ProviderPermissionDetector.PROVIDER_READ_PERMISSION_ONLY,
   )

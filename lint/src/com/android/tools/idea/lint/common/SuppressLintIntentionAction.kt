@@ -39,7 +39,7 @@ import org.toml.lang.psi.TomlFileType
 class SuppressLintIntentionAction(
   private val id: String,
   element: PsiElement,
-  @SafeFieldForPreview private val issue: Issue? = null
+  @SafeFieldForPreview private val issue: Issue? = null,
 ) : IntentionAction, Iconable {
   private val label = SuppressLintQuickFix.displayName(element, id)
 

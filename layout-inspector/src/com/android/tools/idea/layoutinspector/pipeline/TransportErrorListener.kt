@@ -38,7 +38,7 @@ class TransportErrorListener(
   project: Project,
   private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
-  disposable: Disposable
+  disposable: Disposable,
 ) : TransportDeviceManager.TransportDeviceManagerListener {
 
   private var hasStartServerFailed = false
@@ -51,7 +51,7 @@ class TransportErrorListener(
           TWO_VERSIONS_RUNNING_KEY,
           LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
           Status.Error,
-          emptyList()
+          emptyList(),
         )
         // TODO(b/258453315) log to metrics
       } else {
@@ -73,14 +73,14 @@ class TransportErrorListener(
 
   override fun onStartTransportDaemonServerFail(
     device: Common.Device,
-    exception: FailedToStartServerException
+    exception: FailedToStartServerException,
   ) {
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
     layoutInspectorMetrics.logTransportError(
       DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
-      device.toDeviceDescriptor()
+      device.toDeviceDescriptor(),
     )
   }
 
@@ -90,6 +90,6 @@ class TransportErrorListener(
 
   override fun customizeAgentConfig(
     configBuilder: Agent.AgentConfig.Builder,
-    runConfig: AndroidRunConfigurationBase?
+    runConfig: AndroidRunConfigurationBase?,
   ) {}
 }

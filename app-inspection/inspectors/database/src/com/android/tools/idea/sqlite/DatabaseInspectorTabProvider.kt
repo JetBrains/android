@@ -54,7 +54,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
       AppInspectorJar(
         name = "sqlite-inspection.jar",
         developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
-        releaseDirectory = "plugins/android/resources/app-inspection/"
+        releaseDirectory = "plugins/android/resources/app-inspection/",
       )
     )
 
@@ -69,7 +69,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
     return object : SingleAppInspectorTab(messenger) {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -101,7 +101,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           onDatabaseClosed,
           taskExecutor,
           databaseInspectorProjectService.projectScope,
-          errorsSideChannel
+          errorsSideChannel,
         )
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
@@ -111,7 +111,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           databaseInspectorProjectService.startAppInspectionSession(
             dbClient,
             ideServices,
-            processDescriptor
+            processDescriptor,
           )
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()

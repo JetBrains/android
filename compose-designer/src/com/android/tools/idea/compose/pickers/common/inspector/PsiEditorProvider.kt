@@ -32,14 +32,14 @@ import javax.swing.JComponent
  */
 internal class PsiEditorProvider(
   enumSupportProvider: EnumSupportProvider<PsiPropertyItem>,
-  psiControlTypeProvider: PsiPropertyItemControlTypeProvider
+  psiControlTypeProvider: PsiPropertyItemControlTypeProvider,
 ) : EditorProviderImpl<PsiPropertyItem>(enumSupportProvider, psiControlTypeProvider) {
 
   override fun createComboBoxEditor(
     property: PsiPropertyItem,
     editable: Boolean,
     enumSupport: EnumSupport,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
     return if (editable) {
       // Use existing components for ComboBox

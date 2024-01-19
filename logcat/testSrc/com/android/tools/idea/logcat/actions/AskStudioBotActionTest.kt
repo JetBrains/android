@@ -114,7 +114,7 @@ class AskStudioBotActionTest {
     )
     editor.selectionModel.setSelection(
       editor.document.text.indexOf("<") + 1,
-      editor.document.text.indexOf(">")
+      editor.document.text.indexOf(">"),
     )
     val action = AskStudioBotAction()
 
@@ -184,7 +184,7 @@ class AskStudioBotActionTest {
         at com.example(File.kt:1) with tag MyTag
       """
           .trimIndent(),
-        emptyList()
+        emptyList(),
       )
   }
 
@@ -196,7 +196,7 @@ class AskStudioBotActionTest {
     )
     editor.selectionModel.setSelection(
       editor.document.text.indexOf("<") + 1,
-      editor.document.text.indexOf(">")
+      editor.document.text.indexOf(">"),
     )
     val action = AskStudioBotAction()
 
@@ -219,7 +219,7 @@ class AskStudioBotActionTest {
     verify(StudioBot.getInstance().chat(project))
       .stageChatQuery(
         "Explain this log entry: Message 1 with tag MyTag",
-        StudioBot.RequestSource.LOGCAT
+        StudioBot.RequestSource.LOGCAT,
       )
   }
 

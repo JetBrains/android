@@ -46,6 +46,6 @@ interface FilePreviewElementFinder {
    */
   suspend fun findPreviewMethods(
     project: Project,
-    vFile: VirtualFile
+    vFile: VirtualFile,
   ): Collection<ComposePreviewElement>
 }

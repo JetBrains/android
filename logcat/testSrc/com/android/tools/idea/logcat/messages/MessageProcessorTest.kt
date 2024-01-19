@@ -65,7 +65,7 @@ class MessageProcessorTest {
         fakeLogcatPresenter,
         maxTimePerBatchMs = 100,
         clock = mockClock,
-        autoStart = false
+        autoStart = false,
       )
     val batch1 =
       listOf(
@@ -109,10 +109,7 @@ class MessageProcessorTest {
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
       assertThat(fakeLogcatPresenter.lineBatches)
-        .containsExactly(
-          batch1.mapMessages(),
-          batch2.mapMessages(),
-        )
+        .containsExactly(batch1.mapMessages(), batch2.mapMessages())
         .inOrder()
     }
   }
@@ -131,7 +128,7 @@ class MessageProcessorTest {
         fakeLogcatPresenter,
         maxTimePerBatchMs = 500,
         clock = mockClock,
-        autoStart = false
+        autoStart = false,
       )
     // We need 3 batches here because the first batch will never be flushed on its own unless the
     // channel is empty. We can fake it by
@@ -173,10 +170,7 @@ class MessageProcessorTest {
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
       assertThat(fakeLogcatPresenter.lineBatches)
-        .containsExactly(
-          batch1.mapMessages(),
-          batch2.mapMessages(),
-        )
+        .containsExactly(batch1.mapMessages(), batch2.mapMessages())
         .inOrder()
     }
   }
@@ -227,7 +221,7 @@ class MessageProcessorTest {
       clock,
       maxTimePerBatchMs,
       maxMessagesPerBatch,
-      autoStart
+      autoStart,
     )
 }
 

@@ -65,7 +65,7 @@ private const val RIGHT_OVERLAY_MARGIN = 6
  */
 class PropertyComboBox(
   private val model: ComboBoxPropertyEditorModel,
-  private val context: EditorContext
+  private val context: EditorContext,
 ) : JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, context)
   private val label = PropertyLabel(model)
@@ -141,7 +141,7 @@ class PropertyComboBox(
     ClientProperty.put(
       this,
       HIDE_RIGHT_BORDER,
-      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP
+      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP,
     )
   }
 }
@@ -163,7 +163,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
       { tab { enterInPopup() } },
       KeyStrokes.TAB,
       "tab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
@@ -172,7 +172,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     HelpSupportBinding.registerHelpKeyActions(
       this,
       { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty("JComboBox.isTableCellEditor", true)

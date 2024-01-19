@@ -73,7 +73,7 @@ class ComposeModifierCompletionContributorTest {
     fun Modifier.extensionFunction():Modifier { return this }
     fun Modifier.extensionFunctionReturnsNonModifier():Int { return 1 }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -87,7 +87,7 @@ class ComposeModifierCompletionContributorTest {
       @Composable
       fun myWidgetWithModifier(modifier: Modifier) {}
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -106,7 +106,7 @@ class ComposeModifierCompletionContributorTest {
         val m = Modifier.$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -133,7 +133,7 @@ class ComposeModifierCompletionContributorTest {
         val m = Modifier.extensionFunction().$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -155,7 +155,7 @@ class ComposeModifierCompletionContributorTest {
         modifier.$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -177,7 +177,7 @@ class ComposeModifierCompletionContributorTest {
         Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -245,7 +245,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -269,7 +269,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -298,7 +298,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -322,7 +322,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -350,7 +350,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(Modifier1.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -399,7 +399,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -440,7 +440,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -462,7 +462,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = Modifier.extensionFunction().<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -489,7 +489,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier1 = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -536,7 +536,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -579,7 +579,7 @@ class ComposeModifierCompletionContributorTest {
       fun Modifier.foo() = extensionFunction().<caret>
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -630,7 +630,7 @@ class ComposeModifierCompletionContributorTest {
             functionNeedingModifier(modifier = MyModifier.)
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     }
 
@@ -646,7 +646,7 @@ class ComposeModifierCompletionContributorTest {
         visibleChildFunctionCompletion,
         emptySet(),
         functionCompletionCall,
-        mockResultSet
+        mockResultSet,
       )
       verify(mockResultSet).passResult(visibleChildFunctionCompletion)
 
@@ -658,7 +658,7 @@ class ComposeModifierCompletionContributorTest {
         notVisibleChildFunctionCompletion,
         emptySet(),
         functionCompletionCall,
-        mockResultSet
+        mockResultSet,
       )
       verify(mockResultSet, never()).passResult(notVisibleChildFunctionCompletion)
     }

@@ -28,7 +28,7 @@ class SetColorBlindModeAction(val colorBlindMode: ColorBlindMode) :
   ToggleAction(
     colorBlindMode.displayName,
     message("android.layout.screenview.action.description", colorBlindMode.displayName),
-    null
+    null,
   ) {
 
   override fun isSelected(e: AnActionEvent): Boolean {

@@ -62,7 +62,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   private val groupNameSupplier: (T) -> String,
   private val nameSupplier: (T) -> String,
   private val secondaryGroupSupplier: (T) -> Set<U>,
-  private val secondaryTitleSupplier: () -> JComponent? = { null }
+  private val secondaryTitleSupplier: () -> JComponent? = { null },
 ) : JPanel(BorderLayout()) {
   private val eventDispatcher = EventDispatcher.create(CheckboxTreeListener::class.java)
 
@@ -113,7 +113,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           override fun getWidth(table: JTable) =
             table.getFontMetrics(table.font).stringWidth(getIssueCount(root).toString()) +
               20 // So there's space for the scrollbar on the right
-        }
+        },
       )
     )
 
@@ -134,7 +134,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
         override fun getPreferredSize() =
           Dimension(
             scrollPanel.preferredScrollableViewportSize.width,
-            scrollPanel.preferredScrollableViewportSize.height
+            scrollPanel.preferredScrollableViewportSize.height,
           )
       }
     scrollPanel.add(treeTable, BorderLayout.CENTER)
@@ -177,7 +177,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           add(secondaryGrouping)
           add(searchTextField)
         },
-      BorderLayout.NORTH
+      BorderLayout.NORTH,
     )
     add(scrollPane, BorderLayout.CENTER)
     border = JBUI.Borders.empty()
@@ -271,11 +271,11 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           expanded: Boolean,
           leaf: Boolean,
           row: Int,
-          hasFocus: Boolean
+          hasFocus: Boolean,
         ) {
           myCheckbox.text = getNodeText(value as CheckedTreeNode)
         }
-      }
+      },
     )
 
     treeTable.tree.apply {
@@ -401,7 +401,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     // filtered value will be shown in the dropdown. If it belonged to a group with multiple items,
     // then it will be shown as a collapsible node. Otherwise if it belonged to a group by itself,
     // then it will be shown as a leaf node.
-    val wasMultiple: Boolean
+    val wasMultiple: Boolean,
   )
 
   data class Leaf<T>(val item: WithCount<T>) : CheckedTreeNode(item)

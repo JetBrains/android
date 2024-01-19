@@ -21,7 +21,7 @@ class InsightsDiffVirtualFileTest {
         revision = "123",
         filePath = filePath,
         lineNumber = 1,
-        origin = null
+        origin = null,
       )
     val context2 =
       ContextDataForDiff(
@@ -29,7 +29,7 @@ class InsightsDiffVirtualFileTest {
         revision = "123",
         filePath = filePath,
         lineNumber = 3,
-        origin = null
+        origin = null,
       )
 
     val provider1 = InsightsDiffViewProvider(context1, projectRule.project)

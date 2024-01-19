@@ -69,7 +69,7 @@ class LaunchInspectorsTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
             60,
-            TimeUnit.SECONDS
+            TimeUnit.SECONDS,
           )
           studio.waitForComponentWithExactText("Run:")
           adb.runCommand("logcat") {

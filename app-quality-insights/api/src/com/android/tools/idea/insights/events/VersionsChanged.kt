@@ -28,7 +28,7 @@ data class VersionsChanged(val versions: Set<Version>) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val newState = state.selectVersions(versions)
     if (newState == state) {
@@ -39,10 +39,10 @@ data class VersionsChanged(val versions: Set<Version>) : ChangeEvent {
         issues = LoadingState.Loading,
         currentIssueVariants = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
-        currentNotes = LoadingState.Ready(null)
+        currentNotes = LoadingState.Ready(null),
       ),
       action =
-        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER)
+        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER),
     )
   }
 }

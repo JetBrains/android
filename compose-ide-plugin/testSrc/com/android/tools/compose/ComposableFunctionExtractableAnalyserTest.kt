@@ -58,7 +58,7 @@ class ComposableFunctionExtractableAnalyserTest {
         project: Project,
         editor: Editor,
         descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-        onFinish: (ExtractionResult) -> Unit
+        onFinish: (ExtractionResult) -> Unit,
       ) {
         val newDescriptor =
           descriptorWithConflicts.descriptor.copy(
@@ -66,7 +66,7 @@ class ComposableFunctionExtractableAnalyserTest {
           )
         doRefactor(
           ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT),
-          onFinish
+          onFinish,
         )
       }
     }
@@ -87,7 +87,7 @@ class ComposableFunctionExtractableAnalyserTest {
         <selection>print(true)</selection>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     ExtractKotlinFunctionHandler(helper = helper)
@@ -134,7 +134,7 @@ class ComposableFunctionExtractableAnalyserTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     ExtractKotlinFunctionHandler(helper = helper)
@@ -183,7 +183,7 @@ class ComposableFunctionExtractableAnalyserTest {
         print(<selection>"foo"</selection>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     KotlinIntroduceConstantHandler(

@@ -37,7 +37,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     projectSystem =
       TestProjectSystem(
         project,
-        availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS
+        availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
       )
     projectSystem.useInTests()
     model =
@@ -45,7 +45,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
           "model.xml",
           component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
             .withBounds(0, 0, 10, 10)
-            .children(component(AndroidXConstants.CARD_VIEW.defaultName()).withBounds(1, 1, 1, 1))
+            .children(component(AndroidXConstants.CARD_VIEW.defaultName()).withBounds(1, 1, 1, 1)),
         )
         .build()
   }
@@ -54,12 +54,12 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     val depsShouldBeAdded =
       listOf(
         GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
-        GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+")
+        GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"),
       )
     NlDependencyManager.getInstance().addDependencies(model.components, model.facet, false)
     assertSameElements(
       projectSystem.getAddedDependencies(model.module).map { it.coordinate },
-      depsShouldBeAdded
+      depsShouldBeAdded,
     )
   }
 
@@ -67,7 +67,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     TestCase.assertNull(
       projectSystem
         .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")),
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))
     )
   }
 
@@ -75,12 +75,12 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     projectSystem.addDependency(
       GoogleMavenArtifactId.APP_COMPAT_V7,
       myFacet.module,
-      GradleVersion(1, 1)
+      GradleVersion(1, 1),
     )
     TestCase.assertNotNull(
       projectSystem
         .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")),
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))
     )
   }
 
@@ -88,12 +88,12 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     projectSystem.addDependency(
       GoogleMavenArtifactId.APP_COMPAT_V7,
       myFacet.module,
-      GradleVersion(1, 1)
+      GradleVersion(1, 1),
     )
     TestCase.assertEquals(
       NlDependencyManager.getInstance()
         .getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
-      Version.parse("1.1")
+      Version.parse("1.1"),
     )
   }
 }

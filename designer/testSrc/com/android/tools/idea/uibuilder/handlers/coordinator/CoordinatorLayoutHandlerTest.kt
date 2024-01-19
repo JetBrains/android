@@ -129,7 +129,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
         ApplicationManager.getApplication().runReadAction<XmlTag> {
           XmlTagUtil.createTag(
               project,
-              "<${SdkConstants.BOTTOM_APP_BAR} android:id=\"@+id/bottomAppBar\"/>"
+              "<${SdkConstants.BOTTOM_APP_BAR} android:id=\"@+id/bottomAppBar\"/>",
             )
             .apply { putUserData(ModuleUtilCore.KEY_MODULE, myModule) }
         }
@@ -205,14 +205,14 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-                "bottom|end"
+                "bottom|end",
               ),
             component(SdkConstants.FRAME_LAYOUT)
               .withBounds(500, 500, 400, 400)
               .id("@id/frame")
               .width("400dp")
-              .height("400dp")
-          )
+              .height("400dp"),
+          ),
       )
     val model = builder.build()
     assertEquals(1, model.components.size)
@@ -224,7 +224,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
         "    NlComponent{tag=<LinearLayout>, bounds=[900,900:100x100}\n" +
         "    NlComponent{tag=<Button>, bounds=[900,900:100x100}\n" +
         "    NlComponent{tag=<FrameLayout>, bounds=[500,500:400x400}",
-      NlTreeDumper.dumpTree(model.components)
+      NlTreeDumper.dumpTree(model.components),
     )
 
     format(model.file)
@@ -269,7 +269,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
         "        android:layout_height=\"400dp\" />\n" +
         "\n" +
         "</androidx.coordinatorlayout.widget.CoordinatorLayout>\n",
-      model.file.text
+      model.file.text,
     )
     return builder
   }

@@ -24,44 +24,44 @@ interface AppInsightsTracker {
   fun logCrashesFetched(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails,
   )
 
   fun logCrashListDetailView(event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails)
 
   fun logStacktraceClicked(
     mode: ConnectionMode?,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails,
   )
 
   fun logConsoleLinkClicked(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
   )
 
   fun logMatchers(event: AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails)
 
   fun logError(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
   )
 
   fun logIssueStatusChanged(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails,
   )
 
   fun logNotesAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails,
   )
 
   fun logOfflineTransitionAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   )
 
   enum class ProductType {

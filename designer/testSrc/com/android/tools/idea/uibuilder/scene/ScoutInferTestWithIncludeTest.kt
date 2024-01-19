@@ -39,8 +39,8 @@ class ScoutInferTestWithIncludeTest : SceneTest() {
           component(SdkConstants.TAG_INCLUDE)
             .id("@+id/the_include")
             .withAttribute("layout", "@layout/test_layout")
-            .withBounds(900, 980, 200, 40)
-        )
+            .withBounds(900, 980, 200, 40),
+        ),
     )
 
   // Regression test for b/219886505

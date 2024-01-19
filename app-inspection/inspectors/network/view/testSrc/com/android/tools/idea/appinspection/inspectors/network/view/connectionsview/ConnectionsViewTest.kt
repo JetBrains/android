@@ -121,7 +121,7 @@ class ConnectionsViewTest {
                 it.requestStartTimeUs <= timeCurrentRangeUs.max
             }
           }
-        }
+        },
       )
     model.timeline.dataRange.set(0.0, SECONDS.toMicros(34).toDouble())
     val parentPanel = JPanel()
@@ -134,7 +134,7 @@ class ConnectionsViewTest {
         component,
         services,
         scope,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     parentPanel.add(inspectorView.component)
   }
@@ -183,7 +183,7 @@ class ConnectionsViewTest {
     // When a range is selected, table should only show connections within.
     model.timeline.selectionRange.set(
       SECONDS.toMicros(3).toDouble(),
-      SECONDS.toMicros(10).toDouble()
+      SECONDS.toMicros(10).toDouble(),
     )
     assertThat(table.rowCount).isEqualTo(2)
     // Once selection is cleared, table goes back to showing everything.
@@ -227,14 +227,7 @@ class ConnectionsViewTest {
     table.rowSorter.toggleSortOrder(TIME.ordinal)
 
     // After reverse sorting, data should be backwards
-    assertThat(table.getTimesInSeconds())
-      .containsExactly(
-        13,
-        7,
-        5,
-        2,
-        1,
-      )
+    assertThat(table.getTimesInSeconds()).containsExactly(13, 7, 5, 2, 1)
 
     model.timeline.selectionRange.set(0.0, 0.0)
     assertThat(table.rowCount).isEqualTo(0)
@@ -243,7 +236,7 @@ class ConnectionsViewTest {
     // This should still be shown in reverse sorted over
     model.timeline.selectionRange.set(
       SECONDS.toMicros(3).toDouble(),
-      SECONDS.toMicros(10).toDouble()
+      SECONDS.toMicros(10).toDouble(),
     )
     assertThat(table.rowCount).isEqualTo(2)
     assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
@@ -259,24 +252,10 @@ class ConnectionsViewTest {
     // Size should be sorted by raw size as opposed to alphabetically.
     // Toggle once for ascending, twice for descending
     table.rowSorter.toggleSortOrder(SIZE.ordinal)
-    assertThat(table.getPayloads())
-      .containsExactly(
-        "1",
-        "12",
-        "123",
-        "1234",
-        "12345",
-      )
+    assertThat(table.getPayloads()).containsExactly("1", "12", "123", "1234", "12345")
 
     table.rowSorter.toggleSortOrder(SIZE.ordinal)
-    assertThat(table.getPayloads())
-      .containsExactly(
-        "12345",
-        "1234",
-        "123",
-        "12",
-        "1",
-      )
+    assertThat(table.getPayloads()).containsExactly("12345", "1234", "123", "12", "1")
   }
 
   @Test
@@ -311,10 +290,7 @@ class ConnectionsViewTest {
 
     val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
     assertThat(popupMenu.actions.map { it::class })
-      .containsExactly(
-        CopyUrlAction::class,
-        CopyAsCurlAction::class,
-      )
+      .containsExactly(CopyUrlAction::class, CopyAsCurlAction::class)
   }
 
   @Test
@@ -338,7 +314,7 @@ private fun createHttpData(
   startS: Long,
   endS: Long,
   responsePayload: String,
-  responseHeaders: List<Header> = fakeResponseHeaders(id)
+  responseHeaders: List<Header> = fakeResponseHeaders(id),
 ) =
   createFakeHttpData(
     id,
@@ -352,12 +328,7 @@ private fun createHttpData(
   )
 
 @Suppress("SameParameterValue")
-private fun createGrpcData(
-  id: Long,
-  startS: Long,
-  endS: Long,
-  responsePayload: String,
-) =
+private fun createGrpcData(id: Long, startS: Long, endS: Long, responsePayload: String) =
   GrpcData.createGrpcData(
     id = id,
     threads = listOf(JavaThread(1, "thread-1")),

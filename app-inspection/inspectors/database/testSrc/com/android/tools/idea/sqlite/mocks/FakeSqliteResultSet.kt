@@ -30,8 +30,8 @@ class FakeSqliteResultSet(
   columns: List<ResultSetSqliteColumn> =
     listOf(
       ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
-      ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
-    )
+      ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false),
+    ),
 ) : SqliteResultSet {
   val _columns = columns
   val rows = mutableListOf<SqliteRow>()
@@ -66,7 +66,7 @@ class FakeSqliteResultSet(
   fun insertRowAtIndex(index: Int, value: Int) {
     rows.add(
       index,
-      SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) })
+      SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) }),
     )
   }
 

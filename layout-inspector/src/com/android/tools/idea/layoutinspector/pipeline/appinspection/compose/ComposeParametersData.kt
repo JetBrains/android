@@ -37,7 +37,7 @@ class ComposeParametersData(
   val unmergedSemantics: List<ParameterItem>,
 
   /** The parameters and semantic information associated with a composable as a properties table. */
-  val parameters: PropertiesTable<InspectorPropertyItem>
+  val parameters: PropertiesTable<InspectorPropertyItem>,
 ) {
 
   /**
@@ -56,7 +56,7 @@ class ComposeParametersData(
 /** Bridge between incoming proto data and classes expected by the Studio properties framework. */
 class ComposeParametersDataGenerator(
   private val stringTable: StringTableImpl,
-  private val lookup: ViewNodeAndResourceLookup
+  private val lookup: ViewNodeAndResourceLookup,
 ) {
 
   fun generate(rootId: Long, parameterGroup: ParameterGroup): ComposeParametersData {
@@ -81,7 +81,7 @@ class ComposeParametersDataGenerator(
       parameterList,
       mergedSemantics,
       unmergedSemantics,
-      toPropertiesTable(all)
+      toPropertiesTable(all),
     )
   }
 
@@ -89,7 +89,7 @@ class ComposeParametersDataGenerator(
     rootId: Long,
     composableId: Long,
     kind: ParameterKind,
-    parameter: Parameter
+    parameter: Parameter,
   ): ParameterGroupItem? =
     parameter.toParameterItem(rootId, composableId, kind.toPropertySection()) as? ParameterGroupItem
 
@@ -112,7 +112,7 @@ class ComposeParametersDataGenerator(
   private fun Parameter.toParameterItem(
     rootId: Long,
     composableId: Long,
-    section: PropertySection
+    section: PropertySection,
   ): ParameterItem {
     val name = stringTable[name]
     if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
@@ -128,7 +128,7 @@ class ComposeParametersDataGenerator(
         functionName = stringTable[lambdaValue.functionName],
         startLineNumber = lambdaValue.startLineNumber,
         endLineNumber = lambdaValue.endLineNumber,
-        lookup = lookup
+        lookup = lookup,
       )
     }
 
@@ -160,7 +160,7 @@ class ComposeParametersDataGenerator(
         composableId,
         lookup,
         rootId,
-        index
+        index,
       )
     } else {
       val group =
@@ -174,7 +174,7 @@ class ComposeParametersDataGenerator(
           rootId,
           index,
           reference,
-          elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId, section) }
+          elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId, section) },
         )
       if (type == PropertyType.ITERABLE && reference != null && group.children.isNotEmpty()) {
         group.children.add(ShowMoreElementsItem(group))

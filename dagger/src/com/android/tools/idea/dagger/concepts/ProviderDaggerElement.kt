@@ -48,7 +48,7 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
         it,
         it.relatedElementGrouping,
         it.getRelationDescriptionKey(),
-        it.psiElement.getCustomRelatedElementDisplayName()
+        it.psiElement.getCustomRelatedElementDisplayName(),
       )
     }
 
@@ -98,7 +98,7 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
 internal data class ProviderDaggerElement(
   override val psiElement: PsiElement,
-  private val providedPsiType: PsiType
+  private val providedPsiType: PsiType,
 ) : ProviderDaggerElementBase() {
 
   internal constructor(psiElement: KtClassOrObject) : this(psiElement, psiElement.classToPsiType())

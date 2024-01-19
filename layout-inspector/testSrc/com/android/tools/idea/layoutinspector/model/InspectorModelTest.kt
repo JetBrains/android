@@ -587,7 +587,7 @@ class InspectorModelTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     model.clear()
     assertThat(model.foldInfo).isNull()

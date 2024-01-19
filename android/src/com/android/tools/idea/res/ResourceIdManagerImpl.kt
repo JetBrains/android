@@ -20,7 +20,5 @@ import com.android.tools.res.ids.ResourceIdManagerBase
 import com.intellij.openapi.module.Module
 
 /** Studio-specific implementation of [ResourceIdManager]. */
-class ResourceIdManagerImpl private constructor(module: Module)
-  : ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module)
-
-  )
+class ResourceIdManagerImpl private constructor(module: Module) :
+  ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module))

@@ -168,7 +168,7 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
 class BindingImplClassConfig(
   override val facet: AndroidFacet,
   private val group: BindingLayoutGroup,
-  private val layoutIndex: Int
+  private val layoutIndex: Int,
 ) : LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.layouts[layoutIndex]

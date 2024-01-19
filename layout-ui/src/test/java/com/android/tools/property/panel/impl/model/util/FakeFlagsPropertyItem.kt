@@ -25,7 +25,7 @@ class FakeFlagsPropertyItem(
   name: String,
   flagNames: List<String>,
   values: List<Int>,
-  initialValue: String? = null
+  initialValue: String? = null,
 ) :
   FakePropertyItem(namespace, name, initialValue, null, null),
   FlagsPropertyGroupItem<FakeFlagPropertyItem> {
@@ -58,7 +58,7 @@ class FakeFlagPropertyItem(
   namespace: String,
   name: String,
   override val flags: FakeFlagsPropertyItem,
-  override val maskValue: Int
+  override val maskValue: Int,
 ) : FakePropertyItem(namespace, name, null, null, null), FlagPropertyItem {
 
   override var actualValue: Boolean

@@ -49,14 +49,14 @@ internal class DevicesSelectedServiceTestFixture(project: Project, testScope: Te
         selectedTargetStateService,
         _devicesFlow,
         clock,
-        testScope.coroutineContext[CoroutineDispatcher]!!
+        testScope.coroutineContext[CoroutineDispatcher]!!,
       )
       .also { scope.launch { it.devicesAndTargetsFlow.collect() } }
 }
 
 internal fun runTestWithDevicesSelectedServiceFixture(
   project: Project,
-  block: suspend DevicesSelectedServiceTestFixture.() -> Unit
+  block: suspend DevicesSelectedServiceTestFixture.() -> Unit,
 ) = runTest {
   with(DevicesSelectedServiceTestFixture(project, this@runTest)) { runFixture { block() } }
 }

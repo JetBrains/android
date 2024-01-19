@@ -57,7 +57,7 @@ class RunSqliteStatementGutterIconAction(
   private val element: PsiElement,
   private val viewFactory: DatabaseInspectorViewsFactory,
   private val databaseInspectorProjectService: DatabaseInspectorProjectService =
-    DatabaseInspectorProjectService.getInstance(project)
+    DatabaseInspectorProjectService.getInstance(project),
 ) : AnAction() {
   override fun actionPerformed(actionEvent: AnActionEvent) {
     val openDatabases = databaseInspectorProjectService.getOpenDatabases()
@@ -107,14 +107,14 @@ class RunSqliteStatementGutterIconAction(
     DatabaseInspectorAnalyticsTracker.getInstance(project)
       .trackStatementExecuted(
         connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT,
       )
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
       databaseInspectorProjectService.runSqliteStatement(
         databaseId,
-        createSqliteStatement(project, sqliteStatement)
+        createSqliteStatement(project, sqliteStatement),
       )
       databaseInspectorProjectService.getIdeServices()?.showToolWindow()
     } else {
@@ -149,7 +149,7 @@ class RunSqliteStatementGutterIconAction(
       value: Any?,
       index: Int,
       isSelected: Boolean,
-      cellHasFocus: Boolean
+      cellHasFocus: Boolean,
     ): Component {
       val component =
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)

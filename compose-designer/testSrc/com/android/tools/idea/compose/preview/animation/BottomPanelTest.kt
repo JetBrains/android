@@ -43,7 +43,7 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class BottomPanelTest(
   private val enableCoordinationDrag: Boolean,
-  private val isCoordinationPanelOpened: Boolean
+  private val isCoordinationPanelOpened: Boolean,
 ) {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -53,7 +53,7 @@ class BottomPanelTest(
   companion object {
     @JvmStatic
     @Parameterized.Parameters(
-      name = "Coordination drag is enabled: {0}, coordination panel opened: {1}",
+      name = "Coordination drag is enabled: {0}, coordination panel opened: {1}"
     )
     fun parameters() =
       listOf(

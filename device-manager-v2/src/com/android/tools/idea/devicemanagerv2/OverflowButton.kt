@@ -67,7 +67,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
           DataManager.getInstance().getDataContext(this@OverflowButton),
           true,
           null,
-          15
+          15,
         )
         .showUnderneathOf(this@OverflowButton)
     }

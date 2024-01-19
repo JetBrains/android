@@ -33,7 +33,7 @@ class CreateTransitionAction(private val motionEditor: MotionEditor) :
       CreateKeyAttribute(),
       CreateKeyTrigger(),
       CreateKeyCycle(),
-      CreateKeyTimeCycle()
+      CreateKeyTimeCycle(),
     )
 
   override val actions = panels.map { panel -> PanelAction(panel, motionEditor) }

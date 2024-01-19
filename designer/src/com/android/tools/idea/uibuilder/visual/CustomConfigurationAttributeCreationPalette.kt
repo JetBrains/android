@@ -66,7 +66,7 @@ private const val FIELD_VERTICAL_BORDER = 3
 class CustomConfigurationAttributeCreationPalette(
   private val file: VirtualFile,
   private val module: Module,
-  private val createdCallback: (CustomConfigurationAttribute) -> Unit
+  private val createdCallback: (CustomConfigurationAttribute) -> Unit,
 ) : AdtPrimaryPanel(BorderLayout()) {
 
   private var configurationName: String = DEFAULT_CUSTOM_PREVIEW_NAME
@@ -92,7 +92,7 @@ class CustomConfigurationAttributeCreationPalette(
             selectedLocale?.toString(),
             selectedTheme,
             selectedUiMode,
-            selectedNightMode
+            selectedNightMode,
           )
         )
       }
@@ -230,7 +230,7 @@ class CustomConfigurationAttributeCreationPalette(
       MyComboBoxModel(
         locales,
         { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
-        { Locale.getLocaleLabel(it, false)!! }
+        { Locale.getLocaleLabel(it, false)!! },
       )
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedLocale = boxModel.selectedValue }
@@ -330,7 +330,7 @@ class CustomConfigurationAttributeCreationPalette(
 private class MyComboBoxModel<T>(
   items: List<T>,
   selectedNameFunc: (T) -> String,
-  optionNameFunc: (T) -> String = selectedNameFunc
+  optionNameFunc: (T) -> String = selectedNameFunc,
 ) : DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
   init {
     items.forEach { addElement(MyBoxItemWrapper(it, optionNameFunc)) }

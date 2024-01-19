@@ -92,7 +92,7 @@ private fun makeAvdInfo(
   avdName: String,
   manufacturer: String,
   model: String,
-  androidVersion: AndroidVersion
+  androidVersion: AndroidVersion,
 ): AvdInfo {
   val basePath = Path.of("/tmp/fake_avds/$avdName")
   return AvdInfo(
@@ -107,6 +107,6 @@ private fun makeAvdInfo(
       AvdManager.AVD_INI_ABI_TYPE to Abi.ARM64_V8A.toString(),
       AvdManager.AVD_INI_DISPLAY_NAME to avdName,
     ),
-    AvdInfo.AvdStatus.OK
+    AvdInfo.AvdStatus.OK,
   )
 }

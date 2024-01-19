@@ -41,7 +41,7 @@ constructor(
 
   constructor(
     project: Project,
-    preexistingDevice: Device?
+    preexistingDevice: Device?,
   ) : this(project.service<DeviceProvisionerService>().deviceProvisioner, preexistingDevice)
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {

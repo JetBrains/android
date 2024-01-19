@@ -45,7 +45,7 @@ class AndroidProjectRootListenerTest {
     module.registerOrReplaceServiceInstance(
       ResourceFolderManager::class.java,
       resourceFolderManagerSpy,
-      androidProjectRule.testRootDisposable
+      androidProjectRule.testRootDisposable,
     )
 
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
@@ -71,7 +71,7 @@ class AndroidProjectRootListenerTest {
     module.registerOrReplaceServiceInstance(
       ResourceFolderManager::class.java,
       resourceFolderManagerSpy,
-      androidProjectRule.testRootDisposable
+      androidProjectRule.testRootDisposable,
     )
 
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.

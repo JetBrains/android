@@ -66,14 +66,14 @@ object AssistedFactoryDaggerConcept : DaggerConcept {
   override val indexers =
     DaggerConceptIndexers(
       classIndexers = listOf(AssistedFactoryIndexer),
-      methodIndexers = listOf(AssistedFactoryMethodIndexer)
+      methodIndexers = listOf(AssistedFactoryMethodIndexer),
     )
   override val indexValueReaders =
     listOf(AssistedFactoryClassIndexValue.Reader, AssistedFactoryMethodIndexValue.Reader)
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       AssistedFactoryClassIndexValue.identifiers,
-      AssistedFactoryMethodIndexValue.identifiers
+      AssistedFactoryMethodIndexValue.identifiers,
     )
 }
 
@@ -103,7 +103,7 @@ private object AssistedFactoryMethodIndexer : DaggerConceptIndexer<DaggerIndexMe
 
     indexEntries.addIndexValue(
       methodReturnTypeSimpleName,
-      AssistedFactoryMethodIndexValue(classId, methodSimpleName)
+      AssistedFactoryMethodIndexValue(classId, methodSimpleName),
     )
   }
 }
@@ -140,7 +140,7 @@ internal data class AssistedFactoryClassIndexValue(val classId: ClassId) : Index
     internal val identifiers =
       DaggerElementIdentifiers(
         ktClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiClassIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -194,7 +194,7 @@ internal data class AssistedFactoryMethodIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -211,7 +211,7 @@ internal data class AssistedFactoryMethodIndexValue(
 internal data class AssistedFactoryMethodDaggerElement(
   override val psiElement: PsiElement,
   internal val returnedType: PsiType,
-  internal val methodName: String?
+  internal val methodName: String?,
 ) : DaggerElement() {
 
   internal constructor(
@@ -234,7 +234,7 @@ internal data class AssistedFactoryMethodDaggerElement(
           it,
           DaggerBundle.message("assisted.inject"),
           "navigate.to.assisted.inject",
-          it.methodName
+          it.methodName,
         )
       }
   }

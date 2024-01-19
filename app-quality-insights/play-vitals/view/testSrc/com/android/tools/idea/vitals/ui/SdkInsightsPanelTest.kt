@@ -33,7 +33,7 @@ private val TEST_ANNOTATION =
 
             Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
           """
-      .trimIndent()
+      .trimIndent(),
   )
 
 class SdkInsightsPanelTest {

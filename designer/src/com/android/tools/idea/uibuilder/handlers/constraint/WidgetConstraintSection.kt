@@ -198,7 +198,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
       val warningSize = warningPanel.preferredSize
       return Dimension(
         maxOf(titleSize.width, listSize.width, warningSize.width),
-        titleSize.height + listSize.height + warningSize.height
+        titleSize.height + listSize.height + warningSize.height,
       )
     }
   }
@@ -218,7 +218,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
               item.attribute,
               item.displayName,
               boldText,
-              fadingText
+              fadingText,
             )
           )
         }
@@ -304,7 +304,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
               (y + shiftY),
               width.toDouble(),
               (height - shiftY),
-              null
+              null,
             )
             g.color = originalColor
           }
@@ -447,7 +447,7 @@ private data class ConstraintCellData(
   val attribute: String,
   val displayName: String,
   val boldValue: String?,
-  val fadingValue: String?
+  val fadingValue: String?,
 )
 
 private fun ConstraintCellData.toConstraintAttribute(): ConstraintAttribute {
@@ -511,7 +511,7 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     value: Any?,
     index: Int,
     selected: Boolean,
-    expanded: Boolean
+    expanded: Boolean,
   ): Component {
     val item = value as ConstraintCellData
     nameLabel.text = item.displayName
@@ -560,7 +560,7 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
 fun getAttributesForConstraint(
   constraint: SecondarySelector.Constraint,
   apiLevel: Int,
-  isRtl: Boolean
+  isRtl: Boolean,
 ): List<String> {
   return when (constraint) {
     SecondarySelector.Constraint.LEFT ->
@@ -587,7 +587,7 @@ fun getAttributesForConstraint(
 fun getConstraintForAttribute(
   attribute: String,
   apiLevel: Int,
-  isRtl: Boolean
+  isRtl: Boolean,
 ): SecondarySelector.Constraint? {
   when {
     apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START ->
@@ -658,5 +658,5 @@ val CONSTRAINT_ATTRIBUTES =
     SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
     SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
     SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
   )

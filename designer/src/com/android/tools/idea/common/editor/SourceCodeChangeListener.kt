@@ -30,7 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil
  */
 class SourceCodeChangeListener(
   private val psiFile: PsiFile,
-  private val onSourceCodeChanged: (psiElement: PsiElement) -> Unit
+  private val onSourceCodeChanged: (psiElement: PsiElement) -> Unit,
 ) : PsiTreeChangeAdapter() {
   private fun elementChanged(eventPsiFile: PsiFile?, psiElement: PsiElement?) {
     if (psiElement == null || eventPsiFile != psiFile) {

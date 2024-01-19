@@ -47,7 +47,7 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<FileEditor, EditorNotificationPanel?>? {
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
     return Function { fileEditor ->

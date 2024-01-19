@@ -83,7 +83,7 @@ private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodW
 
     indexEntries.addIndexValue(
       methodReturnTypeSimpleName,
-      EntryPointMethodIndexValue(classId, methodSimpleName)
+      EntryPointMethodIndexValue(classId, methodSimpleName),
     )
   }
 }
@@ -133,7 +133,7 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -149,7 +149,7 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
 
 internal data class EntryPointMethodDaggerElement(
   override val psiElement: PsiElement,
-  override val rawType: PsiType
+  override val rawType: PsiType,
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())

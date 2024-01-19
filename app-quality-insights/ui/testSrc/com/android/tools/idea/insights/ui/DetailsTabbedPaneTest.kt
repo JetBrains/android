@@ -55,7 +55,7 @@ class DetailsTabbedPaneTest {
       listOf(
         TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component),
         TabbedPaneDefinition("Panel", panel),
-        TabbedPaneDefinition("Button", button)
+        TabbedPaneDefinition("Button", button),
       )
 
     val detailsTabbedPane = DetailsTabbedPane("name", definitions, stackTraceConsole)

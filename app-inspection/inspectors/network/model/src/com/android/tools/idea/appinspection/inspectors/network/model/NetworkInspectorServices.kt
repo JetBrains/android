@@ -43,7 +43,7 @@ class NetworkInspectorServicesImpl(
   timer: StopwatchTimer,
   override val workerDispatcher: CoroutineDispatcher,
   override val uiDispatcher: CoroutineDispatcher,
-  override val usageTracker: NetworkInspectorTracker
+  override val usageTracker: NetworkInspectorTracker,
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
 }
@@ -59,7 +59,7 @@ class TestNetworkInspectorServices(
       override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
         Unit
     },
-  override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker()
+  override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker(),
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
   override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()

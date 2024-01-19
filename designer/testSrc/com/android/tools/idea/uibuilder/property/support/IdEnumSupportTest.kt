@@ -74,7 +74,7 @@ class IdEnumSupportTest {
         BUTTON,
         TEXT_VIEW,
         BUTTON,
-        parentTag = RELATIVE_LAYOUT
+        parentTag = RELATIVE_LAYOUT,
       )
     val textView = util.findSiblingById("textview1")!!
     val property =
@@ -86,7 +86,7 @@ class IdEnumSupportTest {
         "",
         "",
         util.model,
-        listOf(textView)
+        listOf(textView),
       )
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display })
@@ -102,7 +102,7 @@ class IdEnumSupportTest {
         BUTTON,
         TEXT_VIEW,
         BUTTON,
-        parentTag = CONSTRAINT_LAYOUT.newName()
+        parentTag = CONSTRAINT_LAYOUT.newName(),
       )
     val textView = util.findSiblingById("textview1")!!
     val definition =
@@ -116,7 +116,7 @@ class IdEnumSupportTest {
         "",
         "",
         util.model,
-        listOf(textView)
+        listOf(textView),
       )
     definition.setValueMappings(mapOf(Pair("parent", 0)))
     val enumSupport = IdEnumSupport(property)
@@ -137,7 +137,7 @@ class IdEnumSupportTest {
         "",
         "",
         util.model,
-        listOf(group)
+        listOf(group),
       )
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display })
@@ -153,7 +153,7 @@ class IdEnumSupportTest {
         BUTTON,
         TEXT_VIEW,
         BUTTON,
-        parentTag = RELATIVE_LAYOUT
+        parentTag = RELATIVE_LAYOUT,
       )
     val textView = util.findSiblingById("textview1")!!
     val property =
@@ -165,7 +165,7 @@ class IdEnumSupportTest {
         "",
         "",
         util.model,
-        listOf(textView)
+        listOf(textView),
       )
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display })

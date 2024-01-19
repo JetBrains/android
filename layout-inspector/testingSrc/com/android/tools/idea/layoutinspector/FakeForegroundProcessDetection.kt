@@ -38,7 +38,7 @@ class FakeForegroundProcessDetection : ForegroundProcessDetection {
 
   override fun startPollingDevice(
     newDevice: DeviceDescriptor,
-    stopPollingPreviousDevice: Boolean
+    stopPollingPreviousDevice: Boolean,
   ) {}
 
   override fun stopPollingSelectedDevice() {}
@@ -54,7 +54,7 @@ class FakeForegroundProcessDetection : ForegroundProcessDetection {
   fun addNewForegroundProcess(
     deviceDescriptor: DeviceDescriptor,
     foregroundProcess: ForegroundProcess,
-    isDebuggable: Boolean
+    isDebuggable: Boolean,
   ) {
     foregroundProcessListeners.forEach {
       it.onNewProcess(deviceDescriptor, foregroundProcess, isDebuggable)

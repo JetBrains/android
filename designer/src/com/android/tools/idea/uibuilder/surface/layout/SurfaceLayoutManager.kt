@@ -103,7 +103,7 @@ interface SurfaceLayoutManager {
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
+    @SwingCoordinate dimension: Dimension?,
   ): Dimension
 
   /**
@@ -114,7 +114,7 @@ interface SurfaceLayoutManager {
   fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double
 
   /**
@@ -134,7 +134,7 @@ interface SurfaceLayoutManager {
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    keepPreviousPadding: Boolean = false
+    keepPreviousPadding: Boolean = false,
   ): Map<PositionableContent, Point>
 }
 
@@ -155,7 +155,7 @@ fun SurfaceLayoutManager.layout(
   content: Collection<PositionableContent>,
   @SwingCoordinate availableWidth: Int,
   @SwingCoordinate availableHeight: Int,
-  keepPreviousPadding: Boolean = false
+  keepPreviousPadding: Boolean = false,
 ) {
   val contentToPositionMap = measure(content, availableWidth, availableHeight, keepPreviousPadding)
   for ((positionableContent, position) in contentToPositionMap) {

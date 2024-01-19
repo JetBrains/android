@@ -50,6 +50,6 @@ interface ViewNodeAndResourceLookup {
     reference: ParameterReference,
     startIndex: Int,
     maxElements: Int,
-    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit
+    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit,
   ) {}
 }

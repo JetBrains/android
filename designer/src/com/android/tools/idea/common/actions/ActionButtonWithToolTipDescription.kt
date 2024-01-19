@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 class ActionButtonWithToolTipDescription(
   action: AnAction,
   presentation: Presentation,
-  place: String
+  place: String,
 ) : ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
   override fun updateToolTipText() {
     HelpTooltip.dispose(this)

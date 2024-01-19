@@ -46,10 +46,7 @@ private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 class MessageFormatterTest {
   @get:Rule
   val rule =
-    RuleChain(
-      ApplicationRule(),
-      ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
-    )
+    RuleChain(ApplicationRule(), ApplicationServiceRule(StudioBot::class.java, TestStudioBot))
 
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
@@ -66,15 +63,15 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 20001, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 20001, "com.example.app1", "", "Tag2", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(
@@ -84,9 +81,9 @@ class MessageFormatterTest {
             "com.long.company.name.app2",
             "",
             "LongCompanyNameTag1",
-            TIMESTAMP
+            TIMESTAMP,
           ),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(
@@ -96,9 +93,9 @@ class MessageFormatterTest {
             "com.long.company.name.app2",
             "",
             "LongCompanyNameTag1",
-            TIMESTAMP
+            TIMESTAMP,
           ),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(
@@ -108,11 +105,11 @@ class MessageFormatterTest {
             "com.long.company.name.app2",
             "",
             "LongCompanyNameTag2",
-            TIMESTAMP
+            TIMESTAMP,
           ),
-          "line1\nline2"
+          "line1\nline2",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -142,13 +139,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -174,13 +171,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text.trimEnd())
@@ -207,13 +204,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 10001, 20001, "com.example.app2", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -239,13 +236,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 10001, 20001, "com.example.app2", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -271,13 +268,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 2, 2, "com.example.app1", "", "LongCompanyNameTag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -303,9 +300,9 @@ class MessageFormatterTest {
         LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "", TIMESTAMP), "message"),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -331,17 +328,17 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag2", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -368,13 +365,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -400,13 +397,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 2, 2, "com.long.company.name.app2", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -432,17 +429,17 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 2, 2, "com.example.app2", "", "Tag2", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -469,13 +466,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -501,13 +498,13 @@ class MessageFormatterTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "process1", "Tag1", TIMESTAMP),
-          "message"
+          "message",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "com.example.app1", "process1", "Tag1", TIMESTAMP),
-          "multiline\nmessage"
+          "multiline\nmessage",
         ),
-      )
+      ),
     )
 
     assertThat(textAccumulator.text)
@@ -562,7 +559,7 @@ class MessageFormatterTest {
       messages.add(
         LogcatMessage(
           LogcatHeader(level, 1, 2, "app", "", "tag", TIMESTAMP),
-          "message-${level.name}"
+          "message-${level.name}",
         )
       )
     }
@@ -624,9 +621,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       formattingOptions,
       textAccumulator,
-      listOf(
-        LogcatMessage(SYSTEM_HEADER, "message"),
-      )
+      listOf(LogcatMessage(SYSTEM_HEADER, "message")),
     )
 
     assertThat(textAccumulator.text).isEqualTo("message\n")
@@ -640,7 +635,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       formattingOptions,
       textAccumulator,
-      listOf(logcatMessage(message = "" + "Exception\n" + "\tat com.example(File.kt:1)\n"))
+      listOf(logcatMessage(message = "" + "Exception\n" + "\tat com.example(File.kt:1)\n")),
     )
 
     assertThat(textAccumulator.text.trim())
@@ -659,7 +654,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       formattingOptions,
       textAccumulator,
-      listOf(logcatMessage(message = "" + "Exception\n" + "\tat com.example(File.kt:1)"))
+      listOf(logcatMessage(message = "" + "Exception\n" + "\tat com.example(File.kt:1)")),
     )
 
     assertThat(textAccumulator.text.trim())

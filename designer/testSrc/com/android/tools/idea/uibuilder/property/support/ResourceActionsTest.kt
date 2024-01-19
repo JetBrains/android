@@ -78,7 +78,7 @@ class ResourceActionsTest {
       util.makeProperty(
         SdkConstants.ANDROID_URI,
         SdkConstants.ATTR_TEXT_COLOR,
-        NlPropertyType.COLOR
+        NlPropertyType.COLOR,
       )
 
     // Verify that the textColor is not set:
@@ -107,7 +107,7 @@ class ResourceActionsTest {
       util.makeProperty(
         SdkConstants.ANDROID_URI,
         SdkConstants.ATTR_TEXT_COLOR,
-        NlPropertyType.COLOR
+        NlPropertyType.COLOR,
       )
     val properties: PropertiesTable<NlPropertyItem> =
       PropertiesTableImpl<NlPropertyItem>(HashBasedTable.create()).also { it.put(actualProperty) }
@@ -149,7 +149,7 @@ class ResourceActionsTest {
     restoreFocusComponent: Component?,
     locationToShow: Point?,
     colorPickedCallback: ((Color) -> Unit)?,
-    colorResourcePickedCallback: ((String) -> Unit)?
+    colorResourcePickedCallback: ((String) -> Unit)?,
   ) {
     colorPicker =
       TestColorPicker(
@@ -160,7 +160,7 @@ class ResourceActionsTest {
         restoreFocusComponent,
         locationToShow,
         colorPickedCallback,
-        colorResourcePickedCallback
+        colorResourcePickedCallback,
       )
   }
 
@@ -173,6 +173,6 @@ class ResourceActionsTest {
     val restoreFocusComponent: Component?,
     val locationToShow: Point?,
     val colorPickedCallback: ((Color) -> Unit)?,
-    val colorResourcePickedCallback: ((String) -> Unit)?
+    val colorResourcePickedCallback: ((String) -> Unit)?,
   )
 }

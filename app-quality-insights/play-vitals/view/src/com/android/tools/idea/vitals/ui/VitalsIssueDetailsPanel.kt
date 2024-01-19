@@ -94,7 +94,7 @@ data class VitalsDetailsState(
   val connectionMode: ConnectionMode,
   val selectedOsVersion: Set<OperatingSystemInfo>,
   val selectedDevices: Set<Device>,
-  val selectedVisibility: VisibilityType?
+  val selectedVisibility: VisibilityType?,
 ) {
 
   fun toConsoleUrl(): String? {
@@ -138,7 +138,7 @@ private val DefaultVitalsDetailsState =
     ConnectionMode.ONLINE,
     emptySet(),
     emptySet(),
-    null
+    null,
   )
 
 class VitalsIssueDetailsPanel(
@@ -146,7 +146,7 @@ class VitalsIssueDetailsPanel(
   private val project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
-  private val tracker: AppInsightsTracker
+  private val tracker: AppInsightsTracker,
 ) : JPanel(BorderLayout()) {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val detailsState =
@@ -160,7 +160,7 @@ class VitalsIssueDetailsPanel(
           state.mode,
           state.filters.operatingSystems.getSelectedValueOrEmpty(),
           state.filters.devices.getSelectedValueOrEmpty(),
-          state.filters.visibilityType.selected
+          state.filters.visibilityType.selected,
         )
       }
       .stateIn(scope, SharingStarted.Eagerly, DefaultVitalsDetailsState)
@@ -212,7 +212,7 @@ class VitalsIssueDetailsPanel(
         appendSecondaryText(
           "Select an issue to view the stacktrace.",
           EMPTY_STATE_TEXT_FORMAT,
-          null
+          null,
         )
       }
 
@@ -229,7 +229,7 @@ class VitalsIssueDetailsPanel(
         .collect { issue ->
           (mainPanel.layout as CardLayout).show(
             mainPanel,
-            if (issue != null) MAIN_CARD else EMPTY_CARD
+            if (issue != null) MAIN_CARD else EMPTY_CARD,
           )
           if (issue == null) {
             header.clear()
@@ -259,7 +259,7 @@ class VitalsIssueDetailsPanel(
                             .DETAILS
                         crashType = issue.issueDetails.fatality.toCrashType()
                       }
-                      .build()
+                      .build(),
                   )
                 }
               }
@@ -275,7 +275,7 @@ class VitalsIssueDetailsPanel(
       ScrollPaneFactory.createScrollPane(
           createContentPanel(),
           ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
         )
         .apply {
           isOpaque = false
@@ -309,7 +309,7 @@ class VitalsIssueDetailsPanel(
           DetailsTabbedPane(
               "VitalsDetails",
               listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
-              stackTraceConsole
+              stackTraceConsole,
             )
             .component
         )
@@ -367,7 +367,7 @@ class VitalsIssueDetailsPanel(
         computeFullReleaseName(
           issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
           null,
-          includeApiLevel = true
+          includeApiLevel = true,
         )
       } catch (e: NumberFormatException) {
         Logger.getInstance(this::class.java)

@@ -273,7 +273,7 @@ object DisconnectedClient : InspectorClient {
       override fun loadComponentTree(
         data: Any?,
         resourceLookup: ResourceLookup,
-        process: ProcessDescriptor
+        process: ProcessDescriptor,
       ): ComponentTreeData? = null
 
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()

@@ -101,7 +101,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
             }
           }
         }
-      }
+      },
     )
   }
 

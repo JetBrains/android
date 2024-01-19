@@ -27,7 +27,7 @@ import java.awt.Point
 
 class TabLayoutPlaceholder(
   tabLayoutComponent: SceneComponent,
-  private val tabItemAnchor: SceneComponent?
+  private val tabItemAnchor: SceneComponent?,
 ) : Placeholder(tabLayoutComponent) {
 
   private val snappedX =

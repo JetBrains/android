@@ -33,7 +33,7 @@ class AnimationToolbarTest {
         projectRule.testRootDisposable,
         EMPTY_ANIMATION_LISTENER,
         10L,
-        0L
+        0L,
       )
     }
     val listener = MockitoKt.mock<AnimationControllerListener>()
@@ -63,7 +63,7 @@ class AnimationToolbarTest {
         EMPTY_ANIMATION_LISTENER,
         10L,
         0L,
-        2 * 1000L
+        2 * 1000L,
       )
     }
     toolbar.setLooping(false)

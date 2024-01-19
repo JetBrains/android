@@ -132,7 +132,7 @@ class PTableImplTest {
         Item("readonly"),
         Item("visible", "true"),
         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
-        Item("new")
+        Item("new"),
       )
     table =
       PTableImpl(
@@ -140,13 +140,13 @@ class PTableImplTest {
         null,
         rendererProvider!!,
         editorProvider!!,
-        nameColumnFraction = nameColumnFraction!!
+        nameColumnFraction = nameColumnFraction!!,
       )
     val app = ApplicationManager.getApplication()
     app.replaceService(
       IdeFocusManager::class.java,
       PassThroughIdeFocusManager.getInstance(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
   }
 
@@ -532,7 +532,7 @@ class PTableImplTest {
       Item("size"),
       Item("readonly"),
       Item("visible"),
-      Group("weiss", Item("siphon"), Item("extra"))
+      Group("weiss", Item("siphon"), Item("extra")),
     )
 
     assertThat(table!!.selectedRow).isEqualTo(-1)
@@ -836,7 +836,7 @@ class PTableImplTest {
           depth: Int,
           isSelected: Boolean,
           hasFocus: Boolean,
-          isExpanded: Boolean
+          isExpanded: Boolean,
         ): JComponent = component
       }
     val rendererProvider =
@@ -844,7 +844,7 @@ class PTableImplTest {
         override fun invoke(
           table: PTable,
           property: PTableItem,
-          column: PTableColumn
+          column: PTableColumn,
         ): PTableCellRenderer {
           return specialRenderer
         }
@@ -906,7 +906,7 @@ class PTableImplTest {
           depth: Int,
           isSelected: Boolean,
           hasFocus: Boolean,
-          isExpanded: Boolean
+          isExpanded: Boolean,
         ): JComponent {
           val row = table.tableModel.items.indexOf(item)
           val left =
@@ -1067,7 +1067,7 @@ class PTableImplTest {
     override fun invoke(
       table: PTable,
       property: PTableItem,
-      column: PTableColumn
+      column: PTableColumn,
     ): PTableCellEditor {
       editor.property = property
       editor.column = column
@@ -1081,7 +1081,7 @@ class PTableImplTest {
     override fun invoke(
       table: PTable,
       property: PTableItem,
-      column: PTableColumn
+      column: PTableColumn,
     ): PTableCellRenderer {
       return renderer
     }

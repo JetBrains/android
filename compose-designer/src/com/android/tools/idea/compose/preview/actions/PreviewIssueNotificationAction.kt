@@ -131,10 +131,7 @@ private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -
  * things like the current editor.
  */
 @VisibleForTesting
-fun defaultCreateInformationPopup(
-  project: Project,
-  dataContext: DataContext,
-): InformationPopup? {
+fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
     val isAutoDisabled =
@@ -148,13 +145,13 @@ fun defaultCreateInformationPopup(
           createErrorsActionLink(previewStatusNotification),
           createReenableFastPreviewActionLink(isAutoDisabled),
           createDisableFastPreviewActionLink(isAutoDisabled),
-          createFastPreviewFailedActionLink(previewStatusNotification)
+          createFastPreviewFailedActionLink(previewStatusNotification),
         )
       return@let InformationPopupImpl(
           title = null,
           description = previewStatusNotification.description,
           additionalActions = listOf(ToggleFastPreviewAction()),
-          links = linksList
+          links = linksList,
         )
         .also { newPopup ->
           // Register the data provider of the popup to be the same as the one used in the toolbar.
@@ -182,7 +179,7 @@ fun defaultCreateInformationPopup(
 }
 
 private fun DataContext.createFastPreviewFailedActionLink(
-  previewStatusNotification: PreviewStatus,
+  previewStatusNotification: PreviewStatus
 ): AnActionLink? =
   previewStatusNotification
     .takeIf { it is PreviewStatus.FastPreviewFailed }
@@ -190,7 +187,7 @@ private fun DataContext.createFastPreviewFailedActionLink(
       actionLink(
         text = message("fast.preview.disabled.notification.show.details.action.title"),
         action = ShowEventLogAction(),
-        delegateDataContext = this
+        delegateDataContext = this,
       )
     }
 
@@ -201,12 +198,12 @@ private fun DataContext.createDisableFastPreviewActionLink(isAutoDisabled: Boole
       actionLink(
         text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
         action = ReEnableFastPreview(false),
-        delegateDataContext = this
+        delegateDataContext = this,
       )
     }
 
 private fun DataContext.createReenableFastPreviewActionLink(
-  isAutoDisabled: Boolean,
+  isAutoDisabled: Boolean
 ): AnActionLink? =
   isAutoDisabled
     .takeIf { it }
@@ -214,7 +211,7 @@ private fun DataContext.createReenableFastPreviewActionLink(
       actionLink(
         text = message("fast.preview.disabled.notification.reenable.action.title"),
         action = ReEnableFastPreview(),
-        delegateDataContext = this
+        delegateDataContext = this,
       )
     }
 
@@ -226,16 +223,14 @@ private fun DataContext.createErrorsActionLink(it: PreviewStatus): AnActionLink?
     else -> null
   }
 
-private fun DataContext.createTitleActionLink(
-  fileProvider: KFunction0<PsiFile?>,
-): AnActionLink =
+private fun DataContext.createTitleActionLink(fileProvider: KFunction0<PsiFile?>): AnActionLink =
   actionLink(
     text =
       message("action.build.and.refresh.title").replace("&&", "&") +
         getBuildAndRefreshShortcut().asString(),
     // Remove any ampersand escaping for tooltips (not needed in these links)
     action = BuildAndRefresh(fileProvider),
-    delegateDataContext = this
+    delegateDataContext = this,
   )
 
 /**
@@ -248,7 +243,7 @@ private fun DataContext.createTitleActionLink(
 class PreviewIssueNotificationAction(
   parentDisposable: Disposable,
   createInformationPopup: (Project, DataContext) -> InformationPopup? =
-    ::defaultCreateInformationPopup
+    ::defaultCreateInformationPopup,
 ) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
 
   init {
@@ -280,7 +275,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   AnAction(
     message("action.build.and.refresh.title"),
     message("action.build.and.refresh.description"),
-    REFRESH_BUTTON
+    REFRESH_BUTTON,
   ),
   RightAlignedToolbarAction,
   CustomComponentAction {
@@ -360,6 +355,6 @@ class ComposeNotificationGroup(parentDisposable: Disposable) :
     listOf(
       ComposeHideFilterAction(),
       PreviewIssueNotificationAction(parentDisposable),
-      ForceCompileAndRefreshActionForNotification.getInstance()
+      ForceCompileAndRefreshActionForNotification.getInstance(),
     )
   )

@@ -30,14 +30,14 @@ class ProcessesModelTest {
 
   private fun Common.Stream.createFakeProcess(
     name: String? = null,
-    pid: Int = 0
+    pid: Int = 0,
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
       FakeTransportService.FAKE_PROCESS.toBuilder()
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
-        .build()
+        .build(),
     )
   }
 
@@ -214,7 +214,7 @@ class ProcessesModelTest {
       ProcessesModel(
         processDiscovery = testNotifier,
         acceptProcess = { it === fakeProcessB || it === fakeProcessD },
-        isPreferred = { it.name == FakeTransportService.FAKE_PROCESS.name }
+        isPreferred = { it.name == FakeTransportService.FAKE_PROCESS.name },
       )
 
     testNotifier.fireConnected(fakeProcessA)

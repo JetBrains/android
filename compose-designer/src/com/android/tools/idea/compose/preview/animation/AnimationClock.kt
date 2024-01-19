@@ -63,7 +63,7 @@ internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation,
 internal fun AnimationClock.updateFromAndToStates(
   animation: ComposeAnimation,
   fromState: Any,
-  toState: Any
+  toState: Any,
 ) {
   updateFromAndToStatesFunction.invoke(clock, animation, fromState, toState)
 }

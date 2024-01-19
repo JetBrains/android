@@ -31,7 +31,7 @@ class AttachStatistics(
   private val multipleProjectsOpen: () -> Boolean,
   private val isAutoConnectEnabled: () -> Boolean,
   private val isEmbeddedLayoutInspector: () -> Boolean,
-  private val clock: Clock = Clock.systemUTC()
+  private val clock: Clock = Clock.systemUTC(),
 ) {
   private var success = false
   private var error = false

@@ -96,7 +96,7 @@ class LogcatServiceImplTest {
     project.registerOrReplaceServiceInstance(
       ProcessNameMonitor::class.java,
       fakeProcessNameMonitor,
-      disposable
+      disposable,
     )
   }
 
@@ -192,7 +192,7 @@ class LogcatServiceImplTest {
         manufacturer = "",
         model = "",
         release = "",
-        sdk = ""
+        sdk = "",
       )
     // Break up the logcat into chunks to put more pressure of the code that collects them.
     logcat.chunked(10000).forEach { deviceState.addLogcatMessage(it) }
@@ -223,7 +223,7 @@ class LogcatServiceImplTest {
         manufacturer = "",
         model = "",
         release = "",
-        sdk = ""
+        sdk = "",
       )
     deviceState.addLogcatMessage(rawLogcatMessage(Instant.EPOCH, "Message1"))
 
@@ -253,7 +253,7 @@ class LogcatServiceImplTest {
         manufacturer = "",
         model = "",
         release = "",
-        sdk = ""
+        sdk = "",
       )
     // Break up the logcat into chunks to put more pressure of the code that collects them.
     logcat.chunked(10000).forEach { deviceState.addLogcatMessage(it) }
@@ -315,7 +315,7 @@ class LogcatServiceImplTest {
         manufacturer = "",
         model = "",
         release = "",
-        sdk = ""
+        sdk = "",
       )
     deviceState.addLogcatMessage(logcat)
 
@@ -339,7 +339,7 @@ class LogcatServiceImplTest {
           "process-1.1",
           "Tag",
           Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(619)),
-          "A message"
+          "A message",
         ),
         logcatMessage(
           INFO,
@@ -349,7 +349,7 @@ class LogcatServiceImplTest {
           "process-1.1",
           "Tag",
           Instant.ofEpochSecond(1650711610, MILLISECONDS.toNanos(700)),
-          "Last message"
+          "Last message",
         ),
         LogcatMessage(SYSTEM_HEADER, "Error message\n\nMore error information"),
       )
@@ -377,7 +377,7 @@ class LogcatServiceImplTest {
     project.registerOrReplaceServiceInstance(
       AdbLibService::class.java,
       TestAdbLibService(adbSession),
-      disposable
+      disposable,
     )
     return LogcatServiceImpl(project, lastMessageDelayMs)
   }
@@ -393,7 +393,7 @@ class LogcatServiceImplTest {
       shellCommandOutput: ShellCommandOutput,
       device: DeviceState,
       shellCommand: String,
-      shellCommandArgs: String?
+      shellCommandArgs: String?,
     ) {
       lastDeviceId = device.deviceId
       lastArgs = shellCommandArgs
@@ -403,7 +403,7 @@ class LogcatServiceImplTest {
         shellCommandOutput,
         device,
         shellCommand,
-        shellCommandArgs
+        shellCommandArgs,
       )
     }
   }

@@ -48,7 +48,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
         "_device_class_phone",
         "_device_class_foldable",
         "_device_class_tablet",
-        "_device_class_desktop"
+        "_device_class_desktop",
       )
     for (nlModel in nlModels) {
       assertTrue(windowSizeDeviceIds.contains(nlModel.configuration.device!!.id))

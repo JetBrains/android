@@ -193,7 +193,7 @@ class FakeInspectorState(
         id = 101
         packageName = 11
         className = 12
-      }
+      },
     )
 
   private val propertyGroups =
@@ -339,7 +339,7 @@ class FakeInspectorState(
                 )
               )
             }
-          }
+          },
         )
       // As tests don't need them, just skip defining properties for anything in the second layout
       // tree
@@ -551,7 +551,7 @@ class FakeInspectorState(
             }
           }
         }
-      }
+      },
     )
 
   private val expandedStrings =
@@ -709,7 +709,8 @@ class FakeInspectorState(
   /** Map of responses to expected [GetParameterDetailsCommand]s. */
   private val parameterDetailsCommands =
     mutableMapOf<
-      GetParameterDetailsCommand, LayoutInspectorComposeProtocol.GetParameterDetailsResponse
+      GetParameterDetailsCommand,
+      LayoutInspectorComposeProtocol.GetParameterDetailsResponse,
     >()
 
   init {
@@ -805,7 +806,7 @@ class FakeInspectorState(
       layoutTrees.forEach { tree ->
         triggerLayoutCapture(
           rootId = tree.id,
-          isLastCapture = !command.startFetchCommand.continuous
+          isLastCapture = !command.startFetchCommand.continuous,
         )
       }
 
@@ -1049,7 +1050,7 @@ class FakeInspectorState(
   fun triggerLayoutCapture(
     rootId: Long,
     isLastCapture: Boolean = false,
-    excludeConfiguration: Boolean = false
+    excludeConfiguration: Boolean = false,
   ) {
     val rootView = layoutTrees.first { it.id == rootId }
     viewInspector.connection.sendEvent {

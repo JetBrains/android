@@ -165,15 +165,15 @@ object MockAppCompat {
 
     fixture.addFileToProject(
       "src/android/support/v7/app/AppCompatImageView.java",
-      APPCOMPAT_ACTIVITY
+      APPCOMPAT_ACTIVITY,
     )
     fixture.addFileToProject(
       "src/android/support/v7/widget/AppCompatImageView.java",
-      APPCOMPAT_IMAGE_VIEW_SOURCE
+      APPCOMPAT_IMAGE_VIEW_SOURCE,
     )
     fixture.addFileToProject(
       "src/android/support/v7/widget/AppCompatTextView.java",
-      APPCOMPAT_TEXT_VIEW_SOURCE
+      APPCOMPAT_TEXT_VIEW_SOURCE,
     )
     fixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS)
     fixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY)

@@ -31,7 +31,7 @@ class DaggerDependencyChecker(private val project: Project) {
     CachedValuesManager.getManager(project).getCachedValue(project) {
       CachedValueProvider.Result(
         calculateIsDaggerPresent(),
-        ProjectRootModificationTracker.getInstance(project)
+        ProjectRootModificationTracker.getInstance(project),
       )
     }
 

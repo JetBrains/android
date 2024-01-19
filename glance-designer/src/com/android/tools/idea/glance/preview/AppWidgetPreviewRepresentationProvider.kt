@@ -38,7 +38,7 @@ import com.intellij.psi.PsiFile
 internal class GlanceAppWidgetAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?
+  originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
@@ -62,7 +62,7 @@ class AppWidgetPreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       GlanceAppWidgetAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.GLANCE_APP_WIDGET,
-      ::GlanceAppWidgetPreviewToolbar
+      ::GlanceAppWidgetPreviewToolbar,
     )
 
   init {
@@ -95,7 +95,7 @@ class AppWidgetPreviewRepresentationProvider(
       APP_WIDGET_VIEW_ADAPTER,
       psiFile,
       previewProvider,
-      AppWidgetModelAdapter
+      AppWidgetModelAdapter,
     )
   }
 

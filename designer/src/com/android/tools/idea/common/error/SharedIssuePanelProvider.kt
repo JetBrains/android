@@ -36,7 +36,7 @@ class SharedIssuePanelProvider(private val project: Project) : ProblemsViewPanel
       SHARED_ISSUE_PANEL_TAB_ID,
       { LayoutValidationNodeFactory },
       NotSuppressedFilter + SelectedEditorFilter(project),
-      ::getEmptyMessage
+      ::getEmptyMessage,
     )
   }
 

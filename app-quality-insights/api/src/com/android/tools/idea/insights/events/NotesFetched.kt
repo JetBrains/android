@@ -26,12 +26,12 @@ import com.android.tools.idea.insights.events.actions.Action
 data class NotesFetched(
   val issueId: IssueId,
   val notes: LoadingState.Done<List<Note>?>,
-  val shouldRetryPendingNotes: Boolean = false
+  val shouldRetryPendingNotes: Boolean = false,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> = StateTransition(state.copy(currentNotes = notes), Action.NONE)
 
   override fun toString() = "NotesFetched(issueId=$issueId)"

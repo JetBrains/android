@@ -116,7 +116,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     fun getHighlightLevelAndInspection(
       project: Project,
       issue: Issue,
-      context: PsiElement
+      context: PsiElement,
     ): Pair<AndroidLintInspectionBase, HighlightDisplayLevel>? {
       val inspectionShortName =
         AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: return null
@@ -144,7 +144,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   override fun collectInformation(
     file: PsiFile,
     editor: Editor,
-    hasErrors: Boolean
+    hasErrors: Boolean,
   ): LintEditorResult? {
     return collectInformation(file)
   }
@@ -221,7 +221,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           project,
           files,
           listOf(lintResult.getModule()),
-          true /* incremental */
+          true, /* incremental */
         )
       request.setScope(scope)
       val lint = client.createDriver(request)
@@ -331,7 +331,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           message,
           quickfixData,
           fixProviders,
-          issue
+          issue,
         )
       for (fix in fixes) {
         if (
@@ -368,7 +368,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
                   message,
                   type,
                   true,
-                  *LocalQuickFix.EMPTY_ARRAY
+                  *LocalQuickFix.EMPTY_ARRAY,
                 )
             builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix()
           }
@@ -415,16 +415,16 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
     @SafeFieldForPreview private val myRange: SmartPsiFileRange,
-    @SafeFieldForPreview private val issue: Issue? = null
+    @SafeFieldForPreview private val issue: Issue? = null,
   ) : IntentionAction, HighPriorityAction {
     constructor(
       quickFix: LintIdeQuickFix,
       project: Project,
       file: PsiFile,
-      range: TextRange
+      range: TextRange,
     ) : this(
       quickFix,
-      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
+      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range),
     )
 
     override fun getText(): String {
@@ -483,7 +483,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     override fun generatePreview(
       project: Project,
       editor: Editor,
-      file: PsiFile
+      file: PsiFile,
     ): IntentionPreviewInfo {
       return myQuickFix.generatePreview(project, editor, file)
         ?: super.generatePreview(project, editor, file)
@@ -492,10 +492,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
   private class MyEditInspectionToolsSettingsAction(
     key: HighlightDisplayKey,
-    inspection: AndroidLintInspectionBase
+    inspection: AndroidLintInspectionBase,
   ) :
     CustomEditInspectionToolsSettingsAction(
       key,
-      Computable { "Edit '" + inspection.displayName + "' inspection settings" }
+      Computable { "Edit '" + inspection.displayName + "' inspection settings" },
     )
 }

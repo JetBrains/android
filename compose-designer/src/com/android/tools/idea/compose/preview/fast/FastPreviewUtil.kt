@@ -61,7 +61,7 @@ internal suspend fun fastCompile(
   files: Set<PsiFile>,
   fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(files.first().project),
   requestTracker: FastPreviewTrackerManager.Request =
-    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
+    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest(),
 ): Pair<CompilationResult, String> = coroutineScope {
   val project = files.first().project
 
@@ -104,7 +104,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
   files: Set<PsiFile>,
   currentStatus: ComposePreviewManager.Status,
   launcher: UniqueTaskCoroutineLauncher,
-  trackedForceRefresh: suspend (String) -> Unit
+  trackedForceRefresh: suspend (String) -> Unit,
 ): CompilationResult = coroutineScope {
   // We delay the reporting of compilationSucceded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
@@ -120,7 +120,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
       override fun compilationSucceeded(
         compilationDurationMs: Long,
         compiledFiles: Int,
-        refreshTimeMs: Long
+        refreshTimeMs: Long,
       ) {
         compilationSuccess = true
         this.compilationDurationMs = compilationDurationMs
@@ -145,7 +145,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
             delegateRequestTracker.compilationSucceeded(
               compilationDurationMs,
               compiledFiles,
-              refreshTimeMs
+              refreshTimeMs,
             )
           false -> delegateRequestTracker.compilationFailed(compilationDurationMs, compiledFiles)
           null -> Unit

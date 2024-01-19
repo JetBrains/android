@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.map
 object ComposePreviewElementsModel {
   /** Instantiates all the given [ComposePreviewElement] into [ComposePreviewElementInstance]s. */
   fun instantiatedPreviewElementsFlow(
-    input: Flow<FlowableCollection<ComposePreviewElement>>,
+    input: Flow<FlowableCollection<ComposePreviewElement>>
   ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
     input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() } }
 
@@ -77,7 +77,7 @@ object ComposePreviewElementsModel {
   /** Filters [allPreviewInstancesFlow] using the given [filterFlow]. */
   fun filteredPreviewElementsFlow(
     allPreviewInstancesFlow: Flow<FlowableCollection<ComposePreviewElementInstance>>,
-    filterFlow: Flow<Filter>
+    filterFlow: Flow<Filter>,
   ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
     combine(allPreviewInstancesFlow, filterFlow) { allPreviewInstances, filter ->
       when (allPreviewInstances) {

@@ -47,11 +47,11 @@ class XmlParserTest {
     assertNotNull(button)
     assertEquals(
       "wrap_content",
-      button!!.getAttribute("layout_width", "http://schemas.android.com/apk/res/android")!!.value
+      button!!.getAttribute("layout_width", "http://schemas.android.com/apk/res/android")!!.value,
     )
     assertEquals(
       "Click me",
-      button.getAttribute("text", "http://schemas.android.com/apk/res/android")!!.value
+      button.getAttribute("text", "http://schemas.android.com/apk/res/android")!!.value,
     )
     val textView = rootTag.subTags.find { it.name == "TextView" }
     assertNotNull(textView)

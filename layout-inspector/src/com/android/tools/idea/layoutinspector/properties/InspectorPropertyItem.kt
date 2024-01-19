@@ -58,7 +58,7 @@ open class InspectorPropertyItem(
   val viewId: Long,
 
   /** The property [ViewNode] and [ResourceLookup] */
-  val lookup: ViewNodeAndResourceLookup
+  val lookup: ViewNodeAndResourceLookup,
 ) : PropertyItem {
 
   constructor(
@@ -69,7 +69,7 @@ open class InspectorPropertyItem(
     group: PropertySection,
     source: ResourceReference?,
     viewId: Long,
-    lookup: ViewNodeAndResourceLookup
+    lookup: ViewNodeAndResourceLookup,
   ) : this(namespace, attrName, attrName, type, value, group, source, viewId, lookup)
 
   /** The type of the attribute */

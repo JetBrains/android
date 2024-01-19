@@ -37,7 +37,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque<ViewWithParentBounds>()
@@ -92,7 +92,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
 data class ViewWithParentBounds(
   val view: ViewInfo,
   val absoluteParentLeft: Int,
-  val absoluteParentRight: Int
+  val absoluteParentRight: Int,
 )
 
 class WearMarginAnalyzerInspection :

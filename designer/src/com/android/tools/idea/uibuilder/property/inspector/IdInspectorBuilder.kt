@@ -38,7 +38,7 @@ class IdInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyIt
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     val property = properties.getOrNull(ANDROID_URI, ATTR_ID) ?: return
     if (!isApplicable(property)) return

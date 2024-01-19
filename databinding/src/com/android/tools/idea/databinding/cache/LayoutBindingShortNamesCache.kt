@@ -71,7 +71,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           groupedClasses as Map<String, List<LightBindingClass>>,
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
 
@@ -80,7 +80,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           ArrayUtil.toStringArray(lightBindingCache.value.keys),
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
 
@@ -95,7 +95,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           allMethods,
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
 
@@ -110,7 +110,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           allFields,
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
 
@@ -120,7 +120,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           names.toTypedArray(),
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
 
@@ -130,7 +130,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           names.toTypedArray(),
           enabledFacetsProvider,
-          resourcesModifiedTracker
+          resourcesModifiedTracker,
         )
       }
   }
@@ -155,7 +155,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
@@ -163,7 +163,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun processMethodsWithName(
     name: String,
     scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>
+    processor: Processor<in PsiMethod>,
   ): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
@@ -185,7 +185,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getFieldsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }

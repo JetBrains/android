@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.LocaleConfigDetector
 class AndroidLintUnusedTranslationInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.unused.translation"),
-    LocaleConfigDetector.ISSUE
+    LocaleConfigDetector.ISSUE,
   )

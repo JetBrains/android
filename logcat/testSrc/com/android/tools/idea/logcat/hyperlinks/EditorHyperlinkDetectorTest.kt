@@ -46,7 +46,7 @@ class EditorHyperlinkDetectorTest {
       projectRule,
       logcatEditorRule,
       ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
-      EdtRule()
+      EdtRule(),
     )
 
   private val project
@@ -67,7 +67,7 @@ class EditorHyperlinkDetectorTest {
       ConsoleViewUtil.computeConsoleFilters(
         project,
         /* consoleView= */ null,
-        GlobalSearchScope.allScope(project)
+        GlobalSearchScope.allScope(project),
       )
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
@@ -89,7 +89,7 @@ class EditorHyperlinkDetectorTest {
       ConsoleViewUtil.computeConsoleFilters(
         project,
         /* consoleView= */ null,
-        GlobalSearchScope.allScope(project)
+        GlobalSearchScope.allScope(project),
       )
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)

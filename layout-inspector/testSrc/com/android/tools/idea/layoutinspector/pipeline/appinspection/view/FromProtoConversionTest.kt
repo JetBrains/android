@@ -100,7 +100,7 @@ class FromProtoConversionTest {
           "qwerty",
           "navexposed",
           "wheel",
-          "v29"
+          "v29",
         )
       )
   }

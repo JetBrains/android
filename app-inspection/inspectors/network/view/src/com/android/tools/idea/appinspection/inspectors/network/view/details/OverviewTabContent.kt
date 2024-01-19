@@ -198,7 +198,8 @@ internal class OverviewTabContent : TabContent() {
       if (image != null) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Dimension"), TabularLayout.Constraint(row, 0))
-        val dimension = JLabel(String.format(Locale.getDefault(), "%d x %d", image.width, image.height))
+        val dimension =
+          JLabel(String.format(Locale.getDefault(), "%d x %d", image.width, image.height))
         myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
       }
 
@@ -292,7 +293,7 @@ internal class OverviewTabContent : TabContent() {
           data.requestStartTimeUs.toDouble(),
           (if (data.connectionEndTimeUs > 0) data.connectionEndTimeUs
             else data.requestStartTimeUs + 1)
-            .toDouble()
+            .toDouble(),
         )
       val connectionsChart = ConnectionsStateChart(data, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
@@ -323,15 +324,15 @@ internal class OverviewTabContent : TabContent() {
         sentLegend,
         LegendConfig(
           LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.SENDING)
-        )
+          connectionsChart.colors.getColor(NetworkState.SENDING),
+        ),
       )
       legend.configure(
         receivedLegend,
         LegendConfig(
           LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.RECEIVING)
-        )
+          connectionsChart.colors.getColor(NetworkState.RECEIVING),
+        ),
       )
       panel.add(legend)
       return panel

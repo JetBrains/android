@@ -34,7 +34,7 @@ class LayoutInspectorExecutionListener : ExecutionListener {
   override fun processStarted(
     executorId: String,
     env: ExecutionEnvironment,
-    handler: ProcessHandler
+    handler: ProcessHandler,
   ) {
     val project = env.project
     val configuration = env.runProfile as? AndroidRunConfiguration ?: return
@@ -56,7 +56,7 @@ class LayoutInspectorExecutionListener : ExecutionListener {
     project: Project,
     handler: ProcessHandler,
     packageName: String,
-    device: IDevice
+    device: IDevice,
   ) {
     val descriptor =
       object : DeviceDescriptor {

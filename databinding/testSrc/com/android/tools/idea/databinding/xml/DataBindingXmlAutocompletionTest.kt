@@ -61,7 +61,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
   fun dataBindingXmlCompletion_caretInImportTag() {
     myDomRule.testCompletion(
       "databinding_xml_completion_import.xml",
-      "databinding_xml_completion_import_after.xml"
+      "databinding_xml_completion_import_after.xml",
     )
   }
 
@@ -69,7 +69,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
   fun dataBindingXmlCompletion_caretInVariableTag() {
     myDomRule.testCompletion(
       "databinding_xml_completion_variable.xml",
-      "databinding_xml_completion_variable_after.xml"
+      "databinding_xml_completion_variable_after.xml",
     )
   }
 
@@ -77,7 +77,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
   fun dataBindingXmlCompletion_caretInDataTag() {
     myDomRule.testCompletion(
       "databinding_xml_completion_data.xml",
-      "databinding_xml_completion_data_after.xml"
+      "databinding_xml_completion_data_after.xml",
     )
   }
 
@@ -85,7 +85,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
   fun dataBindingXmlCompletion_caretInDataClassAttribute() {
     myDomRule.testCompletion(
       "databinding_xml_completion_data_class.xml",
-      "databinding_xml_completion_data_class_after.xml"
+      "databinding_xml_completion_data_class_after.xml",
     )
   }
 }

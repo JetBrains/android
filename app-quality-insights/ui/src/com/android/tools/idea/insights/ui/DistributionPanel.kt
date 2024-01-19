@@ -35,7 +35,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
     if (stats.groups.isEmpty()) {
       add(
         JLabel("No data available").apply { border = emptyBorder },
-        TabularLayout.Constraint(stats.groups.size, 0, 4)
+        TabularLayout.Constraint(stats.groups.size, 0, 4),
       )
     } else {
       stats.groups.forEachIndexed { index, group ->
@@ -50,7 +50,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
             isOpaque = false
             border = emptyBorder
           },
-          TabularLayout.Constraint(index, 2)
+          TabularLayout.Constraint(index, 2),
         )
         val infoLabel = JLabel(StudioIcons.Common.INFO)
         add(infoLabel, TabularLayout.Constraint(index, 3))
@@ -65,7 +65,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
       }
       add(
         JLabel("Most affected $category: ${stats.topValue}").apply { border = emptyBorder },
-        TabularLayout.Constraint(stats.groups.size, 0, 4)
+        TabularLayout.Constraint(stats.groups.size, 0, 4),
       )
     }
     revalidate()

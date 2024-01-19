@@ -30,7 +30,7 @@ fun PsiMethod.checkSignaturesAndReturnType(
   name: String,
   returnType: String,
   isReturnTypeNullable: Boolean = false,
-  parameters: Collection<Parameter> = emptyList()
+  parameters: Collection<Parameter> = emptyList(),
 ) {
   assertThat(this.name).isEqualTo(name)
 

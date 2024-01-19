@@ -110,7 +110,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
               section,
               null,
               view.drawId,
-              lookup
+              lookup,
             )
           table.put(property.namespace, property.name, property)
         }

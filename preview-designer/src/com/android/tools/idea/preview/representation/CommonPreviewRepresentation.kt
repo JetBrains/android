@@ -74,6 +74,7 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -81,7 +82,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.swing.JComponent
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PreviewElement>("PreviewElement")
@@ -94,7 +94,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
   viewConstructor:
     (
-      project: Project, surfaceBuilder: NlDesignSurface.Builder, parentDisposable: Disposable
+      project: Project, surfaceBuilder: NlDesignSurface.Builder, parentDisposable: Disposable,
     ) -> CommonNlDesignSurfacePreviewView,
   viewModelConstructor:
     (
@@ -102,7 +102,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       projectBuildStatusManager: ProjectBuildStatusManager,
       project: Project,
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
-      hasRenderErrors: () -> Boolean
+      hasRenderErrors: () -> Boolean,
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   useCustomInflater: Boolean = true,
@@ -179,7 +179,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           }
         }
         .apply { configureDesignSurface() },
-      this
+      this,
     )
   }
 
@@ -219,7 +219,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
       override fun createDataContext(previewElement: T) =
-        CustomizedDataContext.create(previewElementModelAdapterDelegate.createDataContext(previewElement)) { dataId ->
+        CustomizedDataContext.create(
+          previewElementModelAdapterDelegate.createDataContext(previewElement)
+        ) { dataId ->
           when (dataId) {
             PREVIEW_ELEMENT_INSTANCE.name -> previewElement
             CommonDataKeys.PROJECT.name -> project
@@ -247,7 +249,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private suspend fun doRefreshSync(
     filePreviewElements: List<T>,
-    progressIndicator: ProgressIndicator
+    progressIndicator: ProgressIndicator,
   ) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val psiFile =
@@ -277,7 +279,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         previewElementModelAdapter,
         modelUpdater,
         navigationHandler,
-        this::configureLayoutlibSceneManager
+        this::configureLayoutlibSceneManager,
       )
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
@@ -294,7 +296,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private fun createRefreshJob(
     invalidate: Boolean,
-    refreshProgressIndicator: BackgroundableProcessIndicator
+    refreshProgressIndicator: BackgroundableProcessIndicator,
   ) =
     launchWithProgress(refreshProgressIndicator, uiThread) {
       val requestLogger = LoggerWithFixedInfo(LOG, mapOf())
@@ -340,7 +342,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
             previewElementModelAdapter::modelToElement,
-            this@CommonPreviewRepresentation::configureLayoutlibSceneManager
+            this@CommonPreviewRepresentation::configureLayoutlibSceneManager,
           )
         } else {
           refreshProgressIndicator.text =
@@ -363,7 +365,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         message("refresh.progress.indicator.title"),
         "",
         "",
-        true
+        true,
       )
     if (!Disposer.tryRegister(this, refreshProgressIndicator)) return null
 
@@ -453,7 +455,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         fpsLimit = 30,
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
-        delegateInteractionHandler
+        delegateInteractionHandler,
       )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 

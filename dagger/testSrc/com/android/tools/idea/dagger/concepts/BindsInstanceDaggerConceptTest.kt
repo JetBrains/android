@@ -84,7 +84,7 @@ class BindsInstanceDaggerConceptTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = BindsInstanceDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -97,15 +97,15 @@ class BindsInstanceDaggerConceptTest {
           BindsInstanceFactoryMethodParameterIndexValue(
             MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
-            "foo"
-          )
+            "foo",
+          ),
         ),
         "Foo2",
         setOf(
           BindsInstanceFactoryMethodParameterIndexValue(
             MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
-            "foo2"
+            "foo2",
           )
         ),
       )
@@ -146,7 +146,7 @@ class BindsInstanceDaggerConceptTest {
 
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fooProviderDaggerElement =
@@ -208,7 +208,7 @@ class BindsInstanceDaggerConceptTest {
 
       class Foo {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fooProviderDaggerElement =
@@ -277,7 +277,7 @@ class BindsInstanceDaggerConceptTest {
 
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fooProviderDaggerElement =
@@ -288,7 +288,7 @@ class BindsInstanceDaggerConceptTest {
         BindsInstanceFactoryMethodParameterIndexValue(
             MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
-            "foo"
+            "foo",
           )
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
@@ -340,7 +340,7 @@ class BindsInstanceDaggerConceptTest {
 
       class Foo {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fooProviderDaggerElement =
@@ -351,7 +351,7 @@ class BindsInstanceDaggerConceptTest {
         BindsInstanceFactoryMethodParameterIndexValue(
             MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
-            "foo"
+            "foo",
           )
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )

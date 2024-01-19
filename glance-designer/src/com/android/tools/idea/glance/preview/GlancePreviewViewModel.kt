@@ -33,7 +33,7 @@ internal class GlancePreviewViewModel(
   projectBuildStatusManager: ProjectBuildStatusManager,
   project: Project,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  hasRenderErrors: () -> Boolean
+  hasRenderErrors: () -> Boolean,
 ) :
   CommonPreviewViewModel(
     previewView,
@@ -46,7 +46,7 @@ internal class GlancePreviewViewModel(
         PREVIEW_NOTIFICATION_GROUP_ID,
         GlancePreviewBundle.message("event.log.refresh.title"),
         GlancePreviewBundle.message("event.log.refresh.total.elapsed.time", durationString),
-        NotificationType.INFORMATION
+        NotificationType.INFORMATION,
       )
-    }
+    },
   )

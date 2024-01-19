@@ -86,7 +86,7 @@ data class MutableNavArgumentData(
   @field:XmlAttribute(namespace = AUTO_URI, name = "argType") override var type: String?,
   @field:XmlAttribute(namespace = AUTO_URI, name = "nullable") override var nullable: String?,
   @field:XmlAttribute(namespace = ANDROID_URI, name = "defaultValue")
-  override var defaultValue: String?
+  override var defaultValue: String?,
 ) : NavArgumentData {
   constructor() : this("", null, null, null)
 }
@@ -103,7 +103,7 @@ data class MutableNavActionData(
   @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = AUTO_URI)
   override var popUpTo: String?,
-  @field:XmlElement(name = "argument") override var arguments: List<MutableNavArgumentData>
+  @field:XmlElement(name = "argument") override var arguments: List<MutableNavArgumentData>,
 ) : NavActionData {
   constructor() : this("", null, null, mutableListOf())
 }
@@ -118,7 +118,7 @@ data class MutableMaybeNavDestinationData(
   var id: String?,
   @field:XmlAttribute(namespace = ANDROID_URI) var name: String?,
   @field:XmlElement(name = "argument") var arguments: List<MutableNavArgumentData>,
-  @field:XmlElement(name = "action") var actions: List<MutableNavActionData>
+  @field:XmlElement(name = "action") var actions: List<MutableNavActionData>,
 ) : MaybeNavDestinationData {
   constructor() : this(null, null, mutableListOf(), mutableListOf())
 
@@ -149,7 +149,7 @@ data class MutableNavNavigationData(
   @field:XmlElement(name = "navigation") override var navigations: List<MutableNavNavigationData>,
   @field:XmlAnyElement()
   @field:XmlJavaTypeAdapter(MaybeDestinationAdapter::class)
-  override var potentialDestinations: List<MaybeNavDestinationData>
+  override var potentialDestinations: List<MaybeNavDestinationData>,
 ) : NavNavigationData {
   constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
 }

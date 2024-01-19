@@ -42,7 +42,7 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
   override fun processElementUsages(
     element: PsiElement,
     processor: Processor<in Usage>,
-    options: FindUsagesOptions
+    options: FindUsagesOptions,
   ) {
     runReadAction {
       if (element !is ResourceReferencePsiElement) return@runReadAction

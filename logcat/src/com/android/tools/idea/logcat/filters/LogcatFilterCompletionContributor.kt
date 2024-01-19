@@ -57,7 +57,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key",
       hint,
-      message("logcat.filter.completion.hint.value.string")
+      message("logcat.filter.completion.hint.value.string"),
     )
 
   val negatedKey = "-$name:"
@@ -65,7 +65,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key.negated",
       hint,
-      message("logcat.filter.completion.hint.value.string")
+      message("logcat.filter.completion.hint.value.string"),
     )
 
   val regexKey = "$name~:"
@@ -73,7 +73,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key.regex",
       hint,
-      message("logcat.filter.completion.hint.value.regex")
+      message("logcat.filter.completion.hint.value.regex"),
     )
 
   val regexNegatedKey = "-$name~:"
@@ -81,7 +81,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key.regex.negated",
       hint,
-      message("logcat.filter.completion.hint.value.regex")
+      message("logcat.filter.completion.hint.value.regex"),
     )
 
   val exactKey = "$name=:"
@@ -89,7 +89,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key.exact",
       hint,
-      message("logcat.filter.completion.hint.value.string")
+      message("logcat.filter.completion.hint.value.string"),
     )
 
   val exactNegatedKey = "-$name=:"
@@ -97,7 +97,7 @@ private class StringKey(name: String, hint: String) {
     message(
       "logcat.filter.completion.hint.key.exact.negated",
       hint,
-      message("logcat.filter.completion.hint.value.string")
+      message("logcat.filter.completion.hint.value.string"),
     )
 
   val keys = setOf(normalKey, negatedKey, regexKey, regexNegatedKey, exactKey, exactNegatedKey)
@@ -118,7 +118,7 @@ private val LEVEL_LOOKUPS
     LogLevel.values().map {
       createLookupElement(
         "$LEVEL_KEY${it.stringValue} ",
-        message("logcat.filter.completion.hint.level.value", it.name)
+        message("logcat.filter.completion.hint.level.value", it.name),
       )
     }
 
@@ -127,7 +127,7 @@ private val LEVEL_LOOKUPS_LOWERCASE
     LogLevel.values().map {
       createLookupElement(
         "${it.name.lowercase()} ",
-        message("logcat.filter.completion.hint.level.value", it.name)
+        message("logcat.filter.completion.hint.level.value", it.name),
       )
     }
 
@@ -136,7 +136,7 @@ private val LEVEL_LOOKUPS_UPPERCASE
     LogLevel.values().map {
       createLookupElement(
         "${it.name.uppercase()} ",
-        message("logcat.filter.completion.hint.level.value", it.name)
+        message("logcat.filter.completion.hint.level.value", it.name),
       )
     }
 
@@ -189,32 +189,32 @@ private val AGE_LOOKUPS
         message(
           "logcat.filter.completion.hint.age.value",
           30,
-          message("logcat.filter.completion.hint.age.second")
-        )
+          message("logcat.filter.completion.hint.age.second"),
+        ),
       ),
       createLookupElement(
         "5m ",
         message(
           "logcat.filter.completion.hint.age.value",
           5,
-          message("logcat.filter.completion.hint.age.minute")
-        )
+          message("logcat.filter.completion.hint.age.minute"),
+        ),
       ),
       createLookupElement(
         "3h ",
         message(
           "logcat.filter.completion.hint.age.value",
           3,
-          message("logcat.filter.completion.hint.age.hour")
-        )
+          message("logcat.filter.completion.hint.age.hour"),
+        ),
       ),
       createLookupElement(
         "1d ",
         message(
           "logcat.filter.completion.hint.age.value",
           1,
-          message("logcat.filter.completion.hint.age.day")
-        )
+          message("logcat.filter.completion.hint.age.day"),
+        ),
       ),
     )
 
@@ -241,7 +241,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
         override fun addCompletions(
           parameters: CompletionParameters,
           context: ProcessingContext,
-          result: CompletionResultSet
+          result: CompletionResultSet,
         ) {
           // We have to exclude a few special cases where we do not want to complete.
 
@@ -273,13 +273,13 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
             result.addElement(
               createLookupElement(
                 "$MY_PACKAGE ",
-                message("logcat.filter.completion.hint.package.mine")
+                message("logcat.filter.completion.hint.package.mine"),
               )
             )
           }
           result.addHints()
         }
-      }
+      },
     )
     extend(
       CompletionType.BASIC,
@@ -288,7 +288,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
         override fun addCompletions(
           parameters: CompletionParameters,
           context: ProcessingContext,
-          result: CompletionResultSet
+          result: CompletionResultSet,
         ) {
           when {
             parameters.findPreviousText() == LEVEL_KEY -> result.addLevelLookups()
@@ -298,7 +298,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
           }
           result.addHints()
         }
-      }
+      },
     )
     extend(
       CompletionType.BASIC,
@@ -307,7 +307,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
         override fun addCompletions(
           parameters: CompletionParameters,
           context: ProcessingContext,
-          result: CompletionResultSet
+          result: CompletionResultSet,
         ) {
           when (parameters.findPreviousText()) {
             PACKAGE_KEY.normalKey -> {
@@ -318,7 +318,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                 result.addElement(
                   createLookupElement(
                     "$MY_PACKAGE_VALUE ",
-                    message("logcat.filter.completion.hint.package.mine")
+                    message("logcat.filter.completion.hint.package.mine"),
                   )
                 )
               }
@@ -336,7 +336,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
           }
           result.addHints()
         }
-      }
+      },
     )
   }
 }
@@ -364,7 +364,7 @@ private fun createLookupElement(text: String, hint: String? = null) =
       object : LookupElementRenderer<LookupElement>() {
         override fun renderElement(
           element: LookupElement,
-          presentation: LookupElementPresentation
+          presentation: LookupElementPresentation,
         ) {
           presentation.itemText = element.lookupString
           presentation.typeText = hint

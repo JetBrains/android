@@ -185,7 +185,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
     var model: NlModel? = null,
     var components: MutableList<NlComponent>? = null,
     var hyperlinkListener: HyperlinkListener? = null,
-    var type: VisualLintErrorType? = null
+    var type: VisualLintErrorType? = null,
   ) {
 
     fun summary(summary: String) = apply { this.summary = summary }

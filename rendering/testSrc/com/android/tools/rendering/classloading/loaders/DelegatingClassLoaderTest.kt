@@ -35,7 +35,7 @@ internal class DelegatingClassLoaderTest {
     val classLoader =
       DelegatingClassLoader(
         null,
-        StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java))
+        StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java)),
       )
 
     assertNotNull(classLoader.loadClass(TestClass::class.java.canonicalName))
@@ -57,7 +57,7 @@ internal class DelegatingClassLoaderTest {
     val classLoader =
       DelegatingClassLoader(
         null,
-        StaticLoader("private.Test" to loadClassBytes(TestClass::class.java))
+        StaticLoader("private.Test" to loadClassBytes(TestClass::class.java)),
       )
 
     assertNotNull(classLoader.loadClass("private.Test"))

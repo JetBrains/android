@@ -43,7 +43,7 @@ class NlModelBuilder(
   val parentDisposable: Disposable,
   val facet: AndroidFacet,
   val file: VirtualFile,
-  val configuration: Configuration
+  val configuration: Configuration,
 ) {
   private var modelFactory: NlModelFactoryInterface =
     object : NlModelFactoryInterface {
@@ -57,7 +57,7 @@ class NlModelBuilder(
               componentRegistrar,
               xmlFileProvider,
               modelUpdater,
-              dataContext
+              dataContext,
             )
             .apply { setTooltip(tooltip) }
         }

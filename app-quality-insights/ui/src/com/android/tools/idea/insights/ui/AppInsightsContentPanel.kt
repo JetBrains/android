@@ -35,7 +35,7 @@ class AppInsightsContentPanel(
   cellRenderer: AppInsightsTableCellRenderer,
   name: String,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
-  createCenterPanel: ((Int) -> Unit) -> Component
+  createCenterPanel: ((Int) -> Unit) -> Component,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
 

@@ -54,7 +54,7 @@ import studio.network.inspection.NetworkInspectorProtocol
 private fun createSpeedEvent(
   time: Long,
   sent: Long,
-  received: Long
+  received: Long,
 ): NetworkInspectorProtocol.Event {
   return NetworkInspectorProtocol.Event.newBuilder()
     .apply {
@@ -107,10 +107,10 @@ class NetworkInspectorViewTest {
               createSpeedEvent(34, 1, 1),
               createSpeedEvent(38, 1, 1),
               createSpeedEvent(40, 1, 1),
-              createSpeedEvent(50, 1, 1)
+              createSpeedEvent(50, 1, 1),
             )
         ),
-        scope
+        scope,
       )
 
     val parentPanel = JPanel(BorderLayout())
@@ -132,7 +132,7 @@ class NetworkInspectorViewTest {
         component,
         services,
         scope,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)
@@ -169,21 +169,21 @@ class NetworkInspectorViewTest {
       (start.x + 10000000 * microSecondToX).toInt(),
       start.y,
       (5000000 * microSecondToX).toInt(),
-      0
+      0,
     )
     assertThat(infoPanel.isVisible).isTrue()
     fakeUi.mouse.drag(
       (start.x + 20000000 * microSecondToX).toInt(),
       start.y,
       (5000000 * microSecondToX).toInt(),
-      0
+      0,
     )
     assertThat(infoPanel.isVisible).isFalse()
     fakeUi.mouse.drag(
       (start.x + 35000000 * microSecondToX).toInt(),
       start.y,
       (2500000 * microSecondToX).toInt(),
-      0
+      0,
     )
     assertThat(infoPanel.isVisible).isTrue()
     fakeUi.mouse.drag(start.x, start.y, (40000000 * microSecondToX).toInt(), 0)

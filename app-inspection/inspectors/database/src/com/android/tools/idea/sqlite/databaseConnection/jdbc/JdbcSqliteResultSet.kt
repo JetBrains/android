@@ -36,7 +36,7 @@ import java.util.concurrent.Executor
 abstract class JdbcSqliteResultSet(
   private val taskExecutor: Executor,
   private val connection: Connection,
-  private val sqliteStatement: SqliteStatement
+  private val sqliteStatement: SqliteStatement,
 ) : SqliteResultSet {
 
   override val columns
@@ -55,7 +55,7 @@ abstract class JdbcSqliteResultSet(
                   metaData.getColumnName(i),
                   SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
                   metaData.isNullable(i) == 1,
-                  keyColumnsNames.contains(columnName)
+                  keyColumnsNames.contains(columnName),
                 )
               }
             }
@@ -67,12 +67,12 @@ abstract class JdbcSqliteResultSet(
 
   abstract override fun getRowBatch(
     rowOffset: Int,
-    rowBatchSize: Int
+    rowBatchSize: Int,
   ): ListenableFuture<List<SqliteRow>>
 
   protected fun getRowCount(
     sqliteStatement: SqliteStatement,
-    handleResponse: (ResultSet) -> Int
+    handleResponse: (ResultSet) -> Int,
   ): ListenableFuture<Int> {
     return taskExecutor
       .executeAsync {
@@ -88,7 +88,7 @@ abstract class JdbcSqliteResultSet(
 
   protected fun getRowBatch(
     sqliteStatement: SqliteStatement,
-    handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>
+    handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>,
   ): ListenableFuture<List<SqliteRow>> {
     return columns
       .transform(taskExecutor) { columns ->
@@ -105,7 +105,7 @@ abstract class JdbcSqliteResultSet(
   @WorkerThread
   protected fun createCurrentRow(
     resultSet: ResultSet,
-    columns: List<ResultSetSqliteColumn>
+    columns: List<ResultSetSqliteColumn>,
   ): SqliteRow {
     return SqliteRow(
       columns.mapIndexed { i, column ->

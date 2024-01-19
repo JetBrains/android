@@ -34,7 +34,7 @@ internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
 internal fun getJdbcDatabaseConnection(
   rootDisposable: Disposable,
   sqliteFile: VirtualFile,
-  executor: FutureCallbackExecutor
+  executor: FutureCallbackExecutor,
 ): ListenableFuture<DatabaseConnection> {
   return executor.executeAsync {
     val url = "jdbc:sqlite:${sqliteFile.path}"

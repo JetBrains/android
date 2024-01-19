@@ -51,7 +51,7 @@ class AppInsightsStatusText(owner: JComponent?, private val checkStatusVisible: 
 val offlineModeIcon =
   ColoredIconGenerator.generateColoredIcon(
     AllIcons.Actions.OfflineMode,
-    UIUtil.getErrorForeground()
+    UIUtil.getErrorForeground(),
   )
 
 fun Long.formatNumberToPrettyString(): String =
@@ -69,7 +69,7 @@ val EMPTY_STATE_TEXT_FORMAT =
 val EMPTY_STATE_LINK_FORMAT =
   SimpleTextAttributes(
     SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.LINK_ATTRIBUTES.style,
-    SimpleTextAttributes.LINK_ATTRIBUTES.fgColor
+    SimpleTextAttributes.LINK_ATTRIBUTES.fgColor,
   )
 
 fun IssueDetails.getDisplayTitle(): Pair<String, String> {
@@ -95,7 +95,7 @@ fun getFatalityIcon(
   fatality: FailureType,
   selected: Boolean,
   foreground: Color,
-  withNote: Boolean = false
+  withNote: Boolean = false,
 ): Icon? {
   val icon =
     if (withNote) {

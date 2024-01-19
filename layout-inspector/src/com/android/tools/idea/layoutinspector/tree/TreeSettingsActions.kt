@@ -32,7 +32,7 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
   DropDownAction(
     "Filter",
     "View Options for Component Tree",
-    StudioIcons.Common.VISIBILITY_INLINE
+    StudioIcons.Common.VISIBILITY_INLINE,
   ) {
   init {
     add(SystemNodeFilterAction(renderModelProvider))
@@ -61,7 +61,7 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
       if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
         model.setSelection(
           selectedNode.findClosestUnfilteredNode(treeSettings),
-          SelectionOrigin.COMPONENT_TREE
+          SelectionOrigin.COMPONENT_TREE,
         )
       }
       val hoveredNode = model.hoveredNode

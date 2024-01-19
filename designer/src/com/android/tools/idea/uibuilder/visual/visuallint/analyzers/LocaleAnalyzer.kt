@@ -39,7 +39,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val config = renderResult.renderContext?.configuration
@@ -90,7 +90,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   private fun findLocaleIssues(
     view: ViewInfo,
     baseConfigIssues: VisualLintBaseConfigIssues,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val key = getKey(view) ?: return issues
@@ -120,7 +120,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   private fun createTextTooBigIssue(
     value: VisualLintBaseConfigIssues.BaseConfigComponentState?,
     view: ViewInfo,
-    locale: String
+    locale: String,
   ): VisualLintIssueContent {
     val summary = "The text might be cut off."
     val content =

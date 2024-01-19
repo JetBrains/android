@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
 class LayoutInspectorSessionMetrics(
   private val project: Project?,
   private var process: ProcessDescriptor? = null,
-  private val snapshotMetadata: SnapshotMetadata? = null
+  private val snapshotMetadata: SnapshotMetadata? = null,
 ) {
 
   private var loggedInitialRender = false

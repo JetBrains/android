@@ -39,7 +39,7 @@ val DESIGNER_PREVIEW_FILE_TYPES =
     AnimatedStateListTempFileType,
     AnimatedVectorFileType,
     FontFileType,
-    ZoomableDrawableFileType
+    ZoomableDrawableFileType,
   )
 
 /** Register and accepts types supported by [DesignFilesPreviewEditor]. */

@@ -74,7 +74,7 @@ class TextAppearanceEnumSupportTest {
         "@style/TextAppearance.AppCompat.Display4",
         "@style/TextAppearance.AppCompat.Large",
         "@style/TextAppearance.AppCompat.Medium",
-        "@style/TextAppearance.AppCompat.Small"
+        "@style/TextAppearance.AppCompat.Small",
       )
     val expectedAppCompatDisplayValues =
       listOf(
@@ -86,7 +86,7 @@ class TextAppearanceEnumSupportTest {
         "Display4",
         "Large",
         "Medium",
-        "Small"
+        "Small",
       )
     var index = 0
     index =
@@ -96,7 +96,7 @@ class TextAppearanceEnumSupportTest {
         PROJECT_HEADER,
         3,
         expectedProjectValues,
-        expectedProjectDisplayValues
+        expectedProjectDisplayValues,
       )
     index =
       EnumValueUtil.checkSection(
@@ -105,7 +105,7 @@ class TextAppearanceEnumSupportTest {
         APPCOMPAT_HEADER,
         10,
         expectedAppCompatValues,
-        expectedAppCompatDisplayValues
+        expectedAppCompatDisplayValues,
       )
     Truth.assertThat(index).isEqualTo(-1)
   }
@@ -131,7 +131,7 @@ class TextAppearanceEnumSupportTest {
         "@android:style/TextAppearance.Material.Display4",
         "@android:style/TextAppearance.Material.Large",
         "@android:style/TextAppearance.Material.Medium",
-        "@android:style/TextAppearance.Material.Small"
+        "@android:style/TextAppearance.Material.Small",
       )
     val expectedAndroidDisplayValues =
       listOf(
@@ -143,7 +143,7 @@ class TextAppearanceEnumSupportTest {
         "Display4",
         "Large",
         "Medium",
-        "Small"
+        "Small",
       )
     var index = 0
     index =
@@ -153,7 +153,7 @@ class TextAppearanceEnumSupportTest {
         PROJECT_HEADER,
         3,
         expectedProjectValues,
-        expectedProjectDisplayValues
+        expectedProjectDisplayValues,
       )
     index =
       EnumValueUtil.checkSection(
@@ -162,7 +162,7 @@ class TextAppearanceEnumSupportTest {
         ANDROID_HEADER,
         10,
         expectedAndroidValues,
-        expectedAndroidDisplayValues
+        expectedAndroidDisplayValues,
       )
     Truth.assertThat(index).isEqualTo(-1)
   }
@@ -189,7 +189,7 @@ class TextAppearanceEnumSupportTest {
         "@android:style/TextAppearance.Material.Display4",
         "@android:style/TextAppearance.Material.Large",
         "@android:style/TextAppearance.Material.Medium",
-        "@android:style/TextAppearance.Material.Small"
+        "@android:style/TextAppearance.Material.Small",
       )
     val expectedAndroidDisplayValues =
       listOf(
@@ -201,7 +201,7 @@ class TextAppearanceEnumSupportTest {
         "Display4",
         "Large",
         "Medium",
-        "Small"
+        "Small",
       )
     var index = 0
     index =
@@ -211,7 +211,7 @@ class TextAppearanceEnumSupportTest {
         PROJECT_HEADER,
         3,
         expectedProjectValues,
-        expectedProjectDisplayValues
+        expectedProjectDisplayValues,
       )
     index =
       EnumValueUtil.checkSection(
@@ -220,7 +220,7 @@ class TextAppearanceEnumSupportTest {
         ANDROID_HEADER,
         10,
         expectedAndroidValues,
-        expectedAndroidDisplayValues
+        expectedAndroidDisplayValues,
       )
     Truth.assertThat(index).isEqualTo(-1)
   }

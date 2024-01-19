@@ -74,7 +74,7 @@ class LayoutInspectorMainToolbarTest {
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
       projectRule = androidProjectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+      isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
   @get:Rule
@@ -421,7 +421,7 @@ class LayoutInspectorMainToolbarTest {
       androidProjectRule.testRootDisposable,
       JPanel(),
       layoutInspectorRule.inspector,
-      fakeAction
+      fakeAction,
     )
   }
 
@@ -434,7 +434,7 @@ class LayoutInspectorMainToolbarTest {
         "LayoutInspector.MainToolbar",
         presentation,
         ActionManager.getInstance(),
-        0
+        0,
       )
     action.update(event)
     return presentation

@@ -76,7 +76,7 @@ suspend fun openJdbcDatabaseConnection(
   parentDisposable: Disposable,
   virtualFile: VirtualFile,
   workerExecutor: Executor,
-  workerDispatcher: CoroutineDispatcher
+  workerDispatcher: CoroutineDispatcher,
 ): JdbcDatabaseConnection {
   return withContext(workerDispatcher) {
     try {

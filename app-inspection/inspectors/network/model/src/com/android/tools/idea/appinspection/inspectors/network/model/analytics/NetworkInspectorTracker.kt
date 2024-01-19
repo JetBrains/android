@@ -50,7 +50,7 @@ interface NetworkInspectorTracker {
     headerAdded: Boolean,
     headerReplaced: Boolean,
     bodyReplaced: Boolean,
-    bodyModified: Boolean
+    bodyModified: Boolean,
   )
 }
 
@@ -75,6 +75,6 @@ class StubNetworkInspectorTracker : NetworkInspectorTracker {
     headerAdded: Boolean,
     headerReplaced: Boolean,
     bodyReplaced: Boolean,
-    bodyModified: Boolean
+    bodyModified: Boolean,
   ) = Unit
 }

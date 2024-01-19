@@ -57,7 +57,7 @@ internal class DeviceSpecInjectorTest {
         @Composable
         fun myFun() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
   }
@@ -88,7 +88,7 @@ internal class DeviceSpecInjectorTest {
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val injectedElementsAndTexts = runReadAction {
       injectionFixture.getAllInjections().map { Pair(it.first.text, it.second.text) }
@@ -103,7 +103,7 @@ internal class DeviceSpecInjectorTest {
     // parameter
     assertEquals(
       "spec:width=673.5dp,height=841dp,chinSize=11dp",
-      injectedElementsAndTexts[0].second
+      injectedElementsAndTexts[0].second,
     )
     assertEquals("spec:width=10dp,height=841dp", injectedElementsAndTexts[1].second)
     assertEquals("spec:width=1080px,height=1900px", injectedElementsAndTexts[2].second)
@@ -124,7 +124,7 @@ internal class DeviceSpecInjectorTest {
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
 
@@ -141,7 +141,7 @@ internal class DeviceSpecInjectorTest {
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     runReadAction {
       assertThrows(Throwable::class.java) {
@@ -164,7 +164,7 @@ internal class DeviceSpecInjectorTest {
         @Composable
         fun myFun() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     runReadAction {
       assertThrows(Throwable::class.java) {

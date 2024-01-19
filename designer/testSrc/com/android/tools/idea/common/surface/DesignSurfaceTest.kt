@@ -130,7 +130,7 @@ class DesignSurfaceTest : LayoutTestCase() {
         component(RELATIVE_LAYOUT)
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
-          .matchParentHeight()
+          .matchParentHeight(),
       )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
@@ -159,7 +159,7 @@ class DesignSurfaceTest : LayoutTestCase() {
         component(RELATIVE_LAYOUT)
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
-          .matchParentHeight()
+          .matchParentHeight(),
       )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
@@ -185,7 +185,7 @@ class DesignSurfaceTest : LayoutTestCase() {
         component(RELATIVE_LAYOUT)
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
-          .matchParentHeight()
+          .matchParentHeight(),
       )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
@@ -324,7 +324,7 @@ class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? = null
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
@@ -335,18 +335,18 @@ class TestLayoutManager(private val surface: DesignSurface<*>) :
   PositionableContentLayoutManager() {
   override fun layoutContainer(
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ) {}
 
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ): Dimension = surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
 
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
     availableWidth: Int,
-    availableHeight: Int
+    availableHeight: Int,
   ): Map<PositionableContent, Point> {
     return content.firstOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
   }
@@ -357,7 +357,7 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
 
   override fun canHandleChildren(
     component: NlComponent,
-    pasted: MutableList<NlComponent>
+    pasted: MutableList<NlComponent>,
   ): Boolean = false
 
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
@@ -383,7 +383,7 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
     java.util.function.Function { TestInteractionHandler(it) },
     java.util.function.Function { TestLayoutManager(it) },
     java.util.function.Function { TestActionHandler(it) },
-    ZoomControlsPolicy.VISIBLE
+    ZoomControlsPolicy.VISIBLE,
   ) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))

@@ -238,5 +238,5 @@ data class DaggerRelatedElement(
    * [relationDescriptionKey]. If this is null, a standard presentation of the underlying
    * [PsiElement] is used.
    */
-  val customDisplayName: String? = null
+  val customDisplayName: String? = null,
 )

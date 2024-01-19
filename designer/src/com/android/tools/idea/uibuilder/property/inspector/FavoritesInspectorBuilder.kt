@@ -53,7 +53,7 @@ private const val PACKAGE_SEPARATOR_CHAR = ':'
 
 class FavoritesInspectorBuilder(
   private val model: NlPropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
   private val nameControlTypeProvider =
     SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
@@ -65,7 +65,7 @@ class FavoritesInspectorBuilder(
       nameControlTypeProvider,
       nameEditorProvider,
       controlTypeProvider,
-      editorProvider
+      editorProvider,
     )
   private val splitter = Splitter.on(FAVORITE_SEPARATOR_CHAR).trimResults().omitEmptyStrings()
   private var favoritesAsString = ""
@@ -131,7 +131,7 @@ class FavoritesInspectorBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.FAVORITES.visible) {
       return
@@ -143,14 +143,14 @@ class FavoritesInspectorBuilder(
         itemFilter = { favorites.contains(it.asReference) },
         insertOperation = ::insertNewItem,
         deleteOperation = { removeFromFavorites(it) },
-        itemComparator = androidSortOrder
+        itemComparator = androidSortOrder,
       )
     val newPropertyInstance =
       NlNewPropertyItem(
         model,
         PropertiesTable.emptyTable(),
         { !favorites.contains(it.asReference) },
-        { newDelegateWasAssigned(it, favoritesTableModel) }
+        { newDelegateWasAssigned(it, favoritesTableModel) },
       )
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
@@ -175,7 +175,7 @@ class FavoritesInspectorBuilder(
    */
   private fun newDelegateWasAssigned(
     newPropertyItem: NlNewPropertyItem,
-    tableModel: FilteredPTableModel<NlPropertyItem>
+    tableModel: FilteredPTableModel<NlPropertyItem>,
   ) {
     val delegate = addToFavorites(newPropertyItem) ?: return
     newPropertyItem.name = ""
@@ -185,7 +185,7 @@ class FavoritesInspectorBuilder(
 
   private fun insertNewItem(
     name: String,
-    @Suppress("UNUSED_PARAMETER") value: String
+    @Suppress("UNUSED_PARAMETER") value: String,
   ): NlPropertyItem? {
     val newPropertyInstance = NlNewPropertyItem(model, model.properties, { true })
     newPropertyInstance.name = name

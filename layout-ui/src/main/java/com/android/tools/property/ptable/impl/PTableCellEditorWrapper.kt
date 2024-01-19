@@ -35,7 +35,7 @@ class PTableCellEditorWrapper : AbstractTableCellEditor() {
     value: Any?,
     isSelected: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component? {
     return editor.editorComponent
   }

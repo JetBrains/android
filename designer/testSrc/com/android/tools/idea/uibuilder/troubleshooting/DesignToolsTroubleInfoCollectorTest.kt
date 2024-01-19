@@ -46,7 +46,7 @@ class DesignToolsTroubleInfoCollectorTest {
 
       """
         .trimIndent(),
-      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123")
+      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123"),
     )
   }
 }

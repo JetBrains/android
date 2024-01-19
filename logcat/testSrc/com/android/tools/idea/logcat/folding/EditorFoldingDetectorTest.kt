@@ -117,7 +117,7 @@ class EditorFoldingDetectorTest {
     val foldingDetector =
       foldingDetector(
         editor,
-        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = true))
+        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = true)),
       )
     editor.document.setText(
       """
@@ -138,7 +138,7 @@ class EditorFoldingDetectorTest {
     val foldingDetector =
       foldingDetector(
         editor,
-        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = true))
+        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = true)),
       )
     editor.document.setText(
       """
@@ -159,7 +159,7 @@ class EditorFoldingDetectorTest {
     val foldingDetector =
       foldingDetector(
         editor,
-        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = false))
+        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = false)),
       )
     editor.document.setText(
       """

@@ -32,7 +32,7 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  */
 class AnimationInspectorAction(
   private val isEssentialsModeEnabled: () -> Boolean,
-  private val defaultModeDescription: String = message("action.animation.inspector.description")
+  private val defaultModeDescription: String = message("action.animation.inspector.description"),
 ) :
   AnActionButton(
     message("action.animation.inspector.title"),

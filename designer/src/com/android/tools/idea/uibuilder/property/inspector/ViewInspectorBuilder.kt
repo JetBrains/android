@@ -47,7 +47,7 @@ import javax.swing.JPanel
  */
 class ViewInspectorBuilder(
   project: Project,
-  private val editorProvider: EditorProvider<NlPropertyItem>
+  private val editorProvider: EditorProvider<NlPropertyItem>,
 ) {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
@@ -63,7 +63,7 @@ class ViewInspectorBuilder(
   fun attachToInspector(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    getTitleLine: () -> InspectorLineModel
+    getTitleLine: () -> InspectorLineModel,
   ) {
     val tagName = getTagName(properties) ?: return
     if (tagName in TAG_EXCEPTIONS) return
@@ -88,7 +88,7 @@ class ViewInspectorBuilder(
 
   private fun findProperty(
     propertyName: String,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ): NlPropertyItem? {
     // TODO: Handle other namespaces
     val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
@@ -101,7 +101,7 @@ class ViewInspectorBuilder(
 
   private fun findPropertyByName(
     attrName: String,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ): NlPropertyItem? {
     if (attrName == ATTR_SRC) {
       val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
@@ -121,7 +121,7 @@ class ViewInspectorBuilder(
 
   private fun setupCustomPanel(
     tagName: String,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ): JPanel? {
     val panel = cachedCustomPanels[tagName] ?: createCustomPanel(tagName)
     if (panel == SampleCustomPanel.INSTANCE) return null

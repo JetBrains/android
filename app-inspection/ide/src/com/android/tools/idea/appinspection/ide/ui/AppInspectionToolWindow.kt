@@ -56,7 +56,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
           APP_INSPECTION_ID,
           APP_INSPECTION_ID,
           true,
-          PluginId.getId("org.jetbrains.android")
+          PluginId.getId("org.jetbrains.android"),
         )
 
       @UiThread override fun showToolWindow() = toolWindow.show(null)
@@ -66,7 +66,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         content: String,
         title: String,
         severity: AppInspectionIdeServices.Severity,
-        hyperlinkClicked: () -> Unit
+        hyperlinkClicked: () -> Unit,
       ) {
         val type =
           when (severity) {
@@ -98,7 +98,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
                 project,
                 fileName,
                 GlobalSearchScope.allScope(project),
-                false
+                false,
               )
               .firstOrNull()
               ?.virtualFile
@@ -107,7 +107,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
                   project,
                   virtualFile,
                   codeLocation.lineNumber?.let { it - 1 } ?: -1,
-                  0
+                  0,
                 )
               }
           }
@@ -134,7 +134,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       ideServices,
       scope,
       AndroidDispatchers.uiThread,
-      isPreferredProcess = { RecentProcess.isRecentProcess(it, project) }
+      isPreferredProcess = { RecentProcess.isRecentProcess(it, project) },
     )
   val component: JComponent = appInspectionView.component
 
@@ -144,7 +144,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       .connect(this)
       .subscribe(
         ToolWindowManagerListener.TOPIC,
-        AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView)
+        AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView),
       )
   }
 

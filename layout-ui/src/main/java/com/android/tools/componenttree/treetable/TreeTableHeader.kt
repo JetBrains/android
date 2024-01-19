@@ -80,7 +80,7 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
         false,
         false,
         0,
-        columnIndex
+        columnIndex,
       )
     val x = columnModel.columns.asSequence().take(columnIndex).sumOf { it.width }
     component.setBounds(x, 0, column.width, height - 1)
@@ -127,7 +127,7 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
           false,
           false,
           0,
-          it.modelIndex
+          it.modelIndex,
         )
       IJSwingUtilities.updateComponentTreeUI(component)
     }
@@ -175,7 +175,7 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
             false,
             false,
             -1,
-            hoverColumn
+            hoverColumn,
           )
       }
       return hoverCachedComponent
@@ -225,7 +225,7 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
           event.yOnScreen,
           event.clickCount,
           event.isPopupTrigger,
-          event.button
+          event.button,
         )
       component.dispatchEvent(newEvent)
     }

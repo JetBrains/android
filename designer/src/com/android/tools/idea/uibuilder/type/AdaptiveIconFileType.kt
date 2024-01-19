@@ -32,12 +32,12 @@ object AdaptiveIconFileType : DesignerEditorFileType {
       (FileDescriptionUtils.isResourceOfTypeWithRootTag(
         file,
         ResourceFolderType.MIPMAP,
-        ADAPTIVE_ICON_TAGS
+        ADAPTIVE_ICON_TAGS,
       ) ||
         FileDescriptionUtils.isResourceOfTypeWithRootTag(
           file,
           ResourceFolderType.DRAWABLE,
-          ADAPTIVE_ICON_TAGS
+          ADAPTIVE_ICON_TAGS,
         ))
   }
 

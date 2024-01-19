@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.UastImplementationDetector
 class AndroidLintUastImplementationInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.uast.implementation"),
-    UastImplementationDetector.ISSUE
+    UastImplementationDetector.ISSUE,
   )

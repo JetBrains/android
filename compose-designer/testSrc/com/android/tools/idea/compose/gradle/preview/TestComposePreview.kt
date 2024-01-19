@@ -42,7 +42,7 @@ val SceneViewPeerPanel.displayName: String
 class TestComposePreviewView(
   parentDisposable: Disposable,
   project: Project,
-  navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
+  navigationHandler: NavigationHandler = ComposePreviewNavigationHandler(),
 ) : ComposePreviewView, JPanel() {
   var interactionPaneProvider: () -> JComponent? = { null }
   var isInteractive = false
@@ -57,7 +57,7 @@ class TestComposePreviewView(
         parentDisposable,
         ComposeSceneComponentProvider(),
         ComposeScreenViewProvider(NopComposePreviewManager()),
-        { isInteractive }
+        { isInteractive },
       )
       .setInteractableProvider {
         object : SurfaceInteractable(it) {

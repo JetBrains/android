@@ -54,7 +54,7 @@ class NetworkInspectorDataSourceTest {
           id = 1,
           updateTimeUs = 1,
           requestStartTimeUs = 1,
-          url = "www.google.com"
+          url = "www.google.com",
         )
       )
   }
@@ -81,8 +81,8 @@ class NetworkInspectorDataSourceTest {
           speedEvent5.toByteArray(),
           speedEvent6.toByteArray(),
           speedEvent7.toByteArray(),
-          speedEvent8.toByteArray()
-        )
+          speedEvent8.toByteArray(),
+        ),
       )
     val dataSource =
       NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
@@ -101,7 +101,7 @@ class NetworkInspectorDataSourceTest {
           speedEvent5,
           speedEvent6,
           speedEvent7,
-          speedEvent8
+          speedEvent8,
         )
     }
 
@@ -166,8 +166,8 @@ class NetworkInspectorDataSourceTest {
           start3.toByteArray(),
           end3.toByteArray(),
           start4.toByteArray(),
-          end4.toByteArray()
-        )
+          end4.toByteArray(),
+        ),
       )
     val dataSource =
       NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
@@ -181,21 +181,21 @@ class NetworkInspectorDataSourceTest {
           updateTimeUs = 1,
           requestStartTimeUs = 0,
           requestCompleteTimeUs = 1,
-          url = "www.url2.com"
+          url = "www.url2.com",
         ),
         HttpData.createHttpData(
           id = 3,
           updateTimeUs = 4,
           requestStartTimeUs = 0,
           requestCompleteTimeUs = 4,
-          url = "www.url3.com"
+          url = "www.url3.com",
         ),
         HttpData.createHttpData(
           id = 1,
           updateTimeUs = 3,
           requestStartTimeUs = 1,
           requestCompleteTimeUs = 3,
-          url = "www.url1.com"
+          url = "www.url1.com",
         ),
       )
       .inOrder()

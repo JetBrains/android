@@ -42,14 +42,14 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
     inline fun Column(content: @Composable () -> Unit) {}
     inline fun Box(content: @Composable () -> Unit) {}
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
   private fun invokeActionAndAssertResult(
     actionProvider: () -> IntentionAction,
     inputFileContent: String,
-    expectedResult: String
+    expectedResult: String,
   ) {
     myFixture.loadNewFile("src/com/example/Test.kt", inputFileContent)
     val action = actionProvider()
@@ -66,7 +66,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
   private fun invokeActionAndAssertResult(
     actionName: String,
     inputFileContent: String,
-    expectedResult: String
+    expectedResult: String,
   ) {
     invokeActionAndAssertResult(
       {
@@ -75,14 +75,14 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
         action!!
       },
       inputFileContent,
-      expectedResult
+      expectedResult,
     )
   }
 
   private fun invokeActionAndAssertResult(
     action: IntentionAction,
     inputFileContent: String,
-    expectedResult: String
+    expectedResult: String,
   ) {
     invokeActionAndAssertResult({ action }, inputFileContent, expectedResult)
   }
@@ -128,7 +128,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -165,7 +165,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           Text("December 2018")
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -200,7 +200,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           Text("December 2018")
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -235,7 +235,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -270,7 +270,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -343,7 +343,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
         Text("A day in Shark Fin Cove")
     }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     cases.forEachIndexed { index, content ->
@@ -390,7 +390,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           Text("December 2018")
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -429,7 +429,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -471,7 +471,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
             }
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeActionAndAssertResult(
@@ -515,7 +515,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
             }
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -612,7 +612,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
         }
     }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     cases.forEachIndexed { index, content ->
@@ -656,7 +656,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -693,7 +693,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -730,7 +730,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 }

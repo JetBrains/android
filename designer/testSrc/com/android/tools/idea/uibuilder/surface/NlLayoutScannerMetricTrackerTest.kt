@@ -51,7 +51,7 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     assertEquals(
       LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT,
-      usageTracker.lastTrackedEvent
+      usageTracker.lastTrackedEvent,
     )
   }
 
@@ -69,7 +69,7 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     assertEquals(
       LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX,
-      usageTracker.lastTrackedEvent
+      usageTracker.lastTrackedEvent,
     )
   }
 

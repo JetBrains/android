@@ -61,9 +61,9 @@ class InspectorArtifactServiceTest {
         artifactService.getOrResolveInspectorArtifact(
           RunningArtifactCoordinate(
             mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
-            "2.5.0-beta01"
+            "2.5.0-beta01",
           ),
-          androidProjectRule.project
+          androidProjectRule.project,
         )
 
       assertThat(resolvedArtifactPath).isNotNull()

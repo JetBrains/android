@@ -36,7 +36,7 @@ internal class TestPreviewElement(
       showDecorations,
       showBackground,
       backgroundColor,
-      displayPositioning
+      displayPositioning,
     )
   override val previewElementDefinitionPsi = null
   override val previewBodyPsi = null

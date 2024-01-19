@@ -35,7 +35,7 @@ abstract class LiveSqliteResultSet(
   private val sqliteStatement: SqliteStatement,
   private val messenger: DatabaseInspectorMessenger,
   private val connectionId: Int,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : SqliteResultSet {
 
   /**
@@ -44,7 +44,7 @@ abstract class LiveSqliteResultSet(
    */
   protected fun sendQueryCommand(
     sqliteStatement: SqliteStatement,
-    responseSizeByteLimitHint: Long? = null
+    responseSizeByteLimitHint: Long? = null,
   ): ListenableFuture<SqliteInspectorProtocol.Response> {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId, responseSizeByteLimitHint)
     return messenger.sendCommandAsync(queryCommand).cancelOnDispose(this)
@@ -56,7 +56,7 @@ abstract class LiveSqliteResultSet(
    */
   final override fun getRowBatch(
     rowOffset: Int,
-    rowBatchSize: Int
+    rowBatchSize: Int,
   ): ListenableFuture<List<SqliteRow>> = getRowBatch(rowOffset, rowBatchSize, null)
 
   /**
@@ -72,7 +72,7 @@ abstract class LiveSqliteResultSet(
   abstract fun getRowBatch(
     rowOffset: Int,
     rowBatchSize: Int,
-    responseSizeByteLimitHint: Long? = null
+    responseSizeByteLimitHint: Long? = null,
   ): ListenableFuture<List<SqliteRow>>
 
   override fun dispose() {}

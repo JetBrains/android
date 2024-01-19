@@ -65,7 +65,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
           override fun rootsChanged(event: ModuleRootEvent) {
             removeStaleEntries()
           }
-        }
+        },
       )
   }
 
@@ -76,7 +76,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   operator fun get(
     facet: AndroidFacet,
     dir: VirtualFile,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ): ResourceFolderRepository {
     val cache =
       if (namespace === ResourceNamespace.RES_AUTO) myNonNamespacedCache else myNamespacedCache
@@ -157,7 +157,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
   fun dispatchToRepositories(
     file: VirtualFile,
-    handler: BiConsumer<ResourceFolderRepository, VirtualFile>
+    handler: BiConsumer<ResourceFolderRepository, VirtualFile>,
   ) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) VFS change"
@@ -193,7 +193,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun createRepository(
     facet: AndroidFacet,
     dir: VirtualFile,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ): ResourceFolderRepository {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     val executor =

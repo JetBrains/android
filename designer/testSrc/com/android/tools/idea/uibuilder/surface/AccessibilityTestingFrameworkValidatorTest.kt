@@ -34,7 +34,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     private val TEST_POLICY =
       ValidatorData.Policy(
         EnumSet.of(ValidatorData.Type.ACCESSIBILITY, ValidatorData.Type.RENDER),
-        EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING)
+        EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING),
       )
   }
 
@@ -97,7 +97,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
   private fun filter(
     results: List<ValidatorData.Issue>,
-    sourceClass: String
+    sourceClass: String,
   ): List<ValidatorData.Issue?> {
     return results
       .stream()

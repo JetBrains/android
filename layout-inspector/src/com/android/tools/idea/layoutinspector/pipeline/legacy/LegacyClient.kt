@@ -44,7 +44,7 @@ class LegacyClient(
   private val metrics: LayoutInspectorSessionMetrics,
   coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
-  treeLoaderForTest: LegacyTreeLoader? = null
+  treeLoaderForTest: LegacyTreeLoader? = null,
 ) :
   AbstractInspectorClient(
     LEGACY_CLIENT,
@@ -54,7 +54,7 @@ class LegacyClient(
     isInstantlyAutoConnected,
     SessionStatisticsImpl(LEGACY_CLIENT),
     coroutineScope,
-    parentDisposable
+    parentDisposable,
   ) {
 
   private val lookup: ViewNodeAndResourceLookup = model
@@ -132,7 +132,7 @@ class LegacyClient(
         latestConfig,
         latestTheme,
         process,
-        model
+        model,
       )
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
@@ -176,5 +176,5 @@ class LegacyClient(
 data class LegacyEvent(
   val windowId: String,
   val propertyUpdater: LegacyPropertiesProvider.Updater,
-  val allWindows: List<String>
+  val allWindows: List<String>,
 )

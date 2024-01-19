@@ -39,7 +39,7 @@ object ComponentUtil {
     projectRule: AndroidProjectRule,
     vararg descriptors: ComponentDescriptor,
     parentTag: String = SdkConstants.LINEAR_LAYOUT,
-    resourceFolder: String = SdkConstants.FD_RES_LAYOUT
+    resourceFolder: String = SdkConstants.FD_RES_LAYOUT,
   ): List<NlComponent> {
     var y = 0
     for (descriptor in descriptors) {
@@ -56,7 +56,7 @@ object ComponentUtil {
             projectRule,
             resourceFolder,
             "preferences.xml",
-            component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors)
+            component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors),
           )
         SdkConstants.FD_RES_LAYOUT ->
           NlModelBuilderUtil.model(
@@ -71,9 +71,9 @@ object ComponentUtil {
               .withAttribute(
                 SdkConstants.TOOLS_URI,
                 SdkConstants.ATTR_CONTEXT,
-                "com.example.MyActivity"
+                "com.example.MyActivity",
               )
-              .children(*descriptors)
+              .children(*descriptors),
           )
         else -> throw NotImplementedError()
       }
@@ -99,8 +99,8 @@ object ComponentUtil {
     model: NlPropertiesModel =
       NlPropertiesModel(
         projectRule.testRootDisposable,
-        AndroidFacet.getInstance(projectRule.module)!!
-      )
+        AndroidFacet.getInstance(projectRule.module)!!,
+      ),
   ): NlPropertyItem {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface

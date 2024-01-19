@@ -33,17 +33,11 @@ fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
   when (val resolvedImplementation = this.resolve()) {
     is ClsClassImpl ->
       resolvedImplementation.methods.associate { psiMethod ->
-        Pair(
-          psiMethod.name,
-          (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize(),
-        )
+        Pair(psiMethod.name, (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize())
       }
     is KtLightClass ->
       resolvedImplementation.methods.associate { psiMethod ->
-        Pair(
-          psiMethod.name,
-          (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize(),
-        )
+        Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
       }
     else -> mapOf()
   }

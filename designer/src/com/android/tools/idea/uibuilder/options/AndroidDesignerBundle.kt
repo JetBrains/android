@@ -19,7 +19,7 @@ object AndroidDesignerBundle {
 
   fun messagePointer(
     @PropertyKey(resourceBundle = BUNDLE) key: String,
-    vararg params: Any
+    vararg params: Any,
   ): Supplier<String> {
     return INSTANCE.getLazyMessage(key, *params)
   }

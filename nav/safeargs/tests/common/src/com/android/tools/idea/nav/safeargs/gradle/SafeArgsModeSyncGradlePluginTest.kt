@@ -47,7 +47,7 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
     val parameters =
       listOf(
         TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, SafeArgsMode.JAVA),
-        TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN)
+        TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN),
       )
   }
 
@@ -77,7 +77,7 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
         SafeArgsModeModuleService.MODE_CHANGED,
         SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode ->
           listener.onSafeArgsModeChanged(module, mode)
-        }
+        },
       )
 
     projectRule.load(params.project)

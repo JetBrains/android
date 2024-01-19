@@ -84,11 +84,7 @@ class DeviceMenuActionTest {
     whenever(configuration.settings)
       .thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
-    val dataContext =
-      SimpleDataContext.getSimpleContext(
-        CONFIGURATIONS,
-        listOf(configuration),
-      )
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
 
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)
@@ -187,7 +183,7 @@ class DeviceMenuActionTest {
                   13.5" Freeform (1707 × 960 dp, hdpi)
               Add Device Definition
       """
-            .trimIndent(),
+            .trimIndent()
       )
   }
 
@@ -211,11 +207,7 @@ class DeviceMenuActionTest {
       ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
         .getConfiguration(layoutFile.virtualFile)
     }
-    val dataContext =
-      SimpleDataContext.getSimpleContext(
-        CONFIGURATIONS,
-        listOf(configuration),
-      )
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
 
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)

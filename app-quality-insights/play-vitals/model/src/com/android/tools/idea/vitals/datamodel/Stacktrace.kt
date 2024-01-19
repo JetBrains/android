@@ -52,7 +52,7 @@ sealed class Line {
             value
               .substring(parsed.classFqnRange.startOffset, parsed.methodNameRange.endOffset)
               .trim(),
-          blame = Blames.UNKNOWN_BLAMED
+          blame = Blames.UNKNOWN_BLAMED,
         )
       } else {
         LOG.debug(
@@ -64,7 +64,7 @@ sealed class Line {
           file = "",
           rawSymbol = value.trim(),
           symbol = value.trim(),
-          blame = Blames.UNKNOWN_BLAMED
+          blame = Blames.UNKNOWN_BLAMED,
         )
       }
     }
@@ -75,7 +75,7 @@ sealed class Line {
     fun toCaption(): Caption {
       return Caption(
         title = value.substringBefore(":").trim(),
-        subtitle = value.substringAfter(":", missingDelimiterValue = "").trim().trimEnd(':')
+        subtitle = value.substringAfter(":", missingDelimiterValue = "").trim().trimEnd(':'),
       )
     }
   }
@@ -113,14 +113,10 @@ private fun String.extract(): List<ExceptionStack> {
     val exceptionStack =
       ExceptionStack(
         stacktrace =
-          Stacktrace(
-            caption = caption,
-            blames = Blames.UNKNOWN_BLAMED,
-            frames = frames.reversed(),
-          ),
+          Stacktrace(caption = caption, blames = Blames.UNKNOWN_BLAMED, frames = frames.reversed()),
         type = caption.title,
         exceptionMessage = caption.subtitle,
-        rawExceptionMessage = rawTextContent?.value ?: ""
+        rawExceptionMessage = rawTextContent?.value ?: "",
       )
 
     exceptionStacks.add(exceptionStack)

@@ -86,7 +86,7 @@ class TreeTableImpl(
   autoScroll: Boolean,
   installTreeSearch: Boolean,
   private val expandAllOnRootChange: Boolean,
-  treeHeaderRenderer: TableCellRenderer?
+  treeHeaderRenderer: TableCellRenderer?,
 ) : TreeTable(model), TableVisibility {
   private val extraColumns: List<ColumnInfo>
   private var initialized = false
@@ -157,7 +157,7 @@ class TreeTableImpl(
           false,
           false,
           0,
-          index + 1
+          index + 1,
         )
       val width = max(dataWidth, component?.preferredSize?.width ?: 0)
       setColumnWidth(index + 1, width, columnInfo.headerRenderer)
@@ -167,7 +167,7 @@ class TreeTableImpl(
   private fun setColumnWidth(
     columnIndex: Int,
     wantedWidth: Int,
-    wantedHeaderRenderer: TableCellRenderer?
+    wantedHeaderRenderer: TableCellRenderer?,
   ) {
     val width = if (hiddenColumns.contains(columnIndex)) 0 else wantedWidth
     columnModel.getColumn(columnIndex).apply {
@@ -302,7 +302,7 @@ class TreeTableImpl(
           false,
           false,
           cell.row,
-          false
+          false,
         ) as? JComponent
       return component?.toolTipText
     }

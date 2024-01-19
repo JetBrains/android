@@ -55,7 +55,7 @@ const val COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_NAME =
 val COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
   TextAttributesKey.createTextAttributesKey(
     COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE
+    DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE,
   )
 
 @VisibleForTesting internal val HIGHLIGHT_FLASH_DURATION = 100.milliseconds
@@ -86,7 +86,7 @@ object ComposeStateReadInlayHintsCollector : SharedBypassCollector {
       val actionData =
         InlayActionData(
           PsiPointerInlayActionPayload(SmartPointerManager.createPointer(stateRead.scope)),
-          ComposeStateReadInlayActionHandler.HANDLER_NAME
+          ComposeStateReadInlayActionHandler.HANDLER_NAME,
         )
       text(ComposeBundle.message("state.read"), actionData)
     }
@@ -100,7 +100,7 @@ private fun MarkupModel.highlight(segment: Segment): RangeHighlighter =
     segment.startOffset,
     segment.endOffset,
     HighlighterLayer.ELEMENT_UNDER_CARET - 1,
-    HighlighterTargetArea.EXACT_RANGE
+    HighlighterTargetArea.EXACT_RANGE,
   )
 
 /** Runs [block] the next time this [Editor] has a caret added/moved/removed. */

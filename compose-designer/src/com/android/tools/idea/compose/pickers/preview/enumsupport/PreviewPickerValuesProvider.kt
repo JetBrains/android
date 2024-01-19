@@ -55,7 +55,7 @@ object PreviewPickerValuesProvider {
   @JvmStatic
   fun createPreviewValuesProvider(
     module: Module,
-    containingFile: VirtualFile?
+    containingFile: VirtualFile?,
   ): EnumSupportValuesProvider {
     val providersMap = mutableMapOf<String, EnumValuesProvider>()
 
@@ -143,7 +143,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider = uiMod
       UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
         uiModeParams.value,
         uiModeParams.displayName,
-        uiModeParams.resolvedValue
+        uiModeParams.resolvedValue,
       )
     }
 
@@ -152,7 +152,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider = uiMod
       UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
         uiModeParams.value,
         uiModeParams.displayName,
-        uiModeParams.resolvedValue
+        uiModeParams.resolvedValue,
       )
     }
   return@uiModeProvider listOf(
@@ -181,14 +181,14 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
     ?.map { target ->
       EnumValue.item(
         target.version.apiLevel.toString(),
-        "${target.version.apiLevel} (Android ${target.versionName})"
+        "${target.version.apiLevel} (Android ${target.versionName})",
       )
     } ?: emptyList()
 }
 
 private fun createGroupEnumProvider(
   module: Module,
-  containingFile: VirtualFile
+  containingFile: VirtualFile,
 ): EnumValuesProvider = {
   runBlocking {
       AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile)
@@ -214,7 +214,7 @@ private fun createLocaleEnumProvider(module: Module): EnumValuesProvider = local
 private data class ClassEnumValueParams(
   val value: String,
   val displayName: String,
-  val resolvedValue: String
+  val resolvedValue: String,
 )
 
 private fun findClass(module: Module, fqClassName: String): PsiClass? {

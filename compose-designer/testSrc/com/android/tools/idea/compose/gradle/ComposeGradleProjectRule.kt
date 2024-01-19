@@ -49,7 +49,7 @@ private class ComposeGradleProjectRuleImpl(
   private val projectPath: String,
   private val testDataPath: String,
   private val kotlinVersion: String,
-  private val projectRule: AndroidGradleProjectRule
+  private val projectRule: AndroidGradleProjectRule,
 ) : NamedExternalResource() {
   override fun before(description: Description) {
     RenderService.shutdownRenderExecutor(5)
@@ -62,7 +62,7 @@ private class ComposeGradleProjectRuleImpl(
       buildError?.printStackTrace()
       Assert.assertTrue(
         "The project must compile correctly for the test to pass",
-        isBuildSuccessful
+        isBuildSuccessful,
       )
     }
   }
@@ -80,7 +80,7 @@ open class ComposeGradleProjectRule(
   projectPath: String,
   testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
-  private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule()
+  private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
 ) : TestRule {
   val project: Project
     get() = projectRule.project

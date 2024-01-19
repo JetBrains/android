@@ -80,10 +80,10 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             facets,
             dataBindingTracker,
             viewBindingTracker,
-            moduleManager
+            moduleManager,
           )
         },
-        false
+        false,
       )
 
     dataBindingEnabledModules =
@@ -95,7 +95,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             }
           CachedValueProvider.Result.create(facets, dataBindingTracker, moduleManager)
         },
-        false
+        false,
       )
 
     viewBindingEnabledModules =
@@ -105,7 +105,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             allBindingEnabledModules.value.filter { facet -> facet.isViewBindingEnabled() }
           CachedValueProvider.Result.create(facets, viewBindingTracker, moduleManager)
         },
-        false
+        false,
       )
   }
 

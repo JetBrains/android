@@ -45,7 +45,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     if (!startElement.isValid) {
       return

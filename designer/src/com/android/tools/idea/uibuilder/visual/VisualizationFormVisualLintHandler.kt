@@ -32,7 +32,7 @@ import com.intellij.openapi.project.Project
 class VisualizationFormVisualLintHandler(
   parentDisposable: Disposable,
   private val project: Project,
-  private val issueModel: IssueModel
+  private val issueModel: IssueModel,
 ) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()

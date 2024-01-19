@@ -49,6 +49,6 @@ class PickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationSt
         buttonAction.swapStates()
         stateCallback()
       },
-      buttonAction
+      buttonAction,
     )
 }

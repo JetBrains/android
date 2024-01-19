@@ -60,7 +60,7 @@ fun ProjectRule.createFakeActionEvent(
     PresentationFactory().getPresentation(issueNotificationAction),
     ActionToolbar.getDataContextFor(mouseEvent.component),
     false,
-    true
+    true,
   )
   return AnActionEvent.createFromInputEvent(mouseEvent, "", Presentation(), dataContext)
 }
@@ -85,7 +85,7 @@ fun createFakePopup(
   onHidePopup: () -> Unit = {},
   onShowPopup: () -> Unit = {},
   onMouseEnterCallback: () -> Unit = {},
-  isPopupVisible: Boolean = false
+  isPopupVisible: Boolean = false,
 ): InformationPopup =
   object : InformationPopup {
     override val popupComponent: JComponent = object : JComponent() {}

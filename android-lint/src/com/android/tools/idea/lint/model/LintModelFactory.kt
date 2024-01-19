@@ -108,7 +108,7 @@ class LintModelFactory : LintModelModuleLoader {
     variants: Collection<IdeVariant>,
     multiVariantData: IdeMultiVariantData,
     dir: File,
-    deep: Boolean = true
+    deep: Boolean = true,
   ): LintModelModule {
     val agpVersion = getAgpVersion(project)
 
@@ -131,7 +131,7 @@ class LintModelFactory : LintModelModuleLoader {
           javaSourceLevel = project.javaCompileOptions.sourceCompatibility,
           compileTarget = project.compileTarget,
           neverShrinking = isNeverShrinking(project),
-          variants = variantList
+          variants = variantList,
         )
 
       for (variant in variants) {
@@ -146,7 +146,7 @@ class LintModelFactory : LintModelModuleLoader {
         projectVariants = variants,
         multiVariantData = multiVariantData,
         dir = dir,
-        agpVersion = agpVersion
+        agpVersion = agpVersion,
       )
     }
   }
@@ -163,8 +163,8 @@ class LintModelFactory : LintModelModuleLoader {
           "lint_jar",
           "global",
           "prepareLintJar",
-          "lint.jar"
-        )
+          "lint.jar",
+        ),
       )
 
   /**
@@ -200,7 +200,7 @@ class LintModelFactory : LintModelModuleLoader {
             externalAnnotations = library.externalAnnotations,
             provided = isProvided,
             resolvedCoordinates = getMavenName(library),
-            proguardRules = library.proguardRules
+            proguardRules = library.proguardRules,
           )
         is IdeJavaLibrary ->
           DefaultLintModelJavaLibrary(
@@ -208,14 +208,14 @@ class LintModelFactory : LintModelModuleLoader {
             // TODO - expose compile jar vs impl jar?
             jarFiles = listOf(library.artifact),
             provided = isProvided,
-            resolvedCoordinates = getMavenName(library)
+            resolvedCoordinates = getMavenName(library),
           )
         is IdeModuleLibrary ->
           DefaultLintModelModuleLibrary(
             identifier = library.getIdentifier(),
             projectPath = library.projectPath,
             lintJar = library.lintJar,
-            provided = false
+            provided = false,
           )
         is IdeUnknownLibrary -> null
       } ?: return false
@@ -256,7 +256,7 @@ class LintModelFactory : LintModelModuleLoader {
               null, // Always null in builder models and not present in Ide* models.
             // Deep copy
             dependencies = emptyList(), // Dependency hierarchy is not yet supported.
-            libraryResolver = libraryResolver
+            libraryResolver = libraryResolver,
           )
 
         compileItems.add(lintDependency)
@@ -272,13 +272,13 @@ class LintModelFactory : LintModelModuleLoader {
     return DefaultLintModelDependencies(
       compileDependencies = compileDependencies,
       packageDependencies = packageDependencies,
-      libraryResolver = libraryResolver
+      libraryResolver = libraryResolver,
     )
   }
 
   private fun getArtifact(
     artifact: IdeAndroidArtifact,
-    type: LintModelArtifactType
+    type: LintModelArtifactType,
   ): LintModelAndroidArtifact {
     return DefaultLintModelAndroidArtifact(
       applicationId =
@@ -288,24 +288,24 @@ class LintModelFactory : LintModelModuleLoader {
       generatedResourceFolders = artifact.generatedResourceFolders,
       classOutputs = artifact.classesFolder.toList(),
       desugaredMethodsFiles = artifact.desugaredMethodsFiles,
-      type = type
+      type = type,
     )
   }
 
   private fun getArtifact(
     artifact: IdeJavaArtifact,
-    type: LintModelArtifactType
+    type: LintModelArtifactType,
   ): LintModelJavaArtifact {
     return DefaultLintModelJavaArtifact(
       dependencies = getDependencies(artifact),
       classFolders = artifact.classesFolder.toList(),
-      type = type
+      type = type,
     )
   }
 
   private fun getBuildType(
     multiVariantData: IdeMultiVariantData,
-    variant: IdeVariant
+    variant: IdeVariant,
   ): IdeBuildType {
     val buildTypeName = variant.buildType
     return multiVariantData.buildTypes.first { it.buildType.name == buildTypeName }.buildType
@@ -315,7 +315,7 @@ class LintModelFactory : LintModelModuleLoader {
     module: LintModelModule,
     project: IdeAndroidProject,
     variant: IdeVariant,
-    multiVariantData: IdeMultiVariantData
+    multiVariantData: IdeMultiVariantData,
   ): LintModelVariant {
     val buildType = getBuildType(multiVariantData, variant)
     return DefaultLintModelVariant(
@@ -345,7 +345,7 @@ class LintModelFactory : LintModelModuleLoader {
       buildFeatures = getBuildFeatures(project, module.agpVersion),
       libraryResolver = libraryResolver,
       partialResultsDir = null,
-      desugaredMethodsFiles = variant.desugaredMethodsFiles
+      desugaredMethodsFiles = variant.desugaredMethodsFiles,
     )
   }
 
@@ -366,7 +366,7 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun computeSourceProviders(
     project: IdeAndroidProject,
-    variant: IdeVariant
+    variant: IdeVariant,
   ): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
@@ -391,7 +391,7 @@ class LintModelFactory : LintModelModuleLoader {
         providers.add(
           getSourceProvider(
             provider = buildTypeContainer.sourceProvider!!,
-            debugOnly = debugVariant
+            debugOnly = debugVariant,
           )
         )
       }
@@ -422,7 +422,7 @@ class LintModelFactory : LintModelModuleLoader {
   private fun computeExtraSourceProviders(
     project: IdeAndroidProject,
     variant: IdeVariant,
-    filter: (IdeExtraSourceProvider) -> Boolean
+    filter: (IdeExtraSourceProvider) -> Boolean,
   ): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
@@ -446,7 +446,7 @@ class LintModelFactory : LintModelModuleLoader {
             .forEach { extra ->
               getSourceProvider(
                   providerContainer = extra,
-                  debugOnly = buildTypeContainer.buildType.isDebuggable
+                  debugOnly = buildTypeContainer.buildType.isDebuggable,
                 )
                 ?.let { providers.add(it) }
             }
@@ -470,14 +470,14 @@ class LintModelFactory : LintModelModuleLoader {
    */
   private fun computeTestSourceProviders(
     project: IdeAndroidProject,
-    variant: IdeVariant
+    variant: IdeVariant,
   ): List<LintModelSourceProvider> {
     return computeExtraSourceProviders(project, variant) { it.isTest() }
   }
 
   private fun computeTestFixturesSourceProviders(
     project: IdeAndroidProject,
-    variant: IdeVariant
+    variant: IdeVariant,
   ): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
@@ -494,7 +494,7 @@ class LintModelFactory : LintModelModuleLoader {
                 .buildTypes
                 .first { it.buildType.name == variant.buildType }
                 .buildType
-                .isDebuggable
+                .isDebuggable,
           )
         )
       }
@@ -504,7 +504,7 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun getSourceProvider(
     providerContainer: IdeExtraSourceProvider,
-    debugOnly: Boolean = false
+    debugOnly: Boolean = false,
   ): LintModelSourceProvider? {
     val provider = providerContainer.sourceProvider ?: return null
     return DefaultLintModelSourceProvider(
@@ -515,7 +515,7 @@ class LintModelFactory : LintModelModuleLoader {
       unitTestOnly = providerContainer.isUnitTest(),
       instrumentationTestOnly = providerContainer.isInstrumentationTest(),
       debugOnly = debugOnly,
-      testFixture = providerContainer.isTestFixtures()
+      testFixture = providerContainer.isTestFixtures(),
     )
   }
 
@@ -524,7 +524,7 @@ class LintModelFactory : LintModelModuleLoader {
     unitTestOnly: Boolean = false,
     instrumentationTestOnly: Boolean = false,
     debugOnly: Boolean = false,
-    testFixturesOnly: Boolean = false
+    testFixturesOnly: Boolean = false,
   ): LintModelSourceProvider {
     return DefaultLintModelSourceProvider(
       manifestFiles = listOf(provider.manifestFile),
@@ -534,7 +534,7 @@ class LintModelFactory : LintModelModuleLoader {
       unitTestOnly = unitTestOnly,
       instrumentationTestOnly = instrumentationTestOnly,
       debugOnly = debugOnly,
-      testFixture = testFixturesOnly
+      testFixture = testFixturesOnly,
     )
   }
 
@@ -544,12 +544,12 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun getBuildFeatures(
     project: IdeAndroidProject,
-    agpVersion: AgpVersion?
+    agpVersion: AgpVersion?,
   ): LintModelBuildFeatures {
     return DefaultLintModelBuildFeatures(
       viewBinding = usesViewBinding(project, agpVersion),
       coreLibraryDesugaringEnabled = project.javaCompileOptions.isCoreLibraryDesugaringEnabled,
-      namespacingMode = getNamespacingMode(project)
+      namespacingMode = getNamespacingMode(project),
     )
   }
 
@@ -629,7 +629,7 @@ class LintModelFactory : LintModelModuleLoader {
       xmlOutput = options.xmlOutput,
       sarifReport = options.sarifReport,
       sarifOutput = options.sarifOutput,
-      checkReleaseBuilds = options.isCheckReleaseBuilds
+      checkReleaseBuilds = options.isCheckReleaseBuilds,
     )
   }
 
@@ -648,7 +648,7 @@ class LintModelFactory : LintModelModuleLoader {
     private val projectVariants: Collection<IdeVariant>,
     private val multiVariantData: IdeMultiVariantData,
     override val dir: File,
-    override val agpVersion: AgpVersion?
+    override val agpVersion: AgpVersion?,
   ) : LintModelModule {
     override val modulePath: String
       get() = project.projectPath.projectPath
@@ -728,7 +728,7 @@ class LintModelFactory : LintModelModuleLoader {
     private val project: IdeAndroidProject,
     private val variant: IdeVariant,
     private val multiVariantData: IdeMultiVariantData,
-    override val libraryResolver: LintModelLibraryResolver
+    override val libraryResolver: LintModelLibraryResolver,
   ) : LintModelVariant {
     private val buildType = getBuildType(multiVariantData, variant)
 

@@ -72,7 +72,7 @@ class LambdaParameterItemTest {
     fileOpenCaptureRule.checkEditor(
       "MyCompose.kt",
       17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
     )
     assertThat(popupRule.fakePopupFactory.balloonCount).isEqualTo(0)
   }
@@ -109,7 +109,7 @@ class LambdaParameterItemTest {
   private fun createParameterItem(
     fileName: String,
     startLineNumber: Int,
-    endLineNumber: Int
+    endLineNumber: Int,
   ): LambdaParameterItem {
     val lookup =
       object : ViewNodeAndResourceLookup {
@@ -133,7 +133,7 @@ class LambdaParameterItemTest {
       "",
       startLineNumber,
       endLineNumber,
-      lookup
+      lookup,
     )
   }
 

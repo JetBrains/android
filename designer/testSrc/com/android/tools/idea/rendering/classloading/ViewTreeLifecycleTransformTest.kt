@@ -102,7 +102,7 @@ class ViewTreeLifecycleTransformTest {
             )
           )
         ),
-        NopClassLocator
-      )
+        NopClassLocator,
+      ),
     )
 }

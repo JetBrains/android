@@ -28,7 +28,7 @@ class GridPlaceholder(
   private val row: Int,
   private val column: Int,
   private val namespace: String,
-  host: SceneComponent
+  host: SceneComponent,
 ) : Placeholder(host) {
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {

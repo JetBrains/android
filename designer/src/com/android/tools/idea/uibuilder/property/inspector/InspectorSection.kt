@@ -29,7 +29,7 @@ val neleDesignPropertySections =
     InspectorSection.COMMON,
     InspectorSection.TRANSFORMS,
     InspectorSection.REFERENCES,
-    InspectorSection.ALL
+    InspectorSection.ALL,
   )
 
 enum class InspectorSection(val title: String) {

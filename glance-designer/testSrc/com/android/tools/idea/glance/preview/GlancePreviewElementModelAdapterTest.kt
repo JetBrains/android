@@ -43,13 +43,13 @@ private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
 
 private fun glancePreviewElement(
   methodFqn: String,
-  displaySettings: PreviewDisplaySettings = simplestDisplaySettings()
+  displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
 ) =
   GlancePreviewElement(
     displaySettings = displaySettings,
     previewElementDefinitionPsi = null,
     previewBodyPsi = null,
-    methodFqn = methodFqn
+    methodFqn = methodFqn,
   )
 
 class GlancePreviewElementModelAdapterTest {
@@ -100,7 +100,7 @@ class GlancePreviewElementModelAdapterTest {
         .trimIndent(),
       AppWidgetModelAdapter.toXml(
         GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      )
+      ),
     )
   }
 
@@ -118,7 +118,7 @@ class GlancePreviewElementModelAdapterTest {
         .trimIndent(),
       WearTilesModelAdapter.toXml(
         GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      )
+      ),
     )
   }
 

@@ -67,7 +67,7 @@ class AddTargetApiQuickFix(
   private val requirements: List<SdkApiConstraint>,
   private val requiresApi: Boolean,
   private val element: PsiElement,
-  private val requireClass: Boolean = false
+  private val requireClass: Boolean = false,
 ) : DefaultLintQuickFix("") { // overriding getName() below
 
   private fun getSdkApiString(api: Int, fullyQualified: Boolean): String {
@@ -86,7 +86,7 @@ class AddTargetApiQuickFix(
       !requiresApi ->
         AndroidLintBundle.message(
           "android.lint.fix.add.target.api",
-          getSdkApiString(first.min(), false)
+          getSdkApiString(first.min(), false),
         )
       requirements.size > 1 ->
         if (requirements.any { it.sdkId == ANDROID_SDK_ID })
@@ -96,12 +96,12 @@ class AddTargetApiQuickFix(
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.sdk.extension",
           ExtensionSdk.getSdkExtensionField(first.sdkId, false),
-          first.minString()
+          first.minString(),
         )
       else ->
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.api",
-          getSdkApiString(first.min(), false)
+          getSdkApiString(first.min(), false),
         )
     }
   }
@@ -109,7 +109,7 @@ class AddTargetApiQuickFix(
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     return getAnnotationContainer(startElement) != null
   }
@@ -117,7 +117,7 @@ class AddTargetApiQuickFix(
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     when (startElement.language) {
       JavaLanguage.INSTANCE -> handleJava(startElement)
@@ -157,7 +157,7 @@ class AddTargetApiQuickFix(
           requiresApi,
           requirement.sdkId,
           requirement.min(),
-          requirement.sdkId == ANDROID_SDK_ID
+          requirement.sdkId == ANDROID_SDK_ID,
         )
       }
     }
@@ -169,7 +169,7 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val fqcn: String
     val annotationText: String
@@ -193,7 +193,7 @@ class AddTargetApiQuickFix(
     container: PsiModifierListOwner,
     fqcn: String,
     annotationText: String,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val newAnnotation = elementFactory.createAnnotationFromText(annotationText, container)
     val annotation = if (replace) AnnotationUtil.findAnnotation(container, fqcn) else null
@@ -208,7 +208,7 @@ class AddTargetApiQuickFix(
         AddAnnotationPsiFix.addPhysicalAnnotationTo(
           fqcn,
           newAnnotation.parameterList.attributes,
-          owner
+          owner,
         )
       if (inserted != null) {
         JavaCodeStyleManager.getInstance(inserted.project).shortenClassReferences(inserted)
@@ -232,7 +232,7 @@ class AddTargetApiQuickFix(
         requiresApi,
         requirement.sdkId,
         requirement.min(),
-        requirement.sdkId == ANDROID_SDK_ID
+        requirement.sdkId == ANDROID_SDK_ID,
       )
     }
   }
@@ -242,7 +242,7 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val fqn =
       if (requiresApi && sdkId != ANDROID_SDK_ID) {
@@ -271,7 +271,7 @@ class AddTargetApiQuickFix(
     annotationContainer: PsiElement,
     fqn: String,
     inner: String,
-    replace: Boolean
+    replace: Boolean,
   ) {
     if (annotationContainer is KtModifierListOwner) {
       val whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " "
@@ -280,7 +280,7 @@ class AddTargetApiQuickFix(
         inner,
         null,
         searchForExistingEntry = replace,
-        whiteSpaceText = whiteSpaceText
+        whiteSpaceText = whiteSpaceText,
       )
     }
   }
@@ -301,7 +301,7 @@ class AddTargetApiQuickFix(
               container,
               PsiMethod::class.java,
               true,
-              PsiClass::class.java
+              PsiClass::class.java,
             )
         }
 

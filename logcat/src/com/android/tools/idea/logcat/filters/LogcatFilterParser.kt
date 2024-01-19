@@ -212,7 +212,7 @@ internal class LogcatFilterParser(
 
   private fun LogcatFilterEvent.Builder.updateTermVariants(
     field: LogcatFilterField,
-    updater: (TermVariants.Builder) -> Unit
+    updater: (TermVariants.Builder) -> Unit,
   ) {
     val terms =
       when (field) {
@@ -238,7 +238,7 @@ internal class LogcatFilterParser(
 
   private fun createTopLevelFilter(
     expressions: Array<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): LogcatFilter {
     val filters =
       when {
@@ -264,7 +264,7 @@ internal class LogcatFilterParser(
 
   private fun combineConsecutiveValues(
     expressions: Array<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): List<LogcatFilter> {
     // treat consecutive top level values as concatenations rather than an 'and'.
     // First, group consecutive top level value expressions.
@@ -293,7 +293,7 @@ internal class LogcatFilterParser(
 
   private fun combineLiterals(
     expressions: List<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): StringFilter {
     val text =
       expressions.joinToString("") {
@@ -305,7 +305,7 @@ internal class LogcatFilterParser(
       text.trim(),
       IMPLICIT_LINE,
       matchCase,
-      TextRange(expressions.first().startOffset, expressions.last().endOffset)
+      TextRange(expressions.first().startOffset, expressions.last().endOffset),
     )
   }
 
@@ -320,7 +320,7 @@ internal class LogcatFilterParser(
       else ->
         throw ParseException(
           "Unexpected element: ${this::class.simpleName}",
-          -1
+          -1,
         ) // Should not happen
     }
   }
@@ -332,7 +332,7 @@ internal class LogcatFilterParser(
           firstChild.toText(),
           IMPLICIT_LINE,
           matchCase,
-          TextRange(startOffset, endOffset)
+          TextRange(startOffset, endOffset),
         )
       KEY,
       STRING_KEY,
@@ -341,7 +341,7 @@ internal class LogcatFilterParser(
       else ->
         throw ParseException(
           "Unexpected elementType: $firstChild.elementType",
-          -1
+          -1,
         ) // Should not happen
     }
 }
@@ -394,7 +394,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
 
 private fun LogcatFilterLiteralExpression.createAgeFilter(
   text: String,
-  clock: Clock
+  clock: Clock,
 ): LogcatFilter {
   return try {
     AgeFilter(text, clock, TextRange(startOffset, endOffset))

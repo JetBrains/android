@@ -43,13 +43,13 @@ interface DatabaseInspectorModel {
   interface Listener {
     fun onDatabasesChanged(
       openDatabaseIds: List<SqliteDatabaseId>,
-      closeDatabaseIds: List<SqliteDatabaseId>
+      closeDatabaseIds: List<SqliteDatabaseId>,
     )
 
     fun onSchemaChanged(
       databaseId: SqliteDatabaseId,
       oldSchema: SqliteSchema,
-      newSchema: SqliteSchema
+      newSchema: SqliteSchema,
     )
   }
 }

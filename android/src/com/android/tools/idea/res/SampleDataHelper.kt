@@ -53,7 +53,7 @@ fun SampleDataResourceItem.getDrawableResources(): List<ResourceValue> {
       ResourceType.DRAWABLE,
       referenceToSelf.name,
       line,
-      value.libraryName
+      value.libraryName,
     )
   }
 }

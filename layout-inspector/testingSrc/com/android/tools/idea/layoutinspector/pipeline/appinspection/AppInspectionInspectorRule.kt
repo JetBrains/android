@@ -57,7 +57,7 @@ fun AppInspectionClientProvider(
   getApiServices: () -> AppInspectionApiServices,
   getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor,
   getClientSettings: () -> InspectorClientSettings,
-  getDisposable: () -> Disposable
+  getDisposable: () -> Disposable,
 ) = InspectorClientProvider { params, inspector ->
   val apiServices = getApiServices()
 
@@ -71,7 +71,7 @@ fun AppInspectionClientProvider(
       inspectorClientSettings = getClientSettings(),
       coroutineScope = AndroidCoroutineScope(getDisposable()),
       parentDisposable = getDisposable(),
-      apiServices = apiServices
+      apiServices = apiServices,
     )
     .apply { launchMonitor = getMonitor(this) }
 }
@@ -79,7 +79,7 @@ fun AppInspectionClientProvider(
 /** App inspection-pipeline specific setup and teardown for tests. */
 class AppInspectionInspectorRule(
   private val projectRule: AndroidProjectRule,
-  withDefaultResponse: Boolean = true
+  withDefaultResponse: Boolean = true,
 ) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
@@ -123,7 +123,7 @@ class AppInspectionInspectorRule(
           val rawResponse =
             AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
           AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
-        }
+        },
       )
 
     val composeInspectorHandler =
@@ -138,7 +138,7 @@ class AppInspectionInspectorRule(
           val rawResponse =
             AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
           AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
-        }
+        },
       )
 
     transportService.setCommandHandler(
@@ -150,7 +150,7 @@ class AppInspectionInspectorRule(
             COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
           }
         }
-      }
+      },
     )
   }
 
@@ -159,13 +159,13 @@ class AppInspectionInspectorRule(
     getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { defaultMonitor(it) },
     getClientSettings: () -> InspectorClientSettings = { defaultInspectorClientSettings() },
     getDisposable: () -> Disposable = { defaultDisposable() },
-    apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices }
+    apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices },
   ): InspectorClientProvider {
     return AppInspectionClientProvider(
       apiServicesProvider,
       getMonitor,
       getClientSettings,
-      getDisposable
+      getDisposable,
     )
   }
 
@@ -175,7 +175,7 @@ class AppInspectionInspectorRule(
       client.notificationModel,
       ListenerCollection.createWithDirectExecutor(),
       client.stats,
-      client.coroutineScope
+      client.coroutineScope,
     )
   }
 

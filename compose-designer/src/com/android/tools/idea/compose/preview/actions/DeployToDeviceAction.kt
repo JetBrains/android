@@ -71,7 +71,7 @@ internal class DeployToDeviceAction :
   private fun runPreviewConfiguration(
     project: Project,
     module: Module,
-    previewElement: ComposePreviewElement
+    previewElement: ComposePreviewElement,
   ) {
     val factory =
       runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
@@ -99,7 +99,7 @@ internal class DeployToDeviceAction :
     RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(
       configurationAndSettings,
-      DefaultRunExecutor.getRunExecutorInstance()
+      DefaultRunExecutor.getRunExecutorInstance(),
     )
   }
 }

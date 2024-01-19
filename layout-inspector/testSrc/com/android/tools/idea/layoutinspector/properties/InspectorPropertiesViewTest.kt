@@ -98,7 +98,7 @@ class InspectorPropertiesViewTest {
         null,
         id,
         context,
-        listOf()
+        listOf(),
       )
     val inspector = createInspector(listOf(text, prop))
     assertThat(inspector.lines).hasSize(5)
@@ -142,7 +142,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val skips =
       InspectorPropertyItem(
@@ -153,7 +153,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val inspector =
       createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
@@ -191,7 +191,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val skips =
       InspectorPropertyItem(
@@ -202,12 +202,12 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val propertiesView =
       createView(
         listOf(text, width, alpha, param, semantic1, semantic2, counts, skips),
-        ::showRecompositions
+        ::showRecompositions,
       )
     val propertiesModel = propertiesView.model as InspectorPropertiesModel
     var inspector = FakeInspectorPanel()
@@ -260,7 +260,7 @@ class InspectorPropertiesViewTest {
         PropertySection.DIMENSION,
         null,
         VIEW2,
-        model
+        model,
       )
     val y =
       InspectorPropertyItem(
@@ -271,7 +271,7 @@ class InspectorPropertiesViewTest {
         PropertySection.DIMENSION,
         null,
         VIEW2,
-        model
+        model,
       )
     val propertiesView = createView(listOf(x, y), model = model)
     val inspector = FakeInspectorPanel()
@@ -295,7 +295,7 @@ class InspectorPropertiesViewTest {
     alpha: InspectorPropertyItem,
     param: ParameterItem,
     semantic1: ParameterItem,
-    semantic2: ParameterItem
+    semantic2: ParameterItem,
   ) {
     assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
     assertTable(inspector.lines[2], text)
@@ -315,7 +315,7 @@ class InspectorPropertiesViewTest {
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {},
     model: InspectorModel = model(disposableRule.disposable) {},
-    notificationModel: NotificationModel = NotificationModel(mock())
+    notificationModel: NotificationModel = NotificationModel(mock()),
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
@@ -334,7 +334,7 @@ class InspectorPropertiesViewTest {
 
   private fun createInspector(
     properties: List<InspectorPropertyItem>,
-    customize: (InspectorPropertiesModel) -> Unit = {}
+    customize: (InspectorPropertiesModel) -> Unit = {},
   ): FakeInspectorPanel {
     val propertiesView = createView(properties, customize)
     val inspector = FakeInspectorPanel()

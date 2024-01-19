@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
  */
 private fun languageModificationFlow(project: Project, languages: Set<Language>) =
   disposableCallbackFlow<Long>(
-    "${languages.joinToString(", ") { it.displayName }} modification flow",
+    "${languages.joinToString(", ") { it.displayName }} modification flow"
   ) {
     val connection = project.messageBus.connect(this.disposable)
     val modificationTracker =
@@ -93,7 +93,7 @@ fun previewElementFlowForFile(
         val languageChangeFlow =
           languageModificationFlow(
               psiFilePointer.project,
-              setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
+              setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE),
             )
             // debounce to avoid many equality comparisons of the set
             .debounce(250)

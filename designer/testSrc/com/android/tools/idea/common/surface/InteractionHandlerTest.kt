@@ -53,13 +53,13 @@ class InteractionHandlerTest {
         override fun createInteractionOnPressed(
           mouseX: Int,
           mouseY: Int,
-          modifiersEx: Int
+          modifiersEx: Int,
         ): Interaction? = null
 
         override fun createInteractionOnDrag(
           mouseX: Int,
           mouseY: Int,
-          modifiersEx: Int
+          modifiersEx: Int,
         ): Interaction? = null
       }
     }
@@ -121,7 +121,7 @@ private class Surface(
   disposable: Disposable,
   interact: Function<DesignSurface<SceneManager>, InteractionHandler>,
   actionManager:
-    Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>>
+    Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>>,
 ) :
   DesignSurface<SceneManager>(
     project,
@@ -130,7 +130,7 @@ private class Surface(
     interact,
     Function { TestLayoutManager(it) },
     Function { TestActionHandler(it) },
-    ZoomControlsPolicy.AUTO_HIDE
+    ZoomControlsPolicy.AUTO_HIDE,
   ) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))

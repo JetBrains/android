@@ -46,7 +46,7 @@ object PropertyTooltip {
     component: JComponent,
     property: PropertyItem,
     forValue: Boolean,
-    currentText: String
+    currentText: String,
   ) {
     if (!forValue) {
       val text = property.tooltipForName.nullize()

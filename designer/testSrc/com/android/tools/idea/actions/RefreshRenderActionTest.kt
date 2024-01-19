@@ -47,10 +47,7 @@ class RefreshRenderActionTest {
     val event =
       TestActionEvent.createTestEvent(
         renderAction,
-        SimpleDataContext.getSimpleContext(
-          DESIGN_SURFACE,
-          surface,
-        ),
+        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
       )
     renderAction.update(event)
 
@@ -66,26 +63,17 @@ class RefreshRenderActionTest {
 
     // Replace the IdeFocusManager to make the action think that
     // the current focus is a text field.
-    val customFocusManager = mock(
-      IdeFocusManager::class.java,
-      delegatesTo<Any?>(IdeFocusManager.getGlobalInstance()),
-    )
+    val customFocusManager =
+      mock(IdeFocusManager::class.java, delegatesTo<Any?>(IdeFocusManager.getGlobalInstance()))
     doReturn(textField).whenever(customFocusManager).focusOwner
     ApplicationManager.getApplication()
-      .replaceService(
-        IdeFocusManager::class.java,
-        customFocusManager,
-        projectRule.disposable
-      )
+      .replaceService(IdeFocusManager::class.java, customFocusManager, projectRule.disposable)
     val event =
       TestActionEvent.createFromInputEvent(
         KeyEvent(textField, 0, 0, 0, 0, '0', 0),
         "",
         null,
-        SimpleDataContext.getSimpleContext(
-          DESIGN_SURFACE,
-          surface,
-        ),
+        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
       )
     renderAction.update(event)
 
@@ -100,10 +88,7 @@ class RefreshRenderActionTest {
     val event =
       TestActionEvent.createTestEvent(
         renderAction,
-        SimpleDataContext.getSimpleContext(
-          DESIGN_SURFACE,
-          surface,
-        ),
+        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
       )
     renderAction.update(event)
 

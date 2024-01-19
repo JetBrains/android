@@ -76,7 +76,7 @@ class SafeArgsTrackerTest(private val params: TestParams) {
           }
         },
         // Projects not using safe args don't generate safe args metrics
-        TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS) { event -> assertThat(event).isNull() }
+        TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS) { event -> assertThat(event).isNull() },
       )
   }
 

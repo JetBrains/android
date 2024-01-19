@@ -75,7 +75,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
    */
   private fun copySqliteCliToTmpDir(
     @Suppress("SameParameterValue") dirName: String,
-    sqliteCliSrcPath: Path
+    sqliteCliSrcPath: Path,
   ): Path {
     // Copy directory with content
     val tempDirPath = Paths.get(tempDirTestFixture.tempDirPath)
@@ -264,14 +264,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
 
     // verify content with headers, separator=;
     assertThat(outputFile2.toLines())
-      .isEqualTo(
-        listOf(
-          "\"$column1\";\"$column2\";\"$column3\"",
-          "1;2;3",
-          "4;5;6",
-          "7;8;9",
-        )
-      )
+      .isEqualTo(listOf("\"$column1\";\"$column2\";\"$column3\"", "1;2;3", "4;5;6", "7;8;9"))
   }
 
   /**

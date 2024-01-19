@@ -48,7 +48,7 @@ class MotionLayoutAssistantPanel(val designSurface: DesignSurface<*>, val compon
         },
         16,
         500L,
-        maxTimeMs + 500L
+        maxTimeMs + 500L,
       )
     add(toolbar)
   }

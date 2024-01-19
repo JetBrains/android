@@ -90,7 +90,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
           backgroundTaskInspectorMessenger,
           WmiMessengerTarget.Resolved(workMessenger),
           scope,
-          StubBackgroundTaskInspectorTracker()
+          StubBackgroundTaskInspectorTracker(),
         )
       tab =
         BackgroundTaskInspectorTab(
@@ -98,7 +98,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
           AppInspectionIdeServicesAdapter(),
           IntellijUiComponentsProvider(projectRule.project),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView

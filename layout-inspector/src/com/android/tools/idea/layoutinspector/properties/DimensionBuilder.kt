@@ -39,7 +39,7 @@ object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<InspectorPropertyItem>
+    properties: PropertiesTable<InspectorPropertyItem>,
   ) {
     val tableModel = DimensionTableModel(properties)
     val enumSupportProvider =
@@ -69,7 +69,7 @@ object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_X),
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_Y),
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_WIDTH),
-        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_HEIGHT)
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_HEIGHT),
       )
     }
 

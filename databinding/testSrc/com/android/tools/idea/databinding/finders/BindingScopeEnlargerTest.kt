@@ -65,7 +65,7 @@ class BindingScopeEnlargerTest {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
@@ -90,7 +90,7 @@ class BindingScopeEnlargerTest {
             <LinearLayout />
           </layout>
         """
-            .trimIndent()
+            .trimIndent(),
         )
         val activityClass = fixture.addClass("public class MainActivity {}")
         val dumbScope = activityClass.resolveScope

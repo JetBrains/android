@@ -66,7 +66,7 @@ private fun hasAnnotationsUncached(
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  filter: (KtAnnotationEntry) -> Boolean
+  filter: (KtAnnotationEntry) -> Boolean,
 ): Boolean = runReadAction {
   if (DumbService.isDumb(project)) {
     return@runReadAction false
@@ -119,13 +119,13 @@ private val ANY_KT_ANNOTATION: (KtAnnotationEntry) -> Boolean = { true }
 private data class HasFilteredAnnotationsKey(
   val annotationFqn: String,
   val shortAnnotationName: String,
-  val filter: (KtAnnotationEntry) -> Boolean
+  val filter: (KtAnnotationEntry) -> Boolean,
 )
 
 fun <T> CachedValuesManager.getCachedValue(
   dataHolder: UserDataHolder,
   key: Key<CachedValue<T>>,
-  provider: CachedValueProvider<T>
+  provider: CachedValueProvider<T>,
 ): T = runReadAction { this.getCachedValue(dataHolder, key, provider, false) }
 
 /**
@@ -138,18 +138,18 @@ fun hasAnnotation(
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  filter: (KtAnnotationEntry) -> Boolean = ANY_KT_ANNOTATION
+  filter: (KtAnnotationEntry) -> Boolean = ANY_KT_ANNOTATION,
 ): Boolean {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
     CacheKeysManager.getInstance(project)
-      .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter))
+      .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter)),
   ) {
     CachedValueProvider.Result.create(
       hasAnnotationsUncached(project, vFile, annotationFqn, shortAnnotationName, filter),
       psiFile,
-      DumbService.getInstance(project).modificationTracker
+      DumbService.getInstance(project).modificationTracker,
     )
   }
 }
@@ -158,7 +158,7 @@ fun hasAnnotation(
 fun findAnnotations(
   project: Project,
   vFile: VirtualFile,
-  shortAnnotationName: String
+  shortAnnotationName: String,
 ): Collection<KtAnnotationEntry> {
   if (DumbService.isDumb(project)) {
     Logger.getInstance(AnnotatedMethodsFinder::class.java)
@@ -171,7 +171,7 @@ fun findAnnotations(
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
-    CacheKeysManager.getInstance(project).getKey(shortAnnotationName)
+    CacheKeysManager.getInstance(project).getKey(shortAnnotationName),
   ) {
     val kotlinAnnotations: Sequence<PsiElement> =
       ReadAction.compute<Sequence<PsiElement>, Throwable> {
@@ -231,7 +231,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
   annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean,
-  toValues: (methods: List<UMethod>) -> Sequence<T>
+  toValues: (methods: List<UMethod>) -> Sequence<T>,
 ): CachedValueProvider<CompletableDeferred<Collection<T>>> = CachedValueProvider {
   // This Deferred should not be needed, the promise could be returned directly. However, it seems
   // there is a compiler issue that
@@ -264,7 +264,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
   CachedValueProvider.Result.create(
     deferred,
     kotlinJavaModificationTracker,
-    PromiseModificationTracker(promise)
+    PromiseModificationTracker(promise),
   )
 }
 
@@ -272,7 +272,7 @@ private data class CachedValuesKey<T>(
   val annotationFqn: String,
   val shortAnnotationName: String,
   val filter: (UAnnotation) -> Boolean,
-  val toValues: (methods: List<UMethod>) -> Sequence<T>
+  val toValues: (methods: List<UMethod>) -> Sequence<T>,
 )
 
 private val ANY_U_ANNOTATION: (UAnnotation) -> Boolean = { true }
@@ -287,7 +287,7 @@ suspend fun <T> findAnnotatedMethodsValues(
   annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
-  toValues: (methods: List<UMethod>) -> Sequence<T>
+  toValues: (methods: List<UMethod>) -> Sequence<T>,
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   return withContext(AndroidDispatchers.workerThread) {
@@ -305,8 +305,8 @@ suspend fun <T> findAnnotatedMethodsValues(
             annotationFqn,
             shortAnnotationName,
             annotationFilter,
-            toValues
-          )
+            toValues,
+          ),
         )
     }
     try {

@@ -62,7 +62,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
@@ -85,7 +85,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
@@ -108,7 +108,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
@@ -130,7 +130,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): com.other.Baz {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
@@ -153,7 +153,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz.InnerClass {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z.InnerClass {}")
@@ -176,7 +176,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz.InnerClass {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z.InnerClass {}")
@@ -199,7 +199,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar(): Baz {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
@@ -226,7 +226,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar4(): kotlin.Map<String, List<String>> {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val bar1ReturnTypeElement =
@@ -275,7 +275,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar3(): MyInt = 0
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val bar1ReturnTypeElement =
@@ -317,7 +317,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar3(): MyString = 0
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val bar1ReturnTypeElement =
@@ -358,7 +358,7 @@ class DaggerIndexTypeWrapperTest {
           fun bar4(): Array<Bar<Baz>> {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val bar1ReturnTypeElement =
@@ -408,7 +408,7 @@ class DaggerIndexTypeWrapperTest {
           fun nullable6(): IntArray? {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val nullable1ReturnTypeElement =
@@ -483,7 +483,7 @@ class DaggerIndexTypeWrapperTest {
           ) -> String
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     for (argCount in listOf("0", "1", "2", "22", "N")) {
@@ -511,7 +511,7 @@ class DaggerIndexTypeWrapperTest {
           public Baz bar() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
@@ -534,7 +534,7 @@ class DaggerIndexTypeWrapperTest {
           public Baz bar() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
@@ -555,7 +555,7 @@ class DaggerIndexTypeWrapperTest {
           public com.other.Baz bar() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
@@ -578,7 +578,7 @@ class DaggerIndexTypeWrapperTest {
           public Baz.InnerClass bar() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiTypeElement = myFixture.findParentElement("Ba|z.InnerClass bar()")
@@ -601,7 +601,7 @@ class DaggerIndexTypeWrapperTest {
           public Baz bar() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
@@ -628,7 +628,7 @@ class DaggerIndexTypeWrapperTest {
           public Map<String, Integer> bar3() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val bar1ReturnTypeElement =
@@ -665,7 +665,7 @@ class DaggerIndexTypeWrapperTest {
           public java.lang.Integer bar3() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val bar1ReturnTypeElement =
@@ -701,7 +701,7 @@ class DaggerIndexTypeWrapperTest {
           public java.lang.String bar2() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val bar1ReturnTypeElement =
@@ -734,7 +734,7 @@ class DaggerIndexTypeWrapperTest {
           public Bar<Baz>[] bar5() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val bar1ReturnTypeElement =

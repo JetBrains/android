@@ -43,14 +43,14 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
           override fun getRenderer(item: AppInsightsIssue) = renderer
         },
         FormattedNumberColumnInfo("Events") { it.issueDetails.eventsCount },
-        FormattedNumberColumnInfo("Users") { it.issueDetails.impactedDevicesCount }
+        FormattedNumberColumnInfo("Users") { it.issueDetails.impactedDevicesCount },
       )
     isSortable = true
   }
 
   private inner class FormattedNumberColumnInfo(
     name: String,
-    private val selector: (AppInsightsIssue) -> Long
+    private val selector: (AppInsightsIssue) -> Long,
   ) : ColumnInfo<AppInsightsIssue, String>(name) {
     override fun valueOf(item: AppInsightsIssue): String =
       selector(item).formatNumberToPrettyString()
@@ -77,7 +77,7 @@ private object NumberColumnRenderer : DefaultTableCellRenderer() {
     isSelected: Boolean,
     hasFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component =
     super.getTableCellRendererComponent(table, value, isSelected, false, row, column).apply {
       border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyRight(5), border)

@@ -54,13 +54,13 @@ sealed class SqliteDatabaseId {
   data class LiveSqliteDatabaseId(
     override val path: String,
     override val name: String,
-    val connectionId: Int
+    val connectionId: Int,
   ) : SqliteDatabaseId()
 
   data class FileSqliteDatabaseId(
     override val path: String,
     override val name: String,
-    val databaseFileData: DatabaseFileData
+    val databaseFileData: DatabaseFileData,
   ) : SqliteDatabaseId()
 }
 
@@ -80,7 +80,7 @@ fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
  */
 data class DatabaseFileData(
   val mainFile: VirtualFile,
-  val walFiles: List<VirtualFile> = emptyList()
+  val walFiles: List<VirtualFile> = emptyList(),
 )
 
 /** Representation of the Sqlite database schema */
@@ -95,7 +95,7 @@ data class SqliteTable(
   val name: String,
   val columns: List<SqliteColumn>,
   val rowIdName: RowIdName?,
-  val isView: Boolean
+  val isView: Boolean,
 )
 
 /** Representation of the Sqlite table row */
@@ -109,7 +109,7 @@ data class SqliteColumn(
   val name: String,
   val affinity: SqliteAffinity,
   val isNullable: Boolean,
-  val inPrimaryKey: Boolean
+  val inPrimaryKey: Boolean,
 )
 
 /**
@@ -120,7 +120,7 @@ data class ResultSetSqliteColumn(
   val name: String,
   val affinity: SqliteAffinity? = null,
   val isNullable: Boolean? = null,
-  val inPrimaryKey: Boolean? = null
+  val inPrimaryKey: Boolean? = null,
 )
 
 /**
@@ -142,11 +142,11 @@ data class SqliteStatement(
   val statementType: SqliteStatementType,
   val sqliteStatementText: String,
   val parametersValues: List<SqliteValue>,
-  val sqliteStatementWithInlineParameters: String
+  val sqliteStatementWithInlineParameters: String,
 ) {
   constructor(
     statementType: SqliteStatementType,
-    sqliteStatement: String
+    sqliteStatement: String,
   ) : this(statementType, sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 

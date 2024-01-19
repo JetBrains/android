@@ -32,10 +32,8 @@ private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 /** Implementation of a [LogcatService] */
 internal class LogcatServiceImpl
 @VisibleForTesting
-constructor(
-  project: Project,
-  private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS,
-) : LogcatService {
+constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS) :
+  LogcatService {
   @Suppress("unused") // Used by XML registration
   constructor(project: Project) : this(project, LOGCAT_IDLE_TIMEOUT_MILLIS)
 
@@ -47,7 +45,7 @@ constructor(
     serialNumber: String,
     sdk: Int,
     duration: Duration,
-    newMessagesOnly: Boolean
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     return when (sdk >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
       true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
@@ -95,7 +93,7 @@ constructor(
           processNameMonitor,
           coroutineContext,
           lastMessageDelayMs,
-          cutoffTime
+          cutoffTime,
         )
       try {
         try {
@@ -122,8 +120,8 @@ constructor(
             channel.send(
               listOf(
                 LogcatMessage(message.header, split[0]),
-                LogcatMessage(SYSTEM_HEADER, split[1])
-              ),
+                LogcatMessage(SYSTEM_HEADER, split[1]),
+              )
             )
           }
         }
@@ -136,7 +134,7 @@ constructor(
   private suspend fun readLogcatProtobuf(
     serialNumber: String,
     duration: Duration,
-    newMessagesOnly: Boolean
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     return channelFlow {
       val command = buildString {
@@ -165,7 +163,7 @@ constructor(
     deviceServices.shellAsText(
       DeviceSelector.fromSerialNumber(device.serialNumber),
       "logcat -c",
-      commandTimeout = Duration.ofSeconds(2)
+      commandTimeout = Duration.ofSeconds(2),
     )
   }
 }

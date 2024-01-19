@@ -26,7 +26,7 @@ import com.intellij.openapi.project.DumbAware
 /** An action that selects a preset style of Logcat format. */
 sealed class LogcatFormatPresetAction(
   private val style: FormattingOptions.Style,
-  private val logcatPresenter: LogcatPresenter
+  private val logcatPresenter: LogcatPresenter,
 ) :
   SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)),
   DumbAware {

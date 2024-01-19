@@ -46,7 +46,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="implementation", parent="dependencies", unnamedArguments="platform("androidx.compose:compose-bom:2022.12.00")")
       checkDslPropertyAssignment(property="implementation", value="platform("androidx.compose:compose-bom:2022.12.00")", parent="dependencies")
       checkMethodCall(statement="platform", parent="dependencies", unnamedArguments=""androidx.compose:compose-bom:2022.12.00"")
-      """
+      """,
     )
   }
 
@@ -63,7 +63,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="dependencies", unnamedArguments="{ implementation group: 'com.android.support', name: 'support-v4', version: '19.0' }")
       checkMethodCall(statement="implementation", parent="dependencies", namedArguments="group=com.android.support, name=support-v4, version=19.0")
       checkDslPropertyAssignment(property="implementation", value="group: 'com.android.support', name: 'support-v4', version: '19.0'", parent="dependencies")
-      """
+      """,
     )
   }
 
@@ -99,7 +99,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="compileSdkVersion", parent="android", unnamedArguments="30")
       checkMethodCall(statement="defaultConfig", parent="android", unnamedArguments="{ def bar = 'bar' }")
       checkMethodCall(statement="dependencies", unnamedArguments="{ compile "com.google.android.gms:play-services-wearable:${"$"}{GPS_VERSION}" }")
-      """
+      """,
     )
   }
 
@@ -130,7 +130,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="y", parent="x", parentParent="dependencies", unnamedArguments="{ z "hello world" }")
       checkMethodCall(statement="z", parent="y", parentParent="x", unnamedArguments=""hello world"")
       checkDslPropertyAssignment(property="z", value=""hello world"", parent="y", parentParent="x")
-      """
+      """,
     )
   }
 
@@ -151,7 +151,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="debug", parent="buildTypes", parentParent="android", unnamedArguments="{ packageNameSuffix ".debug" }")
       checkMethodCall(statement="packageNameSuffix", parent="debug", parentParent="buildTypes", unnamedArguments="".debug"")
       checkDslPropertyAssignment(property="packageNameSuffix", value="".debug"", parent="debug", parentParent="buildTypes")
-      """
+      """,
     )
   }
 
@@ -178,7 +178,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkDslPropertyAssignment(property="sourceCompatibility", value="JavaVersion.VERSION_1_8", parent="compileOptions", parentParent="android")
       checkMethodCall(statement="useSupportLibrary", parent="vectorDrawables", parentParent="defaultConfig", unnamedArguments="true")
       checkDslPropertyAssignment(property="useSupportLibrary", value="true", parent="vectorDrawables", parentParent="defaultConfig")
-      """
+      """,
     )
   }
 
@@ -195,7 +195,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="buildscript", unnamedArguments="{ repositories { jcenter() } }")
       checkMethodCall(statement="repositories", parent="buildscript", unnamedArguments="{ jcenter() }")
       checkMethodCall(statement="jcenter", parent="repositories", parentParent="buildscript")
-      """
+      """,
     )
   }
 
@@ -215,7 +215,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="buildscript", unnamedArguments="{ ext.androidGradleVersion = '0.11.0' dependencies { classpath "com.android.tools.build:gradle:${"$"}androidGradleVersion" } }")
       checkMethodCall(statement="classpath", parent="dependencies", parentParent="buildscript", unnamedArguments=""com.android.tools.build:gradle:${"$"}androidGradleVersion"")
       checkMethodCall(statement="dependencies", parent="buildscript", unnamedArguments="{ classpath "com.android.tools.build:gradle:${"$"}androidGradleVersion" }")
-      """
+      """,
     )
   }
 
@@ -230,7 +230,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkDslPropertyAssignment(property="id", value="'android'", parent="plugins")
       checkMethodCall(statement="id", parent="plugins", unnamedArguments="'android'")
       checkMethodCall(statement="plugins", unnamedArguments="{ id 'android' version '2.2.3' apply true }")
-      """
+      """,
     )
   }
 
@@ -260,7 +260,7 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     // first?), but the order should not matter to detectors
     assertEquals(
       expected.trimIndent().trim().lines().sorted().joinToString("\n"),
-      detector.toString().trim().lines().sorted().joinToString("\n")
+      detector.toString().trim().lines().sorted().joinToString("\n"),
     )
   }
 }
@@ -289,14 +289,14 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     parentParent: String?,
     propertyCookie: Any,
     valueCookie: Any,
-    statementCookie: Any
+    statementCookie: Any,
   ) {
     log(
       "checkDslPropertyAssignment",
       "property" to property,
       "value" to value,
       "parent" to parent,
-      "parentParent" to parentParent
+      "parentParent" to parentParent,
     )
   }
 
@@ -307,7 +307,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     parentParent: String?,
     namedArguments: Map<String, String>,
     unnamedArguments: List<String>,
-    cookie: Any
+    cookie: Any,
   ) {
     log(
       "checkMethodCall",
@@ -315,7 +315,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
       "parent" to parent,
       "parentParent" to parentParent,
       "namedArguments" to namedArguments.log(),
-      "unnamedArguments" to unnamedArguments.log()
+      "unnamedArguments" to unnamedArguments.log(),
     )
   }
 

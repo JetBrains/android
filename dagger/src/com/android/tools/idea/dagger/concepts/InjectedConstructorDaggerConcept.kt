@@ -62,7 +62,7 @@ internal object InjectedConstructorDaggerConcept : DaggerConcept {
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       InjectedConstructorIndexValue.identifiers,
-      InjectedConstructorParameterIndexValue.identifiers
+      InjectedConstructorParameterIndexValue.identifiers,
     )
 }
 
@@ -78,7 +78,7 @@ private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMeth
       val parameterName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
         parameterSimpleTypeName,
-        InjectedConstructorParameterIndexValue(classId, parameterName)
+        InjectedConstructorParameterIndexValue(classId, parameterName),
       )
     }
   }
@@ -116,7 +116,7 @@ internal data class InjectedConstructorIndexValue(val classId: ClassId) : IndexV
     internal val identifiers =
       DaggerElementIdentifiers(
         ktConstructorIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -132,7 +132,7 @@ internal data class InjectedConstructorIndexValue(val classId: ClassId) : IndexV
 @VisibleForTesting
 internal data class InjectedConstructorParameterIndexValue(
   val classId: ClassId,
-  val parameterName: String
+  val parameterName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 

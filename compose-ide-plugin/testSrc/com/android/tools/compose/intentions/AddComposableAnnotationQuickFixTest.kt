@@ -58,7 +58,7 @@ class AddComposableAnnotationQuickFixTest {
          content()
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
       .also {
         invokeAndWaitIfNeeded {
@@ -79,7 +79,7 @@ class AddComposableAnnotationQuickFixTest {
          }
        }
        """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("Composable|Function()  // invocation")
@@ -98,7 +98,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function")
@@ -131,7 +131,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()  // invocation
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("Composable|Function()  // invocation")
@@ -161,7 +161,7 @@ class AddComposableAnnotationQuickFixTest {
       @Composable
       fun ComposableFunction() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.loadNewFile(
@@ -172,7 +172,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function")
@@ -209,7 +209,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function", "NonComposableFunction")
@@ -252,7 +252,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("Composable|Function()  // invocation")
@@ -293,7 +293,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Currently only showing a fix on the invocation.
@@ -338,7 +338,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Currently only showing a fix on the invocation.
@@ -389,7 +389,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -422,7 +422,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("prop|erty", "property.get()")
@@ -480,7 +480,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // The compiler reports this error on the property, even though it's the getter function that
@@ -545,7 +545,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // @Composable is not allowed on setters, so we shouldn't suggest adding it.
@@ -573,7 +573,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -620,7 +620,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -663,7 +663,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -706,7 +706,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -749,7 +749,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")

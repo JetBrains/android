@@ -40,7 +40,7 @@ class TimelineLine(
   minX: Int,
   maxX: Int,
   rowMinY: Int,
-  positionProxy: PositionProxy
+  positionProxy: PositionProxy,
 ) : TimelineElement(state, minX, maxX, positionProxy) {
 
   /** Middle of the row. */
@@ -50,7 +50,7 @@ class TimelineLine(
     state: ElementState,
     transition: Transition,
     maxY: Int,
-    positionProxy: PositionProxy
+    positionProxy: PositionProxy,
   ) : this(
     state,
     transition.startMillis?.let { positionProxy.xPositionForValue(it) }
@@ -58,7 +58,7 @@ class TimelineLine(
     transition.endMillis?.let { positionProxy.xPositionForValue(it) }
       ?: positionProxy.minimumXPosition(),
     maxY,
-    positionProxy
+    positionProxy,
   )
 
   private val rectNoOffset =
@@ -66,7 +66,7 @@ class TimelineLine(
       minX - lineHalfHeightScaled() - outlinePaddingScaled(),
       middleY - lineHalfHeightScaled() - outlinePaddingScaled(),
       maxX - minX + lineHeightScaled() + 2 * outlinePaddingScaled(),
-      lineHeightScaled() + 2 * outlinePaddingScaled()
+      lineHeightScaled() + 2 * outlinePaddingScaled(),
     )
 
   override var height: Int = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
@@ -91,7 +91,7 @@ class TimelineLine(
           rectNoOffset.width,
           rectNoOffset.height - 2 * outlinePaddingScaled(),
           lineHeightScaled() + 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled()
+          lineHeightScaled() + 2 * outlinePaddingScaled(),
         )
         stroke = InspectorLayout.simpleStroke
       }
@@ -101,7 +101,7 @@ class TimelineLine(
           rectNoOffset.x + offsetPx,
           rectNoOffset.y + yOffset,
           rectNoOffset.width,
-          rectNoOffset.height
+          rectNoOffset.height,
         )
       if (status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered) {
         color = InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
@@ -112,7 +112,7 @@ class TimelineLine(
           rect.width + 2 * outlinePaddingScaled(),
           rect.height + 2 * outlinePaddingScaled(),
           lineHeightScaled() + 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled()
+          lineHeightScaled() + 2 * outlinePaddingScaled(),
         )
       }
       color = InspectorColors.LINE_COLOR
@@ -135,14 +135,14 @@ class TimelineLine(
         x - lineHalfHeightScaled(),
         y - lineHalfHeightScaled(),
         lineHeightScaled(),
-        lineHeightScaled()
+        lineHeightScaled(),
       )
       color = InspectorColors.LINE_CIRCLE_COLOR
       fillOval(
         x - lineHalfHeightScaled() + outlinePaddingScaled(),
         y - lineHalfHeightScaled() + outlinePaddingScaled(),
         lineHeightScaled() - 2 * outlinePaddingScaled(),
-        lineHeightScaled() - 2 * outlinePaddingScaled()
+        lineHeightScaled() - 2 * outlinePaddingScaled(),
       )
     }
   }

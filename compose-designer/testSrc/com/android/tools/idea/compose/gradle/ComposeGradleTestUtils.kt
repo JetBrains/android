@@ -62,7 +62,7 @@ internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
   fakeUi: FakeUi,
-  timeout: Duration = 90.seconds
+  timeout: Duration = 90.seconds,
 ) =
   try {
     withTimeout(timeout = timeout) {
@@ -100,7 +100,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
   } catch (e: TimeoutCancellationException) {
     throw AssertionError(
       "Timeout while waiting for render to complete",
-      TimeoutException().also { it.stackTrace = RenderService.getCurrentExecutionStackTrace() }
+      TimeoutException().also { it.stackTrace = RenderService.getCurrentExecutionStackTrace() },
     )
   }
 
@@ -138,7 +138,7 @@ internal fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
 internal fun FakeUi.clickPreviewImage(
   sceneViewPanel: SceneViewPeerPanel,
   rightClick: Boolean = false,
-  pressingShift: Boolean = false
+  pressingShift: Boolean = false,
 ) {
   sceneViewPanel.positionableAdapter.let {
     runInEdtAndWait {
@@ -146,7 +146,7 @@ internal fun FakeUi.clickPreviewImage(
       mouse.click(
         it.x + it.scaledContentSize.width / 2,
         it.y + it.scaledContentSize.height / 2,
-        if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT
+        if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT,
       )
       if (pressingShift) keyboard.release(VK_SHIFT)
     }
@@ -156,15 +156,9 @@ internal fun FakeUi.clickPreviewImage(
 internal fun createNlModelForCompose(
   parent: Disposable,
   facet: AndroidFacet,
-  file: VirtualFile
+  file: VirtualFile,
 ): NlModel {
-  val nlModel =
-    create(
-      parent,
-      NlComponentRegistrar,
-      facet,
-      file,
-    )
+  val nlModel = create(parent, NlComponentRegistrar, facet, file)
   // Sets the correct model update for Compose
   nlModel.setModelUpdater(AccessibilityModelUpdater())
   return nlModel

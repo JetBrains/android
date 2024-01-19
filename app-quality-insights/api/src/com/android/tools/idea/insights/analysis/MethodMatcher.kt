@@ -78,7 +78,7 @@ class MethodMatcher : CrashMatcher {
               findMatchingCause(
                 method,
                 crash.cause,
-                method.sourcePsi?.textRange ?: return@mapNotNull null
+                method.sourcePsi?.textRange ?: return@mapNotNull null,
               )
             result?.sourcePsi?.navigationElement?.let {
               return@mapNotNull Match(it, Confidence.MEDIUM, this::class.simpleName!!)

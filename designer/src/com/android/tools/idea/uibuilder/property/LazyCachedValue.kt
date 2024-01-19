@@ -36,7 +36,7 @@ internal class LazyCachedValue<T>(
   private val loadingScope: CoroutineScope,
   private val loader: suspend () -> T,
   private val onValueLoaded: suspend (T) -> Unit,
-  private val beforeLoadValue: T
+  private val beforeLoadValue: T,
 ) {
   /** Will become true once the value has been cached. */
   private val loaded = AtomicBoolean(false)

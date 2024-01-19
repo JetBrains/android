@@ -25,7 +25,7 @@ class TransitionCurve
 private constructor(
   state: ElementState,
   private val propertyCurves: List<PropertyCurve>,
-  positionProxy: PositionProxy
+  positionProxy: PositionProxy,
 ) : ParentTimelineElement(state, propertyCurves, positionProxy) {
 
   companion object {
@@ -33,7 +33,7 @@ private constructor(
       state: ElementState,
       transition: Transition,
       rowMinY: Int,
-      positionProxy: PositionProxy
+      positionProxy: PositionProxy,
     ): TransitionCurve {
       var currentMinY = rowMinY
       val properties =

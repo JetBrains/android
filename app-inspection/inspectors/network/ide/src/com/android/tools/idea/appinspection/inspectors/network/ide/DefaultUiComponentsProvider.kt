@@ -27,13 +27,13 @@ import com.intellij.openapi.project.Project
 
 class DefaultUiComponentsProvider(
   private val project: Project,
-  private val parentDisposable: Disposable
+  private val parentDisposable: Disposable,
 ) : UiComponentsProvider {
   override fun createDataViewer(
     bytes: ByteArray,
     contentType: ContentType,
     styleHint: DataViewer.Style,
-    formatted: Boolean
+    formatted: Boolean,
   ): DataViewer {
     return when {
       contentType.isSupportedImageType -> {
@@ -49,7 +49,7 @@ class DefaultUiComponentsProvider(
           bytes,
           contentType.fileType,
           formatted,
-          parentDisposable
+          parentDisposable,
         )
       }
       else -> {

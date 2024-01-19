@@ -71,13 +71,13 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
       VcsRepositoryManager.EP_NAME,
       listOf(FakeVcsRepositoryCreator(vcs)),
       testRootDisposable,
-      false
+      false,
     )
     ExtensionTestUtil.maskExtensions(
       VcsForAppInsights.EP_NAME,
       listOf(FakeVcsForAppInsights()),
       testRootDisposable,
-      false
+      false,
     )
 
     repositoryManager = VcsRepositoryManager.getInstance(project)

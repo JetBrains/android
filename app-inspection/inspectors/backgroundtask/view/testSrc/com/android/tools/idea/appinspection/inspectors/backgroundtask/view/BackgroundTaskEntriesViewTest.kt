@@ -75,7 +75,7 @@ class BackgroundTaskEntriesViewTest {
           backgroundTaskInspectorMessenger,
           WmiMessengerTarget.Resolved(workMessenger),
           scope,
-          IdeBackgroundTaskInspectorTracker(projectRule.project)
+          IdeBackgroundTaskInspectorTracker(projectRule.project),
         )
       tab =
         BackgroundTaskInspectorTab(
@@ -83,7 +83,7 @@ class BackgroundTaskEntriesViewTest {
           AppInspectionIdeServicesAdapter(),
           IntellijUiComponentsProvider(projectRule.project),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       selectionModel = tab.selectionModel
       entriesView = tab.component.firstComponent as BackgroundTaskEntriesView
@@ -106,10 +106,7 @@ class BackgroundTaskEntriesViewTest {
       graphViewAction.actionPerformed(TestActionEvent.createTestEvent())
 
       assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type })
-        .containsExactly(
-          WORK_SELECTED,
-          GRAPH_MODE_SELECTED,
-        )
+        .containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED)
     }
   }
 
@@ -126,11 +123,7 @@ class BackgroundTaskEntriesViewTest {
       listViewAction.actionPerformed(TestActionEvent.createTestEvent())
 
       assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type })
-        .containsExactly(
-          WORK_SELECTED,
-          GRAPH_MODE_SELECTED,
-          TABLE_MODE_SELECTED,
-        )
+        .containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED, TABLE_MODE_SELECTED)
     }
   }
 }

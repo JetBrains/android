@@ -28,7 +28,7 @@ import com.android.tools.idea.compose.preview.message
 fun validateFloat(
   editedValue: String,
   validateSuffix: Boolean,
-  canBeZero: Boolean
+  canBeZero: Boolean,
 ): Pair<EditingErrorCategory, String> {
   if (editedValue.isBlank()) return EDITOR_NO_ERROR
   val trimmedValue = editedValue.trim()
@@ -37,27 +37,27 @@ fun validateFloat(
     trimmedValue.toFloatOrNull()
       ?: return Pair(
         EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.float.nan")
+        message("picker.preview.input.validation.float.nan"),
       )
 
   if (numberValue < 0f) {
     return Pair(
       EditingErrorCategory.ERROR,
-      message("picker.preview.input.validation.positive.value")
+      message("picker.preview.input.validation.positive.value"),
     )
   }
 
   if (numberValue < 0.5f && !canBeZero) {
     return Pair(
       EditingErrorCategory.ERROR,
-      message("picker.preview.input.validation.positive.value")
+      message("picker.preview.input.validation.positive.value"),
     )
   }
 
   if (validateSuffix && !trimmedValue.isValidFloatFormat()) {
     return Pair(
       EditingErrorCategory.WARNING,
-      message("picker.preview.input.validation.float.format")
+      message("picker.preview.input.validation.float.format"),
     )
   }
 

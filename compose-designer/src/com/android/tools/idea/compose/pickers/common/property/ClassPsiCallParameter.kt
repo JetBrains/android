@@ -75,7 +75,7 @@ internal class ClassPsiCallParameter(
     fqClass: String,
     newValue: String,
     fqValue: String,
-    trackableValue: PreviewPickerValue
+    trackableValue: PreviewPickerValue,
   ) {
     if (isK2Plugin()) {
       setValueAndShorten(fqValue, trackableValue)

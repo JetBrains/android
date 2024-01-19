@@ -67,12 +67,12 @@ internal object BindsInstanceDaggerConcept : DaggerConcept {
   override val indexValueReaders =
     listOf(
       BindsInstanceBuilderMethodIndexValue.Reader,
-      BindsInstanceFactoryMethodParameterIndexValue.Reader
+      BindsInstanceFactoryMethodParameterIndexValue.Reader,
     )
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       BindsInstanceBuilderMethodIndexValue.identifiers,
-      BindsInstanceFactoryMethodParameterIndexValue.identifiers
+      BindsInstanceFactoryMethodParameterIndexValue.identifiers,
     )
 }
 
@@ -91,7 +91,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
   private fun addIndexEntriesForBuilder(
     wrapper: DaggerIndexMethodWrapper,
     containingClass: DaggerIndexClassWrapper,
-    indexEntries: IndexEntries
+    indexEntries: IndexEntries,
   ) {
     if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE)) return
 
@@ -99,14 +99,14 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
 
     indexEntries.addIndexValue(
       singleParameter.getType()?.getSimpleName() ?: "",
-      BindsInstanceBuilderMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
+      BindsInstanceBuilderMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
     )
   }
 
   private fun addIndexEntriesForFactory(
     wrapper: DaggerIndexMethodWrapper,
     containingClass: DaggerIndexClassWrapper,
-    indexEntries: IndexEntries
+    indexEntries: IndexEntries,
   ) {
     val bindsInstanceParameters =
       wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
@@ -118,8 +118,8 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
         BindsInstanceFactoryMethodParameterIndexValue(
           containingClass.getClassId(),
           wrapper.getSimpleName(),
-          parameterSimpleName
-        )
+          parameterSimpleName,
+        ),
       )
     }
   }
@@ -128,7 +128,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
 @VisibleForTesting
 internal data class BindsInstanceBuilderMethodIndexValue(
   val classId: ClassId,
-  val methodSimpleName: String
+  val methodSimpleName: String,
 ) : IndexValue() {
 
   override val dataType = Reader.supportedType
@@ -176,7 +176,7 @@ internal data class BindsInstanceBuilderMethodIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -194,7 +194,7 @@ internal data class BindsInstanceBuilderMethodIndexValue(
 internal data class BindsInstanceFactoryMethodParameterIndexValue(
   val classId: ClassId,
   val methodSimpleName: String,
-  val parameterSimpleName: String
+  val parameterSimpleName: String,
 ) : IndexValue() {
 
   override val dataType = Reader.supportedType
@@ -212,7 +212,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
       BindsInstanceFactoryMethodParameterIndexValue(
         input.readClassId(),
         input.readString(),
-        input.readString()
+        input.readString(),
       )
   }
 
@@ -242,7 +242,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 

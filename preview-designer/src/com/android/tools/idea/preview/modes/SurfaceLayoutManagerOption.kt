@@ -36,8 +36,7 @@ import org.jetbrains.annotations.VisibleForTesting
 data class SurfaceLayoutManagerOption(
   val displayName: String,
   val layoutManager: SurfaceLayoutManager,
-  val sceneViewAlignment: DesignSurface.SceneViewAlignment =
-    DesignSurface.SceneViewAlignment.CENTER,
+  val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER,
 )
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
@@ -84,9 +83,9 @@ val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<Positiona
     }
 
     groups.values
-      .fold(
-        Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>()),
-      ) { temp, next ->
+      .fold(Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>())) {
+        temp,
+        next ->
         val hasHeader = next.any { it is HeaderPositionableContent }
         // If next is not in its own group - keep it in temp.second
         if (!hasHeader) {
@@ -102,7 +101,7 @@ val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<Positiona
               PositionableGroup(
                 temp.second.filter { it !is HeaderPositionableContent },
                 temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-              ),
+              )
             )
             temp.second.clear()
           }
@@ -114,7 +113,7 @@ val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<Positiona
             PositionableGroup(
               next.filter { it !is HeaderPositionableContent },
               next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-            ),
+            )
           )
         }
 

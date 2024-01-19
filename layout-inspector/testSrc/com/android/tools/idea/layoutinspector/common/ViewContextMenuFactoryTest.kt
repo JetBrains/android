@@ -78,7 +78,7 @@ class ViewContextMenuFactoryTest {
       model(disposableRule.disposable) {
         view(
           ROOT,
-          viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
+          viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
         ) {
           view(VIEW1)
           view(VIEW2, qualifiedName = "viewName") {
@@ -136,7 +136,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
-        "Go To Declaration"
+        "Go To Declaration",
       )
       .inOrder()
 
@@ -201,7 +201,7 @@ class ViewContextMenuFactoryTest {
       model,
       source!!,
       0,
-      0
+      0,
     )
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
@@ -210,7 +210,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
-        "Go To Declaration"
+        "Go To Declaration",
       )
       .inOrder()
 
@@ -241,7 +241,7 @@ class ViewContextMenuFactoryLegacyTest {
     model(disposableRule.disposable) {
       view(
         ROOT,
-        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
+        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
       ) {
         view(VIEW1)
         view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") }
@@ -297,7 +297,7 @@ class ViewContextMenuFactoryLegacyTest {
       model,
       source!!,
       0,
-      0
+      0,
     )
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Select View", "Go To Declaration")

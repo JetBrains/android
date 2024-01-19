@@ -43,7 +43,7 @@ class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons
     if (
       MessageDialogBuilder.yesNo(
           "Confirm Deletion",
-          "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix"
+          "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix",
         )
         .ask(e.componentToRestoreFocusTo())
     ) {

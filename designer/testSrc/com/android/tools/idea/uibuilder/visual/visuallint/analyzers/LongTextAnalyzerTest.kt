@@ -71,7 +71,7 @@ class LongTextAnalyzerTest {
         NlComponentRegistrar,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -101,7 +101,7 @@ class LongTextAnalyzerTest {
         NlComponentRegistrar,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -112,7 +112,7 @@ class LongTextAnalyzerTest {
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals(
           "textview1 <TextView> has lines containing more than 120 characters",
-          issues[0].message
+          issues[0].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

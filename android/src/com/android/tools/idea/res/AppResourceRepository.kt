@@ -32,11 +32,11 @@ private constructor(
   private val facet: AndroidFacet,
   parentDisposable: Disposable,
   localResources: List<LocalResourceRepository<VirtualFile>>? = null,
-  libraryResources: Collection<AarResourceRepository>? = null
+  libraryResources: Collection<AarResourceRepository>? = null,
 ) :
   MemoryTrackingMultiResourceRepository(
     parentDisposable,
-    facet.module.name + " with modules and libraries"
+    facet.module.name + " with modules and libraries",
   ) {
   private val resourceMapLock = Any()
 
@@ -58,7 +58,7 @@ private constructor(
     setChildren(
       localResources ?: computeLocalRepositories(manager),
       libraryResources ?: computeLibraryResources(manager),
-      listOf(PredefinedSampleDataResourceRepository.getInstance())
+      listOf(PredefinedSampleDataResourceRepository.getInstance()),
     )
   }
 
@@ -70,14 +70,14 @@ private constructor(
   @VisibleForTesting
   fun refreshChildren(
     localResources: List<LocalResourceRepository<VirtualFile>>,
-    libraryResources: Collection<AarResourceRepository>
+    libraryResources: Collection<AarResourceRepository>,
   ) {
     synchronized(resourceMapLock) { resourceDirs = null }
     invalidateResourceDirs()
     setChildren(
       localResources,
       libraryResources,
-      listOf(PredefinedSampleDataResourceRepository.getInstance())
+      listOf(PredefinedSampleDataResourceRepository.getInstance()),
     )
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
@@ -108,7 +108,7 @@ private constructor(
     fun createForTest(
       facet: AndroidFacet,
       modules: List<LocalResourceRepository<VirtualFile>>,
-      libraries: Collection<AarResourceRepository>
+      libraries: Collection<AarResourceRepository>,
     ) = AppResourceRepository(facet, parentDisposable = facet, modules, libraries)
   }
 }

@@ -50,7 +50,7 @@ object Templates {
     behaviourOverlapTop: String,
     scrollYPosition: String,
     pageContentAsXml: String,
-    fab: String
+    fab: String,
   ) =
     """
     <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}
@@ -104,7 +104,7 @@ object Templates {
     tabItems: String,
     scrollYPosition: String,
     pageContentAsXml: String,
-    fab: String
+    fab: String,
   ) =
     """
     <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}

@@ -24,10 +24,10 @@ import com.intellij.conversion.ConversionContext
 import com.intellij.openapi.util.JDOMUtil
 import java.io.IOException
 import java.nio.file.Files
+import kotlin.io.path.readText
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.io.path.readText
 
 class RulesPersistentStateConverterTest {
 

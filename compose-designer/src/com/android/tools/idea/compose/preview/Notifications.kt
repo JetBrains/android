@@ -45,7 +45,7 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
       TimeUnit.SECONDS.toMillis(2).toInt(),
       true,
       null,
-      this
+      this,
     )
   }
 
@@ -96,7 +96,7 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
             onEvent(event)
           }
         },
-        this
+        this,
       )
   }
 }

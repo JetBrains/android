@@ -40,7 +40,7 @@ class BadgeRenderer(val badge: BadgeItem, val emptyIcon: Icon) : TableCellRender
     isSelected: Boolean,
     hasFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component {
     val focused = isSelected && table.hasFocus()
     val hoverCell = table.hoverCell

@@ -159,7 +159,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent {
     label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
     label.font = labelFont
@@ -174,7 +174,8 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
       item is PropertyItem && item.namespaceIcon != null -> {
         iconLabel.icon =
           item.namespaceIcon?.let {
-            if (isSelected && hasFocus && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it)
+            if (isSelected && hasFocus && !NewUI.isEnabled())
+              ColoredIconGenerator.generateWhiteIcon(it)
             else it
           }
       }
@@ -265,7 +266,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
             icon.iconWidth + 2 * indent,
             icon.iconHeight + 2 * indent,
             0f,
-            true
+            true,
           )
         } finally {
           g2.dispose()

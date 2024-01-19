@@ -185,14 +185,14 @@ class FlagPropertyEditorTest {
         ANDROID_URI,
         ATTR_INPUT_TYPE,
         listOf("text", "date", "datetime"),
-        listOf(1, 6, 2)
+        listOf(1, 6, 2),
       )
     val flag2 =
       FakeFlagsPropertyItem(
         ANDROID_URI,
         "autoLink",
         listOf("none", "web", "email", "phone", "all"),
-        listOf(0, 1, 2, 4, 7)
+        listOf(0, 1, 2, 4, 7),
       )
     val flag3 =
       FakeFlagsPropertyItem(
@@ -212,9 +212,9 @@ class FlagPropertyEditorTest {
           "eleven",
           "twelve",
           "thirteen",
-          "fourteen"
+          "fourteen",
         ),
-        listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+        listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
       )
     val tableModel = PTableTestModel(flag1, flag2, flag3)
     val lineModel = TableLineModelImpl(tableModel, true)
@@ -231,7 +231,7 @@ class FlagPropertyEditorTest {
     return TableEditor(
       lineModel,
       uiProvider.tableCellRendererProvider,
-      uiProvider.tableCellEditorProvider
+      uiProvider.tableCellEditorProvider,
     )
   }
 

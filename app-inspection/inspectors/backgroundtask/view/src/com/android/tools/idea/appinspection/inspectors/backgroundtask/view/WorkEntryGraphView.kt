@@ -53,7 +53,7 @@ class WorkDependencyGraphView(
   private val client: BackgroundTaskInspectorClient,
   private val selectionModel: EntrySelectionModel,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher
+  private val uiDispatcher: CoroutineDispatcher,
 ) : JPanel() {
 
   private var works = listOf<WorkInfo>()
@@ -105,7 +105,7 @@ class WorkDependencyGraphView(
             }
           }
         }
-      }
+      },
     )
   }
 
@@ -149,7 +149,7 @@ class WorkDependencyGraphView(
       for (index in worksWithDepth.indices) {
         panelWithDepth.add(
           labelMap[worksWithDepth[index].id]!!,
-          TabularLayout.Constraint(0, 1 + index * 2)
+          TabularLayout.Constraint(0, 1 + index * 2),
         )
       }
       add(panelWithDepth)
@@ -180,9 +180,9 @@ class WorkDependencyGraphView(
             JBUI.scale(2),
             JBUI.scale(2),
             JBUI.scale(2),
-            SELECTED_WORK_BORDER_COLOR
+            SELECTED_WORK_BORDER_COLOR,
           ),
-          defaultBorder
+          defaultBorder,
         )
       } else {
         BorderFactory.createCompoundBorder(
@@ -191,11 +191,11 @@ class WorkDependencyGraphView(
             JBUI.scale(1),
             JBUI.scale(1),
             JBUI.scale(1),
-            DEFAULT_WORK_BORDER_COLOR
+            DEFAULT_WORK_BORDER_COLOR,
           ),
           BorderFactory.createCompoundBorder(
             JBUI.Borders.empty(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
-            defaultBorder
+            defaultBorder,
           ),
         )
       }

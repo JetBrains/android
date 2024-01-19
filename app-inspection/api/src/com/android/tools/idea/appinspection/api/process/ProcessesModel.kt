@@ -45,20 +45,20 @@ class ProcessesModel(
   private val executor: Executor,
   private val processDiscovery: ProcessDiscovery,
   private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
-  private val isPreferred: (ProcessDescriptor) -> Boolean = { false }
+  private val isPreferred: (ProcessDescriptor) -> Boolean = { false },
 ) : Disposable {
 
   @TestOnly
   constructor(
     processDiscovery: ProcessDiscovery,
-    isPreferred: (ProcessDescriptor) -> Boolean = { false }
+    isPreferred: (ProcessDescriptor) -> Boolean = { false },
   ) : this(MoreExecutors.directExecutor(), processDiscovery, isPreferred = isPreferred)
 
   @TestOnly
   constructor(
     processDiscovery: ProcessDiscovery,
     acceptProcess: (ProcessDescriptor) -> Boolean,
-    isPreferred: (ProcessDescriptor) -> Boolean = { false }
+    isPreferred: (ProcessDescriptor) -> Boolean = { false },
   ) : this(MoreExecutors.directExecutor(), processDiscovery, acceptProcess, isPreferred)
 
   private val lock = Any()
@@ -162,7 +162,7 @@ class ProcessesModel(
 
   fun isProcessPreferred(
     processDescriptor: ProcessDescriptor?,
-    includeDead: Boolean = false
+    includeDead: Boolean = false,
   ): Boolean {
     return processDescriptor != null &&
       (processDescriptor.isRunning || includeDead) &&

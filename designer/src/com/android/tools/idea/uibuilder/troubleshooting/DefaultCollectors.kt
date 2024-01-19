@@ -31,12 +31,7 @@ import org.jetbrains.kotlin.idea.base.util.isGradleModule
  * List of prefixes of libraries that we want to collect version info from the project. This list is
  * used to prevent collecting unnecessary information of the user libraries.
  */
-private val libraryAllowedPrefixes =
-  listOf(
-    "com.google.",
-    "androidx.",
-    "org.jetbrains.kotlin.",
-  )
+private val libraryAllowedPrefixes = listOf("com.google.", "androidx.", "org.jetbrains.kotlin.")
 
 /** General collector with general information about the project. */
 internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {

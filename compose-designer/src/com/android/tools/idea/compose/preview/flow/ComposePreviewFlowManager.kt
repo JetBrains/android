@@ -236,11 +236,10 @@ internal class ComposePreviewFlowManager {
           )
 
         // Flow for Preview changes
-        combine(
-            allPreviewElementsInFileFlow,
-            filteredPreviewsFlow,
-            uiCheckFilterFlow,
-          ) { allAvailablePreviews, filteredPreviews, uiCheckFilter ->
+        combine(allPreviewElementsInFileFlow, filteredPreviewsFlow, uiCheckFilterFlow) {
+            allAvailablePreviews,
+            filteredPreviews,
+            uiCheckFilter ->
             // Calculate groups
             val allGroups =
               allAvailablePreviews
@@ -379,7 +378,7 @@ internal class ComposePreviewFlowManager {
                 psiCodeFileChangeDetectorService.outOfDateKtFiles
                   .map { it.virtualFile }
                   .any { it == file }
-              }
+              },
           )
           .conflate()
           .collect {

@@ -41,6 +41,11 @@ import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqua
 import com.android.tools.idea.layoutinspector.view
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.nio.ByteBuffer
+import javax.imageio.ImageIO
+import kotlin.io.path.readBytes
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,11 +54,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.verify
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import java.nio.ByteBuffer
-import javax.imageio.ImageIO
-import kotlin.io.path.readBytes
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -123,7 +123,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     val (root, hash) =
       LegacyTreeParser.parseLiveViewNode(
         treeSample.toByteArray(Charsets.UTF_8),
-        propertiesUpdater
+        propertiesUpdater,
       )!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
@@ -215,7 +215,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -239,7 +239,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
     legacyClient.treeLoader.ddmClientOverride = client
@@ -249,10 +249,10 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           LegacyEvent(
             "window1",
             LegacyPropertiesProvider.Updater(legacyClient.model),
-            listOf("window1")
+            listOf("window1"),
           ),
           legacyClient.model.resourceLookup,
-          legacyClient.process
+          legacyClient.process,
         )!!
         .window!!
     window.refreshImages(1.0)
@@ -309,7 +309,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -333,7 +333,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
     legacyClient.treeLoader.ddmClientOverride = client
@@ -341,7 +341,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
       legacyClient.treeLoader.loadComponentTree(
         LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
         resourceLookup,
-        legacyClient.process
+        legacyClient.process,
       )
     assertThat(window).isNull()
   }
@@ -365,7 +365,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -392,7 +392,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
 
@@ -402,7 +402,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .loadComponentTree(
           LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
           resourceLookup,
-          legacyClient.process
+          legacyClient.process,
         )!!
         .window!!
     val model = InspectorModel(mock(), AndroidCoroutineScope(legacyRule.disposable))
@@ -417,7 +417,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Zoom and verify the image is rescaled
@@ -433,7 +433,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Update the image returned by the device and verify the draw image is not refreshed yet
@@ -449,7 +449,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(image2Bytes),
           true,
-          1234
+          1234,
         )
     }
 
@@ -461,7 +461,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Update and verify the image is updated
@@ -469,7 +469,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
       legacyClient.treeLoader.loadComponentTree(
         LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
         resourceLookup,
-        legacyClient.process
+        legacyClient.process,
       )!!
     model.update(updatedWindow, listOf("window1"), 1)
 
@@ -481,7 +481,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
   }
 }

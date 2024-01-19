@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.RegisterReceiverFlagDetector
 class AndroidLintUnspecifiedRegisterReceiverFlagInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.unspecified.register.receiver.flag"),
-    RegisterReceiverFlagDetector.RECEIVER_EXPORTED_FLAG
+    RegisterReceiverFlagDetector.RECEIVER_EXPORTED_FLAG,
   )

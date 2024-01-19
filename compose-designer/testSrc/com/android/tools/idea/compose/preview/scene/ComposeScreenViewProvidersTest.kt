@@ -50,7 +50,7 @@ class ComposeScreenViewProvidersTest {
             projectRule.fixture,
             SdkConstants.FD_RES_LAYOUT,
             "model.xml",
-            ComponentDescriptor("LinearLayout")
+            ComponentDescriptor("LinearLayout"),
           )
           .build()
       }
@@ -64,7 +64,7 @@ class ComposeScreenViewProvidersTest {
           height = 600f,
           dimUnit = DimUnit.px,
           dpi = 480,
-          shape = Shape.Round
+          shape = Shape.Round,
         )
         .createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
@@ -73,7 +73,7 @@ class ComposeScreenViewProvidersTest {
       SingleComposePreviewElementInstance.forTesting(
         "TestMethod",
         displayName = "displayName",
-        showDecorations = true
+        showDecorations = true,
       )
     model.dataContext = DataContext {
       when (it) {
@@ -96,7 +96,7 @@ class ComposeScreenViewProvidersTest {
       SingleComposePreviewElementInstance.forTesting(
         "TestMethod",
         displayName = "displayName",
-        showDecorations = false
+        showDecorations = false,
       )
     assertTrue(
       composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape

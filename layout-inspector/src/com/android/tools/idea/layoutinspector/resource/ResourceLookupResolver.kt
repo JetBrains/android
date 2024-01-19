@@ -126,7 +126,7 @@ fun mapReference(facet: AndroidFacet?, reference: ResourceReference?): ResourceR
     ResourceReference(
       mapNamespace(facet, reference.namespace),
       reference.resourceType,
-      reference.name
+      reference.name,
     )
 
 /** Find a [Navigatable] given a [PsiElement]. */
@@ -141,7 +141,7 @@ class ResourceLookupResolver(
   private val project: Project,
   private val appFacet: AndroidFacet,
   private val folderConfiguration: FolderConfiguration,
-  private val resolver: ResourceResolver
+  private val resolver: ResourceResolver,
 ) {
   private val projectResources = StudioResourceRepositoryManager.getProjectResources(appFacet)
   private val androidResourceNamespaceResolver =
@@ -169,7 +169,7 @@ class ResourceLookupResolver(
   fun findAttributeValue(
     property: InspectorPropertyItem,
     view: ViewNode,
-    source: ResourceReference
+    source: ResourceReference,
   ): String? {
     return when (source.resourceType) {
       ResourceType.LAYOUT -> findAttributeValueFromViewTag(property, view, source)
@@ -192,7 +192,7 @@ class ResourceLookupResolver(
     view: ViewNode,
     source: ResourceReference?,
     sourceLocations: MutableList<SourceLocation>,
-    max: Int
+    max: Int,
   ) {
     sourceLocations.clear()
     when (source?.resourceType) {
@@ -237,12 +237,12 @@ class ResourceLookupResolver(
           findAttributeDefinition(
             psiClass,
             AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass),
-            attributeName
+            attributeName,
           )
             ?: findAttributeDefinition(
               psiClass,
               AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass),
-              attributeName
+              attributeName,
             )
         else findAttributeDefinition(psiClass, psiClass.name, attributeName)
 
@@ -257,7 +257,7 @@ class ResourceLookupResolver(
   private fun findAttributeDefinition(
     psiClass: PsiClass,
     styleableName: String?,
-    attributeName: String
+    attributeName: String,
   ): AttributeDefinition? {
     val styleable = styleableName ?: return null
     val namespace = findNamespaceFromPsiClass(psiClass) ?: return null
@@ -285,7 +285,7 @@ class ResourceLookupResolver(
     view: ViewNode,
     layout: ResourceReference,
     sourceLocations: MutableList<SourceLocation>,
-    max: Int
+    max: Int,
   ) {
     val xmlAttributeValue =
       findLayoutAttribute(property, view, layout)?.valueElement
@@ -302,7 +302,7 @@ class ResourceLookupResolver(
 
   private fun addApproximateLocation(
     layout: ResourceReference,
-    sourceLocations: MutableList<SourceLocation>
+    sourceLocations: MutableList<SourceLocation>,
   ) {
     sourceLocations.add(findApproximateLocation(layout))
   }
@@ -326,7 +326,7 @@ class ResourceLookupResolver(
     property: InspectorPropertyItem,
     style: ResourceReference,
     sourceLocations: MutableList<SourceLocation>,
-    max: Int
+    max: Int,
   ) {
     val reference = mapReference(style) ?: return
     val attr = attr(property)
@@ -341,7 +341,7 @@ class ResourceLookupResolver(
   private fun findAttributeValueFromViewTag(
     property: InspectorPropertyItem,
     view: ViewNode,
-    layout: ResourceReference
+    layout: ResourceReference,
   ): String? {
     val xmlAttributeValue = findLayoutAttribute(property, view, layout)?.valueElement ?: return null
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue) ?: return xmlAttributeValue.value
@@ -351,7 +351,7 @@ class ResourceLookupResolver(
   private fun findAttributeValueFromStyle(
     property: InspectorPropertyItem,
     view: ViewNode,
-    style: ResourceReference
+    style: ResourceReference,
   ): String? {
     val reference = mapReference(style) ?: return null
     val styleValue = resolver.getStyle(reference) ?: return null
@@ -374,7 +374,7 @@ class ResourceLookupResolver(
   private fun resolveValue(
     property: InspectorPropertyItem,
     view: ViewNode,
-    resValue: ResourceValue
+    resValue: ResourceValue,
   ): String? {
     if (property.type == COLOR) {
       resolver.resolveColor(resValue, project)?.let {
@@ -383,7 +383,7 @@ class ResourceLookupResolver(
     }
     return toString(
       generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last(),
-      view
+      view,
     )
   }
 
@@ -445,7 +445,7 @@ class ResourceLookupResolver(
 
           override fun prefixToUri(namespacePrefix: String): String? =
             tag.getNamespaceByPrefix(namespacePrefix).nullize()
-        }
+        },
       )
     } ?: androidNamespaceContext
   }
@@ -481,7 +481,7 @@ class ResourceLookupResolver(
 
   private fun findItemInTheme(
     theme: StyleResourceValue,
-    attr: ResourceReference
+    attr: ResourceReference,
   ): StyleItemResourceValueWithStyleReference? {
     var style = theme
     for (depth in 0 until MAX_RESOURCE_INDIRECTION) {
@@ -498,7 +498,7 @@ class ResourceLookupResolver(
   private fun addValueReference(
     resourceValue: ResourceValue,
     result: MutableList<SourceLocation>,
-    max: Int
+    max: Int,
   ) {
     var nextResourceValue: ResourceValue? = resourceValue
     var count = 0
@@ -532,7 +532,7 @@ class ResourceLookupResolver(
 
   private fun convertStyleItemValueToXmlTag(
     style: StyleResourceValue,
-    item: StyleItemResourceValue
+    item: StyleItemResourceValue,
   ): XmlTag? {
     // TODO: Unfortunately style items are not ResourceItems. For now lookup the item in the XmlTag
     // of the style.
@@ -592,7 +592,7 @@ class ResourceLookupResolver(
   private fun findLayoutAttribute(
     property: InspectorPropertyItem,
     view: ViewNode,
-    layout: ResourceReference
+    layout: ResourceReference,
   ): XmlAttribute? {
     val tag = findViewTagInFile(view, layout, isViewLayout = false)
     val attrNamespace =
@@ -605,7 +605,7 @@ class ResourceLookupResolver(
   private fun findViewTagInFile(
     view: ViewNode,
     layout: ResourceReference?,
-    isViewLayout: Boolean = true
+    isViewLayout: Boolean = true,
   ): XmlTag? {
     if (isViewLayout) {
       view.tag?.let {

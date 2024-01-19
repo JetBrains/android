@@ -135,7 +135,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       tracker::onRefresh,
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
 
     tracker.assertRefreshed {
@@ -147,7 +147,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
     tracker.assertRefreshed {
       composeTest.replaceStringOnce(
         "NoComposablePreview(\"hello\")",
-        "NoComposablePreview(\"bye\")"
+        "NoComposablePreview(\"bye\")",
       )
     }
     tracker.assertRefreshed {
@@ -188,7 +188,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       { saveCount++ },
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
     assertEquals(0, saveCount)
     FileDocumentManager.getInstance().saveAllDocuments()

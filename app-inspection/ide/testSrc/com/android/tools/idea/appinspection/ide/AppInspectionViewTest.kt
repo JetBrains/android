@@ -88,8 +88,8 @@ class TestAppInspectorTabProvider2 :
     INSPECTOR_ID_2,
     LibraryInspectorLaunchParams(
       TEST_JAR,
-      mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0")
-    )
+      mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0"),
+    ),
   )
 
 @ExperimentalCoroutinesApi
@@ -107,7 +107,7 @@ class AppInspectionViewTest {
     class NotificationData(
       val content: String,
       val severity: AppInspectionIdeServices.Severity,
-      val hyperlinkClicked: () -> Unit
+      val hyperlinkClicked: () -> Unit,
     )
 
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
@@ -116,7 +116,7 @@ class AppInspectionViewTest {
       content: String,
       title: String,
       severity: AppInspectionIdeServices.Severity,
-      hyperlinkClicked: () -> Unit
+      hyperlinkClicked: () -> Unit,
     ) {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
@@ -133,7 +133,7 @@ class AppInspectionViewTest {
   fun setup() {
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer)
+      TestAppInspectorCommandHandler(timer),
     )
   }
 
@@ -150,7 +150,7 @@ class AppInspectionViewTest {
             appInspectionServiceRule.apiServices,
             ideServices,
             appInspectionServiceRule.scope,
-            uiDispatcher
+            uiDispatcher,
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -166,7 +166,7 @@ class AppInspectionViewTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -187,7 +187,7 @@ class AppInspectionViewTest {
             { listOf(TestAppInspectorTabProvider1()) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -202,7 +202,7 @@ class AppInspectionViewTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -221,7 +221,7 @@ class AppInspectionViewTest {
             appInspectionServiceRule.apiServices,
             ideServices,
             appInspectionServiceRule.scope,
-            uiDispatcher
+            uiDispatcher,
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -297,7 +297,7 @@ class AppInspectionViewTest {
             { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -326,7 +326,7 @@ class AppInspectionViewTest {
                   .setDisposedEvent(AppInspection.DisposedEvent.getDefaultInstance())
                   .build()
               )
-              .build()
+              .build(),
           )
           true
         }
@@ -350,7 +350,7 @@ class AppInspectionViewTest {
             ideServices: AppInspectionIdeServices,
             processDescriptor: ProcessDescriptor,
             messengerTargets: List<AppInspectorMessengerTarget>,
-            parentDisposable: Disposable
+            parentDisposable: Disposable,
           ): AppInspectorTab {
             return object : AppInspectorTab, Disposable {
               override val messengers: Iterable<AppInspectorMessenger> =
@@ -376,7 +376,7 @@ class AppInspectionViewTest {
             ideServices: AppInspectionIdeServices,
             processDescriptor: ProcessDescriptor,
             messengerTargets: List<AppInspectorMessengerTarget>,
-            parentDisposable: Disposable
+            parentDisposable: Disposable,
           ): AppInspectorTab {
             return object : AppInspectorTab, Disposable {
               override val messengers = listOf(StubTestAppInspectorMessenger())
@@ -402,7 +402,7 @@ class AppInspectionViewTest {
             { listOf(tabProvider, offlineTabProvider) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -417,7 +417,7 @@ class AppInspectionViewTest {
               inspectionView.inspectorTabs.forEach { it.waitForContent() }
               transportService.stopProcess(
                 FakeTransportService.FAKE_DEVICE,
-                FakeTransportService.FAKE_PROCESS
+                FakeTransportService.FAKE_PROCESS,
               )
               timer.currentTimeNs += 1
               previousTabs.addAll(inspectionView.inspectorTabs)
@@ -441,7 +441,7 @@ class AppInspectionViewTest {
               }
               transportService.addProcess(
                 FakeTransportService.FAKE_DEVICE,
-                FakeTransportService.FAKE_PROCESS
+                FakeTransportService.FAKE_PROCESS,
               )
               timer.currentTimeNs += 1
             }
@@ -457,7 +457,7 @@ class AppInspectionViewTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
       timer.currentTimeNs += 1
 
@@ -487,7 +487,7 @@ class AppInspectionViewTest {
             appInspectionServiceRule.apiServices,
             ideServices,
             appInspectionServiceRule.scope,
-            uiDispatcher
+            uiDispatcher,
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -525,7 +525,7 @@ class AppInspectionViewTest {
                   )
                   .build()
               )
-              .build()
+              .build(),
           )
 
           // increment timer manually here because otherwise the new inspector connection created
@@ -578,9 +578,9 @@ class AppInspectionViewTest {
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
-              "error"
-            )
-        )
+              "error",
+            ),
+        ),
       )
 
       val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
@@ -597,7 +597,7 @@ class AppInspectionViewTest {
             { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -656,9 +656,9 @@ class AppInspectionViewTest {
           createCreateInspectorResponse(
             AppInspection.AppInspectionResponse.Status.ERROR,
             AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
-            "error"
-          )
-      )
+            "error",
+          ),
+      ),
     )
     lateinit var inspectionView: AppInspectionView
     val tabsAdded = CompletableDeferred<Unit>()
@@ -671,7 +671,7 @@ class AppInspectionViewTest {
           { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
           appInspectionServiceRule.scope,
           uiDispatcher,
-          TestInspectorArtifactService()
+          TestInspectorArtifactService(),
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -721,12 +721,12 @@ class AppInspectionViewTest {
             listOf(
               TestAppInspectorTabProvider1(),
               TestAppInspectorTabProvider2(),
-              supportsOfflineInspector
+              supportsOfflineInspector,
             )
           },
           appInspectionServiceRule.scope,
           uiDispatcher,
-          TestInspectorArtifactService()
+          TestInspectorArtifactService(),
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -750,7 +750,7 @@ class AppInspectionViewTest {
     timer.currentTimeNs += 1
     transportService.stopProcess(
       FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS
+      FakeTransportService.FAKE_PROCESS,
     )
     tabsUpdated.join()
   }
@@ -777,12 +777,12 @@ class AppInspectionViewTest {
             listOf(
               TestAppInspectorTabProvider1(),
               TestAppInspectorTabProvider2(),
-              supportsOfflineInspector
+              supportsOfflineInspector,
             )
           },
           appInspectionServiceRule.scope,
           uiDispatcher,
-          TestInspectorArtifactService()
+          TestInspectorArtifactService(),
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -809,7 +809,7 @@ class AppInspectionViewTest {
             handler.handleCommand(command, events)
           }
         }
-      }
+      },
     )
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
@@ -819,7 +819,7 @@ class AppInspectionViewTest {
     timer.currentTimeNs += 1
     transportService.stopProcess(
       FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS
+      FakeTransportService.FAKE_PROCESS,
     )
     tabsUpdated.join()
   }
@@ -839,7 +839,7 @@ class AppInspectionViewTest {
             { listOf(provider) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -856,7 +856,7 @@ class AppInspectionViewTest {
                 "incompatible.version",
                 (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                   .minVersionLibraryCoordinate
-                  .toString()
+                  .toString(),
               )
             )
 
@@ -872,16 +872,16 @@ class AppInspectionViewTest {
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE,
-              "error"
-            )
-        )
+              "error",
+            ),
+        ),
       )
 
       // Attach to a fake process.
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -902,7 +902,7 @@ class AppInspectionViewTest {
             { listOf(provider) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -925,16 +925,16 @@ class AppInspectionViewTest {
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED,
-              "error"
-            )
-        )
+              "error",
+            ),
+        ),
       )
 
       // Attach to a fake process.
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -954,7 +954,7 @@ class AppInspectionViewTest {
             { listOf(TestAppInspectorTabProvider1()) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -981,16 +981,16 @@ class AppInspectionViewTest {
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
-              "error"
-            )
-        )
+              "error",
+            ),
+        ),
       )
 
       // Attach to a fake process.
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -1006,7 +1006,7 @@ class AppInspectionViewTest {
         object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
           override suspend fun attachToProcess(
             process: ProcessDescriptor,
-            projectName: String
+            projectName: String,
           ): AppInspectionTarget {
             throw AppInspectionProcessNoLongerExistsException("process no longer exists!")
           }
@@ -1020,7 +1020,7 @@ class AppInspectionViewTest {
             { listOf(TestAppInspectorTabProvider2()) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -1039,7 +1039,7 @@ class AppInspectionViewTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -1060,7 +1060,7 @@ class AppInspectionViewTest {
             { listOf(provider) },
             appInspectionServiceRule.scope,
             uiDispatcher,
-            TestInspectorArtifactService()
+            TestInspectorArtifactService(),
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -1076,7 +1076,7 @@ class AppInspectionViewTest {
                 "incompatible.version",
                 (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                   .minVersionLibraryCoordinate
-                  .toString()
+                  .toString(),
               )
             )
 
@@ -1092,16 +1092,16 @@ class AppInspectionViewTest {
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING,
-              "error"
-            )
-        )
+              "error",
+            ),
+        ),
       )
 
       // Attach to a fake process.
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       tabsAdded.join()
@@ -1118,7 +1118,7 @@ class AppInspectionViewTest {
           appInspectionServiceRule.apiServices,
           ideServices,
           appInspectionServiceRule.scope,
-          uiDispatcher
+          uiDispatcher,
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -1133,7 +1133,7 @@ class AppInspectionViewTest {
         transportService.addDevice(FakeTransportService.FAKE_DEVICE)
         transportService.addProcess(
           FakeTransportService.FAKE_DEVICE,
-          FakeTransportService.FAKE_PROCESS
+          FakeTransportService.FAKE_PROCESS,
         )
       }
       inspectionView.tabsChangedFlow.take(2).collectIndexed { index, _ ->
@@ -1201,7 +1201,7 @@ class AppInspectionViewTest {
             object : InspectorArtifactService {
               override suspend fun getOrResolveInspectorArtifact(
                 artifactCoordinate: RunningArtifactCoordinate,
-                project: Project
+                project: Project,
               ): Path {
                 return if (artifactCoordinate.groupId == "unresolvable") {
                   throw AppInspectionArtifactNotFoundException("not resolved", artifactCoordinate)
@@ -1209,7 +1209,7 @@ class AppInspectionViewTest {
                   Paths.get("path/to/inspector.jar")
                 }
               }
-            }
+            },
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
@@ -1228,7 +1228,7 @@ class AppInspectionViewTest {
                       (inspectorTab.provider.launchConfigs.single().params
                           as LibraryInspectorLaunchParams)
                         .minVersionLibraryCoordinate
-                        .toString()
+                        .toString(),
                     )
                   )
               }
@@ -1241,7 +1241,7 @@ class AppInspectionViewTest {
                       (inspectorTab.provider.launchConfigs.single().params
                           as LibraryInspectorLaunchParams)
                         .minVersionLibraryCoordinate
-                        .toString()
+                        .toString(),
                     )
                   )
               }
@@ -1277,15 +1277,15 @@ class AppInspectionViewTest {
                 }
               )
               .build()
-          }
-        )
+          },
+        ),
       )
 
       // Attach to a fake process.
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       launchParamsVerifiedDeferred.await()
@@ -1302,7 +1302,7 @@ class AppInspectionViewTest {
           appInspectionServiceRule.apiServices,
           ideServices,
           appInspectionServiceRule.scope,
-          uiDispatcher
+          uiDispatcher,
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -1413,7 +1413,7 @@ class AppInspectionViewTest {
           { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
           appInspectionServiceRule.scope,
           uiDispatcher,
-          TestInspectorArtifactService()
+          TestInspectorArtifactService(),
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -1432,14 +1432,14 @@ class AppInspectionViewTest {
             assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
             transportService.stopProcess(
               FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS
+              FakeTransportService.FAKE_PROCESS,
             )
             timer.currentTimeNs += 1
           }
           1 -> {
             transportService.addProcess(
               FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS
+              FakeTransportService.FAKE_PROCESS,
             )
           }
           2 ->
@@ -1469,7 +1469,7 @@ class AppInspectionViewTest {
           { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
           appInspectionServiceRule.scope,
           uiDispatcher,
-          TestInspectorArtifactService()
+          TestInspectorArtifactService(),
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
@@ -1503,16 +1503,16 @@ class AppInspectionViewTest {
           if (it.launchMetadata.force)
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.SUCCESS,
-              AppInspection.CreateInspectorResponse.Status.SUCCESS
+              AppInspection.CreateInspectorResponse.Status.SUCCESS,
             )(it)
           else
             createCreateInspectorResponse(
               AppInspection.AppInspectionResponse.Status.ERROR,
               AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
-              "error"
+              "error",
             )(it)
-        }
-      )
+        },
+      ),
     )
   }
 }

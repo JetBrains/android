@@ -29,13 +29,11 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
  *   when Essentials Mode is enabled.
  */
-class EnableInteractiveAction(
-  private val isEssentialsModeEnabled: () -> Boolean,
-) :
+class EnableInteractiveAction(private val isEssentialsModeEnabled: () -> Boolean) :
   AnActionButton(
     message("action.interactive.title"),
     message("action.interactive.description"),
-    INTERACTIVE_PREVIEW
+    INTERACTIVE_PREVIEW,
   ) {
 
   override fun updateButton(e: AnActionEvent) {

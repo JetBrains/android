@@ -88,7 +88,7 @@ class TableLineModelTest {
       FakePTableModel(
         expanded,
         mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
-        listOf(group1, group2)
+        listOf(group1, group2),
       )
     val table = PTable.create(model)
 

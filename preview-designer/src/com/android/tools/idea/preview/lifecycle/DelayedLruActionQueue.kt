@@ -38,7 +38,7 @@ class DelayedLruActionQueue(
   private val maxLruPlaces: Int,
   private val delay: Duration,
   private val scheduledExecutorService: ScheduledExecutorService =
-    AppExecutorUtil.createBoundedScheduledExecutorService("DelayedLruActionQueue", 1)
+    AppExecutorUtil.createBoundedScheduledExecutorService("DelayedLruActionQueue", 1),
 ) {
   private val queueLock = ReentrantLock()
   private val lruQueue = ArrayDeque<() -> Unit>(maxLruPlaces)
@@ -59,7 +59,7 @@ class DelayedLruActionQueue(
   private fun addActionToQueue(
     action: () -> Unit,
     actionDisposable: Disposable,
-    scheduledFuture: ScheduledFuture<*>
+    scheduledFuture: ScheduledFuture<*>,
   ) {
     queueLock.withLock {
       if (actionToDisposable.contains(action)) {
@@ -118,7 +118,7 @@ class DelayedLruActionQueue(
           }
         },
         delay.toMillis(),
-        TimeUnit.MILLISECONDS
+        TimeUnit.MILLISECONDS,
       )
     addActionToQueue(action, disposable, scheduledFuture)
   }

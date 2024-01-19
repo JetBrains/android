@@ -58,7 +58,7 @@ class JumpToDiffUtilsTest {
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
         lineNumber = LINE_NUMBER,
-        origin = null
+        origin = null,
       )
 
     // Act
@@ -86,7 +86,7 @@ class JumpToDiffUtilsTest {
         .containsExactly(
           "<html>Historical source at commit: <a href=''>$BEFORE_REVISION</a> " +
             "<i>(Source at the app version referenced in the issue)</i></html>",
-          "Current source"
+          "Current source",
         )
         .inOrder()
 
@@ -109,7 +109,7 @@ class JumpToDiffUtilsTest {
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
         lineNumber = LINE_NUMBER,
-        origin = null
+        origin = null,
       )
 
     // Note in our test infra, we don't really support real historical content.

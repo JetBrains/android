@@ -69,7 +69,7 @@ class LightDirectionsClassTest {
           <action android:id="@+id/action_without_destination" />
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -141,7 +141,7 @@ class LightDirectionsClassTest {
           </navigation>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -159,7 +159,7 @@ class LightDirectionsClassTest {
     mainDirections.findMethodsByName("actionToNested").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionToNested",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
 
@@ -168,14 +168,14 @@ class LightDirectionsClassTest {
         name = "actionFragment1ToFragment2",
         returnType = "ActionFragment1ToFragment2",
         parameters =
-          listOf(Parameter("argOne", "String"), Parameter("argTwo", PsiTypes.floatType().name))
+          listOf(Parameter("argOne", "String"), Parameter("argTwo", PsiTypes.floatType().name)),
       )
     }
     fragment1directions.findMethodsByName("actionFragment1ToFragment3").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment3",
         returnType = "ActionFragment1ToFragment3",
-        parameters = listOf(Parameter("arg", PsiTypes.intType().name))
+        parameters = listOf(Parameter("arg", PsiTypes.intType().name)),
       )
     }
   }
@@ -202,7 +202,7 @@ class LightDirectionsClassTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -219,7 +219,7 @@ class LightDirectionsClassTest {
     fragment2Directions.findMethodsByName("actionFragment2ToIncludedGraph").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment2ToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
   }
@@ -265,7 +265,7 @@ class LightDirectionsClassTest {
           </navigation>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -282,17 +282,17 @@ class LightDirectionsClassTest {
       assertThat(methods.size).isEqualTo(3)
       methods[0].checkSignaturesAndReturnType(
         name = "actionFragment2ToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "actionToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "actionInnerNavigationToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
 
@@ -304,12 +304,12 @@ class LightDirectionsClassTest {
       assertThat(methods.size).isEqualTo(2)
       methods[0].checkSignaturesAndReturnType(
         name = "actionInnerNavigationToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "actionToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
 
@@ -321,7 +321,7 @@ class LightDirectionsClassTest {
       assertThat(methods.size).isEqualTo(1)
       methods[0].checkSignaturesAndReturnType(
         name = "actionToIncludedGraph",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
   }
@@ -360,7 +360,7 @@ class LightDirectionsClassTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -393,7 +393,7 @@ class LightDirectionsClassTest {
       assertThat(methods.size).isEqualTo(1)
       methods[0].checkSignaturesAndReturnType(
         name = "actionFragment2ToFragment1",
-        returnType = "NavDirections"
+        returnType = "NavDirections",
       )
     }
   }

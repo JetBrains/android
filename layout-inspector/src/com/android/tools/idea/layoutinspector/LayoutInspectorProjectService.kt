@@ -117,7 +117,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         project,
         disposable,
         AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
-        edtExecutor
+        edtExecutor,
       ) {
         globalDeviceModel
       }
@@ -144,7 +144,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         treeSettings,
         inspectorClientSettings,
         layoutInspectorCoroutineScope,
-        disposable
+        disposable,
       )
 
     val deviceModel = DeviceModel(disposable, processesModel)
@@ -156,7 +156,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         project,
         processesModel,
         deviceModel,
-        layoutInspectorCoroutineScope
+        layoutInspectorCoroutineScope,
       )
 
     registerTransportFlagController(disposable)
@@ -170,7 +170,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
       launcher = launcher,
       layoutInspectorModel = model,
       notificationModel = notificationModel,
-      treeSettings = treeSettings
+      treeSettings = treeSettings,
     )
   }
 
@@ -193,7 +193,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
   ): ForegroundProcessDetection? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
       ForegroundProcessDetectionInitializer.initialize(
@@ -203,7 +203,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
           deviceModel = deviceModel,
           coroutineScope = coroutineScope,
           streamManager = service<TransportStreamManagerService>().streamManager,
-          metrics = ForegroundProcessDetectionMetrics
+          metrics = ForegroundProcessDetectionMetrics,
         )
         .also { it.start() }
     } else {
@@ -220,14 +220,14 @@ fun createProcessesModel(
   disposable: Disposable,
   processDiscovery: ProcessDiscovery,
   executor: Executor,
-  deviceModelProvider: () -> DeviceModel?
+  deviceModelProvider: () -> DeviceModel?,
 ): ProcessesModel {
   return ProcessesModel(
       executor = executor,
       processDiscovery = processDiscovery,
       isPreferred = { processDescriptor ->
         isPreferredProcess(project, processDescriptor, deviceModelProvider)
-      }
+      },
     )
     .also { Disposer.register(disposable, it) }
 }
@@ -240,7 +240,7 @@ fun createProcessesModel(
 fun isPreferredProcess(
   project: Project,
   processDescriptor: ProcessDescriptor,
-  deviceModelProvider: () -> DeviceModel?
+  deviceModelProvider: () -> DeviceModel?,
 ): Boolean {
   val deviceModel = deviceModelProvider()
   return if (

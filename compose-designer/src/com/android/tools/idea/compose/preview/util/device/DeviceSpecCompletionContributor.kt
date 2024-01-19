@@ -63,9 +63,9 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
       PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
         .afterLeafSkipping(
           PlatformPatterns.psiElement(DeviceSpecTypes.COLON),
-          PlatformPatterns.psiElement(DeviceSpecTypes.ID_KEYWORD)
+          PlatformPatterns.psiElement(DeviceSpecTypes.ID_KEYWORD),
         ),
-      SdkDeviceIdProvider
+      SdkDeviceIdProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -73,9 +73,9 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
       PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
         .afterLeafSkipping(
           PlatformPatterns.psiElement(DeviceSpecTypes.EQUALS),
-          PlatformPatterns.psiElement(DeviceSpecTypes.PARENT_KEYWORD)
+          PlatformPatterns.psiElement(DeviceSpecTypes.PARENT_KEYWORD),
         ),
-      SdkDeviceIdProvider
+      SdkDeviceIdProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -83,9 +83,9 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
       PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
         .afterLeafSkipping(
           PlatformPatterns.psiElement(DeviceSpecTypes.EQUALS),
-          PlatformPatterns.psiElement(DeviceSpecTypes.ORIENTATION_KEYWORD)
+          PlatformPatterns.psiElement(DeviceSpecTypes.ORIENTATION_KEYWORD),
         ),
-      OrientationValueProvider
+      OrientationValueProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -99,7 +99,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
         // would no longer show.
         .withParent(PlatformPatterns.psiElement(PsiErrorElement::class.java).isFirstChild())
         .withSuperParent(2, DeviceSpecPsiFile::class.java),
-      DeviceReferenceProvider
+      DeviceReferenceProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -116,7 +116,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
             )
         )
         .withSuperParent(2, DeviceSpecPsiFile::class.java),
-      DeviceSpecParameterProvider
+      DeviceSpecParameterProvider,
     )
   }
 }
@@ -147,7 +147,7 @@ private val customSpecParamsToDefaultValues: Map<String, String> by
       DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
       DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
       DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
-      DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name
+      DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
     )
   }
 
@@ -173,7 +173,7 @@ private val allSpecParamsToDefaultValues: Map<String, String> by
       DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
       DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
       DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
-      DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID
+      DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID,
     )
   }
 
@@ -215,7 +215,7 @@ private object SdkDeviceIdProvider : CompletionProvider<CompletionParameters>() 
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val module = parameters.position.module ?: return
     val devices = getSdkDevices(module)
@@ -235,7 +235,7 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val module = parameters.position.module
     val defaultDeviceId =
@@ -243,7 +243,7 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
     defaultDeviceId?.let {
       result.addLookupElement(
         lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId,
-        tailText = " Default Device"
+        tailText = " Default Device",
       )
     }
 
@@ -252,23 +252,23 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
       lookupString = DEVICE_BY_SPEC_PREFIX,
       tailText =
         "width=$unitName,height=$unitName,dpi=int,isRound=boolean,chinSize=$unitName,orientation=portrait/landscape",
-      format = baseDeviceSpecTemplate
+      format = baseDeviceSpecTemplate,
     )
     result.addLookupElement(
       lookupString = ReferencePhoneConfig.deviceSpec(),
-      tailText = " Reference Phone"
+      tailText = " Reference Phone",
     )
     result.addLookupElement(
       lookupString = ReferenceTabletConfig.deviceSpec(),
-      tailText = " Reference Tablet"
+      tailText = " Reference Tablet",
     )
     result.addLookupElement(
       lookupString = ReferenceDesktopConfig.deviceSpec(),
-      tailText = " Reference Desktop"
+      tailText = " Reference Desktop",
     )
     result.addLookupElement(
       lookupString = ReferenceFoldableConfig.deviceSpec(),
-      tailText = " Reference Foldable"
+      tailText = " Reference Foldable",
     )
   }
 }
@@ -285,7 +285,7 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val deviceSpecImplElement =
       parameters.position
@@ -327,12 +327,12 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
         // the expected dimension unit.
         result.addLookupElement(
           lookupString = it.key,
-          format = createDimensionParameterFormat(it.value)
+          format = createDimensionParameterFormat(it.value),
         )
       } else {
         result.addLookupElement(
           lookupString = it.key,
-          format = LiveTemplateFormat("=<${it.value}>")
+          format = LiveTemplateFormat("=<${it.value}>"),
         )
       }
     }
@@ -348,7 +348,7 @@ private object OrientationValueProvider : CompletionProvider<CompletionParameter
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     Orientation.values().forEach { result.addLookupElement(lookupString = it.name) }
   }

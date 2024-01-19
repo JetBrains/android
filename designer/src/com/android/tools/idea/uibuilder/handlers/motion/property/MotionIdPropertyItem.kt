@@ -28,7 +28,7 @@ class MotionIdPropertyItem(
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) : NlIdPropertyItem(model, definition, componentName, components, optionalValue1, optionalValue2) {
 
   /** Override the default get method and delegate to the model. */
@@ -39,7 +39,7 @@ class MotionIdPropertyItem(
     value: XmlAttributeValue?,
     oldId: String,
     newId: String,
-    newValue: String?
+    newValue: String?,
   ): Boolean {
     if (!super.renameRefactoring(value, oldId, newId, newValue)) {
       return false

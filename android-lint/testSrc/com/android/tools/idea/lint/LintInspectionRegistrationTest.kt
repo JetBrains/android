@@ -65,7 +65,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
   fun testAllLintChecksRegistered() {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
-      checkAllLintChecksRegistered()
+      checkAllLintChecksRegistered(),
     )
   }
 
@@ -145,7 +145,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       sb: StringBuilder,
       missing: List<Issue>,
       root: File?,
-      androidSpecific: Boolean
+      androidSpecific: Boolean,
     ) {
       val suffix =
         if (androidSpecific)
@@ -217,7 +217,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       sb: StringBuilder,
       missing: List<Issue>,
       root: File?,
-      androidSpecific: Boolean
+      androidSpecific: Boolean,
     ) {
       val suffix =
         if (androidSpecific)
@@ -298,7 +298,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       missing: List<Issue>,
       root: File?,
       sb: StringBuilder,
-      androidSpecific: Boolean
+      androidSpecific: Boolean,
     ) {
       val suffix =
         if (androidSpecific) "tools/adt/idea/android-lint/src/META-INF/android-lint-plugin.xml"
@@ -406,7 +406,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
               "getQuickFixes",
               PsiElement::class.java,
               PsiElement::class.java,
-              String::class.java
+              String::class.java,
             )
           } catch (e2: NoSuchMethodException) {
             hasQuickFix = false

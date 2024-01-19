@@ -117,7 +117,7 @@ class InteractionNonInputEvent(info: InteractionInformation) : InteractionEvent(
  */
 abstract class InteractionInputEvent<out T : EventObject>(
   val eventObject: T,
-  info: InteractionInformation
+  info: InteractionInformation,
 ) : InteractionEvent(info)
 
 class MouseClickEvent(mouseEvent: MouseEvent, info: InteractionInformation) :
@@ -173,7 +173,7 @@ class DragOverEvent(dropTargetDragEvent: DropTargetDragEvent, info: InteractionI
  */
 class DropActionChangedEvent(
   dropTargetDragEvent: DropTargetDragEvent,
-  info: InteractionInformation
+  info: InteractionInformation,
 ) : InteractionInputEvent<DropTargetDragEvent>(dropTargetDragEvent, info)
 /**
  * The drag event which dragging ongoing from [DesignSurface], see
@@ -191,5 +191,5 @@ class DropEvent(dropTargetDropEvent: DropTargetDropEvent, info: InteractionInfor
 data class InteractionInformation(
   @SwingCoordinate val x: Int,
   @SwingCoordinate val y: Int,
-  @InputEventMask val modifiersEx: Int
+  @InputEventMask val modifiersEx: Int,
 )

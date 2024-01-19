@@ -52,7 +52,7 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
   final override fun registerModification(
     name: String,
     value: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
-    device: Device?
+    device: Device?,
   ) {
     if (!isPickerVisible) {
       log.warn("Attempted to register a modification when the picker is not visible")
@@ -87,6 +87,6 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
     val propertyName: String,
     val assignedValue:
       EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
-    val deviceBeforeModification: Device?
+    val deviceBeforeModification: Device?,
   )
 }

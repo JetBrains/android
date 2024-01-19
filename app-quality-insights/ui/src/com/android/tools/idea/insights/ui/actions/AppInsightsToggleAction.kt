@@ -32,7 +32,7 @@ class AppInsightsToggleAction(
   icon: Icon?,
   private val flow: Flow<Boolean>,
   scope: CoroutineScope,
-  private val onToggle: () -> Unit
+  private val onToggle: () -> Unit,
 ) : ToggleAction(text, description, icon) {
   private val currentState = AtomicBoolean(true)
 

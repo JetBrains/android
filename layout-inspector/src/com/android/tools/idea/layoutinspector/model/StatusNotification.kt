@@ -23,7 +23,7 @@ class StatusNotification(
   val id: String,
   val message: String,
   val sticky: Boolean,
-  val actions: List<StatusNotificationAction>
+  val actions: List<StatusNotificationAction>,
 )
 
 /** A notification action with a name. */

@@ -44,7 +44,7 @@ class LogcatFilterErrorAnnotatorTest {
       projectRule,
       LogcatFilterLanguageRule(),
       EdtRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER)
+      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
     )
 
   private val annotator = LogcatFilterErrorAnnotator()
@@ -83,9 +83,7 @@ class LogcatFilterErrorAnnotatorTest {
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
     assertThat(annotations.map(Annotation::toAnnotationInfo))
-      .containsExactly(
-        AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR),
-      )
+      .containsExactly(AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR))
   }
 
   private fun parse(text: String): PsiElement =
@@ -97,7 +95,7 @@ private data class AnnotationInfo(
   val startOffset: Int,
   val endOffset: Int,
   val message: String,
-  val severity: HighlightSeverity
+  val severity: HighlightSeverity,
 )
 
 private fun Annotation.toAnnotationInfo() =

@@ -59,7 +59,7 @@ internal class SceneViewPanel(
   private val actionManagerProvider: () -> ActionManager<*>,
   private val disposable: Disposable,
   private val shouldRenderErrorsPanel: () -> Boolean,
-  layoutManager: PositionableContentLayoutManager
+  layoutManager: PositionableContentLayoutManager,
 ) : JPanel(layoutManager) {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
@@ -289,7 +289,7 @@ internal class SceneViewPanel(
   fun findMeasuredSceneViewRectangle(
     sceneView: SceneView,
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ): Rectangle? {
     val panel =
       components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView }
@@ -300,7 +300,7 @@ internal class SceneViewPanel(
       layoutManager.getMeasuredPositionableContentPosition(
         content,
         availableSize.width,
-        availableSize.height
+        availableSize.height,
       )
     val position = positions[panel.positionableAdapter] ?: return null
     return panel.bounds.apply { location = position }

@@ -116,7 +116,7 @@ class GetComposablesResult(
    * This is true, if a recomposition count reset command was sent after the GetComposables command
    * was sent.
    */
-  val pendingRecompositionCountReset: Boolean
+  val pendingRecompositionCountReset: Boolean,
 )
 
 /**
@@ -132,7 +132,7 @@ class ComposeLayoutInspectorClient(
   private val treeSettings: TreeSettings,
   private val messenger: AppInspectorMessenger,
   private val capabilities: EnumSet<Capability>,
-  private val launchMonitor: InspectorClientLaunchMonitor
+  private val launchMonitor: InspectorClientLaunchMonitor,
 ) {
 
   companion object {
@@ -155,17 +155,17 @@ class ComposeLayoutInspectorClient(
         LayoutInspectorBundle.message(
           COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
           versionString,
-          versionUpgrade
+          versionUpgrade,
         )
       logDiagnostics(
         ComposeLayoutInspectorClient::class.java,
         "Compose version warning, message: %s",
-        message
+        message,
       )
       notificationModel.addNotification(
         COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
         message,
-        EditorNotificationPanel.Status.Warning
+        EditorNotificationPanel.Status.Warning,
       )
       // Allow the user to connect and inspect compose elements because:
       // - b/235526153 is uncommon
@@ -184,7 +184,7 @@ class ComposeLayoutInspectorClient(
       notificationModel: NotificationModel,
       compatibility: LibraryCompatibilityInfo?,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
-      isRunningFromSourcesInTests: Boolean?
+      isRunningFromSourcesInTests: Boolean?,
     ): String? {
       val version =
         compatibility?.version?.takeIf {
@@ -194,7 +194,7 @@ class ComposeLayoutInspectorClient(
             notificationModel,
             logErrorToMetrics,
             isRunningFromSourcesInTests,
-            compatibility?.status.toAttachErrorInfo()
+            compatibility?.status.toAttachErrorInfo(),
           )
 
       checkComposeVersion(notificationModel, version)
@@ -206,7 +206,7 @@ class ComposeLayoutInspectorClient(
       version: String?,
       notificationModel: NotificationModel,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
-      isRunningFromSourcesInTests: Boolean?
+      isRunningFromSourcesInTests: Boolean?,
     ): AppInspectorJar? {
       if (version == null) return null
 
@@ -214,7 +214,7 @@ class ComposeLayoutInspectorClient(
         runBlocking {
           InspectorArtifactService.instance.getOrResolveInspectorJar(
             project,
-            determineArtifactCoordinate(version)
+            determineArtifactCoordinate(version),
           )
         }
       } catch (exception: AppInspectionArtifactNotFoundException) {
@@ -222,7 +222,7 @@ class ComposeLayoutInspectorClient(
           notificationModel,
           logErrorToMetrics,
           isRunningFromSourcesInTests,
-          exception.toAttachErrorInfo()
+          exception.toAttachErrorInfo(),
         )
       }
     }
@@ -241,7 +241,7 @@ class ComposeLayoutInspectorClient(
       launchMonitor: InspectorClientLaunchMonitor,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
       @VisibleForTesting
-      isRunningFromSourcesInTests: Boolean? = null // Should only be set from tests
+      isRunningFromSourcesInTests: Boolean? = null, // Should only be set from tests
     ): ComposeLayoutInspectorClient? {
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launching: Compose Inspector")
       val project = model.project
@@ -264,7 +264,7 @@ class ComposeLayoutInspectorClient(
             releaseDirectory =
               resolveFolder(
                 StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get()
-              )
+              ),
           )
         } else {
           val projectSystem = project.getProjectSystem()
@@ -275,7 +275,7 @@ class ComposeLayoutInspectorClient(
               project.name,
               process,
               COMPOSE_UI,
-              listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
+              listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY),
             )
 
           val version =
@@ -285,14 +285,14 @@ class ComposeLayoutInspectorClient(
                   notificationModel,
                   compatibility,
                   logErrorToMetrics,
-                  isRunningFromSourcesInTests
+                  isRunningFromSourcesInTests,
                 )
               else ->
                 token.handleCompatibilityAndComputeVersion(
                   notificationModel,
                   compatibility,
                   logErrorToMetrics,
-                  isRunningFromSourcesInTests
+                  isRunningFromSourcesInTests,
                 )
             }
 
@@ -304,7 +304,7 @@ class ComposeLayoutInspectorClient(
                   version,
                   notificationModel,
                   logErrorToMetrics,
-                  isRunningFromSourcesInTests
+                  isRunningFromSourcesInTests,
                 )
               else ->
                 token.getAppInspectorJar(
@@ -312,7 +312,7 @@ class ComposeLayoutInspectorClient(
                   version,
                   notificationModel,
                   logErrorToMetrics,
-                  isRunningFromSourcesInTests
+                  isRunningFromSourcesInTests,
                 )
             } ?: return null
 
@@ -332,7 +332,7 @@ class ComposeLayoutInspectorClient(
           jar,
           model.project.name,
           requiredCompatibility,
-          force = true
+          force = true,
         )
       return try {
         val messenger = apiServices.launchInspector(params)
@@ -341,7 +341,7 @@ class ComposeLayoutInspectorClient(
             .apply { updateSettings() }
         logDiagnostics(
           ComposeLayoutInspectorClient::class.java,
-          "Launch Success: Compose Inspector"
+          "Launch Success: Compose Inspector",
         )
         client
       } catch (unexpected: AppInspectionException) {
@@ -349,14 +349,14 @@ class ComposeLayoutInspectorClient(
           notificationModel,
           logErrorToMetrics,
           isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo()
+          unexpected.toAttachErrorInfo(),
         )
       } catch (unexpected: TransportException) {
         handleError(
           notificationModel,
           logErrorToMetrics,
           isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo()
+          unexpected.toAttachErrorInfo(),
         )
       }
     }
@@ -413,7 +413,7 @@ class ComposeLayoutInspectorClient(
       notificationModel: NotificationModel,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
       isRunningFromSourcesInTests: Boolean?,
-      error: AttachErrorInfo
+      error: AttachErrorInfo,
     ): Nothing? {
       val actions = mutableListOf<StatusNotificationAction>()
       val message: String =
@@ -443,7 +443,7 @@ class ComposeLayoutInspectorClient(
             LayoutInspectorBundle.message(
               COMPOSE_JAR_FOUND_FOUND_KEY,
               error.args["path"]!!,
-              inspectorFolderFlag(isRunningFromSourcesInTests)
+              inspectorFolderFlag(isRunningFromSourcesInTests),
             )
           }
           else -> {
@@ -457,13 +457,13 @@ class ComposeLayoutInspectorClient(
         error.code.name,
         message,
         EditorNotificationPanel.Status.Warning,
-        actions
+        actions,
       )
       logDiagnostics(
         ComposeLayoutInspectorClient::class.java,
         "Launch error: %s, message: %s",
         error,
-        message
+        message,
       )
       logErrorToMetrics(error.code)
       return null
@@ -495,7 +495,7 @@ class ComposeLayoutInspectorClient(
   suspend fun getComposeables(
     rootViewId: Long,
     newGeneration: Int,
-    forSnapshot: Boolean
+    forSnapshot: Boolean,
   ): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
@@ -513,21 +513,21 @@ class ComposeLayoutInspectorClient(
       }
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d"
+      "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d",
     ) {
       response.getComposablesResponse.countNodes()
     }
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
     return GetComposablesResult(
       response.getComposablesResponse,
-      lastGenerationReset >= newGeneration
+      lastGenerationReset >= newGeneration,
     )
   }
 
   suspend fun getParameters(
     rootViewId: Long,
     composableId: Long,
-    anchorHash: Int
+    anchorHash: Int,
   ): GetParametersResponse {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetParametersCommand")
     val response =
@@ -544,7 +544,7 @@ class ComposeLayoutInspectorClient(
       }
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetParametersResponse parameters: %d"
+      "Receiving: GetParametersResponse parameters: %d",
     ) {
       arrayOf(response.getParametersResponse.parameterGroup.parameterCount)
     }
@@ -565,11 +565,11 @@ class ComposeLayoutInspectorClient(
       }
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetAllParametersResponse groups: %d, parameters: %d"
+      "Receiving: GetAllParametersResponse groups: %d, parameters: %d",
     ) {
       arrayOf(
         response.getAllParametersResponse.parameterGroupsCount,
-        response.getAllParametersResponse.parameterGroupsList.sumOf { it.parameterCount }
+        response.getAllParametersResponse.parameterGroupsList.sumOf { it.parameterCount },
       )
     }
     return response.getAllParametersResponse
@@ -579,7 +579,7 @@ class ComposeLayoutInspectorClient(
     rootViewId: Long,
     reference: ParameterReference,
     startIndex: Int,
-    maxElements: Int
+    maxElements: Int,
   ): GetParameterDetailsResponse {
     val response =
       messenger.sendCommand {
@@ -620,7 +620,7 @@ class ComposeLayoutInspectorClient(
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
       "Receiving: UpdateSettingsResponse canDelay: %b",
-      response.updateSettingsResponse.canDelayParameterExtractions
+      response.updateSettingsResponse.canDelayParameterExtractions,
     )
     if (response.hasUpdateSettingsResponse()) {
       capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
@@ -669,7 +669,7 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
     version: String?,
     notificationModel: NotificationModel,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
-    isRunningFromSourcesInTests: Boolean?
+    isRunningFromSourcesInTests: Boolean?,
   ): AppInspectorJar?
 
   /**
@@ -682,7 +682,7 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
     notificationModel: NotificationModel,
     compatibility: LibraryCompatibilityInfo?,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
-    isRunningFromSourcesInTests: Boolean?
+    isRunningFromSourcesInTests: Boolean?,
   ): String?
 
   fun getRequiredCompatibility(): LibraryCompatibility

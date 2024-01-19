@@ -29,19 +29,19 @@ constructor(
   /** Total class loading duration of -1 if unknown. */
   val totalClassLoadDurationMs: Long = -1,
   /** Total class rewrite duration of -1 if unknown. */
-  val totalClassRewriteDurationMs: Long = -1
+  val totalClassRewriteDurationMs: Long = -1,
 ) {
 
   constructor(
     inflateDurationMs: Long = -1,
     renderDurationMs: Long = -1,
-    classLoaderStats: ModuleClassLoaderDiagnosticsRead?
+    classLoaderStats: ModuleClassLoaderDiagnosticsRead?,
   ) : this(
     inflateDurationMs,
     renderDurationMs,
     classLoaderStats?.classesFound ?: -1,
     classLoaderStats?.accumulatedFindTimeMs ?: -1,
-    classLoaderStats?.accumulatedRewriteTimeMs ?: -1
+    classLoaderStats?.accumulatedRewriteTimeMs ?: -1,
   )
 
   /** Total render time (inflate + render). */
@@ -57,7 +57,7 @@ constructor(
       classesFound = maxOf(classesFound, stats.classesFound),
       totalClassLoadDurationMs = maxOf(totalClassLoadDurationMs, stats.totalClassLoadDurationMs),
       totalClassRewriteDurationMs =
-        maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs)
+        maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs),
     )
 
   companion object {

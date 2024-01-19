@@ -56,14 +56,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -94,14 +94,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -129,14 +129,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -166,14 +166,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -191,14 +191,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -216,14 +216,14 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
       )
     customConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 

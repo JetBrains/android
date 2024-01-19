@@ -124,10 +124,10 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
               project,
               "Change Color",
               null,
-              { setColorTask.invoke(color) }
+              { setColorTask.invoke(color) },
             )
           },
-          project.disposed
+          project.disposed,
         )
     }
 
@@ -284,7 +284,7 @@ private fun getColorFloatX4(arguments: List<KtValueArgument>): Color? {
  */
 private inline fun <reified T> getNamedValues(
   requestArgumentNames: List<String>,
-  ktValueArgument: List<KtValueArgument>
+  ktValueArgument: List<KtValueArgument>,
 ): Map<String, T>? {
   val namedValues = mutableMapOf<String, T>()
 

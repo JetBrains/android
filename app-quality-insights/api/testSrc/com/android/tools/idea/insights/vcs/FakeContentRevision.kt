@@ -24,7 +24,7 @@ import com.intellij.openapi.vcs.history.VcsRevisionNumber
 data class FakeContentRevision(
   private val localFilePath: FilePath,
   private val revision: String,
-  private val contentProvider: () -> String
+  private val contentProvider: () -> String,
 ) : ContentRevision {
   override fun getContent(): String {
     return contentProvider.invoke()

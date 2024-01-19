@@ -153,19 +153,19 @@ internal fun createDevice(
         model = name
         this.disambiguator = disambiguator
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }
+      },
     )
   val device =
     DeploymentTargetDevice(
       DeviceHandleAndroidDevice(
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
-        handle.state
+        handle.state,
       ),
       connectionTime,
       if (hasSnapshots) listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap")))
       else emptyList(),
-      launchCompatibility
+      launchCompatibility,
     )
   return device
 }
@@ -182,7 +182,7 @@ internal fun createTemplate(
       DeviceTemplateAndroidDevice(
         scope,
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
-        handle
+        handle,
       ),
       connectionTime,
       emptyList(),

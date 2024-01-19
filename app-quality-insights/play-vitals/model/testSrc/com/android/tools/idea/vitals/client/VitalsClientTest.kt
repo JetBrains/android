@@ -79,7 +79,7 @@ class VitalsClientTest {
     GrpcConnectionRule(
       listOf(
         FakeErrorsService(TEST_CONNECTION_1, database, FakeClock()),
-        FakeReportingService(TEST_CONNECTION_1)
+        FakeReportingService(TEST_CONNECTION_1),
       )
     )
 
@@ -98,7 +98,7 @@ class VitalsClientTest {
         Pair("a", 1L),
         Pair("b", 0L),
         Pair("c", 100L),
-        Pair("d", 0L)
+        Pair("d", 0L),
       )
 
     val aggregated = list.aggregateToWithCount()
@@ -123,11 +123,11 @@ class VitalsClientTest {
             QueryFilters(
               interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
               eventTypes = listOf(FailureType.FATAL),
-              signal = SignalType.SIGNAL_UNSPECIFIED
-            )
+              signal = SignalType.SIGNAL_UNSPECIFIED,
+            ),
           ),
           null,
-          ConnectionMode.OFFLINE
+          ConnectionMode.OFFLINE,
         )
       )
       .isEqualTo(
@@ -137,7 +137,7 @@ class VitalsClientTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            Permission.FULL
+            Permission.FULL,
           )
         )
       )
@@ -158,21 +158,21 @@ class VitalsClientTest {
           dimensions: List<DimensionType>,
           metrics: List<MetricType>,
           freshness: Freshness,
-          maxNumResults: Int
+          maxNumResults: Int,
         ) = emptyList<DimensionsAndMetrics>()
 
         override suspend fun searchErrorReports(
           connection: Connection,
           filters: QueryFilters,
           issueId: IssueId,
-          maxNumResults: Int
+          maxNumResults: Int,
         ) = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(
           connection: Connection,
           filters: QueryFilters,
           maxNumResults: Int,
-          pageTokenFromPreviousCall: String?
+          pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
     val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
@@ -184,10 +184,10 @@ class VitalsClientTest {
             QueryFilters(
               interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
               eventTypes = listOf(FailureType.FATAL),
-            )
+            ),
           ),
           null,
-          ConnectionMode.ONLINE
+          ConnectionMode.ONLINE,
         ) as LoadingState.Ready)
         .value
         .issues
@@ -202,10 +202,10 @@ class VitalsClientTest {
             QueryFilters(
               interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
               eventTypes = listOf(FailureType.FATAL),
-            )
+            ),
           ),
           null,
-          ConnectionMode.OFFLINE
+          ConnectionMode.OFFLINE,
         ) as LoadingState.Ready)
         .value
         .issues
@@ -231,7 +231,7 @@ class VitalsClientTest {
           connection: Connection,
           filters: QueryFilters,
           maxNumResults: Int,
-          pageTokenFromPreviousCall: String?
+          pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
     val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
@@ -243,10 +243,10 @@ class VitalsClientTest {
             QueryFilters(
               interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
               eventTypes = listOf(FailureType.FATAL),
-            )
+            ),
           ),
           null,
-          ConnectionMode.ONLINE
+          ConnectionMode.ONLINE,
         ) as LoadingState.Ready)
         .value
         .issues
@@ -262,7 +262,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
 
       val result = client.listTopOpenIssues(createIssueRequest(clock = clock))
@@ -288,19 +288,19 @@ class VitalsClientTest {
       assertThat(value.devices)
         .containsExactly(
           WithCount(3, Device("samsung", "a32", "Galaxy A32", DeviceType("Phone"))),
-          WithCount(2, Device("samsung", "greatlte", "Galaxy Note8", DeviceType("Tablet")))
+          WithCount(2, Device("samsung", "greatlte", "Galaxy Note8", DeviceType("Tablet"))),
         )
 
       assertThat(value.operatingSystems)
         .containsExactly(
           WithCount(3, OperatingSystemInfo("33", "Android 13")),
-          WithCount(2, OperatingSystemInfo("28", "Android 9"))
+          WithCount(2, OperatingSystemInfo("28", "Android 9")),
         )
 
       assertThat(value.versions)
         .containsExactly(
           WithCount(10, Version("6", "6", "6")),
-          WithCount(5, Version("5", "5", "5", setOf(PlayTrack.OPEN_TESTING)))
+          WithCount(5, Version("5", "5", "5", setOf(PlayTrack.OPEN_TESTING))),
         )
     }
 
@@ -311,7 +311,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
       val result = client.getIssueDetails(TEST_ISSUE1.id, createIssueRequest(clock = clock))
 
@@ -331,7 +331,7 @@ class VitalsClientTest {
       assertThat(osStats.groups)
         .containsExactly(
           StatsGroup("Android 13", 60.0, emptyList()),
-          StatsGroup("Android 9", 40.0, emptyList())
+          StatsGroup("Android 9", 40.0, emptyList()),
         )
     }
 
@@ -342,7 +342,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
       val result = client.listConnections()
       assertThat((result as LoadingState.Ready).value)
@@ -358,8 +358,8 @@ class VitalsClientTest {
         QueryFilters(
           interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
           eventTypes = listOf(FailureType.FATAL),
-          signal = SignalType.SIGNAL_UNSPECIFIED
-        )
+          signal = SignalType.SIGNAL_UNSPECIFIED,
+        ),
       )
     val grpcClient =
       object : TestVitalsGrpcClient() {
@@ -376,21 +376,21 @@ class VitalsClientTest {
           dimensions: List<DimensionType>,
           metrics: List<MetricType>,
           freshness: Freshness,
-          maxNumResults: Int
+          maxNumResults: Int,
         ) = emptyList<DimensionsAndMetrics>()
 
         override suspend fun searchErrorReports(
           connection: Connection,
           filters: QueryFilters,
           issueId: IssueId,
-          maxNumResults: Int
+          maxNumResults: Int,
         ) = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(
           connection: Connection,
           filters: QueryFilters,
           maxNumResults: Int,
-          pageTokenFromPreviousCall: String?
+          pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
     val client = VitalsClient(disposableRule.disposable, cache, grpcClient)

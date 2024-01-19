@@ -38,7 +38,7 @@ class FeaturesPanel(
   bundle: TutorialBundleData,
   val project: Project,
   private val myAnalyticsProvider: AnalyticsProvider,
-  defaultCardId: String? = null
+  defaultCardId: String? = null,
 ) : JPanel(BorderLayout()), ItemListener, ActionListener {
   private val cardKeys = mutableSetOf<String>()
   private val cardsPanel: JPanel
@@ -67,7 +67,7 @@ class FeaturesPanel(
     } else {
       addCard(
         TutorialChooser(this, bundle, myAnalyticsProvider, project),
-        TutorialChooser.NAVIGATION_KEY
+        TutorialChooser.NAVIGATION_KEY,
       )
     }
 
@@ -76,7 +76,7 @@ class FeaturesPanel(
       feature.tutorials.forEach { tutorialData ->
         addCard(
           TutorialCard(this, tutorialData, feature, hideChooserAndNavigationalBar, bundle),
-          tutorialData.key
+          tutorialData.key,
         )
       }
     }
@@ -113,7 +113,7 @@ class FeaturesPanel(
           myAnalyticsProvider.trackTutorialClosed(
             myOpenTutorial!!.key,
             myOpenTutorial!!.readDuration,
-            project
+            project,
           )
           myOpenTutorial = null
         }

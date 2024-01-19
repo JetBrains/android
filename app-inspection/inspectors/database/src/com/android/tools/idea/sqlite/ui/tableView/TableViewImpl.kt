@@ -144,7 +144,7 @@ class TableViewImpl : TableView {
       JBUI.Borders.merge(
         BorderFactory.createEmptyBorder(2, 0, 2, 0),
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        true
+        true,
       )
 
     val pagingControlsPanel = createPagingControlsPanel()
@@ -524,18 +524,18 @@ class TableViewImpl : TableView {
         KeyboardShortcut(
           KeyStroke.getKeyStroke(
             KeyEvent.VK_N,
-            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK
+            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK,
           ),
-          null
+          null,
         )
       ),
-      table
+      table,
     )
 
     PopupHandler.installPopupMenu(
       table,
       DefaultActionGroup(copyToClipboardAction, setNullAction),
-      "SqliteTablePopup"
+      "SqliteTablePopup",
     )
   }
 
@@ -546,7 +546,7 @@ class TableViewImpl : TableView {
       selected: Boolean,
       focused: Boolean,
       viewRowIndex: Int,
-      viewColumnIndex: Int
+      viewColumnIndex: Int,
     ): Component {
       val columnNameLabel = DefaultTableCellRenderer()
       val sortIcon = DefaultTableCellRenderer()
@@ -605,7 +605,7 @@ class TableViewImpl : TableView {
       selected: Boolean,
       focused: Boolean,
       viewRowIndex: Int,
-      viewColumnIndex: Int
+      viewColumnIndex: Int,
     ) {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)

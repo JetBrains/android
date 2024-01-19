@@ -58,7 +58,7 @@ class NoBindingTrackerTest {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -72,7 +72,7 @@ class NoBindingTrackerTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())

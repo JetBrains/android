@@ -86,7 +86,7 @@ class AnimationPreview(
   val tracker: AnimationTracker,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
-  val psiFilePointer: SmartPsiElementPointer<PsiFile>
+  val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) : Disposable {
 
   private val animationPreviewPanel =
@@ -221,7 +221,7 @@ class AnimationPreview(
   /** Create list of [TimelineElement] for selected [SupportedAnimationManager]s. */
   private fun createTimelineElements(
     tabs: Collection<AnimationManager>,
-    elementsCreated: () -> Unit = {}
+    elementsCreated: () -> Unit = {},
   ) {
     executeOnRenderThread(false) {
       var minY = InspectorLayout.timelineHeaderHeightScaled()
@@ -238,7 +238,7 @@ class AnimationPreview(
                 tabs.first().elementState,
                 tabs.first().currentTransition,
                 minY,
-                timeline.sliderUI.positionProxy
+                timeline.sliderUI.positionProxy,
               )
             tabs.first().selectedPropertiesCallback = { curve.timelineUnits = it }
             curve.timelineUnits = tabs.first().selectedProperties
@@ -401,7 +401,7 @@ class AnimationPreview(
         TabInfo(coordinationTab).apply {
           text = "${message("animation.inspector.tab.all.title")}  "
         },
-        0
+        0,
       )
       coordinationTab.addTimeline(timeline)
     }
@@ -575,7 +575,7 @@ class AnimationPreview(
         tabScrollPane.setViewportView(tabTimelineParent)
         add(
           playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))),
-          TabularLayout.Constraint(0, 0)
+          TabularLayout.Constraint(0, 0),
         )
         isFocusable = false
         focusTraversalPolicy = LayoutFocusTraversalPolicy()
@@ -774,7 +774,7 @@ class AnimationPreview(
     override fun createTimelineElement(
       parent: JComponent,
       minY: Int,
-      positionProxy: PositionProxy
+      positionProxy: PositionProxy,
     ): TimelineElement {
       return if (elementState.expanded) {
         val curve = TransitionCurve.create(elementState, currentTransition, minY, positionProxy)

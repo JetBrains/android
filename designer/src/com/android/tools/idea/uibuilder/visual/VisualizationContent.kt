@@ -73,7 +73,7 @@ interface VisualizationContentProvider {
 object VisualizationFormProvider : VisualizationContentProvider {
   override fun createVisualizationForm(
     project: Project,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
   ): VisualizationForm {
     val visualizationForm =
       VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
@@ -123,7 +123,7 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
   private fun initPreviewFormAfterInitialBuild(
     project: Project,
     form: VisualizationForm,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
   ) {
     project.runWhenSmartAndSyncedOnEdt(
       form,
@@ -140,10 +140,10 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
                 form.createContentPanel()
                 onComplete()
               }
-            }
+            },
           )
         }
-      }
+      },
     )
   }
 }

@@ -35,7 +35,7 @@ class TestStringTable : StringTable {
       Resource(
         type = add(it.resourceType.getName()),
         namespace = add(it.namespace.packageName),
-        name = add(it.name)
+        name = add(it.name),
       )
     }
 

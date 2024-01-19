@@ -99,14 +99,14 @@ class NlDesignSurfaceZoomControlsTest {
                 android:text="Hello world"/>
         </LinearLayout>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val configuration =
       RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     surface = invokeAndWaitIfNeeded {
       NlDesignSurface.builder(
           androidProjectRule.project,
-          androidProjectRule.fixture.testRootDisposable
+          androidProjectRule.fixture.testRootDisposable,
         )
         .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.VISIBLE)
         .build()
@@ -117,7 +117,7 @@ class NlDesignSurfaceZoomControlsTest {
           androidProjectRule.testRootDisposable,
           facet,
           layout.virtualFile,
-          configuration
+          configuration,
         )
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
@@ -129,7 +129,7 @@ class NlDesignSurfaceZoomControlsTest {
     val renderResult = surface.sceneManagers.single().renderResult!!
     assertTrue(
       "The render must be successful. It was: $renderResult",
-      renderResult.renderResult.isSuccess
+      renderResult.renderResult.isSuccess,
     )
 
     fakeUi = invokeAndWaitIfNeeded {
@@ -238,7 +238,7 @@ class NlDesignSurfaceZoomControlsTest {
                 EventQueue.getMostRecentEventTime(),
                 keyStroke.modifiers,
                 keyStroke.keyCode,
-                keyStroke.keyChar
+                keyStroke.keyChar,
               )
             )
         }
@@ -263,7 +263,7 @@ class NlDesignSurfaceZoomControlsTest {
               EventQueue.getMostRecentEventTime(),
               keyStroke.modifiers,
               keyStroke.keyCode,
-              keyStroke.keyChar
+              keyStroke.keyChar,
             )
           )
       }
@@ -289,7 +289,7 @@ class NlDesignSurfaceZoomControlsTest {
                 EventQueue.getMostRecentEventTime(),
                 keyStroke.modifiers,
                 keyStroke.keyCode,
-                keyStroke.keyChar
+                keyStroke.keyChar,
               )
             )
         }

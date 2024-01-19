@@ -36,7 +36,7 @@ internal object ExportToFileDialogLayout {
     delimiterLabel: JComponent,
     delimiterComboBox: JComponent,
     saveLocationLabel: JComponent,
-    saveLocationTextField: JComponent
+    saveLocationTextField: JComponent,
   ): JComponent {
 
     // panels to position elements
@@ -195,7 +195,7 @@ internal object ExportToFileDialogLayout {
             .createSequentialGroup()
             .addGap(20.scaled)
             .addComponent(mainContentPanel, DEFAULT_SIZE, DEFAULT_SIZE, MAX_VALUE.toInt())
-            .addGap(20.scaled)
+            .addGap(20.scaled),
         )
     )
     layout.setVerticalGroup(

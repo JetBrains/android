@@ -37,12 +37,12 @@ import java.time.Clock
 data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
-  private val previousGoodState: AppInsightsState?
+  private val previousGoodState: AppInsightsState?,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
       return StateTransition(
@@ -51,9 +51,9 @@ data class IssuesChanged(
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
-          currentEvents = LoadingState.Ready(null)
+          currentEvents = LoadingState.Ready(null),
         ),
-        Action.NONE
+        Action.NONE,
       )
     }
 
@@ -81,7 +81,7 @@ data class IssuesChanged(
             cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
           }
-          .build()
+          .build(),
       )
     }
 
@@ -121,7 +121,7 @@ data class IssuesChanged(
                   currentOses.allSelected() ||
                     currentOses.selected.any { current -> it.value == current.value }
                 }
-              } else state.filters.operatingSystems
+              } else state.filters.operatingSystems,
           ),
         currentIssueVariants =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
@@ -132,11 +132,11 @@ data class IssuesChanged(
           else LoadingState.Ready(null),
         currentNotes =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
-        permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission
+        permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
         if (newSelectedIssue != null) actionsForSelectedIssue(key, newSelectedIssue.id)
-        else Action.NONE
+        else Action.NONE,
     )
   }
 }

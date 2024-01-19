@@ -69,7 +69,7 @@ class AssistedInjectConstructorDaggerConceptTest {
           dep3: Dep3,
         )
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = AssistedInjectConstructorDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -82,21 +82,21 @@ class AssistedInjectConstructorDaggerConceptTest {
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep1"
+            "dep1",
           )
         ),
         "Dep2",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep2"
+            "dep2",
           )
         ),
         "Dep3",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep3"
+            "dep3",
           )
         ),
       )
@@ -137,7 +137,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2
       class Dep3
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -193,7 +193,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2 {}
       class Dep3 {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -250,7 +250,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2
       class Dep3
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameterDaggerElement =
@@ -315,7 +315,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2 {}
       class Dep3 {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameterDaggerElement =
@@ -373,7 +373,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
       class CreatedObject @AssistedInject constructor(@Assisted dep1: Dep1, @Assisted  dep2: Dep2, dep3: Dep3)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -390,7 +390,7 @@ class AssistedInjectConstructorDaggerConceptTest {
           assistedFactoryMethodDaggerElement,
           "AssistedFactory methods",
           "navigate.to.assisted.factory",
-          "create"
+          "create",
         )
       )
   }

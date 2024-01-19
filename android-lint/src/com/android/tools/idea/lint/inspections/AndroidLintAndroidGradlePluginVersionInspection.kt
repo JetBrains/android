@@ -34,12 +34,12 @@ import com.intellij.psi.PsiFile
 class AndroidLintAndroidGradlePluginVersionInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.android.gradle.plugin.version"),
-    GradleDetector.AGP_DEPENDENCY
+    GradleDetector.AGP_DEPENDENCY,
   ) {
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
-    incident: Incident
+    incident: Incident,
   ): Array<LintIdeQuickFix> {
     val fixes = super.getQuickFixes(startElement, endElement, incident)
     return if (LintIdeSupport.get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
@@ -58,7 +58,7 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     override fun apply(
       startElement: PsiElement,
       endElement: PsiElement,
-      context: AndroidQuickfixContexts.Context
+      context: AndroidQuickfixContexts.Context,
     ) {
       LintIdeSupport.get().updateAgpToLatest(startElement.project)
     }
@@ -66,7 +66,7 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     override fun generatePreview(
       project: Project,
       editor: Editor,
-      file: PsiFile
+      file: PsiFile,
     ): IntentionPreviewInfo? {
       return IntentionPreviewInfo.EMPTY
     }
@@ -74,7 +74,7 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     override fun isApplicable(
       startElement: PsiElement,
       endElement: PsiElement,
-      contextType: ContextType
+      contextType: ContextType,
     ): Boolean = true
   }
 }

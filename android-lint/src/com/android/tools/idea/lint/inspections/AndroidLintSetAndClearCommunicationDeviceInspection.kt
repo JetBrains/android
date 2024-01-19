@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.CommunicationDeviceDetector
 class AndroidLintSetAndClearCommunicationDeviceInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.set.and.clear.communication.device"),
-    CommunicationDeviceDetector.ISSUE
+    CommunicationDeviceDetector.ISSUE,
   )

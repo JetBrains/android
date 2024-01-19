@@ -86,7 +86,7 @@ val DEFAULT_DATA =
     responseHeaders = FAKE_RESPONSE_HEADERS,
     url = "dumbUrl",
     trace = FAKE_TRACE,
-    method = "GET"
+    method = "GET",
   )
 
 /**
@@ -151,7 +151,7 @@ class ConnectionDataDetailsViewTest {
         codeNavigationProvider,
         timer,
         client,
-        IdeNetworkInspectorTracker(projectRule.project)
+        IdeNetworkInspectorTracker(projectRule.project),
       )
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
@@ -168,7 +168,7 @@ class ConnectionDataDetailsViewTest {
                 it.requestStartTimeUs <= timeCurrentRangeUs.max
             }
           }
-        }
+        },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
@@ -181,7 +181,7 @@ class ConnectionDataDetailsViewTest {
         component,
         services,
         scope,
-        disposable
+        disposable,
       )
     parentPanel.add(inspectorView.component)
     detailsView = inspectorView.detailsPanel.connectionDataDetailsView
@@ -221,7 +221,7 @@ class ConnectionDataDetailsViewTest {
     val data =
       createFakeHttpData(
         1,
-        requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded"))
+        requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded")),
       )
     detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()!!
@@ -238,7 +238,7 @@ class ConnectionDataDetailsViewTest {
           listOf(
             header("null", "HTTP/1.1 302 Found"),
             header("Content-Type", "application/x-www-form-urlencoded"),
-          )
+          ),
       )
     detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
@@ -388,42 +388,42 @@ class ConnectionDataDetailsViewTest {
       TimeUnit.MILLISECONDS.toMicros(1000),
       0,
       "0 ms",
-      "*"
+      "*",
     )
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       TimeUnit.MILLISECONDS.toMicros(2500),
       0,
       "1 s 500 ms",
-      "*"
+      "*",
     )
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       TimeUnit.MILLISECONDS.toMicros(3000),
       TimeUnit.MILLISECONDS.toMicros(3000),
       "2 s",
-      "0 ms"
+      "0 ms",
     )
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       TimeUnit.MILLISECONDS.toMicros(3000),
       TimeUnit.MILLISECONDS.toMicros(4234),
       "2 s",
-      "1 s 234 ms"
+      "1 s 234 ms",
     )
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       0,
       TimeUnit.MILLISECONDS.toMicros(1000),
       "0 ms",
-      "0 ms"
+      "0 ms",
     )
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       0,
       TimeUnit.MILLISECONDS.toMicros(2000),
       "1 s",
-      "0 ms"
+      "0 ms",
     )
   }
 
@@ -460,7 +460,7 @@ class ConnectionDataDetailsViewTest {
     downloadingTimeUs: Long,
     endTimeUs: Long,
     sentLegend: String,
-    receivedLegend: String
+    receivedLegend: String,
   ) {
     val data =
       createFakeHttpData(
@@ -470,7 +470,7 @@ class ConnectionDataDetailsViewTest {
         downloadingTimeUs,
         endTimeUs,
         endTimeUs,
-        url = "unusedUrl"
+        url = "unusedUrl",
       )
     detailsView.setConnectionData(data)
     val legendComponent = firstDescendantWithType(detailsView, LegendComponent::class.java)

@@ -41,7 +41,7 @@ private fun parseChildren(
   rootView: View,
   nodeInfo: AccessibilityNodeInfo,
   parentX: Int,
-  parentY: Int
+  parentY: Int,
 ): List<ViewInfo> {
   val childCount = nodeInfo.childCount
   val children: MutableList<ViewInfo> = ArrayList(childCount)
@@ -58,12 +58,12 @@ private fun parseChildren(
       extras.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
       extras.putInt(
         AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-        childNodeInfo.text.length
+        childNodeInfo.text.length,
       )
       try {
         childNodeInfo.refreshWithExtraData(
           AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-          extras
+          extras,
         )
       } catch (ex: Exception) {
         Logger.getInstance("AccessibilityViewInfoParser.kt").warn(ex)
@@ -83,7 +83,7 @@ private fun parseChildren(
         bounds.bottom - parentY,
         rootView,
         childNodeInfo,
-        rootView.layoutParams
+        rootView.layoutParams,
       )
 
     result.children = parseChildren(rootView, childNodeInfo, bounds.left, bounds.top)

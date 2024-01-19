@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ShortcutUsageDetector
 class AndroidLintReportShortcutUsageInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.report.shortcut.usage"),
-    ShortcutUsageDetector.ISSUE
+    ShortcutUsageDetector.ISSUE,
   )

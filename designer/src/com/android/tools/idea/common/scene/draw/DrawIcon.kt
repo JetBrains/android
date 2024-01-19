@@ -29,7 +29,7 @@ import javax.swing.Icon
 class DrawIcon(
   private val icon: Icon,
   private val rectangle: SwingRectangle,
-  private val color: Color? = null
+  private val color: Color? = null,
 ) : DrawCommandBase() {
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

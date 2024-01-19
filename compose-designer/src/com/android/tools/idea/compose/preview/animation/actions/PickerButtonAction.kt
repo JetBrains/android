@@ -53,7 +53,7 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
               this@PickerButtonAction,
               null,
               ActionPlaces.TOOLBAR,
-              ctx
+              ctx,
             )
           ActionUtil.performDumbAwareWithCallbacks(this@PickerButtonAction, event) {
             this@PickerButtonAction.actionPerformed(event)
@@ -73,7 +73,7 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
         AnimatedPropertiesModel(initialState, targetState) { initial, target ->
           setUnitStates(initial, target)
           onClick()
-        }
+        },
     )
     tracker.openPicker()
   }

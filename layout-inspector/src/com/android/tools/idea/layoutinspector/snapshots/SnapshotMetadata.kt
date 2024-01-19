@@ -38,7 +38,7 @@ class SnapshotMetadata(
   var fontScale: Float? = null,
   var screenDimension: Dimension? = null,
   var folderConfig: String? = null,
-  var theme: String? = null
+  var theme: String? = null,
 ) {
   /** Convert to the proto used by metrics. */
   fun toSnapshotInfo(): DynamicLayoutInspectorSnapshotInfo? =
@@ -95,7 +95,7 @@ fun Metadata.convert(version: ProtocolVersion) =
     screenDimension =
       if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
     folderConfig = folderConfig,
-    theme = theme
+    theme = theme,
   )
 
 fun ProtocolVersion.toInt() =

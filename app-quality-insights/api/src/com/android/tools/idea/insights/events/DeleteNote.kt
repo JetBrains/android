@@ -30,7 +30,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     check(!isCreatingNoteInProgress()) {
       "Deleting on \"creating in progress\" note is not allowed."
@@ -38,7 +38,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
 
     return StateTransition(
       newState = state.copy(currentNotes = state.currentNotes.markDeletePending(id)),
-      action = Action.DeleteNote(id)
+      action = Action.DeleteNote(id),
     )
   }
 
@@ -61,7 +61,7 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     return StateTransition(
       newState =
@@ -69,7 +69,7 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
           currentNotes = state.currentNotes.revertMarkDeletePending(id),
           permission = state.permission.updatePermissionIfApplicable(cause),
         ),
-      action = Action.NONE
+      action = Action.NONE,
     )
   }
 
@@ -91,7 +91,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
@@ -102,7 +102,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
             noteEvent =
               AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.REMOVED
           }
-          .build()
+          .build(),
       )
     }
     return StateTransition(
@@ -111,9 +111,9 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
           issues = state.issues.decrementNotesCount(id.issueId),
           currentNotes =
             if (state.selectedIssue?.id == id.issueId) state.currentNotes.delete(id)
-            else state.currentNotes
+            else state.currentNotes,
         ),
-      action = Action.NONE
+      action = Action.NONE,
     )
   }
 

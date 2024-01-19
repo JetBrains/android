@@ -56,13 +56,13 @@ import javax.swing.JComponent
  */
 open class EditorProviderImpl<in P : PropertyItem>(
   private val enumSupportProvider: EnumSupportProvider<P>,
-  private val controlTypeProvider: ControlTypeProvider<P>
+  private val controlTypeProvider: ControlTypeProvider<P>,
 ) : EditorProvider<P> {
 
   /** Create an editor for [property]. */
   override fun createEditor(
     property: P,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> =
     when (controlTypeProvider(property)) {
       ControlType.COMBO_BOX ->
@@ -112,7 +112,7 @@ open class EditorProviderImpl<in P : PropertyItem>(
     property: P,
     editable: Boolean,
     enumSupport: EnumSupport,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
     val comboBox = PropertyComboBox(model, context)
@@ -122,7 +122,7 @@ open class EditorProviderImpl<in P : PropertyItem>(
 
   protected open fun addActionButtonBinding(
     model: BasePropertyEditorModel,
-    editor: JComponent
+    editor: JComponent,
   ): JComponent {
     return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }

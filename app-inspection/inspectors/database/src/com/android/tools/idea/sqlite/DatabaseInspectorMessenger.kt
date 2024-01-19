@@ -31,7 +31,7 @@ class DatabaseInspectorMessenger(
   private val messenger: AppInspectorMessenger,
   private val scope: CoroutineScope,
   taskExecutor: Executor,
-  private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
+  private val errorsSideChannel: ErrorsSideChannel = { _, _ -> },
 ) {
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
 

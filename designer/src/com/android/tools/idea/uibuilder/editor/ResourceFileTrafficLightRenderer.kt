@@ -40,7 +40,7 @@ private val SEVERITY_TO_ICON =
     Pair(SpellCheckerSeveritiesProvider.TYPO, StudioIcons.Common.TYPO_STACK),
     Pair(HighlightSeverity.WEAK_WARNING, StudioIcons.Common.WEAK_WARNING_STACK),
     Pair(HighlightSeverity.WARNING, StudioIcons.Common.WARNING_STACK),
-    Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK)
+    Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK),
   )
 
 /**
@@ -62,7 +62,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
             ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
           }
         }
-      }
+      },
     )
   }
 

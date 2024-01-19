@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.callbackFlow
 data class PairingStatus(
   val id: String,
   val displayName: String,
-  val state: WearPairingManager.PairingState
+  val state: WearPairingManager.PairingState,
 )
 
 /**
@@ -52,7 +52,7 @@ fun ObservablePairedDevicesList.pairedDevicesFlow():
    */
   fun update(
     pair: WearPairingManager.PhoneWearPair,
-    updateList: (PersistentList<PairingStatus>, PairingDevice) -> PersistentList<PairingStatus>
+    updateList: (PersistentList<PairingStatus>, PairingDevice) -> PersistentList<PairingStatus>,
   ) {
     pairedDevices =
       pairedDevices.mutate {
@@ -72,7 +72,7 @@ fun ObservablePairedDevicesList.pairedDevicesFlow():
             PairingStatus(
               pairingDevice.deviceID,
               pairingDevice.displayName,
-              phoneWearPair.pairingStatus
+              phoneWearPair.pairingStatus,
             )
           when (val index = currentDevices.indexOfFirst { it.id == pairingDevice.deviceID }) {
             -1 -> currentDevices + newStatus

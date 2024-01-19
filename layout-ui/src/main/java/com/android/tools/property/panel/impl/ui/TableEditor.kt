@@ -53,7 +53,7 @@ class TableEditor(
   rendererProvider: PTableCellRendererProvider,
   editorProvider: PTableCellEditorProvider,
   val actions: List<AnAction> = emptyList(),
-  nameColumnFraction: ColumnFraction = ColumnFraction()
+  nameColumnFraction: ColumnFraction = ColumnFraction(),
 ) {
 
   private val table =
@@ -64,7 +64,7 @@ class TableEditor(
       editorProvider,
       { getToolTipText(it) },
       ::updateUI,
-      nameColumnFraction
+      nameColumnFraction,
     )
   val component = table.component as JTable
 
@@ -91,7 +91,7 @@ class TableEditor(
     }
     HelpSupportBinding.registerHelpKeyActions(
       component,
-      { lineModel.selectedItem as? PropertyItem }
+      { lineModel.selectedItem as? PropertyItem },
     )
 
     // In the properties panel we do not want the table to handle it's own navigation.
@@ -113,7 +113,7 @@ class TableEditor(
           component.registerAnActionKey(
             { action },
             it.firstKeyStroke,
-            action.templatePresentation.description
+            action.templatePresentation.description,
           )
         }
     }

@@ -78,7 +78,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
         },
         0,
         15,
-        TimeUnit.MILLISECONDS
+        TimeUnit.MILLISECONDS,
       )
     }
   }

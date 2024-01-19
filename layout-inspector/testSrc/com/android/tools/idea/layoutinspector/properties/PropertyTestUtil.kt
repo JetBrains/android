@@ -34,7 +34,7 @@ suspend fun createTestProperty(
   source: ResourceReference?,
   resolutionStack: List<ResourceReference>,
   node: ViewNode,
-  model: InspectorModel
+  model: InspectorModel,
 ): InspectorPropertyItem {
   val item =
     InspectorPropertyItem(
@@ -46,7 +46,7 @@ suspend fun createTestProperty(
       PropertySection.DECLARED,
       source,
       node.drawId,
-      model
+      model,
     )
   val cache = LiveViewPropertiesCache(MockitoKt.mock(), model)
   val provider = AppInspectionPropertiesProvider(cache, null, model)

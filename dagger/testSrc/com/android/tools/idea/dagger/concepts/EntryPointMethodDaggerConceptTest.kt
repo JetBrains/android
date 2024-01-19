@@ -65,7 +65,7 @@ class EntryPointMethodDaggerConceptTest {
           fun bar2(): Bar
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = EntryPointMethodDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -75,8 +75,8 @@ class EntryPointMethodDaggerConceptTest {
         "Bar",
         setOf(
           EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1"),
-          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
-        )
+          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2"),
+        ),
       )
   }
 
@@ -110,7 +110,7 @@ class EntryPointMethodDaggerConceptTest {
         fun bar4(): Bar
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1DaggerElement =
@@ -172,7 +172,7 @@ class EntryPointMethodDaggerConceptTest {
         Bar bar4();
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1DaggerElement =
@@ -233,7 +233,7 @@ class EntryPointMethodDaggerConceptTest {
         public Bar() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1EntryPointDaggerElement =
@@ -249,7 +249,7 @@ class EntryPointMethodDaggerConceptTest {
         DaggerRelatedElement(
           barProviderDaggerElement,
           "Providers",
-          "navigate.to.provider.from.component"
+          "navigate.to.provider.from.component",
         )
       )
 
@@ -258,7 +258,7 @@ class EntryPointMethodDaggerConceptTest {
         DaggerRelatedElement(
           barProviderDaggerElement,
           "Providers",
-          "navigate.to.provider.from.component"
+          "navigate.to.provider.from.component",
         )
       )
 
@@ -268,14 +268,14 @@ class EntryPointMethodDaggerConceptTest {
           bar1EntryPointDaggerElement,
           "Exposed by entry points",
           "navigate.to.component.exposes",
-          "MyEntryPoint"
+          "MyEntryPoint",
         ),
         DaggerRelatedElement(
           bar2EntryPointDaggerElement,
           "Exposed by entry points",
           "navigate.to.component.exposes",
-          "MyEntryPoint"
-        )
+          "MyEntryPoint",
+        ),
       )
   }
 

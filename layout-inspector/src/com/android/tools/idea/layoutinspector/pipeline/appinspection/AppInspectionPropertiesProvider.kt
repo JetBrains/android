@@ -48,7 +48,7 @@ import org.jetbrains.annotations.VisibleForTesting
 class AppInspectionPropertiesProvider(
   private val propertiesCache: ViewPropertiesCache,
   private val parametersCache: ComposeParametersCache?,
-  private val model: InspectorModel
+  private val model: InspectorModel,
 ) : PropertiesProvider {
 
   private val resultListeners = CopyOnWriteArrayList<ResultListener>()
@@ -137,7 +137,7 @@ class AppInspectionPropertiesProvider(
       properties,
       view,
       properties.getOrNull(ANDROID_URI, ATTR_ID)?.value,
-      model
+      model,
     )
   }
 
@@ -158,7 +158,7 @@ class AppInspectionPropertiesProvider(
    */
   private suspend fun convertToItemWithClassLocation(
     item: InspectorPropertyItem,
-    className: String
+    className: String,
   ): InspectorPropertyItem? {
     val classLocation =
       model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
@@ -172,7 +172,7 @@ class AppInspectionPropertiesProvider(
         item.source,
         item.viewId,
         item.lookup,
-        emptyList()
+        emptyList(),
       )
       .apply {
         sourceLocations.addAll(item.sourceLocations)
@@ -196,7 +196,7 @@ class AppInspectionPropertiesProvider(
   private suspend fun convertToResolutionStackItem(
     item: InspectorPropertyItem,
     view: ViewNode,
-    resolutionStack: List<ResourceReference>
+    resolutionStack: List<ResourceReference>,
   ): InspectorPropertyItem? {
     val map =
       resolutionStack
@@ -223,7 +223,7 @@ class AppInspectionPropertiesProvider(
           item.source,
           item.viewId,
           item.lookup,
-          children
+          children,
         )
         .apply {
           sourceLocations.addAll(item.sourceLocations)

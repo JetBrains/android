@@ -78,7 +78,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
         mapOf(
           "/data/data/com.example.package/databases/db-file" to file1,
           "/data/data/com.example.package/databases/db-file-shm" to file2,
-          "/data/data/com.example.package/databases/db-file-wal" to file3
+          "/data/data/com.example.package/databases/db-file-wal" to file3,
         )
       )
 
@@ -95,11 +95,11 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
           listOf(
             "/data/data/com.example.package/databases/db-file",
             "/data/data/com.example.package/databases/db-file-shm",
-            "/data/data/com.example.package/databases/db-file-wal"
+            "/data/data/com.example.package/databases/db-file-wal",
           )
         ),
         any(DownloadProgress::class.java),
-        eq(IdeFileService("database-inspector").cacheRoot)
+        eq(IdeFileService("database-inspector").cacheRoot),
       )
 
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)
@@ -114,7 +114,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
       .thenReturn(
         mapOf(
           "/data/data/com.example.package/databases/db-file-shm" to file2,
-          "/data/data/com.example.package/databases/db-file-wal" to file3
+          "/data/data/com.example.package/databases/db-file-wal" to file3,
         )
       )
 

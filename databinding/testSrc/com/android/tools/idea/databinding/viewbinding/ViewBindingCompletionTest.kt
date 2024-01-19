@@ -38,7 +38,7 @@ class ViewBindingCompletionTest {
     AndroidProjectRule.withAndroidModel(
       AndroidProjectBuilder(
         namespace = { "test.vb" },
-        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
       )
     )
 
@@ -69,7 +69,7 @@ class ViewBindingCompletionTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -86,7 +86,7 @@ class ViewBindingCompletionTest {
           tools:viewBindingI<caret>>
         </FrameLayout>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
@@ -119,7 +119,7 @@ class ViewBindingCompletionTest {
           tools:viewBindingIgnore="<caret>">
         </FrameLayout>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
@@ -143,7 +143,7 @@ class ViewBindingCompletionTest {
             ActivityMainB${caret}
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
@@ -188,7 +188,7 @@ class ViewBindingCompletionTest {
               }
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(activityFile.virtualFile)

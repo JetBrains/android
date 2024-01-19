@@ -72,7 +72,7 @@ class ToggleDeepInspectActionTest {
       FakeInspectorClient(
         projectRule.project,
         MODERN_DEVICE.createProcess(),
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { inspectorClient })
 
@@ -91,7 +91,7 @@ class ToggleDeepInspectActionTest {
 private open class FakeInspectorClient(
   project: Project,
   process: ProcessDescriptor,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) :
   AbstractInspectorClient(
     DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT,
@@ -101,7 +101,7 @@ private open class FakeInspectorClient(
     isInstantlyAutoConnected = true,
     DisconnectedClient.stats,
     AndroidCoroutineScope(parentDisposable),
-    parentDisposable
+    parentDisposable,
   ) {
   override suspend fun startFetching() = throw NotImplementedError()
 

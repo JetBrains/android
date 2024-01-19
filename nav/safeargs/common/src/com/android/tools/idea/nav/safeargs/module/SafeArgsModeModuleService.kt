@@ -65,7 +65,7 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
       .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsMode() }
+        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsMode() },
       )
   }
 

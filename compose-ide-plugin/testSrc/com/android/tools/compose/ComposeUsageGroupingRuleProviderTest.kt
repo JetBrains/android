@@ -119,7 +119,7 @@ class ComposeUsageGroupingRuleProviderTest {
 @RunWith(Parameterized::class)
 class ComposeUsageGroupingRuleProviderParameterizedTest(
   private val targetAnnotations: List<String>,
-  private val usageAnnotations: List<String>
+  private val usageAnnotations: List<String>,
 ) {
   @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
@@ -158,7 +158,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
         targetAnnotations,
         usageAnnotations,
         "target|Function() // usage",
-        "fun target|Function()"
+        "fun target|Function()",
       )
     checkUsageGroups(groupingRule.getParentGroupsFor(usage, targets))
   }
@@ -171,7 +171,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
         targetAnnotations,
         usageAnnotations,
         "target|Function() // nested usage",
-        "fun target|Function()"
+        "fun target|Function()",
       )
     checkUsageGroups(groupingRule.getParentGroupsFor(usage, targets))
   }
@@ -185,7 +185,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
         usageAnnotations,
         "target|Function() // usage",
         "PROP|ERTY",
-        "fun target|Function()"
+        "fun target|Function()",
       )
     checkUsageGroups(groupingRule.getParentGroupsFor(usage, targets))
   }
@@ -198,7 +198,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
         targetAnnotations,
         usageAnnotations,
         "target|Function() // usage",
-        "fun target|Function()"
+        "fun target|Function()",
       )
     val usageTarget: UsageTarget = mock()
     checkUsageGroups(groupingRule.getParentGroupsFor(usage, arrayOf(usageTarget, *targets)))

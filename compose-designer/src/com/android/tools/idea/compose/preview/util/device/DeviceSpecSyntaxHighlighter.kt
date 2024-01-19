@@ -60,7 +60,7 @@ private val string =
 class DeviceSpecSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
   override fun getSyntaxHighlighter(
     project: Project?,
-    virtualFile: VirtualFile?
+    virtualFile: VirtualFile?,
   ): SyntaxHighlighter {
     return DeviceSpecSyntaxHighlighter()
   }

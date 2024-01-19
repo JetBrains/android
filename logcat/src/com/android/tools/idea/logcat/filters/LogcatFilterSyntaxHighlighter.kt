@@ -69,6 +69,6 @@ internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
 internal class LogcatFilterSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
   override fun getSyntaxHighlighter(
     project: Project?,
-    virtualFile: VirtualFile?
+    virtualFile: VirtualFile?,
   ): SyntaxHighlighter = LogcatFilterSyntaxHighlighter()
 }

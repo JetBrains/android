@@ -29,13 +29,13 @@ import org.jetbrains.annotations.NonNls
 sealed class AndroidResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   rootTagName: String,
-  resourceFolderTypes: EnumSet<ResourceFolderType>
+  resourceFolderTypes: EnumSet<ResourceFolderType>,
 ) : DomFileDescription<T>(rootElementClass, rootTagName) {
 
   constructor(
     rootElementClass: Class<T>,
     @NonNls rootTagName: String,
-    resourceFolderType: ResourceFolderType
+    resourceFolderType: ResourceFolderType,
   ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
   val resourceFolderTypes: EnumSet<ResourceFolderType> = EnumSet.copyOf(resourceFolderTypes)
@@ -78,13 +78,13 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
 abstract class SingleRootResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   tagName: String,
-  resourceFolderTypes: EnumSet<ResourceFolderType>
+  resourceFolderTypes: EnumSet<ResourceFolderType>,
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, tagName, resourceFolderTypes) {
 
   constructor(
     rootElementClass: Class<T>,
     rootTagName: String,
-    resourceFolderType: ResourceFolderType
+    resourceFolderType: ResourceFolderType,
   ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
   final override fun acceptsOtherRootTagNames() = false
@@ -101,19 +101,19 @@ abstract class SingleRootResourceDomFileDescription<T : DomElement>(
 abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   resourceFolderTypes: EnumSet<ResourceFolderType>,
-  private val tagNames: Set<String>
+  private val tagNames: Set<String>,
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, tagNames.first(), resourceFolderTypes) {
 
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
-    tagNames: Set<String>
+    tagNames: Set<String>,
   ) : this(rootElementClass, EnumSet.of<ResourceFolderType>(resourceFolderType), tagNames)
 
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
-    vararg tagNames: String
+    vararg tagNames: String,
   ) : this(rootElementClass, resourceFolderType, java.util.Set.of(*tagNames))
 
   final override fun acceptsOtherRootTagNames() = true
@@ -126,7 +126,7 @@ abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
 abstract class ResourceFolderTypeDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   resourceFolderTypes: ResourceFolderType,
-  defaultTagName: String
+  defaultTagName: String,
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, defaultTagName, resourceFolderTypes) {
 
   final override fun acceptsOtherRootTagNames() = true
@@ -141,13 +141,13 @@ abstract class ResourceFolderTypeDomFileDescription<T : DomElement>(
 abstract class CustomLogicResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   resourceFolderTypes: EnumSet<ResourceFolderType>,
-  defaultTagName: String
+  defaultTagName: String,
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, defaultTagName, resourceFolderTypes) {
 
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
-    exampleTagName: String
+    exampleTagName: String,
   ) : this(rootElementClass, EnumSet.of(resourceFolderType), exampleTagName)
 
   final override fun acceptsOtherRootTagNames() = true

@@ -67,7 +67,7 @@ private const val MAX_CONCURRENT_CALLS = 10
 class VitalsClient(
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
-  private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable)
+  private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable),
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 
@@ -81,7 +81,7 @@ class VitalsClient(
     request: IssueRequest,
     fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource?,
     mode: ConnectionMode,
-    permission: Permission
+    permission: Permission,
   ): LoadingState.Done<IssueResponse> = supervisorScope {
     runGrpcCatching(
       notFoundFallbackValue =
@@ -91,7 +91,7 @@ class VitalsClient(
             versions = emptyList(),
             devices = emptyList(),
             operatingSystems = emptyList(),
-            permission = Permission.NONE
+            permission = Permission.NONE,
           )
         )
     ) {
@@ -106,7 +106,7 @@ class VitalsClient(
           request.connection,
           request.filters.copy(versions = setOf(Version.ALL)),
           null,
-          MetricType.ERROR_REPORT_COUNT
+          MetricType.ERROR_REPORT_COUNT,
         )
       }
       val devices = async {
@@ -114,7 +114,7 @@ class VitalsClient(
           request.connection,
           request.filters.copy(devices = setOf(Device.ALL)),
           null,
-          MetricType.ERROR_REPORT_COUNT
+          MetricType.ERROR_REPORT_COUNT,
         )
       }
       val oses = async {
@@ -122,14 +122,14 @@ class VitalsClient(
           request.connection,
           request.filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
           null,
-          MetricType.ERROR_REPORT_COUNT
+          MetricType.ERROR_REPORT_COUNT,
         )
       }
       val issues = async {
         fetchIssues(
           request,
           fetchSource ==
-            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH
+            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH,
         )
       }
 
@@ -139,7 +139,7 @@ class VitalsClient(
           versions.await(),
           devices.await(),
           oses.await(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       )
     }
@@ -151,7 +151,7 @@ class VitalsClient(
   override suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest,
-    variantId: String?
+    variantId: String?,
   ): LoadingState.Done<DetailedIssueStats?> = supervisorScope {
     val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
     runGrpcCatching(failure) {
@@ -159,7 +159,7 @@ class VitalsClient(
         listDevices(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
           .summarizeDevicesFromRawDataPoints(
             MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
-            MINIMUM_PERCENTAGE_TO_SHOW
+            MINIMUM_PERCENTAGE_TO_SHOW,
           )
       }
 
@@ -168,11 +168,11 @@ class VitalsClient(
             request.connection,
             request.filters,
             issueId,
-            MetricType.DISTINCT_USER_COUNT
+            MetricType.DISTINCT_USER_COUNT,
           )
           .summarizeOsesFromRawDataPoints(
             MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
-            MINIMUM_PERCENTAGE_TO_SHOW
+            MINIMUM_PERCENTAGE_TO_SHOW,
           )
       }
       LoadingState.Ready(DetailedIssueStats(devices.await(), oses.await()))
@@ -184,13 +184,13 @@ class VitalsClient(
     variantId: String?,
     request: IssueRequest,
     failureType: FailureType,
-    token: String?
+    token: String?,
   ): LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY)
 
   override suspend fun updateIssueState(
     connection: Connection,
     issueId: IssueId,
-    state: IssueState
+    state: IssueState,
   ): LoadingState.Done<Unit> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
@@ -198,7 +198,7 @@ class VitalsClient(
   override suspend fun listNotes(
     connection: Connection,
     issueId: IssueId,
-    mode: ConnectionMode
+    mode: ConnectionMode,
   ): LoadingState.Done<List<Note>> {
     return LoadingState.Ready(emptyList())
   }
@@ -206,7 +206,7 @@ class VitalsClient(
   override suspend fun createNote(
     connection: Connection,
     issueId: IssueId,
-    message: String
+    message: String,
   ): LoadingState.Done<Note> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
@@ -217,7 +217,7 @@ class VitalsClient(
 
   private suspend fun fetchIssues(
     request: IssueRequest,
-    fetchEventsForAllIssues: Boolean = false
+    fetchEventsForAllIssues: Boolean = false,
   ): List<AppInsightsIssue> = coroutineScope {
     val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
 
@@ -246,7 +246,7 @@ class VitalsClient(
                   request.connection,
                   request.filters,
                   issueDetails.id,
-                  1
+                  1,
                 )
               }
 
@@ -264,7 +264,7 @@ class VitalsClient(
       .map { issueDetails ->
         AppInsightsIssue(
           issueDetails,
-          cachedSampleEvents[issueDetails] ?: requestedEventsByIssue[issueDetails]!!
+          cachedSampleEvents[issueDetails] ?: requestedEventsByIssue[issueDetails]!!,
         )
       }
       .also { cache.populateIssues(request.connection, it) }
@@ -274,7 +274,7 @@ class VitalsClient(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId?,
-    metricType: MetricType
+    metricType: MetricType,
   ): List<WithCount<Version>> {
     // First we get versions that are part of the releases/tracks.
     val releases = grpcClient.getReleases(connection)
@@ -286,7 +286,7 @@ class VitalsClient(
         filters = filters,
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
-        metrics = listOf(metricType)
+        metrics = listOf(metricType),
       )
       .map { dataPoint ->
         val version =
@@ -310,7 +310,7 @@ class VitalsClient(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId?,
-    metricType: MetricType
+    metricType: MetricType,
   ): List<WithCount<Device>> {
     return getMetrics(
         connection = connection,
@@ -321,9 +321,9 @@ class VitalsClient(
             DimensionType.REPORT_TYPE,
             DimensionType.DEVICE_BRAND,
             DimensionType.DEVICE_MODEL,
-            DimensionType.DEVICE_TYPE
+            DimensionType.DEVICE_TYPE,
           ),
-        metrics = listOf(metricType)
+        metrics = listOf(metricType),
       )
       .map { dataPoint ->
         val device = Device.fromDimensions(dataPoint.dimensions)
@@ -339,14 +339,14 @@ class VitalsClient(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId?,
-    metricType: MetricType
+    metricType: MetricType,
   ): List<WithCount<OperatingSystemInfo>> {
     return getMetrics(
         connection = connection,
         filters = filters,
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
-        metrics = listOf(metricType)
+        metrics = listOf(metricType),
       )
       .map { dataPoint ->
         val os = OperatingSystemInfo.fromDimensions(dataPoint.dimensions)
@@ -363,7 +363,7 @@ class VitalsClient(
     filters: QueryFilters,
     issueId: IssueId?,
     dimensions: List<DimensionType>,
-    metrics: List<MetricType>
+    metrics: List<MetricType>,
   ): List<DimensionsAndMetrics> {
     val freshness =
       grpcClient.getErrorCountMetricsFreshnessInfo(connection).maxByOrNull { it.timeGranularity }
@@ -375,7 +375,7 @@ class VitalsClient(
       issueId,
       dimensions,
       metrics,
-      freshness
+      freshness,
     )
   }
 }

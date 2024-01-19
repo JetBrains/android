@@ -32,13 +32,13 @@ abstract class ComposePreviewElementModelAdapter :
 
   override fun applyToConfiguration(
     previewElement: ComposePreviewElementInstance,
-    configuration: Configuration
+    configuration: Configuration,
   ) = previewElement.applyTo(configuration)
 
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     ComposeAdapterLightVirtualFile("compose-model-$id.xml", content) { backedFile }
 }

@@ -49,7 +49,7 @@ object TestUtils {
     private val x: Int,
     private val y: Int,
     positionProxy: PositionProxy,
-    state: ElementState = ElementState()
+    state: ElementState = ElementState(),
   ) : TimelineElement(state, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
     override fun contains(x: Int, y: Int): Boolean {
       return x in this.x + offsetPx..this.x + TEST_ELEMENT_WIDTH + offsetPx &&
@@ -78,7 +78,7 @@ object TestUtils {
       TimelinePanel(
         Tooltip(root, TooltipLayeredPane(root)),
         testPreviewState(),
-        NoopAnimationTracker
+        NoopAnimationTracker,
       )
     slider.maximum = 100
     root.apply {
@@ -97,7 +97,7 @@ object TestUtils {
 
   fun createComposeAnimation(
     label: String? = null,
-    type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE
+    type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE,
   ) =
     object : ComposeAnimation {
       override val animationObject = Any()

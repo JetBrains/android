@@ -66,7 +66,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     checkPreviewFix(
@@ -85,7 +85,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       +     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD) {
       + props.load(reader);
       +     }
-      """
+      """,
     )
   }
 
@@ -99,7 +99,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           <Button android:text="Hello World"/>
       </LinearLayout>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     checkPreviewAction(
       file,
@@ -109,7 +109,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -     <Button android:text="Hello World"/>
       +     <Button android:text="@string/hello_world"/>
-      """
+      """,
     )
   }
 
@@ -123,7 +123,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
             <Button android:textSize="50px"  />
         </LinearLayout>
         """
-          .trimIndent()
+          .trimIndent(),
       )
     checkPreviewAction(
       file,
@@ -133,7 +133,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -     <Button android:textSize="50px"  />
       +     <Button android:textSize="@dimen/dimen_name"  />
-      """
+      """,
     )
   }
 
@@ -147,7 +147,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
             <Button android:textSize="50px"  />
         </LinearLayout>
         """
-          .trimIndent()
+          .trimIndent(),
       )
     checkPreviewFix(
       file,
@@ -157,7 +157,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -     <Button android:textSize="50px"  />
       +     <Button android:textSize="50dp"  />
-      """
+      """,
     )
   }
 
@@ -173,7 +173,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
             <item android:color="#ff000000"/>
         </selector>
         """
-          .trimIndent()
+          .trimIndent(),
       )
     checkPreviewAction(
       file,
@@ -183,7 +183,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -3 +3
       -           android:color="#ffff0000"/> <!-- pressed -->
       +           android:color="@color/color_name"/> <!-- pressed -->
-      """
+      """,
     )
   }
 
@@ -197,7 +197,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           val foo = "bar"
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     checkPreviewFix(
       file,
@@ -210,7 +210,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -   val foo = "bar"
       +   val foo: Foo = "bar"
-      """
+      """,
     )
   }
 
@@ -225,7 +225,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val caret = "public ^void"
     checkPreviewFix(
@@ -238,7 +238,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           Location.create(
             file.virtualFile.toNioPath().toFile(),
             DefaultPosition(-1, -1, start),
-            DefaultPosition(-1, -1, end)
+            DefaultPosition(-1, -1, end),
           )
         @Suppress("DEPRECATION")
         val fix =
@@ -249,7 +249,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -   public void test() {
       +   @java.lang.SuppressWarnings("something") public void test() {
-      """
+      """,
     )
   }
 
@@ -264,7 +264,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val caret = "public ^void"
     checkPreviewFix(
@@ -277,7 +277,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           Location.create(
             file.virtualFile.toNioPath().toFile(),
             DefaultPosition(-1, -1, start),
-            DefaultPosition(-1, -1, end)
+            DefaultPosition(-1, -1, end),
           )
         AnnotateQuickFix(
           file.project,
@@ -285,14 +285,14 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           null,
           "@java.lang.SuppressWarnings(\"something\")",
           false,
-          range
+          range,
         )
       },
       """
       @@ -2 +2
       -   public void test() {
       +   @java.lang.SuppressWarnings("something") public void test() {
-      """
+      """,
     )
   }
 
@@ -306,7 +306,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           val foo = "bar"
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val fooOffset = file.text.indexOf("foo = ")
@@ -331,7 +331,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -   val foo = "bar"
       +   val foo: Foo = "bar"
-      """
+      """,
     )
   }
 
@@ -346,7 +346,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           val foo = "bar"
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
@@ -360,7 +360,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
               .text("Resources")
               .with("resources")
               .build(),
-            fix().replace().pattern("(foo)").with("foo: Foo").build()
+            fix().replace().pattern("(foo)").with("foo: Foo").build(),
           )
       fix.toIdeFix(file)
     }
@@ -373,7 +373,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
       -   val foo = "bar"
       +   val foo: Foo = "bar"
-      """
+      """,
     )
   }
 
@@ -388,7 +388,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           val foo = "bar"
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
@@ -418,7 +418,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           val foo = "bar"
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
@@ -457,7 +457,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     file: PsiFile,
     caret: String,
     createFix: (element: PsiElement) -> LintIdeQuickFix,
-    expected: String
+    expected: String,
   ) {
     val element = findElement(file, caret)
     val fix = createFix(element)
@@ -469,7 +469,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     file: PsiFile,
     caret: String,
     createAction: (element: PsiElement) -> IntentionAction,
-    expected: String
+    expected: String,
   ) {
     val element = findElement(file, caret)
     val action = createAction(element)
@@ -506,7 +506,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     }
     assertEquals(
       expected.trimIndent().trim(),
-      TestUtils.getDiff(file.text, psiFileCopy.text).trim()
+      TestUtils.getDiff(file.text, psiFileCopy.text).trim(),
     )
   }
 }

@@ -79,7 +79,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
@@ -97,7 +97,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -110,7 +110,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class FirstLayout {}")
@@ -169,7 +169,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -182,7 +182,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class FirstLayout {}")
@@ -213,7 +213,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         <data class=".CustomBinding" />
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
@@ -239,7 +239,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -252,7 +252,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           </FrameLayout>
         </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This has to be called to explicitly initialize the resource repository as a side-effect.
@@ -272,7 +272,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(modelFile.virtualFile)

@@ -36,7 +36,7 @@ internal fun runConfigurationFlow(project: Project): Flow<RunnerAndConfiguration
 
         override fun runConfigurationChanged(
           settings: RunnerAndConfigurationSettings,
-          existingId: String?
+          existingId: String?,
         ) {
           trySendBlocking(settings)
         }
@@ -44,7 +44,7 @@ internal fun runConfigurationFlow(project: Project): Flow<RunnerAndConfiguration
         override fun runConfigurationRemoved(settings: RunnerAndConfigurationSettings) {}
 
         override fun runConfigurationAdded(settings: RunnerAndConfigurationSettings) {}
-      }
+      },
     )
     send(RunManager.getInstance(project).selectedConfiguration)
     awaitClose { connection.disconnect() }

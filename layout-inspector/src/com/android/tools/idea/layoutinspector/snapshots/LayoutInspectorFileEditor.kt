@@ -75,7 +75,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
   override fun dispose() {
     metrics?.logEvent(
       DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA,
-      stats
+      stats,
     )
   }
 
@@ -141,7 +141,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           client,
           model,
           notificationModel,
-          treeSettings
+          treeSettings,
         )
       val deviceViewPanel =
         DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = workbench)
@@ -150,7 +150,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         deviceViewPanel,
         layoutInspector,
         listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-        false
+        false,
       )
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
@@ -167,7 +167,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         LayoutInspectorSessionMetrics(
           project,
           snapshotLoader.processDescriptor,
-          snapshotMetadata = metadata
+          snapshotMetadata = metadata,
         )
       metrics?.logEvent(SNAPSHOT_LOADED, stats)
     } catch (exception: Exception) {

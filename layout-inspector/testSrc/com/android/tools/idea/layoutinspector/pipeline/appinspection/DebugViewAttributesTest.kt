@@ -47,7 +47,7 @@ class DebugViewAttributesTest {
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
   }
 

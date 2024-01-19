@@ -54,7 +54,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     if (!SystemInfo.isWindows) {
       VfsTestUtil.createFile(
         LocalFileSystem.getInstance().findFileByPath("/")!!,
-        myModule.moduleFilePath
+        myModule.moduleFilePath,
       )
     }
 
@@ -78,7 +78,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   protected fun doTestNoFix(
     inspection: AndroidLintInspectionBase,
     copyTo: String,
-    extension: String
+    extension: String,
   ) {
     doTestHighlighting(inspection, copyTo, extension)
     var action: IntentionAction? = null
@@ -94,7 +94,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ) {
     val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
     doTestWithAction(extension, action)
@@ -104,7 +104,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ) {
     val action = getQuickfixWithoutHighlightingCheck(inspection, message, copyTo, extension)
     assertNotNull(action)
@@ -133,7 +133,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ): IntentionAction {
     doTestHighlighting(inspection, copyTo, extension, false)
     return myFixture.getIntentionAction(message)
@@ -146,7 +146,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ): IntentionAction? {
     doTestHighlighting(inspection, copyTo, extension, true)
     return myFixture.getIntentionAction(message)
@@ -156,7 +156,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     copyTo: String,
     extension: String,
-    skipCheck: Boolean = false
+    skipCheck: Boolean = false,
   ): List<HighlightInfo> {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)

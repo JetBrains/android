@@ -84,7 +84,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) :
       component,
       editorModel.property,
       editorModel.editingValue,
-      text = text.orEmpty()
+      text = text.orEmpty(),
     )
     return null
   }

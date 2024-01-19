@@ -64,7 +64,7 @@ open class SupportTestUtil
 private constructor(
   facet: AndroidFacet,
   val fixture: CodeInsightTestFixture,
-  val components: MutableList<NlComponent>
+  val components: MutableList<NlComponent>,
 ) {
   private var updates = 0
   private val queue =
@@ -83,7 +83,7 @@ private constructor(
     parentTag: String = "",
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
-    activityName: String = ""
+    activityName: String = "",
   ) : this(
     facet,
     fixture,
@@ -94,7 +94,7 @@ private constructor(
   private constructor(
     facet: AndroidFacet,
     fixture: CodeInsightTestFixture,
-    component: ComponentDescriptor
+    component: ComponentDescriptor,
   ) : this(
     facet,
     fixture,
@@ -107,7 +107,7 @@ private constructor(
     parentTag: String = "",
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
-    activityName: String = ""
+    activityName: String = "",
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
@@ -120,7 +120,7 @@ private constructor(
 
   constructor(
     projectRule: AndroidProjectRule,
-    component: ComponentDescriptor
+    component: ComponentDescriptor,
   ) : this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
 
   init {
@@ -133,7 +133,7 @@ private constructor(
         override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
           updates++
         }
-      },
+      }
     )
     model.surface = (nlModel as? SyncNlModel)?.surface
   }
@@ -141,7 +141,7 @@ private constructor(
   fun waitForPropertiesUpdate(
     updatesToWaitFor: Int,
     timeout: Long = 10,
-    unit: TimeUnit = TimeUnit.SECONDS
+    unit: TimeUnit = TimeUnit.SECONDS,
   ) {
     val stop = System.currentTimeMillis() + unit.toMillis(timeout)
     while (updates < updatesToWaitFor && System.currentTimeMillis() < stop) {
@@ -157,7 +157,7 @@ private constructor(
     namespace: String,
     name: String,
     type: NlPropertyType,
-    initializeResolver: Boolean = true
+    initializeResolver: Boolean = true,
   ): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
@@ -188,7 +188,7 @@ private constructor(
   fun makeProperty(
     namespace: String,
     definition: AttributeDefinition,
-    type: NlPropertyType
+    type: NlPropertyType,
   ): NlPropertyItem {
     return NlPropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
@@ -322,7 +322,7 @@ private constructor(
       fixture: CodeInsightTestFixture,
       resourceFolder: String,
       fileName: String,
-      descriptor: ComponentDescriptor
+      descriptor: ComponentDescriptor,
     ): List<NlComponent> {
       val model =
         NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
@@ -337,7 +337,7 @@ private constructor(
       parentTag: String,
       resourceFolder: String,
       fileName: String,
-      vararg tags: String
+      vararg tags: String,
     ): List<NlComponent> {
       val descriptor =
         if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
@@ -364,7 +364,7 @@ private constructor(
       activityName: String,
       parentTag: String,
       resourceFolder: String,
-      vararg tags: String
+      vararg tags: String,
     ): ComponentDescriptor {
       if (parentTag.isEmpty()) throw IllegalArgumentException("parentTag must be supplied")
       val descriptor = ComponentDescriptor(parentTag).withBounds(0, 0, 1000, 1000)

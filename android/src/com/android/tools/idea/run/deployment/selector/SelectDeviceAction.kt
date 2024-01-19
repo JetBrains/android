@@ -23,10 +23,8 @@ import com.intellij.openapi.components.service
  * An action for each device in the drop down without a snapshot sublist. When a user selects a
  * device, SelectDeviceAction will set a target for the device in DeviceAndSnapshotComboBoxAction.
  */
-class SelectDeviceAction
-internal constructor(
-  internal val device: DeploymentTargetDevice,
-) : AnAction() {
+class SelectDeviceAction internal constructor(internal val device: DeploymentTargetDevice) :
+  AnAction() {
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val project = requireNotNull(event.project)
@@ -35,7 +33,7 @@ internal constructor(
       device.disambiguatedName(
         project.service<DevicesSelectedService>().devicesAndTargets.allDevices
       ),
-      false
+      false,
     )
   }
 

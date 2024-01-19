@@ -117,7 +117,7 @@ class SnapshotActionTest {
       object : FileChooserFactoryImpl() {
         override fun createSaveFileDialog(
           descriptor: FileSaverDescriptor,
-          project: Project?
+          project: Project?,
         ): FileSaverDialog {
           return object : FileSaverDialog {
             override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper? {
@@ -135,7 +135,7 @@ class SnapshotActionTest {
         override fun createFileChooser(
           descriptor: FileChooserDescriptor,
           project: Project?,
-          parent: Component?
+          parent: Component?,
         ): FileChooserDialog {
           return object : FileChooserDialog {
             @Deprecated("Deprecated in Java")
@@ -145,7 +145,7 @@ class SnapshotActionTest {
 
             override fun choose(
               project: Project?,
-              vararg toSelect: VirtualFile?
+              vararg toSelect: VirtualFile?,
             ): Array<VirtualFile> {
               return arrayOf(fileToReturn!!.virtualFile!!)
             }

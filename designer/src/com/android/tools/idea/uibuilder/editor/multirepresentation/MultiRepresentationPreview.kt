@@ -82,9 +82,9 @@ data class Representation(
     entryTagName = "setting",
     keyAttributeName = "name",
     valueAttributeName = "value",
-    surroundWithTag = false
+    surroundWithTag = false,
   )
-  var settings: PreviewRepresentationState = mutableMapOf()
+  var settings: PreviewRepresentationState = mutableMapOf(),
 )
 
 /**
@@ -94,7 +94,7 @@ data class Representation(
 @Tag(MULTI_PREVIEW_STATE_TAG)
 data class MultiRepresentationPreviewFileEditorState(
   @Attribute("selected") var selectedRepresentationName: RepresentationName = "",
-  @Tag("representations") var representations: Collection<Representation> = mutableListOf()
+  @Tag("representations") var representations: Collection<Representation> = mutableListOf(),
 ) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is MultiRepresentationPreviewFileEditorState && this == otherState
@@ -115,7 +115,7 @@ data class MultiRepresentationPreviewFileEditorState(
 open class MultiRepresentationPreview(
   psiFile: PsiFile,
   private val editor: Editor,
-  private val providers: Collection<PreviewRepresentationProvider>
+  private val providers: Collection<PreviewRepresentationProvider>,
 ) : PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!), AndroidCoroutinesAware {
 
   private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
@@ -402,7 +402,7 @@ open class MultiRepresentationPreview(
 
     return MultiRepresentationPreviewFileEditorState(
       currentRepresentationName,
-      representationStates
+      representationStates,
     )
   }
 
@@ -431,7 +431,7 @@ open class MultiRepresentationPreview(
 
   private class RepresentationOption(
     val representationName: String,
-    val parent: MultiRepresentationPreview
+    val parent: MultiRepresentationPreview,
   ) : AnAction(representationName) {
     override fun actionPerformed(e: AnActionEvent) {
       // Here we iterate over all editors as change in selection (write) should trigger updates in

@@ -46,7 +46,7 @@ class MotionLayoutPropertyProviderTest {
         "constraintSetStart",
         "constraintSetEnd",
         "staggered",
-        "transitionDisable"
+        "transitionDisable",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly("id")
     assertThat(properties[SdkConstants.AUTO_URI, "duration"].value).isEqualTo("2000")
@@ -62,7 +62,7 @@ class MotionLayoutPropertyProviderTest {
         "barrierDirection",
         "barrierAllowsGoneWidgets",
         "layout_constraintLeft_toLeftOf",
-        "layout_constraintLeft_toRightOf"
+        "layout_constraintLeft_toRightOf",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsExactly(
@@ -94,7 +94,7 @@ class MotionLayoutPropertyProviderTest {
         "translationX",
         "translationY",
         "translationZ",
-        "visibility"
+        "visibility",
       )
     assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
       .isEqualTo("64dp")
@@ -115,7 +115,7 @@ class MotionLayoutPropertyProviderTest {
         "barrierDirection",
         "barrierAllowsGoneWidgets",
         "layout_constraintLeft_toLeftOf",
-        "layout_constraintLeft_toRightOf"
+        "layout_constraintLeft_toRightOf",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsExactly(
@@ -147,7 +147,7 @@ class MotionLayoutPropertyProviderTest {
         "translationX",
         "translationY",
         "translationZ",
-        "visibility"
+        "visibility",
       )
     assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID].value)
       .isEqualTo("buttonEmptyConstraint")
@@ -164,7 +164,7 @@ class MotionLayoutPropertyProviderTest {
         "barrierDirection",
         "barrierAllowsGoneWidgets",
         "layout_constraintLeft_toLeftOf",
-        "layout_constraintLeft_toRightOf"
+        "layout_constraintLeft_toRightOf",
       )
     assertThat(layoutProperties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsAllOf(
@@ -175,7 +175,7 @@ class MotionLayoutPropertyProviderTest {
         "layout_marginRight",
         "layout_marginStart",
         "layout_marginTop",
-        "layout_height"
+        "layout_height",
       )
 
     val motionProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.MOTION)
@@ -186,7 +186,7 @@ class MotionLayoutPropertyProviderTest {
         "pathMotionArc",
         "motionPathRotate",
         "motionStagger",
-        "drawPath"
+        "drawPath",
       )
     assertThat(motionProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
 
@@ -217,7 +217,7 @@ class MotionLayoutPropertyProviderTest {
         "percentWidth",
         "curveFit",
         "drawPath",
-        "sizePercent"
+        "sizePercent",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
     assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("51")
@@ -235,7 +235,7 @@ class MotionLayoutPropertyProviderTest {
         "transitionEasing",
         "curveFit",
         "motionProgress",
-        "transitionPathRotate"
+        "transitionPathRotate",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsExactly(
@@ -249,7 +249,7 @@ class MotionLayoutPropertyProviderTest {
         "scaleY",
         "translationX",
         "translationY",
-        "translationZ"
+        "translationZ",
       )
     assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("99")
     assertThat(properties[SdkConstants.ANDROID_URI, "rotation"].value).isEqualTo("1")
@@ -270,7 +270,7 @@ class MotionLayoutPropertyProviderTest {
         "waveOffset",
         "wavePeriod",
         "waveShape",
-        "waveVariesBy"
+        "waveVariesBy",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsExactly(
@@ -283,7 +283,7 @@ class MotionLayoutPropertyProviderTest {
         "scaleY",
         "translationX",
         "translationY",
-        "translationZ"
+        "translationZ",
       )
     assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("15")
     assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
@@ -304,7 +304,7 @@ class MotionLayoutPropertyProviderTest {
         "waveOffset",
         "waveDecay",
         "wavePeriod",
-        "waveShape"
+        "waveShape",
       )
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys)
       .containsExactly(
@@ -317,7 +317,7 @@ class MotionLayoutPropertyProviderTest {
         "scaleY",
         "translationX",
         "translationY",
-        "translationZ"
+        "translationZ",
       )
     assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("25")
     assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")

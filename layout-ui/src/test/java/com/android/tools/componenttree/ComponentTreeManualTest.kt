@@ -95,7 +95,7 @@ object ComponentTreeManualTest {
       AdvancedSettingBean.EP_NAME.name,
       AdvancedSettingBean::class.java.name,
       ExtensionPoint.Kind.BEAN_CLASS,
-      false
+      false,
     )
     app.registerExtension(AdvancedSettingBean.EP_NAME, AdvancedSettingBean(), disposable)
     val settings =
@@ -193,7 +193,7 @@ private class ComponentTreeTest {
         frame,
         "Goto Declaration activated: $item from $context",
         "Tree Action",
-        JOptionPane.INFORMATION_MESSAGE
+        JOptionPane.INFORMATION_MESSAGE,
       )
     }
     return menuItem
@@ -207,7 +207,7 @@ private class ComponentTreeTest {
         frame,
         "Help activated: $item from $context",
         "Tree Action",
-        JOptionPane.INFORMATION_MESSAGE
+        JOptionPane.INFORMATION_MESSAGE,
       )
     }
     return menuItem
@@ -282,7 +282,7 @@ private class ComponentTreeTest {
           frame,
           "Badge: $name for $item",
           "Tree Action",
-          JOptionPane.INFORMATION_MESSAGE
+          JOptionPane.INFORMATION_MESSAGE,
         )
       }
     }

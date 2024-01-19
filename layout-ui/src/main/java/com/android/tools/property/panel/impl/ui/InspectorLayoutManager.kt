@@ -209,7 +209,7 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
       maxOf(
           leftMaxWidth / nameColumnFraction.value,
           rightMaxWidth / rightFraction,
-          lineMaxWidth.toFloat()
+          lineMaxWidth.toFloat(),
         )
         .toInt()
     leftWidth = (width * nameColumnFraction.value).toInt()

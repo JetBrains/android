@@ -35,7 +35,7 @@ object LayoutInspectorMetrics {
 
   fun logTransportError(
     transportErrorType: DynamicLayoutInspectorTransportError.Type,
-    deviceDescriptor: DeviceDescriptor
+    deviceDescriptor: DeviceDescriptor,
   ) {
     val transportErrorInfo =
       DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()

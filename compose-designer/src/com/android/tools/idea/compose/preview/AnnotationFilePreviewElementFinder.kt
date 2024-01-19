@@ -47,13 +47,13 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    */
   override suspend fun findPreviewMethods(
     project: Project,
-    vFile: VirtualFile
+    vFile: VirtualFile,
   ): Collection<ComposePreviewElement> {
     return findAnnotatedMethodsValues(
       project,
       vFile,
       COMPOSABLE_ANNOTATION_FQ_NAME,
-      COMPOSABLE_ANNOTATION_NAME
+      COMPOSABLE_ANNOTATION_NAME,
     ) { methods ->
       val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
       val previewElements = previewNodes.filterIsInstance<ComposePreviewElement>().distinct()
@@ -64,7 +64,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
             .logEvent(
               MultiPreviewEvent(
                 previewNodes.filterIsInstance<MultiPreviewNode>(),
-                "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}"
+                "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}",
               )
             )
         }

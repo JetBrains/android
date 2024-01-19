@@ -50,7 +50,7 @@ class IssuedFileNodeTest {
     val root =
       DesignerCommonIssueRoot(
         null,
-        DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file))))
+        DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file)))),
       ) {
         LayoutValidationNodeFactory
       }
@@ -76,9 +76,9 @@ class IssuedFileNodeTest {
         DesignerCommonIssueTestProvider(
           listOf(
             TestIssue(source = IssueSourceWithFile(file)),
-            TestIssue(source = IssueSourceWithFile(file))
+            TestIssue(source = IssueSourceWithFile(file)),
           )
-        )
+        ),
       ) {
         LayoutValidationNodeFactory
       }

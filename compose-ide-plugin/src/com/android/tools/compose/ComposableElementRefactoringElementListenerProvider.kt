@@ -49,7 +49,7 @@ class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
   override fun createRenamer(
     element: PsiElement,
     newName: String?,
-    usages: MutableCollection<UsageInfo>?
+    usages: MutableCollection<UsageInfo>?,
   ): AutomaticRenamer {
     return object : AutomaticRenamer() {
       init {

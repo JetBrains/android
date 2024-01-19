@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.HighSensorSamplingRateDetector
 class AndroidLintHighSamplingRateInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.high.sampling.rate"),
-    HighSensorSamplingRateDetector.ISSUE
+    HighSensorSamplingRateDetector.ISSUE,
   )

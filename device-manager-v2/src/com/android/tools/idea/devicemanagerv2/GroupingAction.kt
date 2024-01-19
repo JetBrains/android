@@ -29,7 +29,7 @@ internal class GroupingAction(
 ) : ToggleAction(name) {
   constructor(
     table: CategoryTable<DeviceRowData>,
-    column: Column<DeviceRowData, *, *>
+    column: Column<DeviceRowData, *, *>,
   ) : this(table, column.attribute, column.name)
 
   override fun getActionUpdateThread() = ActionUpdateThread.EDT

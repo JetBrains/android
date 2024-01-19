@@ -40,7 +40,7 @@ class AnimationToolingUsageTrackerTest {
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_ANIMATION_TOOLING, androidStudioEvent.kind)
     assertEquals(
       ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE,
-      androidStudioEvent.composeAnimationToolingEvent.type
+      androidStudioEvent.composeAnimationToolingEvent.type,
     )
   }
 
@@ -56,7 +56,7 @@ class AnimationToolingUsageTrackerTest {
       animationToolingUsageTracker.logEvent(animationToolingEvent).composeAnimationToolingEvent
     assertEquals(
       ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED,
-      composeAnimationToolingEvent.type
+      composeAnimationToolingEvent.type,
     )
     assertEquals(1.5f, composeAnimationToolingEvent.animationSpeedMultiplier)
   }

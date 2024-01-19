@@ -48,7 +48,7 @@ open class NlFlagsPropertyItem(
   model: NlPropertiesModel,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) :
   NlPropertyItem(
     namespace,
@@ -60,7 +60,7 @@ open class NlFlagsPropertyItem(
     model,
     components,
     optionalValue1,
-    optionalValue2
+    optionalValue2,
   ),
   FlagsPropertyItem<NlFlagPropertyItem> {
   private val _flags = mutableListOf<NlFlagPropertyItem>()
@@ -221,7 +221,7 @@ class NlFlagsPropertyGroupItem(
   model: NlPropertiesModel,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) :
   NlFlagsPropertyItem(
     namespace,
@@ -233,7 +233,7 @@ class NlFlagsPropertyGroupItem(
     model,
     components,
     optionalValue1,
-    optionalValue2
+    optionalValue2,
   ),
   FlagsPropertyGroupItem<NlFlagPropertyItem>
 
@@ -245,7 +245,7 @@ class NlFlagsPropertyGroupItem(
 class NlFlagPropertyItem(
   override val flags: NlFlagsPropertyItem,
   name: String,
-  override val maskValue: Int
+  override val maskValue: Int,
 ) :
   NlPropertyItem(
     flags.namespace,
@@ -257,7 +257,7 @@ class NlFlagPropertyItem(
     flags.model,
     flags.components,
     flags.optionalValue1,
-    flags.optionalValue2
+    flags.optionalValue2,
   ),
   FlagPropertyItem {
 

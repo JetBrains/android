@@ -128,7 +128,7 @@ class RuleDetailsViewTest {
         codeNavigationProvider,
         timer,
         client,
-        IdeNetworkInspectorTracker(projectRule.project)
+        IdeNetworkInspectorTracker(projectRule.project),
       )
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
@@ -138,7 +138,7 @@ class RuleDetailsViewTest {
         scope,
         object : ConnectionDataModel {
           override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
-        }
+        },
       )
     model.detailContent = NetworkInspectorModel.DetailContent.RULE
     val parentPanel = JPanel()
@@ -151,7 +151,7 @@ class RuleDetailsViewTest {
         component,
         services,
         scope,
-        testRootDisposable
+        testRootDisposable,
       )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
@@ -621,7 +621,7 @@ class RuleDetailsViewTest {
         "findValue",
         false,
         "replaceName",
-        "replaceValue"
+        "replaceValue",
       )
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
@@ -1219,7 +1219,7 @@ class RuleDetailsViewTest {
         "HEAD",
         "TRACE",
         "CONNECT",
-        "OPTIONS"
+        "OPTIONS",
       )
       .inOrder()
   }

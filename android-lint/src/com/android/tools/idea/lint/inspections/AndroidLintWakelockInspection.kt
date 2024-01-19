@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WakelockDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
 class AndroidLintWakelockInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.wakelock"),
-    WakelockDetector.ISSUE
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.wakelock"), WakelockDetector.ISSUE)

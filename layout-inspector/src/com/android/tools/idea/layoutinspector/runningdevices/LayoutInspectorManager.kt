@@ -159,7 +159,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         value.layoutInspector.foregroundProcessDetection?.startPollingDevice(
           selectedDevice,
           // only stop polling if the previous tab is still open.
-          previousTab?.deviceId in existingRunningDevicesTabs
+          previousTab?.deviceId in existingRunningDevicesTabs,
         )
       }
 
@@ -261,7 +261,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         disposable = selectedTabContent,
         tabContentPanel = streamingContentPanel,
         tabContentPanelContainer = streamingContentPanel.parent,
-        displayView = displayView
+        displayView = displayView,
       )
 
     return SelectedTabState(project, deviceId, tabComponents, project.getLayoutInspector())
@@ -351,7 +351,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
               ShowSettingsUtil.getInstance()
                 .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
             },
-          )
+          ),
       )
     } else {
       notificationModel.removeNotification(EMBEDDED_LI_MESSAGE_KEY)

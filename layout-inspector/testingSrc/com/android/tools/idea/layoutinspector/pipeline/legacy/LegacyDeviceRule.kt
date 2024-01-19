@@ -109,7 +109,7 @@ class LegacyDeviceRule(
   private val manifest: String = manifestSample,
   private val config: String = configSample,
   private val activities: String = activitiesSample,
-  private val themes: String = themesSample
+  private val themes: String = themesSample,
 ) : ExternalResource() {
   private val projectRule = AndroidProjectRule.withSdk()
   private val commandHandler =
@@ -141,7 +141,7 @@ class LegacyDeviceRule(
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
@@ -165,7 +165,7 @@ class LegacyDeviceRule(
           notificationModel,
           LayoutInspectorSessionMetrics(model.project, process),
           scope,
-          disposable
+          disposable,
         )
         .apply { launchMonitor = MockitoKt.mock() }
     // This causes the current client to register its listeners
@@ -176,7 +176,7 @@ class LegacyDeviceRule(
       client,
       model,
       notificationModel,
-      treeSettings
+      treeSettings,
     )
     client.state = InspectorClient.State.CONNECTED
     return client

@@ -86,7 +86,7 @@ import org.junit.runners.Parameterized
 private fun defaultDaemonFactory(
   version: String,
   log: Logger,
-  scope: CoroutineScope
+  scope: CoroutineScope,
 ): CompilerDaemonClient {
   return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
 }
@@ -118,7 +118,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       else
         FastPreviewManager.getTestInstance(
             projectRule.project,
-            { version, _, log, scope -> defaultDaemonFactory(version, log, scope) }
+            { version, _, log, scope -> defaultDaemonFactory(version, log, scope) },
           )
           .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
     ApplicationManager.getApplication().invokeAndWait { projectRule.buildAndAssertIsSuccessful() }
@@ -189,14 +189,14 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       val stringResourceCallPatter =
         Regex(
           "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
-          RegexOption.MULTILINE
+          RegexOption.MULTILINE,
         )
       val matches = stringResourceCallPatter.findAll(decompiledOutput)
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
       // Real ids are all above 0x7f000000
       assertTrue(
         "Fake IDs are not expected for a compiled project in the light R class",
-        matches.all { it.groupValues[1].toInt() > 0x7f000000 }
+        matches.all { it.groupValues[1].toInt() > 0x7f000000 },
       )
     }
   }
@@ -235,7 +235,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
     assertTrue(
       "Resulting image is expected to be at least 20% higher since a new text line was added",
-      finalState.height > initialState.height * 1.20
+      finalState.height > initialState.height * 1.20,
     )
   }
 

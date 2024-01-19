@@ -59,7 +59,7 @@ class AndroidLintCustomCheckTest {
         val lineNumber = doc.getLineNumber(doc.text.indexOf("dependencies {"))
         doc.insertString(
           doc.getLineEndOffset(lineNumber),
-          "implementation 'com.example.google:library-remote:1.0'"
+          "implementation 'com.example.google:library-remote:1.0'",
         )
         FileDocumentManager.getInstance().saveDocument(doc)
       }
@@ -89,7 +89,7 @@ class AndroidLintCustomCheckTest {
   fun dependencyOnLocalModuleWithLintChecks() {
     doTest(
       "app/src/main/java/com/example/app/MyList.java",
-      "Do not implement java.util.List directly"
+      "Do not implement java.util.List directly",
     )
   }
 
@@ -102,7 +102,7 @@ class AndroidLintCustomCheckTest {
   fun dependencyOnRemoteLibraryExportingLintChecks() {
     doTest(
       "app/src/main/java/com/example/app/MySet.java",
-      "Do not implement java.util.Set directly"
+      "Do not implement java.util.Set directly",
     )
   }
 }

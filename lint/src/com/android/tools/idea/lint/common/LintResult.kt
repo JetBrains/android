@@ -41,7 +41,7 @@ data class LintBatchResult(
   val project: Project,
   val problemMap: Map<Issue, Map<File, List<LintProblemData>>>,
   val scope: AnalysisScope,
-  private val issues: Set<Issue>
+  private val issues: Set<Issue>,
 ) : LintResult() {
   override fun getIssues(): Set<Issue> {
     return issues
@@ -53,7 +53,7 @@ constructor(
   private val myModule: Module,
   val mainFile: VirtualFile,
   val mainFileContent: String,
-  private val myIssues: Set<Issue>
+  private val myIssues: Set<Issue>,
 ) : LintResult() {
   val problems: List<LintProblemData> = ArrayList()
 

@@ -32,7 +32,7 @@ private val NO_PREFIX_PACKAGES: Set<String> =
     SdkConstants.ANDROID_VIEW_PKG,
     SdkConstants.ANDROID_WEBKIT_PKG,
     SdkConstants.ANDROID_APP_PKG,
-    ""
+    "",
   )
 
 /** Returns true if the tagName is already a qualified name (contains a dot). */
@@ -60,7 +60,7 @@ private fun getPotentialFqnClassNames(viewTag: String): Sequence<String> =
 fun findClassesForViewTag(
   project: Project,
   viewTag: String,
-  scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
+  scope: GlobalSearchScope = GlobalSearchScope.allScope(project),
 ): Array<PsiClass> {
   val facade = JavaPsiFacade.getInstance(project)
   return getPotentialFqnClassNames(viewTag)
@@ -78,7 +78,7 @@ fun findClassesForViewTag(
 fun findClassForViewTag(
   project: Project,
   viewTag: String,
-  scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
+  scope: GlobalSearchScope = GlobalSearchScope.allScope(project),
 ): PsiClass? {
   val facade = JavaPsiFacade.getInstance(project)
   return getPotentialFqnClassNames(viewTag).mapNotNull { facade.findClass(it, scope) }.firstOrNull()

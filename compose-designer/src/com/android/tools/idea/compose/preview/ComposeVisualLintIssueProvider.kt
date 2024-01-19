@@ -67,7 +67,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
       Issue.Suppress(
         message("ui.check.mode.suppress.action.title"),
         message("ui.check.mode.suppress.action.description", issue.type),
-        ComposeVisualLintSuppressTask(model, previewElement, issue.type)
+        ComposeVisualLintSuppressTask(model, previewElement, issue.type),
       )
     )
   }
@@ -81,7 +81,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 class ComposeVisualLintSuppressTask(
   private val model: NlModel,
   private val previewElement: ComposePreviewElement,
-  private val issueType: VisualLintErrorType
+  private val issueType: VisualLintErrorType,
 ) : VisualLintSuppressTask {
 
   override fun run() {
@@ -111,7 +111,7 @@ class ComposeVisualLintSuppressTask(
           }
         }
       },
-      previewElement.containingFile
+      previewElement.containingFile,
     )
   }
 

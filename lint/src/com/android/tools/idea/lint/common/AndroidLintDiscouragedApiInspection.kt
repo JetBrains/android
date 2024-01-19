@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.DiscouragedDetector
 class AndroidLintDiscouragedApiInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.discouraged.api"),
-    DiscouragedDetector.ISSUE
+    DiscouragedDetector.ISSUE,
   )

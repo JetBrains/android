@@ -45,7 +45,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
     fun Modifier.extentionFunction():Modifier { return this}
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val settings =
@@ -69,7 +69,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
           val m3 = Modifier.adjust().adjust()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     var action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }
@@ -151,7 +151,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
               .adjust()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }

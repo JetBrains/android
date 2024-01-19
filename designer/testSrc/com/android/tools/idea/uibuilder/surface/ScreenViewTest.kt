@@ -99,12 +99,12 @@ class ScreenViewTest {
     assertEquals(
       "measure should not modify the dimensions where there is no device available",
       123,
-      outDimension.width
+      outDimension.width,
     )
     assertEquals(
       "measure should not modify the dimensions where there is no device available",
       123,
-      outDimension.height
+      outDimension.height,
     )
 
     whenever(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
@@ -113,12 +113,12 @@ class ScreenViewTest {
     assertEquals(
       "measure should not modify the dimensions where there is no state available",
       123,
-      outDimension.width
+      outDimension.width,
     )
     assertEquals(
       "measure should not modify the dimensions where there is no state available",
       123,
-      outDimension.height
+      outDimension.height,
     )
   }
 

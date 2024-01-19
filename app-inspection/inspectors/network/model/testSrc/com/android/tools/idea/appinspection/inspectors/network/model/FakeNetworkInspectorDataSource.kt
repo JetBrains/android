@@ -23,7 +23,7 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 
 class FakeNetworkInspectorDataSource(
   httpEventList: List<Event> = emptyList(),
-  private val speedEventList: List<Event> = emptyList()
+  private val speedEventList: List<Event> = emptyList(),
 ) : NetworkInspectorDataSource {
   var resetCalledCount = 0
 

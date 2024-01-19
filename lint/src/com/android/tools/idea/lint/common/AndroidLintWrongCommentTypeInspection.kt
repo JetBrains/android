@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.WrongCommentTypeDetector
 class AndroidLintWrongCommentTypeInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wrong.comment.type"),
-    WrongCommentTypeDetector.ISSUE
+    WrongCommentTypeDetector.ISSUE,
   )

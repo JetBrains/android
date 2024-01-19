@@ -39,7 +39,7 @@ const val TARGET_PROPERTY: String = "target"
 internal class AnimatedPropertiesModel(
   val initial: ComposeUnit.Unit<*>,
   val target: ComposeUnit.Unit<*>,
-  val onModified: (ComposeUnit.Unit<*>?, ComposeUnit.Unit<*>?) -> Unit
+  val onModified: (ComposeUnit.Unit<*>?, ComposeUnit.Unit<*>?) -> Unit,
 ) : PsiPropertiesModel() {
 
   override val properties: PropertiesTable<PsiPropertyItem> =
@@ -65,12 +65,12 @@ internal class AnimatedPropertiesModel(
       override val editorProvider: EditorProvider<PsiPropertyItem> =
         PsiEditorProvider(
           PsiEnumProvider(EnumSupportValuesProvider.EMPTY),
-          AnimatedPropertyTypeProvider
+          AnimatedPropertyTypeProvider,
         )
 
       override fun attachToInspector(
         inspector: InspectorPanel,
-        properties: PropertiesTable<PsiPropertyItem>
+        properties: PropertiesTable<PsiPropertyItem>,
       ) {
         // If parameter is one-dimensional it displayed as:
         //      initial : {value}

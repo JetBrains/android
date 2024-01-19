@@ -115,7 +115,7 @@ class GotoDeclarationActionTest {
     fileOpenCaptureRule.checkEditor(
       "MyCompose.kt",
       17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
     )
     checkStats(stats, keyStrokeCount = 1)
   }
@@ -168,14 +168,14 @@ class GotoDeclarationActionTest {
               }
             }
           }
-        }
+        },
     )
 
   private fun createEvent(
     model: InspectorModel,
     stats: SessionStatistics,
     notificationModel: NotificationModel = mock(),
-    fromShortcut: Boolean = false
+    fromShortcut: Boolean = false,
   ): AnActionEvent {
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(stats)
@@ -193,7 +193,7 @@ class GotoDeclarationActionTest {
       ActionPlaces.UNKNOWN,
       Presentation(),
       actionManager,
-      0
+      0,
     )
   }
 

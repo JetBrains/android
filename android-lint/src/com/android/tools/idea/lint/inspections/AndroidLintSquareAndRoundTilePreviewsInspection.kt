@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.TileProviderDetector
 class AndroidLintSquareAndRoundTilePreviewsInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.square.and.round.tile.previews"),
-    TileProviderDetector.SQUARE_AND_ROUND_TILE_PREVIEWS
+    TileProviderDetector.SQUARE_AND_ROUND_TILE_PREVIEWS,
   )

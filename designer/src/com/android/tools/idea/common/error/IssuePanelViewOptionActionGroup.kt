@@ -54,7 +54,7 @@ class IssuePanelViewOptionActionGroup : ActionGroup(), DumbAware {
     val toggleOrderOptions =
       arrayOf<AnAction>(
         ToggleIssuePanelSortedBySeverityAction(),
-        ToggleIssuePanelSortedByNameAction()
+        ToggleIssuePanelSortedByNameAction(),
       )
 
     return toggleViewOptions + separator + toggleOrderOptions

@@ -115,12 +115,12 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
         eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
-        connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
+        connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
       )
 
       val fakeUi = FakeUi(tab)
@@ -158,7 +158,7 @@ class VitalsTabTest {
           "All visibility",
           "All versions",
           "All devices",
-          "All operating systems"
+          "All operating systems",
         )
       fakeUi
         .findToolbar()
@@ -213,7 +213,7 @@ class VitalsTabTest {
           .containsExactly(
             "Google Pixel 4a",
             "Android 3.1 (API 12)",
-            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime)
+            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime),
           )
         assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text })
           .containsExactly("74081e5f")
@@ -260,13 +260,13 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(IssueStats(null, emptyList()), IssueStats(null, emptyList()))
-          )
+          ),
       )
 
       with(fakeUi.findComponent<DistributionsContainerPanel>()!!.emptyText) {
@@ -287,13 +287,13 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(IssueStats(null, emptyList()), ISSUE1_DETAILS.osStats)
-          )
+          ),
       )
 
       delayUntilCondition(200) {
@@ -316,13 +316,13 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          )
+          ),
       )
 
       delayUntilCondition(200) {
@@ -345,13 +345,13 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          )
+          ),
       )
 
       delayUntilCondition(200) {

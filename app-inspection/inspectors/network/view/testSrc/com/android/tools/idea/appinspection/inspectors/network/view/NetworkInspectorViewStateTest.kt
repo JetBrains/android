@@ -41,7 +41,7 @@ class NetworkInspectorViewStateTest {
         "Request Headers",
         "Response Headers",
         "Request Time",
-        "Response Time"
+        "Response Time",
       )
   }
 
@@ -74,7 +74,7 @@ class NetworkInspectorViewStateTest {
         "Request Headers",
         "Response Headers",
         "Request Time",
-        "Response Time"
+        "Response Time",
       )
   }
 
@@ -106,7 +106,7 @@ class NetworkInspectorViewStateTest {
         "Request Headers",
         "Response Headers",
         "Request Time",
-        "Response Time"
+        "Response Time",
       )
   }
 }

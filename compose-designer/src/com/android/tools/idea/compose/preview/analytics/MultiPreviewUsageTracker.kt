@@ -64,7 +64,7 @@ private class MultiPreviewNopTracker : MultiPreviewUsageTracker {
 private class InternalMultiPreviewUsageTracker(
   private val executor: Executor,
   private val facet: AndroidFacet?,
-  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
+  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>,
 ) : MultiPreviewUsageTracker {
   override val graphCache: Cache<String, Int> = CacheBuilder.newBuilder().build()
 
@@ -165,7 +165,7 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
    */
   fun withChildNodes(
     multiPreviewChildNodes: Collection<MultiPreviewNodeInfo?>,
-    previewChildrenCount: Int
+    previewChildrenCount: Int,
   ): MultiPreviewNodeInfo {
     if (!this.isMultiPreviewType() && !this.isRootComposableType()) {
       LOG.error(

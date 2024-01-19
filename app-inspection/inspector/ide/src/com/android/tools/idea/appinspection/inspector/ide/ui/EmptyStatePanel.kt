@@ -25,5 +25,5 @@ fun EmptyStatePanel(reason: String, learnMoreUrl: String?, actionData: ActionDat
   EmptyStatePanel(
     reason,
     learnMoreUrl?.let { url -> UrlData(AppInspectorBundle.message("learn.more"), url) },
-    actionData
+    actionData,
   )

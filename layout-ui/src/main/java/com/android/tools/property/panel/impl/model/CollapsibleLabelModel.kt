@@ -46,7 +46,7 @@ open class CollapsibleLabelModel(
   val name: String,
   val editorModel: PropertyEditorModel? = null,
   override val isSearchable: Boolean = false,
-  @TestOnly val properties: PropertiesComponent = PropertiesComponent.getInstance()
+  @TestOnly val properties: PropertiesComponent = PropertiesComponent.getInstance(),
 ) : GenericInspectorLineModel() {
   @VisibleForTesting var children: MutableList<InspectorLineModel>? = null
   private var defaultExpansionValue = true

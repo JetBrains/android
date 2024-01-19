@@ -130,7 +130,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
         override fun onError(error: Throwable?) {}
 
         override fun onCompleted() {}
-      }
+      },
     )
     if (!lock.await(10, TimeUnit.SECONDS)) {
       Logger.getInstance(SkiaParserServerConnection::class.java)
@@ -148,7 +148,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
   fun getViewTree(
     data: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
-    scale: Double
+    scale: Double,
   ): Pair<InspectorView, Map<Int, ByteString>> {
     ping()
     return getViewTreeImpl(data, requestedNodes, scale)
@@ -175,7 +175,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
             }
 
             override fun onCompleted() {}
-          }
+          },
         )
 
         if (lock.await(1, TimeUnit.SECONDS)) {
@@ -200,7 +200,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
   private fun getViewTreeImpl(
     data: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
-    scale: Double
+    scale: Double,
   ): Pair<InspectorView, Map<Int, ByteString>> {
     val responseFuture = CompletableFuture<InspectorView>()
     val images = mutableMapOf<Int, ByteString>()

@@ -45,8 +45,8 @@ class FragmentHandlerTest : LayoutTestCase() {
                 .id("@+id/navhost")
                 .withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav")
                 .withBounds(0, 0, 100, 50),
-              component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50)
-            )
+              component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50),
+            ),
         )
         .build()
 
@@ -79,7 +79,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         ViewEditor.displayResourceInput(
           eq(model),
           eq("Navigation Graphs"),
-          eq(EnumSet.of(ResourceType.NAVIGATION))
+          eq(EnumSet.of(ResourceType.NAVIGATION)),
         )
       }
       .thenReturn("@navigation/testNav")
@@ -89,7 +89,7 @@ class FragmentHandlerTest : LayoutTestCase() {
       null,
       null,
       { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) },
-      model.file
+      model.file,
     )
     val newFragment = model.find("fragment")!!
     assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))

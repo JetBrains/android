@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.PackageVisibilityDetector
 class AndroidLintQueryPermissionsNeededInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.query.permissions.needed"),
-    PackageVisibilityDetector.QUERY_PERMISSIONS_NEEDED
+    PackageVisibilityDetector.QUERY_PERMISSIONS_NEEDED,
   )

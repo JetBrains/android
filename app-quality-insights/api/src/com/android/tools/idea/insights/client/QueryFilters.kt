@@ -62,5 +62,5 @@ data class QueryFilters(
   val operatingSystems: Set<OperatingSystemInfo> = setOf(OperatingSystemInfo.ALL),
   val eventTypes: List<FailureType> = emptyList(),
   val signal: SignalType = SignalType.SIGNAL_UNSPECIFIED,
-  val visibilityType: VisibilityType = VisibilityType.ALL
+  val visibilityType: VisibilityType = VisibilityType.ALL,
 )

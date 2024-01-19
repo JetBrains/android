@@ -66,7 +66,7 @@ class TargetSelectionActionFactoryTest {
         mockLauncher,
         inspectorModel,
         mock(),
-        mockTreeSettings
+        mockTreeSettings,
       )
   }
 

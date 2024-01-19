@@ -26,14 +26,14 @@ import java.util.concurrent.Executor
 open class OpenDatabaseRepository(
   project: Project,
   executor: Executor,
-  private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, executor)
+  private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, executor),
 ) : DatabaseRepository by databaseRepository {
 
   val openDatabases = mutableListOf<SqliteDatabaseId>()
 
   override suspend fun addDatabaseConnection(
     databaseId: SqliteDatabaseId,
-    databaseConnection: DatabaseConnection
+    databaseConnection: DatabaseConnection,
   ) {
     databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
     openDatabases.add(databaseId)

@@ -63,7 +63,7 @@ open class ComposePreviewRunConfigurationProducer :
   public final override fun setupConfigurationFromContext(
     configuration: ComposePreviewRunConfiguration,
     context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>
+    sourceElement: Ref<PsiElement>,
   ): Boolean {
     if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     val module = context.module ?: context.location?.module ?: return false
@@ -102,7 +102,7 @@ open class ComposePreviewRunConfigurationProducer :
 
   final override fun isConfigurationFromContext(
     configuration: ComposePreviewRunConfiguration,
-    context: ConfigurationContext
+    context: ConfigurationContext,
   ): Boolean {
     if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     context.containingComposePreviewFunction()?.let {
@@ -124,7 +124,7 @@ open class ComposePreviewRunConfigurationProducer :
  */
 private fun updateConfigurationTriggerToGutterIfNeeded(
   configuration: ComposePreviewRunConfiguration,
-  context: ConfigurationContext
+  context: ConfigurationContext,
 ) {
   if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
     configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER

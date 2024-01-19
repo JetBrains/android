@@ -70,7 +70,7 @@ class SaveLogcatActionTest {
       ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
       ProjectServiceRule(projectRule, ProjectApplicationIdsProvider::class.java) {
         fakeProjectApplicationIdsProvider
-      }
+      },
     )
 
   @Test
@@ -180,11 +180,7 @@ class SaveLogcatActionTest {
     assertThat(notification.type).isEqualTo(NotificationType.INFORMATION)
     assertThat(notification.content).isEqualTo("Log exported successfully")
     assertThat(notification.actions.map { it.templateText })
-      .containsExactly(
-        "Open in Editor",
-        RevealFileAction.getActionName(),
-        "Open in Logcat",
-      )
+      .containsExactly("Open in Editor", RevealFileAction.getActionName(), "Open in Logcat")
   }
 
   @Test
@@ -251,7 +247,7 @@ class SaveLogcatActionTest {
 
     override fun createSaveFileDialog(
       descriptor: FileSaverDescriptor,
-      project: Project?
+      project: Project?,
     ): FileSaverDialog {
       return object : FileSaverDialog {
         override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper =

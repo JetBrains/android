@@ -31,7 +31,7 @@ import kotlinx.coroutines.withContext
 
 open class FakeDatabaseInspectorController(
   private val repository: DatabaseRepository,
-  val model: DatabaseInspectorModel
+  val model: DatabaseInspectorModel,
 ) : DatabaseInspectorController {
 
   override val component: JComponent
@@ -44,7 +44,7 @@ open class FakeDatabaseInspectorController(
 
   override suspend fun runSqlStatement(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ) {}
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit =
@@ -61,12 +61,12 @@ open class FakeDatabaseInspectorController(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    appPackageName: String?
+    appPackageName: String?,
   ) {}
 
   override fun stopAppInspectionSession(
     appPackageName: String?,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ) {}
 
   override fun dispose() {}

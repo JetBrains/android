@@ -47,7 +47,7 @@ class LightActionBuilderClass(
 ) :
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
-    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)
+    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC),
   ) {
   private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
@@ -64,7 +64,7 @@ class LightActionBuilderClass(
   private val _navigationElement by lazy {
     (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(
       SdkConstants.TAG_ACTION,
-      action.id
+      action.id,
     )
   }
 
@@ -109,7 +109,7 @@ class LightActionBuilderClass(
           createMethod(
               name = "set${arg.name.toUpperCamelCase()}",
               navigationElement = getFieldNavigationElementByName(arg.name),
-              returnType = annotateNullability(thisType)
+              returnType = annotateNullability(thisType),
             )
             .addParameter(arg.name.toCamelCase(), argType)
 
@@ -117,7 +117,7 @@ class LightActionBuilderClass(
           createMethod(
             name = "get${arg.name.toUpperCamelCase()}",
             navigationElement = getFieldNavigationElementByName(arg.name),
-            returnType = annotateNullability(argType, arg.isNonNull())
+            returnType = annotateNullability(argType, arg.isNonNull()),
           )
 
         listOf(setter, getter)
@@ -153,7 +153,7 @@ class LightActionBuilderClass(
           _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
             ?: targetDestinationTag?.findChildTagElementByNameAttr(
               SdkConstants.TAG_ARGUMENT,
-              arg.name
+              arg.name,
             )
         createField(arg, navInfo.packageName, targetArgumentTag)
       }

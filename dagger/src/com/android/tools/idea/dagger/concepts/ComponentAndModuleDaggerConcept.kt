@@ -109,7 +109,7 @@ private object ComponentIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> 
   private fun lookForClassesOnAnnotation(
     wrapper: DaggerIndexClassWrapper,
     dataType: IndexValue.DataType,
-    indexEntries: IndexEntries
+    indexEntries: IndexEntries,
   ) {
     val annotationName = annotationsByDataType[dataType]!!
     val annotationArgumentName = annotationArgumentsByDataType[dataType]!!
@@ -127,10 +127,8 @@ private object ComponentIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> 
 }
 
 @VisibleForTesting
-internal data class ClassIndexValue(
-  override val dataType: DataType,
-  private val classId: ClassId,
-) : IndexValue() {
+internal data class ClassIndexValue(override val dataType: DataType, private val classId: ClassId) :
+  IndexValue() {
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
@@ -278,30 +276,30 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
         setOf(
           ComponentDaggerElement::class,
           ModuleDaggerElement::class,
-          SubcomponentDaggerElement::class
+          SubcomponentDaggerElement::class,
         ),
-        classPsiType.getIndexKeys()
+        classPsiType.getIndexKeys(),
       )
 
     return fromIndex.filterIsInstance<ComponentDaggerElement>().map {
       DaggerRelatedElement(
         it,
         DaggerBundle.message("included.in.components"),
-        "navigate.to.component.that.include"
+        "navigate.to.component.that.include",
       )
     } +
       fromIndex.filterIsInstance<SubcomponentDaggerElement>().map {
         DaggerRelatedElement(
           it,
           DaggerBundle.message("included.in.subcomponents"),
-          "navigate.to.subcomponent.that.include"
+          "navigate.to.subcomponent.that.include",
         )
       } +
       fromIndex.filterIsInstance<ModuleDaggerElement>().map {
         DaggerRelatedElement(
           it,
           DaggerBundle.message("included.in.modules"),
-          "navigate.to.module.that.include"
+          "navigate.to.module.that.include",
         )
       }
   }
@@ -318,7 +316,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
         psiElement,
         definingAnnotation,
         "modules",
-        DaggerAnnotation.MODULE
+        DaggerAnnotation.MODULE,
       )
     val subcomponentClasses =
       moduleClasses.flatMap {
@@ -326,7 +324,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
           it,
           DaggerAnnotation.MODULE,
           "subcomponents",
-          DaggerAnnotation.SUBCOMPONENT
+          DaggerAnnotation.SUBCOMPONENT,
         )
       }
 
@@ -335,7 +333,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
         DaggerRelatedElement(
           ModuleDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("modules.included"),
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         )
       }
     val subcomponentElements =
@@ -343,7 +341,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
         DaggerRelatedElement(
           SubcomponentDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("subcomponents"),
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         )
       }
 
@@ -365,7 +363,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
       psiElement: PsiElement,
       annotation: DaggerAnnotation,
       annotationArgumentName: String,
-      requiredAnnotationOnTarget: DaggerAnnotation
+      requiredAnnotationOnTarget: DaggerAnnotation,
     ): List<PsiClass> {
       val psiClass =
         when (psiElement) {
@@ -414,7 +412,7 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
         DaggerRelatedElement(
           it,
           DaggerBundle.message("parent.components"),
-          "navigate.to.parent.component"
+          "navigate.to.parent.component",
         )
       }
     return elementsFromIndex + getIncludedModulesAndSubcomponents()
@@ -451,7 +449,7 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
           DaggerRelatedElement(
             it,
             DaggerBundle.message("parent.components"),
-            "navigate.to.parent.component"
+            "navigate.to.parent.component",
           )
         }
 

@@ -37,7 +37,7 @@ fun interface ResultListener {
   fun onResult(
     propertiesProvider: PropertiesProvider,
     viewNode: ViewNode,
-    propertiesTable: PropertiesTable<InspectorPropertyItem>
+    propertiesTable: PropertiesTable<InspectorPropertyItem>,
   )
 }
 /** A [PropertiesProvider] provides properties to registered listeners.. */
@@ -74,7 +74,7 @@ fun addInternalProperties(
   table: PropertiesTable<InspectorPropertyItem>,
   view: ViewNode,
   attrId: String?,
-  lookup: ViewNodeAndResourceLookup
+  lookup: ViewNodeAndResourceLookup,
 ) {
   add(table, ATTR_NAME, PropertyType.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
   add(
@@ -84,7 +84,7 @@ fun addInternalProperties(
     view.layoutBounds.x.toString(),
     DIMENSION,
     view.drawId,
-    lookup
+    lookup,
   )
   add(
     table,
@@ -93,7 +93,7 @@ fun addInternalProperties(
     view.layoutBounds.y.toString(),
     DIMENSION,
     view.drawId,
-    lookup
+    lookup,
   )
   add(
     table,
@@ -102,7 +102,7 @@ fun addInternalProperties(
     view.layoutBounds.width.toString(),
     DIMENSION,
     view.drawId,
-    lookup
+    lookup,
   )
   add(
     table,
@@ -111,7 +111,7 @@ fun addInternalProperties(
     view.layoutBounds.height.toString(),
     DIMENSION,
     view.drawId,
-    lookup
+    lookup,
   )
   attrId?.let { add(table, ATTR_ID, PropertyType.STRING, it, VIEW, view.drawId, lookup) }
 
@@ -120,7 +120,7 @@ fun addInternalProperties(
 
 private fun ComposeViewNode.addComposeProperties(
   table: PropertiesTable<InspectorPropertyItem>,
-  lookup: ViewNodeAndResourceLookup
+  lookup: ViewNodeAndResourceLookup,
 ) {
   if (!recompositions.isEmpty) {
     // Do not show the "Recomposition" section in the properties panel for nodes without any counts.
@@ -132,7 +132,7 @@ private fun ComposeViewNode.addComposeProperties(
       recompositions.count.toString(),
       RECOMPOSITIONS,
       drawId,
-      lookup
+      lookup,
     )
     add(
       table,
@@ -141,7 +141,7 @@ private fun ComposeViewNode.addComposeProperties(
       recompositions.skips.toString(),
       RECOMPOSITIONS,
       drawId,
-      lookup
+      lookup,
     )
   }
 }
@@ -153,7 +153,7 @@ private fun add(
   value: String?,
   section: PropertySection,
   id: Long,
-  lookup: ViewNodeAndResourceLookup
+  lookup: ViewNodeAndResourceLookup,
 ) {
   table.put(InspectorPropertyItem(NAMESPACE_INTERNAL, name, type, value, section, null, id, lookup))
 }

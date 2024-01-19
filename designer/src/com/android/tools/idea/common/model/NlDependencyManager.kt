@@ -63,7 +63,7 @@ class NlDependencyManager private constructor() {
     components: Iterable<NlComponent>,
     facet: AndroidFacet,
     promptUserBeforeAdding: Boolean,
-    dependenciesPresentCallback: Runnable? = null
+    dependenciesPresentCallback: Runnable? = null,
   ): Boolean {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies =
@@ -79,7 +79,7 @@ class NlDependencyManager private constructor() {
         .addDependenciesWithUiConfirmation(
           missingDependencies,
           promptUserBeforeAdding,
-          requestSync = false
+          requestSync = false,
         )
         .isNotEmpty()
     ) {
@@ -99,7 +99,7 @@ class NlDependencyManager private constructor() {
       syncResult.addCallback(
         directExecutor(),
         success = { dependenciesPresentCallback.run() },
-        failure = { dependenciesPresentCallback.run() }
+        failure = { dependenciesPresentCallback.run() },
       )
     }
     return true

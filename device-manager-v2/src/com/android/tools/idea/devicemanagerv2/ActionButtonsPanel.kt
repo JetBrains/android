@@ -52,7 +52,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
       activationAction != null && deactivationAction != null -> {
         setUp(
           StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction),
-          overflowButton
+          overflowButton,
         )
       }
       project == null -> setUp(overflowButton)
@@ -63,7 +63,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
 
 internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
-  deviceTemplate: DeviceTemplate
+  deviceTemplate: DeviceTemplate,
 ) : ActionButtonsPanel() {
 
   init {

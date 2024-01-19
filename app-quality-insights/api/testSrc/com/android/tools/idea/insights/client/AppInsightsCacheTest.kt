@@ -51,7 +51,7 @@ class AppInsightsCacheTest {
         EventData(
           device = Device(manufacturer = "Google", model = "Pixel 4a"),
           operatingSystemInfo = OperatingSystemInfo(displayVersion = "12", "Android (12)"),
-          eventTime = now.minus(Duration.ofDays(7))
+          eventTime = now.minus(Duration.ofDays(7)),
         ),
       stacktraceGroup =
         StacktraceGroup(
@@ -63,7 +63,7 @@ class AppInsightsCacheTest {
                     caption =
                       Caption(
                         title = "Non-fatal Exception: retrofit2.HttpException",
-                        subtitle = "HTTP 401 "
+                        subtitle = "HTTP 401 ",
                       ),
                     blames = Blames.BLAMED,
                     frames =
@@ -76,7 +76,7 @@ class AppInsightsCacheTest {
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.BLAMED
+                          blame = Blames.BLAMED,
                         ),
                         Frame(
                           line = 31,
@@ -86,15 +86,15 @@ class AppInsightsCacheTest {
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
-                        )
-                      )
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
                   ),
                 type = "retrofit2.HttpException",
-                exceptionMessage = "HTTP 401 "
+                exceptionMessage = "HTTP 401 ",
               )
             )
-        )
+        ),
     )
 
   @Test
@@ -118,9 +118,9 @@ class AppInsightsCacheTest {
             setOf(SignalType.SIGNAL_UNSPECIFIED),
             "https://url.for-crash.com",
             0,
-            emptyList()
+            emptyList(),
           ),
-          testEvent
+          testEvent,
         )
 
       issue =
@@ -133,7 +133,7 @@ class AppInsightsCacheTest {
                 issue.sampleEvent.copy(
                   eventData =
                     issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(31)))
-                )
+                ),
             )
           1 ->
             issue.copy(
@@ -141,13 +141,13 @@ class AppInsightsCacheTest {
                 issue.issueDetails.copy(
                   eventsCount = 22,
                   fatality = FailureType.FATAL,
-                  signals = setOf(SignalType.SIGNAL_FRESH)
+                  signals = setOf(SignalType.SIGNAL_FRESH),
                 ),
               sampleEvent =
                 issue.sampleEvent.copy(
                   eventData =
                     issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(5)))
-                )
+                ),
             )
           2 ->
             issue.copy(
@@ -157,7 +157,7 @@ class AppInsightsCacheTest {
                 issue.sampleEvent.copy(
                   eventData =
                     issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(3)))
-                )
+                ),
             )
           3 ->
             issue.copy(
@@ -165,13 +165,13 @@ class AppInsightsCacheTest {
                 issue.issueDetails.copy(
                   eventsCount = 44,
                   fatality = FailureType.NON_FATAL,
-                  signals = setOf(SignalType.SIGNAL_REGRESSED)
+                  signals = setOf(SignalType.SIGNAL_REGRESSED),
                 ),
               sampleEvent =
                 issue.sampleEvent.copy(
                   eventData =
                     issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(14)))
-                )
+                ),
             )
           4 ->
             issue.copy(
@@ -181,7 +181,7 @@ class AppInsightsCacheTest {
                 issue.sampleEvent.copy(
                   eventData =
                     issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(89)))
-                )
+                ),
             )
           else -> throw RuntimeException()
         }
@@ -195,8 +195,8 @@ class AppInsightsCacheTest {
             connection,
             QueryFilters(
               Interval(now.minus(Duration.ofDays(60)), now),
-              eventTypes = FailureType.values().toList()
-            )
+              eventTypes = FailureType.values().toList(),
+            ),
           )
         )
       )
@@ -211,8 +211,8 @@ class AppInsightsCacheTest {
           connection,
           QueryFilters(
             Interval(now.minus(Duration.ofDays(60)), now),
-            eventTypes = FailureType.values().toList()
-          )
+            eventTypes = FailureType.values().toList(),
+          ),
         )
       )!!
     assertThat(topIssues).hasSize(4)
@@ -230,8 +230,8 @@ class AppInsightsCacheTest {
           connection,
           QueryFilters(
             Interval(now.minus(Duration.ofDays(90)), now),
-            eventTypes = listOf(FailureType.FATAL)
-          )
+            eventTypes = listOf(FailureType.FATAL),
+          ),
         )
       )!!
     assertThat(topIssues).hasSize(2)
@@ -248,8 +248,8 @@ class AppInsightsCacheTest {
           connection,
           QueryFilters(
             Interval(now.minus(Duration.ofDays(30)), now),
-            eventTypes = listOf(FailureType.NON_FATAL)
-          )
+            eventTypes = listOf(FailureType.NON_FATAL),
+          ),
         )
       )!!
     assertThat(topIssues).hasSize(2)
@@ -267,8 +267,8 @@ class AppInsightsCacheTest {
           QueryFilters(
             Interval(now.minus(Duration.ofDays(90)), now),
             eventTypes = FailureType.values().toList(),
-            signal = SignalType.SIGNAL_FRESH
-          )
+            signal = SignalType.SIGNAL_FRESH,
+          ),
         )
       )!!
     assertThat(topIssues).hasSize(1)
@@ -306,9 +306,9 @@ class AppInsightsCacheTest {
           emptySet(),
           "https://url.for-crash.com",
           0,
-          emptyList()
+          emptyList(),
         ),
-        testEvent
+        testEvent,
       )
 
     val cache = AppInsightsCacheImpl(5)
@@ -317,8 +317,8 @@ class AppInsightsCacheTest {
       listOf(
         issue.copy(sampleEvent = event),
         issue.copy(sampleEvent = recentEvent),
-        issue.copy(sampleEvent = evenMoreRecentEvent)
-      )
+        issue.copy(sampleEvent = evenMoreRecentEvent),
+      ),
     )
 
     // Assert the first event that satisfies the filter is returned.
@@ -328,7 +328,7 @@ class AppInsightsCacheTest {
         Interval(now.minus(Duration.ofDays(30)), now.minus(Duration.ofDays(4))),
         eventTypes = FailureType.values().toList(),
         devices = setOf(testEvent.eventData.device),
-        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
       )
     var topIssues = cache.getTopIssues(IssueRequest(connection, looseFilter))
     assertThat(topIssues).hasSize(1)
@@ -344,7 +344,7 @@ class AppInsightsCacheTest {
         Interval(now.minus(Duration.ofDays(3)), now),
         eventTypes = FailureType.values().toList(),
         devices = setOf(testEvent.eventData.device),
-        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
       )
     topIssues = cache.getTopIssues(IssueRequest(connection, strictFilter))
     assertThat(topIssues).hasSize(1)
@@ -373,9 +373,9 @@ class AppInsightsCacheTest {
           emptySet(),
           "https://url.for-crash.com",
           0,
-          emptyList()
+          emptyList(),
         ),
-        testEvent
+        testEvent,
       )
 
     val cache = AppInsightsCacheImpl(5)
@@ -466,9 +466,9 @@ class AppInsightsCacheTest {
           emptySet(),
           "https://url.for-crash.com",
           0,
-          emptyList()
+          emptyList(),
         ),
-        testEvent
+        testEvent,
       )
 
     val cache = AppInsightsCacheImpl()
@@ -481,8 +481,8 @@ class AppInsightsCacheTest {
           interval = Interval(now.minus(Duration.ofDays(3)), now),
           devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
           operatingSystems =
-            setOf(OperatingSystemInfo("Android 11", "11"), OperatingSystemInfo("Android 12", "12"))
-        )
+            setOf(OperatingSystemInfo("Android 11", "11"), OperatingSystemInfo("Android 12", "12")),
+        ),
       )
 
     // Mismatch device
@@ -493,10 +493,10 @@ class AppInsightsCacheTest {
             QueryFilters(
               interval = Interval(now.minus(Duration.ofDays(10)), now),
               devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
-              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
-            )
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
+            ),
           ),
-          issue.id
+          issue.id,
         )
       )
       .isNull()
@@ -512,11 +512,11 @@ class AppInsightsCacheTest {
               operatingSystems =
                 setOf(
                   OperatingSystemInfo("Android 11", "11"),
-                  OperatingSystemInfo("Android 12", "12")
-                )
-            )
+                  OperatingSystemInfo("Android 12", "12"),
+                ),
+            ),
           ),
-          issue.id
+          issue.id,
         )
       )
       .isNull()
@@ -529,10 +529,10 @@ class AppInsightsCacheTest {
             QueryFilters(
               interval = Interval(now.minus(Duration.ofDays(5)), now),
               devices = setOf(testEvent.eventData.device),
-              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
-            )
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
+            ),
           ),
-          issue.id
+          issue.id,
         )
       )
       .isNull()
@@ -548,17 +548,17 @@ class AppInsightsCacheTest {
                 setOf(
                   Device("Google", "Pixel 5"),
                   Device("Samsung", "Galaxy S7"),
-                  testEvent.eventData.device
+                  testEvent.eventData.device,
                 ),
               operatingSystems =
                 setOf(
                   OperatingSystemInfo("Android 11", "11"),
                   OperatingSystemInfo("Android 12", "12"),
-                  testEvent.eventData.operatingSystemInfo
-                )
-            )
+                  testEvent.eventData.operatingSystemInfo,
+                ),
+            ),
           ),
-          issue.id
+          issue.id,
         )
       )
       .isEqualTo(testEvent)

@@ -66,7 +66,7 @@ private fun newData(
   startS: Long,
   endS: Long,
   threadId: Long,
-  threadName: String
+  threadName: String,
 ): HttpData {
   return createFakeHttpData(
     id,
@@ -75,7 +75,7 @@ private fun newData(
     TimeUnit.SECONDS.toMicros(endS),
     TimeUnit.SECONDS.toMicros(endS),
     TimeUnit.SECONDS.toMicros(endS),
-    listOf(JavaThread(threadId, threadName))
+    listOf(JavaThread(threadId, threadName)),
   )
 }
 
@@ -118,7 +118,7 @@ class ThreadsViewTest {
                 it.requestStartTimeUs <= timeCurrentRangeUs.max
             }
           }
-        }
+        },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
@@ -130,7 +130,7 @@ class ThreadsViewTest {
         component,
         services,
         scope,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     parentPanel.add(inspectorView.component)
 

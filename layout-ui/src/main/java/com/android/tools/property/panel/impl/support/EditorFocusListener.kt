@@ -25,7 +25,7 @@ import javax.swing.JComponent
  */
 class EditorFocusListener(
   private val component: JComponent,
-  private val model: BasePropertyEditorModel
+  private val model: BasePropertyEditorModel,
 ) : FocusListener {
 
   override fun focusGained(event: FocusEvent) {

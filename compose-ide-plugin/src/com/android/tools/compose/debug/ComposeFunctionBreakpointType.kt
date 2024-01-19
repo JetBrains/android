@@ -33,18 +33,18 @@ import org.jetbrains.kotlin.psi.KtPsiUtil
 internal class ComposeFunctionBreakpointType :
   KotlinFunctionBreakpointType(
     "compose-function",
-    ComposeBundle.message("compose.breakpoint.description")
+    ComposeBundle.message("compose.breakpoint.description"),
   ) {
 
   override fun createJavaBreakpoint(
     project: Project,
-    breakpoint: XBreakpoint<JavaMethodBreakpointProperties>
+    breakpoint: XBreakpoint<JavaMethodBreakpointProperties>,
   ): KotlinFunctionBreakpoint = ComposeFunctionBreakpoint(project, breakpoint)
 
   override fun isFunctionBreakpointApplicable(
     file: VirtualFile,
     line: Int,
-    project: Project
+    project: Project,
   ): Boolean =
     isBreakpointApplicable(file, line, project) { element ->
       when (element) {

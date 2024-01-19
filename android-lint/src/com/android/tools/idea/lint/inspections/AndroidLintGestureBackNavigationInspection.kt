@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.GestureBackNavDetector
 class AndroidLintGestureBackNavigationInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.gesture.back.navigation"),
-    GestureBackNavDetector.ISSUE
+    GestureBackNavDetector.ISSUE,
   )

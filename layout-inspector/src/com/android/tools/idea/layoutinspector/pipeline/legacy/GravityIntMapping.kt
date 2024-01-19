@@ -60,7 +60,7 @@ class GravityIntMapping {
     intMapping.add(
       GRAVITY_FILL_VERTICAL,
       GRAVITY_FILL_VERTICAL,
-      SdkConstants.GRAVITY_VALUE_FILL_VERTICAL
+      SdkConstants.GRAVITY_VALUE_FILL_VERTICAL,
     )
     intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_TOP, SdkConstants.GRAVITY_VALUE_TOP)
     intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_BOTTOM, SdkConstants.GRAVITY_VALUE_BOTTOM)
@@ -68,7 +68,7 @@ class GravityIntMapping {
     intMapping.add(
       GRAVITY_FILL_HORIZONTAL,
       GRAVITY_FILL_HORIZONTAL,
-      SdkConstants.GRAVITY_VALUE_FILL_HORIZONTAL
+      SdkConstants.GRAVITY_VALUE_FILL_HORIZONTAL,
     )
     intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_LEFT, SdkConstants.GRAVITY_VALUE_LEFT)
     intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_RIGHT, SdkConstants.GRAVITY_VALUE_RIGHT)
@@ -77,23 +77,23 @@ class GravityIntMapping {
     intMapping.add(
       GRAVITY_FILL_VERTICAL,
       GRAVITY_CENTER_VERTICAL,
-      SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL
+      SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL,
     )
     intMapping.add(
       GRAVITY_FILL_HORIZONTAL,
       GRAVITY_CENTER_HORIZONTAL,
-      SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL
+      SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL,
     )
 
     intMapping.add(
       GRAVITY_CLIP_VERTICAL,
       GRAVITY_CLIP_VERTICAL,
-      SdkConstants.GRAVITY_VALUE_CLIP_VERTICAL
+      SdkConstants.GRAVITY_VALUE_CLIP_VERTICAL,
     )
     intMapping.add(
       GRAVITY_CLIP_HORIZONTAL,
       GRAVITY_CLIP_HORIZONTAL,
-      SdkConstants.GRAVITY_VALUE_CLIP_HORIZONTAL
+      SdkConstants.GRAVITY_VALUE_CLIP_HORIZONTAL,
     )
   }
 }

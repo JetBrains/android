@@ -68,7 +68,7 @@ object EmbeddedLayoutInspectorSettingsProxy {
  */
 fun withEmbeddedLayoutInspector(
   enabled: Boolean = true,
-  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit
+  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit,
 ) {
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableEmbeddedLayoutInspector
@@ -87,7 +87,7 @@ fun withEmbeddedLayoutInspector(
  */
 fun withAutoConnect(
   enabled: Boolean = true,
-  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit
+  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit,
 ) {
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableAutoConnect
@@ -130,7 +130,7 @@ fun verifyUiInjected(
   uiConfig: UiConfig,
   content: Component,
   container: Container,
-  displayView: AbstractDisplayView
+  displayView: AbstractDisplayView,
 ) {
   val workbench =
     when (uiConfig) {

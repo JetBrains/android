@@ -78,7 +78,7 @@ class AppInsightsSettingsTest {
           failureTypes = listOf(FailureType.FATAL.name),
           versions = listOf(version.value.toSetting()),
           devices = listOf(device.value.toSetting()),
-          operatingSystems = listOf(operatingSystem.value.toSetting())
+          operatingSystems = listOf(operatingSystem.value.toSetting()),
         )
 
       // Check settings are correctly applied to the state
@@ -114,7 +114,7 @@ class AppInsightsSettingsTest {
           listOf(DEFAULT_FETCHED_VERSIONS, version),
           listOf(DEFAULT_FETCHED_DEVICES, device),
           listOf(DEFAULT_FETCHED_OSES, operatingSystem),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       controllerRule.consumeInitialState(LoadingState.Ready(issueResponse))
       controllerRule.selectVersions(setOf(version.value))
@@ -165,7 +165,7 @@ class AppInsightsSettingsTest {
           failureTypes = listOf(FailureType.FATAL.name),
           versions = listOf(version.value.toSetting()),
           devices = listOf(device.value.toSetting()),
-          operatingSystems = listOf(operatingSystem.value.toSetting())
+          operatingSystems = listOf(operatingSystem.value.toSetting()),
         )
 
       controllerRule.updateConnections(listOf(CONNECTION1))
@@ -196,7 +196,7 @@ class AppInsightsSettingsTest {
         failureTypes = listOf(FailureType.FATAL.name),
         versions = listOf(version.value.toSetting()),
         devices = listOf(device.value.toSetting()),
-        operatingSystems = listOf(operatingSystem.value.toSetting())
+        operatingSystems = listOf(operatingSystem.value.toSetting()),
       )
 
     // Update connections
@@ -215,7 +215,7 @@ class AppInsightsSettingsTest {
         listOf(DEFAULT_FETCHED_VERSIONS),
         listOf(DEFAULT_FETCHED_DEVICES),
         listOf(DEFAULT_FETCHED_OSES),
-        DEFAULT_FETCHED_PERMISSIONS
+        DEFAULT_FETCHED_PERMISSIONS,
       )
   ): AppInsightsState {
     controllerRule.client.completeIssuesCallWith(LoadingState.Ready(issueResponse))

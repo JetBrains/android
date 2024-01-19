@@ -30,19 +30,19 @@ class EmptySurfaceLayoutManager : SurfaceLayoutManager {
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension = Dimension()
 
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     availableWidth: Int,
-    availableHeight: Int
+    availableHeight: Int,
   ): Double = 1.0
 
   override fun measure(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> = emptyMap()
 }

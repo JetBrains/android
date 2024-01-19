@@ -30,7 +30,7 @@ class DrawAnimatedFrameNoDirection(
   @SwingCoordinate x: Int,
   @SwingCoordinate y: Int,
   @SwingCoordinate width: Int,
-  @SwingCoordinate height: Int
+  @SwingCoordinate height: Int,
 ) : DrawRegion(x, y, width, height) {
 
   companion object {
@@ -43,7 +43,7 @@ class DrawAnimatedFrameNoDirection(
         BasicStroke.JOIN_MITER,
         1f,
         floatArrayOf(10f, 10f),
-        0f
+        0f,
       )
 
     @JvmStatic

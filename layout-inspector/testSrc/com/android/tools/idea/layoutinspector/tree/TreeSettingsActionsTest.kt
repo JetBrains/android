@@ -90,7 +90,7 @@ class TreeSettingsActionsTest {
     HighlightSemanticsAction.testActionVisibility(event, Capability.SUPPORTS_SEMANTICS)
     HighlightSemanticsAction.testToggleAction(
       event,
-      LayoutInspectorTreePanel::updateSemanticsFiltering
+      LayoutInspectorTreePanel::updateSemanticsFiltering,
     ) {
       treeSettings.highlightSemantics
     }
@@ -187,7 +187,7 @@ class TreeSettingsActionsTest {
 
   private fun AnAction.testActionVisibility(
     event: AnActionEvent,
-    vararg controllingCapabilities: Capability
+    vararg controllingCapabilities: Capability,
   ) {
     // All actions should be visible when not connected; no matter the controlling capability:
     isConnected = false
@@ -230,7 +230,7 @@ class TreeSettingsActionsTest {
     event: AnActionEvent,
     update: (LayoutInspectorTreePanel) -> Unit = LayoutInspectorTreePanel::refresh,
     statsValue: () -> Boolean = DO_NOT_CARE,
-    value: () -> Boolean
+    value: () -> Boolean,
   ) {
     val defaultValue = value()
     assertThat(isSelected(event)).isEqualTo(defaultValue)

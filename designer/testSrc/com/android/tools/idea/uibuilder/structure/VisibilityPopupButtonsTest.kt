@@ -56,7 +56,7 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
       0,
       Visibility.values()[0],
       false,
-      generateModel(Visibility.GONE, Visibility.GONE)
+      generateModel(Visibility.GONE, Visibility.GONE),
     )
     for (i in 1 until Visibility.values().size) {
       assertOneItemClicked(i, Visibility.values()[i])
@@ -66,7 +66,7 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
       0,
       Visibility.values()[0],
       true,
-      generateModel(Visibility.GONE, Visibility.GONE)
+      generateModel(Visibility.GONE, Visibility.GONE),
     )
     for (i in 1 until Visibility.values().size) {
       assertOneItemClicked(i, Visibility.values()[i], true)
@@ -77,7 +77,7 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
     clickedButtonIndex: Int,
     expectedVisibility: Visibility,
     isToolsAttr: Boolean = false,
-    startModel: NlVisibilityModel = generateModel(Visibility.NONE, Visibility.NONE)
+    startModel: NlVisibilityModel = generateModel(Visibility.NONE, Visibility.NONE),
   ) {
 
     var callbackTriggered = false

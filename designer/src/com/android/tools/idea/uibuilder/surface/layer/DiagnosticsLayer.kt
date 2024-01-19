@@ -88,7 +88,7 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
     val gc = graphics2D.create() as Graphics2D
     gc.setRenderingHint(
       RenderingHints.KEY_TEXT_ANTIALIASING,
-      RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+      RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
     )
     gc.setColorAndAlpha(JBColor.BLUE)
     gc.font = LAYER_FONT

@@ -55,7 +55,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
   }
@@ -64,7 +64,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
   }
@@ -72,7 +72,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
   private fun runPreviewPickerChecks(
     holder: ProblemsHolder,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // MultiPreviews are not relevant for the PreviewPicker
     if (isMultiPreview) return
@@ -121,7 +121,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
         deviceValueElement,
         message,
         ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-        DeviceParameterQuickFix(deviceValueElement, result.proposedFix)
+        DeviceParameterQuickFix(deviceValueElement, result.proposedFix),
       )
     }
   }
@@ -135,7 +135,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
  */
 private class DeviceParameterQuickFix(
   deviceValueElement: PsiElement,
-  private val resultingString: String
+  private val resultingString: String,
 ) : LocalQuickFixOnPsiElement(deviceValueElement) {
   override fun getText(): String = message("picker.preview.annotator.fix.replace", resultingString)
 
@@ -145,7 +145,7 @@ private class DeviceParameterQuickFix(
     project: Project,
     file: PsiFile,
     startElement: PsiElement,
-    endElement: PsiElement
+    endElement: PsiElement,
   ) {
     try {
       // Find the element that corresponds to the Argument value, this is needed in case the
@@ -184,7 +184,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
           buffer = messageBuffer,
           separator = ", ",
           prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n"
+          postfix = " $messagePostfix\n",
         )
       }
       is MultipleChoiceValueType -> {
@@ -195,7 +195,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
           buffer = messageBuffer,
           separator = ", ",
           prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n"
+          postfix = " $messagePostfix\n",
         )
       }
     }
@@ -205,7 +205,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
 private fun addSimpleMessage(
   prefix: String,
   issues: List<IssueReason>,
-  messageBuffer: StringBuffer
+  messageBuffer: StringBuffer,
 ) {
   val allParameters = issues.map(IssueReason::parameterName)
   if (allParameters.isEmpty()) return

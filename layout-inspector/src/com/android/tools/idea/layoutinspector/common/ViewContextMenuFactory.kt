@@ -45,7 +45,7 @@ fun showViewContextMenu(
   inspectorModel: InspectorModel,
   source: JComponent,
   x: Int,
-  y: Int
+  y: Int,
 ) {
   if (inspectorModel.isEmpty) {
     return
@@ -126,7 +126,7 @@ private class ShowAllAction(private val inspectorModel: InspectorModel) : AnActi
 private class HideSubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode
+  val topView: ViewNode,
 ) : AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -144,7 +144,7 @@ private class HideSubtreeAction(
 private class ShowOnlySubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode
+  val topView: ViewNode,
 ) : AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -162,7 +162,7 @@ private class ShowOnlySubtreeAction(
 private class ShowOnlyParentsAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode
+  val topView: ViewNode,
 ) : AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -185,7 +185,7 @@ class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
   AnAction(
     generateText(view),
     null,
-    IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode)
+    IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode),
   ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

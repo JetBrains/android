@@ -93,7 +93,7 @@ constructor(
   constructor(
     project: Project,
     deviceProvisioner: DeviceProvisioner =
-      project.service<DeviceProvisionerService>().deviceProvisioner
+      project.service<DeviceProvisionerService>().deviceProvisioner,
   ) : this(
     project,
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project)),
@@ -102,7 +102,7 @@ constructor(
     deviceProvisioner.templates,
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
-    WearPairingManager.getInstance().pairedDevicesFlow()
+    WearPairingManager.getInstance().pairedDevicesFlow(),
   )
 
   constructor(
@@ -116,7 +116,7 @@ constructor(
     deviceProvisioner.templates,
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
-    WearPairingManager.getInstance().pairedDevicesFlow()
+    WearPairingManager.getInstance().pairedDevicesFlow(),
   )
 
   private val splitter = JBSplitter(true)
@@ -150,7 +150,7 @@ constructor(
             ActionData(it.templatePresentation.description.titlecase() + "...") {
               ActionToolbarUtil.findActionButton(toolbar, addDevice)?.click()
             }
-          }
+          },
       )
       .apply { background = JBUI.CurrentTheme.Table.background(false, true) }
 
@@ -160,7 +160,7 @@ constructor(
       DeviceRowData::key,
       uiDispatcher,
       rowDataProvider = ::provideRowData,
-      emptyStatePanel = emptyStatePanel
+      emptyStatePanel = emptyStatePanel,
     )
 
   private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
@@ -362,7 +362,7 @@ constructor(
           panelScope.createChildScope(isSupervisor = true),
           row.handle,
           devices,
-          pairedDevicesFlow
+          pairedDevicesFlow,
         )
     }.apply { addCloseActionListener { deviceDetailsPanelRow = null } }
 

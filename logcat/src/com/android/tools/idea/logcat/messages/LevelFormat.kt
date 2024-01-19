@@ -29,7 +29,7 @@ internal data class LevelFormat(val enabled: Boolean = true) {
     if (enabled) {
       textAccumulator.accumulate(
         text = " ${logLevel.priorityLetter} ",
-        textAttributesKey = logcatColors.getLogLevelKey(logLevel)
+        textAttributesKey = logcatColors.getLogLevelKey(logLevel),
       )
       textAccumulator.accumulate(" ")
     }

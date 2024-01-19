@@ -77,7 +77,7 @@ internal class LogcatApplicationSettingsConfigurable(
   internal val filterHistoryAutocompleteCheckbox =
     JCheckBox(
       LogcatBundle.message("logcat.settings.history.autocomplete"),
-      logcatSettings.filterHistoryAutocomplete
+      logcatSettings.filterHistoryAutocomplete,
     )
 
   private val component = JPanel(GridBagLayout())
@@ -96,42 +96,42 @@ internal class LogcatApplicationSettingsConfigurable(
         val gridBag = GridBag().anchor(NORTHWEST)
         add(
           JLabel(LogcatBundle.message("logcat.settings.buffer.size")),
-          gridBag.nextLine().next().anchor(WEST)
+          gridBag.nextLine().next().anchor(WEST),
         )
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
         add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
         add(
           JLabel(LogcatBundle.message("logcat.settings.buffer.kb")),
-          gridBag.next().weightx(1.0).anchor(WEST)
+          gridBag.next().weightx(1.0).anchor(WEST),
         )
         add(
           cyclicBufferSizeWarningLabel,
-          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10)
+          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10),
         )
 
         add(
           JLabel(LogcatBundle.message("logcat.settings.default.filter")),
-          gridBag.nextLine().next().anchor(WEST)
+          gridBag.nextLine().next().anchor(WEST),
         )
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
         add(
           defaultFilterTextField,
-          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine()
+          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
         )
         add(
           mostRecentlyUsedFilterIsDefaultCheckbox,
-          gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10)
+          gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10),
         )
         defaultFilterTextField.text = logcatSettings.defaultFilter
 
         add(
           JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")),
-          gridBag.nextLine().next().anchor(WEST)
+          gridBag.nextLine().next().anchor(WEST),
         )
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
         add(
           ignoreTagsTextField.component,
-          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine()
+          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
         )
         add(ignoreTagsNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
         ignoreTagsNote.isVisible =
@@ -139,7 +139,7 @@ internal class LogcatApplicationSettingsConfigurable(
 
         add(
           filterHistoryAutocompleteCheckbox,
-          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10)
+          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10),
         )
 
         // Add an empty panel that consumes all vertical space bellow.
@@ -155,7 +155,7 @@ internal class LogcatApplicationSettingsConfigurable(
           LogcatBundle.message(
             "logcat.settings.buffer.warning.invalid",
             MAX_BUFFER_SIZE_KB.toString(),
-            MAX_BUFFER_SIZE_MB.toString()
+            MAX_BUFFER_SIZE_MB.toString(),
           )
         value > LARGE_FOR_CONTENT_LOADING / 1024 ->
           LogcatBundle.message("logcat.settings.buffer.warning.tooLarge")

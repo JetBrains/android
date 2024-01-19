@@ -42,7 +42,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 internal class SelectedDevicesErrorDialog
 internal constructor(
   private val project: Project,
-  private val devices: Iterable<DeploymentTargetDevice>
+  private val devices: Iterable<DeploymentTargetDevice>,
 ) : DialogWrapper(project) {
   companion object {
     @JvmField

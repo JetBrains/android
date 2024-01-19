@@ -105,7 +105,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -117,13 +117,13 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "backtrace",
           exceptionMessage = "",
-          rawExceptionMessage = "backtrace:"
+          rawExceptionMessage = "backtrace:",
         )
       )
   }
@@ -149,7 +149,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 2039,
@@ -159,13 +159,13 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "Exception java.lang.SecurityException",
           exceptionMessage = "",
-          rawExceptionMessage = "Exception java.lang.SecurityException:"
+          rawExceptionMessage = "Exception java.lang.SecurityException:",
         ),
         ExceptionStack(
           stacktrace =
@@ -173,7 +173,7 @@ class StacktraceKtTest {
               caption =
                 Caption(
                   title = "Caused by android.os.RemoteException",
-                  subtitle = "Remote stack trace"
+                  subtitle = "Remote stack trace",
                 ),
               blames = Blames.UNKNOWN_BLAMED,
               frames =
@@ -188,14 +188,14 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   )
-                )
+                ),
             ),
           type = "Caused by android.os.RemoteException",
           exceptionMessage = "Remote stack trace",
-          rawExceptionMessage = "Caused by android.os.RemoteException: Remote stack trace:"
-        )
+          rawExceptionMessage = "Caused by android.os.RemoteException: Remote stack trace:",
+        ),
       )
   }
 
@@ -220,7 +220,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 2039,
@@ -230,13 +230,13 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "Exception java.lang.SecurityException",
           exceptionMessage = "",
-          rawExceptionMessage = "Exception java.lang.SecurityException:"
+          rawExceptionMessage = "Exception java.lang.SecurityException:",
         ),
         ExceptionStack(
           stacktrace =
@@ -244,7 +244,7 @@ class StacktraceKtTest {
               caption =
                 Caption(
                   title = "Caused by android.os.RemoteException",
-                  subtitle = "Remote stack trace"
+                  subtitle = "Remote stack trace",
                 ),
               blames = Blames.UNKNOWN_BLAMED,
               frames =
@@ -259,14 +259,14 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   )
-                )
+                ),
             ),
           type = "Caused by android.os.RemoteException",
           exceptionMessage = "Remote stack trace",
-          rawExceptionMessage = "Caused by android.os.RemoteException: Remote stack trace:"
-        )
+          rawExceptionMessage = "Caused by android.os.RemoteException: Remote stack trace:",
+        ),
       )
   }
 
@@ -291,7 +291,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 125,
@@ -302,7 +302,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 449,
@@ -313,7 +313,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 137,
@@ -323,7 +323,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -335,7 +335,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 3657,
@@ -345,7 +345,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -357,7 +357,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -369,7 +369,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 1137,
@@ -380,7 +380,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 1012,
@@ -390,13 +390,13 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "Exception java.lang.OutOfMemoryError",
           exceptionMessage = "",
-          rawExceptionMessage = "Exception java.lang.OutOfMemoryError:"
+          rawExceptionMessage = "Exception java.lang.OutOfMemoryError:",
         )
       )
   }
@@ -423,7 +423,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -435,7 +435,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 0,
@@ -445,7 +445,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 335,
@@ -455,13 +455,13 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "\"main\" tid=1 Native",
           exceptionMessage = "",
-          rawExceptionMessage = "\"main\" tid=1 Native"
+          rawExceptionMessage = "\"main\" tid=1 Native",
         ),
         ExceptionStack(
           stacktrace =
@@ -478,7 +478,7 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
+                    blame = Blames.UNKNOWN_BLAMED,
                   ),
                   Frame(
                     line = 291,
@@ -488,14 +488,14 @@ class StacktraceKtTest {
                     offset = 0,
                     address = 0,
                     library = "",
-                    blame = Blames.UNKNOWN_BLAMED
-                  )
-                )
+                    blame = Blames.UNKNOWN_BLAMED,
+                  ),
+                ),
             ),
           type = "\"FinalizerDaemon\" tid=12 Runnable",
           exceptionMessage = "",
-          rawExceptionMessage = "\"FinalizerDaemon\" tid=12 Runnable"
-        )
+          rawExceptionMessage = "\"FinalizerDaemon\" tid=12 Runnable",
+        ),
       )
       .inOrder()
   }

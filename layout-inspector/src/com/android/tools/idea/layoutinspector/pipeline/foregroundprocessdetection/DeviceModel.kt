@@ -36,7 +36,7 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
   constructor(
     parentDisposable: Disposable,
     processesModel: ProcessesModel,
-    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
+    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>,
   ) : this(parentDisposable, processesModel) {
     foregroundProcessDetectionSupportedDeviceTest.forEach {
       foregroundProcessDetectionDevicesSupport[it] = ForegroundProcessDetectionSupport.SUPPORTED

@@ -65,7 +65,7 @@ private fun createPreviewDesignSurfaceBuilder(
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
-  isInteractive: () -> Boolean
+  isInteractive: () -> Boolean,
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
@@ -74,12 +74,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setSceneManagerProvider { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(
-          model,
-          surface,
-          sceneComponentProvider,
-          ComposeSceneUpdateListener(),
-        ) {
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
           RealTimeSessionClock()
         }
         .also {
@@ -120,7 +115,7 @@ internal fun createMainDesignSurfaceBuilder(
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
-  isInteractive: () -> Boolean
+  isInteractive: () -> Boolean,
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -130,6 +125,6 @@ internal fun createMainDesignSurfaceBuilder(
       parentDisposable,
       sceneComponentProvider,
       screenViewProvider,
-      isInteractive
+      isInteractive,
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

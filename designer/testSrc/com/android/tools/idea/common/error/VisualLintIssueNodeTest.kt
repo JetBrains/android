@@ -70,10 +70,10 @@ class VisualLintIssueNodeTest {
                     .withAttribute(
                       SdkConstants.ANDROID_URI,
                       SdkConstants.ATTR_LAYOUT_MARGIN,
-                      "-10dp"
+                      "-10dp",
                     )
                 )
-            )
+            ),
         )
         .build()
 
@@ -82,7 +82,7 @@ class VisualLintIssueNodeTest {
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
         model.components.first().children,
-        issueProvider
+        issueProvider,
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
@@ -127,9 +127,9 @@ class VisualLintIssueNodeTest {
                 .withAttribute(
                   SdkConstants.TOOLS_URI,
                   SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue
+                  errorType.ignoredAttributeValue,
                 )
-            )
+            ),
         )
         .build()
 
@@ -153,7 +153,7 @@ class VisualLintIssueNodeTest {
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
             .matchParentHeight()
-            .children(ComponentDescriptor(SdkConstants.TEXT_VIEW).width("100dp").height("20dp"))
+            .children(ComponentDescriptor(SdkConstants.TEXT_VIEW).width("100dp").height("20dp")),
         )
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
@@ -163,7 +163,7 @@ class VisualLintIssueNodeTest {
       createTestVisualLintRenderIssue(
         VisualLintErrorType.WEAR_MARGIN,
         model.components.first().children,
-        issueProvider
+        issueProvider,
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
@@ -208,9 +208,9 @@ class VisualLintIssueNodeTest {
                 .withAttribute(
                   SdkConstants.TOOLS_URI,
                   SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue
+                  errorType.ignoredAttributeValue,
                 )
-            )
+            ),
         )
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()

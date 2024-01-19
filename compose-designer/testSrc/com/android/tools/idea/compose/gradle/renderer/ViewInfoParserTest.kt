@@ -54,7 +54,7 @@ class ViewInfoParserTest {
       val file =
         VfsUtil.findRelativeFile(
           SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-          ProjectRootManager.getInstance(project).contentRoots[0]
+          ProjectRootManager.getInstance(project).contentRoots[0],
         )!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile
       ktFile.declarations
@@ -68,7 +68,7 @@ class ViewInfoParserTest {
         facet,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        )
+        ),
       )
       .thenAccept { renderResult ->
         checkNotNull(renderResult)

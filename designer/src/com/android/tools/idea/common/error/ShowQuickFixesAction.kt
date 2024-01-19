@@ -84,7 +84,7 @@ private class QuickFixableCellRenderer : ColoredListCellRenderer<Issue.QuickFixa
     element: Issue.QuickFixable,
     index: Int,
     selected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ) {
     icon = element.icon
     append(element.description)

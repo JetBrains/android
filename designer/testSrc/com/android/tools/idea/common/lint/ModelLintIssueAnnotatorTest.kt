@@ -40,7 +40,7 @@ class ModelLintIssueAnnotatorTest {
         rule,
         "res/layout",
         "my_layout.xml",
-        ComponentDescriptor("FrameLayout").matchParentHeight().matchParentWidth()
+        ComponentDescriptor("FrameLayout").matchParentHeight().matchParentWidth(),
       )
     val model = runInEdtAndGet { builder.build() }
 

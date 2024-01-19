@@ -66,7 +66,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     androidFacet.safeArgsMode = mode
@@ -81,7 +81,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
 
         public interface NavArgs {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
     ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
@@ -98,7 +98,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
 
         public interface NavDirections {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
     ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
@@ -126,7 +126,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
     projectSystem.addDependency(
       GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON,
       module,
-      GradleVersion.parse(version.toString())
+      GradleVersion.parse(version.toString()),
     )
     projectSystem.useInTests()
   }

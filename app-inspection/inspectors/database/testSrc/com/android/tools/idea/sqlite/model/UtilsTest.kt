@@ -24,7 +24,7 @@ class UtilsTest : TestCase() {
       listOf(
         SqliteColumn("col1", SqliteAffinity.INTEGER, true, true),
         SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
       )
 
     // Act
@@ -40,7 +40,7 @@ class UtilsTest : TestCase() {
       listOf(
         SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
         SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
       )
 
     // Act
@@ -56,7 +56,7 @@ class UtilsTest : TestCase() {
       listOf(
         SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
         SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-        SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false)
+        SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
       )
 
     // Act
@@ -73,7 +73,7 @@ class UtilsTest : TestCase() {
         SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
         SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
         SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
-        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
       )
 
     // Act
@@ -91,7 +91,7 @@ class UtilsTest : TestCase() {
         SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
         SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
         SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
-        SqliteColumn("oid", SqliteAffinity.INTEGER, false, false)
+        SqliteColumn("oid", SqliteAffinity.INTEGER, false, false),
       )
 
     // Act

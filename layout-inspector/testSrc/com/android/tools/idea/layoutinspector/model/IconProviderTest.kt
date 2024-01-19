@@ -25,7 +25,7 @@ import org.junit.Test
 private val FQCN_CONTENT_FRAME_LAYOUT =
   AndroidxName(
     "android.support.v7.widget.ContentFrameLayout",
-    "androidx.appcompat.widget.ContentFrameLayout"
+    "androidx.appcompat.widget.ContentFrameLayout",
   )
 
 class IconProviderTest {

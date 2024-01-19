@@ -70,14 +70,14 @@ class ComposeViewControlActionTest {
       listOf(
         createOption("Layout A", EmptySurfaceLayoutManager()),
         createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager())
+        createOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
       ComposeViewControlAction(
         options,
         updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction()
+        additionalActionProvider = ColorBlindModeAction(),
       )
 
     val expected =
@@ -115,14 +115,14 @@ class ComposeViewControlActionTest {
       listOf(
         createOption("Layout A", EmptySurfaceLayoutManager()),
         createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager())
+        createOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
       ComposeViewControlAction(
         options,
         updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction()
+        additionalActionProvider = ColorBlindModeAction(),
       )
 
     val expected =
@@ -164,14 +164,14 @@ class ComposeViewControlActionTest {
       listOf(
         createOption("Layout A", EmptySurfaceLayoutManager()),
         createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager())
+        createOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
       ComposeViewControlAction(
         options,
         updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction()
+        additionalActionProvider = ColorBlindModeAction(),
       )
 
     val expected =
@@ -237,7 +237,7 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        updateMode = { _, _ -> }
+        updateMode = { _, _ -> },
       )
 
     manager.currentStatus = nonRefreshingStatus
@@ -273,7 +273,7 @@ class ComposeViewControlActionTest {
 
 private fun createOption(
   displayText: String,
-  layoutManager: SurfaceLayoutManager
+  layoutManager: SurfaceLayoutManager,
 ): SurfaceLayoutManagerOption {
   return SurfaceLayoutManagerOption(displayText, layoutManager)
 }

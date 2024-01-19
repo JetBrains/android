@@ -42,12 +42,12 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 class ComposableHighlightingVisitorExtension : KotlinHighlightingVisitorExtension() {
   override fun highlightDeclaration(
     elementToHighlight: PsiElement,
-    descriptor: DeclarationDescriptor
+    descriptor: DeclarationDescriptor,
   ): HighlightInfoType? = null
 
   override fun highlightCall(
     elementToHighlight: PsiElement,
-    resolvedCall: ResolvedCall<*>
+    resolvedCall: ResolvedCall<*>,
   ): HighlightInfoType? {
     if (!resolvedCall.isComposableInvocation()) return null
 

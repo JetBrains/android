@@ -53,7 +53,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
         val size =
           Dimension(
             ((maxX - minX + 2 * MARGIN) / currentScale).toInt(),
-            ((maxY - minY + 2 * MARGIN) / currentScale).toInt()
+            ((maxY - minY + 2 * MARGIN) / currentScale).toInt(),
           )
         val scale = surface.getFitContentIntoWindowScale(size)
 

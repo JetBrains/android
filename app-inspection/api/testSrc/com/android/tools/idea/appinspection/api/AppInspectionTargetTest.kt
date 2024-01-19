@@ -60,7 +60,7 @@ class AppInspectionTargetTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       appInspectionRule.launchTarget(createFakeProcessDescriptor())
@@ -72,7 +72,7 @@ class AppInspectionTargetTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
 
       transportService.setCommandHandler(
@@ -83,7 +83,7 @@ class AppInspectionTargetTest {
               "App Inspection shouldn't send an ATTACH_AGENT command. Agent is already connected."
             )
           }
-        }
+        },
       )
 
       transportService.addEventToStream(
@@ -96,7 +96,7 @@ class AppInspectionTargetTest {
             Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()
           )
           .setTimestamp(timer.currentTimeNs + 1)
-          .build()
+          .build(),
       )
 
       appInspectionRule.launchTarget(createFakeProcessDescriptor())
@@ -162,7 +162,7 @@ class AppInspectionTargetTest {
               )
             }
           }
-        }
+        },
       )
       // Launch an inspector connection that will never be established (assuming the test passes).
       val unsuccessfulJob = launch {
@@ -200,7 +200,7 @@ class AppInspectionTargetTest {
           .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
           .setPid(FakeTransportService.FAKE_PROCESS.pid)
           .setIsEnded(true)
-          .build()
+          .build(),
       )
 
       client.awaitForDisposal()
@@ -280,7 +280,7 @@ class AppInspectionTargetTest {
               createArtifactCoordinate("6th", "file", "1.0.0").toArtifactCoordinateProto()
             )
             .setErrorMessage("error")
-            .build()
+            .build(),
         )
 
       transportService.setCommandHandler(
@@ -310,7 +310,7 @@ class AppInspectionTargetTest {
               )
             }
           }
-        }
+        },
       )
 
       // These are the version files we are interested in targeting.
@@ -322,7 +322,7 @@ class AppInspectionTargetTest {
           LibraryCompatibility(ArtifactCoordinate("4th", "file", "1.0.0")),
           LibraryCompatibility(
             ArtifactCoordinate("5th", "file", "1.0.0"),
-            listOf("com.example.MyClass")
+            listOf("com.example.MyClass"),
           ),
           LibraryCompatibility(ArtifactCoordinate("6th", "file", "1.0.0")),
         )
@@ -331,7 +331,7 @@ class AppInspectionTargetTest {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
       val processReadyDeferred = CompletableDeferred<Unit>()
       appInspectionRule.apiServices.processDiscovery.addProcessListener(
@@ -342,7 +342,7 @@ class AppInspectionTargetTest {
           }
 
           override fun onProcessDisconnected(process: ProcessDescriptor) {}
-        }
+        },
       )
       processReadyDeferred.await()
 

@@ -34,14 +34,14 @@ import com.android.tools.property.panel.api.TableUIProvider
 class AllAttributesInspectorBuilder(
   private val model: NlPropertiesModel,
   controlTypeProvider: NlControlTypeProvider,
-  editorProvider: EditorProvider<NlPropertyItem>
+  editorProvider: EditorProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
 
   private val allTableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty) {
       return
@@ -52,7 +52,7 @@ class AllAttributesInspectorBuilder(
         model,
         itemFilter = { true },
         itemComparator = alphabeticalSortOrder,
-        groups = createGroups(properties)
+        groups = createGroups(properties),
       )
     if (InspectorSection.ALL.visible) {
       val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)

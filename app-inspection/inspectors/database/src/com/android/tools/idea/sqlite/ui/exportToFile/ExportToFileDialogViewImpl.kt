@@ -147,7 +147,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
       delimiterLabel,
       delimiterComboBox,
       saveLocationLabel,
-      saveLocationTextField
+      saveLocationTextField,
     )
   }
 
@@ -206,7 +206,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
       FileChooserFactory.getInstance()
         .createSaveFileDialog(
           FileSaverDescriptor("Save as...", "", selectedFormatExtension()),
-          contentPanel
+          contentPanel,
         )
 
     val pathSuggestion = createSuggestedPath()
@@ -273,7 +273,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
           is ExportTableDialogParams -> "$databaseName-${params.srcTable}"
           is ExportQueryResultsDialogParams -> "$databaseName-query-results"
         },
-        false
+        false,
       )
     val extension = selectedFormatExtension()
     val extensionPart = if (extension.isBlank()) "" else ".$extension"
@@ -359,12 +359,12 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
         DatabaseInspectorBundle.message(
           "export.dialog.file.already.exists.overwrite.prompt",
           file.fileName.toString(),
-          file.parent.toString()
+          file.parent.toString(),
         ),
         DatabaseInspectorBundle.message("export.dialog.file.already.exists.overwrite.title"),
         CommonBundle.message("button.overwrite"),
         CommonBundle.message("button.cancel"),
-        Messages.getWarningIcon()
+        Messages.getWarningIcon(),
       )
     return (result == Messages.YES)
   }
@@ -432,10 +432,10 @@ private object IOUtils {
    */
   fun isValidDestinationFilePath(path: Path?): Boolean =
     path != null &&
-    !path.isDirectory() &&
-    path.parent != null &&
-    path.parent.isDirectory() &&
-    path.parent.exists()
+      !path.isDirectory() &&
+      path.parent != null &&
+      path.parent.isDirectory() &&
+      path.parent.exists()
 
   fun endsWithSeparatorChar(path: String) = path.trimEnd().endsWith(File.separatorChar)
 

@@ -44,7 +44,7 @@ interface FileDatabaseManager {
   suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId,
   ): DatabaseFileData
 
   /** Deletes the files associated to [databaseFileData]. */
@@ -61,7 +61,7 @@ class FileDatabaseManagerImpl(
   override suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId,
   ): DatabaseFileData {
     val path = databaseToDownload.path
     // Room uses write-ahead-log, so we need to download these additional files to open the db
@@ -79,13 +79,13 @@ class FileDatabaseManagerImpl(
             processDescriptor.device.serial,
             pathsToDownload,
             disposableDownloadProgress,
-            downloadDestinationFolder
+            downloadDestinationFolder,
           )
         }
       } catch (e: IllegalArgumentException) {
         throw DeviceNotFoundException(
           "Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.",
-          e
+          e,
         )
       } catch (e: DeviceFileDownloaderService.FileDownloadFailedException) {
         throw FileDatabaseException(e.message, e)
@@ -131,5 +131,5 @@ class FileDatabaseException(override val message: String?, override val cause: T
 
 class DeviceNotFoundException(
   override val message: String?,
-  override val cause: Throwable? = null
+  override val cause: Throwable? = null,
 ) : RuntimeException()

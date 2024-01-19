@@ -33,7 +33,7 @@ class PickSampleListDataViewAction(private val namespace: String?, private val a
     handler: ViewHandler,
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiers: Int
+    modifiers: Int,
   ) {
     val tag = component.tag ?: return
     val types = HashSet<ResourceType>()
@@ -49,7 +49,7 @@ class PickSampleListDataViewAction(private val namespace: String?, private val a
         showColorStateLists = true,
         showSampleData = true,
         showThemeAttributes = true,
-        file = tag.containingFile.virtualFile
+        file = tag.containingFile.virtualFile,
       )
 
     if (dialog.showAndGet()) {

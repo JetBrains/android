@@ -28,7 +28,7 @@ class MergeHandler : FrameLayoutHandler() {
   override fun getInspectorProperties(): List<String> {
     return ImmutableList.of(
       TOOLS_NS_NAME_PREFIX + ATTR_SHOW_IN,
-      TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG
+      TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG,
     )
   }
 

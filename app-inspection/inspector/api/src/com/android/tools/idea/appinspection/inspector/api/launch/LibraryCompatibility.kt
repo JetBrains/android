@@ -27,7 +27,7 @@ data class LibraryCompatibility(
    * if the library specified cannot be found. The list provides some forward safety in case the
    * library class names change.
    */
-  val expectedClassNames: List<String> = emptyList()
+  val expectedClassNames: List<String> = emptyList(),
 ) {
   fun toLibraryCompatibilityProto(): AppInspection.LibraryCompatibility =
     AppInspection.LibraryCompatibility.newBuilder()

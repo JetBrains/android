@@ -31,7 +31,7 @@ typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
 class BackgroundTaskTreeModel(
   private val client: BackgroundTaskInspectorClient,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher
+  uiDispatcher: CoroutineDispatcher,
 ) : DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode

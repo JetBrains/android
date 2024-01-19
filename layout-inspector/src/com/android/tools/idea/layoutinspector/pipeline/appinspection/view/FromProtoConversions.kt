@@ -147,7 +147,7 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
       Dimension(mainDisplayWidth, mainDisplayHeight)
     else null,
     mainDisplayOrientation,
-    isRunningInMainDisplay
+    isRunningInMainDisplay,
   )
 }
 

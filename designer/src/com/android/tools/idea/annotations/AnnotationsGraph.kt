@@ -104,7 +104,7 @@ interface ResultFactory<S, T> {
  */
 class AnnotationsGraph<S, T>(
   private val nodeInfoFactory: NodeInfoFactory<S>,
-  private val resultFactory: ResultFactory<S, T>
+  private val resultFactory: ResultFactory<S, T>,
 ) {
   /**
    * DFS to traverse the annotations graph using the given [sourceElements] as starting points.
@@ -119,7 +119,7 @@ class AnnotationsGraph<S, T>(
   fun traverse(
     sourceElements: List<UElement>,
     annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
-    isLeafAnnotation: (UAnnotation) -> Boolean = { false }
+    isLeafAnnotation: (UAnnotation) -> Boolean = { false },
   ): Sequence<T> {
     val visitedAnnotationClasses: MutableMap<String, NodeInfo<S>> = mutableMapOf()
 
@@ -137,7 +137,7 @@ class AnnotationsGraph<S, T>(
     visitedAnnotationClasses: MutableMap<String, NodeInfo<S>>,
     annotationFilter: (UElement, UAnnotation) -> Boolean,
     isLeafAnnotation: (UAnnotation) -> Boolean,
-    parent: NodeInfo<S>?
+    parent: NodeInfo<S>?,
   ): Sequence<T> {
     val curNode = nodeInfoFactory.create(parent, this)
     parent?.onBeforeChildTraversal(curNode)
@@ -166,7 +166,7 @@ class AnnotationsGraph<S, T>(
                       visitedAnnotationClasses,
                       annotationFilter,
                       isLeafAnnotation,
-                      curNode
+                      curNode,
                     )
                   } else {
                     emptySequence<T>().also { _ ->

@@ -74,8 +74,8 @@ class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
               ValidatorData.Level.ERROR,
               ValidatorData.Level.WARNING,
               ValidatorData.Level.INFO,
-              ValidatorData.Level.VERBOSE
-            )
+              ValidatorData.Level.VERBOSE,
+            ),
           )
 
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
@@ -90,7 +90,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
 
   private fun validateAndUpdateLint(
     renderResult: RenderResult,
-    validatorResult: ValidatorResult
+    validatorResult: ValidatorResult,
   ): MutableList<VisualLintAtfIssue> {
     layoutParser.clear()
 
@@ -139,7 +139,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
 class VisualLintAtfIssue(
   result: ValidatorData.Issue,
   val component: NlComponent,
-  private val sourceModel: NlModel
+  private val sourceModel: NlModel,
 ) :
   NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel),
   VisualLintHighlightingIssue {

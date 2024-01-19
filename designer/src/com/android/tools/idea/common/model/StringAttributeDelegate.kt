@@ -22,7 +22,7 @@ import kotlin.reflect.KProperty
 
 open class StringAttributeDelegate(
   private val namespace: String?,
-  private val propertyName: String
+  private val propertyName: String,
 ) : ReadWriteProperty<NlComponent, String?> {
   override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
     return thisRef.resolveAttribute(namespace, propertyName)

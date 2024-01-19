@@ -118,7 +118,7 @@ class ComposePreviewStatusIconActionTest {
                     hasRuntimeErrors = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
-                    isRefreshing = refreshing
+                    isRefreshing = refreshing,
                   )
                 composePreviewManager.currentStatus = status
                 action.update(event)
@@ -130,7 +130,7 @@ class ComposePreviewStatusIconActionTest {
                   """
                     .trimIndent(),
                   expectedToShowIcon,
-                  event.presentation.isEnabled
+                  event.presentation.isEnabled,
                 )
                 assertEquals(
                   """
@@ -139,7 +139,7 @@ class ComposePreviewStatusIconActionTest {
                   """
                     .trimIndent(),
                   expectedToShowIcon,
-                  event.presentation.isVisible
+                  event.presentation.isVisible,
                 )
                 if (expectedToShowIcon) {
                   assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)

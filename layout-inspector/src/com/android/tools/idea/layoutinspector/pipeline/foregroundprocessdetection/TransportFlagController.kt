@@ -34,14 +34,14 @@ class TransportFlagController : TransportDeviceManager.TransportDeviceManagerLis
 
   override fun onStartTransportDaemonServerFail(
     device: Common.Device,
-    exception: FailedToStartServerException
+    exception: FailedToStartServerException,
   ) {}
 
   override fun customizeProxyService(proxy: TransportProxy) {}
 
   override fun customizeAgentConfig(
     configBuilder: Agent.AgentConfig.Builder,
-    runConfig: AndroidRunConfigurationBase?
+    runConfig: AndroidRunConfigurationBase?,
   ) {}
 
   override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {

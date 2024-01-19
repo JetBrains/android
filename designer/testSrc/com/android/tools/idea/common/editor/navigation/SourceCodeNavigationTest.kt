@@ -30,7 +30,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
     project.replaceService(
       FileEditorManager::class.java,
       FileEditorManagerImpl(project, project.coroutineScope),
-      testRootDisposable
+      testRootDisposable,
     )
   }
 
@@ -41,7 +41,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       class AA {}
 
       class BV extends A<caret>A {}"""
-        .trimIndent()
+        .trimIndent(),
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_DECLARATION)
     myFixture.checkResult(

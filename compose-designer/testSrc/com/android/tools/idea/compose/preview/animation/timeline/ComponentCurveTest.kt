@@ -48,7 +48,7 @@ class ComponentCurveTest {
           componentId = 0,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
-          colorIndex = 0
+          colorIndex = 0,
         )
       slider.sliderUI.elements.add(componentCurve)
       val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
@@ -66,14 +66,14 @@ class ComponentCurveTest {
       assertTrue(
         componentCurve.contains(
           slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Point inside right diamond
       assertTrue(
         componentCurve.contains(
           slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Uncomment to preview ui.
@@ -88,21 +88,21 @@ class ComponentCurveTest {
       assertTrue(
         componentCurve.contains(
           shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Point inside left diamond
       assertTrue(
         componentCurve.contains(
           shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Point inside right diamond
       assertTrue(
         componentCurve.contains(
           shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       assertEquals(50, componentCurve.state.valueOffset)
@@ -114,21 +114,21 @@ class ComponentCurveTest {
       assertTrue(
         componentCurve.contains(
           -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Point inside left diamond
       assertTrue(
         componentCurve.contains(
           -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       // Point inside right diamond
       assertTrue(
         componentCurve.contains(
           -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-          curveBaseLine
+          curveBaseLine,
         )
       )
       assertEquals(-50, componentCurve.state.valueOffset)

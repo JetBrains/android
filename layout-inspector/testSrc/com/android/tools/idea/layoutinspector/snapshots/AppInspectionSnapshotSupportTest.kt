@@ -82,7 +82,7 @@ class AppInspectionSnapshotSupportTest {
           getClientSettings = { inspectorClientSettings }
         )
       ),
-      projectRule
+      projectRule,
     ) {
       it.name == PROCESS.name
     }
@@ -127,7 +127,7 @@ class AppInspectionSnapshotSupportTest {
       savePath,
       newModel,
       inspectorRule.notificationModel,
-      inspectorRule.inspectorClient.stats
+      inspectorRule.inspectorClient.stats,
     )
     checkSnapshot(newModel, snapshotLoader)
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
@@ -159,7 +159,7 @@ class AppInspectionSnapshotSupportTest {
       savePath,
       newModel,
       newNotificationModel,
-      inspectorRule.inspectorClient.stats
+      inspectorRule.inspectorClient.stats,
     )
 
     // Verify we have all 126 composables
@@ -202,7 +202,7 @@ class AppInspectionSnapshotSupportTest {
       savePath,
       newModel,
       newNotificationModel,
-      inspectorRule.inspectorClient.stats
+      inspectorRule.inspectorClient.stats,
     )
     checkSnapshot(newModel, snapshotLoader)
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
@@ -287,7 +287,7 @@ class AppInspectionSnapshotSupportTest {
       savePath,
       newModel,
       newNotificationModel,
-      inspectorRule.inspectorClient.stats
+      inspectorRule.inspectorClient.stats,
     )
     checkSnapshot(newModel, snapshotLoader)
   }
@@ -302,7 +302,7 @@ class AppInspectionSnapshotSupportTest {
             view(VIEW4, qualifiedName = "android.widget.TextView")
           }
         }
-      }
+      },
     )
     var checkedProperties = false
     snapshotLoader.propertiesProvider.addResultListener { _, node, table ->
@@ -350,7 +350,7 @@ class AppInspectionSnapshotSupportTest {
           LayoutInspectorViewProtocol.PropertyGroup.newBuilder().apply { viewId = VIEW1 }.build(),
           LayoutInspectorViewProtocol.PropertyGroup.newBuilder().apply { viewId = VIEW3 }.build(),
           LayoutInspectorViewProtocol.PropertyGroup.newBuilder().apply { viewId = VIEW4 }.build(),
-          LayoutInspectorViewProtocol.PropertyGroup.newBuilder().apply { viewId = ROOT }.build()
+          LayoutInspectorViewProtocol.PropertyGroup.newBuilder().apply { viewId = ROOT }.build(),
         )
       )
     }

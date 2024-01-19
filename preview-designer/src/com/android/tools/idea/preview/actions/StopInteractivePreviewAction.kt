@@ -30,7 +30,7 @@ class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) ->
   AnActionButton(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
-    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 

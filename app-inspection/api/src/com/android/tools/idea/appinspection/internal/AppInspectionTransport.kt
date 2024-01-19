@@ -36,7 +36,7 @@ fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest =
 class AppInspectionTransport(
   val client: TransportClient,
   val process: ProcessDescriptor,
-  private val streamChannel: TransportStreamChannel
+  private val streamChannel: TransportStreamChannel,
 ) {
 
   companion object {
@@ -63,20 +63,20 @@ class AppInspectionTransport(
   fun createStreamEventQuery(
     eventKind: Common.Event.Kind,
     filter: (Common.Event) -> Boolean = { true },
-    startTimeNs: () -> Long = { Long.MIN_VALUE }
+    startTimeNs: () -> Long = { Long.MIN_VALUE },
   ) =
     StreamEventQuery(
       eventKind = eventKind,
       startTime = startTimeNs,
       filter = filter,
-      processId = { process.pid }
+      processId = { process.pid },
     )
 
   /** Creates a flow that subscribes to events filtered by the provided filtering criteria. */
   fun eventFlow(
     eventKind: Common.Event.Kind,
     filter: (Common.Event) -> Boolean = { true },
-    startTimeNs: () -> Long = { Long.MIN_VALUE }
+    startTimeNs: () -> Long = { Long.MIN_VALUE },
   ): Flow<StreamEvent> {
     val query = createStreamEventQuery(eventKind, filter, startTimeNs)
     return streamChannel.eventFlow(query)
@@ -96,7 +96,7 @@ class AppInspectionTransport(
    */
   suspend fun executeCommand(
     command: AppInspection.AppInspectionCommand,
-    streamEventQuery: StreamEventQuery
+    streamEventQuery: StreamEventQuery,
   ): Common.Event {
     return executeCommand(command.toCommand().toExecuteRequest(), streamEventQuery)
   }
@@ -107,7 +107,7 @@ class AppInspectionTransport(
    */
   suspend fun executeCommand(
     request: Transport.ExecuteRequest,
-    streamEventQuery: StreamEventQuery
+    streamEventQuery: StreamEventQuery,
   ): Common.Event {
     executeCommand(request)
     return streamChannel.eventFlow(streamEventQuery).first().event

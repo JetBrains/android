@@ -63,7 +63,7 @@ class ViewAndroidWindow(
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
   folderConfiguration: FolderConfiguration,
   private val isInterrupted: () -> Boolean,
-  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit
+  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
   // capturing screenshots can be disabled, in which case the event will have no screenshot
@@ -135,7 +135,7 @@ class ViewAndroidWindow(
                   bounds.x - surfaceOriginX,
                   bounds.y - surfaceOriginY,
                   bounds.width,
-                  bounds.height
+                  bounds.height,
                 )
             }
             .toList()
@@ -172,7 +172,7 @@ class ViewAndroidWindow(
     return bitmapType.createImage(
       ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE),
       width,
-      height
+      height,
     )
   }
 
@@ -195,7 +195,7 @@ class ViewAndroidWindow(
     bytes: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
     skiaParser: SkiaParser,
-    scale: Double
+    scale: Double,
   ): SkiaViewNode? {
     val inspectorView =
       try {
@@ -204,26 +204,26 @@ class ViewAndroidWindow(
         // It looks like what we got wasn't an SKP at all.
         notificationModel.addNotification(
           INVALID_SKP_KEY,
-          LayoutInspectorBundle.message(INVALID_SKP_KEY)
+          LayoutInspectorBundle.message(INVALID_SKP_KEY),
         )
         null
       } catch (ex: ParsingFailedException) {
         // It looked like a valid picture, but we were unable to parse it.
         notificationModel.addNotification(
           INVALID_SKP_KEY,
-          LayoutInspectorBundle.message(INVALID_SKP_KEY)
+          LayoutInspectorBundle.message(INVALID_SKP_KEY),
         )
         null
       } catch (ex: UnsupportedPictureVersionException) {
         notificationModel.addNotification(
           UNSUPPORTED_SKP_VERSION_KEY,
-          LayoutInspectorBundle.message(UNSUPPORTED_SKP_VERSION_KEY, ex.version.toString())
+          LayoutInspectorBundle.message(UNSUPPORTED_SKP_VERSION_KEY, ex.version.toString()),
         )
         null
       } catch (ex: Exception) {
         notificationModel.addNotification(
           CANNOT_LAUNCH_SKP_RENDERER_KEY,
-          LayoutInspectorBundle.message(CANNOT_LAUNCH_SKP_RENDERER_KEY)
+          LayoutInspectorBundle.message(CANNOT_LAUNCH_SKP_RENDERER_KEY),
         )
         Logger.getInstance(ViewAndroidWindow::class.java).warn(ex)
         null

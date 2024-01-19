@@ -27,13 +27,13 @@ object EnterOfflineMode : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(
         appId,
         state.mode,
-        AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.ONLINE_TO_OFFLINE
+        AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.ONLINE_TO_OFFLINE,
       )
     }
     return StateTransition(
@@ -43,11 +43,11 @@ object EnterOfflineMode : ChangeEvent {
         currentEvents = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
-        mode = ConnectionMode.OFFLINE
+        mode = ConnectionMode.OFFLINE,
       ),
       Action.Fetch(
         AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.BACKGROUND
-      )
+      ),
     )
   }
 }
@@ -56,13 +56,13 @@ object EnterOnlineMode : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(
         appId,
         state.mode,
-        AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.OFFLINE_TO_ONLINE
+        AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.OFFLINE_TO_ONLINE,
       )
     }
     return StateTransition(state.copy(mode = ConnectionMode.ONLINE), Action.NONE)

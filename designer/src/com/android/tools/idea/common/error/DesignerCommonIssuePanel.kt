@@ -81,7 +81,7 @@ class DesignerCommonIssuePanel(
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
   @WorkerThread private val emptyMessageProvider: () -> String,
-  private val onContentPopulated: (Content) -> Unit = {}
+  private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -118,7 +118,7 @@ class DesignerCommonIssuePanel(
     PopupHandler.installPopupMenu(
       tree,
       POPUP_HANDLER_ACTION_ID,
-      "Android.Designer.IssuePanel.TreePopup"
+      "Android.Designer.IssuePanel.TreePopup",
     )
 
     tree.isRootVisible = false
@@ -343,7 +343,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
 
   private fun compareNode(
     node1: DesignerCommonIssueNode?,
-    node2: DesignerCommonIssueNode?
+    node2: DesignerCommonIssueNode?,
   ): TreeVisitor.Action {
     if (node1 == null || node2 == null) {
       return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT
@@ -364,13 +364,13 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
 
   private fun visitIssuedFileNode(
     node1: IssuedFileNode,
-    node2: IssuedFileNode
+    node2: IssuedFileNode,
   ): TreeVisitor.Action {
     return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE
     else {
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     }
   }
@@ -380,7 +380,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     else {
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     }
   }
@@ -393,7 +393,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     val actionAfterComparingParents =
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     if (actionAfterComparingParents == TreeVisitor.Action.CONTINUE) {
       return TreeVisitor.Action.CONTINUE

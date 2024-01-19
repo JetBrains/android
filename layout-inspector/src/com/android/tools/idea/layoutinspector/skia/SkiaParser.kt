@@ -43,7 +43,7 @@ interface SkiaParser {
     data: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
     scale: Double,
-    isInterrupted: () -> Boolean = { false }
+    isInterrupted: () -> Boolean = { false },
   ): SkiaViewNode
 
   /** Perform any necessary cleanup. */
@@ -53,7 +53,7 @@ interface SkiaParser {
 class SkiaParserImpl(
   private val failureCallback: () -> Unit,
   private val connectionFactory: SkiaParserServerConnectionFactory =
-    SkiaParserServerConnectionFactoryImpl
+    SkiaParserServerConnectionFactoryImpl,
 ) : SkiaParser {
 
   private val connectionSync = Any()
@@ -66,7 +66,7 @@ class SkiaParserImpl(
     data: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
     scale: Double,
-    isInterrupted: () -> Boolean
+    isInterrupted: () -> Boolean,
   ): SkiaViewNode {
     try {
       val (root, images) =

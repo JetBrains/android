@@ -51,7 +51,7 @@ val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
 class DeclaredAttributesInspectorBuilder(
   private val model: NlPropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
 
   private val newPropertyInstance =
@@ -66,13 +66,13 @@ class DeclaredAttributesInspectorBuilder(
       nameControlTypeProvider,
       nameEditorProvider,
       controlTypeProvider,
-      editorProvider
+      editorProvider,
     )
   private val insertOp = ::insertNewItem
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
       return
@@ -85,7 +85,7 @@ class DeclaredAttributesInspectorBuilder(
         { it.rawValue != null },
         insertOp,
         { it.value = null },
-        androidSortOrder
+        androidSortOrder,
       )
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()

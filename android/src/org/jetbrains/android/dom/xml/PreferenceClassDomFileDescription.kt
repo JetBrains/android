@@ -27,7 +27,7 @@ class PreferenceClassDomFileDescription :
   CustomLogicResourceDomFileDescription<PreferenceElement>(
     PreferenceElement::class.java,
     ResourceFolderType.XML,
-    "preference"
+    "preference",
   ) {
 
   object Util {

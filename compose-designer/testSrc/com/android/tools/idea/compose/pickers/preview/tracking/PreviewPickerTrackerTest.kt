@@ -71,37 +71,37 @@ internal class PreviewPickerTrackerTest {
         registerNameModificationWithDevice(
           isCustom = true,
           isGeneric = false,
-          tagId = SystemImageTags.ANDROID_TV_TAG.id
+          tagId = SystemImageTags.ANDROID_TV_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.ANDROID_TV_TAG.id
+          tagId = SystemImageTags.ANDROID_TV_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.AUTOMOTIVE_TAG.id
+          tagId = SystemImageTags.AUTOMOTIVE_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.WEAR_TAG.id
+          tagId = SystemImageTags.WEAR_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.DEFAULT_TAG.id
+          tagId = SystemImageTags.DEFAULT_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = true,
-          tagId = SystemImageTags.DEFAULT_TAG.id
+          tagId = SystemImageTags.DEFAULT_TAG.id,
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.DESKTOP_TAG.id
+          tagId = SystemImageTags.DESKTOP_TAG.id,
         )
       }
 
@@ -174,14 +174,14 @@ private class TrackerModificationsWrapper(private val tracker: TestTracker) {
     registerModification(
       "name",
       PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
-      createDevice(isCustom, isGeneric, tagId)
+      createDevice(isCustom, isGeneric, tagId),
     )
 
   fun registerModificationWithCustomDevice(parameterName: String) =
     registerModification(
       parameterName,
       PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
-      createDevice(isCustom = true, isGeneric = false, tagId = "tagId")
+      createDevice(isCustom = true, isGeneric = false, tagId = "tagId"),
     )
 }
 

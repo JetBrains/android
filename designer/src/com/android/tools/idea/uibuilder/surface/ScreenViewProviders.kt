@@ -60,7 +60,7 @@ interface ScreenViewProvider {
    */
   fun createSecondarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView? = null
 
   /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
@@ -78,19 +78,19 @@ enum class NlScreenViewProvider(
     ((NlDesignSurface, LayoutlibSceneManager, Boolean, ColorBlindMode) -> ScreenView)? =
     null,
   private val visibleToUser: Boolean = true,
-  override val surfaceType: LayoutEditorState.Surfaces
+  override val surfaceType: LayoutEditorState.Surfaces,
 ) : ScreenViewProvider {
   RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
   BLUEPRINT(
     "Blueprint",
     ::blueprintProvider,
-    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE,
   ),
   RENDER_AND_BLUEPRINT(
     "Design and Blueprint",
     ::defaultProvider,
     ::blueprintProvider,
-    surfaceType = LayoutEditorState.Surfaces.BOTH
+    surfaceType = LayoutEditorState.Surfaces.BOTH,
   ),
   RESIZABLE_PREVIEW(
     "Preview",
@@ -101,19 +101,19 @@ enum class NlScreenViewProvider(
         .build()
     },
     visibleToUser = false,
-    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE,
   ),
   VISUALIZATION(
     "Visualization",
     ::visualizationProvider,
     visibleToUser = false,
-    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE,
   ),
   COLOR_BLIND(
     "Color Blind Mode",
     ::colorBlindProvider,
     visibleToUser = false,
-    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE,
   );
 
   override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
@@ -125,12 +125,12 @@ enum class NlScreenViewProvider(
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView = primary(surface, manager, false, colorBlindFilter)
 
   override fun createSecondarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView? =
     secondary?.invoke(surface, manager, true, colorBlindFilter)?.apply { isSecondary = true }
 
@@ -186,14 +186,14 @@ internal fun defaultProvider(
   surface: NlDesignSurface,
   manager: LayoutlibSceneManager,
   @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-  colorBlindMode: ColorBlindMode
+  colorBlindMode: ColorBlindMode,
 ): ScreenView = ScreenView.newBuilder(surface, manager).resizeable().build()
 
 internal fun blueprintProvider(
   surface: NlDesignSurface,
   manager: LayoutlibSceneManager,
   isSecondary: Boolean,
-  colorBlindMode: ColorBlindMode
+  colorBlindMode: ColorBlindMode,
 ): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .resizeable()
@@ -218,7 +218,7 @@ internal fun visualizationProvider(
   surface: NlDesignSurface,
   manager: LayoutlibSceneManager,
   @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-  colorBlindMode: ColorBlindMode
+  colorBlindMode: ColorBlindMode,
 ): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .withLayersProvider {
@@ -265,7 +265,7 @@ internal fun colorBlindProvider(
   surface: NlDesignSurface,
   manager: LayoutlibSceneManager,
   @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-  defaultColorBlindMode: ColorBlindMode
+  defaultColorBlindMode: ColorBlindMode,
 ): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .withLayersProvider {

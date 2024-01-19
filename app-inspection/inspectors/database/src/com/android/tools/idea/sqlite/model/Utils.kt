@@ -55,7 +55,7 @@ fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
  */
 fun SqliteStatement.transform(
   newStatementType: SqliteStatementType,
-  func: (String) -> String
+  func: (String) -> String,
 ): SqliteStatement {
   val newStatement = func(this.sqliteStatementText)
   val newStatementStringRepresentation = func(this.sqliteStatementWithInlineParameters)
@@ -63,7 +63,7 @@ fun SqliteStatement.transform(
     newStatementType,
     newStatement,
     parametersValues,
-    newStatementStringRepresentation
+    newStatementStringRepresentation,
   )
 }
 
@@ -71,7 +71,7 @@ fun SqliteStatement.transform(
 fun createSqliteStatement(
   project: Project,
   sqliteStatementText: String,
-  parametersValues: List<SqliteValue> = emptyList()
+  parametersValues: List<SqliteValue> = emptyList(),
 ): SqliteStatement {
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatementText)
   val statementStringRepresentation =
@@ -83,7 +83,7 @@ fun createSqliteStatement(
     statementType,
     sqliteStatementTextWithNoTrailingSemicolon,
     parametersValues,
-    statementStringRepresentation
+    statementStringRepresentation,
   )
 }
 

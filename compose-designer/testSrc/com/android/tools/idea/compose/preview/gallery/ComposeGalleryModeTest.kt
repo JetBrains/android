@@ -133,7 +133,7 @@ class ComposeGalleryModeTest {
   }
 
   private fun setupGallery(
-    manager: () -> ComposePreviewManager,
+    manager: () -> ComposePreviewManager
   ): Pair<ComposeGalleryMode, () -> Unit> {
     val gallery = ComposeGalleryMode(JPanel())
     val tabsToolbar = findTabs(gallery.component)

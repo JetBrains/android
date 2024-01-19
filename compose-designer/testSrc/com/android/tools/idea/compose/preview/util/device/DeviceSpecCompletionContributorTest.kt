@@ -44,9 +44,9 @@ internal class DeviceSpecCompletionContributorTest {
       CompletionContributorEP(
         DeviceSpecLanguage.id,
         DeviceSpecCompletionContributor::class.java.name,
-        ep.pluginDescriptor
+        ep.pluginDescriptor,
       ),
-      fixture.testRootDisposable
+      fixture.testRootDisposable,
     )
     runInEdtAndWait {
       // Sdk needed for Devices
@@ -108,20 +108,20 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("spec:", fixture.lookupElementStrings!![1]) // Driven by Live Template
     assertEquals(
       "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160",
-      fixture.lookupElementStrings!![2]
+      fixture.lookupElementStrings!![2],
     )
 
     assertEquals(
       "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![3]
+      fixture.lookupElementStrings!![3],
     )
     assertEquals(
       "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![4]
+      fixture.lookupElementStrings!![4],
     )
     assertEquals(
       "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240",
-      fixture.lookupElementStrings!![5]
+      fixture.lookupElementStrings!![5],
     )
 
     // 'pix' should only match the default device (pixel_5)
@@ -137,20 +137,20 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals(
       "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160",
-      fixture.lookupElementStrings!![1]
+      fixture.lookupElementStrings!![1],
     )
 
     assertEquals(
       "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![2]
+      fixture.lookupElementStrings!![2],
     )
     assertEquals(
       "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![3]
+      fixture.lookupElementStrings!![3],
     )
     assertEquals(
       "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240",
-      fixture.lookupElementStrings!![4]
+      fixture.lookupElementStrings!![4],
     )
 
     // completion for 'spec' prefix
@@ -159,20 +159,20 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("spec:", fixture.lookupElementStrings!![0]) // Driven by Live Template
     assertEquals(
       "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160",
-      fixture.lookupElementStrings!![1]
+      fixture.lookupElementStrings!![1],
     )
 
     assertEquals(
       "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![2]
+      fixture.lookupElementStrings!![2],
     )
     assertEquals(
       "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420",
-      fixture.lookupElementStrings!![3]
+      fixture.lookupElementStrings!![3],
     )
     assertEquals(
       "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240",
-      fixture.lookupElementStrings!![4]
+      fixture.lookupElementStrings!![4],
     )
   }
 

@@ -44,13 +44,13 @@ class DistributionsContainerPanelTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(null, emptyList()), FAKE_6_DAYS_AGO)),
-        currentIssueDetails = LoadingState.Loading
+        currentIssueDetails = LoadingState.Loading,
       )
     val flow = MutableSharedFlow<AppInsightsState>()
     val panel =
       DistributionsContainerPanel(
         AndroidCoroutineScope(projectRule.disposable, AndroidDispatchers.uiThread),
-        flow
+        flow,
       )
 
     withContext(AndroidDispatchers.uiThread) {

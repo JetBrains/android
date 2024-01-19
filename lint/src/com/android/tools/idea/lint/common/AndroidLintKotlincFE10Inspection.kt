@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.KotlincFE10Detector
 class AndroidLintKotlincFE10Inspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.kotlinc.fe10"),
-    KotlincFE10Detector.ISSUE
+    KotlincFE10Detector.ISSUE,
   )

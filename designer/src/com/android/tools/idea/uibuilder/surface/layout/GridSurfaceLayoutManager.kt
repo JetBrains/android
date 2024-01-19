@@ -39,7 +39,7 @@ open class GridSurfaceLayoutManager(
   @SwingCoordinate private val verticalPadding: Int,
   @SwingCoordinate private val horizontalViewDelta: Int,
   @SwingCoordinate private val verticalViewDelta: Int,
-  private val centralizeContent: Boolean = true
+  private val centralizeContent: Boolean = true,
 ) : SurfaceLayoutManager {
 
   private var previousHorizontalPadding = 0
@@ -51,7 +51,7 @@ open class GridSurfaceLayoutManager(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
+    @SwingCoordinate dimension: Dimension?,
   ) = getSize(content, PositionableContent::scaledContentSize, { scale }, availableWidth, dimension)
 
   private fun getSize(
@@ -59,7 +59,7 @@ open class GridSurfaceLayoutManager(
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension {
     val dim = dimension ?: Dimension()
 
@@ -83,7 +83,7 @@ open class GridSurfaceLayoutManager(
 
     dim.setSize(
       requiredWidth + 2 * horizontalPadding,
-      max(0, requiredHeight - verticalViewDelta + 2 * verticalPadding)
+      max(0, requiredHeight - verticalViewDelta + 2 * verticalPadding),
     )
     return dim
   }
@@ -97,7 +97,7 @@ open class GridSurfaceLayoutManager(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     scaleFunc: PositionableContent.() -> Double,
-    @SwingCoordinate widthFunc: PositionableContent.() -> Int
+    @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): List<List<PositionableContent>> {
     if (content.isEmpty()) {
       return listOf(emptyList())
@@ -133,7 +133,7 @@ open class GridSurfaceLayoutManager(
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.isEmpty()) {
       return 1.0
@@ -184,7 +184,7 @@ open class GridSurfaceLayoutManager(
         rawSizes.sumOf { it.height } + (content.size - 1) * verticalViewDelta + 2 * verticalPadding
       maxOf(
         SCALE_UNIT,
-        minOf(availableWidth.toDouble() / totalWidth, availableHeight.toDouble() / totalHeight)
+        minOf(availableWidth.toDouble() / totalWidth, availableHeight.toDouble() / totalHeight),
       )
     }
 
@@ -203,7 +203,7 @@ open class GridSurfaceLayoutManager(
     @SurfaceScale max: Double,
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
-    cache: Dimension
+    cache: Dimension,
   ): Double {
     if (max - min <= SCALE_UNIT) {
       // Last attempt.
@@ -223,7 +223,7 @@ open class GridSurfaceLayoutManager(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
       return emptyMap()
@@ -275,6 +275,6 @@ open class GridSurfaceLayoutManager(
   private data class FitIntoScaleData(
     val content: Collection<PositionableContent>,
     val availableWidth: Int,
-    val availableHeight: Int
+    val availableHeight: Int,
   )
 }

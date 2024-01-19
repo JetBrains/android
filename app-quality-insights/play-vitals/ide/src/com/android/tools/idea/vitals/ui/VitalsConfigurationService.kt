@@ -81,7 +81,7 @@ class VitalsConfigurationManager(
   @VisibleForTesting val cache: AppInsightsCache,
   loginState: Flow<LoginStatus> = service<LoginState>().loginStatus,
   parentDisposable: Disposable,
-  @TestOnly private val testClient: AppInsightsClient? = null
+  @TestOnly private val testClient: AppInsightsClient? = null,
 ) : AppInsightsConfigurationManager, Disposable {
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
@@ -210,11 +210,11 @@ class VitalsConfigurationManager(
                 project,
                 MessageType.ERROR,
                 msg,
-                hyperlinkListener
+                hyperlinkListener,
               )
             },
             defaultFilters = createVitalsFilters(),
-            cache = cache
+            cache = cache,
           )
         controllerDeferred.complete(vitalsController)
       }

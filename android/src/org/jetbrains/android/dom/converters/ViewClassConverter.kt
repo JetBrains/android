@@ -27,7 +27,7 @@ class ViewClassConverter :
     false,
     NO_PREFIX_PACKAGES_FOR_VIEW,
     true,
-    arrayOf(AndroidUtils.VIEW_CLASS_NAME)
+    arrayOf(AndroidUtils.VIEW_CLASS_NAME),
   ) {
 
   companion object {

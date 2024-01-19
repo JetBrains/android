@@ -40,7 +40,7 @@ import java.util.concurrent.Executor
 internal fun buildQueryCommand(
   sqliteStatement: SqliteStatement,
   databaseConnectionId: Int,
-  responseSizeByteLimitHint: Long? = null
+  responseSizeByteLimitHint: Long? = null,
 ): SqliteInspectorProtocol.Command {
   val parameterValues =
     sqliteStatement.parametersValues.map { param ->
@@ -80,7 +80,7 @@ internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(
       // Create SqliteValue.BlobValue instead.
       SqliteColumnValue(
         colName,
-        SqliteValue.StringValue(BaseEncoding.base16().encode(blobValue.toByteArray()))
+        SqliteValue.StringValue(BaseEncoding.base16().encode(blobValue.toByteArray())),
       )
     SqliteInspectorProtocol.CellValue.OneOfCase.LONG_VALUE ->
       SqliteColumnValue(colName, SqliteValue.StringValue(longValue.toString()))
@@ -121,7 +121,7 @@ internal fun handleError(
   project: Project,
   command: SqliteInspectorProtocol.Command,
   errorContent: SqliteInspectorProtocol.ErrorContent,
-  logger: Logger
+  logger: Logger,
 ) {
   // Ignore race conditions for short-lived dbs.
   // Short lived dbs can be closed after the "db open" event is received and before the next command
@@ -149,7 +149,7 @@ internal fun handleError(
 private fun handleErrorContent(
   project: Project,
   errorContent: SqliteInspectorProtocol.ErrorContent,
-  logger: Logger
+  logger: Logger,
 ) {
   val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 

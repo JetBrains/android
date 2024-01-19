@@ -94,7 +94,7 @@ class ComponentProvisionMethodConceptTest {
 
         fun provisionMethodOutsideClass(): Foo
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = ComponentProvisionMethodConcept.indexers.runIndexerOn(psiFile)
@@ -106,8 +106,8 @@ class ComponentProvisionMethodConceptTest {
           ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent"),
           ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent"),
           ComponentProvisionPropertyIndexValue(MY_COMPONENT_ID, "provisionPropertyComponent"),
-          ComponentProvisionPropertyIndexValue(MY_SUBCOMPONENT_ID, "provisionPropertySubcomponent")
-        )
+          ComponentProvisionPropertyIndexValue(MY_SUBCOMPONENT_ID, "provisionPropertySubcomponent"),
+        ),
       )
   }
 
@@ -159,7 +159,7 @@ class ComponentProvisionMethodConceptTest {
       class Foo
       class Bar
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fooPsiType = myFixture.findParentElement<KtClass>("class F|oo").toPsiType()!!
@@ -175,12 +175,12 @@ class ComponentProvisionMethodConceptTest {
     val provisionPropertyComponentDaggerElement =
       ComponentProvisionMethodDaggerElement(
         myFixture.findParentElement<KtProperty>("fooProperty|Component"),
-        fooPsiType
+        fooPsiType,
       )
     val provisionPropertySubcomponentDaggerElement =
       ComponentProvisionMethodDaggerElement(
         myFixture.findParentElement<KtProperty>("fooProperty|Subcomponent"),
-        fooPsiType
+        fooPsiType,
       )
 
     // Expected to resolve
@@ -226,14 +226,14 @@ class ComponentProvisionMethodConceptTest {
       assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
           ComponentProvisionMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope()),
+            .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
 
       assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
           ComponentProvisionPropertyIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope()),
+            .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
     }
@@ -275,7 +275,7 @@ class ComponentProvisionMethodConceptTest {
       class Foo {}
       class Bar {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val provisionMethodComponentDaggerElement =
@@ -308,14 +308,14 @@ class ComponentProvisionMethodConceptTest {
         MY_SUBCOMPONENT_ID to "concreteMethodSubcomponent",
         NOT_A_COMPONENT_ID to "provisionMethodNotAComponent",
         NOT_A_COMPONENT_ID to "nonProvisionMethodNotAComponent",
-        NOT_A_COMPONENT_ID to "concreteMethodNotAComponent"
+        NOT_A_COMPONENT_ID to "concreteMethodNotAComponent",
       )
 
     for ((classId, methodName) in nonResolving) {
       assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
           ComponentProvisionMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope()),
+            .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
     }

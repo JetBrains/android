@@ -28,7 +28,7 @@ internal constructor(
 ) : ExecutionTargetProvider() {
   override fun getTargets(
     project: Project,
-    configuration: RunConfiguration
+    configuration: RunConfiguration,
   ): List<ExecutionTarget> {
     // TODO: Should we be using the configuration parameter here? The original code didn't; the
     // DevicesSelectedService implicitly uses the currently selected run configuration, which is
@@ -36,7 +36,7 @@ internal constructor(
     return listOf(
       DeviceAndSnapshotComboBoxExecutionTarget(
         devicesSelectedService(project).getSelectedTargets(),
-        devicesService(project)
+        devicesService(project),
       )
     )
   }

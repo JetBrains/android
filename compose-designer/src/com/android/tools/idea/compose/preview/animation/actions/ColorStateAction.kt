@@ -39,7 +39,7 @@ private val DEFAULT_COLOR: Color = JBColor.WHITE
 class ColorStateAction(
   defaultState: ComposeUnit.Color = ComposeUnit.Color.create(DEFAULT_COLOR),
   val tracker: AnimationTracker,
-  private val onPropertiesUpdated: () -> Unit
+  private val onPropertiesUpdated: () -> Unit,
 ) : CustomComponentAction, AnAction() {
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -49,7 +49,7 @@ class ColorStateAction(
         this,
         PresentationFactory().getPresentation(this),
         ActionPlaces.TOOLBAR,
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
       ) {
 
       override fun paintComponent(g: Graphics) {
@@ -59,7 +59,7 @@ class ColorStateAction(
           colorButtonOffset,
           colorButtonOffset,
           width - 2 * colorButtonOffset,
-          height - 2 * colorButtonOffset
+          height - 2 * colorButtonOffset,
         )
       }
     }
@@ -77,7 +77,7 @@ class ColorStateAction(
         state = ComposeUnit.Color.create(it)
         onPropertiesUpdated()
       },
-      colorResourcePickedCallback = {}
+      colorResourcePickedCallback = {},
     )
     tracker.openPicker()
   }

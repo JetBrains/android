@@ -34,7 +34,7 @@ import java.util.LinkedList
 class ParametersBindingController(
   private val view: ParametersBindingDialogView,
   private val sqliteStatementPsi: PsiElement,
-  private val runStatement: (SqliteStatement) -> Unit
+  private val runStatement: (SqliteStatement) -> Unit,
 ) : Disposable {
 
   private val listener = ParametersBindingViewListenerImpl()

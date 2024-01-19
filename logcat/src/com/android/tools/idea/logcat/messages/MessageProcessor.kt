@@ -58,7 +58,7 @@ constructor(
     Clock.systemDefaultZone(),
     MAX_TIME_PER_BATCH_MS,
     StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
-    autoStart = true
+    autoStart = true,
   )
 
   private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)

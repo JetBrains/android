@@ -52,7 +52,7 @@ class ViewInspectorTreeLoader(
   private val lowMemoryWatcher =
     LowMemoryWatcher.register(
       { isInterrupted = true },
-      LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC
+      LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC,
     )
 
   fun loadComponentTree(): AndroidWindow? {
@@ -68,7 +68,7 @@ class ViewInspectorTreeLoader(
       configuration.fontScale,
       context.mainDisplayOrientation,
       context.screenSize,
-      context.isRunningInMainDisplay
+      context.isRunningInMainDisplay,
     )
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
     return ViewAndroidWindow(
@@ -78,7 +78,7 @@ class ViewInspectorTreeLoader(
       viewEvent,
       folderConfig,
       { isInterrupted },
-      logEvent
+      logEvent,
     )
   }
 }

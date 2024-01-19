@@ -44,7 +44,7 @@ abstract class AbstractInspectorClient(
   final override val isInstantlyAutoConnected: Boolean,
   final override val stats: SessionStatistics,
   @VisibleForTesting val coroutineScope: CoroutineScope,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : InspectorClient {
   init {
     Disposer.register(parentDisposable, this)
@@ -76,7 +76,7 @@ abstract class AbstractInspectorClient(
       notificationModel,
       attachStateListeners,
       stats,
-      coroutineScope
+      coroutineScope,
     )
     @TestOnly set
 
@@ -151,7 +151,7 @@ abstract class AbstractInspectorClient(
               "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
               "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
               "cause:",
-            t
+            t,
           )
       }
     }

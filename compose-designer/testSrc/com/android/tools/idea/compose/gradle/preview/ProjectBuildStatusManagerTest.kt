@@ -83,26 +83,26 @@ class ProjectBuildStatusManagerTest {
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
         scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
-        onReady = { onReadyCalled.countDown() }
+        onReady = { onReadyCalled.countDown() },
       )
     assertTrue(onReadyCalled.await(5, TimeUnit.SECONDS))
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     assertTrue(
       "Builds status is not Ready after successful build",
-      statusManager.status == ProjectStatus.Ready
+      statusManager.status == ProjectStatus.Ready,
     )
 
     // Status of files created after a build should be NeedsBuild until a new build happens
     val newFile =
       projectRule.fixture.addFileToProject(
         "${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile",
-        ""
+        "",
       )
     val newStatusManager =
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         newFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
       )
     assertEquals(ProjectStatus.NeedsBuild, newStatusManager.status)
     projectRule.buildAndAssertIsSuccessful()
@@ -151,7 +151,7 @@ class ProjectBuildStatusManagerTest {
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
       )
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     assertFalse(projectRule.build().isBuildSuccessful)
@@ -169,7 +169,7 @@ class ProjectBuildStatusManagerTest {
     projectRule.buildAndAssertIsSuccessful()
     assertTrue(
       "Builds status is not Ready after successful build",
-      statusManager.status == ProjectStatus.Ready
+      statusManager.status == ProjectStatus.Ready,
     )
   }
 }

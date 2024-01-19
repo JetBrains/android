@@ -48,7 +48,7 @@ open class CommonPreviewViewModel(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val hasRenderErrors: () -> Boolean,
-  private val previewRefreshNotificationFactory: (durationString: String) -> Notification
+  private val previewRefreshNotificationFactory: (durationString: String) -> Notification,
 ) : PreviewViewModel, PreviewViewModelStatus {
   private val refreshCallsCount = AtomicInteger(0)
   private val hasRendered = AtomicBoolean(false)

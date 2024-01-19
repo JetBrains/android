@@ -27,7 +27,7 @@ abstract class AbstractComposeDiagnosticsTest {
 
   protected fun doTest(
     expectedText: String,
-    verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null
+    verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null,
   ): Unit =
     androidProject.fixture.run {
       setUpCompilerArgumentsForComposeCompilerPlugin(project)
@@ -43,7 +43,7 @@ abstract class AbstractComposeDiagnosticsTest {
       package com.example
       $expectedText
       """
-            .trimIndent()
+            .trimIndent(),
         )
 
       configureFromExistingVirtualFile(file.virtualFile)

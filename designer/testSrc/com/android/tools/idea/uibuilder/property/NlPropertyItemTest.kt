@@ -313,7 +313,7 @@ class NlPropertyItemTest {
     val util =
       SupportTestUtil(
         projectRule,
-        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay")
+        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay"),
       )
 
     assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenBackgroundColor"))
@@ -431,7 +431,7 @@ class NlPropertyItemTest {
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall"
+      "?attr/textAppearanceSmall",
     )
     waitUntilLastSelectionUpdateCompleted(property.model)
 
@@ -478,13 +478,13 @@ class NlPropertyItemTest {
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_LINE_SPACING_EXTRA,
-      "16sp"
+      "16sp",
     )
     manager.putDefaultPropertyValue(
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_TEXT_SIZE,
-      "@dimen/text_size_button_material"
+      "@dimen/text_size_button_material",
     )
     waitUntilLastSelectionUpdateCompleted(util.model)
 
@@ -595,15 +595,15 @@ class NlPropertyItemTest {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-hdpi/ic_launcher.png",
-      "res/mipmap-hdpi/ic_launcher.png"
+      "res/mipmap-hdpi/ic_launcher.png",
     )
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-mdpi/ic_launcher.png",
-      "res/mipmap-mdpi/ic_launcher.png"
+      "res/mipmap-mdpi/ic_launcher.png",
     )
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-xhdpi/ic_launcher.png",
-      "res/mipmap-xhdpi/ic_launcher.png"
+      "res/mipmap-xhdpi/ic_launcher.png",
     )
     val util = SupportTestUtil(projectRule, createImageView())
     val srcCompat = util.makeProperty(ANDROID_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
@@ -777,7 +777,7 @@ class NlPropertyItemTest {
     whenever(
         fileManager.openFileEditor(
           ArgumentMatchers.any(FileEditorNavigatable::class.java),
-          ArgumentMatchers.anyBoolean()
+          ArgumentMatchers.anyBoolean(),
         )
       )
       .thenReturn(listOf(mock(FileEditor::class.java)))
@@ -837,7 +837,7 @@ class NlPropertyItemTest {
           projectRule,
           parentTag = "action",
           resourceFolder = FD_RES_NAVIGATION,
-          fileName = "navigation.xml"
+          fileName = "navigation.xml",
         )
       val property =
         util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
@@ -891,7 +891,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 20, 200, 20)
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
-          .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+          .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design"),
       )
 
   /** Creates a simple `LinearLayout` with an optional `theme` overlay. */
@@ -915,7 +915,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 20, 200, 20)
           .withAttribute(ANDROID_URI, ATTR_TEXT, "other")
-          .withAttribute(TOOLS_URI, ATTR_TEXT, "something")
+          .withAttribute(TOOLS_URI, ATTR_TEXT, "something"),
       )
 
   private fun createMultipleComponents(): ComponentDescriptor =
@@ -941,7 +941,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 60, 200, 20)
           .id(NEW_ID_PREFIX + "button2")
-          .withAttribute(ANDROID_URI, ATTR_TEXT, "other")
+          .withAttribute(ANDROID_URI, ATTR_TEXT, "other"),
       )
 
   private fun isReferenceValue(property: NlPropertyItem, value: String): Boolean {

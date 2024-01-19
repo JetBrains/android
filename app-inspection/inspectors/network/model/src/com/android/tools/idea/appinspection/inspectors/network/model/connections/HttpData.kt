@@ -155,10 +155,7 @@ data class HttpData(
 
   internal fun withRequestCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      requestCompleteTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, requestCompleteTimeUs = timestamp)
   }
 
   internal fun withResponseStarted(event: NetworkInspectorProtocol.Event): HttpData {
@@ -180,18 +177,12 @@ data class HttpData(
 
   internal fun withResponseCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      responseCompleteTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, responseCompleteTimeUs = timestamp)
   }
 
   internal fun withHttpClosed(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      connectionEndTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, connectionEndTimeUs = timestamp)
   }
 
   internal fun intersectsRange(range: Range): Boolean {

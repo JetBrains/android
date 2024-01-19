@@ -50,7 +50,7 @@ private constructor(
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model
+        model,
       )
     }
 
@@ -70,7 +70,7 @@ private constructor(
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model = ""
+        model = "",
       )
     }
   }

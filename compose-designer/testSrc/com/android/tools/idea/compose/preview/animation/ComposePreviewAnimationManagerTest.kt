@@ -78,7 +78,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       listOf(
         arrayOf<Any>(ClockType.DEFAULT),
         arrayOf<Any>(ClockType.WITH_TRANSITIONS),
-        arrayOf<Any>(ClockType.WITH_COORDINATION)
+        arrayOf<Any>(ClockType.WITH_COORDINATION),
       )
   }
 
@@ -211,7 +211,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     ComposePreviewAnimationManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
-      psiFilePointer
+      psiFilePointer,
     ) {
       callbackCalls++
     }
@@ -410,7 +410,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     inspector.component.setSize(
       inspector.component.size.width * 2,
-      inspector.component.size.height * 2
+      inspector.component.size.height * 2,
     )
     UIUtil.pump() // Wait for all changes in UI thread
   }
@@ -480,19 +480,19 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
       assertEquals(
         "repeatedLabel (1)",
-        inspector.getAnimationTitleAt(1)
+        inspector.getAnimationTitleAt(1),
       ) // repeated titles get their index incremented
       assertEquals(
         "Animated Value",
-        inspector.getAnimationTitleAt(2)
+        inspector.getAnimationTitleAt(2),
       ) // null labels use default title
       assertEquals(
         "Transition Animation",
-        inspector.getAnimationTitleAt(3)
+        inspector.getAnimationTitleAt(3),
       ) // null labels use default title
       assertEquals(
         "Animated Visibility",
-        inspector.getAnimationTitleAt(4)
+        inspector.getAnimationTitleAt(4),
       ) // null labels use default title
     }
   }
@@ -570,7 +570,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         """
       fun main() {}
     """
-          .trimIndent()
+          .trimIndent(),
       )
     val anotherPsiFile =
       projectRule.fixture.addFileToProject(
@@ -578,7 +578,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         """
       fun main() {}
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     lateinit var psiPointerOne: SmartPsiElementPointer<PsiFile>
@@ -594,7 +594,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     ComposePreviewAnimationManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
-      psiPointerOne
+      psiPointerOne,
     ) {}
 
     val clock = getClock()
@@ -652,8 +652,8 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
               )
             )
           ),
-          NopClassLocator
-        )
+          NopClassLocator,
+        ),
       ) {
       fun loadPreviewAnimationClock(): Class<*> =
         loadClass("androidx.compose.ui.tooling.animation.PreviewAnimationClock")

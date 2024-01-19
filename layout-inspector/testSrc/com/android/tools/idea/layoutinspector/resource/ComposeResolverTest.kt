@@ -54,7 +54,7 @@ class ComposeResolverTest {
     fileOpenCaptureRule.checkEditor(
       "MyCompose.kt",
       17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
     )
   }
 
@@ -92,6 +92,6 @@ class ComposeResolverTest {
               }
             }
           }
-        }
+        },
     )
 }

@@ -136,7 +136,7 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -152,7 +152,7 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
 
 internal data class BindsOptionalOfProviderDaggerElement(
   override val psiElement: PsiElement,
-  private val providedPsiType: PsiType
+  private val providedPsiType: PsiType,
 ) : ProviderDaggerElementBase() {
 
   constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())

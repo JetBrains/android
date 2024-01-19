@@ -73,7 +73,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun inspectorChanged(
     property: KProperty<*>,
     oldInspector: LayoutInspector?,
-    newInspector: LayoutInspector?
+    newInspector: LayoutInspector?,
   ) {
     cleanUp(oldInspector)
     newInspector?.inspectorModel?.addSelectionListener(selectionListener)
@@ -119,7 +119,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun handleModelChange(
     old: AndroidWindow?,
     new: AndroidWindow?,
-    structuralChange: Boolean
+    structuralChange: Boolean,
   ) {
     if (structuralChange) {
       structuralUpdates++
@@ -136,7 +136,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun updateProperties(
     from: PropertiesProvider,
     view: ViewNode,
-    table: PropertiesTable<InspectorPropertyItem>
+    table: PropertiesTable<InspectorPropertyItem>,
   ) {
     val selectedView = layoutInspector?.inspectorModel?.selection
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {

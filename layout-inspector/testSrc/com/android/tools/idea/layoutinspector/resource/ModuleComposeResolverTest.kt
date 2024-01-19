@@ -65,11 +65,11 @@ class ModuleComposeResolverTest {
   fun before() {
     projectRule.fixture.addFileToProject(
       "app/src/java/com/example/MainActivity.kt",
-      createMainActivityFile("App")
+      createMainActivityFile("App"),
     )
     projectRule.fixture.addFileToProject(
       "two/src/java/com/example/MainActivity.kt",
-      createMainActivityFile("Two")
+      createMainActivityFile("Two"),
     )
     appConfig = addConfig("app-config", ".app.main")
     twoConfig = addConfig("two-config", ".two.main")
@@ -121,7 +121,7 @@ class ModuleComposeResolverTest {
       composeOffset = 392,
       composeLineNumber = 12,
       0,
-      0
+      0,
     )
 
   private fun addConfig(name: String, moduleSuffix: String): RunnerAndConfigurationSettings {

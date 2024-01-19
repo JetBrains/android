@@ -21,7 +21,7 @@ import com.google.play.developer.reporting.OsVersion
 fun OperatingSystemInfo.Companion.fromProto(proto: OsVersion): OperatingSystemInfo {
   return OperatingSystemInfo(
     displayVersion = proto.apiLevel.toString(),
-    displayName = proto.apiLevel.toString()
+    displayName = proto.apiLevel.toString(),
   )
 }
 

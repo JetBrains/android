@@ -37,5 +37,5 @@ class PropertyDefinition(
    * If possible the resulting value should be the same format that a user would apply to the
    * relevant XML attribute.
    */
-  val value_mapper: (String) -> String = IDENTITY
+  val value_mapper: (String) -> String = IDENTITY,
 )

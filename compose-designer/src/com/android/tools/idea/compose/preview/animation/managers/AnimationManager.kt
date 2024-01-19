@@ -65,7 +65,7 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
   abstract fun createTimelineElement(
     parent: JComponent,
     minY: Int,
-    positionProxy: PositionProxy
+    positionProxy: PositionProxy,
   ): TimelineElement
 
   /** Called everytime if [selectedProperties] should be updated. */

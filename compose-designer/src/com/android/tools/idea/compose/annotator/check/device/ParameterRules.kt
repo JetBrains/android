@@ -33,7 +33,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_SHAPE,
       expectedType = ExpectedShape,
-      defaultValue = DeviceSpec.DEFAULT_SHAPE.name
+      defaultValue = DeviceSpec.DEFAULT_SHAPE.name,
     ) {
       enumValueOfOrNull<Shape>(it) != null
     }
@@ -42,7 +42,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_WIDTH,
       expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString()
+      defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString(),
     ) {
       it.toIntOrNull() != null
     }
@@ -51,7 +51,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_HEIGHT,
       expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString()
+      defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString(),
     ) {
       it.toIntOrNull() != null
     }
@@ -60,7 +60,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_UNIT,
       expectedType = ExpectedDimUnit,
-      defaultValue = DeviceSpec.DEFAULT_UNIT.name
+      defaultValue = DeviceSpec.DEFAULT_UNIT.name,
     ) {
       enumValueOfOrNull<DimUnit>(it) != null
     }
@@ -69,7 +69,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_DPI,
       expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_DPI.toString()
+      defaultValue = DeviceSpec.DEFAULT_DPI.toString(),
     ) {
       it.toIntOrNull() != null
     }
@@ -82,7 +82,7 @@ internal object LegacyParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_ID,
       expectedType = OpenEndedValueType("String"),
-      defaultValue = ""
+      defaultValue = "",
     ) {
       true
     }
@@ -120,7 +120,7 @@ internal object LanguageParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_IS_ROUND,
       expectedType = ExpectedStrictBoolean,
-      defaultValue = false.toString()
+      defaultValue = false.toString(),
     ) {
       it.toBooleanStrictOrNull() != null
     }
@@ -129,7 +129,7 @@ internal object LanguageParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_ORIENTATION,
       expectedType = ExpectedOrientation,
-      defaultValue = Orientation.portrait.name
+      defaultValue = Orientation.portrait.name,
     ) {
       enumValueOfOrNull<Orientation>(it) != null
     }
@@ -138,7 +138,7 @@ internal object LanguageParameterRule {
     simpleParameterRule(
       name = DeviceSpec.PARAMETER_DPI,
       expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_DPI.toString()
+      defaultValue = DeviceSpec.DEFAULT_DPI.toString(),
     ) {
       it.toIntOrNull() != null
     }

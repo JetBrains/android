@@ -38,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
 
 data class CustomConfigurationSet(
   var title: String = "Custom",
-  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList()
+  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList(),
 ) {
   @Transient
   fun addConfigAttribute(attribute: CustomConfigurationAttribute) {
@@ -72,7 +72,7 @@ data class CustomConfigurationAttribute(
   var localeString: String? = null,
   var theme: String? = null,
   var uiMode: UiMode? = null,
-  var nightMode: NightMode? = null
+  var nightMode: NightMode? = null,
 )
 
 private object CustomModelDataContext : DataContext {
@@ -90,7 +90,7 @@ private object CustomModelDataContext : DataContext {
 class CustomModelsProvider(
   val customId: String,
   val customConfigSet: CustomConfigurationSet,
-  private val configurationSetListener: ConfigurationSetListener
+  private val configurationSetListener: ConfigurationSetListener,
 ) : VisualizationModelsProvider {
 
   /**
@@ -122,7 +122,7 @@ class CustomModelsProvider(
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -153,7 +153,7 @@ class CustomModelsProvider(
           config.device,
           config.deviceState?.name,
           config.locale,
-          config.target
+          config.target,
         ) ?: currentFile
 
       val model =

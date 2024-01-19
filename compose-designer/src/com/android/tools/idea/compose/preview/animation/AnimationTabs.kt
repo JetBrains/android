@@ -74,7 +74,7 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
 
   private inner class CloseActionListener(
     private val tabInfo: TabInfo,
-    private val closeAction: (tabInfo: TabInfo) -> Unit
+    private val closeAction: (tabInfo: TabInfo) -> Unit,
   ) : ActionListener {
     override fun actionPerformed(e: ActionEvent?) {
       removeTab(tabInfo)
@@ -87,9 +87,9 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
       IconButton(
         message("animation.inspector.action.close.tab"),
         AllIcons.Actions.Close,
-        AllIcons.Actions.CloseHovered
+        AllIcons.Actions.CloseHovered,
       ),
-      actionListener
+      actionListener,
     ) {
     init {
       preferredSize = JBUI.size(16)

@@ -91,7 +91,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
             LocalVariableDescriptorImpl(context.project, composer),
             context,
             nodeManager,
-            false
+            false,
           )
         )
       }
@@ -142,7 +142,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
    */
   private fun getFunctionInfo(
     positionManager: CompoundPositionManager,
-    location: Location
+    location: Location,
   ): FunctionInfo {
     return runReadAction {
       val element =
@@ -164,12 +164,12 @@ private fun getDescription(function: KtFunction): String {
     is KtFunctionLiteral ->
       ComposeBundle.message(
         "recomposition.state.function.description.lambda",
-        getLambdaName(function)
+        getLambdaName(function),
       )
     else ->
       ComposeBundle.message(
         "recomposition.state.function.description.function",
-        function.nameAsSafeName.asString()
+        function.nameAsSafeName.asString(),
       )
   }
 }
@@ -205,7 +205,7 @@ private fun KtCallExpression.isTargetComposable(): Boolean {
 
 private fun getParamStates(
   frame: KotlinStackFrame,
-  variables: List<LocalVariableProxyImpl>
+  variables: List<LocalVariableProxyImpl>,
 ): List<ParamState> {
   val vars =
     (variables.filterByPrefix(DIRTY_VAR).takeIf { it.isNotEmpty() }

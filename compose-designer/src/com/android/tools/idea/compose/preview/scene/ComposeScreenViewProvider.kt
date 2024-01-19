@@ -47,7 +47,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView =
     ScreenView.newBuilder(surface, manager)
       .withLayersProvider {
@@ -75,7 +75,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                     (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
                       sceneView.isRootComponentSelected())
                 }
-              },
+              }
             )
             add(
               UiCheckWarningLayer(it) {

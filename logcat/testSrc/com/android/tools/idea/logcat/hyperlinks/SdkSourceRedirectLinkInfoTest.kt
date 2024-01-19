@@ -49,7 +49,7 @@ class SdkSourceRedirectLinkInfoTest {
       androidProjectRule,
       popupRule,
       ApplicationServiceRule(FileNavigator::class.java, fakeFileNavigator),
-      EdtRule()
+      EdtRule(),
     )
 
   private val project
@@ -63,7 +63,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 10, 0),
-        27
+        27,
       )
 
     info.navigate(project)
@@ -74,8 +74,8 @@ class SdkSourceRedirectLinkInfoTest {
           "sources/android-27/android/view/View.java",
           line = 10,
           offset = 366,
-          requestFocus = true
-        ),
+          requestFocus = true,
+        )
       )
   }
 
@@ -87,15 +87,13 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 1, 0),
-        27
+        27,
       )
 
     info.navigate(project)
 
     assertThat(fakeFileNavigator.navigationRequests)
-      .containsExactly(
-        NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true),
-      )
+      .containsExactly(NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true))
   }
 
   @Test
@@ -116,9 +114,7 @@ class SdkSourceRedirectLinkInfoTest {
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file1)
     assertThat(fakeFileNavigator.navigationRequests)
-      .containsExactly(
-        NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true),
-      )
+      .containsExactly(NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true))
   }
 
   @Test
@@ -130,7 +126,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file1, file2),
         OpenFileDescriptor(project, file1, 1, 0),
-        27
+        27,
       )
 
     info.navigate(project)
@@ -139,9 +135,7 @@ class SdkSourceRedirectLinkInfoTest {
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file2)
     assertThat(fakeFileNavigator.navigationRequests)
-      .containsExactly(
-        NavigationRequest("/Bar.java", line = 1, offset = 7, requestFocus = true),
-      )
+      .containsExactly(NavigationRequest("/Bar.java", line = 1, offset = 7, requestFocus = true))
   }
 
   @Test
@@ -152,15 +146,13 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 7),
-        27
+        27,
       )
 
     info.navigate(project)
 
     assertThat(fakeFileNavigator.navigationRequests)
-      .containsExactly(
-        NavigationRequest("/Foo.java", line = -1, offset = 7, requestFocus = true),
-      )
+      .containsExactly(NavigationRequest("/Foo.java", line = -1, offset = 7, requestFocus = true))
   }
 
   /**
@@ -192,14 +184,14 @@ class SdkSourceRedirectLinkInfoTest {
       Line 1
       Line 2
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
   private data class NavigationRequest(
     val file: String,
     val line: Int,
     val offset: Int,
-    val requestFocus: Boolean
+    val requestFocus: Boolean,
   )
 
   private class FakeFileNavigator : FileNavigator {
@@ -213,7 +205,7 @@ class SdkSourceRedirectLinkInfoTest {
           if (trim < 0) path else path.substring(trim),
           descriptor.line,
           descriptor.offset,
-          requestFocus
+          requestFocus,
         )
       )
     }

@@ -34,7 +34,7 @@ class GridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     // Fit perfectly. (2 x 2)
@@ -62,7 +62,7 @@ class GridSurfaceLayoutManagerTest {
           TestPositionableContent(0, 0, 100, 100),
           TestPositionableContent(0, 0, 100, 100),
           TestPositionableContent(0, 0, 100, 100),
-          TestPositionableContent(0, 0, 400, 100)
+          TestPositionableContent(0, 0, 400, 100),
         )
       // Fit in 50%. (4, 1)
       assertEquals(0.5, manager.getFitIntoScale(content, 200, 100), tolerance)
@@ -98,7 +98,7 @@ class GridSurfaceLayoutManagerTest {
           NlConstants.DEFAULT_SCREEN_OFFSET_Y,
           100,
           48,
-          false
+          false,
         )
       // Phone, foldable, tablet, and desktop.
       val content =
@@ -106,7 +106,7 @@ class GridSurfaceLayoutManagerTest {
           TestPositionableContent(0, 0, 411, 891),
           TestPositionableContent(0, 0, 673, 841),
           TestPositionableContent(0, 0, 1280, 800),
-          TestPositionableContent(0, 0, 1920, 1080)
+          TestPositionableContent(0, 0, 1920, 1080),
         )
       assertEquals(0.15, gridSurfaceLayoutManager.getFitIntoScale(content, 400, 900), tolerance)
       assertEquals(0.25, gridSurfaceLayoutManager.getFitIntoScale(content, 900, 900), tolerance)

@@ -77,7 +77,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
 
   override fun resolve(
     resourceReference: ResourceReference?,
-    context: ConvertContext
+    context: ConvertContext,
   ): PsiElement? {
     if (context.xmlElement == null || resourceReference == null) {
       return null
@@ -90,7 +90,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
       allResources.hasResources(
         resourceReference.namespace,
         resourceReference.resourceType,
-        resourceReference.name
+        resourceReference.name,
       )
     return if (hasResources)
       ResourceReferencePsiElement(context.xmlElement as PsiElement, resourceReference)
@@ -101,7 +101,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
     element: PsiElement,
     stringValue: String,
     resolveResult: ResourceReference?,
-    context: ConvertContext
+    context: ConvertContext,
   ): Boolean {
     val target = resolve(resolveResult, context)
     return element.manager.areElementsEquivalent(target, element)

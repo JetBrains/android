@@ -45,7 +45,7 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
     signals = emptySet(),
     uri = issueUri,
     notesCount = 0L,
-    annotations = annotationsList.map { IssueAnnotation.fromProto(it) }
+    annotations = annotationsList.map { IssueAnnotation.fromProto(it) },
   )
 }
 
@@ -56,7 +56,7 @@ internal fun ErrorReport.toSampleEvent(): Event {
       EventData(
         device = Device.fromProto(deviceModel),
         operatingSystemInfo = OperatingSystemInfo.fromProto(osVersion),
-        eventTime = eventTime.toJavaInstant()
+        eventTime = eventTime.toJavaInstant(),
       ),
     stacktraceGroup =
       if (type == ErrorType.APPLICATION_NOT_RESPONDING) reportText.extractThreadDump()

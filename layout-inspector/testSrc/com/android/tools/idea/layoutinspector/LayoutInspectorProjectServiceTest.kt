@@ -46,7 +46,7 @@ class LayoutInspectorProjectServiceTest {
         projectRule.project,
         disposableRule.disposable,
         processDiscovery,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       ) {
         null
       }
@@ -91,7 +91,7 @@ class LayoutInspectorProjectServiceTest {
           projectRule.project,
           disposableRule.disposable,
           processDiscovery,
-          MoreExecutors.directExecutor()
+          MoreExecutors.directExecutor(),
         ) {
           deviceModel
         }

@@ -79,7 +79,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       assertEquals(2000, slider.majorTickSpacing)
       assertEquals(
         listOf("0", "2000", "4000", "6000", "8000", "10000").sorted(),
-        slider.getLabels()
+        slider.getLabels(),
       )
       // Tick spacing with default 10_000 as maximum value and width 1000
       slider.parent.setSize(1000, 500)
@@ -88,7 +88,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       assertEquals(
         listOf("0", "1000", "2000", "3000", "4000", "5000", "6000", "7000", "8000", "9000", "10000")
           .sorted(),
-        slider.getLabels()
+        slider.getLabels(),
       )
 
       // Tick spacing with default 10_000 as maximum value and width 150
@@ -355,7 +355,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       }
       assertEquals(
         setOf(TooltipInfo("50", "50"), TooltipInfo("50", "100")),
-        slider.scanForTooltips()
+        slider.scanForTooltips(),
       )
       assertNotNull(slider.tooltip)
       // Hover first element

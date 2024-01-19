@@ -253,7 +253,7 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2.setRenderingHint(
           RenderingHints.KEY_STROKE_CONTROL,
-          RenderingHints.VALUE_STROKE_NORMALIZE
+          RenderingHints.VALUE_STROKE_NORMALIZE,
         )
         g2.color = color
         val arc = DarculaUIUtil.BUTTON_ARC.get()

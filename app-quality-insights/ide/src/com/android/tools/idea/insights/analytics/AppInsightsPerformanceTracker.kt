@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 private val scheduler =
   AppExecutorUtil.createBoundedScheduledExecutorService(
     "App Insights Performance Statistics Collector",
-    1
+    1,
   )
 
 /**

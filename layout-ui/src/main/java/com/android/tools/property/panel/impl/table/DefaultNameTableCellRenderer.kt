@@ -32,7 +32,7 @@ class DefaultNameTableCellRenderer : PTableCellRenderer {
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent {
     return component.setUpItem(table, item, depth, isSelected, hasFocus, isExpanded)
   }

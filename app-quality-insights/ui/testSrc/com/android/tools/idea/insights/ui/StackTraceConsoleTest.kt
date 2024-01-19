@@ -79,7 +79,7 @@ class StackTraceConsoleTest {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
       controllerRule.consumeInitialState(
         fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), ""))
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")),
       )
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
@@ -122,7 +122,7 @@ class StackTraceConsoleTest {
                               address = 319324,
                               library = "libc.so",
                               rawSymbol = "#00 pc 0x04DF5C libc.so (syscall + 28)",
-                              blame = Blames.NOT_BLAMED
+                              blame = Blames.NOT_BLAMED,
                             ),
                             Frame(
                               symbol = "android.widget.TextView.setText",
@@ -131,7 +131,7 @@ class StackTraceConsoleTest {
                               offset = 6406,
                               library = "dev.firebase.appdistribution",
                               rawSymbol = "android.widget.TextView.setText(TextView.java:6406)",
-                              blame = Blames.NOT_BLAMED
+                              blame = Blames.NOT_BLAMED,
                             ),
                             Frame(
                               symbol =
@@ -142,7 +142,7 @@ class StackTraceConsoleTest {
                               library = "dev.firebase.appdistribution",
                               blame = Blames.BLAMED,
                               rawSymbol =
-                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)"
+                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)",
                             ),
                             Frame(
                               symbol =
@@ -153,10 +153,10 @@ class StackTraceConsoleTest {
                               library = "dev.firebase.appdistribution",
                               rawSymbol =
                                 "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder(AppDetailRecyclerViewAdapter.kt:124)",
-                              blame = Blames.NOT_BLAMED
-                            )
-                          )
-                      )
+                              blame = Blames.NOT_BLAMED,
+                            ),
+                          ),
+                      ),
                   ),
                   ExceptionStack(
                     rawExceptionMessage = "WifiManagerThread",
@@ -170,7 +170,7 @@ class StackTraceConsoleTest {
                               offset = 8,
                               address = 889432,
                               library = "libc.so",
-                              rawSymbol = "#00 pc 0xd9258 libc.so (__epoll_pwait + 8)"
+                              rawSymbol = "#00 pc 0xd9258 libc.so (__epoll_pwait + 8)",
                             ),
                             Frame(
                               symbol = "android::Looper::pollInner(int)",
@@ -178,17 +178,17 @@ class StackTraceConsoleTest {
                               offset = 184,
                               library = "libutils.so",
                               rawSymbol =
-                                "#01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)"
-                            )
-                          )
-                      )
-                  )
+                                "#01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)",
+                            ),
+                          ),
+                      ),
+                  ),
                 )
             )
         )
       controllerRule.consumeInitialState(
         fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(anr), ""))
+        eventsState = LoadingState.Ready(EventPage(listOf(anr), "")),
       )
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
@@ -225,14 +225,14 @@ class StackTraceConsoleTest {
                }
             }
           """
-          .trimIndent()
+          .trimIndent(),
       )
 
     executeWithErrorProcessor {
       runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
         controllerRule.consumeInitialState(
           fetchState,
-          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), ""))
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
         )
 
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)

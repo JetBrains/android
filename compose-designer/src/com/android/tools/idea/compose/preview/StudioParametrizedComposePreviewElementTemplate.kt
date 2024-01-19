@@ -26,7 +26,7 @@ import com.android.tools.preview.PreviewParameter
  */
 class StudioParametrizedComposePreviewElementTemplate(
   basePreviewElement: ComposePreviewElement,
-  parameterProviders: Collection<PreviewParameter>
+  parameterProviders: Collection<PreviewParameter>,
 ) :
   ParametrizedComposePreviewElementTemplate(
     basePreviewElement,

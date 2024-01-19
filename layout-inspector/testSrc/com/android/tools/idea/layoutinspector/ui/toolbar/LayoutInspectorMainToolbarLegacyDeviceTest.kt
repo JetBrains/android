@@ -54,7 +54,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
   private val layoutInspectorRule =
     LayoutInspectorRule(
       listOf(LegacyClientProvider({ projectRule.testRootDisposable })),
-      projectRule
+      projectRule,
     )
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(layoutInspectorRule)!!
@@ -103,7 +103,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
       projectRule.testRootDisposable,
       JPanel(),
       layoutInspectorRule.inspector,
-      fakeAction
+      fakeAction,
     )
   }
 
@@ -116,7 +116,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
         "LayoutInspector.MainToolbar",
         presentation,
         ActionManager.getInstance(),
-        0
+        0,
       )
     button.action.update(event)
     return presentation

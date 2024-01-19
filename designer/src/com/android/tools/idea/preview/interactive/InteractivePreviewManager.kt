@@ -31,7 +31,7 @@ class InteractivePreviewManager(
   fpsLimit: Int,
   private val interactiveScenesProvider: () -> Collection<InteractiveSceneManager>,
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
-  private val delegateInteractionHandler: DelegateInteractionHandler
+  private val delegateInteractionHandler: DelegateInteractionHandler,
 ) : Disposable {
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
@@ -53,7 +53,7 @@ class InteractivePreviewManager(
             interactiveScenesProvider().forEach { it.executeCallbacksAndRequestRender(null) }
           }
         },
-        Duration.ofMillis(5)
+        Duration.ofMillis(5),
       )
       .also { Disposer.register(this, it) }
 

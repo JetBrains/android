@@ -52,7 +52,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
@@ -81,7 +81,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
         fontModel,
         defaultConfig,
         fontConfig,
-        EFFECTIVE_FLAGS
+        EFFECTIVE_FLAGS,
       )
     }
 

@@ -45,7 +45,7 @@ fun DeviceDescriptor.createProcess(
   packageName: String = name,
   pid: Int = 1,
   streamId: Long = 13579,
-  isRunning: Boolean = true
+  isRunning: Boolean = true,
 ): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {

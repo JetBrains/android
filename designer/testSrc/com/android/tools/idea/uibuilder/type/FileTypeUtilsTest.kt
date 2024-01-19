@@ -122,7 +122,7 @@ class FileTypeUtilsTest {
 
     assertEquals(
       file1.virtualFile.getConfiguration(manager).device,
-      file2.virtualFile.getConfiguration(manager).device
+      file2.virtualFile.getConfiguration(manager).device,
     )
   }
 

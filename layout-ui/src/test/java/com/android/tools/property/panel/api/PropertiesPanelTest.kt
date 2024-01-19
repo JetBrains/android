@@ -241,7 +241,7 @@ class PropertiesPanelTest {
 
   private fun checkBothTabsVisibleInView1(
     panel: PropertiesPanel<FakePropertyItem>,
-    expectedCallCount: Int = 1
+    expectedCallCount: Int = 1,
   ) {
     assertThat(panel.pages.size).isEqualTo(2)
     assertThat(builder1!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
@@ -263,7 +263,7 @@ class PropertiesPanelTest {
 
   private fun checkAllThreeTabsVisibleInView2(
     panel: PropertiesPanel<FakePropertyItem>,
-    expectedCallCount: Int = 1
+    expectedCallCount: Int = 1,
   ) {
     assertThat(panel.pages.size).isEqualTo(3)
     assertThat(builder2!!.attachToInspectorCalled).isEqualTo(expectedCallCount)

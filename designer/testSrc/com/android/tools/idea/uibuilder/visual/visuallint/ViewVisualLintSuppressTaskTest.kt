@@ -57,7 +57,7 @@ class ViewVisualLintSuppressTaskTest {
     val editor = FileEditorManager.getInstance(rule.project).selectedEditor
     assertEquals(
       "Undo ${BoundsAnalyzer.type.toSuppressActionDescription()}",
-      UndoManager.getInstance(rule.project).getUndoActionNameAndDescription(editor).second
+      UndoManager.getInstance(rule.project).getUndoActionNameAndDescription(editor).second,
     )
   }
 
@@ -121,7 +121,7 @@ class ViewVisualLintSuppressTaskTest {
         ComponentDescriptor(LINEAR_LAYOUT)
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
-          .matchParentHeight()
+          .matchParentHeight(),
       )
       .build()
   }

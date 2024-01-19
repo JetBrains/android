@@ -51,7 +51,7 @@ import kotlinx.coroutines.withContext
  */
 private suspend fun trackDevices(
   devicesFlow: Flow<List<DeviceHandle>>,
-  tracker: suspend (DeviceHandle) -> Unit
+  tracker: suspend (DeviceHandle) -> Unit,
 ) = coroutineScope {
   val trackers = mutableMapOf<DeviceHandle, Job>()
   devicesFlow
@@ -98,7 +98,7 @@ private constructor(
         add(addButton)
         add(removeButton)
       },
-      BorderLayout.NORTH
+      BorderLayout.NORTH,
     )
     add(scrollPane)
 
@@ -153,7 +153,7 @@ private constructor(
   /** Updates the PairedDevicesPanel based on the provided flows. */
   private suspend fun trackPairedDevices(
     devicesFlow: Flow<List<DeviceHandle>>,
-    pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
+    pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
   ) {
     trackDevices(devicesFlow) { device ->
       try {
@@ -165,7 +165,7 @@ private constructor(
             PairedDeviceData.create(
               device,
               deviceState,
-              pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN
+              pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN,
             )
           }
           .distinctUntilChanged()

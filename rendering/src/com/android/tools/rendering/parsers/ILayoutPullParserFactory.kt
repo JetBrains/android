@@ -33,6 +33,6 @@ interface ILayoutPullParserFactory {
     logger: IRenderLogger,
     xml: PathString,
     layoutlibCallback: LayoutlibCallback,
-    resourceRepositoryManager: ResourceRepositoryManager
+    resourceRepositoryManager: ResourceRepositoryManager,
   ): ILayoutPullParser?
 }

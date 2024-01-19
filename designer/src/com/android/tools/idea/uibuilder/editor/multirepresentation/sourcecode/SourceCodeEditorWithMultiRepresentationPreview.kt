@@ -28,13 +28,13 @@ import com.intellij.openapi.project.Project
 internal class SourceCodeEditorWithMultiRepresentationPreview(
   private val project: Project,
   textEditor: TextEditor,
-  preview: SourceCodePreview
+  preview: SourceCodePreview,
 ) :
   TextEditorWithMultiRepresentationPreview<SourceCodePreview>(
     project,
     textEditor,
     preview,
-    "Source Code Editor With Preview"
+    "Source Code Editor With Preview",
   ) {
   override fun getState(
     level: FileEditorStateLevel
@@ -43,7 +43,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(
       super.getState(level),
       textEditor.getState(level),
       preview.getState(level),
-      if (isPureTextEditor) null else layout
+      if (isPureTextEditor) null else layout,
     )
 
   override fun setState(state: FileEditorState) {

@@ -57,7 +57,7 @@ class DesignerCommonIssueModelTest {
 
 class TestNode(
   private val name: String = "",
-  parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null
+  parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null,
 ) : DesignerCommonIssueNode(null, parentDescriptor) {
 
   private val children = mutableListOf<DesignerCommonIssueNode>()

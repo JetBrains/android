@@ -28,7 +28,7 @@ interface DaggerIndexParameterWrapper : DaggerIndexAnnotatedWrapper {
 
 internal class KtParameterWrapper(
   private val ktParameter: KtParameter,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexAnnotatedKotlinWrapper(ktParameter, importHelper), DaggerIndexParameterWrapper {
   override fun getSimpleName(): String? = ktParameter.name
 
@@ -40,7 +40,7 @@ internal class KtParameterWrapper(
 
 internal class PsiParameterWrapper(
   private val psiParameter: PsiParameter,
-  importHelper: JavaImportHelper
+  importHelper: JavaImportHelper,
 ) : DaggerIndexAnnotatedJavaWrapper(psiParameter, importHelper), DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = psiParameter.name
 

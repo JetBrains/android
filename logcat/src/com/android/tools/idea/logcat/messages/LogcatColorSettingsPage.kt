@@ -79,42 +79,42 @@ private val DESCRIPTOR_INFO =
       LogcatColors.LEVEL_VERBOSE_KEY,
       "v",
       LogcatColors.MESSAGE_VERBOSE_KEY,
-      "vm"
+      "vm",
     ),
     LogcatDescriptorInfo(
       DEBUG,
       LogcatColors.LEVEL_DEBUG_KEY,
       "d",
       LogcatColors.MESSAGE_DEBUG_KEY,
-      "dm"
+      "dm",
     ),
     LogcatDescriptorInfo(
       INFO,
       LogcatColors.LEVEL_INFO_KEY,
       "i",
       LogcatColors.MESSAGE_INFO_KEY,
-      "im"
+      "im",
     ),
     LogcatDescriptorInfo(
       WARN,
       LogcatColors.LEVEL_WARNING_KEY,
       "w",
       LogcatColors.MESSAGE_WARNING_KEY,
-      "wm"
+      "wm",
     ),
     LogcatDescriptorInfo(
       ERROR,
       LogcatColors.LEVEL_ERROR_KEY,
       "e",
       LogcatColors.MESSAGE_ERROR_KEY,
-      "em"
+      "em",
     ),
     LogcatDescriptorInfo(
       ASSERT,
       LogcatColors.LEVEL_ASSERT_KEY,
       "a",
       LogcatColors.MESSAGE_ASSERT_KEY,
-      "am"
+      "am",
     ),
   )
 
@@ -122,13 +122,13 @@ private val ATTRIBUTES_DESCRIPTORS =
   (DESCRIPTOR_INFO.map {
       AttributesDescriptor(
         LogcatBundle.message("logcat.color.page.indicator", it.name),
-        it.levelKey
+        it.levelKey,
       )
     } +
       DESCRIPTOR_INFO.map {
         AttributesDescriptor(
           LogcatBundle.message("logcat.color.page.message", it.name),
-          it.messageKey
+          it.messageKey,
         )
       })
     .toTypedArray()

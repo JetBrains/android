@@ -82,7 +82,7 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
     } catch (e: IOException) {
       Messages.showErrorDialog(
         "Failed to read image from \"" + file.name + "\" Error: " + e.message,
-        "Error"
+        "Error",
       )
       return null
     }

@@ -43,8 +43,8 @@ class AppInspectionExecutionListenerTest {
           DefaultRunExecutor.getRunExecutorInstance(),
           AndroidRunConfiguration(
             projectRule.project,
-            AndroidRunConfigurationType.getInstance().factory
-          )
+            AndroidRunConfigurationType.getInstance().factory,
+          ),
         )
         .build()
         .apply {

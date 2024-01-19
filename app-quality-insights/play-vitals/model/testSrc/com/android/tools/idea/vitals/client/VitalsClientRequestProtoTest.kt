@@ -66,7 +66,7 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor)
+          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 
       val request = createIssueRequest(TEST_CONNECTION_1, clock)
@@ -109,21 +109,21 @@ class VitalsClientRequestProtoTest {
           it.dimensionsList.contains(DimensionType.API_LEVEL.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
       assertQueryErrorCountMetricSetRequest(
         queryErrorCountMetricSetRequests.first {
           it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
       assertQueryErrorCountMetricSetRequest(
         queryErrorCountMetricSetRequests.first {
           it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
     }
 
@@ -134,7 +134,7 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor)
+          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 
       val request = createIssueRequest(TEST_CONNECTION_1, clock)
@@ -159,13 +159,13 @@ class VitalsClientRequestProtoTest {
         queryRequests.first { it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
-        TEST_ISSUE1.id.value
+        TEST_ISSUE1.id.value,
       )
       assertQueryErrorCountMetricSetRequest(
         queryRequests.first { it.dimensionsList.contains(DimensionType.API_LEVEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
-        TEST_ISSUE1.id.value
+        TEST_ISSUE1.id.value,
       )
     }
 
@@ -173,7 +173,7 @@ class VitalsClientRequestProtoTest {
     request: QueryErrorCountMetricSetRequest,
     interval: Interval,
     expectedMetric: String,
-    issueId: String? = null
+    issueId: String? = null,
   ) {
     assertThat(request.name).isEqualTo("apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet")
     assertThat(request.timelineSpec)
@@ -195,7 +195,7 @@ class VitalsClientRequestProtoTest {
           DimensionType.REPORT_TYPE.value,
           DimensionType.DEVICE_BRAND.value,
           DimensionType.DEVICE_MODEL.value,
-          DimensionType.DEVICE_TYPE.value
+          DimensionType.DEVICE_TYPE.value,
         )
     } else if (request.dimensionsList.contains(DimensionType.VERSION_CODE.value)) {
       assertThat(request.dimensionsList)

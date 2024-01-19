@@ -99,7 +99,7 @@ class RenderSettingsActionTest {
         0x479345 to "Green",
         0xFFC66D to "Yellow",
         0x871094 to "Purple",
-        0xE1A336 to "Orange"
+        0xE1A336 to "Orange",
       )
     val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
@@ -142,7 +142,7 @@ class RenderSettingsActionTest {
       ActionPlaces.UNKNOWN,
       Presentation(),
       actionManager,
-      0
+      0,
     )
   }
 }

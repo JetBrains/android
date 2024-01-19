@@ -46,7 +46,7 @@ class SingleComposePreviewElementRendererTest {
           projectRule.androidFacet(":app"),
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.InvalidPreview"
-          )
+          ),
         )
         .get()
     )
@@ -60,7 +60,7 @@ class SingleComposePreviewElementRendererTest {
           projectRule.androidFacet(":app"),
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview"
-          )
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -69,7 +69,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRender,
       0.1,
-      1
+      1,
     )
   }
 
@@ -82,8 +82,8 @@ class SingleComposePreviewElementRendererTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
             showBackground = true,
-            backgroundColor = "#F00"
-          )
+            backgroundColor = "#F00",
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -92,7 +92,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRenderWithBackground,
       0.1,
-      1
+      1,
     )
   }
 
@@ -110,9 +110,9 @@ class SingleComposePreviewElementRendererTest {
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.DefaultPreview",
           showBackground = true,
-          backgroundColor = "#F00"
+          backgroundColor = "#F00",
         ),
-        false
+        false,
       )
     val renderTask = renderTaskFuture.get()!!
     val result = renderTask.render().get()
@@ -181,7 +181,7 @@ class SingleComposePreviewElementRendererTest {
     renderTask.dispose().get()
     assertTrue(
       "animationScale should have been cleared",
-      (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
+      (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty(),
     )
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
     assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
@@ -196,8 +196,8 @@ class SingleComposePreviewElementRendererTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
             configuration =
-              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
-          )
+              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null),
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -206,7 +206,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRenderWithLocale,
       0.1,
-      1
+      1,
     )
   }
 
@@ -223,7 +223,7 @@ class SingleComposePreviewElementRendererTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
             showBackground = true,
-          )
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -232,7 +232,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       withUnsignedTypesRender,
       0.1,
-      1
+      1,
     )
   }
 
@@ -247,7 +247,7 @@ class SingleComposePreviewElementRendererTest {
           projectRule.androidFacet(":app"),
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.EmptyPreview"
-          )
+          ),
         )
         .get()!!
 
@@ -264,7 +264,7 @@ class SingleComposePreviewElementRendererTest {
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.OtherPreviewsKt.TextFieldPreview"
         ),
-        false
+        false,
       )
     val frameNanos = 16000000L
     val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
@@ -299,7 +299,7 @@ class SingleComposePreviewElementRendererTest {
           0,
           KeyEvent.VK_P,
           'p',
-          KEY_LOCATION_STANDARD
+          KEY_LOCATION_STANDARD,
         )
       renderTask.triggerKeyEvent(event, time + 1000).get(5, TimeUnit.SECONDS)
 
@@ -315,7 +315,7 @@ class SingleComposePreviewElementRendererTest {
           ),
           it,
           0.1,
-          1
+          1,
         )
       }
     } finally {
@@ -334,7 +334,7 @@ class SingleComposePreviewElementRendererTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.LeakCheckKt.WithException"
           ),
-          false
+          false,
         )
       val renderTask = renderTaskFuture.get()!!
       val result = renderTask.render().get()

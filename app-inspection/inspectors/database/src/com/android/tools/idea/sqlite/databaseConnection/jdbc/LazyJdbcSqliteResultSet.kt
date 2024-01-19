@@ -25,7 +25,7 @@ import java.util.concurrent.Executor
 class LazyJdbcSqliteResultSet(
   taskExecutor: Executor,
   connection: Connection,
-  private val sqliteStatement: SqliteStatement
+  private val sqliteStatement: SqliteStatement,
 ) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
     get() =

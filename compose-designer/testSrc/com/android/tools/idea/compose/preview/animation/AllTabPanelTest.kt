@@ -301,7 +301,7 @@ class AllTabPanelTest {
             emptyList(),
             NoopAnimationTracker,
           )
-          .apply { setDuration(i * 10) },
+          .apply { setDuration(i * 10) }
       )
     }
 
@@ -340,7 +340,7 @@ class AllTabPanelTest {
             emptyList(),
             NoopAnimationTracker,
           )
-          .apply { setDuration(i * 10) },
+          .apply { setDuration(i * 10) }
       )
     }
 

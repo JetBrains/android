@@ -50,7 +50,7 @@ class AnnotateQuickFix(
   familyName: String?,
   private val annotationSource: String,
   private val replace: Boolean,
-  range: Location?
+  range: Location?,
 ) : DefaultLintQuickFix(displayName ?: "Annotate", familyName) {
   private val rangePointer = LintIdeFixPerformer.getRangePointer(project, range)
 
@@ -65,7 +65,7 @@ class AnnotateQuickFix(
   override fun apply(
     element: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     val rangeFile = rangePointer?.element?.containingFile
     @Suppress("NAME_SHADOWING") var element: PsiElement = element
@@ -131,7 +131,7 @@ class AnnotateQuickFix(
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     return findContainer(startElement) != null
   }

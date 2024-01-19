@@ -48,10 +48,7 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseHeaders =
-          listOf(
-            httpHeader("Content-Type", "text/html; charset=UTF-8"),
-          ),
+        responseHeaders = listOf(httpHeader("Content-Type", "text/html; charset=UTF-8")),
         responseCode = 302,
       )
     assertThat(data.responseCode).isEqualTo(302)
@@ -128,10 +125,7 @@ class HttpDataTest {
       createFakeHttpData(
         1,
         responseHeaders =
-          listOf(
-            httpHeader("CoNtEnt-LEngtH", "10000"),
-            httpHeader("response-status-code", "200"),
-          )
+          listOf(httpHeader("CoNtEnt-LEngtH", "10000"), httpHeader("response-status-code", "200")),
       )
     assertThat(data.responseHeaders["content-length"]).containsExactly("10000")
     assertThat(data.responseHeaders["cOnTenT-leNGth"]).containsExactly("10000")
@@ -143,10 +137,7 @@ class HttpDataTest {
       createFakeHttpData(
         1,
         responseHeaders =
-          listOf(
-            httpHeader("content-length", "10000"),
-            httpHeader("response-status-code", "404"),
-          ),
+          listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "404")),
         responseCode = 200,
       )
     assertThat(data.responseCode).isEqualTo(200)
@@ -166,7 +157,7 @@ class HttpDataTest {
             httpHeader("response-status-code", "200"),
             httpHeader("content-encoding", "gzip"),
           ),
-        responsePayload = ByteString.copyFrom(byteOutput.toByteArray())
+        responsePayload = ByteString.copyFrom(byteOutput.toByteArray()),
       )
     assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("test")
   }
@@ -183,7 +174,7 @@ class HttpDataTest {
             httpHeader("response-status-code", "200"),
             httpHeader("content-encoding", "gzip"),
           ),
-        responsePayload = ByteString.copyFrom(malformedBytes)
+        responsePayload = ByteString.copyFrom(malformedBytes),
       )
     assertThat(data.getReadableResponsePayload().toByteArray()).isEqualTo(malformedBytes)
   }

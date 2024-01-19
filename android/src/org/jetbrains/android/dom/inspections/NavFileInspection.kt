@@ -33,12 +33,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
 
-private val tagsWithDestination =
-  setOf(
-    "activity",
-    "dialog",
-    "fragment",
-  )
+private val tagsWithDestination = setOf("activity", "dialog", "fragment")
 
 class NavFileInspection : LocalInspectionTool() {
 
@@ -53,7 +48,7 @@ class NavFileInspection : LocalInspectionTool() {
   override fun checkFile(
     file: PsiFile,
     manager: InspectionManager,
-    isOnTheFly: Boolean
+    isOnTheFly: Boolean,
   ): Array<ProblemDescriptor>? {
     if (file !is XmlFile) {
       return ProblemDescriptor.EMPTY_ARRAY
@@ -77,7 +72,7 @@ class NavFileInspection : LocalInspectionTool() {
   private class AttributesVisitor(
     private val module: Module,
     private val myInspectionManager: InspectionManager,
-    private val myOnTheFly: Boolean
+    private val myOnTheFly: Boolean,
   ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
 
@@ -102,7 +97,7 @@ class NavFileInspection : LocalInspectionTool() {
               AndroidBundle.message("android.inspections.nav.name.not.valid", value, tag.name),
               myOnTheFly,
               emptyArray(),
-              ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
+              ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
             )
           )
         }

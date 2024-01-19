@@ -63,7 +63,7 @@ class InspectorClientLauncher(
   private val scope: CoroutineScope,
   private val parentDisposable: Disposable,
   private val metrics: LayoutInspectorSessionMetrics? = null,
-  @VisibleForTesting executor: Executor? = null
+  @VisibleForTesting executor: Executor? = null,
 ) {
   companion object {
 
@@ -79,7 +79,7 @@ class InspectorClientLauncher(
       treeSettings: TreeSettings,
       inspectorClientSettings: InspectorClientSettings,
       coroutineScope: CoroutineScope,
-      parentDisposable: Disposable
+      parentDisposable: Disposable,
     ): InspectorClientLauncher {
 
       val appInspectionInspectorClientFactory = ClientFactory { params ->
@@ -94,7 +94,7 @@ class InspectorClientLauncher(
             treeSettings,
             inspectorClientSettings,
             coroutineScope,
-            parentDisposable
+            parentDisposable,
           )
         } else {
           null
@@ -109,7 +109,7 @@ class InspectorClientLauncher(
           notificationModel,
           metrics,
           coroutineScope,
-          parentDisposable
+          parentDisposable,
         )
       }
 
@@ -128,7 +128,7 @@ class InspectorClientLauncher(
         notificationModel,
         coroutineScope,
         parentDisposable,
-        metrics
+        metrics,
       )
     }
   }
@@ -180,7 +180,7 @@ class InspectorClientLauncher(
   private fun handleProcessInWorkerThread(
     executor: Executor?,
     process: ProcessDescriptor?,
-    isAutoConnected: Boolean
+    isAutoConnected: Boolean,
   ) {
     if (!project.isDisposed) {
       val processHandler = {
@@ -250,7 +250,7 @@ class InspectorClientLauncher(
             ) {
               metrics?.logEvent(
                 DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
-                client.stats
+                client.stats,
               )
               return
             }
@@ -266,7 +266,7 @@ class InspectorClientLauncher(
             client.disconnect()
             metrics?.logEvent(
               DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
-              client.stats
+              client.stats,
             )
             throw cancellationException
           } catch (ignored: Exception) {

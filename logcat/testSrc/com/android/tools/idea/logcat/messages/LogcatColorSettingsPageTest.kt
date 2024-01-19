@@ -38,12 +38,12 @@ class LogcatColorSettingsPageTest {
       assertThat(descriptors)
         .containsEntry(
           LogcatBundle.message("logcat.color.page.indicator", name),
-          colors.getLogLevelKey(level)
+          colors.getLogLevelKey(level),
         )
       assertThat(descriptors)
         .containsEntry(
           LogcatBundle.message("logcat.color.page.message", name),
-          colors.getMessageKey(level)
+          colors.getMessageKey(level),
         )
     }
   }

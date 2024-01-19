@@ -117,7 +117,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       tracker::onRefresh,
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
 
     tracker.assertRefreshed {
@@ -129,7 +129,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
     tracker.assertRefreshed {
       composeTest.replaceStringOnce(
         "NoComposablePreview(\"hello\")",
-        "NoComposablePreview(\"bye\")"
+        "NoComposablePreview(\"bye\")",
       )
     }
     tracker.assertRefreshed {
@@ -170,7 +170,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       { saveCount++ },
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
     assertEquals(0, saveCount)
     FileDocumentManager.getInstance().saveAllDocuments()
@@ -209,7 +209,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       tracker::onRefresh,
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
     val lookupManager = LookupManager.getInstance(project)
 
@@ -218,7 +218,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
         lookupManager.showLookup(
           myFixture.editor,
           LookupElementBuilder.create("Test"),
-          LookupElementBuilder.create("TestB")
+          LookupElementBuilder.create("TestB"),
         )!!
 
       // Perform guarded change ensures that the completion popup is not closed on change.
@@ -239,7 +239,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
           lookupManager.showLookup(
             myFixture.editor,
             LookupElementBuilder.create("Test"),
-            LookupElementBuilder.create("TestB")
+            LookupElementBuilder.create("TestB"),
           )
       }
       // Perform guarded change ensures that the completion popup is not closed on change.

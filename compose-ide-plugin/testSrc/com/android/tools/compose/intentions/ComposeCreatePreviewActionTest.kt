@@ -48,7 +48,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
           Text("December 2018")
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Create Preview" }
@@ -61,7 +61,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
         // fist item was selected.
         // In our case wrap in Container will be selected.
         action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      }
+      },
     )
 
     myFixture.checkResult(
@@ -102,7 +102,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
       </selection>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     var action = myFixture.availableIntentions.find { it.text == "Create Preview" }
@@ -115,7 +115,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
         // fist item was selected.
         // In our case wrap in Container will be selected.
         action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      }
+      },
     )
 
     myFixture.checkResult(
@@ -158,7 +158,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
       </selection>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     action = myFixture.availableIntentions.find { it.text == "Create Preview" }
@@ -171,7 +171,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
         // fist item was selected.
         // In our case wrap in Container will be selected.
         action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      }
+      },
     )
 
     myFixture.checkResult(

@@ -72,7 +72,7 @@ class NetworkInspectorTab(
   dataSource: NetworkInspectorDataSource,
   private val services: NetworkInspectorServices,
   scope: CoroutineScope,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : AspectObserver(), Disposable {
 
   val component: TooltipLayeredPane
@@ -124,7 +124,7 @@ class NetworkInspectorTab(
         component,
         services,
         scope,
-        this@NetworkInspectorTab
+        this@NetworkInspectorTab,
       )
     stagePanel.add(view.component)
 
@@ -154,7 +154,7 @@ class NetworkInspectorTab(
         .setActionRunnable { zoomOut.doClick(0) }
         .setKeyStrokes(
           KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-          KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER)
+          KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER),
         )
         .build()
 
@@ -172,7 +172,7 @@ class NetworkInspectorTab(
         .setKeyStrokes(
           KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
           KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)
+          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER),
         )
         .build()
     zoomIn.toolTipText = zoomInAction.defaultToolTipText
@@ -188,7 +188,7 @@ class NetworkInspectorTab(
         .setActionRunnable { resetZoom.doClick(0) }
         .setKeyStrokes(
           KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-          KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)
+          KeyStroke.getKeyStroke(KeyEvent.VK_0, 0),
         )
         .build()
     resetZoom.toolTipText = resetZoomAction.defaultToolTipText

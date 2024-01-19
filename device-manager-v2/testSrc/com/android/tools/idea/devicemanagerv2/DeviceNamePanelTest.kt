@@ -44,7 +44,7 @@ class DeviceNamePanelTest {
           DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning,
           status,
-          null
+          null,
         )
       val handle = mock<DeviceHandle>()
       whenever(handle.state).thenReturn(state)
@@ -66,7 +66,7 @@ class DeviceNamePanelTest {
             "Connected",
             null,
             Instant.parse("2023-02-03T19:15:30.00Z"),
-            null
+            null,
           )
           .line2Text(ZoneId.of("UTC"))
       )
@@ -78,7 +78,7 @@ class DeviceNamePanelTest {
             "",
             null,
             Instant.parse("2023-02-03T19:15:30.00Z"),
-            null
+            null,
           )
           .line2Text(ZoneId.of("UTC"))
       )
@@ -122,7 +122,7 @@ class DeviceNamePanelTest {
         error = null,
         handleType = DeviceRowData.HandleType.PHYSICAL,
         wearPairingId = "abcd1234",
-        pairingStatus = emptyList()
+        pairingStatus = emptyList(),
       )
     panel.update(row)
     assertThat(panel.pairedLabel.isVisible).isFalse()
@@ -154,6 +154,6 @@ class DeviceNamePanelTest {
       error = null,
       handleType = DeviceRowData.HandleType.PHYSICAL,
       wearPairingId = "abcd1234",
-      pairingStatus = emptyList()
+      pairingStatus = emptyList(),
     )
 }

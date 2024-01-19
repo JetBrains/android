@@ -46,7 +46,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       listOf(
         arrayOf(ComposeAnimationType.TRANSITION_ANIMATION),
         arrayOf(ComposeAnimationType.ANIMATE_X_AS_STATE),
-        arrayOf(ComposeAnimationType.ANIMATED_CONTENT)
+        arrayOf(ComposeAnimationType.ANIMATED_CONTENT),
       )
   }
 
@@ -78,7 +78,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun enumTransitionStates() {
     setupAndCheckToolbar(
       animationType,
-      setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
+      setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3),
     ) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
       Assert.assertEquals(5, toolbar.componentCount)
@@ -139,7 +139,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
         override fun updateFromAndToStates(
           animation: ComposeAnimation,
           fromState: Any,
-          toState: Any
+          toState: Any,
         ) = super.updateFromAndToStates(animation, fromState, toState).also { stateCalls++ }
       }
 
@@ -164,7 +164,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
         override fun updateFromAndToStates(
           animation: ComposeAnimation,
           fromState: Any,
-          toState: Any
+          toState: Any,
         ) {
           throw ClassCastException("")
         }

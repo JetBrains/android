@@ -61,7 +61,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     tableName: String = "tab",
     columns: List<String> = emptyList(),
     primaryKeys: List<String> = emptyList(),
-    withoutRowId: Boolean = false
+    withoutRowId: Boolean = false,
   ): VirtualFile = runWriteAction {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite
@@ -78,7 +78,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
   fun createAdHocSqliteDatabase(
     dbName: String = "sqlite-database",
     createStatement: String,
-    insertStatement: String
+    insertStatement: String,
   ): VirtualFile = runWriteAction {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite
@@ -95,7 +95,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
   fun createTestSqliteDatabaseWithConfigurableTypes(
     dbName: String = "sqlite-database",
     tableName: String = "tab",
-    types: List<String> = emptyList()
+    types: List<String> = emptyList(),
   ): VirtualFile = runWriteAction {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite
@@ -146,12 +146,12 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     tableName: String,
     columns: List<String>,
     primaryKeys: List<String>,
-    withoutRowId: Boolean = false
+    withoutRowId: Boolean = false,
   ) {
     var columnsString =
       primaryKeys.joinToString(
         separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " "
+        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " ",
       ) {
         "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL"
       }
@@ -171,7 +171,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     var colsNames =
       primaryKeys.joinToString(
         separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "",
       ) {
         AndroidSqlLexer.getValidName(it)
       }
@@ -180,7 +180,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     var colsValues =
       primaryKeys.joinToString(
         separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "",
       ) {
         "?"
       }
@@ -206,7 +206,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
   private fun fillAdHocDatabase(
     connection: Connection,
     createStatement: String,
-    insertStatement: String
+    insertStatement: String,
   ) {
     connection.createStatement().use { statement -> statement.executeUpdate(createStatement) }
 
@@ -216,7 +216,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
   private fun createTestDBWithConfigurableTypes(
     connection: Connection,
     tableName: String,
-    types: List<String>
+    types: List<String>,
   ) {
     connection.createStatement().use { stmt ->
       val columns = types.mapIndexed { index, type -> "column$index $type" }.joinToString(",")
@@ -277,7 +277,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     id: Int,
     title: String,
     isbn: String,
-    authorId: Int
+    authorId: Int,
   ) {
     stmt.setInt(1, id)
     stmt.setString(2, title)

@@ -62,7 +62,7 @@ class DeploymentTargetDevicesServiceTest {
         templatesFlow,
         clock,
         ddmlibDeviceLookupFlow,
-        launchCompatibilityCheckerFlow
+        launchCompatibilityCheckerFlow,
       )
 
     suspend fun sendLaunchCompatibility() {

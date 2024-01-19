@@ -42,7 +42,7 @@ class NlNewPropertyItem(
   model: NlPropertiesModel,
   var properties: PropertiesTable<NlPropertyItem>,
   val filter: (NlPropertyItem) -> Boolean = { true },
-  val delegateUpdated: (NlNewPropertyItem) -> Unit = {}
+  val delegateUpdated: (NlNewPropertyItem) -> Unit = {},
 ) :
   NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()),
   NewPropertyItem,
@@ -201,7 +201,7 @@ class NlNewPropertyItem(
 
   private fun getPropertyNameWithPrefix(
     property: NlPropertyItem,
-    resolver: ResourceNamespace.Resolver
+    resolver: ResourceNamespace.Resolver,
   ): String {
     val name = property.name
     val prefixFromResolver = resolver.uriToPrefix(property.namespace)

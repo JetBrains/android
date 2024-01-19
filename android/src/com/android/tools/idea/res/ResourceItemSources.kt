@@ -53,7 +53,7 @@ internal class PsiResourceFile(
   private var _psiFile: PsiFile,
   items: Iterable<PsiResourceItem>,
   private var _resourceFolderType: ResourceFolderType?,
-  override var configuration: RepositoryConfiguration
+  override var configuration: RepositoryConfiguration,
 ) : ResourceItemSource<PsiResourceItem> {
 
   private val _items = ArrayListMultimap.create<String, PsiResourceItem>()
@@ -98,7 +98,7 @@ internal class PsiResourceFile(
 /** The [ResourceItemSource] of [BasicResourceItem]s. */
 internal class VfsResourceFile(
   override val virtualFile: VirtualFile?,
-  override val configuration: RepositoryConfiguration
+  override val configuration: RepositoryConfiguration,
 ) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
 
   private val items = ArrayList<BasicResourceItem>()

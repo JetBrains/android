@@ -33,7 +33,7 @@ import org.xmlpull.v1.XmlPullParser
 fun create(
   xml: PathString,
   namespace: ResourceNamespace,
-  resIdManager: ResourceIdManager?
+  resIdManager: ResourceIdManager?,
 ): ILayoutPullParser? {
   val parser = FileResourceReader.createXmlPullParser(xml, resIdManager.resolver) ?: return null
   return LayoutPullParserImpl(parser, namespace)

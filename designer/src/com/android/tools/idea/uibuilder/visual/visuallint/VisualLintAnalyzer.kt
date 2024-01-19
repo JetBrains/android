@@ -46,7 +46,7 @@ abstract class VisualLintAnalyzer {
     renderResult: RenderResult,
     model: NlModel,
     severity: HighlightSeverity,
-    runningInBackground: Boolean
+    runningInBackground: Boolean,
   ): List<VisualLintRenderIssue> {
     if (runningInBackground && !backgroundEnabled) {
       return emptyList()
@@ -59,7 +59,7 @@ abstract class VisualLintAnalyzer {
 
   private fun getHyperlinkListener(
     issueOrigin: VisualLintOrigin,
-    type: VisualLintErrorType
+    type: VisualLintErrorType,
   ): HyperlinkListener {
     val listener = createDefaultHyperLinkListener()
     return HyperlinkListener {
@@ -74,7 +74,7 @@ abstract class VisualLintAnalyzer {
   private fun createIssue(
     content: VisualLintIssueContent,
     model: NlModel,
-    severity: HighlightSeverity
+    severity: HighlightSeverity,
   ): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
     val issueOrigin =
@@ -138,6 +138,6 @@ abstract class VisualLintAnalyzer {
     // Overrides the error type, it is used if we need to specify a type for the error
     // that is different from the default type provided by the analyzer that created the error.
     val overriddenErrorType: VisualLintErrorType? = null,
-    val descriptionProvider: (Int) -> HtmlBuilder
+    val descriptionProvider: (Int) -> HtmlBuilder,
   )
 }

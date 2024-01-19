@@ -61,7 +61,7 @@ class ConstraintLayoutHelperInspectorBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return

@@ -60,8 +60,8 @@ class SceneDisplayListWithSelectionTest : SceneTest() {
                 .withBounds(1200, 1200, 200, 200)
                 .width("100dp")
                 .height("100dp")
-            )
-        )
+            ),
+        ),
     )
 
   fun testNoSelectionCase() {

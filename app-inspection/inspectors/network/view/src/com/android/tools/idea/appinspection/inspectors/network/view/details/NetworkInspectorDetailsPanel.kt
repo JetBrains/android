@@ -35,7 +35,7 @@ import javax.swing.JPanel
 /** View to display detailed information of an interception rule or connection. */
 internal class NetworkInspectorDetailsPanel(
   inspectorView: NetworkInspectorView,
-  usageTracker: NetworkInspectorTracker
+  usageTracker: NetworkInspectorTracker,
 ) : JPanel(BorderLayout()) {
 
   @VisibleForTesting val connectionDataDetailsView: ConnectionDataDetailsView

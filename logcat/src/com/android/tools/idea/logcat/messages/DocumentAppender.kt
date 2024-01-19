@@ -34,7 +34,7 @@ internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 internal class DocumentAppender(
   project: Project,
   private val document: DocumentEx,
-  private var maxDocumentSize: Int
+  private var maxDocumentSize: Int,
 ) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
 
@@ -56,7 +56,7 @@ internal class DocumentAppender(
       document.setText("")
       document.insertString(
         document.textLength,
-        text.substring(text.lastIndexOf('\n', text.length - maxDocumentSize) + 1)
+        text.substring(text.lastIndexOf('\n', text.length - maxDocumentSize) + 1),
       )
     } else {
       document.insertString(document.textLength, text)
@@ -77,7 +77,7 @@ internal class DocumentAppender(
           end,
           HighlighterLayer.SYNTAX,
           textAttributes,
-          HighlighterTargetArea.EXACT_RANGE
+          HighlighterTargetArea.EXACT_RANGE,
         )
       }
     }
@@ -88,7 +88,7 @@ internal class DocumentAppender(
           start,
           end,
           HighlighterLayer.SYNTAX,
-          HighlighterTargetArea.EXACT_RANGE
+          HighlighterTargetArea.EXACT_RANGE,
         )
       }
     }
@@ -126,7 +126,7 @@ private fun RangeMarker.isReallyValid() = isValid && startOffset < endOffset
 
 private fun <T> TextAccumulator.Range<T>.applyRange(
   offset: Int,
-  apply: (start: Int, end: Int, data: T) -> Unit
+  apply: (start: Int, end: Int, data: T) -> Unit,
 ) {
   val rangeEnd = offset + end
   if (rangeEnd <= 0) {

@@ -48,7 +48,7 @@ class FromToState(tracker: AnimationTracker, callback: () -> Unit) : AnimationSt
       },
       fromState,
       ToolbarLabel("to"),
-      toState
+      toState,
     )
 
   override fun stateHashCode() = Pair(fromState.stateHashCode, toState.stateHashCode).hashCode()

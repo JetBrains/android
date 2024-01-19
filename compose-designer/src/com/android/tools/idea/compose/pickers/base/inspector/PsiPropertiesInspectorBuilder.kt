@@ -35,7 +35,7 @@ internal abstract class PsiPropertiesInspectorBuilder : InspectorBuilder<PsiProp
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<PsiPropertyItem>
+    properties: PropertiesTable<PsiPropertyItem>,
   ) {
     inspector.addEditorsForProperties(properties.values)
   }

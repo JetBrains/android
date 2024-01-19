@@ -63,7 +63,7 @@ class ProviderDaggerElementTest {
 
           class Bar @Inject constructor(foo: Foo) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -77,7 +77,7 @@ class ProviderDaggerElementTest {
 
     assertThat(providerDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(consumerDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerDaggerElement, "Consumers", "navigate.to.consumer", "Bar")
       )
   }
 
@@ -105,7 +105,7 @@ class ProviderDaggerElementTest {
             consumerOfProviderLazyFoo: Provider<Lazy<Foo>>,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -133,19 +133,19 @@ class ProviderDaggerElementTest {
           consumerOfLazyFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfProviderFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfProviderLazyFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
       )
   }
@@ -178,7 +178,7 @@ class ProviderDaggerElementTest {
             consumerOfProviderLazyFoo: MyProviderLazyFoo,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -206,19 +206,19 @@ class ProviderDaggerElementTest {
           consumerOfLazyFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfProviderFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfProviderLazyFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
       )
   }
@@ -265,7 +265,7 @@ class ProviderDaggerElementTest {
             consumerOfMyNullableFoo: MyNullableFoo,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -300,19 +300,19 @@ class ProviderDaggerElementTest {
           consumerOfFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfNullableFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfMyNullableFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
       )
 
@@ -336,7 +336,7 @@ class ProviderDaggerElementTest {
         public static <T> Optional<T> empty() { return null; }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -348,7 +348,7 @@ class ProviderDaggerElementTest {
         public static <T> Optional<T> absent() { return null; }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This is not a realistic Dagger file and would not compile, since there are multiple
@@ -401,7 +401,7 @@ class ProviderDaggerElementTest {
             consumerOfJavaOptionalLazyFoo: JavaOptional<Lazy<Foo>>,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -438,19 +438,19 @@ class ProviderDaggerElementTest {
           consumerOfJavaOptionalFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfGuavaOptionalFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
         DaggerRelatedElement(
           consumerOfJavaOptionalLazyFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
+          "Bar",
         ),
       )
 
@@ -460,8 +460,8 @@ class ProviderDaggerElementTest {
           consumerOfJavaOptionalFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
-        ),
+          "Bar",
+        )
       )
 
     assertThat(provideGuavaOptionalFooDaggerElement.getRelatedDaggerElements())
@@ -470,8 +470,8 @@ class ProviderDaggerElementTest {
           consumerOfGuavaOptionalFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
-        ),
+          "Bar",
+        )
       )
 
     assertThat(provideMyOptionalFooDaggerElement.getRelatedDaggerElements())
@@ -480,18 +480,13 @@ class ProviderDaggerElementTest {
           consumerOfMyOptionalFooDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Bar"
-        ),
+          "Bar",
+        )
       )
 
     assertThat(provideFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          consumerOfFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar"
-        ),
+        DaggerRelatedElement(consumerOfFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar")
       )
   }
 
@@ -554,7 +549,7 @@ class ProviderDaggerElementTest {
             }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -591,7 +586,7 @@ class ProviderDaggerElementTest {
           unqualifiedIntConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
 
@@ -601,7 +596,7 @@ class ProviderDaggerElementTest {
           bertIntConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
 
@@ -611,7 +606,7 @@ class ProviderDaggerElementTest {
           ernieIntConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
 
@@ -621,7 +616,7 @@ class ProviderDaggerElementTest {
           unqualifiedBarConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
 
@@ -631,7 +626,7 @@ class ProviderDaggerElementTest {
           bertBarConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
 
@@ -641,7 +636,7 @@ class ProviderDaggerElementTest {
           ernieBarConsumerDaggerElement,
           "Consumers",
           "navigate.to.consumer",
-          "Foo"
+          "Foo",
         )
       )
   }
@@ -660,7 +655,7 @@ class ProviderDaggerElementTest {
         public operator fun invoke(): R
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.openFileInEditor(
@@ -677,7 +672,7 @@ class ProviderDaggerElementTest {
             arg: () -> String
           )
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -701,7 +696,7 @@ class ProviderDaggerElementTest {
             public MyJavaConsumer(Function0<String> arg) {}
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -726,7 +721,7 @@ class ProviderDaggerElementTest {
             fun getFunctionType(): () -> String = { "hello" }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -740,7 +735,7 @@ class ProviderDaggerElementTest {
           kotlinConsumer,
           "Consumers",
           "navigate.to.consumer",
-          "MyKotlinConsumer"
+          "MyKotlinConsumer",
         ),
         DaggerRelatedElement(javaConsumer, "Consumers", "navigate.to.consumer", "MyJavaConsumer"),
       )
@@ -767,7 +762,7 @@ class ProviderDaggerElementTest {
             consumerOfInt: Int
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -810,7 +805,7 @@ class ProviderDaggerElementTest {
             providerLazyFoo: Provider<Lazy<Foo>>,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )

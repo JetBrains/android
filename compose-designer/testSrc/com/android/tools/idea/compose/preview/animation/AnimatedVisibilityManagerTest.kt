@@ -181,10 +181,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     }
   }
 
-  private fun setupAndCheckToolbar(
-    clock: TestClock,
-    checkToolbar: (JComponent, FakeUi) -> Unit,
-  ) {
+  private fun setupAndCheckToolbar(clock: TestClock, checkToolbar: (JComponent, FakeUi) -> Unit) {
     val inspector = createAndOpenInspector()
 
     val animation =

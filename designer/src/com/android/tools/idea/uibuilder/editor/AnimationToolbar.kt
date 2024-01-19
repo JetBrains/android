@@ -72,7 +72,7 @@ protected constructor(
   tickStepMs: Long,
   minTimeMs: Long,
   initialMaxTimeMs: Long,
-  toolbarType: AnimationToolbarType
+  toolbarType: AnimationToolbarType,
 ) : JPanel(), AnimationController, Disposable {
   private val myAnimationListener: AnimationListener
   private val myPlayButton: JButton
@@ -125,7 +125,7 @@ protected constructor(
     label: String,
     tooltip: String?,
     action: AnimationToolbarAction,
-    callback: Runnable
+    callback: Runnable,
   ): JButton {
     val button: JButton = CommonButton()
     button.name = label
@@ -155,7 +155,7 @@ protected constructor(
     pause: Boolean,
     stop: Boolean,
     frame: Boolean,
-    speed: Boolean
+    speed: Boolean,
   ) {
     myPlayButton.isEnabled = play
     myPauseButton.isEnabled = pause
@@ -201,7 +201,7 @@ protected constructor(
           },
           0L,
           TICKER_STEP.toLong(),
-          TimeUnit.MILLISECONDS
+          TimeUnit.MILLISECONDS,
         )
     controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.PLAY) }
   }
@@ -302,7 +302,7 @@ protected constructor(
       parentDisposable: Disposable,
       listener: AnimationListener,
       tickStepMs: Long,
-      minTimeMs: Long
+      minTimeMs: Long,
     ): AnimationToolbar {
       return AnimationToolbar(
         parentDisposable,
@@ -310,7 +310,7 @@ protected constructor(
         tickStepMs,
         minTimeMs,
         -1,
-        AnimationToolbarType.UNLIMITED
+        AnimationToolbarType.UNLIMITED,
       )
     }
 
@@ -329,7 +329,7 @@ protected constructor(
       listener: AnimationListener,
       tickStepMs: Long,
       minTimeMs: Long,
-      initialMaxTimeMs: Long
+      initialMaxTimeMs: Long,
     ): AnimationToolbar {
       return AnimationToolbar(
         parentDisposable,
@@ -337,7 +337,7 @@ protected constructor(
         tickStepMs,
         minTimeMs,
         initialMaxTimeMs,
-        AnimationToolbarType.LIMITED
+        AnimationToolbarType.LIMITED,
       )
     }
   }
@@ -354,7 +354,7 @@ protected constructor(
         StudioIcons.LayoutEditor.Motion.PLAY,
         "Play",
         DEFAULT_PLAY_TOOLTIP,
-        AnimationToolbarAction.PLAY
+        AnimationToolbarAction.PLAY,
       ) {
         play()
       }
@@ -364,7 +364,7 @@ protected constructor(
         StudioIcons.LayoutEditor.Motion.PAUSE,
         "Pause",
         DEFAULT_PAUSE_TOOLTIP,
-        AnimationToolbarAction.PAUSE
+        AnimationToolbarAction.PAUSE,
       ) {
         pause()
       }
@@ -376,7 +376,7 @@ protected constructor(
         StudioIcons.LayoutEditor.Motion.GO_TO_START,
         "Stop",
         DEFAULT_STOP_TOOLTIP,
-        AnimationToolbarAction.STOP
+        AnimationToolbarAction.STOP,
       ) {
         stop()
       }
@@ -441,7 +441,7 @@ protected constructor(
             { onTick(frameChange) },
             0L,
             TICKER_STEP.toLong(),
-            TimeUnit.MILLISECONDS
+            TimeUnit.MILLISECONDS,
           )
     }
 
@@ -506,7 +506,7 @@ private fun createPlaySpeedActionButton(callback: (Double) -> Unit): ActionButto
       action,
       presentation,
       ActionPlaces.TOOLBAR,
-      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
     )
   button.addPropertyChangeListener("enabled") {
     presentation.description =

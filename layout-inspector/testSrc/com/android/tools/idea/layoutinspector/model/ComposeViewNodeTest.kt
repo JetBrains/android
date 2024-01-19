@@ -78,19 +78,19 @@ class ComposeViewNodeTest {
                 VIEW3,
                 "Text",
                 composeFlags = FLAG_HAS_MERGED_SEMANTICS,
-                composePackageHash = EXAMPLE
+                composePackageHash = EXAMPLE,
               ) {
                 compose(
                   VIEW4,
                   "Text",
                   composeFlags = FLAG_HAS_UNMERGED_SEMANTICS,
-                  composePackageHash = EXAMPLE
+                  composePackageHash = EXAMPLE,
                 ) {
                   compose(
                     VIEW5,
                     "CoreText",
                     composeFlags = FLAG_SYSTEM_DEFINED,
-                    composePackageHash = EXAMPLE
+                    composePackageHash = EXAMPLE,
                   )
                 }
               }

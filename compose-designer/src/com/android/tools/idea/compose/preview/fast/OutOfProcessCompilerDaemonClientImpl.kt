@@ -60,7 +60,7 @@ private val FIXED_COMPILER_ARGS =
     "-no-reflect", // Included as part of the libraries classpath
     "-Xdisable-default-scripting-plugin",
     "-jvm-target",
-    "1.8"
+    "1.8",
   )
 
 /**
@@ -101,7 +101,7 @@ private fun findDaemonPath(version: String): String {
       // via a system property.
       System.getProperty(
         "preview.live.edit.daemon.path",
-        FileUtil.join(homePath, "plugins/design-tools/resources/")
+        FileUtil.join(homePath, "plugins/design-tools/resources/"),
       )
     }
 
@@ -135,7 +135,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   private val moduleClassPathLocator: (Module) -> List<String> =
     ::defaultModuleCompileClassPathLocator,
   private val moduleDependenciesClassPathLocator: (Module) -> List<String> =
-    ::defaultModuleDependenciesCompileClassPathLocator
+    ::defaultModuleDependenciesCompileClassPathLocator,
 ) : CompilerDaemonClient {
   private fun getDaemonPath(version: String): String =
     // Prepare fallback versions
@@ -145,7 +145,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
         // version
         "${version.substringBeforeLast(".")}.0-fallback", // Find the fallback artifact for the same
         // major version, e.g. 1.1
-        "${version.substringBefore(".")}.0.0-fallback" // Find the fallback artifact for the same
+        "${version.substringBefore(".")}.0.0-fallback", // Find the fallback artifact for the same
         // major version, e.g. 1
       )
       .asSequence()
@@ -170,7 +170,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
           // JVM.
           if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
           "-jar",
-          daemonPath
+          daemonPath,
         )
       )
       .redirectError(ProcessBuilder.Redirect.INHERIT)
@@ -245,7 +245,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): CompilationResult {
     indicator.text = "Building classpath"
     val moduleClassPath = moduleClassPathLocator(module)

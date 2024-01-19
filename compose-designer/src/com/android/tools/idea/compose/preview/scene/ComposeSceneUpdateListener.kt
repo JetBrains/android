@@ -40,7 +40,7 @@ fun updateAnimationInspectorToolbarIcon(
   viewObj: Any,
   previewManager: ComposePreviewManager,
   previewElement: ComposePreviewElementInstance,
-  animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker
+  animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker,
 ) {
   if (!previewManager.mode.value.isNormal) return
   try {

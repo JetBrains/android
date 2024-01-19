@@ -23,9 +23,7 @@ import com.intellij.openapi.components.service
  * An item in the [SnapshotActionGroup]. The [DeploymentTarget] determines if the device will be
  * cold booted, quick booted, or booted with a snapshot.
  */
-internal class SelectTargetAction(
-  private val target: DeploymentTarget,
-) : AnAction() {
+internal class SelectTargetAction(private val target: DeploymentTarget) : AnAction() {
   override fun update(event: AnActionEvent) {
     event.presentation.setText(target.bootOption.text, false)
   }

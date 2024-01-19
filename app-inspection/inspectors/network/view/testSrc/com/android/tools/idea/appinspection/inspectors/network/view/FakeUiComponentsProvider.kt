@@ -32,7 +32,7 @@ class FakeUiComponentsProvider : UiComponentsProvider {
     bytes: ByteArray,
     contentType: ContentType,
     styleHint: DataViewer.Style,
-    formatted: Boolean
+    formatted: Boolean,
   ): DataViewer {
     return if (contentType.isSupportedImageType) {
       object : ImageDataViewer {

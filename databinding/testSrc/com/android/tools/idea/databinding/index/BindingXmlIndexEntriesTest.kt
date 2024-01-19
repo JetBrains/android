@@ -79,7 +79,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     assertVariables("variable1" to "String", "added" to "Integer")
   }
@@ -88,7 +88,7 @@ class BindingXmlIndexEntriesTest {
   fun testRenameVariable() {
     updateXml(
       range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "newName"
+      xml = "newName",
     )
     assertVariables("newName" to "String")
   }
@@ -97,7 +97,7 @@ class BindingXmlIndexEntriesTest {
   fun testRenameVariable_prefix() {
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
-      xml = "prefix_"
+      xml = "prefix_",
     )
     assertVariables("prefix_variable1" to "String")
   }
@@ -107,7 +107,7 @@ class BindingXmlIndexEntriesTest {
     insertXml(
       offset =
         getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
-      xml = "_suffix"
+      xml = "_suffix",
     )
     assertVariables("variable1_suffix" to "String")
   }
@@ -131,7 +131,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     deleteXml(variableTag.textRange)
     assertVariables("added" to "Integer")
@@ -149,7 +149,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     deleteXml(getVariableTag("added").textRange)
     assertVariables("variable1" to "String")
@@ -159,7 +159,7 @@ class BindingXmlIndexEntriesTest {
   fun testUpdateType() {
     updateXml(
       range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
-      xml = "Float"
+      xml = "Float",
     )
     assertVariables("variable1" to "Float")
   }

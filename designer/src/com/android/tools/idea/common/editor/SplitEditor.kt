@@ -58,7 +58,7 @@ abstract class SplitEditor<P : FileEditor>(
   textEditor: TextEditor,
   designEditor: P,
   editorName: String,
-  defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW
+  defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW,
 ) :
   TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout),
   TextEditor,
@@ -72,7 +72,7 @@ abstract class SplitEditor<P : FileEditor>(
       "Split",
       AllIcons.General.LayoutEditorPreview,
       super.getShowEditorAndPreviewAction(),
-      true
+      true,
     )
 
   private val previewViewAction =
@@ -80,7 +80,7 @@ abstract class SplitEditor<P : FileEditor>(
       "Design",
       AllIcons.General.LayoutPreviewOnly,
       super.getShowPreviewAction(),
-      false
+      false,
     )
 
   private val navigateLeftAction =
@@ -157,7 +157,7 @@ abstract class SplitEditor<P : FileEditor>(
       "",
       Presentation(),
       ActionManager.getInstance(),
-      0
+      0,
     )
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
@@ -196,11 +196,11 @@ abstract class SplitEditor<P : FileEditor>(
   protected fun registerModeNavigationShortcuts(applicableTo: JComponent) {
     navigateLeftAction.registerCustomShortcutSet(
       KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB),
-      applicableTo
+      applicableTo,
     )
     navigateRightAction.registerCustomShortcutSet(
       KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB),
-      applicableTo
+      applicableTo,
     )
   }
 
@@ -232,7 +232,7 @@ abstract class SplitEditor<P : FileEditor>(
         .getData(
           PlatformCoreDataKeys.BGT_DATA_PROVIDER.name,
           editor,
-          editor.caretModel.currentCaret
+          editor.caretModel.currentCaret,
         ) as? DataProvider
   }
 
@@ -251,7 +251,7 @@ abstract class SplitEditor<P : FileEditor>(
     val name: String,
     val icon: Icon,
     val delegate: ToggleAction,
-    val showDefaultGutterPopup: Boolean
+    val showDefaultGutterPopup: Boolean,
   ) : ToggleAction(if (NewUI.isEnabled()) null else name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)

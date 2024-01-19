@@ -48,7 +48,7 @@ class NetworkInspectorModelTest {
               speedEvent(timestampNanos = SECONDS.toNanos(10), rxSpeed = 3, txSpeed = 4),
             )
         ),
-        CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+        CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher()),
       )
     model.timeline.dataRange.set(0.0, SECONDS.toMicros(20).toDouble())
     model.timeline.viewRange.set(0.0, SECONDS.toMicros(5).toDouble())
@@ -143,7 +143,7 @@ class NetworkInspectorModelTest {
     assertThat(trafficAxisUpdated).isTrue()
     model.timeline.tooltipRange.set(
       SECONDS.toMicros(100).toDouble(),
-      SECONDS.toMicros(100).toDouble()
+      SECONDS.toMicros(100).toDouble(),
     )
     assertThat(tooltipLegendsUpdated).isTrue()
   }
@@ -156,9 +156,9 @@ class NetworkInspectorModelTest {
         responseHeaders =
           listOf(
             httpHeader("null", "HTTP/1.1 302 Found"),
-            httpHeader("Content-Type", "image/jpeg")
+            httpHeader("Content-Type", "image/jpeg"),
           ),
-        responsePayload = ByteString.copyFromUtf8("Content")
+        responsePayload = ByteString.copyFromUtf8("Content"),
       )
     val observer = AspectObserver()
     var connectionChanged = false

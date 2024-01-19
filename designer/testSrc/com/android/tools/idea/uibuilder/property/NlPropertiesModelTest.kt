@@ -218,7 +218,7 @@ class NlPropertiesModelTest {
         "",
         "",
         model,
-        listOf(textView)
+        listOf(textView),
       )
     runBlocking {
       // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
@@ -229,7 +229,7 @@ class NlPropertiesModelTest {
       textView,
       ResourceNamespace.ANDROID,
       ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall"
+      "?attr/textAppearanceSmall",
     )
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
@@ -258,7 +258,7 @@ class NlPropertiesModelTest {
         "",
         "",
         model,
-        listOf(textView)
+        listOf(textView),
       )
     runBlocking {
       // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
@@ -269,7 +269,7 @@ class NlPropertiesModelTest {
       textView,
       ResourceNamespace.ANDROID,
       ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall"
+      "?attr/textAppearanceSmall",
     )
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
@@ -288,7 +288,7 @@ class NlPropertiesModelTest {
       textView,
       ResourceNamespace.ANDROID,
       ATTR_TEXT_APPEARANCE,
-      "@android:style/TextAppearance.Large"
+      "@android:style/TextAppearance.Large",
     )
     manager.fireRenderCompleted()
     nlModel.updateQueue.flush()
@@ -413,7 +413,7 @@ class NlPropertiesModelTest {
                   .height("wrap_content")
               }
               .toTypedArray()
-          )
+          ),
       )
     return builder.build()
   }
@@ -426,7 +426,7 @@ class NlPropertiesModelTest {
     return NlPropertiesModel(
       projectRule.testRootDisposable,
       AndroidFacet.getInstance(projectRule.module)!!,
-      queue
+      queue,
     )
   }
 
@@ -484,7 +484,7 @@ class NlPropertiesModelTest {
         PlatformTestUtil.waitWithEventsDispatching(
           "Model was not updated",
           { model.lastUpdateCompleted },
-          10
+          10,
         )
       } else {
         waitForCondition(10, TimeUnit.SECONDS) { model.lastUpdateCompleted }

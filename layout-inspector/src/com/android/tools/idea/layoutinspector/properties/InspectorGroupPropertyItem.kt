@@ -30,7 +30,7 @@ open class InspectorGroupPropertyItem(
   source: ResourceReference?,
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
-  override val children: List<InspectorPropertyItem>
+  override val children: List<InspectorPropertyItem>,
 ) :
   InspectorPropertyItem(namespace, name, name, type, value, section, source, viewId, lookup),
   PTableGroupItem {

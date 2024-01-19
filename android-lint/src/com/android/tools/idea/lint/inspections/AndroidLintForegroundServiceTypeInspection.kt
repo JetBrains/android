@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ForegroundServiceTypesDetector
 class AndroidLintForegroundServiceTypeInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.foreground.service.type"),
-    ForegroundServiceTypesDetector.ISSUE_TYPE
+    ForegroundServiceTypesDetector.ISSUE_TYPE,
   )

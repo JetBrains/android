@@ -257,7 +257,7 @@ public class MyWebView extends android.webkit.WebView {
       .browse(
         eq("https://developer.android.com/reference/android/widget/TextView.html"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -286,7 +286,7 @@ public class MyWebView extends android.webkit.WebView {
         AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(),
         representation,
         "Layouts",
-        -1
+        -1,
       )
   }
 
@@ -307,7 +307,7 @@ public class MyWebView extends android.webkit.WebView {
       verify(statusBar)
         .notifyProgressByBalloon(
           eq(MessageType.WARNING),
-          eq("Dragging from the Palette is not available while indices are updating.")
+          eq("Dragging from the Palette is not available while indices are updating."),
         )
     }
   }
@@ -419,7 +419,7 @@ public class MyWebView extends android.webkit.WebView {
       .browse(
         eq("https://developer.android.com/reference/android/widget/CheckBox.html"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -434,7 +434,7 @@ public class MyWebView extends android.webkit.WebView {
       .browse(
         eq("https://d.android.com/r/studio-ui/designer/material/checkbox"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -504,7 +504,7 @@ public class MyWebView extends android.webkit.WebView {
         ProgressIndicatorUtils.runActionAndCancelBeforeWrite(
           app,
           { error("No writes allowed") },
-          { ui.mouse.rightClick(x, y) }
+          { ui.mouse.rightClick(x, y) },
         )
       }
     }
@@ -523,7 +523,7 @@ public class MyWebView extends android.webkit.WebView {
   private fun checkTypingStartsFiltering(
     component: JComponent,
     character: Char,
-    expectSearchStarted: Boolean
+    expectSearchStarted: Boolean,
   ) {
     val toolWindow = TestToolWindow()
     myPanel!!.registerCallbacks(toolWindow)
@@ -535,7 +535,7 @@ public class MyWebView extends android.webkit.WebView {
           System.currentTimeMillis(),
           0,
           KeyEvent.VK_UNDEFINED,
-          character
+          character,
         )
       )
     }
@@ -617,7 +617,7 @@ public class MyWebView extends android.webkit.WebView {
             .id("@id/myText")
             .matchParentWidth()
             .height("100dp")
-        )
+        ),
     )
 
   private fun imitateDragAndDrop(handler: TransferHandler, component: JComponent): Boolean {
@@ -631,7 +631,7 @@ public class MyWebView extends android.webkit.WebView {
         "exportDone",
         JComponent::class.java,
         Transferable::class.java,
-        Int::class.javaPrimitiveType
+        Int::class.javaPrimitiveType,
       )
     exportDone.isAccessible = true
     exportDone.invoke(handler, component, transferable, DnDConstants.ACTION_MOVE)

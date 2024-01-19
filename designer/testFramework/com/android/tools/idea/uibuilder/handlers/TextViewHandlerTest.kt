@@ -86,7 +86,7 @@ class FakeViewEditor : ViewEditor() {
 
   override fun measureChildren(
     parent: NlComponent,
-    filter: RenderTask.AttributeFilter?
+    filter: RenderTask.AttributeFilter?,
   ): CompletableFuture<MutableMap<NlComponent, Dimension>>? = null
 
   override fun getScene(): Scene {
@@ -96,14 +96,14 @@ class FakeViewEditor : ViewEditor() {
   override fun canInsertChildren(
     parent: NlComponent,
     children: MutableList<NlComponent>,
-    index: Int
+    index: Int,
   ): Boolean = false
 
   override fun insertChildren(
     parent: NlComponent,
     children: MutableList<NlComponent>,
     index: Int,
-    insertType: InsertType
+    insertType: InsertType,
   ) {}
 
   override fun moduleDependsOnAppCompat(): Boolean = false
@@ -114,7 +114,7 @@ class TextViewHandlerTest {
 
   private fun getAssistantPresentationFor(
     toolsText: String?,
-    text: String?
+    text: String?,
   ): HolderViewActionPresentation {
     val component = mock(NlComponent::class.java)
     `when`(component.getAttribute(eq(SdkConstants.ANDROID_URI), eq(SdkConstants.ATTR_TEXT)))
@@ -133,7 +133,7 @@ class TextViewHandlerTest {
       textViewHandler,
       component,
       mutableListOf(component),
-      0
+      0,
     )
     return presentation
   }
@@ -152,20 +152,16 @@ class TextViewHandlerTest {
         val presentation = getAssistantPresentationFor(toolsText = toolsText, text = text)
         assertTrue(
           "Sample data action should be visible for toolsText='$toolsText' text='$text'",
-          presentation._visible
+          presentation._visible,
         )
       }
 
-    listOf(
-        "Test" to "TextView",
-        "TextView" to "Hello World!",
+    listOf("Test" to "TextView", "TextView" to "Hello World!").forEach { (toolsText, text) ->
+      val presentation = getAssistantPresentationFor(toolsText = toolsText, text = text)
+      assertFalse(
+        "Sample data action should not be visible for toolsText='$toolsText' text='$text'",
+        presentation._visible,
       )
-      .forEach { (toolsText, text) ->
-        val presentation = getAssistantPresentationFor(toolsText = toolsText, text = text)
-        assertFalse(
-          "Sample data action should not be visible for toolsText='$toolsText' text='$text'",
-          presentation._visible
-        )
-      }
+    }
   }
 }

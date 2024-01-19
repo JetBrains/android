@@ -44,7 +44,7 @@ class ProjectNamespacingStatusService(val project: Project) {
           override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
             namespacesUsed = checkNamespacesUsed()
           }
-        }
+        },
       )
   }
 

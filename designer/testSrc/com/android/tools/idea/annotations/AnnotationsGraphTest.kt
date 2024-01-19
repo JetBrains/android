@@ -39,7 +39,7 @@ private class DfsSubtreeEdges {
 
 private class TestNodeInfo(
   override val parent: NodeInfo<DfsSubtreeEdges>?,
-  override val element: UElement
+  override val element: UElement,
 ) : NodeInfo<DfsSubtreeEdges> {
   override val subtreeInfo: DfsSubtreeEdges = DfsSubtreeEdges()
   // Timers or step counters needed to differentiate cross edges from forward edges
@@ -78,7 +78,7 @@ private class TestNodeInfo(
 private object TestNodeInfoFactory : NodeInfoFactory<DfsSubtreeEdges> {
   override fun create(
     parent: NodeInfo<DfsSubtreeEdges>?,
-    curElement: UElement
+    curElement: UElement,
   ): NodeInfo<DfsSubtreeEdges> {
     return TestNodeInfo(parent, curElement)
   }
@@ -314,13 +314,13 @@ class AnnotationsGraphTest {
           listOf(rootMethod),
           isLeafAnnotation = { annotation ->
             runReadAction { annotation.qualifiedName!!.contains("node3") }
-          }
+          },
         )
         .toList()
     // Results are computed in post-order, and 3 is a "leaf", so its visited many times
     assertEquals(
       listOf("3", "2", "3", "4", "3", "1", "0"),
-      traverseResult.filterIsInstance<String>()
+      traverseResult.filterIsInstance<String>(),
     )
     // As node3 is a leaf annotation, then:
     // 1- All its incoming edges should be tree edges (the forward and cross edges become tree
@@ -348,7 +348,7 @@ class AnnotationsGraphTest {
           listOf(rootMethod),
           annotationFilter = { _, annotation ->
             runReadAction { !annotation.qualifiedName!!.contains("node4") }
-          }
+          },
         )
         .toList()
     // Results are computed in post-order, and node4 is filtered out due to the annotationFilter

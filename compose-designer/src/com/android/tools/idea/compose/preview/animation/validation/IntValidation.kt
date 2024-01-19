@@ -34,7 +34,7 @@ object IntValidation : EditingValidation {
       editedValue.trim().toIntOrNull() == null ->
         return Pair(
           EditingErrorCategory.ERROR,
-          message("animation.inspector.picker.validation.integer.nan")
+          message("animation.inspector.picker.validation.integer.nan"),
         )
       else -> EDITOR_NO_ERROR
     }

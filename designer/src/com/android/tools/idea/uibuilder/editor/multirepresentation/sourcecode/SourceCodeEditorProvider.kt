@@ -54,7 +54,7 @@ data class SourceCodeEditorWithMultiRepresentationPreviewState(
   val editorState: FileEditorState = FileEditorState.INSTANCE,
   val previewState: MultiRepresentationPreviewFileEditorState =
     MultiRepresentationPreviewFileEditorState.INSTANCE,
-  val selectedLayout: TextEditorWithPreview.Layout? = null
+  val selectedLayout: TextEditorWithPreview.Layout? = null,
 ) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is SourceCodeEditorWithMultiRepresentationPreviewState &&
@@ -93,7 +93,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     return SourceCodeEditorWithMultiRepresentationPreview(
       project,
       textEditor,
-      multiRepresentationPreview
+      multiRepresentationPreview,
     )
   }
 
@@ -125,7 +125,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
   override fun readState(
     sourceElement: Element,
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): FileEditorState {
     if (accept(project, file)) {
       var editorState: TextEditorState? = null
@@ -156,7 +156,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
         return SourceCodeEditorWithMultiRepresentationPreviewState(
           editorState = editorState ?: FileEditorState.INSTANCE,
           previewState = multiPreviewState ?: MultiRepresentationPreviewFileEditorState.INSTANCE,
-          selectedLayout = selectedLayout
+          selectedLayout = selectedLayout,
         )
       }
     }

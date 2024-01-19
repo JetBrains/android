@@ -150,7 +150,7 @@ class LogcatApplicationSettingsConfigurableTest {
         bufferSize = 100 * 1024,
         defaultFilter = "foo",
         mostRecentlyUsedFilterIsDefault = false,
-        ignoredTags = emptySet()
+        ignoredTags = emptySet(),
       )
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     configurable.cycleBufferSizeTextField.text = "200"
@@ -166,7 +166,7 @@ class LogcatApplicationSettingsConfigurableTest {
           bufferSize = 200 * 1024,
           defaultFilter = "bar",
           mostRecentlyUsedFilterIsDefault = true,
-          ignoredTags = setOf("foo", "bar")
+          ignoredTags = setOf("foo", "bar"),
         )
       )
   }

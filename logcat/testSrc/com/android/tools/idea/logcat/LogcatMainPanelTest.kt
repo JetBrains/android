@@ -146,18 +146,18 @@ class LogcatMainPanelTest {
       projectRule,
       ApplicationServiceRule(
         AndroidLogcatFormattingOptions::class.java,
-        androidLogcatFormattingOptions
+        androidLogcatFormattingOptions,
       ),
       ProjectServiceRule(
         projectRule,
         AdbLibService::class.java,
-        TestAdbLibService(FakeAdbSession())
+        TestAdbLibService(FakeAdbSession()),
       ),
       ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,
-        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker },
       ),
       ProjectServiceRule(projectRule, ProcessNameMonitor::class.java, fakeProcessNameMonitor),
       EdtRule(),
@@ -268,11 +268,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
     )
@@ -297,11 +297,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
     )
@@ -313,7 +313,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       5,
-      SECONDS
+      SECONDS,
     )
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
@@ -338,12 +338,7 @@ class LogcatMainPanelTest {
   fun appendMessages_scrollToEnd() = runBlocking {
     val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
 
-    logcatMainPanel.messageProcessor.appendMessages(
-      listOf(
-        logcatMessage(),
-        logcatMessage(),
-      )
-    )
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage(), logcatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference")
@@ -445,7 +440,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
@@ -468,7 +463,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
@@ -490,7 +485,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo("not-empty")
@@ -525,7 +520,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(
         hyperlinkDetector = mockHyperlinkDetector,
-        logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
+        logcatSettings = AndroidLogcatSettings(bufferSize = 1024),
       )
     }
     val longMessage = "message".padStart(1000, '-')
@@ -566,7 +561,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(
         foldingDetector = mockFoldingDetector,
-        logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
+        logcatSettings = AndroidLogcatSettings(bufferSize = 1024),
       )
     }
     val longMessage = "message".padStart(1000, '-')
@@ -603,7 +598,7 @@ class LogcatMainPanelTest {
             FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
             filter = "foo",
             filterMatchCase = true,
-            isSoftWrap = true
+            isSoftWrap = true,
           )
       )
 
@@ -677,7 +672,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -695,11 +690,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
 
@@ -724,7 +719,7 @@ class LogcatMainPanelTest {
     val message1 =
       LogcatMessage(
         LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-        "message1"
+        "message1",
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
@@ -765,7 +760,7 @@ class LogcatMainPanelTest {
     val message1 =
       LogcatMessage(
         LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-        "message1"
+        "message1",
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
@@ -799,11 +794,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
 
@@ -819,11 +814,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
 
@@ -863,8 +858,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
-        ),
+          "message1",
+        )
       )
     )
 
@@ -875,7 +870,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
@@ -961,9 +956,9 @@ class LogcatMainPanelTest {
           formattingConfig = FormattingConfig.Preset(COMPACT),
           "filter",
           filterMatchCase = true,
-          isSoftWrap = false
+          isSoftWrap = false,
         ),
-      logcatSettings = AndroidLogcatSettings(bufferSize = 1000)
+      logcatSettings = AndroidLogcatSettings(bufferSize = 1000),
     )
 
     assertThat(usageTrackerRule.logcatEvents())
@@ -1008,9 +1003,9 @@ class LogcatMainPanelTest {
             ),
           "filter",
           filterMatchCase = true,
-          isSoftWrap = false
+          isSoftWrap = false,
         ),
-      logcatSettings = AndroidLogcatSettings(bufferSize = 1000)
+      logcatSettings = AndroidLogcatSettings(bufferSize = 1000),
     )
 
     assertThat(usageTrackerRule.logcatEvents())
@@ -1056,8 +1051,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
-        ),
+          "message2",
+        )
       )
     )
 
@@ -1081,11 +1076,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "foo"
+          "foo",
         ),
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "bar"
+          "bar",
         ),
       )
     )
@@ -1115,11 +1110,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "foo"
+          "foo",
         ),
         LogcatMessage(
           LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "bar"
+          "bar",
         ),
       )
     )
@@ -1147,11 +1142,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "foo"
+          "foo",
         ),
         LogcatMessage(
           LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "bar"
+          "bar",
         ),
       )
     )
@@ -1185,8 +1180,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(LogLevel.ERROR, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
-        ),
+          "message2",
+        )
       )
     )
 
@@ -1235,7 +1230,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(
         projectApplicationIdsProvider = fakePackageNamesProvider,
-        filter = "package:mine"
+        filter = "package:mine",
       )
     }
 
@@ -1253,7 +1248,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(
         projectApplicationIdsProvider = fakePackageNamesProvider,
-        filter = "package:mine"
+        filter = "package:mine",
       )
     }
 
@@ -1271,7 +1266,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(
         projectApplicationIdsProvider = fakePackageNamesProvider,
-        filter = "package:mine"
+        filter = "package:mine",
       )
     }
     val banner =
@@ -1294,8 +1289,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
-        ),
+          "message1",
+        )
       )
     )
     logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
@@ -1311,8 +1306,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "no-match"
-        ),
+          "no-match",
+        )
       )
     )
     waitForCondition { !noLogsBanner.isVisible }
@@ -1326,8 +1321,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
-        ),
+          "message1",
+        )
       )
     )
     logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
@@ -1351,8 +1346,8 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
-        ),
+          "message1",
+        )
       )
     )
     logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
@@ -1398,11 +1393,11 @@ class LogcatMainPanelTest {
       listOf(
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
-          "message1"
+          "message1",
         ),
         LogcatMessage(
           LogcatHeader(WARN, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)),
-          "message2"
+          "message2",
         ),
       )
     )
@@ -1420,7 +1415,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(
       AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
       TIMEOUT_SEC,
-      SECONDS
+      SECONDS,
     )
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
@@ -1447,11 +1442,7 @@ class LogcatMainPanelTest {
         it::class.simpleName
       }
     assertThat(actions)
-      .containsAllOf(
-        "DeleteBackspaceHandler",
-        "SpecialCharHandler",
-        "PasteHandler",
-      )
+      .containsAllOf("DeleteBackspaceHandler", "SpecialCharHandler", "PasteHandler")
   }
 
   @RunsInEdt
@@ -1461,12 +1452,7 @@ class LogcatMainPanelTest {
     val messageBacklog = logcatMainPanel.messageBacklog.get()
     val messages = messageBacklog.messages
     val filter = StringFilter("Foo", TAG, matchCase = true, EMPTY_RANGE)
-    messageBacklog.addAll(
-      listOf(
-        logcatMessage(tag = "Foo"),
-        LogcatMessage(SYSTEM_HEADER, ""),
-      )
-    )
+    messageBacklog.addAll(listOf(logcatMessage(tag = "Foo"), LogcatMessage(SYSTEM_HEADER, "")))
 
     assertThat(LogcatMasterFilter(filter).filter(messages)).hasSize(2)
     assertThat(logcatMainPanel.countFilterMatches(filter)).isEqualTo(1)
@@ -1483,7 +1469,7 @@ class LogcatMainPanelTest {
         formattingConfig = FormattingConfig.Preset(STANDARD),
         filter = filter,
         filterMatchCase = false,
-        isSoftWrap = false
+        isSoftWrap = false,
       ),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
@@ -1496,7 +1482,7 @@ class LogcatMainPanelTest {
     project.replaceService(
       ProjectApplicationIdsProvider::class.java,
       projectApplicationIdsProvider,
-      disposableRule.disposable
+      disposableRule.disposable,
     )
     return LogcatMainPanel(
         project,
@@ -1537,7 +1523,7 @@ private fun Document.immutableText() = immutableCharSequence.toString()
 // some state information.
 private fun Document.waitForCondition(
   logcatMainPanel: LogcatMainPanel,
-  condition: Document.() -> Boolean
+  condition: Document.() -> Boolean,
 ) {
   try {
     waitForCondition(TIMEOUT_SEC, SECONDS) { this.condition() }

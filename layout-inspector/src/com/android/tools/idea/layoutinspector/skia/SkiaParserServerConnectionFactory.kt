@@ -91,7 +91,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
                 null,
                 listOf(updatablePackage),
                 listOf(),
-                false
+                false,
               )
               ?.show()
           }
@@ -134,7 +134,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
         RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
         progressIndicator,
         StudioDownloader(),
-        StudioSettingsController.getInstance()
+        StudioSettingsController.getInstance(),
       )
 
       val updatablePackage = sdkManager.packages.consolidatedPkgs[packagePath] ?: return false
@@ -219,7 +219,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       progressIndicator,
       StudioDownloader(),
-      StudioSettingsController.getInstance()
+      StudioSettingsController.getInstance(),
     )
 
     val latestRemote =
@@ -283,7 +283,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       PARSER_PACKAGE_NAME,
       { true },
       true,
-      progressIndicator
+      progressIndicator,
     )
   }
 }

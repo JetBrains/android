@@ -28,7 +28,7 @@ class ChipGroupHandler : ViewGroupHandler() {
       ATTR_CHIP_SPACING_VERTICAL,
       ATTR_SINGLE_LINE,
       ATTR_SINGLE_SELECTION,
-      ATTR_CHECKED_CHIP
+      ATTR_CHECKED_CHIP,
     )
   }
 }

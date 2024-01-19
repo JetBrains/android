@@ -36,7 +36,7 @@ abstract class SafeArgsLightBaseClass(
 ) :
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
-    setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
+    setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),
   ) {
 
   private val name: String
@@ -59,7 +59,7 @@ abstract class SafeArgsLightBaseClass(
       fileFactory.createFileFromText(
         "${name}.java",
         JavaFileType.INSTANCE,
-        "// This class is generated on-the-fly by the IDE."
+        "// This class is generated on-the-fly by the IDE.",
       ) as PsiJavaFile
     backingFile.packageName = (qualifiedName.substringBeforeLast('.'))
   }

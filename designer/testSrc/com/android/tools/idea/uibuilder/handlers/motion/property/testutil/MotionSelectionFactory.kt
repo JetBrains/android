@@ -40,7 +40,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     return MotionSelection(
       MotionEditorSelector.Type.CONSTRAINT_SET,
       arrayOf(tag),
-      nlModel.components
+      nlModel.components,
     )
   }
 
@@ -64,7 +64,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     end: String,
     keyType: String,
     framePosition: Int,
-    target: String
+    target: String,
   ): MotionSelection {
     val component = nlModel.find(target) ?: motionLayout
     val keyFrameSet = findKeyFrameSet(start, end)
@@ -72,7 +72,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     return MotionSelection(
       MotionEditorSelector.Type.KEY_FRAME,
       arrayOf(keyFrame),
-      listOf(component)
+      listOf(component),
     )
   }
 
@@ -107,7 +107,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     keyFrameSet: MotionSceneTag,
     keyType: String,
     framePosition: Int,
-    target: String
+    target: String,
   ): MotionSceneTag? {
     return keyFrameSet.getChildTags(keyType).singleOrNull {
       framePosition.toString() == it.getAttributeValue(MotionSceneAttrs.Key.FRAME_POSITION) &&

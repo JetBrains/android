@@ -67,11 +67,7 @@ class DrawableBackgroundMenuActionTest {
           Checkered
       """
           .trimIndent(),
-        prettyPrintActions(
-            action,
-            dataContext = testEvent.dataContext,
-          )
-          .trimIndent(),
+        prettyPrintActions(action, dataContext = testEvent.dataContext).trimIndent(),
       )
 
       action.findActionByText("White")!!.actionPerformed(testEvent)
@@ -83,11 +79,7 @@ class DrawableBackgroundMenuActionTest {
           Checkered
       """
           .trimIndent(),
-        prettyPrintActions(
-            action,
-            dataContext = testEvent.dataContext,
-          )
-          .trimIndent(),
+        prettyPrintActions(action, dataContext = testEvent.dataContext).trimIndent(),
       )
 
       action.findActionByText("Black")!!.actionPerformed(testEvent)
@@ -99,11 +91,7 @@ class DrawableBackgroundMenuActionTest {
           Checkered
       """
           .trimIndent(),
-        prettyPrintActions(
-            action,
-            dataContext = testEvent.dataContext,
-          )
-          .trimIndent(),
+        prettyPrintActions(action, dataContext = testEvent.dataContext).trimIndent(),
       )
     }
   }
@@ -173,7 +161,7 @@ class DrawableBackgroundMenuActionTest {
       val parentDataContext = DataManager.getInstance().dataContextFromFocusAsync.await()
       val testEvent =
         TestActionEvent.createTestEvent(
-          SimpleDataContext.getSimpleContext(DESIGN_SURFACE, mockDesignSurface, parentDataContext),
+          SimpleDataContext.getSimpleContext(DESIGN_SURFACE, mockDesignSurface, parentDataContext)
         )
 
       assertEquals(

@@ -50,7 +50,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
   private fun ComposeViewInfo.mapToSceneComponent(
     manager: SceneManager,
     component: NlComponent,
-    boundsSet: MutableSet<PxBounds>
+    boundsSet: MutableSet<PxBounds>,
   ): List<SceneComponent> =
     if (bounds.isEmpty() || boundsSet.contains(bounds)) {
       children.flatMap { it.mapToSceneComponent(manager, component, boundsSet) }
@@ -59,11 +59,11 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
         SceneComponent(manager.scene, component, hitProvider).also {
           it.setPosition(
             Coordinates.pxToDp(manager, bounds.left),
-            Coordinates.pxToDp(manager, bounds.top)
+            Coordinates.pxToDp(manager, bounds.top),
           )
           it.setSize(
             Coordinates.pxToDp(manager, bounds.width),
-            Coordinates.pxToDp(manager, bounds.height)
+            Coordinates.pxToDp(manager, bounds.height),
           )
           it.setPrioritizeSelectedDrawState(false)
           boundsSet.add(bounds)
@@ -89,7 +89,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
 
   override fun createHierarchy(
     manager: SceneManager,
-    component: NlComponent
+    component: NlComponent,
   ): List<SceneComponent> {
     if (!enabled) return listOf()
     val viewInfo = component.viewInfo ?: return listOf()

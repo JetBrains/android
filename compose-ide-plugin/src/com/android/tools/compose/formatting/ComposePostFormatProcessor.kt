@@ -59,7 +59,7 @@ class ComposePostFormatProcessor : PostFormatProcessor {
   override fun processText(
     source: PsiFile,
     rangeToReformat: TextRange,
-    settings: CodeStyleSettings
+    settings: CodeStyleSettings,
   ): TextRange {
     return if (isAvailable(source, settings))
       ComposeModifierProcessor(settings).processText(source, rangeToReformat)

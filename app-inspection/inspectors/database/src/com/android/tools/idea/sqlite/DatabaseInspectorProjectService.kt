@@ -78,7 +78,7 @@ interface DatabaseInspectorProjectService {
   @AnyThread
   fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
-    databaseConnection: LiveDatabaseConnection
+    databaseConnection: LiveDatabaseConnection,
   ): ListenableFuture<Unit>
 
   /** Runs the query passed as argument in the Sqlite Inspector. */
@@ -118,7 +118,7 @@ interface DatabaseInspectorProjectService {
   suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   )
 
   /**
@@ -147,7 +147,7 @@ constructor(
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
   private val createController:
     (
-      DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager
+      DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager,
     ) -> DatabaseInspectorController =
     { myModel, myRepository, myFileDatabaseManager, myOfflineModeManager ->
       DatabaseInspectorControllerImpl(
@@ -158,13 +158,13 @@ constructor(
           myFileDatabaseManager,
           myOfflineModeManager,
           edtExecutor,
-          taskExecutor
+          taskExecutor,
         )
         .also {
           it.setUp()
           Disposer.register(project, it)
         }
-    }
+    },
 ) : DatabaseInspectorProjectService {
 
   constructor(
@@ -173,7 +173,7 @@ constructor(
     project = project,
     edtExecutor = EdtExecutorService.getInstance(),
     taskExecutor = PooledThreadExecutor.INSTANCE,
-    viewFactory = DatabaseInspectorViewsFactoryImpl()
+    viewFactory = DatabaseInspectorViewsFactoryImpl(),
   )
 
   private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
@@ -206,7 +206,7 @@ constructor(
               project,
               databaseFileData.mainFile,
               taskExecutor,
-              workerDispatcher
+              workerDispatcher,
             )
           SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
             databaseRepository.addDatabaseConnection(it, databaseConnection)
@@ -222,7 +222,7 @@ constructor(
   @AnyThread
   override fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
-    databaseConnection: LiveDatabaseConnection
+    databaseConnection: LiveDatabaseConnection,
   ): ListenableFuture<Unit> =
     projectScope.future {
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
@@ -233,7 +233,7 @@ constructor(
   override suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ) =
     withContext(uiDispatcher) {
       appPackageName =
@@ -241,7 +241,7 @@ constructor(
           PackageNameProvider.getPackageName(
               project,
               processDescriptor.device.serial,
-              processDescriptor.name
+              processDescriptor.name,
             )
             .await()
         }
@@ -250,7 +250,7 @@ constructor(
         databaseInspectorClientCommandsChannel,
         appInspectionIdeServices,
         processDescriptor,
-        appPackageName
+        appPackageName,
       )
 
       // close all databases when a new session starts

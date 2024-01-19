@@ -104,7 +104,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
   private fun createNewComposeFunctionInfo(
     name: String,
     element: KtCallExpression,
-    parentComposableFunction: KtNamedFunction
+    parentComposableFunction: KtNamedFunction,
   ): CallableInfo? {
     val analysisResult = element.analyzeAndGetResult()
     val fullCallExpression = element.getQualifiedExpressionForSelectorOrThis()
@@ -129,7 +129,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
             parameterInfos.last().let {
               ParameterInfo(
                 typeInfo = ComposableLambdaTypeInfo(it.typeInfo, parentComposableFunction),
-                nameSuggestions = listOf("content") + it.nameSuggestions
+                nameSuggestions = listOf("content") + it.nameSuggestions,
               )
             }
 
@@ -145,7 +145,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
         containers,
         parameters,
         typeParameters,
-        modifierList = modifierList
+        modifierList = modifierList,
       )
     }
     return null
@@ -154,7 +154,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
   /** Wrapper around [TypeInfo] adding a @Composable annotation to the argument type. */
   private class ComposableLambdaTypeInfo(
     private val wrapped: TypeInfo,
-    private val parentComposableFunction: KtNamedFunction
+    private val parentComposableFunction: KtNamedFunction,
   ) : TypeInfo(wrapped.variance) {
     override fun getPossibleTypes(builder: CallableBuilder): List<KotlinType> {
       val wrappedTypes = wrapped.getPossibleTypes(builder)

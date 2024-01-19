@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 class InteractiveLabelPanel(
   layoutData: LayoutData,
   disposable: Disposable,
-  private val onLabelClicked: (suspend () -> Boolean)
+  private val onLabelClicked: (suspend () -> Boolean),
 ) : LabelPanel(layoutData) {
 
   private val scope = AndroidCoroutineScope(disposable)
@@ -45,7 +45,7 @@ class InteractiveLabelPanel(
         override fun mouseClicked(e: MouseEvent?) {
           scope.launch { onLabelClicked() }
         }
-      },
+      }
     )
   }
 

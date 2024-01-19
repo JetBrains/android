@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.PermissionErrorDetector
 class AndroidLintPermissionNamingConventionInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.permission.naming.convention"),
-    PermissionErrorDetector.PERMISSION_NAMING_CONVENTION
+    PermissionErrorDetector.PERMISSION_NAMING_CONVENTION,
   )

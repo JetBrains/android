@@ -48,7 +48,7 @@ class ImportLogcatActionTest {
   val rule =
     RuleChain(
       projectRule,
-      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory)
+      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
     )
 
   @Test
@@ -83,7 +83,7 @@ class ImportLogcatActionTest {
     override fun createFileChooser(
       descriptor: FileChooserDescriptor,
       project: Project?,
-      parent: Component?
+      parent: Component?,
     ): FileChooserDialog {
       return object : FileChooserDialog {
         @Deprecated("Deprecated in Java", ReplaceWith("NA"))

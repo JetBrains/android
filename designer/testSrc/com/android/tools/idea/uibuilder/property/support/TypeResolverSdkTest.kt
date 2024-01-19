@@ -242,7 +242,7 @@ class TypeResolverSdkTest {
         projectRule,
         tagName,
         parentTag = FRAME_LAYOUT,
-        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+        fileName = "${tagName.substringAfter('.')}$DOT_XML",
       )
     waitUntilLastSelectionUpdateCompleted(util.model)
     val tag = util.components.first().backend.tag!!
@@ -256,7 +256,7 @@ class TypeResolverSdkTest {
         tagName,
         parentTag = SdkConstants.PreferenceTags.PREFERENCE_SCREEN,
         resourceFolder = SdkConstants.FD_RES_XML,
-        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+        fileName = "${tagName.substringAfter('.')}$DOT_XML",
       )
     waitUntilLastSelectionUpdateCompleted(util.model)
     val tag = util.components.first().backend.tag!!
@@ -269,7 +269,7 @@ class TypeResolverSdkTest {
         projectRule,
         BUTTON,
         parentTag = tagName,
-        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+        fileName = "${tagName.substringAfter('.')}$DOT_XML",
       )
     val tag = util.components.first().parent!!.backend.tag!!
     checkAttributes(tag, report)
@@ -326,12 +326,12 @@ class TypeResolverSdkTest {
     val tag: String,
     val attribute: String,
     val found: NlPropertyType,
-    val expected: NlPropertyType
+    val expected: NlPropertyType,
   )
 
   private class Report(
     private val name: String,
-    private val versionMap: Map<String, GradleVersion> = emptyMap()
+    private val versionMap: Map<String, GradleVersion> = emptyMap(),
   ) {
     private val found = mutableMapOf<String, Int>()
     private val errors = mutableMapOf<String, Int>()

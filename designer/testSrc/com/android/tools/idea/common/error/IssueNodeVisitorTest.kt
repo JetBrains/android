@@ -46,7 +46,7 @@ class IssueNodeVisitorTest {
         SHARED_ISSUE_PANEL_TAB_ID,
         { LayoutValidationNodeFactory },
         EmptyFilter,
-        { "" }
+        { "" },
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!

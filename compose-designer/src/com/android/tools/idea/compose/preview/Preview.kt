@@ -175,7 +175,7 @@ private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = Accessi
 private class PreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
-  private val previewElement: ComposePreviewElementInstance
+  private val previewElement: ComposePreviewElementInstance,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
@@ -211,7 +211,7 @@ fun configureLayoutlibSceneManager(
   requestPrivateClassLoader: Boolean,
   runAtfChecks: Boolean,
   runVisualLinting: Boolean,
-  quality: Float
+  quality: Float,
 ): LayoutlibSceneManager =
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
@@ -259,7 +259,7 @@ private const val LAYOUT_KEY = "previewLayout"
 class ComposePreviewRepresentation(
   psiFile: PsiFile,
   override val preferredInitialVisibility: PreferredVisibility,
-  composePreviewViewProvider: ComposePreviewViewProvider
+  composePreviewViewProvider: ComposePreviewViewProvider,
 ) :
   PreviewRepresentation,
   ComposePreviewManagerEx,
@@ -334,7 +334,7 @@ class ComposePreviewRepresentation(
           ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
           else -> requestRefresh()
         }
-      }
+      },
     )
 
   /**
@@ -372,7 +372,7 @@ class ComposePreviewRepresentation(
           )
           // When getting out of Essentials Mode, request a refresh
           if (!EssentialsMode.isEnabled()) requestRefresh()
-        }
+        },
       )
 
     project.messageBus
@@ -383,7 +383,7 @@ class ComposePreviewRepresentation(
           updateGalleryMode(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
           )
-        }
+        },
       )
 
     composePreviewFlowManager = ComposePreviewFlowManager()
@@ -393,7 +393,7 @@ class ComposePreviewRepresentation(
         { psiFilePointer },
         ::invalidate,
         ::requestRefresh,
-        { requestVisibilityAndNotificationsUpdate() }
+        { requestVisibilityAndNotificationsUpdate() },
       )
   }
 
@@ -628,7 +628,7 @@ class ComposePreviewRepresentation(
           VisualLintUsageTracker.getInstance()
             .trackFirstRunTime(
               System.currentTimeMillis() - startTime,
-              surface.models.firstOrNull()?.facet
+              surface.models.firstOrNull()?.facet,
             )
         }
       }
@@ -728,11 +728,11 @@ class ComposePreviewRepresentation(
               dataProvider, // Will be overridden by the preview provider
               this,
               sceneComponentProvider,
-              ComposeScreenViewProvider(this)
+              ComposeScreenViewProvider(this),
             ) {
               mode.value is PreviewMode.Interactive
             },
-            this
+            this,
           )
         }
       )
@@ -745,8 +745,8 @@ class ComposePreviewRepresentation(
         NavigatingInteractionHandler(
           composeWorkBench.mainSurface,
           navigationHandler,
-          isSelectionEnabled = { StudioFlags.COMPOSE_PREVIEW_SELECTION.get() }
-        )
+          isSelectionEnabled = { StudioFlags.COMPOSE_PREVIEW_SELECTION.get() },
+        ),
       )
       .also { delegateInteractionHandler.delegate = it }
 
@@ -756,7 +756,7 @@ class ComposePreviewRepresentation(
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get(),
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
-        delegateInteractionHandler
+        delegateInteractionHandler,
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
 
@@ -814,7 +814,7 @@ class ComposePreviewRepresentation(
       val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
       layoutManager.setLayoutManager(
         mode.layoutOption.layoutManager,
-        mode.layoutOption.sceneViewAlignment
+        mode.layoutOption.sceneViewAlignment,
       )
     }
   }
@@ -870,7 +870,7 @@ class ComposePreviewRepresentation(
         ::requestFastPreviewRefreshAndTrack,
         ::restorePrevious,
         { projectBuildStatusManager.status },
-        { composeWorkBench.updateVisibilityAndNotifications() }
+        { composeWorkBench.updateVisibilityAndNotifications() },
       )
     }
 
@@ -1017,7 +1017,7 @@ class ComposePreviewRepresentation(
 
   private fun configureLayoutlibSceneManagerForPreviewElement(
     displaySettings: PreviewDisplaySettings,
-    layoutlibSceneManager: LayoutlibSceneManager
+    layoutlibSceneManager: LayoutlibSceneManager,
   ) =
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
@@ -1091,7 +1091,7 @@ class ComposePreviewRepresentation(
   private suspend fun doRefreshSync(
     filteredPreviews: List<ComposePreviewElementInstance>,
     quickRefresh: Boolean,
-    progressIndicator: ProgressIndicator
+    progressIndicator: ProgressIndicator,
   ) {
     val numberOfPreviewsToRender = filteredPreviews.size
     if (log.isDebugEnabled) log.debug("doRefresh of $numberOfPreviewsToRender elements.")
@@ -1124,7 +1124,7 @@ class ComposePreviewRepresentation(
         if (atfChecksEnabled || visualLintingEnabled) accessibilityModelUpdater
         else defaultModelUpdater,
         navigationHandler,
-        this::configureLayoutlibSceneManagerForPreviewElement
+        this::configureLayoutlibSceneManagerForPreviewElement,
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
@@ -1139,7 +1139,7 @@ class ComposePreviewRepresentation(
 
   private fun requestRefresh(
     type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
-    completableDeferred: CompletableDeferred<Unit>? = null
+    completableDeferred: CompletableDeferred<Unit>? = null,
   ) {
     if (isDisposed.get()) {
       completableDeferred?.completeExceptionally(IllegalStateException("Already disposed"))
@@ -1170,7 +1170,7 @@ class ComposePreviewRepresentation(
   @TestOnly
   fun requestRefreshForTest(
     type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
-    completableDeferred: CompletableDeferred<Unit>? = null
+    completableDeferred: CompletableDeferred<Unit>? = null,
   ) = requestRefresh(type, completableDeferred)
 
   private fun requestVisibilityAndNotificationsUpdate() {
@@ -1206,11 +1206,11 @@ class ComposePreviewRepresentation(
         project,
         message(
           "refresh.progress.indicator.title",
-          psiFilePointer.containingFile?.let { " (${it.name})" } ?: ""
+          psiFilePointer.containingFile?.let { " (${it.name})" } ?: "",
         ),
         "",
         "",
-        true
+        true,
       )
     if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
       refreshProgressIndicator.processFinish()
@@ -1300,7 +1300,7 @@ class ComposePreviewRepresentation(
                 qualityManager
                   .getTargetQuality(sceneManager)
                   .compareTo(sceneManager.lastRenderQuality)
-              }
+              },
             )
           } else {
             refreshProgressIndicator.text =
@@ -1311,7 +1311,7 @@ class ComposePreviewRepresentation(
             doRefreshSync(
               previewsToRender,
               refreshRequest.refreshType == ComposePreviewRefreshType.QUICK,
-              refreshProgressIndicator
+              refreshProgressIndicator,
             )
           }
         } catch (t: Throwable) {
@@ -1354,7 +1354,7 @@ class ComposePreviewRepresentation(
               PREVIEW_NOTIFICATION_GROUP_ID,
               message("event.log.refresh.title"),
               message("event.log.refresh.total.elapsed.time", durationString),
-              NotificationType.INFORMATION
+              NotificationType.INFORMATION,
             )
           Notifications.Bus.notify(notification, project)
         }
@@ -1488,7 +1488,7 @@ class ComposePreviewRepresentation(
       previewFileModule,
       outOfDateFiles,
       status(),
-      fastPreviewCompilationLauncher
+      fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
       ModuleClassLoaderOverlays.getInstance(previewFileModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
@@ -1543,7 +1543,7 @@ class ComposePreviewRepresentation(
           ComposePreviewAnimationManager.createAnimationInspectorPanel(
             surface,
             this@ComposePreviewRepresentation,
-            psiFilePointer
+            psiFilePointer,
           ) {
             // Close this inspection panel, making all the necessary UI changes (e.g. changing
             // background and refreshing the preview) before

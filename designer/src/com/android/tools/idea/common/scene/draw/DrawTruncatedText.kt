@@ -29,7 +29,7 @@ data class DrawTruncatedText(
   private val myRectangle: SwingRectangle,
   private val myColor: Color,
   private val myFont: SwingFont,
-  private val myIsCentered: Boolean
+  private val myIsCentered: Boolean,
 ) : DrawCommandBase() {
 
   private var myTruncatedText = ""

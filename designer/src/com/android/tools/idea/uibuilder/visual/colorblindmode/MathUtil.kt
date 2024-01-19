@@ -99,7 +99,7 @@ class Mat3D(
   val bc: Double,
   val ca: Double,
   val cb: Double,
-  val cc: Double
+  val cc: Double,
 ) {
 
   /**
@@ -109,7 +109,7 @@ class Mat3D(
   internal constructor(
     row1: Double3D,
     row2: Double3D,
-    row3: Double3D
+    row3: Double3D,
   ) : this(
     aa = row1.first,
     ab = row1.second,
@@ -119,7 +119,7 @@ class Mat3D(
     bc = row2.third,
     ca = row3.first,
     cb = row3.second,
-    cc = row3.third
+    cc = row3.third,
   )
 
   companion object {
@@ -161,7 +161,7 @@ class Mat3D(
       row2 * other.col3,
       row3 * other.col1,
       row3 * other.col2,
-      row3 * other.col3
+      row3 * other.col3,
     )
   }
 

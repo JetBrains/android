@@ -44,7 +44,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
     depth: Int,
     leaf: Boolean,
     expanded: Boolean,
-    selected: Boolean
+    selected: Boolean,
   ) {
     val tree = c as Tree
     val treeSettings = LayoutInspector.get(tree)?.treeSettings
@@ -108,7 +108,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
   fun getLastOfMultipleChildren(
     model: TreeModel,
     treeSettings: TreeSettings?,
-    node: TreeViewNode
+    node: TreeViewNode,
   ): TreeViewNode? {
     val count = node.children.size
     val last = if (count > 1) model.getChild(node, count - 1) as TreeViewNode else return null

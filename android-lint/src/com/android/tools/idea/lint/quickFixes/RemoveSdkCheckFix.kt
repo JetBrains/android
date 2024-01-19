@@ -38,7 +38,7 @@ class RemoveSdkCheckFix(private var removeThen: Boolean) :
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     val condition = findSdkConditional(startElement) ?: return
 
@@ -110,7 +110,7 @@ class RemoveSdkCheckFix(private var removeThen: Boolean) :
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     return true
   }

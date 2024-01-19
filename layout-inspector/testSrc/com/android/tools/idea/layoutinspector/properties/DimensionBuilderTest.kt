@@ -47,7 +47,7 @@ class DimensionBuilderTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       PropertiesComponentMock(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
   }
 

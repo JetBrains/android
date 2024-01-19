@@ -53,7 +53,7 @@ class DevicesSelectedServiceTest {
       state.copy(
         selectionMode = SelectionMode.DROPDOWN,
         dropdownSelection =
-          DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds)
+          DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds),
       )
     )
 

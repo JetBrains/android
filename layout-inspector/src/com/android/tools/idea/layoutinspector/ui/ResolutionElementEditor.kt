@@ -52,7 +52,7 @@ private const val LINK_BORDER = 2
 class ResolutionElementEditor(
   private val model: ResolutionStackModel,
   @get:VisibleForTesting val editorModel: PropertyEditorModel,
-  editor: JComponent
+  editor: JComponent,
 ) : JPanel(BorderLayout()) {
 
   private val linkPanel = JPanel()
@@ -114,7 +114,7 @@ class ResolutionElementEditor(
     private val property: InspectorPropertyItem,
     locations: List<SourceLocation>,
     private val isSelected: Boolean,
-    isOverridden: Boolean
+    isOverridden: Boolean,
   ) : JPanel(BorderLayout()) {
 
     private val extraPanel = JPanel()
@@ -217,7 +217,7 @@ class ResolutionElementEditor(
   private class SourceLocationLink(
     private val location: SourceLocation,
     isSelected: Boolean,
-    isOverridden: Boolean
+    isOverridden: Boolean,
   ) : JBLabel() {
 
     init {

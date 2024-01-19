@@ -138,7 +138,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
               // This works by spawning a subshell which hangs forever (waiting for a read that
               // never gets satisfied)
               // but triggers the delete request when that shell is forcefully exited.
-              "sh -c 'trap \"${Command.Delete(setting).get()}\" EXIT; read'"
+              "sh -c 'trap \"${Command.Delete(setting).get()}\" EXIT; read'",
             )
             .also { AndroidExecutors.getInstance().workerThreadExecutor.execute(it) }
       }
@@ -200,7 +200,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
   private fun shouldSetFlag(
     adb: AndroidDebugBridge,
     device: DeviceDescriptor,
-    processName: String
+    processName: String,
   ): Boolean {
     // never turn on the setting if the per-device setting is on.
     if (isPerDeviceSettingOn(adb, device)) {
@@ -220,7 +220,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
   private fun shouldExecuteDelete(
     adb: AndroidDebugBridge,
     device: DeviceDescriptor,
-    processName: String?
+    processName: String?,
   ): Boolean {
     return if (usePerDeviceSettings()) {
       isPerDeviceSettingOn(adb, device)
@@ -237,7 +237,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
   private fun executePut(
     adb: AndroidDebugBridge,
     device: DeviceDescriptor,
-    putCommand: Command.Put
+    putCommand: Command.Put,
   ): String {
     return adb.executeShellCommand(device, putCommand.get())
   }
@@ -249,7 +249,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
   private fun isPerAppSettingOn(
     adb: AndroidDebugBridge,
     device: DeviceDescriptor,
-    processName: String
+    processName: String,
   ): Boolean {
     // A return value of process.name means: the debug_view_attributes are already turned on for
     // this process.

@@ -99,7 +99,7 @@ class BindsOptionalOfDaggerConceptTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = BindsOptionalOfDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -110,7 +110,7 @@ class BindsOptionalOfDaggerConceptTest {
         setOf(
           BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule"),
           BindsOptionalOfIndexValue(MY_MODULE_COMPANION_ID, "functionInModuleCompanion"),
-        )
+        ),
       )
   }
 
@@ -167,7 +167,7 @@ class BindsOptionalOfDaggerConceptTest {
 
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val functionInModuleDaggerElement =
@@ -199,7 +199,7 @@ class BindsOptionalOfDaggerConceptTest {
       assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
         .that(
           BindsOptionalOfIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope()),
+            .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
     }
@@ -239,7 +239,7 @@ class BindsOptionalOfDaggerConceptTest {
 
       class Foo {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val functionInModuleDaggerElement =
@@ -267,7 +267,7 @@ class BindsOptionalOfDaggerConceptTest {
       assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
         .that(
           BindsOptionalOfIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope()),
+            .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
     }

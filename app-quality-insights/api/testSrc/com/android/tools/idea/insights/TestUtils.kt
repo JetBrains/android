@@ -24,7 +24,7 @@ private val TestTimeIntervals =
     TimeIntervalFilter.SEVEN_DAYS,
     TimeIntervalFilter.THIRTY_DAYS,
     TimeIntervalFilter.SIXTY_DAYS,
-    TimeIntervalFilter.NINETY_DAYS
+    TimeIntervalFilter.NINETY_DAYS,
   )
 private val TestFailureTypes = listOf(FailureType.FATAL, FailureType.ANR, FailureType.NON_FATAL)
 
@@ -35,7 +35,7 @@ val TEST_FILTERS =
     MultiSelection(TestFailureTypes.toSet(), TestFailureTypes),
     MultiSelection.emptySelection(),
     MultiSelection.emptySelection(),
-    selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+    selectionOf(SignalType.SIGNAL_UNSPECIFIED),
   )
 
 val CONNECTION1 = TestConnection("app1", "app-id1", "project1", "123", "variant1", "app1")
@@ -61,7 +61,7 @@ val REPO_INFO =
   RepoInfo(
     vcsKey = VCS_CATEGORY.TEST_VCS,
     rootPath = PROJECT_ROOT_PREFIX,
-    revision = REVISION_74081e5f
+    revision = REVISION_74081e5f,
   )
 
 val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_ID", "abcdeefg"))
@@ -84,7 +84,7 @@ val ISSUE1 =
       setOf(SignalType.SIGNAL_FRESH),
       "https://url.for-crash.com",
       0,
-      emptyList()
+      emptyList(),
     ),
     Event(
       name =
@@ -94,7 +94,7 @@ val ISSUE1 =
           device = Device(manufacturer = "Google", model = "Pixel 4a"),
           operatingSystemInfo =
             OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
-          eventTime = FAKE_6_DAYS_AGO
+          eventTime = FAKE_6_DAYS_AGO,
         ),
       stacktraceGroup =
         StacktraceGroup(
@@ -106,7 +106,7 @@ val ISSUE1 =
                     caption =
                       Caption(
                         title = "Non-fatal Exception: retrofit2.HttpException",
-                        subtitle = "HTTP 401 "
+                        subtitle = "HTTP 401 ",
                       ),
                     blames = Blames.BLAMED,
                     frames =
@@ -121,7 +121,7 @@ val ISSUE1 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.BLAMED
+                          blame = Blames.BLAMED,
                         ),
                         Frame(
                           line = 31,
@@ -133,20 +133,20 @@ val ISSUE1 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
-                        )
-                      )
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
                   ),
                 type = "retrofit2.HttpException",
                 exceptionMessage = "HTTP 401 ",
-                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 "
+                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 ",
               )
             )
         ),
       appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
       customKeys = SAMPLE_KEYS,
-      logs = SAMPLE_LOGS
-    )
+      logs = SAMPLE_LOGS,
+    ),
   )
 val ISSUE1_DETAILS =
   DetailedIssueStats(
@@ -161,10 +161,10 @@ val ISSUE1_DETAILS =
               listOf(
                 DataPoint("Pixel 4a", 40.0),
                 DataPoint("Pixel 5", 10.0),
-                DataPoint("Other", 0.0)
-              )
+                DataPoint("Other", 0.0),
+              ),
           )
-        )
+        ),
     ),
     IssueStats(
       topValue = "Android (12)",
@@ -173,9 +173,9 @@ val ISSUE1_DETAILS =
           StatsGroup("Android (12)", 50.0, breakdown = emptyList()),
           StatsGroup("Android (11)", 40.0, breakdown = emptyList()),
           StatsGroup("Android (10)", 10.0, breakdown = emptyList()),
-          StatsGroup("Other", 0.0, breakdown = listOf(DataPoint("Other", 0.0)))
-        )
-    )
+          StatsGroup("Other", 0.0, breakdown = listOf(DataPoint("Other", 0.0))),
+        ),
+    ),
   )
 
 val ISSUE2 =
@@ -195,7 +195,7 @@ val ISSUE2 =
       setOf(SignalType.SIGNAL_REGRESSED),
       "https://url.for-crash.com/2",
       0,
-      emptyList()
+      emptyList(),
     ),
     Event(
       name =
@@ -205,7 +205,7 @@ val ISSUE2 =
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
           operatingSystemInfo =
             OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
-          eventTime = FAKE_25_DAYS_AGO
+          eventTime = FAKE_25_DAYS_AGO,
         ),
       stacktraceGroup =
         StacktraceGroup(
@@ -217,7 +217,7 @@ val ISSUE2 =
                     caption =
                       Caption(
                         title = "javax.net.ssl.SSLHandshakeException",
-                        subtitle = "Trust anchor for certification path not found."
+                        subtitle = "Trust anchor for certification path not found.",
                       ),
                     blames = Blames.NOT_BLAMED,
                     frames =
@@ -231,7 +231,7 @@ val ISSUE2 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
+                          blame = Blames.NOT_BLAMED,
                         ),
                         Frame(
                           line = 1134,
@@ -242,14 +242,14 @@ val ISSUE2 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
-                        )
-                      )
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
                 rawExceptionMessage =
-                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
+                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
               ExceptionStack(
                 stacktrace =
@@ -257,7 +257,7 @@ val ISSUE2 =
                     caption =
                       Caption(
                         title = "java.security.cert.CertPathValidatorException",
-                        subtitle = "Trust anchor for certification path not found."
+                        subtitle = "Trust anchor for certification path not found.",
                       ),
                     blames = Blames.BLAMED,
                     frames =
@@ -271,7 +271,7 @@ val ISSUE2 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
+                          blame = Blames.NOT_BLAMED,
                         ),
                         Frame(
                           line = 320,
@@ -282,19 +282,19 @@ val ISSUE2 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.BLAMED
-                        )
-                      )
+                          blame = Blames.BLAMED,
+                        ),
+                      ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
                 rawExceptionMessage =
-                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
+                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
             )
         ),
-      appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
-    )
+      appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
+    ),
   )
 
 val NOTE1 =
@@ -303,7 +303,7 @@ val NOTE1 =
     timestamp = NOW,
     author = "Jane@google.com",
     body = NOTE1_BODY,
-    state = NoteState.CREATED
+    state = NoteState.CREATED,
   )
 
 val NOTE2 =
@@ -312,7 +312,7 @@ val NOTE2 =
     timestamp = NOW.plusMillis(Duration.ofHours(2).toMillis()),
     author = "Jane@google.com",
     body = NOTE2_BODY,
-    state = NoteState.CREATED
+    state = NoteState.CREATED,
   )
 
 val ISSUE_VARIANT =
@@ -321,7 +321,7 @@ val ISSUE_VARIANT =
     sampleEvent = "sample_event_1",
     uri = "firebase.google.com",
     impactedDevicesCount = 1,
-    eventsCount = 1
+    eventsCount = 1,
   )
 
 val ISSUE_VARIANT2 =
@@ -330,7 +330,7 @@ val ISSUE_VARIANT2 =
     sampleEvent = "sample_event_2",
     uri = "firebase.google.com",
     impactedDevicesCount = 1,
-    eventsCount = 1
+    eventsCount = 1,
   )
 
 // Used for testing cached issues because their counts are zeroed out.

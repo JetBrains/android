@@ -23,21 +23,21 @@ import com.intellij.psi.PsiElement
 class AndroidLintBaselineFixedInspection :
   AbstractBaselineInspection(
     message("android.lint.inspections.lint.baseline.fixed"),
-    IssueRegistry.BASELINE_FIXED
+    IssueRegistry.BASELINE_FIXED,
   ) {
 
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
     message: String,
-    fixData: LintFix?
+    fixData: LintFix?,
   ): Array<LintIdeQuickFix> {
     return arrayOf(
       object : DefaultLintQuickFix("Update baseline file to remove fixed issues") {
         override fun apply(
           startElement: PsiElement,
           endElement: PsiElement,
-          context: AndroidQuickfixContexts.Context
+          context: AndroidQuickfixContexts.Context,
         ) {
           ourUpdateBaselineNextRun = true
           rerun()

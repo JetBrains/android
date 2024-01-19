@@ -24,9 +24,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import javax.swing.JLabel
+import kotlin.io.path.readBytes
 import org.junit.Rule
 import org.junit.Test
-import kotlin.io.path.readBytes
 
 @RunsInEdt
 class UiComponentsProviderTest {
@@ -46,7 +46,7 @@ class UiComponentsProviderTest {
           TEST_IMAGE.readBytes(),
           ContentType.PNG,
           DataViewer.Style.RAW,
-          false
+          false,
         )
       )
       .isInstanceOf(IntellijImageDataViewer::class.java)
@@ -56,7 +56,7 @@ class UiComponentsProviderTest {
         ByteArray(0),
         ContentType.GIF,
         DataViewer.Style.RAW,
-        false
+        false,
       )
     // Invalid image bytes in the creation of a regular data viewer with text saying preview is not
     // available.
@@ -74,7 +74,7 @@ class UiComponentsProviderTest {
         "csv,file".toByteArray(),
         ContentType.CSV,
         DataViewer.Style.RAW,
-        false
+        false,
       )
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
@@ -90,7 +90,7 @@ class UiComponentsProviderTest {
         "<html></html>".toByteArray(),
         ContentType.HTML,
         DataViewer.Style.PRETTY,
-        true
+        true,
       )
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)

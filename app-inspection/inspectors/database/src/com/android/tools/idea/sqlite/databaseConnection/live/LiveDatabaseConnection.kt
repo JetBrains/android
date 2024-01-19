@@ -35,7 +35,7 @@ class LiveDatabaseConnection(
   parentDisposable: Disposable,
   private val messenger: DatabaseInspectorMessenger,
   private val id: Int,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseConnection {
 
   init {

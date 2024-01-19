@@ -63,29 +63,29 @@ private fun buildMockDevices(): List<Device> {
         height = 1920f,
         dimUnit = DimUnit.px,
         dpi = 320,
-        shape = Shape.Normal
+        shape = Shape.Normal,
       ),
       DeviceConfig(
         width = 1080f,
         height = 1920f,
         dimUnit = DimUnit.px,
         dpi = 480,
-        shape = Shape.Normal
+        shape = Shape.Normal,
       ),
       DeviceConfig(
         width = 1080f,
         height = 2280f,
         dimUnit = DimUnit.px,
         dpi = 480,
-        shape = Shape.Normal
+        shape = Shape.Normal,
       ),
       DeviceConfig(
         width = 600f,
         height = 600f,
         dimUnit = DimUnit.px,
         dpi = 480,
-        shape = Shape.Round
-      )
+        shape = Shape.Round,
+      ),
     )
     .map {
       Device.Builder(it.createDeviceInstance())

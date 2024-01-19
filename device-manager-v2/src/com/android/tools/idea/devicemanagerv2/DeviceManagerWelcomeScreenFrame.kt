@@ -27,7 +27,7 @@ class DeviceManagerWelcomeScreenFrame :
     null,
     "com.android.tools.idea.devicemanagerv2.DeviceManagerWelcomeScreenFrame",
     false,
-    "Device Manager"
+    "Device Manager",
   ) {
   init {
     closeOnEsc()
@@ -40,8 +40,8 @@ class DeviceManagerWelcomeScreenFrame :
           scope,
           session,
           listOf(LocalEmulatorProvisionerFactory().create(scope, session, null)),
-          StudioDefaultDeviceIcons
-        )
+          StudioDefaultDeviceIcons,
+        ),
       )
   }
 }

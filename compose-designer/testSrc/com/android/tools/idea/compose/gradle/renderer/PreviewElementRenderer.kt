@@ -46,7 +46,7 @@ fun createRenderTaskFuture(
     file =
       ComposeAdapterLightVirtualFile(
         "singlePreviewElement.xml",
-        previewElement.toPreviewXml().buildString()
+        previewElement.toPreviewXml().buildString(),
       ) {
         previewElement.previewElementDefinitionPsi?.virtualFile
       },
@@ -55,7 +55,7 @@ fun createRenderTaskFuture(
     classesToPreload = classesToPreload,
     customViewInfoParser = customViewInfoParser,
     showDecorations = previewElement.displaySettings.showDecoration,
-    configure = previewElement::applyTo
+    configure = previewElement::applyTo,
   )
 
 /**
@@ -78,7 +78,7 @@ fun renderPreviewElementForResult(
       privateClassLoader = privateClassLoader,
       useLayoutScanner = useLayoutScanner,
       classesToPreload = emptyList(),
-      customViewInfoParser = customViewInfoParser
+      customViewInfoParser = customViewInfoParser,
     )
 
   val renderResultFuture =
@@ -107,7 +107,7 @@ fun renderPreviewElementForResult(
  */
 fun renderPreviewElement(
   facet: AndroidFacet,
-  previewElement: ComposePreviewElementInstance
+  previewElement: ComposePreviewElementInstance,
 ): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement).thenApply { it?.renderedImage?.copy }
 }

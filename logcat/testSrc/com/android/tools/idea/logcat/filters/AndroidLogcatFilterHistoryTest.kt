@@ -45,13 +45,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("foo1", "foo2", "foo3", "foo4")) {
       history.add(logcatFilterParser, filter, isFavorite = false)
     }
-    assertThat(history.nonFavorites)
-      .containsExactly(
-        "foo4",
-        "foo3",
-        "foo2",
-      )
-      .inOrder()
+    assertThat(history.nonFavorites).containsExactly("foo4", "foo3", "foo2").inOrder()
   }
 
   @Test
@@ -61,14 +55,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("foo1", "foo2", "foo3", "foo4")) {
       history.add(logcatFilterParser, filter, isFavorite = true)
     }
-    assertThat(history.favorites)
-      .containsExactly(
-        "foo4",
-        "foo3",
-        "foo2",
-        "foo1",
-      )
-      .inOrder()
+    assertThat(history.favorites).containsExactly("foo4", "foo3", "foo2", "foo1").inOrder()
   }
 
   @Test
@@ -79,12 +66,7 @@ class AndroidLogcatFilterHistoryTest {
       history.add(logcatFilterParser, filter, isFavorite = false)
     }
     assertThat(history.named)
-      .containsExactly(
-        "name:foo4",
-        "name:foo3",
-        "name:foo2",
-        "name:foo1",
-      )
+      .containsExactly("name:foo4", "name:foo3", "name:foo2", "name:foo1")
       .inOrder()
   }
 
@@ -95,13 +77,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("foo1", "foo2", "foo3", "foo1")) {
       history.add(logcatFilterParser, filter, isFavorite = false)
     }
-    assertThat(history.nonFavorites)
-      .containsExactly(
-        "foo1",
-        "foo3",
-        "foo2",
-      )
-      .inOrder()
+    assertThat(history.nonFavorites).containsExactly("foo1", "foo3", "foo2").inOrder()
   }
 
   @Test
@@ -111,13 +87,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("foo1", "foo2", "foo3", "foo1")) {
       history.add(logcatFilterParser, filter, isFavorite = true)
     }
-    assertThat(history.favorites)
-      .containsExactly(
-        "foo1",
-        "foo3",
-        "foo2",
-      )
-      .inOrder()
+    assertThat(history.favorites).containsExactly("foo1", "foo3", "foo2").inOrder()
   }
 
   @Test
@@ -127,13 +97,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("name:foo1", "name:foo2", "name:foo3", "name:foo1")) {
       history.add(logcatFilterParser, filter, isFavorite = false)
     }
-    assertThat(history.named)
-      .containsExactly(
-        "name:foo1",
-        "name:foo3",
-        "name:foo2",
-      )
-      .inOrder()
+    assertThat(history.named).containsExactly("name:foo1", "name:foo3", "name:foo2").inOrder()
   }
 
   @Test

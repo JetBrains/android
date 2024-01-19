@@ -35,7 +35,7 @@ import javax.swing.JPanel
  */
 class ActionButtonBinding(
   private val model: BasePropertyEditorModel,
-  private val editor: JComponent
+  private val editor: JComponent,
 ) : JPanel(BorderLayout()), DataProvider {
 
   private val actionButtonModel
@@ -90,7 +90,7 @@ class ActionButtonBinding(
       val component = event.source as? JComponent ?: this
       PropertyTooltip.setToolTip(
         component,
-        actionButtonModel?.action?.templatePresentation?.description
+        actionButtonModel?.action?.templatePresentation?.description,
       )
       return null
     }

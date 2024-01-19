@@ -44,7 +44,7 @@ class ToggleButtonPropertyEditorModelTest {
   private fun createModel(
     propertyValue: String?,
     trueValue: String,
-    falseValue: String
+    falseValue: String,
   ): ToggleButtonPropertyEditorModel {
     val property =
       createPropertyItem(
@@ -52,14 +52,14 @@ class ToggleButtonPropertyEditorModelTest {
         ANDROID_URI,
         ATTR_TEXT_ALIGNMENT,
         NlPropertyType.STRING,
-        createTextView(propertyValue)
+        createTextView(propertyValue),
       )
     return ToggleButtonPropertyEditorModel(
       "description",
       TEXT_ALIGN_CENTER,
       trueValue,
       falseValue,
-      property
+      property,
     )
   }
 
@@ -86,7 +86,7 @@ class ToggleButtonPropertyEditorModelTest {
     trueValue: String,
     falseValue: String,
     setValue: Boolean,
-    expected: String?
+    expected: String?,
   ) {
     val model = createModel(propertyValue, trueValue, falseValue)
     val listener = Mockito.mock(ValueChangedListener::class.java)
@@ -104,7 +104,7 @@ class ToggleButtonPropertyEditorModelTest {
     } else {
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue),
       )
     }
   }

@@ -138,7 +138,7 @@ class VcsIntegrationTest {
         RepoInfo(
           vcsKey = VCS_CATEGORY.GIT,
           rootPath = PROJECT_ROOT_PREFIX,
-          revision = repo.currentRevision.toString()
+          revision = repo.currentRevision.toString(),
         )
       )
     )
@@ -147,14 +147,14 @@ class VcsIntegrationTest {
   private fun buildContextDataForDiff(
     targetFile: VirtualFile,
     lineNumber: Int,
-    repo: GitRepository
+    repo: GitRepository,
   ): ContextDataForDiff {
     return ContextDataForDiff(
       vcsKey = VCS_CATEGORY.GIT,
       revision = repo.currentRevision.toString(),
       filePath = targetFile.toVcsFilePath(),
       lineNumber = lineNumber,
-      origin = null
+      origin = null,
     )
   }
 }

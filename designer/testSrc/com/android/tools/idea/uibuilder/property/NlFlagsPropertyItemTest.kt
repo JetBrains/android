@@ -48,7 +48,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     assertThat(property.children).hasSize(3)
@@ -68,7 +68,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
@@ -86,7 +86,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val bold = property.flag(TextStyle.VALUE_BOLD)
@@ -108,7 +108,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER),
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     val center = property.flag(GRAVITY_VALUE_CENTER)
@@ -130,7 +130,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER),
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
@@ -156,7 +156,7 @@ class NlFlagsPropertyItemTest {
   private fun createFlagsPropertyItem(
     attrName: String,
     type: NlPropertyType,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ): NlFlagsPropertyItem {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)

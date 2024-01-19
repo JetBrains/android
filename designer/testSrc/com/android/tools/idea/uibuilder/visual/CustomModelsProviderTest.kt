@@ -88,7 +88,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         Locale.ANY.toString(),
         defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
-        NightMode.NOTNIGHT
+        NightMode.NOTNIGHT,
       )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
@@ -127,7 +127,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         Locale.create("en").toString(),
         defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
-        NightMode.NOTNIGHT
+        NightMode.NOTNIGHT,
       )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
@@ -159,7 +159,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         Locale.ANY.toString(),
         defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
-        NightMode.NOTNIGHT
+        NightMode.NOTNIGHT,
       )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 

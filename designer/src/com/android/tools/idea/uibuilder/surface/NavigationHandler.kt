@@ -37,7 +37,7 @@ interface NavigationHandler : Disposable {
     sceneView: SceneView,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    requestFocus: Boolean
+    requestFocus: Boolean,
   ): Boolean
 
   /**

@@ -103,7 +103,7 @@ private fun getSetDeviceActions(dataContext: DataContext): List<SetDeviceAction>
     DeviceMenuAction(
         object : DeviceChangeListener {
           override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
-        },
+        }
       )
       .apply { updateActions(dataContext) }
 

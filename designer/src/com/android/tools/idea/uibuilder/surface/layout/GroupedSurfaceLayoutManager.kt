@@ -28,21 +28,21 @@ import java.awt.Point
  *   "preview frame". The "preview frame" is a preview with its toolbars.
  */
 abstract class GroupedSurfaceLayoutManager(
-  @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
+  @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int
 ) : SurfaceLayoutManager {
 
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
+    @SwingCoordinate dimension: Dimension?,
   ) = getSize(content, PositionableContent::scaledContentSize, { scale }, availableWidth, dimension)
 
   @SwingCoordinate
   protected fun getSingleContentPosition(
     content: PositionableContent,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Point {
     val size = content.scaledContentSize
     val margin = content.margin
@@ -62,7 +62,7 @@ abstract class GroupedSurfaceLayoutManager(
   protected fun getContentPosition(
     content: PositionableContent,
     @SwingCoordinate previewX: Int,
-    @SwingCoordinate previewY: Int
+    @SwingCoordinate previewY: Int,
   ): Point {
     // The new compose layout consider the toolbar size as the anchor of location.
     val margin = content.margin
@@ -76,7 +76,7 @@ abstract class GroupedSurfaceLayoutManager(
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension
 
   protected abstract val transform: (Collection<PositionableContent>) -> List<PositionableGroup>

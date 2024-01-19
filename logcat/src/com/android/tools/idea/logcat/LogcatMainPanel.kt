@@ -215,7 +215,7 @@ class LogcatMainPanelFactory {
         AndroidLogcatSettings.getInstance(),
         AndroidProjectDetectorImpl(),
         hyperlinkDetector = NoopHyperlinkDetector(),
-        foldingDetector = null
+        foldingDetector = null,
       )
     }
   }
@@ -244,7 +244,7 @@ constructor(
   private var androidProjectDetector: AndroidProjectDetector,
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
-  zoneId: ZoneId = ZoneId.systemDefault()
+  zoneId: ZoneId = ZoneId.systemDefault(),
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
   constructor(
@@ -301,7 +301,7 @@ constructor(
       logcatFilterParser,
       state?.filter ?: getDefaultFilter(project, androidProjectDetector),
       state?.filterMatchCase ?: false,
-      state?.getInitialItem()
+      state?.getInitialItem(),
     )
 
   private val deviceComboBox = headerPanel.deviceComboBox
@@ -311,7 +311,7 @@ constructor(
     MessageProcessor(
       this,
       ::formatMessages,
-      logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase)
+      logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase),
     )
 
   private val toolbar =
@@ -350,7 +350,7 @@ constructor(
             caretLine = event.newPosition.line
           }
         },
-        this@LogcatMainPanel
+        this@LogcatMainPanel,
       )
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
@@ -445,7 +445,7 @@ constructor(
             .setFilter(
               logcatFilterParser.getUsageTrackingEvent(
                 headerPanel.filter,
-                headerPanel.filterMatchCase
+                headerPanel.filterMatchCase,
               )
             )
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())
@@ -462,7 +462,7 @@ constructor(
             if (connectedDevice.get()?.serialNumber == it) {
               clearMessageView()
             }
-          }
+          },
         )
       messageBus
         .connect(this)
@@ -475,7 +475,7 @@ constructor(
                 reloadMessages()
               }
             }
-          }
+          },
         )
     }
 
@@ -497,7 +497,7 @@ constructor(
                 withContext(uiThread) {
                   deviceComboBox.handleItemError(
                     item,
-                    LogcatBundle.message("logcat.device.combo.error.load.file", item.path)
+                    LogcatBundle.message("logcat.device.combo.error.load.file", item.path),
                   )
                 }
                 null
@@ -622,7 +622,7 @@ constructor(
           else Preset(formattingOptionsStyle),
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
-        isSoftWrap = isSoftWrapEnabled()
+        isSoftWrap = isSoftWrapEnabled(),
       )
     )
   }
@@ -651,7 +651,7 @@ constructor(
       hyperlinkDetector.detectHyperlinks(
         startLine,
         endLine,
-        deviceComboBox.getSelectedDevice()?.sdk
+        deviceComboBox.getSelectedDevice()?.sdk,
       )
       foldingDetector.detectFoldings(startLine, endLine)
 
@@ -850,7 +850,7 @@ constructor(
             it.serialNumber,
             it.featureLevel,
             if (it.isEmulator) it.deviceId else null,
-            this
+            this,
           )
         }
       CONNECTED_DEVICE.name -> device

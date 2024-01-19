@@ -107,7 +107,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   override fun buildChildren(
     value: Value,
     builder: ChildrenBuilder,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
   ) {
     val debuggerDisplayValueDescriptor =
       try {
@@ -129,7 +129,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
 
   override fun getChildValueExpression(
     node: DebuggerTreeNode,
-    context: DebuggerContext
+    context: DebuggerContext,
   ): PsiElement? {
     return node.parent.descriptor
       .getUserData(NODE_RENDERER_KEY)
@@ -139,7 +139,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   override fun isExpandableAsync(
     value: Value,
     evaluationContext: EvaluationContext,
-    parentDescriptor: NodeDescriptor
+    parentDescriptor: NodeDescriptor,
   ): CompletableFuture<Boolean> {
     val debuggerDisplayValueDescriptor =
       try {
@@ -157,7 +157,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         renderer.isExpandableAsync(
           debuggerDisplayValueDescriptor.value,
           evaluationContext,
-          debuggerDisplayValueDescriptor
+          debuggerDisplayValueDescriptor,
         )
       }
   }
@@ -170,7 +170,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   private fun getDebuggerDisplayValueDescriptor(
     value: Value,
     evaluationContext: EvaluationContext,
-    originalDescriptor: ValueDescriptor?
+    originalDescriptor: ValueDescriptor?,
   ): ValueDescriptor {
     val debugProcess = evaluationContext.debugProcess
 
@@ -205,7 +205,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   override fun calcLabel(
     descriptor: ValueDescriptor,
     evaluationContext: EvaluationContext,
-    listener: DescriptorLabelListener
+    listener: DescriptorLabelListener,
   ): String {
     val debuggerDisplayValueDescriptor: ValueDescriptor =
       try {
@@ -228,7 +228,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     renderer: CompletableFuture<NodeRenderer>,
     descriptor: ValueDescriptor,
     evaluationContext: EvaluationContext?,
-    listener: DescriptorLabelListener
+    listener: DescriptorLabelListener,
   ): CompletableFuture<String> {
     return renderer.thenApply { r: NodeRenderer ->
       try {
@@ -249,7 +249,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
    */
   private fun getDelegatedRendererAsync(
     debugProcess: DebugProcess,
-    valueDescriptor: ValueDescriptor
+    valueDescriptor: ValueDescriptor,
   ): CompletableFuture<NodeRenderer> {
     val type = valueDescriptor.type
     return DebuggerUtilsImpl.getApplicableRenderers(prioritizedCollectionRenderers, type)
@@ -273,7 +273,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
           CodeFragmentKind.EXPRESSION,
           "this.$DEBUGGER_DISPLAY_VALUE_METHOD_NAME()",
           "",
-          JavaFileType.INSTANCE
+          JavaFileType.INSTANCE,
         )
     }
 

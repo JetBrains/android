@@ -99,7 +99,7 @@ class PTableModelTest {
         Item("item1"),
         Item("item2"),
         Group("item3", Item("child1"), Item("child2")),
-        Item("item4")
+        Item("item4"),
       )
     val model = PTableModelImpl(tableModel)
     model.expand(2)
@@ -109,7 +109,7 @@ class PTableModelTest {
       Item("itemX"),
       Group("item3", Item("child1"), Item("child2")),
       Item("item4"),
-      Item("item5")
+      Item("item5"),
     )
 
     assertThat(model.rowCount).isEqualTo(7)
@@ -129,14 +129,14 @@ class PTableModelTest {
         Item("item1"),
         Item("item2"),
         Group("item3", Item("child1"), Item("child2")),
-        Item("item4")
+        Item("item4"),
       )
     val table =
       PTableImpl(
         tableModel,
         null,
         DefaultPTableCellRendererProvider(),
-        EmptyPTableCellEditorProvider()
+        EmptyPTableCellEditorProvider(),
       )
     val item = table.item(3)
     tableModel.updateTo(
@@ -145,7 +145,7 @@ class PTableModelTest {
       Item("itemX"),
       Group("item3", Item("child1"), Item("child2")),
       Item("item5"),
-      Item("item4")
+      Item("item4"),
     )
     val rowIndex = tableModel.items.indexOf(item)
     assertThat(rowIndex).isEqualTo(4)

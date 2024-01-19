@@ -103,7 +103,7 @@ abstract class IndexValue {
    */
   protected abstract fun getResolveCandidates(
     project: Project,
-    scope: GlobalSearchScope
+    scope: GlobalSearchScope,
   ): List<PsiElement>
 
   /**

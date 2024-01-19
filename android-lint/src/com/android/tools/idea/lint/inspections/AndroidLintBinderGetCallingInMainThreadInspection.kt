@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.BinderGetCallingInMainThreadDetector
 class AndroidLintBinderGetCallingInMainThreadInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.binder.get.calling.in.main.thread"),
-    BinderGetCallingInMainThreadDetector.ISSUE
+    BinderGetCallingInMainThreadDetector.ISSUE,
   )

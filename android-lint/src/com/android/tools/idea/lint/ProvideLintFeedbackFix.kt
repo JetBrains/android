@@ -45,13 +45,13 @@ class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
             dialog.show()
           }
         },
-        ModalityState.any()
+        ModalityState.any(),
       )
   }
 
   override fun generatePreview(
     project: Project,
-    previewDescriptor: ProblemDescriptor
+    previewDescriptor: ProblemDescriptor,
   ): IntentionPreviewInfo {
     return IntentionPreviewInfo.EMPTY
   }

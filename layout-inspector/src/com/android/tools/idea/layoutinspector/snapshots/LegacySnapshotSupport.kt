@@ -55,7 +55,7 @@ class LegacySnapshotLoader : SnapshotLoader {
     file: Path,
     model: InspectorModel,
     notificationModel: NotificationModel,
-    stats: SessionStatistics
+    stats: SessionStatistics,
   ): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
@@ -123,7 +123,7 @@ class LegacySnapshotLoader : SnapshotLoader {
         folderConfig,
         theme,
         processDescriptor,
-        fontScaleFromConfig = 1f
+        fontScaleFromConfig = 1f,
       )
     } else {
       model.resourceLookup.updateConfiguration(metadata.dpi)
@@ -140,7 +140,7 @@ fun saveLegacySnapshot(
   config: String,
   theme: String,
   process: ProcessDescriptor,
-  model: InspectorModel
+  model: InspectorModel,
 ): SnapshotMetadata {
   val baos = ByteArrayOutputStream(4096)
   val metadata: SnapshotMetadata
@@ -157,7 +157,7 @@ fun saveLegacySnapshot(
         liveDuringCapture = false,
         dpi = model.resourceLookup.dpi,
         folderConfig = config,
-        theme = theme
+        theme = theme,
       )
 
     metadata.toProto().writeDelimitedTo(output)

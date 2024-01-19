@@ -25,7 +25,7 @@ data class ResetSnapshot(val snapshot: AppInsightsState) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     return StateTransition(snapshot, Action.CancelFetches)
   }

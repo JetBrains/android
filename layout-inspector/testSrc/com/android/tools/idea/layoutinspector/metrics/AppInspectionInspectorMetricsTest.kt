@@ -207,7 +207,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
@@ -222,7 +222,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
@@ -243,7 +243,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window3!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(2)
@@ -264,7 +264,7 @@ class AppInspectionInspectorMetricsTest {
   private fun createFakeData(
     rootId: Long,
     screenshotType: LayoutInspectorViewProtocol.Screenshot.Type =
-      LayoutInspectorViewProtocol.Screenshot.Type.SKP
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent =
       LayoutInspectorViewProtocol.LayoutEvent.newBuilder()

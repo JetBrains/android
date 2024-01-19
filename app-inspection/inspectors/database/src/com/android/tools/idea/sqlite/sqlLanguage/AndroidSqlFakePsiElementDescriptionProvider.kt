@@ -29,7 +29,7 @@ import com.intellij.usageView.UsageViewTypeLocation
 class AndroidSqlFakePsiElementDescriptionProvider : ElementDescriptionProvider {
   override fun getElementDescription(
     element: PsiElement,
-    location: ElementDescriptionLocation
+    location: ElementDescriptionLocation,
   ): String? {
     if (element is AndroidSqlFakePsiElement) {
       when (location) {

@@ -44,7 +44,7 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
       true,
       true,
       false,
-      true
+      true,
     )
   private val expandedComponent =
     TextFieldWithCompletion(project, completionProvider, "", false, true, false, true)
@@ -59,7 +59,7 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
     ExpandableEditorSupport(
       editor,
       Function { it.splitAndRemoveBlanks() },
-      Function { it.joinToString(" ") }
+      Function { it.joinToString(" ") },
     ) {
 
     /**

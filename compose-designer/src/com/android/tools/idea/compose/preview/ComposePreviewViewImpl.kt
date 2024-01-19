@@ -150,7 +150,7 @@ interface ComposePreviewView {
     modelUpdater: NlModel.NlModelUpdaterInterface,
     navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   ): List<ComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
@@ -167,7 +167,7 @@ interface ComposePreviewView {
       previewElementModelAdapter,
       modelUpdater,
       navigationHandler,
-      configureLayoutlibSceneManager
+      configureLayoutlibSceneManager,
     )
   }
 
@@ -186,14 +186,14 @@ interface ComposePreviewView {
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshFilter: (LayoutlibSceneManager) -> Boolean,
-    refreshOrder: (LayoutlibSceneManager) -> Int
+    refreshOrder: (LayoutlibSceneManager) -> Int,
   ) {
     mainSurface.refreshExistingPreviewElements(
       progressIndicator,
       modelToPreview,
       configureLayoutlibSceneManager,
       refreshFilter,
-      refreshOrder
+      refreshOrder,
     )
   }
 }
@@ -205,7 +205,7 @@ fun interface ComposePreviewViewProvider {
     projectBuildStatusManager: ProjectBuildStatusManager,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): ComposePreviewView
 }
 
@@ -246,7 +246,7 @@ internal class ComposePreviewViewImpl(
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : ComposePreviewView, Pannable, DataProvider {
 
   private val workbench =
@@ -495,7 +495,7 @@ internal class ComposePreviewViewImpl(
               message("panel.no.previews.defined"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              null
+              null,
             )
           }
         }

@@ -28,5 +28,5 @@ val DATA_BINDING_ANNOTATIONS =
     "InverseBindingAdapter",
     "InverseBindingMethod",
     INVERSE_BINDING_METHODS_ANNOTATION,
-    "InverseMethod"
+    "InverseMethod",
   )

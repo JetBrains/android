@@ -57,7 +57,7 @@ class IssuePanelServiceTest {
   fun setup() {
     rule.projectRule.replaceProjectService(
       ToolWindowManager::class.java,
-      TestToolWindowManager(rule.project)
+      TestToolWindowManager(rule.project),
     )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
@@ -189,8 +189,8 @@ class IssuePanelServiceTest {
           source,
           listOf(
             TestIssue(summary = "1", source = issueSource),
-            TestIssue(summary = "2", source = issueSource)
-          )
+            TestIssue(summary = "2", source = issueSource),
+          ),
         )
       waitUntil(timeout = 1.seconds) {
         "Layout and Qualifiers".toTabTitle(2) == content.displayName
@@ -237,7 +237,7 @@ class IssuePanelServiceTest {
     // It should select the shared issue panel.
     assertEquals(
       contentManager.selectedContent,
-      contentManager.findContent("Designer".toTabTitle())
+      contentManager.findContent("Designer".toTabTitle()),
     )
 
     ProblemsViewToolWindowUtils.removeTab(rule.project, SHARED_ISSUE_PANEL_TAB_ID)

@@ -84,7 +84,7 @@ class LocaleAnalyzerTest {
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
@@ -153,7 +153,7 @@ class LocaleAnalyzerTest {
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
@@ -221,7 +221,7 @@ class LocaleAnalyzerTest {
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())

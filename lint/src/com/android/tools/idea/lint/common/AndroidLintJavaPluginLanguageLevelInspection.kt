@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintJavaPluginLanguageLevelInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.java.plugin.language.level"),
-    GradleDetector.JAVA_PLUGIN_LANGUAGE_LEVEL
+    GradleDetector.JAVA_PLUGIN_LANGUAGE_LEVEL,
   )

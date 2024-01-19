@@ -89,7 +89,7 @@ private object ClassDescriber {
       PsiTypes.intType() to "I",
       PsiTypes.floatType() to "F",
       PsiTypes.longType() to "J",
-      PsiTypes.doubleType() to "d"
+      PsiTypes.doubleType() to "d",
     )
 
   private fun PsiType.toAsm(): String {
@@ -116,7 +116,7 @@ private object ClassDescriber {
           name: String,
           signature: String?,
           superName: String?,
-          interfaces: Array<String>?
+          interfaces: Array<String>?,
         ) {
           val interfaceList = interfaces!!.toMutableList().apply { sort() }
           descriptionSet.add("$name : $superName -> ${interfaceList.joinToString(", ")}")
@@ -127,7 +127,7 @@ private object ClassDescriber {
           name: String,
           desc: String,
           signature: String?,
-          exceptions: Array<String>?
+          exceptions: Array<String>?,
         ): MethodVisitor? {
           if (access and Opcodes.ACC_PUBLIC != 0 && !name.startsWith("<")) {
             descriptionSet.add("${modifierDesc(access)} $name : $desc")
@@ -140,7 +140,7 @@ private object ClassDescriber {
           name: String,
           desc: String,
           signature: String?,
-          value: Any?
+          value: Any?,
         ): FieldVisitor? {
           if (access and Opcodes.ACC_PUBLIC != 0) {
             descriptionSet.add("${modifierDesc(access)} $name : $desc")
@@ -148,7 +148,7 @@ private object ClassDescriber {
           return super.visitField(access, name, desc, signature, value)
         }
       },
-      0
+      0,
     )
 
     descriptionSet.removeAll(exclude)
@@ -223,7 +223,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       get() =
         Lists.newArrayList(
           TestParameters(DataBindingMode.SUPPORT),
-          TestParameters(DataBindingMode.ANDROIDX)
+          TestParameters(DataBindingMode.ANDROIDX),
         )
   }
 
@@ -298,7 +298,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val classesOut =
       File(
         projectRule.project.basePath,
-        "/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes"
+        "/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes",
       )
 
     val classes = FileUtils.listFiles(classesOut, arrayOf("class"), true)
@@ -338,7 +338,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
         "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
         "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingImpl",
         "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingLandImpl",
-        "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding"
+        "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding",
       )
     val generatedClasses = mutableSetOf<String>()
     val missingClasses = mutableSetOf<String>()

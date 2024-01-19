@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.NotificationTrampolineDetector
 class AndroidLintNotificationTrampolineInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.notification.trampoline"),
-    NotificationTrampolineDetector.TRAMPOLINE
+    NotificationTrampolineDetector.TRAMPOLINE,
   )

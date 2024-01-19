@@ -41,7 +41,7 @@ interface PreviewCanvasTracker {
     private val MANAGER =
       DesignerUsageTrackerManager<PreviewCanvasTracker, Disposable>(
         { executor, _, eventBuilder -> PreviewCanvasTrackerImpl(executor, eventBuilder) },
-        NOP_TRACKER
+        NOP_TRACKER,
       )
 
     // This tracker is shared between all compose preview. No key is needed.
@@ -51,7 +51,7 @@ interface PreviewCanvasTracker {
 
 class PreviewCanvasTrackerImpl(
   private val myExecutor: Executor,
-  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>
+  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>,
 ) : PreviewCanvasTracker {
   override fun logSwitchLayout(layout: SurfaceLayoutManager) {
     try {

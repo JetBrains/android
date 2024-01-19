@@ -44,7 +44,7 @@ import org.jetbrains.android.facet.findClassValidInXMLByName
 class AndroidXmlReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(
     element: PsiElement,
-    context: ProcessingContext
+    context: ProcessingContext,
   ): Array<PsiReference> {
     if (element !is XmlTag) {
       return emptyArray()
@@ -68,7 +68,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
 
   private fun getClassFilter(
     baseClassQName: String,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): ((String, PsiClass) -> Boolean)? {
     if (baseClassQName == CLASS_DRAWABLE) {
       val packageName = facet.queryPackageNameFromManifestIndex() ?: return { _, _ -> false }
@@ -84,7 +84,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     private val facet: AndroidFacet,
     private val myBaseClassQName: String,
     private val classFilter: (String, PsiClass) -> Boolean,
-    private val myStartTag: Boolean
+    private val myStartTag: Boolean,
   ) : PsiReferenceBase<PsiElement?>(tag, true) {
     private val project = tag.project
     private val packagePrefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
@@ -154,7 +154,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
       return ElementManipulators.handleContentChange(
         myNameElement.psi,
         myRangeInNameElement,
-        newElementName
+        newElementName,
       )
     }
 
@@ -162,7 +162,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
       val parentOffset = myNameElement.startOffsetInParent
       return TextRange(
         parentOffset + myRangeInNameElement.startOffset,
-        parentOffset + myRangeInNameElement.endOffset
+        parentOffset + myRangeInNameElement.endOffset,
       )
     }
   }
@@ -175,7 +175,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
       facet: AndroidFacet,
       baseClassQName: String,
       classFilter: (String, PsiClass) -> Boolean,
-      startTag: Boolean
+      startTag: Boolean,
     ) {
       val text = nameElement.text
       val nameParts = text.split(".")
@@ -193,7 +193,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
               facet,
               baseClassQName,
               classFilter,
-              startTag
+              startTag,
             )
           )
         }

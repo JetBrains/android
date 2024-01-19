@@ -33,7 +33,7 @@ class XmlResourceDomFileDescription :
   MultipleKnownRootsResourceDomFileDescription<XmlResourceElement>(
     XmlResourceElement::class.java,
     ResourceFolderType.XML,
-    Util.SUPPORTED_TAGS
+    Util.SUPPORTED_TAGS,
   ) {
 
   companion object {

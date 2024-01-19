@@ -97,7 +97,7 @@ class DaggerElementTest {
 
       fun someFun<caret>ction() = Foo()
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
@@ -117,7 +117,7 @@ class DaggerElementTest {
 
       class Foo constructo<caret>r() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
@@ -141,7 +141,7 @@ class DaggerElementTest {
         public Foo fo<caret>o() { return new Foo(); }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
@@ -161,7 +161,7 @@ class DaggerElementTest {
         public Fo<caret>o() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
@@ -179,7 +179,7 @@ class DaggerElementTest {
 
       class Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
@@ -198,7 +198,7 @@ class DaggerElementTest {
 
       object Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val objectElement =
@@ -218,7 +218,7 @@ class DaggerElementTest {
 
       public class Fo<caret>o {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
@@ -238,7 +238,7 @@ class DaggerElementTest {
 
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThrows(IllegalArgumentException::class.java) { psiFile.classToPsiType() }
@@ -254,7 +254,7 @@ class DaggerElementTest {
 
       object Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement =
@@ -286,7 +286,7 @@ class DaggerElementTest {
 
       class Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
@@ -319,7 +319,7 @@ class DaggerElementTest {
 
       fun someFun<caret>ction() = Foo()
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!
@@ -350,7 +350,7 @@ class DaggerElementTest {
 
       class Foo construct<caret>or() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement =
@@ -382,7 +382,7 @@ class DaggerElementTest {
 
       class Foo construct<caret>or() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement =
@@ -416,7 +416,7 @@ class DaggerElementTest {
 
       fun someFunction(fo<caret>o: Foo) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!
@@ -451,7 +451,7 @@ class DaggerElementTest {
         val f<caret>oo: Foo
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!
@@ -482,7 +482,7 @@ class DaggerElementTest {
 
       public class Fo<caret>o {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
@@ -517,7 +517,7 @@ class DaggerElementTest {
         public Foo fo<caret>o;
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!
@@ -552,7 +552,7 @@ class DaggerElementTest {
         public Foo fo<caret>o() { return new Foo(); }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!
@@ -587,7 +587,7 @@ class DaggerElementTest {
         public void foo(Foo f<caret>oo) {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!
@@ -619,7 +619,7 @@ class DaggerElementTest {
 
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(mockIdentifiers.getDaggerElement(psiFile)).isNull()

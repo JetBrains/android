@@ -62,7 +62,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       class Impleme<caret>ntation : Interface {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val intention =
@@ -115,7 +115,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       class Impleme<caret>ntation : Interface {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val intention =

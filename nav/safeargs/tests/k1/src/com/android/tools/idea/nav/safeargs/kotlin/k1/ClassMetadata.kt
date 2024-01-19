@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 internal class PropertyMetadata(
   var name: String = "",
   var type: String = "",
-  var isMutable: Boolean = false
+  var isMutable: Boolean = false,
 ) {
   override fun toString(): String {
     return "${if (isMutable) "var" else "val"} $name: $type"
@@ -64,7 +64,7 @@ internal class ParameterMetadata(var name: String = "", var type: String = "") {
 internal class FunctionMetadata(
   var name: String = "",
   var params: MutableList<ParameterMetadata> = mutableListOf(),
-  var returnType: String? = null
+  var returnType: String? = null,
 ) {
   override fun toString(): String {
     return "$name(${params.joinToString()})" + if (returnType != null) ": $returnType" else ""
@@ -79,7 +79,7 @@ internal class ClassMetadata(
   var constructors: MutableList<FunctionMetadata> = mutableListOf(),
   var properties: MutableList<PropertyMetadata> = mutableListOf(),
   var functions: MutableList<FunctionMetadata> = mutableListOf(),
-  var classifiers: MutableList<ClassMetadata> = mutableListOf()
+  var classifiers: MutableList<ClassMetadata> = mutableListOf(),
 ) {
   companion object {
     private val visitor = MetadataVisitor()
@@ -155,7 +155,7 @@ private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata
 
   override fun visitConstructorDescriptor(
     constructorDescriptor: ConstructorDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {
     data.constructors.add(constructorDescriptor.toMetadata())
   }
@@ -174,22 +174,22 @@ private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata
 
   override fun visitPropertyGetterDescriptor(
     descriptor: PropertyGetterDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitPropertySetterDescriptor(
     descriptor: PropertySetterDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitReceiverParameterDescriptor(
     descriptor: ReceiverParameterDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitPackageFragmentDescriptor(
     descriptor: PackageFragmentDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: ClassMetadata) {}
@@ -198,12 +198,12 @@ private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata
 
   override fun visitTypeParameterDescriptor(
     descriptor: TypeParameterDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitValueParameterDescriptor(
     descriptor: ValueParameterDescriptor,
-    data: ClassMetadata
+    data: ClassMetadata,
   ) {}
 
   override fun visitVariableDescriptor(descriptor: VariableDescriptor, data: ClassMetadata) {}

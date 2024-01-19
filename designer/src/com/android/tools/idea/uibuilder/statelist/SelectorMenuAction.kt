@@ -114,7 +114,7 @@ class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit) : JCo
 private fun createStateItem(
   designSurface: DesignSurface<*>,
   state: State,
-  callback: () -> Unit
+  callback: () -> Unit,
 ): JPanel {
   val stateItemPanel =
     JPanel(GridBagLayout()).apply {

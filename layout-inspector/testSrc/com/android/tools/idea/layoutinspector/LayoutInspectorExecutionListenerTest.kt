@@ -60,7 +60,7 @@ class LayoutInspectorExecutionListenerTest {
       ExecutionEnvironmentBuilder.create(
           DefaultRunExecutor.getRunExecutorInstance(),
           RunManager.getInstance(projectRule.project)
-            .createConfiguration("app", AndroidRunConfigurationType.getInstance().factory)
+            .createConfiguration("app", AndroidRunConfigurationType.getInstance().factory),
         )
         .build()
 
@@ -186,7 +186,7 @@ class LayoutInspectorExecutionListenerTest {
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
     val adb = AndroidDebugBridge.getBridge()!!
     return adb.findDevice(device)!!

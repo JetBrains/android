@@ -47,7 +47,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     navigateToSelectedView(
       inspector.coroutineScope,
       inspector.inspectorModel,
-      inspector.notificationModel
+      inspector.notificationModel,
     )
   }
 
@@ -60,7 +60,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   fun navigateToSelectedView(
     coroutineScope: CoroutineScope,
     inspectorModel: InspectorModel,
-    notificationModel: NotificationModel
+    notificationModel: NotificationModel,
   ) {
     lastAction =
       coroutineScope.launch {
@@ -72,7 +72,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   @Slow
   private suspend fun findNavigatable(
     model: InspectorModel,
-    notificationModel: NotificationModel
+    notificationModel: NotificationModel,
   ): Navigatable? =
     withContext(AndroidDispatchers.workerThread) {
       val resourceLookup = model.resourceLookup
@@ -89,7 +89,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
           notificationModel.addNotification(
             VIEW_NOT_FOUND_KEY,
             LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
-            Status.Warning
+            Status.Warning,
           )
         }
         navigatable

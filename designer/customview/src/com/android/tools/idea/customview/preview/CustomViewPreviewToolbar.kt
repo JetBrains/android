@@ -67,7 +67,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         ToggleAction(
           "Wrap content horizontally",
           "Set preview width to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH
+          StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH,
         ) {
         override fun isSelected(e: AnActionEvent) =
           findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
@@ -82,7 +82,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         ToggleAction(
           "Wrap content vertically",
           "Set preview height to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT
+          StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT,
         ) {
         override fun isSelected(e: AnActionEvent) =
           findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }

@@ -44,13 +44,7 @@ import org.jetbrains.uast.tryResolve
  * as an optimization to avoid traversing annotations which fqcn starts with any of these prefixes,
  * as those annotations will never lead to a Preview.
  */
-private val NON_MULTIPREVIEW_PREFIXES =
-  listOf(
-    "android.",
-    "kotlin.",
-    "kotlinx.",
-    "java.",
-  )
+private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx.", "java.")
 
 /**
  * Returns true if the MultiPreview flag is enabled and one of the following is true:
@@ -125,7 +119,7 @@ fun getPreviewNodes(uMethod: UMethod, overrideGroupName: String? = null, include
                 uMethod,
                 it,
                 overrideGroupName,
-                includeAllNodes
+                includeAllNodes,
               )
             }
           )
@@ -143,7 +137,7 @@ fun getPreviewNodes(uMethod: UMethod, overrideGroupName: String? = null, include
                       nonPreviewTraversedChildrenFqcn.filterNotNull().map {
                         visitedAnnotationClasses[it]
                       },
-                      nDirectPreviews
+                      nDirectPreviews,
                     )
                     .withDepthLevel(0)
                     .withComposableFqn(uMethod.qualifiedName)
@@ -163,7 +157,7 @@ private fun UAnnotation.getPreviewNodes(
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
   depthLevel: Int = 1,
-  parentAnnotationInfo: String? = null
+  parentAnnotationInfo: String? = null,
 ): Sequence<PreviewNode> = runReadAction {
   // MultiPreview nodes are always associated with a composable method
   if (!uMethod.isComposable() || !this.shouldTraverse(visitedAnnotationClasses))
@@ -198,7 +192,7 @@ private fun UAnnotation.getPreviewNodes(
               overrideGroupName,
               includeAllNodes,
               depthLevel + 1,
-              buildParentAnnotationInfo(curAnnotationName, nxtDirectPreviewId++, nDirectPreviews)
+              buildParentAnnotationInfo(curAnnotationName, nxtDirectPreviewId++, nDirectPreviews),
             )
           } else if (it.shouldTraverse(visitedAnnotationClasses)) {
             nonPreviewTraversedChildrenFqcn.add((it.tryResolve() as? PsiClass)?.qualifiedName)
@@ -208,7 +202,7 @@ private fun UAnnotation.getPreviewNodes(
               rootAnnotation,
               overrideGroupName,
               includeAllNodes,
-              depthLevel + 1
+              depthLevel + 1,
             )
           } else emptySequence()
         }
@@ -227,7 +221,7 @@ private fun UAnnotation.getPreviewNodes(
                   nonPreviewTraversedChildrenFqcn.filterNotNull().map {
                     visitedAnnotationClasses[it]
                   },
-                  nDirectPreviews
+                  nDirectPreviews,
                 )
                 .withDepthLevel(depthLevel)
                 .withComposableFqn(uMethod!!.qualifiedName)
@@ -266,7 +260,7 @@ internal fun UAnnotation.toPreviewElement(
   uMethod: UMethod? = getContainingComposableUMethod(),
   rootAnnotation: UAnnotation = this,
   overrideGroupName: String? = null,
-  parentAnnotationInfo: String? = null
+  parentAnnotationInfo: String? = null,
 ) = runReadAction {
   if (this.isPreviewAnnotation()) {
     val defaultValues = this.findPreviewDefaultValues()
@@ -279,7 +273,7 @@ internal fun UAnnotation.toPreviewElement(
         previewElementDefinitionPsi,
         ::StudioParametrizedComposePreviewElementTemplate,
         overrideGroupName,
-        parentAnnotationInfo
+        parentAnnotationInfo,
       )
     }
   } else null

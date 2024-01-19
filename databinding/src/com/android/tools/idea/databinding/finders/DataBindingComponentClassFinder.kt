@@ -49,10 +49,10 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
             CachedValueProvider.Result.create(
               classes,
               enabledFacetsProvider,
-              AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project)
+              AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project),
             )
           },
-          false
+          false,
         )
   }
 

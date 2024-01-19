@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WearableConfigurationActionDetector
 class AndroidLintWearableActionDuplicateInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wearable.action.duplicate"),
-    WearableConfigurationActionDetector.ACTION_DUPLICATE
+    WearableConfigurationActionDetector.ACTION_DUPLICATE,
   )

@@ -70,7 +70,7 @@ internal val DEVICE_ID_TO_TOOLTIPS =
     DEVICE_CLASS_PHONE_ID to DEVICE_CLASS_PHONE_TOOLTIP,
     DEVICE_CLASS_FOLDABLE_ID to DEVICE_CLASS_FOLDABLE_TOOLTIP,
     DEVICE_CLASS_TABLET_ID to DEVICE_CLASS_TABLET_TOOLTIP,
-    DEVICE_CLASS_DESKTOP_ID to DEVICE_CLASS_DESKTOP_TOOLTIP
+    DEVICE_CLASS_DESKTOP_ID to DEVICE_CLASS_DESKTOP_TOOLTIP,
   )
 
 private val EMPTY_DEVICE_CHANGE_LISTENER =
@@ -88,7 +88,7 @@ class DeviceMenuAction(
   DropDownAction(
     "Device for Preview",
     "Device for Preview",
-    StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES
+    StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES,
   ) {
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -167,7 +167,7 @@ class DeviceMenuAction(
 
   private fun addReferenceDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?
+    currentDevice: Device?,
   ) {
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
 
@@ -181,7 +181,7 @@ class DeviceMenuAction(
           deviceChangeListener,
           device,
           null,
-          selected
+          selected,
         )
       )
     }
@@ -190,7 +190,7 @@ class DeviceMenuAction(
     val phoneDevices =
       listOfNotNull(
         getCanonicalDevice(groupedDevices, CanonicalDeviceType.SMALL_PHONE),
-        getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE)
+        getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE),
       ) + groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList())
     addDevicesToPopup("Phones", phoneDevices, currentDevice)
 
@@ -206,7 +206,7 @@ class DeviceMenuAction(
 
   private fun addWearDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?
+    currentDevice: Device?,
   ) {
     val wearDevices = groupedDevices.get(DeviceGroup.WEAR) ?: return
     add(DeviceCategory("Wear", "Wear devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR))
@@ -220,7 +220,7 @@ class DeviceMenuAction(
           deviceChangeListener,
           device,
           null,
-          selected
+          selected,
         )
       )
     }
@@ -229,7 +229,7 @@ class DeviceMenuAction(
 
   private fun addTvDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?
+    currentDevice: Device?,
   ) {
     val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return
     add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
@@ -242,7 +242,7 @@ class DeviceMenuAction(
           deviceChangeListener,
           device,
           null,
-          selected
+          selected,
         )
       )
     }
@@ -251,14 +251,14 @@ class DeviceMenuAction(
 
   private fun addAutomotiveDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?
+    currentDevice: Device?,
   ) {
     val automotiveDevices = groupedDevices.get(DeviceGroup.AUTOMOTIVE) ?: return
     add(
       DeviceCategory(
         "Auto",
         "Android Auto devices",
-        StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE
+        StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE,
       )
     )
     for (device in automotiveDevices) {
@@ -270,7 +270,7 @@ class DeviceMenuAction(
           deviceChangeListener,
           device,
           null,
-          selected
+          selected,
         )
       )
     }
@@ -288,7 +288,7 @@ class DeviceMenuAction(
         DeviceCategory(
           "Virtual Device",
           "Android Virtual Devices",
-          StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES
+          StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES,
         )
       )
       for (device in avdDevices) {
@@ -300,7 +300,7 @@ class DeviceMenuAction(
             deviceChangeListener,
             device,
             avdDisplayName,
-            selected
+            selected,
           )
         )
       }
@@ -310,7 +310,7 @@ class DeviceMenuAction(
 
   private fun addGenericDeviceAndNewDefinitionSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?
+    currentDevice: Device?,
   ) {
     val devices = groupedDevices.get(DeviceGroup.GENERIC) ?: return
     addDevicesToPopup("Generic Devices", devices, currentDevice)
@@ -331,7 +331,7 @@ class DeviceMenuAction(
           deviceChangeListener,
           device,
           null,
-          selected
+          selected,
         )
       )
     }
@@ -517,7 +517,7 @@ private object VarianceComparator : Comparator<String> {
 abstract class DeviceAction(
   title: String?,
   private val updatePresentationCallback: Consumer<AnActionEvent>,
-  icon: Icon?
+  icon: Icon?,
 ) : ConfigurationAction(title, icon) {
   protected abstract val device: Device?
 
@@ -534,7 +534,7 @@ open class SetDeviceAction(
   protected val deviceChangeListener: DeviceChangeListener,
   public override val device: Device,
   defaultIcon: Icon?,
-  private val selected: Boolean
+  private val selected: Boolean,
 ) : DeviceAction(null, updatePresentationCallback, getBestIcon(title, defaultIcon)) {
 
   override fun update(event: AnActionEvent) {
@@ -579,7 +579,7 @@ open class SetDeviceAction(
   private fun hasBetterMatchingLayoutFile(
     configuration: Configuration,
     device: Device,
-    stateName: String
+    stateName: String,
   ): Boolean {
     if (configuration.virtualFile == null) {
       return false
@@ -606,7 +606,7 @@ private class SetWearDeviceAction(
   deviceChangeListener: DeviceChangeListener,
   device: Device,
   defaultIcon: Icon?,
-  selected: Boolean
+  selected: Boolean,
 ) :
   SetDeviceAction(
     title,
@@ -614,7 +614,7 @@ private class SetWearDeviceAction(
     deviceChangeListener,
     device,
     defaultIcon,
-    selected
+    selected,
   ) {
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     val prevDevice = configuration.cachedDevice
@@ -659,7 +659,7 @@ private const val CUSTOM_DEVICE_NAME = "Custom"
 
 private class SetCustomDeviceAction(
   updatePresentationCallback: Consumer<AnActionEvent>,
-  private val baseDevice: Device?
+  private val baseDevice: Device?,
 ) : DeviceAction(CUSTOM_DEVICE_NAME, updatePresentationCallback, null) {
   var customDevice: Device? = null
   override val device: Device?
@@ -687,7 +687,7 @@ private class SetAvdAction(
   private val deviceChangeListener: DeviceChangeListener,
   private val avdDevice: Device,
   displayName: String,
-  private val selected: Boolean
+  private val selected: Boolean,
 ) : ConfigurationAction(displayName) {
   override fun update(event: AnActionEvent) {
     super.update(event)

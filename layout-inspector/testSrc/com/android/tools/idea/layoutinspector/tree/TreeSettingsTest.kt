@@ -59,7 +59,7 @@ class InspectorTreeSettingsTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       PropertiesComponentMock(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
     settings = InspectorTreeSettings { client }
     val model = InspectorModel(projectRule.project, AndroidCoroutineScope(projectRule.disposable))
@@ -76,7 +76,7 @@ class InspectorTreeSettingsTest {
         model,
         mock(),
         settings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
@@ -115,7 +115,7 @@ class InspectorTreeSettingsTest {
     testFlag(
       DEFAULT_RECOMPOSITIONS,
       KEY_RECOMPOSITIONS,
-      Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS
+      Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
     ) {
       settings.showRecompositions
     }
@@ -129,7 +129,7 @@ class InspectorTreeSettingsTest {
     defaultValue: Boolean,
     key: String,
     controllingCapability: Capability?,
-    flag: () -> Boolean
+    flag: () -> Boolean,
   ) {
     capabilities.clear()
 

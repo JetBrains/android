@@ -116,7 +116,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
   override fun applyEdits(
     fileProvider: FileProvider,
     fileData: PendingEditFile,
-    edits: List<PendingEdit>
+    edits: List<PendingEdit>,
   ) {
     // In the IDE we should always be passing in a lambda when we call
     // applyEdits since here we want to pass in additional context (such as the
@@ -134,7 +134,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
       file: PsiFile?,
       incident: Incident,
       fix: LintFix,
-      isTopLevel: Boolean = true
+      isTopLevel: Boolean = true,
     ): Array<LintIdeQuickFix> {
       when (fix) {
         is LintFix.AnnotateFix -> {
@@ -155,7 +155,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
                 fix.getFamilyName(),
                 fix.annotation,
                 fix.replace,
-                fix.range
+                fix.range,
               )
             )
           }
@@ -211,7 +211,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
     fun canReplaceExistingFileIfExists(project: Project, file: File): Boolean {
       return canReplaceExistingFileIfExists(
         project,
-        LocalFileSystem.getInstance().findFileByIoFile(file)
+        LocalFileSystem.getInstance().findFileByIoFile(file),
       )
     }
 
@@ -227,7 +227,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
           project,
           "${file.name} already exists; do you want to replace it?",
           "Replace File",
-          null
+          null,
         ) == Messages.YES
       }
 
@@ -308,7 +308,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
     private fun collectDisjointDescendantsCoveringRange(
       parent: PsiElement,
       fileRange: TextRange,
-      out: MutableList<PsiElement>
+      out: MutableList<PsiElement>,
     ) {
       var child = parent.firstChild
       while (child != null) {
@@ -329,7 +329,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
     private fun getEditor(
       context: AndroidQuickfixContexts.Context,
       file: PsiFile,
-      forceOpen: Boolean
+      forceOpen: Boolean,
     ): Editor? {
       val editor = context.getEditor(file)
       if (editor != null || !forceOpen) {
@@ -346,7 +346,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
       selectionEndOffset: Int,
       context: AndroidQuickfixContexts.Context,
       file: PsiFile,
-      forceOpen: Boolean = false
+      forceOpen: Boolean = false,
     ) {
       if (context is AndroidQuickfixContexts.EditorContext && file.isPhysical) {
         val editor = getEditor(context, file, forceOpen) ?: return
@@ -393,7 +393,7 @@ private class LintIdeFixPerformerFix(
   val fix: LintFix,
   name: String? = fix.getDisplayName(),
   familyName: String? = fix.getFamilyName(),
-  private val valueOverride: ((PendingEditFile, PendingEdit) -> String?)? = null
+  private val valueOverride: ((PendingEditFile, PendingEdit) -> String?)? = null,
 ) : DefaultLintQuickFix(name ?: fix.getDisplayName() ?: "Fix", familyName ?: fix.getFamilyName()) {
   private val performer = LintIdeFixPerformer(LintIdeSupport.get().createClient(project), project)
   private val edits = LinkedHashMap<PendingEditFile, Pair<SmartPsiFileRange, CharSequence>?>()
@@ -425,7 +425,7 @@ private class LintIdeFixPerformerFix(
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     if (edits.isEmpty()) {
       return false
@@ -463,7 +463,7 @@ private class LintIdeFixPerformerFix(
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     // side effect: updates performer.deltas map
     val applicable = isApplicable(startElement, endElement, context.type)
@@ -478,7 +478,7 @@ private class LintIdeFixPerformerFix(
     fileData: PendingEditFile,
     edits: List<PendingEdit>,
     context: AndroidQuickfixContexts.Context,
-    startElement: PsiElement
+    startElement: PsiElement,
   ) {
     if (edits.isEmpty()) {
       return
@@ -546,7 +546,7 @@ private class LintIdeFixPerformerFix(
         modifiedRanges.add(
           pointerManager.createSmartPsiFileRangePointer(
             file,
-            TextRange.create(start, start + replacement.length)
+            TextRange.create(start, start + replacement.length),
           )
         )
 
@@ -560,7 +560,7 @@ private class LintIdeFixPerformerFix(
             selectionEnd,
             context,
             file,
-            fileData.createText
+            fileData.createText,
           )
         }
       }
@@ -616,7 +616,7 @@ private class LintIdeFixPerformerFix(
   override fun generatePreview(
     project: Project,
     editor: Editor,
-    file: PsiFile
+    file: PsiFile,
   ): IntentionPreviewInfo? {
     // Disable intention preview if the replacement range is in a different
     // file than the one being edited.
@@ -646,7 +646,7 @@ fun LintFix.toIdeFix(file: PsiFile): LintIdeQuickFix {
     Location.create(
       VfsUtilCore.virtualToIoFile(file.virtualFile),
       DefaultPosition(-1, -1, 0),
-      DefaultPosition(-1, -1, file.textLength)
+      DefaultPosition(-1, -1, file.textLength),
     )
   val incident = Incident().location(location)
   return toIdeFix(file.project, incident)
@@ -655,7 +655,7 @@ fun LintFix.toIdeFix(file: PsiFile): LintIdeQuickFix {
 fun LintFix.toIdeFix(
   project: Project,
   incident: Incident,
-  valueOverride: ((PendingEditFile, PendingEdit) -> String?)
+  valueOverride: ((PendingEditFile, PendingEdit) -> String?),
 ): LintIdeQuickFix {
   if (this !is LintFix.ReplaceString) {
     error("Cannot only override values on string replacements")

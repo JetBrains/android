@@ -39,7 +39,7 @@ internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> = callbackFlow
       override fun exitDumbMode() {
         trySendBlocking(DumbModeStatus.SMART_MODE)
       }
-    }
+    },
   )
   trySendBlocking(
     if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE

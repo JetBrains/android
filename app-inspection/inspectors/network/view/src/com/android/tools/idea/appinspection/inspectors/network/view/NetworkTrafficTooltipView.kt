@@ -36,11 +36,11 @@ internal constructor(view: NetworkInspectorView, private val tooltip: NetworkTra
         .build()
     legend.configure(
       legends.rxLegend,
-      LegendConfig(LegendConfig.IconType.BOX, NETWORK_RECEIVING_COLOR)
+      LegendConfig(LegendConfig.IconType.BOX, NETWORK_RECEIVING_COLOR),
     )
     legend.configure(
       legends.txLegend,
-      LegendConfig(LegendConfig.IconType.BOX, NETWORK_SENDING_COLOR)
+      LegendConfig(LegendConfig.IconType.BOX, NETWORK_SENDING_COLOR),
     )
     return legend
   }

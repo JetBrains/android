@@ -34,7 +34,7 @@ open class GridLayoutDecorator : SceneDecorator() {
   override fun addBackground(
     list: DisplayList,
     sceneContext: SceneContext,
-    component: SceneComponent
+    component: SceneComponent,
   ) {
     super.addBackground(list, sceneContext, component)
     with(getGridBarriers(component)) {
@@ -57,7 +57,7 @@ private class DrawLineCommand(
   @AndroidDpCoordinate val x1: Int,
   @AndroidDpCoordinate val y1: Int,
   @AndroidDpCoordinate val x2: Int,
-  @AndroidDpCoordinate val y2: Int
+  @AndroidDpCoordinate val y2: Int,
 ) : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL

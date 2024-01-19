@@ -39,7 +39,7 @@ class SingleState(private val tracker: AnimationTracker, callback: () -> Unit) :
           ?.let { enumState.currentState = it }
         stateCallback()
       },
-      enumState
+      enumState,
     )
 
   override fun stateHashCode() = enumState.stateHashCode

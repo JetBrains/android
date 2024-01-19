@@ -27,7 +27,7 @@ object SelectedViewBuilder : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<InspectorPropertyItem>
+    properties: PropertiesTable<InspectorPropertyItem>,
   ) {
     val name = properties.getOrNull(NAMESPACE_INTERNAL, ATTR_NAME) ?: return
     val id = properties.getOrNull(NAMESPACE_INTERNAL, ATTR_ID)

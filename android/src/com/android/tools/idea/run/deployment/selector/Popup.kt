@@ -67,7 +67,7 @@ internal class Popup(group: ActionGroup, context: DataContext, runnable: Runnabl
     override fun customizeComponent(
       list: JList<out ActionItem>,
       value: ActionItem,
-      selected: Boolean
+      selected: Boolean,
     ) {
       super.customizeComponent(list, value, selected)
       if (value.action is Heading) {

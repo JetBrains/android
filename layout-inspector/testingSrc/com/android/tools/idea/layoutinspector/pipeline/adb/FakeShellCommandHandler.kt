@@ -42,7 +42,7 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     socket: Socket,
     device: DeviceState,
     command: String,
-    args: String
+    args: String,
   ): Boolean {
     val response =
       when (command) {

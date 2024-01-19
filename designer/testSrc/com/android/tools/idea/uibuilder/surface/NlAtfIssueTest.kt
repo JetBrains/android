@@ -121,7 +121,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     assertEquals(
       "set: namespace=http://schemas.android.com/tools, attribute=ignore, value=SrcClass",
-      testSrc.callsString()
+      testSrc.callsString(),
     )
   }
 
@@ -144,7 +144,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     assertEquals(
       "set: namespace=http://schemas.android.com/tools, attribute=ignore, value=hardcodedText,someOtherLintToIgnore,test,SrcClass",
-      testSrc.callsString()
+      testSrc.callsString(),
     )
   }
 
@@ -187,7 +187,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     assertEquals(
       "set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF",
-      testSrc.callsString()
+      testSrc.callsString(),
     )
   }
 
@@ -222,7 +222,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     assertEquals(
       "remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription",
-      testSrc.callsString()
+      testSrc.callsString(),
     )
   }
 
@@ -277,7 +277,7 @@ class NlAtfIssueTest : LayoutTestCase() {
       remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription
     """
         .trimIndent(),
-      testSrc.callsString()
+      testSrc.callsString(),
     )
   }
 

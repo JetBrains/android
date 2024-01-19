@@ -30,7 +30,7 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   nameEditorProvider: EditorProvider<N>,
   valueType: Class<P>,
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>
+  valueEditorProvider: EditorProvider<P>,
 ) : PTableCellRendererProvider {
 
   private var defaultNameRenderer = DefaultNameTableCellRenderer()
@@ -41,7 +41,7 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
       nameControlTypeProvider,
       nameEditorProvider,
       UIUtil.FontSize.SMALL,
-      defaultNameRenderer
+      defaultNameRenderer,
     )
   private val valueRenderer =
     EditorBasedTableCellRenderer(
@@ -49,7 +49,7 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
       valueControlTypeProvider,
       valueEditorProvider,
       UIUtil.FontSize.NORMAL,
-      defaultValueRenderer
+      defaultValueRenderer,
     )
 
   override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {

@@ -157,26 +157,26 @@ class TextViewInspectorBuilderTest {
       line.models[0],
       "Align Start of View",
       TEXT_ALIGN_LAYOUT_LEFT,
-      TextAlignment.VIEW_START
+      TextAlignment.VIEW_START,
     )
     checkToggleButtonModel(
       line.models[1],
       "Align Start of Text",
       TEXT_ALIGN_LEFT,
-      TextAlignment.TEXT_START
+      TextAlignment.TEXT_START,
     )
     checkToggleButtonModel(line.models[2], "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
     checkToggleButtonModel(
       line.models[3],
       "Align End of Text",
       TEXT_ALIGN_RIGHT,
-      TextAlignment.TEXT_END
+      TextAlignment.TEXT_END,
     )
     checkToggleButtonModel(
       line.models[4],
       "Align End of View",
       TEXT_ALIGN_LAYOUT_RIGHT,
-      TextAlignment.VIEW_END
+      TextAlignment.VIEW_END,
     )
   }
 
@@ -185,7 +185,7 @@ class TextViewInspectorBuilderTest {
     description: String,
     icon: Icon,
     trueValue: String,
-    falseValue: String = ""
+    falseValue: String = "",
   ) {
     val toggleModel = model as ToggleButtonPropertyEditorModel
     assertThat(toggleModel.description).isEqualTo(description)
@@ -232,7 +232,7 @@ class TextViewInspectorBuilderTest {
         ATTR_TEXT_SIZE,
         ATTR_LINE_SPACING_EXTRA,
         ATTR_TEXT_COLOR,
-        ATTR_TEXT_STYLE
+        ATTR_TEXT_STYLE,
       )
       .inOrder()
   }
@@ -248,7 +248,7 @@ class TextViewInspectorBuilderTest {
     util.addFlagsProperty(
       ANDROID_URI,
       ATTR_TEXT_STYLE,
-      listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC)
+      listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC),
     )
     util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NlPropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR)

@@ -62,7 +62,7 @@ class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLa
       expandableText(
         model.linkProperty.link.templateText,
         model.tableExpansionState,
-        underlined = true
+        underlined = true,
       )
     link.foreground = model.displayedForeground(link.normalForegroundColor)
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)

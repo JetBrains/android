@@ -132,7 +132,7 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
       @SwingCoordinate mouseX: Int,
       @SwingCoordinate mouseY: Int,
       @AndroidDpCoordinate androidWidth: Int,
-      @AndroidDpCoordinate androidHeight: Int
+      @AndroidDpCoordinate androidHeight: Int,
     ) {
       this.x = x
       this.y = y

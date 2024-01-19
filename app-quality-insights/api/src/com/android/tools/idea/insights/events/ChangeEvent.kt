@@ -24,6 +24,6 @@ interface ChangeEvent {
   fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action>
 }

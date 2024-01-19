@@ -94,7 +94,7 @@ fun DeviceDescriptor.createProcess(
   name: String = "com.example",
   pid: Int = 1,
   streamId: Long = 13579,
-  isRunning: Boolean = true
+  isRunning: Boolean = true,
 ): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
@@ -124,7 +124,7 @@ fun LegacyClientProvider(
   treeLoaderOverride: LegacyTreeLoader? =
     Mockito.mock(LegacyTreeLoader::class.java).also {
       whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
-    }
+    },
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(
     params.process,
@@ -134,7 +134,7 @@ fun LegacyClientProvider(
     LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     AndroidCoroutineScope(getDisposable()),
     getDisposable(),
-    treeLoaderOverride
+    treeLoaderOverride,
   )
 }
 
@@ -157,7 +157,7 @@ fun LegacyClientProvider(
 class LayoutInspectorRule(
   private val clientProviders: List<InspectorClientProvider>,
   private val projectRule: AndroidProjectRule,
-  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
+  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
 ) : TestRule {
 
   lateinit var launcher: InspectorClientLauncher
@@ -257,7 +257,7 @@ class LayoutInspectorRule(
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -280,7 +280,7 @@ class LayoutInspectorRule(
         notificationModel,
         layoutInspectorCoroutineScope,
         launcherDisposable,
-        executor = launcherExecutor
+        executor = launcherExecutor,
       )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let {
@@ -315,13 +315,13 @@ class LayoutInspectorRule(
         layoutInspectorModel = inspectorModel,
         notificationModel = notificationModel,
         treeSettings = treeSettings,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     launcher.addClientChangedListener { inspectorClient = it }
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
       dataProviderForLayoutInspector(inspector),
-      projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable,
     )
 
     DebugViewAttributes.reset()

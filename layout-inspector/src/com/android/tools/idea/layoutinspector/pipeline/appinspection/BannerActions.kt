@@ -58,7 +58,7 @@ const val KEY_HIDE_ACTIVITY_RESTART_BANNER = "live.layout.inspector.activity.res
 fun showActivityRestartedInBanner(
   project: Project,
   notificationModel: NotificationModel,
-  process: ProcessDescriptor
+  process: ProcessDescriptor,
 ) {
 
   /**
@@ -131,13 +131,13 @@ fun showActivityRestartedInBanner(
     ACTIVITY_RESTART_KEY,
     LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
     Status.Info,
-    actions
+    actions,
   )
 }
 
 private fun moduleFromCurrentProjectBeingInspected(
   project: Project,
-  process: ProcessDescriptor
+  process: ProcessDescriptor,
 ): Module? =
   project.modules.firstOrNull {
     process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName

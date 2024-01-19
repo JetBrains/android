@@ -37,7 +37,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
     class Column
     class Box
     """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.addFileToProject(
       "src/androidx/compose/runtime/Composable.kt",
@@ -47,7 +47,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
 
     annotation class Composable
     """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.addFileToProject(
       "src/androidx/compose/ui/Modifier.kt",
@@ -59,7 +59,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
       companion object : Modifier {}
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
     TemplateManagerImpl.setTemplateTesting(myFixture.testRootDisposable)
@@ -74,7 +74,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
 
       <caret>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val template = TemplateSettings.getInstance().getTemplate("comp", "AndroidCompose")
@@ -110,7 +110,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
           W<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.type("\t")
@@ -149,7 +149,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
           Text("December 2018")</selection><caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val template = TemplateSettings.getInstance().getTemplate("WR", "AndroidCompose")
@@ -191,7 +191,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
           Text("December 2018")</selection><caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val template = TemplateSettings.getInstance().getTemplate("WC", "AndroidCompose")
@@ -234,7 +234,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
           Text("Davenport, California")
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val template = TemplateSettings.getInstance().getTemplate("paddp", "AndroidCompose")
@@ -277,7 +277,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
           Text("Davenport, California")
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val template = TemplateSettings.getInstance().getTemplate("weight", "AndroidCompose")

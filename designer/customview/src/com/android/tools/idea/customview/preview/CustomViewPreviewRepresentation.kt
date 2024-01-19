@@ -103,7 +103,7 @@ class CustomViewPreviewRepresentation(
   persistenceProvider: (Project) -> PropertiesComponent = { p ->
     PropertiesComponent.getInstance(p)
   },
-  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState
+  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState,
 ) :
   PreviewRepresentation,
   CustomViewPreviewManager,
@@ -211,7 +211,7 @@ class CustomViewPreviewRepresentation(
         .setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
       this,
-      project
+      project,
     )
   }
 
@@ -277,7 +277,7 @@ class CustomViewPreviewRepresentation(
               }
             }
           }
-        }
+        },
       )
 
     setupBuildListener(
@@ -309,7 +309,7 @@ class CustomViewPreviewRepresentation(
           stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.IN_PROGRESS)
         }
       },
-      this
+      this,
     )
 
     setupChangeListener(
@@ -320,7 +320,7 @@ class CustomViewPreviewRepresentation(
           stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
         }
       },
-      this
+      this,
     )
   }
 
@@ -424,7 +424,7 @@ class CustomViewPreviewRepresentation(
           configuration.updateScreenSize(
             previewDimensions[0].toInt(),
             previewDimensions[1].toInt(),
-            configuration.device
+            configuration.device,
           )
         }
 
@@ -452,7 +452,7 @@ class CustomViewPreviewRepresentation(
       val screen = configuration.device!!.defaultHardware.screen
       persistenceManager.setList(
         dimensionsPropertyNameForClass(className),
-        listOf("${screen.xDimension}", "${screen.yDimension}")
+        listOf("${screen.xDimension}", "${screen.yDimension}"),
       )
     }
   }

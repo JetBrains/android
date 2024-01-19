@@ -61,7 +61,7 @@ internal class SpringPickerPropertiesModel(
     module = module,
     ktFile = file,
     psiPropertiesProvider = psiPropertiesProvider,
-    tracker = NoOpTracker
+    tracker = NoOpTracker,
   ) {
 
   override val inspectorBuilder: PsiPropertiesInspectorBuilder =
@@ -69,7 +69,7 @@ internal class SpringPickerPropertiesModel(
       override val editorProvider: EditorProvider<PsiPropertyItem> =
         PsiEditorProvider(
           PsiEnumProvider(EnumSupportValuesProvider.EMPTY),
-          SpringControlTypeProvider
+          SpringControlTypeProvider,
         )
     }
 
@@ -84,12 +84,12 @@ internal class SpringPropertiesProvider(private val resolvedCall: ResolvedCall<*
   PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
-    psiFactory: KtPsiFactory
+    psiFactory: KtPsiFactory,
   ): KtValueArgument = resolvedCall.addNewValueArgument(newValueArgument, psiFactory)
 
   override fun invoke(
     project: Project,
-    model: PsiCallPropertiesModel
+    model: PsiCallPropertiesModel,
   ): Collection<PsiPropertyItem> = runReadAction {
     resolvedCall.valueArguments
       .toList()
@@ -131,13 +131,13 @@ internal class SpringPropertiesProviderK2(private val callElement: KtCallElement
   PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
-    psiFactory: KtPsiFactory
+    psiFactory: KtPsiFactory,
   ): KtValueArgument = callElement.addNewValueArgument(newValueArgument, psiFactory)
 
   @OptIn(KtAllowAnalysisOnEdt::class)
   override fun invoke(
     project: Project,
-    model: PsiCallPropertiesModel
+    model: PsiCallPropertiesModel,
   ): Collection<PsiPropertyItem> = runReadAction {
     allowAnalysisOnEdt {
       analyze(callElement) {

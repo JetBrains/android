@@ -33,7 +33,7 @@ object DisableToolsVisibilityAndPositionInPreviewAction :
   ToggleAction(
     "Toggle tools visibility and position",
     "Disable or Enable 'tools:visibility' and 'tools:layout_editor_absoluteX/Y' attributes in the Layout preview.",
-    TOOLS_ATTRIBUTE_ON
+    TOOLS_ATTRIBUTE_ON,
   ) {
 
   override fun update(e: AnActionEvent) {

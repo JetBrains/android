@@ -140,7 +140,7 @@ class DeviceViewPanelWithFullInspectorTest {
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
       projectRule = projectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+      isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
@@ -287,11 +287,7 @@ class DeviceViewPanelWithFullInspectorTest {
       latch.await(5, TimeUnit.HOURS)
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
-    val panel =
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable,
-      )
+    val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
 
     val loadingPane = panel.flatten(false).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
@@ -348,19 +344,19 @@ class DeviceViewPanelWithFullInspectorTest {
         children[1],
         enabled = true,
         ICON_LEGACY_PHONE,
-        "Google Legacy Model (Live inspection disabled for API < 29)"
+        "Google Legacy Model (Live inspection disabled for API < 29)",
       )
       checkDeviceAction(
         children[2],
         enabled = false,
         ICON_PHONE,
-        "Google Older Legacy Model (Unsupported for API < 23)"
+        "Google Older Legacy Model (Unsupported for API < 23)",
       )
       checkDeviceAction(
         children[3],
         enabled = true,
         StudioIcons.Shell.Toolbar.STOP,
-        "Stop Inspector"
+        "Stop Inspector",
       )
     } else if (dropDownAction is SelectDeviceAction) {
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -372,25 +368,25 @@ class DeviceViewPanelWithFullInspectorTest {
         children[0],
         enabled = true,
         ICON_LEGACY_PHONE,
-        "Google Legacy Model (Live inspection disabled for API < 29)"
+        "Google Legacy Model (Live inspection disabled for API < 29)",
       )
       checkDeviceAction(
         children[1],
         enabled = true,
         ICON_PHONE,
-        "Google Modern Model ${LayoutInspectorBundle.message("cant.detect.foreground.process")}"
+        "Google Modern Model ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
       )
       checkDeviceAction(
         children[2],
         enabled = false,
         ICON_PHONE,
-        "Google Older Legacy Model (Unsupported for API < 23)"
+        "Google Older Legacy Model (Unsupported for API < 23)",
       )
       checkDeviceAction(
         children[3],
         enabled = true,
         StudioIcons.Shell.Toolbar.STOP,
-        "Stop Inspector"
+        "Stop Inspector",
       )
     }
   }
@@ -428,7 +424,7 @@ class DeviceViewPanelWithFullInspectorTest {
         <v3/>
       </v1>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val model = inspectorRule.inspectorModel
@@ -439,7 +435,7 @@ class DeviceViewPanelWithFullInspectorTest {
       MODERN_PROCESS,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
-      screenSize = Dimension(600, 800)
+      screenSize = Dimension(600, 800),
     )
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
@@ -523,11 +519,11 @@ class DeviceViewPanelTest {
       .registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(
       AdtUiCursorType.GRAB,
-      Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
+      Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR),
     )
     replaceAdtUiCursorWithPredefinedCursor(
       AdtUiCursorType.GRABBING,
-      Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+      Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR),
     )
   }
 
@@ -545,7 +541,7 @@ class DeviceViewPanelTest {
         mock(),
         coroutineScope,
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -560,7 +556,7 @@ class DeviceViewPanelTest {
         model,
         NotificationModel(projectRule.project),
         treeSettings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(inspector, disposableRule.disposable)
@@ -602,7 +598,7 @@ class DeviceViewPanelTest {
         notificationModel,
         coroutineScope,
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -617,7 +613,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(inspector, disposableRule.disposable)
@@ -650,7 +646,7 @@ class DeviceViewPanelTest {
         notificationModel,
         coroutineScope,
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -665,7 +661,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(inspector, disposableRule.disposable)
@@ -699,7 +695,7 @@ class DeviceViewPanelTest {
         notificationModel,
         coroutineScope,
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -714,7 +710,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
     val panel =
@@ -764,7 +760,7 @@ class DeviceViewPanelTest {
         model,
         notificationModel,
         treeSettings,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
     val panel =
@@ -812,7 +808,7 @@ class DeviceViewPanelTest {
     testPan(
       { ui, _ -> ui.keyboard.press(VK_SPACE) },
       { ui, _ -> ui.keyboard.release(VK_SPACE) },
-      fromSnapshot = true
+      fromSnapshot = true,
     )
   }
 
@@ -821,7 +817,7 @@ class DeviceViewPanelTest {
     testPan(
       { _, panel -> panel.isPanning = true },
       { _, panel -> panel.isPanning = false },
-      fromSnapshot = true
+      fromSnapshot = true,
     )
   }
 
@@ -834,7 +830,7 @@ class DeviceViewPanelTest {
     startPan: (FakeUi, DeviceViewPanel) -> Unit,
     endPan: (FakeUi, DeviceViewPanel) -> Unit,
     panButton: Button = Button.LEFT,
-    fromSnapshot: Boolean = false
+    fromSnapshot: Boolean = false,
   ) {
     val model =
       model(disposableRule.disposable) {
@@ -865,7 +861,7 @@ class DeviceViewPanelTest {
           client,
           model,
           notificationModel,
-          treeSettings
+          treeSettings,
         )
     } else {
       val fakeProcess = createFakeStream().createFakeProcess()
@@ -888,14 +884,10 @@ class DeviceViewPanelTest {
           model,
           notificationModel,
           treeSettings,
-          MoreExecutors.directExecutor()
+          MoreExecutors.directExecutor(),
         )
     }
-    val panel =
-      DeviceViewPanel(
-        inspector,
-        disposableRule.disposable,
-      )
+    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
 
     val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = panel.flatten(false).filterIsInstance<JViewport>().first()
@@ -1131,7 +1123,7 @@ class DeviceViewPanelWithNoClientsTest {
           }
         ),
       projectRule = projectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+      isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
   @get:Rule
@@ -1147,11 +1139,7 @@ class DeviceViewPanelWithNoClientsTest {
   fun testLoadingPane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val panel =
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable,
-      )
+    val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
     val loadingPane = panel.flatten(false).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
@@ -1173,11 +1161,7 @@ class DeviceViewPanelWithNoClientsTest {
   fun testNotDebuggablePane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val panel =
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable,
-      )
+    val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
 
     val deviceViewContentPanel =
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
@@ -1224,7 +1208,7 @@ private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0):
     FakeTransportService.FAKE_PROCESS.toBuilder()
       .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
       .setPid(pid)
-      .build()
+      .build(),
   )
 }
 

@@ -29,7 +29,7 @@ enum class InsightsTestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
   SIMPLE_APP("simpleApp"),
   ;

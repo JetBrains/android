@@ -89,7 +89,7 @@ class SkiaParserTest {
     val requestedNodes =
       mapOf(
         1L to LayoutInspectorUtils.makeRequestedNodeInfo(1, 0, 0, 10, 20)!!,
-        4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!
+        4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!,
       )
     val root = LayoutInspectorUtils.buildTree(tree, mapOf(), { false }, requestedNodes)!!
 
@@ -101,7 +101,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg1.png"),
       child1.image as BufferedImage,
-      0.0
+      0.0,
     )
 
     val child2 = root.children[1]
@@ -109,7 +109,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg2.png"),
       child2.image as BufferedImage,
-      0.0
+      0.0,
     )
 
     val child3 = root.children[2]
@@ -117,7 +117,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg3.png"),
       child3.image as BufferedImage,
-      0.0
+      0.0,
     )
   }
 }
@@ -137,7 +137,7 @@ class SkiaParserWithSdkTest {
         .getViewTree(
           "skiapict".toByteArray().plus(byteArrayOf(127, 1, 2, 3, 4, 5)),
           emptyList(),
-          1.0
+          1.0,
         )
       fail()
     } catch (expected: UnsupportedPictureVersionException) {}
@@ -252,7 +252,7 @@ class SkiaParserIntegrationTest {
 
   private fun assertImagesCorrectInternal(
     node: InspectorView,
-    remainingImages: MutableMap<Int, ByteString>
+    remainingImages: MutableMap<Int, ByteString>,
   ) {
     if (node.imageId != 0) {
       assertTrue(node.image?.isEmpty != false)

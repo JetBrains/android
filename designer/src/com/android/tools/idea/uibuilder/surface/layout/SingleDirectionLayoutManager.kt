@@ -37,7 +37,7 @@ open class SingleDirectionLayoutManager(
   @SwingCoordinate private val verticalPadding: Int,
   @SwingCoordinate private val horizontalViewDelta: Int,
   @SwingCoordinate private val verticalViewDelta: Int,
-  private val startBorderAlignment: Alignment = Alignment.CENTER
+  private val startBorderAlignment: Alignment = Alignment.CENTER,
 ) : SurfaceLayoutManager {
 
   /**
@@ -57,14 +57,14 @@ open class SingleDirectionLayoutManager(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
+    @SwingCoordinate dimension: Dimension?,
   ): Dimension {
     return getSize(
       content,
       PositionableContent::scaledContentSize,
       availableWidth,
       availableHeight,
-      dimension
+      dimension,
     )
   }
 
@@ -73,7 +73,7 @@ open class SingleDirectionLayoutManager(
     sizeFunc: PositionableContent.() -> Dimension,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
+    @SwingCoordinate dimension: Dimension?,
   ): Dimension {
     val dim = dimension ?: Dimension()
     val vertical = isVertical(content, availableWidth, availableHeight)
@@ -99,7 +99,7 @@ open class SingleDirectionLayoutManager(
   protected open fun isVertical(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Boolean {
     if (content.isEmpty()) {
       return false
@@ -114,7 +114,7 @@ open class SingleDirectionLayoutManager(
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.isEmpty()) {
       // No content. Use 100% as zoom level
@@ -152,7 +152,7 @@ open class SingleDirectionLayoutManager(
         getSize(content, PositionableContent::contentSize, availableWidth, availableHeight, null)
       return minOf(
         availableWidth.toDouble() / preferredSize.width,
-        availableHeight.toDouble() / preferredSize.height
+        availableHeight.toDouble() / preferredSize.height,
       )
     }
 
@@ -169,7 +169,7 @@ open class SingleDirectionLayoutManager(
 
     return minOf(
       reducedAvailableWidth.toDouble() / listWidth,
-      reducedAvailableHeight.toDouble() / listHeight
+      reducedAvailableHeight.toDouble() / listHeight,
     )
   }
 
@@ -177,7 +177,7 @@ open class SingleDirectionLayoutManager(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
       return emptyMap()
@@ -213,7 +213,7 @@ open class SingleDirectionLayoutManager(
               Alignment.START -> startX
               Alignment.END -> availableWidth - sceneView.scaledContentSize.width
               Alignment.CENTER -> (availableWidth - sceneView.scaledContentSize.width) / 2
-            }
+            },
           )
         positionMap[sceneView] = Point(xPosition, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
@@ -232,7 +232,7 @@ open class SingleDirectionLayoutManager(
               Alignment.CENTER ->
                 availableHeight / 2 -
                   (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2
-            }
+            },
           )
         positionMap[sceneView] = Point(nextX, yPosition)
         nextX += sceneView.scaledContentSize.width + horizontalViewDelta

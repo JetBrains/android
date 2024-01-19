@@ -64,7 +64,7 @@ class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
   private val project: Project,
   clock: Clock,
-  tracker: AppInsightsTracker
+  tracker: AppInsightsTracker,
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
 
@@ -116,7 +116,7 @@ class VitalsTab(
         VitalsConnectionSelectorAction(
           connections as StateFlow<Selection<VitalsConnection>>,
           scope,
-          projectController::selectConnection
+          projectController::selectConnection,
         )
       )
       addSeparator()
@@ -127,7 +127,7 @@ class VitalsTab(
             null,
             StudioIcons.AppQualityInsights.FATAL,
             crashToggle,
-            scope
+            scope,
           ) {
             projectController.toggleFailureType(FailureType.FATAL)
           }
@@ -138,7 +138,7 @@ class VitalsTab(
             null,
             StudioIcons.AppQualityInsights.ANR,
             anrToggle,
-            scope
+            scope,
           ) {
             projectController.toggleFailureType(FailureType.ANR)
           }
@@ -151,7 +151,7 @@ class VitalsTab(
           null,
           intervals,
           null,
-          projectController::selectTimeInterval
+          projectController::selectTimeInterval,
         )
       )
       add(
@@ -161,7 +161,7 @@ class VitalsTab(
           null,
           visibilityTypes,
           null,
-          projectController::selectVisibilityType
+          projectController::selectVisibilityType,
         )
       )
       add(
@@ -178,7 +178,7 @@ class VitalsTab(
               text = "Play Tracks"
               horizontalAlignment = SwingConstants.LEFT
             }
-          }
+          },
         )
       )
       add(
@@ -195,7 +195,7 @@ class VitalsTab(
               text = "Device Types"
               horizontalAlignment = SwingConstants.LEFT
             }
-          }
+          },
         )
       )
       add(
@@ -205,7 +205,7 @@ class VitalsTab(
           scope = scope,
           groupNameSupplier = { it.displayName },
           nameSupplier = { it.displayName },
-          onSelected = projectController::selectOperatingSystems
+          onSelected = projectController::selectOperatingSystems,
         )
       )
       addSeparator()

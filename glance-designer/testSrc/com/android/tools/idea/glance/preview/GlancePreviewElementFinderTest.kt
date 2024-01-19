@@ -48,7 +48,7 @@ class GlancePreviewElementFinderTest {
 
         annotation class Preview(surface: String)
         """
-        .trimIndent()
+        .trimIndent(),
     )
     sourceFileBoth =
       fixture.addFileToProjectAndInvalidate(
@@ -71,7 +71,7 @@ class GlancePreviewElementFinderTest {
 
         fun Foo4() { }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     sourceFileTiles =
@@ -86,7 +86,7 @@ class GlancePreviewElementFinderTest {
         @Preview("Tile")
         fun Foo21() { }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     sourceFileAppWidgets =
@@ -101,7 +101,7 @@ class GlancePreviewElementFinderTest {
         @Preview("AppWidget")
         fun Foo31() { }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     sourceFileNone =
@@ -115,7 +115,7 @@ class GlancePreviewElementFinderTest {
 
         fun Foo41() { }
         """
-          .trimIndent()
+          .trimIndent(),
       )
   }
 
@@ -139,12 +139,12 @@ class GlancePreviewElementFinderTest {
         listOf("com.android.test.SourceFileBothKt.Foo1", "com.android.test.SourceFileBothKt.Foo3"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
           it.methodFqn
-        }
+        },
       )
       Assert.assertEquals(
         listOf("com.android.test.SourceFileWidgetKt.Foo31"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
-          .map { it.methodFqn }
+          .map { it.methodFqn },
       )
     }
   }
@@ -169,13 +169,13 @@ class GlancePreviewElementFinderTest {
         listOf("com.android.test.SourceFileBothKt.Foo2", "com.android.test.SourceFileBothKt.Foo3"),
         TilePreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
           it.methodFqn
-        }
+        },
       )
       Assert.assertEquals(
         listOf("com.android.test.SourceFileTileKt.Foo21"),
         TilePreviewElementFinder.findPreviewElements(project, sourceFileTiles.virtualFile).map {
           it.methodFqn
-        }
+        },
       )
     }
   }

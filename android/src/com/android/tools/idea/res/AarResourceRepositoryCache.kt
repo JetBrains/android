@@ -69,7 +69,7 @@ open class AarResourceRepositoryCache protected constructor() {
         resFolder.root,
         resFolder.resources,
         library.libraryName(),
-        createCachingData(library)
+        createCachingData(library),
       )
     }
   }
@@ -157,7 +157,7 @@ open class AarResourceRepositoryCache protected constructor() {
     private fun <K, T : AarResourceRepository> getRepository(
       key: K,
       cache: Cache<K, T>,
-      factory: () -> T
+      factory: () -> T,
     ): T {
       return cache.getAndUnwrap(key) { factory() }
     }

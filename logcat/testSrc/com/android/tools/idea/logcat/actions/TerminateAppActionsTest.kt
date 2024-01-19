@@ -314,7 +314,7 @@ class TerminateAppActionsTest {
         device.model,
         device.release,
         device.sdk.toString(),
-        USB
+        USB,
       )
     adbSession.connectedDevicesTracker.connectedDevices.waitFor {
       it.serialNumber == device.serialNumber

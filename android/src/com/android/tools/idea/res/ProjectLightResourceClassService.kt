@@ -60,10 +60,7 @@ import java.io.IOException
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.facet.AndroidFacet
 
-private data class ResourceClasses(
-  val namespaced: PsiClass?,
-  val nonNamespaced: PsiClass?,
-) {
+private data class ResourceClasses(val namespaced: PsiClass?, val nonNamespaced: PsiClass?) {
   companion object {
     val Empty = ResourceClasses(null, null)
   }
@@ -113,7 +110,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
           moduleClassesCache.invalidateAll()
           invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
         }
-      }
+      },
     )
 
     connection.subscribe(
@@ -131,7 +128,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
             invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
           }
         }
-      }
+      },
     )
 
     aarsByPackage =
@@ -144,10 +141,10 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
             ) // remove old items that are not needed anymore
             CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
               Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
-              ProjectRootManager.getInstance(project)
+              ProjectRootManager.getInstance(project),
             )
           },
-          false
+          false,
         )
 
     // Light classes for AARs store a reference to the Library in UserData. These Library instances
@@ -288,7 +285,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
   private fun getAarRClasses(
     aarLibrary: ExternalAndroidLibrary,
-    packageName: String = getAarPackageName(aarLibrary)
+    packageName: String = getAarPackageName(aarLibrary),
   ): ResourceClasses {
     val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
 
@@ -310,7 +307,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
                 packageName,
                 AarResourceRepositoryCache.instance.getProtoRepository(aarLibrary),
                 ResourceNamespace.fromPackageName(packageName),
-                aarLibrary.address
+                aarLibrary.address,
               )
             },
         nonNamespaced =
@@ -323,9 +320,9 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
                 ideaLibrary,
                 packageName,
                 symbolFile,
-                aarLibrary.address
+                aarLibrary.address,
               )
-            }
+            },
       )
     }
   }

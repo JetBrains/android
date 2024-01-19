@@ -41,7 +41,7 @@ class SelectedTargetStateServiceTest {
   internal fun arbitraryDropdownSelection() =
     DropdownSelection(
       target = TargetId(arbitraryDeviceId(), null, DefaultBoot),
-      timestamp = Clock.System.now()
+      timestamp = Clock.System.now(),
     )
 
   private fun arbitraryDeviceId() = DeviceId("Test", false, "device${nextCounter()}")
@@ -61,7 +61,7 @@ class SelectedTargetStateServiceTest {
     val existingConfigState =
       SelectionState(
         runConfigName = "existing config",
-        dropdownSelection = arbitraryDropdownSelection()
+        dropdownSelection = arbitraryDropdownSelection(),
       )
     val persistedRunConfigState =
       SelectionStateList().apply {

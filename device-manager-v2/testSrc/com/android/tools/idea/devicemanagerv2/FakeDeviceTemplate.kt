@@ -25,9 +25,7 @@ import icons.StudioIcons
 import java.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 
-internal class FakeDeviceTemplate(
-  override val properties: DeviceProperties,
-) : DeviceTemplate {
+internal class FakeDeviceTemplate(override val properties: DeviceProperties) : DeviceTemplate {
   constructor(
     name: String
   ) : this(

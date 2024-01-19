@@ -43,7 +43,7 @@ class RootPanelTest {
   private val layoutInspectorRule =
     LayoutInspectorRule(
       listOf(appInspectorRule.createInspectorClientProvider()),
-      androidProjectRule
+      androidProjectRule,
     )
 
   @get:Rule
@@ -76,14 +76,14 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
     assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      true
+      true,
     )
     assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
 
@@ -94,7 +94,7 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
     assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
   }
@@ -141,7 +141,7 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
     assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
 
@@ -202,7 +202,7 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
 
     assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.SHOW_TREE)

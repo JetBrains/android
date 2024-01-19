@@ -84,7 +84,7 @@ constructor(
     project.service<DeviceProvisionerService>().deviceProvisioner.templates,
     Clock.System,
     adbFlow(),
-    launchCompatibilityCheckerFlow(project)
+    launchCompatibilityCheckerFlow(project),
   )
 
   companion object {
@@ -102,7 +102,7 @@ constructor(
 
   private fun deviceHandleFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
-    launchCompatibilityChecker: LaunchCompatibilityChecker
+    launchCompatibilityChecker: LaunchCompatibilityChecker,
   ): Flow<List<DeploymentTargetDevice>> = channelFlow {
     val handles = ConcurrentHashMap<DeviceHandle, DeploymentTargetDevice>()
     // Immediately send empty list, since if the actual list is empty, there will be no Add,
@@ -128,7 +128,7 @@ constructor(
                   DeploymentTargetDevice.create(
                     DeviceHandleAndroidDevice(ddmlibDeviceLookup, handle, state),
                     connectionTime,
-                    launchCompatibilityChecker
+                    launchCompatibilityChecker,
                   )
                 send(handles.values.toList())
               }
@@ -145,7 +145,7 @@ constructor(
 
   private fun deviceTemplateFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
-    launchCompatibilityChecker: LaunchCompatibilityChecker
+    launchCompatibilityChecker: LaunchCompatibilityChecker,
   ): Flow<List<DeploymentTargetDevice>> = flow {
     val templateDevices = mutableMapOf<DeviceTemplate, DeploymentTargetDevice>()
     templatesFlow.collect { templates ->
@@ -156,7 +156,7 @@ constructor(
             DeploymentTargetDevice.create(
               DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
               null,
-              launchCompatibilityChecker
+              launchCompatibilityChecker,
             )
         }
       }

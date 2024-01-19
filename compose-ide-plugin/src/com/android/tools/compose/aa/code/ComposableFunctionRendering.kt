@@ -54,7 +54,7 @@ internal fun KtAnalysisSession.getComposableFunctionRenderParts(
 
 private fun KtAnalysisSession.renderValueParameters(
   valueParamsInParen: List<KtValueParameterSymbol>,
-  closingString: String
+  closingString: String,
 ) = buildString {
   append("(")
   valueParamsInParen.joinTo(buffer = this) {

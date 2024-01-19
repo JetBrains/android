@@ -130,7 +130,7 @@ private val MODERN_PROCESS =
 private val OTHER_MODERN_PROCESS =
   MODERN_DEVICE.createProcess(
     name = "com.other",
-    streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId
+    streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId,
   )
 
 /** Timeout used in this test. While debugging, you may want to extend the timeout */
@@ -155,7 +155,7 @@ class AppInspectionInspectorClientTest {
         apiServicesProvider = {
           if (shouldFailDuringAttach) failingApiServices
           else inspectionRule.inspectionService.apiServices
-        }
+        },
       )
     )
 
@@ -218,7 +218,7 @@ class AppInspectionInspectorClientTest {
     failingApiServices.exception =
       CancellationException(
         "",
-        cause = CancellationException("", cause = AppInspectionCrashException(""))
+        cause = CancellationException("", cause = AppInspectionCrashException("")),
       )
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -371,7 +371,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
       TIMEOUT,
-      TIMEOUT_UNIT
+      TIMEOUT_UNIT,
     ) // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
     assertThat(inspectorRule.inspectorClient.capabilities)
@@ -494,7 +494,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
       TIMEOUT,
-      TIMEOUT_UNIT
+      TIMEOUT_UNIT,
     ) // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
     assertThat(inspectorRule.inspectorClient.capabilities)
@@ -531,7 +531,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
       TIMEOUT,
-      TIMEOUT_UNIT
+      TIMEOUT_UNIT,
     ) // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
 
@@ -602,7 +602,7 @@ class AppInspectionInspectorClientTest {
       inspectorRule.attachDevice(MODERN_PROCESS.device)
       inspectorRule.adbRule.bridge.executeShellCommand(
         MODERN_PROCESS.device,
-        "settings put global debug_view_attributes_application_package com.example.another-app"
+        "settings put global debug_view_attributes_application_package com.example.another-app",
       )
 
       assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage)
@@ -622,7 +622,7 @@ class AppInspectionInspectorClientTest {
       inspectorRule.attachDevice(MODERN_PROCESS.device)
       inspectorRule.adbRule.bridge.executeShellCommand(
         MODERN_PROCESS.device,
-        "settings put global debug_view_attributes_application_package ${MODERN_PROCESS.name}"
+        "settings put global debug_view_attributes_application_package ${MODERN_PROCESS.name}",
       )
 
       assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage)
@@ -731,7 +731,7 @@ class AppInspectionInspectorClientTest {
       .isEqualTo(
         LayoutInspectorBundle.message(
           INCOMPATIBLE_LIBRARY_MESSAGE_KEY,
-          "androidx.compose.ui:ui:1.0.0-beta02"
+          "androidx.compose.ui:ui:1.0.0-beta02",
         )
       )
   }
@@ -1239,7 +1239,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       sdkRoot,
       GOOGLE_APIS_TAG,
       MIN_API_29_GOOGLE_APIS_SYSIMG_REV,
-      true
+      true,
     )
     checkBannerForTag(processDescriptor, sdkRoot, PLAY_STORE_TAG, 999, false)
 
@@ -1271,11 +1271,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
             parentDisposable = projectRule.testRootDisposable,
             apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler
+            sdkHandler = sdkHandler,
           )
         // shouldn't get an exception
         client.connect(inspectorRule.project)
-      }
+      },
     )
   }
 
@@ -1284,7 +1284,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     sdkRoot: Path,
     tag: IdDisplay?,
     minRevision: Int,
-    checkUpdate: Boolean
+    checkUpdate: Boolean,
   ) {
     // Set up an AOSP api 29 device below the required system image revision, with no update
     // available
@@ -1313,7 +1313,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
             parentDisposable = projectRule.testRootDisposable,
             apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler
+            sdkHandler = sdkHandler,
           )
         client.connect(inspectorRule.project)
         waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
@@ -1322,7 +1322,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         val notification1 = notificationModel.notifications.single()
         assertThat(notification1.message)
           .isEqualTo(LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY))
-      }
+      },
     )
     notificationModel.clear()
 
@@ -1349,7 +1349,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
             parentDisposable = projectRule.testRootDisposable,
             apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler
+            sdkHandler = sdkHandler,
           )
         client.connect(inspectorRule.project)
         waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
@@ -1360,21 +1360,21 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
           )
         notificationModel.clear()
-      }
+      },
     )
   }
 
   private suspend fun setUpAvdManagerAndRun(
     sdkHandler: AndroidSdkHandler,
     avdInfo: AvdInfo,
-    body: suspend () -> Unit
+    body: suspend () -> Unit,
   ) {
     val connection =
       object :
         AvdManagerConnection(
           sdkHandler,
           sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
-          MoreExecutors.newDirectExecutorService()
+          MoreExecutors.newDirectExecutorService(),
         ) {
         fun setFactory() {
           setConnectionFactory { _, _ -> this }
@@ -1407,7 +1407,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       Paths.get("myIni"),
       Paths.get("/android/avds/myAvd-$apiLevel"),
       systemImage,
-      properties
+      properties,
     )
   }
 
@@ -1416,7 +1416,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     revision: Int,
     apiLevel: Int,
     tag: IdDisplay?,
-    isRemote: Boolean
+    isRemote: Boolean,
   ): FakePackage {
     val sdkPackage =
       if (isRemote) FakePackage.FakeRemotePackage("mySysImg-$apiLevel")
@@ -1461,7 +1461,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,
       "myAvd-$apiLevel",
-      "/android/avds/myAvd-$apiLevel"
+      "/android/avds/myAvd-$apiLevel",
     )
 
     return processDescriptor
@@ -1482,7 +1482,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
           notificationModel,
           ListenerCollection.createWithDirectExecutor(),
           client.stats,
-          client.coroutineScope
+          client.coroutineScope,
         )
       )
       .also {
@@ -1504,7 +1504,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val inspectorRule =
     LayoutInspectorRule(
       listOf(inspectionRule.createInspectorClientProvider(getMonitor, { inspectorClientSettings })),
-      projectRule
+      projectRule,
     ) {
       it.name == MODERN_PROCESS.name
     }
@@ -1542,7 +1542,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
         DynamicLayoutInspectorEventType.ATTACH_REQUEST,
         DynamicLayoutInspectorEventType.ATTACH_SUCCESS,
         DynamicLayoutInspectorEventType.ATTACH_ERROR,
-        DynamicLayoutInspectorEventType.SESSION_DATA
+        DynamicLayoutInspectorEventType.SESSION_DATA,
       )
       .inOrder()
   }
@@ -1566,7 +1566,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
       .containsExactly(
         DynamicLayoutInspectorEventType.ATTACH_REQUEST,
         DynamicLayoutInspectorEventType.ATTACH_ERROR,
-        DynamicLayoutInspectorEventType.SESSION_DATA
+        DynamicLayoutInspectorEventType.SESSION_DATA,
       )
       .inOrder()
   }
@@ -1589,7 +1589,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
       TIMEOUT,
-      TIMEOUT_UNIT
+      TIMEOUT_UNIT,
     ) // If here, we already successfully connected (and sent an initial command)
 
     val usages =
@@ -1606,55 +1606,55 @@ class AppInspectionInspectorClientWithFailingClientTest {
   fun testErrorsFromAppInspection() {
     checkException(
       AppInspectionCannotFindAdbDeviceException("expected"),
-      AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE
+      AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE,
     )
     checkException(
       AppInspectionProcessNoLongerExistsException("expected"),
-      AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS
+      AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS,
     )
     checkException(
       AppInspectionVersionIncompatibleException("expected"),
-      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION,
     )
     checkException(
       AppInspectionLibraryMissingException("expected"),
-      AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
+      AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY,
     )
     checkException(
       AppInspectionAppProguardedException("expected"),
-      AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      AttachErrorCode.APP_INSPECTION_PROGUARDED_APP,
     )
     checkException(
       AppInspectionArtifactNotFoundException(
         "expected",
-        RunningArtifactCoordinate(mockMinimumArtifactCoordinate("group", "id", "1.1.0"), "1.1.0")
+        RunningArtifactCoordinate(mockMinimumArtifactCoordinate("group", "id", "1.1.0"), "1.1.0"),
       ),
-      AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
+      AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND,
     )
     checkException(
       AppInspectionArtifactNotFoundException(
         "expected",
         RunningArtifactCoordinate(
           mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
-          "1.3.0"
-        )
+          "1.3.0",
+        ),
       ),
-      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND,
     )
     checkException(
       AppInspectionArtifactNotFoundException(
         "Artifact androidx.compose.ui:ui:1.3.0 could not be resolved on $GMAVEN_HOSTNAME.",
         RunningArtifactCoordinate(
           mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
-          "1.3.0"
+          "1.3.0",
         ),
-        UnknownHostException(GMAVEN_HOSTNAME)
+        UnknownHostException(GMAVEN_HOSTNAME),
       ),
-      AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
+      AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD,
     )
     checkException(
       object : AppInspectionServiceException("expected") {},
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
+      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR,
     )
   }
 
@@ -1674,7 +1674,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
       .containsExactly(
         DynamicLayoutInspectorEventType.ATTACH_REQUEST,
         DynamicLayoutInspectorEventType.ATTACH_ERROR,
-        DynamicLayoutInspectorEventType.SESSION_DATA
+        DynamicLayoutInspectorEventType.SESSION_DATA,
       )
       .inOrder()
     assertThat(usages[1].studioEvent.dynamicLayoutInspectorEvent.errorInfo.attachErrorCode)

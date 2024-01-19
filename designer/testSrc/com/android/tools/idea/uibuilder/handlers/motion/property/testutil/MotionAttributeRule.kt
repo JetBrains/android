@@ -55,7 +55,7 @@ const val DEFAULT_SCENE_FILE = "scene.xml"
 class MotionAttributeRule(
   private val projectRule: AndroidProjectRule,
   private val motionLayoutFilename: String = DEFAULT_LAYOUT_FILE,
-  private val motionSceneFilename: String = DEFAULT_SCENE_FILE
+  private val motionSceneFilename: String = DEFAULT_SCENE_FILE,
 ) : ExternalResource() {
   private var componentStack: ComponentStack? = null
   private var nlModel: SyncNlModel? = null
@@ -83,7 +83,7 @@ class MotionAttributeRule(
     end: String,
     keyType: String,
     framePosition: Int,
-    target: String
+    target: String,
   ) {
     select(selectionFactory!!.createKeyFrame(start, end, keyType, framePosition, target))
   }
@@ -156,7 +156,7 @@ class MotionAttributeRule(
     val layout =
       projectRule.fixture.copyFileToProject(
         motionLayoutFilename,
-        "res/layout/$motionLayoutFilename"
+        "res/layout/$motionLayoutFilename",
       )
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
     val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.fixture.projectDisposable)
@@ -190,7 +190,7 @@ class MotionAttributeRule(
           projectRule.fixture,
           "layout",
           "layout.xml",
-          ComponentDescriptorUtil.component(layout)
+          ComponentDescriptorUtil.component(layout),
         )
         .build()
     val surface = model.surface

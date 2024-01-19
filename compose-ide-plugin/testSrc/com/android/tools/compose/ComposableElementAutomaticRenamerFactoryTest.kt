@@ -56,7 +56,7 @@ class ComposableElementAutomaticRenamerFactoryTest {
       @Composable
       fun Greeting() {}
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val javaFile =
@@ -72,7 +72,7 @@ class ComposableElementAutomaticRenamerFactoryTest {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.openFileInEditor(kotlinFile.virtualFile)

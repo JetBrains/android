@@ -68,7 +68,7 @@ internal class SpringPickerLineMarkerProviderTest {
           FloatSpringSpec()
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 

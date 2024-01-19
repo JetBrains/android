@@ -33,14 +33,14 @@ import kotlin.math.max
  */
 class GroupedListSurfaceLayoutManager(
   private val padding: GroupPadding,
-  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
+  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   @SurfaceScale
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.isEmpty()) {
       // No content. Use 100% as zoom level
@@ -78,7 +78,7 @@ class GroupedListSurfaceLayoutManager(
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
     cache: Dimension,
-    depth: Int = 0
+    depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
@@ -102,7 +102,7 @@ class GroupedListSurfaceLayoutManager(
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension {
     val dim = dimension ?: Dimension()
 
@@ -136,7 +136,7 @@ class GroupedListSurfaceLayoutManager(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> {
     val verticalList = transform(content).flatMap { listOf(it.header) + it.content }.filterNotNull()
     if (verticalList.isEmpty()) {
@@ -164,7 +164,7 @@ class GroupedListSurfaceLayoutManager(
       positionMap.setContentPosition(
         view,
         framePadding + padding.canvasLeftPadding,
-        nextY + framePadding
+        nextY + framePadding,
       )
       nextY += heightMap[view]!!
     }
@@ -175,7 +175,7 @@ class GroupedListSurfaceLayoutManager(
   private fun MutableMap<PositionableContent, Point>.setContentPosition(
     content: PositionableContent,
     x: Int,
-    y: Int
+    y: Int,
   ) {
     // The new compose layout consider the toolbar size as the anchor of location.
     val margin = content.margin

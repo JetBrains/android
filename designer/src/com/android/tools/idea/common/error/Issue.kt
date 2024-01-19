@@ -167,7 +167,7 @@ abstract class Issue {
   data class Fix(
     override val buttonText: String = "Fix",
     override val description: String,
-    override val action: Runnable
+    override val action: Runnable,
   ) : QuickFixable {
     override val icon = AllIcons.Actions.RealIntentionBulb
   }
@@ -176,7 +176,7 @@ abstract class Issue {
   data class Suppress(
     override val buttonText: String,
     override val description: String,
-    override val action: Runnable
+    override val action: Runnable,
   ) : QuickFixable {
     override val icon = AllIcons.Actions.Cancel
   }

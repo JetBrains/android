@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.NotificationTrampolineDetector
 class AndroidLintLaunchActivityFromNotificationInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.launch.activity.from.notification"),
-    NotificationTrampolineDetector.ACTIVITY
+    NotificationTrampolineDetector.ACTIVITY,
   )

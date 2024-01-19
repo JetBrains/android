@@ -29,19 +29,19 @@ private class ForcedDirectoryLayoutManager(
   @SwingCoordinate private val horizontalViewDelta: Int,
   @SwingCoordinate private val verticalViewDelta: Int,
   startBorderAlignment: Alignment,
-  private val forceVertical: Boolean
+  private val forceVertical: Boolean,
 ) :
   SingleDirectionLayoutManager(
     horizontalPadding,
     verticalPadding,
     horizontalViewDelta,
     verticalViewDelta,
-    startBorderAlignment
+    startBorderAlignment,
   ) {
   override fun isVertical(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Boolean = forceVertical
 }
 
@@ -158,7 +158,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -196,7 +196,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -238,7 +238,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -280,7 +280,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -343,7 +343,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val sceneViews =
       listOf(
         TestPositionableContent(width = 50, height = 200),
-        TestPositionableContent(width = 100, height = 150)
+        TestPositionableContent(width = 100, height = 150),
       )
 
     val maxWidth = sceneViews.map { it.width }.maxOrNull()!!
@@ -357,7 +357,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          true
+          true,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minX, sceneViews[0].x)
@@ -372,7 +372,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          true
+          true,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableWidth / 2) - (sceneViews[0].width / 2), sceneViews[0].x)
@@ -387,7 +387,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          true
+          true,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableWidth - sceneViews[0].width, sceneViews[0].x)
@@ -405,7 +405,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val sceneViews =
       listOf(
         TestPositionableContent(width = 50, height = 200),
-        TestPositionableContent(width = 100, height = 150)
+        TestPositionableContent(width = 100, height = 150),
       )
 
     val maxHeight = sceneViews.map { it.height }.maxOrNull()!!
@@ -419,7 +419,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          false
+          false,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minY, sceneViews[0].y)
@@ -434,7 +434,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          false
+          false,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableHeight / 2) - (sceneViews[0].height / 2), sceneViews[0].y)
@@ -449,7 +449,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
           screenDeltaX,
           screenDeltaY,
           alignment,
-          false
+          false,
         )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableHeight - sceneViews[0].height, sceneViews[0].y)

@@ -30,7 +30,7 @@ fun preload(
   classLoader: ClassLoader,
   isActive: () -> Boolean,
   classesToPreload: Collection<String>,
-  executor: Executor = MoreExecutors.directExecutor()
+  executor: Executor = MoreExecutors.directExecutor(),
 ) {
   val classLoaderRef = WeakReference(classLoader)
 

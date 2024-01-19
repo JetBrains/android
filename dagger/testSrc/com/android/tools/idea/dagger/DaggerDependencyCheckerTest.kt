@@ -63,7 +63,7 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
 
   private fun newModule(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    contentRoot: String
+    contentRoot: String,
   ): ModuleFixture {
     val firstProjectBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder::class.java)
     val tempDirPath = myFixture.tempDirPath
@@ -86,7 +86,7 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
 
       public class MyClass {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isFalse()
@@ -100,7 +100,7 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
 
       public @interface Module {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // We are not using a Dagger module in an App module, but isDaggerPresent checks for the

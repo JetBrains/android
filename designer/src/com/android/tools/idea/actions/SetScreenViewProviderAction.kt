@@ -26,7 +26,7 @@ class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvi
   ToggleAction(
     sceneModeProvider.displayName,
     message("android.layout.screenview.action.description", sceneModeProvider.displayName),
-    null
+    null,
   ) {
   override fun isSelected(e: AnActionEvent): Boolean {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return false

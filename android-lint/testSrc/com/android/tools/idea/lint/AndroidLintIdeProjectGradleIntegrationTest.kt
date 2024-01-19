@@ -56,7 +56,7 @@ class AndroidLintIdeProjectGradleIntegrationTest {
                 getId = { it.dir },
                 getChildren = {
                   it.directLibraries.filter { dependency -> dependency.buildModule != null }
-                }
+                },
               )
             }
             .flatten() // Modules may be repeated here if a dependency is shared between roots.
@@ -78,7 +78,7 @@ class AndroidLintIdeProjectGradleIntegrationTest {
 private fun <T : Any> flattenDag(
   root: T,
   getId: (T) -> Any = { it },
-  getChildren: (T) -> List<T>
+  getChildren: (T) -> List<T>,
 ): List<T> =
   sequence {
       val seen = HashSet<Any>()

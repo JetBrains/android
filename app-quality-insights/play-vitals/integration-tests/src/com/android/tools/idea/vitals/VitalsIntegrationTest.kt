@@ -74,7 +74,7 @@ class VitalsIntegrationTest {
       install.ideaLog.waitForMatchingLine(
         "^.*Accessible Android Vitals connections:.*appId=com\\.example\\.minapp.*$",
         20,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       // Verify the issues table is displayed.

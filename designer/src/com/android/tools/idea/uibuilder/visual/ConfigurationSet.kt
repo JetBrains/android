@@ -87,7 +87,7 @@ interface ConfigurationSet {
  */
 class UserDefinedCustom(
   override val id: String,
-  val customConfigurationSet: CustomConfigurationSet
+  val customConfigurationSet: CustomConfigurationSet,
 ) : ConfigurationSet {
   override val name: String = customConfigurationSet.title
 
@@ -112,7 +112,7 @@ object ConfigurationSetProvider {
       listOf(
         ConfigurationSet.WindowSizeDevices,
         ConfigurationSet.WearDevices,
-        ConfigurationSet.ProjectLocal
+        ConfigurationSet.ProjectLocal,
       )
     val customGroup = VisualizationUtil.getUserMadeConfigurationSets()
     val predefinedGroup2 = listOf(ConfigurationSet.ColorBlindMode, ConfigurationSet.LargeFont)

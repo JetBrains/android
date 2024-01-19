@@ -109,7 +109,7 @@ sealed class PreviewMode {
     val baseElement: PreviewElement,
     override val layoutOption: SurfaceLayoutManagerOption = GRID_LAYOUT_MANAGER_OPTIONS,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
-    val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
+    val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get(),
   ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 

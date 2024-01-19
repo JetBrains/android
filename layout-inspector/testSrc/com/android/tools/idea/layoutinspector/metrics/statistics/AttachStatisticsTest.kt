@@ -37,7 +37,7 @@ class AttachStatisticsTest {
         multipleProjectsOpen = { false },
         isAutoConnectEnabled = { false },
         isEmbeddedLayoutInspector = { false },
-        clock = mutableClock
+        clock = mutableClock,
       )
     attachStatistics.start()
 
@@ -62,7 +62,7 @@ class AttachStatisticsTest {
         multipleProjectsOpen = { false },
         isAutoConnectEnabled = { false },
         isEmbeddedLayoutInspector = { false },
-        clock = mutableClock
+        clock = mutableClock,
       )
     attachStatistics.start()
 
@@ -89,7 +89,7 @@ class AttachStatisticsTest {
         multipleProjectsOpen = { false },
         isAutoConnectEnabled = { false },
         isEmbeddedLayoutInspector = { false },
-        clock = mutableClock
+        clock = mutableClock,
       )
     attachStatistics.start()
 

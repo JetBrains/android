@@ -104,7 +104,7 @@ class JobEntryTest {
       assertThat(callstacks)
         .containsExactly(
           BackgroundTaskCallStack(1, "SCHEDULED"),
-          BackgroundTaskCallStack(3, "FINISHED")
+          BackgroundTaskCallStack(3, "FINISHED"),
         )
       assertThat(retries).isEqualTo(0)
     }
@@ -251,7 +251,7 @@ class JobEntryTest {
 private fun JobEntry.consumeAndAssertJob(
   event: BackgroundTaskInspectorProtocol.BackgroundTaskEvent,
   timestamp: Long = 123,
-  assertion: JobEntry.() -> Unit = {}
+  assertion: JobEntry.() -> Unit = {},
 ) {
   consumeAndAssert(event, timestamp) {
     assertThat(latestEvent!!.backgroundTaskEvent).isEqualTo(event)

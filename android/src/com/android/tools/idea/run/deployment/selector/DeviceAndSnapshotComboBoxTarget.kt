@@ -25,14 +25,14 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 internal class DeviceAndSnapshotComboBoxTarget(
-  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service
 ) : DeployTarget {
   override fun hasCustomRunProfileState(executor: Executor) = false
 
   override fun getRunProfileState(
     executor: Executor,
     environment: ExecutionEnvironment,
-    state: DeployTargetState
+    state: DeployTargetState,
   ): RunProfileState {
     throw UnsupportedOperationException()
   }

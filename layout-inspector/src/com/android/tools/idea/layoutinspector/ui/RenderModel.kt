@@ -43,7 +43,7 @@ data class ViewDrawInfo(
   val transform: AffineTransform,
   val node: DrawViewNode,
   val hitLevel: Int,
-  val isCollapsed: Boolean
+  val isCollapsed: Boolean,
 )
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
@@ -53,7 +53,7 @@ class RenderModel(
   val model: InspectorModel,
   val notificationModel: NotificationModel,
   val treeSettings: TreeSettings,
-  private val currentClientProvider: () -> InspectorClient
+  private val currentClientProvider: () -> InspectorClient,
 ) {
   /**
    * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode],
@@ -242,7 +242,7 @@ class RenderModel(
   private fun ViewNode.ReadAccess.buildLevelLists(
     nodes: Sequence<DrawViewNode>,
     levelListCollector: MutableList<MutableList<LevelListItem>>,
-    minLevel: Int
+    minLevel: Int,
   ) {
 
     if (nodes.none()) {
@@ -336,7 +336,7 @@ class RenderModel(
         buildLevelLists(
           sibling.children(this),
           levelListCollector,
-          if (hidden) minLevel else newLevelIndex
+          if (hidden) minLevel else newLevelIndex,
         )
       }
     }
@@ -375,7 +375,7 @@ class RenderModel(
       other.x.toDouble(),
       other.y.toDouble(),
       other.width.toDouble(),
-      other.height.toDouble()
+      other.height.toDouble(),
     )
 
   private fun rebuildRectsForLevel(
@@ -383,7 +383,7 @@ class RenderModel(
     magnitude: Double,
     angle: Double,
     allLevels: List<List<LevelListItem>>,
-    newHitRects: MutableList<ViewDrawInfo>
+    newHitRects: MutableList<ViewDrawInfo>,
   ) {
     val ownerToLevel = mutableMapOf<ViewNode?, Int>()
 

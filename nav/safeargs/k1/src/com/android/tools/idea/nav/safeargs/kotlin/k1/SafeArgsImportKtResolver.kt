@@ -124,7 +124,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
                 value,
                 index,
                 isSelected,
-                cellHasFocus
+                cellHasFocus,
               )
               add(baseRenderer.nextStepLabel, BorderLayout.EAST)
               add(
@@ -133,7 +133,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
                   value.declarationToImport(project),
                   index,
                   isSelected,
-                  cellHasFocus
+                  cellHasFocus,
                 )
               )
             }
@@ -205,12 +205,12 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
   private fun getVariantSelectionPopup(
     project: Project,
     file: KtFile,
-    suggestions: List<AutoImportVariant>
+    suggestions: List<AutoImportVariant>,
   ): BaseListPopupStep<AutoImportVariant> {
     return object :
       BaseListPopupStep<AutoImportVariant>(
         KotlinBundle.message("action.add.import.chooser.title"),
-        suggestions
+        suggestions,
       ) {
       override fun isAutoSelectionEnabled() = false
 
@@ -218,7 +218,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
 
       override fun onChosen(
         selectedValue: AutoImportVariant?,
-        finalChoice: Boolean
+        finalChoice: Boolean,
       ): PopupStep<String>? {
         if (selectedValue == null || project.isDisposed || selectedValue.importFqName == null)
           return null

@@ -32,7 +32,7 @@ class FakeVcsForAppInsights : VcsForAppInsights {
   override fun createVcsContent(
     localFilePath: FilePath,
     revision: String,
-    project: Project
+    project: Project,
   ): ContentRevision {
     return FakeContentRevision(localFilePath, revision) { vcsContentProvider(localFilePath) }
   }

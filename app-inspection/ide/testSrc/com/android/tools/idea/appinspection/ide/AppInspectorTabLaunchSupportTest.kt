@@ -70,7 +70,7 @@ class AppInspectorTabLaunchSupportTest {
       override val inspectorLaunchParams =
         LibraryInspectorLaunchParams(
           TEST_JAR,
-          mockMinimumArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE")
+          mockMinimumArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE"),
         )
     }
   private val libraryInspector =
@@ -108,7 +108,7 @@ class AppInspectorTabLaunchSupportTest {
               frameworkInspector,
               incompatibleLibraryInspector,
               libraryInspector,
-              unresolvedLibraryInspector
+              unresolvedLibraryInspector,
             )
           },
           appInspectionServiceRule.apiServices,
@@ -116,7 +116,7 @@ class AppInspectorTabLaunchSupportTest {
           object : InspectorArtifactService {
             override suspend fun getOrResolveInspectorArtifact(
               artifactCoordinate: RunningArtifactCoordinate,
-              project: Project
+              project: Project,
             ): Path {
               return if (artifactCoordinate.sameArtifact(unresolvedLibrary)) {
                 throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
@@ -124,7 +124,7 @@ class AppInspectorTabLaunchSupportTest {
                 Paths.get("resolved", "jar")
               }
             }
-          }
+          },
         )
 
       transportService.setCommandHandler(
@@ -155,14 +155,14 @@ class AppInspectorTabLaunchSupportTest {
                   .toList()
               )
               .build()
-          }
-        )
+          },
+        ),
       )
 
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
       transportService.addProcess(
         FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS
+        FakeTransportService.FAKE_PROCESS,
       )
       val processReadyDeferred = CompletableDeferred<Unit>()
 

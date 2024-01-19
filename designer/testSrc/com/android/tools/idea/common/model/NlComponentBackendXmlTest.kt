@@ -204,7 +204,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
         assertTrue(backend.setAttribute("text", ANDROID_URI, changed))
         // Changed
         assertEquals(changed, backend.getAttribute("text", ANDROID_URI))
-      }
+      },
     )
   }
 
@@ -239,7 +239,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
         assertTrue(backend.setAttribute("text", ANDROID_URI, changed))
         // Changed
         assertEquals(changed, backend.getAttribute("text", ANDROID_URI))
-      }
+      },
     )
   }
 
@@ -268,7 +268,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
         IncorrectOperationException::class.java,
         ThrowableRunnable<IncorrectOperationException> {
           backend.setAttribute("text", ANDROID_URI, changed)
-        }
+        },
       )
     }
   }
@@ -300,7 +300,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:text="Text" />
       """
         .trimIndent(),
-      xmlFile.text
+      xmlFile.text,
     )
   }
 

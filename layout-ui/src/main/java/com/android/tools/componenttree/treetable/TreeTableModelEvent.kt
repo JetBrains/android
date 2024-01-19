@@ -23,7 +23,7 @@ class TreeTableModelEvent(
   source: Any,
   path: TreePath?,
   val rootChanged: Boolean,
-  val toExpand: List<TreePath>
+  val toExpand: List<TreePath>,
 ) : TreeModelEvent(source, path)
 
 /** Return true if the root has changed with a given tree model change event. */

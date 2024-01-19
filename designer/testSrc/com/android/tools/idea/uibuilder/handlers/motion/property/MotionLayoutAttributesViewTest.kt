@@ -177,7 +177,7 @@ class MotionLayoutAttributesViewTest {
     return MotionLayoutAttributesView.MotionInspectorBuilder(
       motionRule.attributesModel,
       tableUIProvider,
-      enumSupportProvider
+      enumSupportProvider,
     )
   }
 

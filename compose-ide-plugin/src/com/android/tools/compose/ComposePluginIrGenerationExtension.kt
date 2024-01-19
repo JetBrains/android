@@ -35,7 +35,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
           reportsDestination = null,
           metricsDestination = null,
           generateFunctionKeyMetaClasses = true,
-          intrinsicRememberEnabled = false
+          intrinsicRememberEnabled = false,
         )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {

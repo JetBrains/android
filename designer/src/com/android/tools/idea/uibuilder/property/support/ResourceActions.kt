@@ -105,7 +105,7 @@ object OpenResourceManagerAction :
         showColorStateLists = !isImageViewDrawable,
         showSampleData = showSampleData,
         showThemeAttributes = true,
-        file = tag.containingFile.virtualFile
+        file = tag.containingFile.virtualFile,
       )
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
@@ -141,7 +141,7 @@ typealias ColorPickerCreator =
     restoreFocusComponent: Component?,
     locationToShow: Point?,
     colorPickedCallback: ((Color) -> Unit)?,
-    colorResourcePickedCallback: ((String) -> Unit)?
+    colorResourcePickedCallback: ((String) -> Unit)?,
   ) -> Unit
 
 object ColorSelectionAction : TestableColorSelectionAction()
@@ -171,7 +171,7 @@ open class TestableColorSelectionAction(
       actualProperty,
       initialColor,
       resourceValue,
-      restoreFocusTo
+      restoreFocusTo,
     )
   }
 
@@ -180,7 +180,7 @@ open class TestableColorSelectionAction(
     property: NlPropertyItem,
     initialColor: Color?,
     resourceValue: ResourceValue?,
-    restoreFocusTo: Component?
+    restoreFocusTo: Component?,
   ) {
     onCreateColorPicker(
       initialColor,
@@ -191,7 +191,7 @@ open class TestableColorSelectionAction(
       restoreFocusTo,
       location,
       { color -> property.value = colorToString(color) },
-      { resourceString -> property.value = resourceString }
+      { resourceString -> property.value = resourceString },
     )
   }
 }

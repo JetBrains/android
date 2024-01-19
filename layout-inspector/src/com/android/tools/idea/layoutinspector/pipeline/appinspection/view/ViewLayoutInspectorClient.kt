@@ -75,7 +75,7 @@ private val JAR =
   AppInspectorJar(
     "layoutinspector-view-inspection.jar",
     developmentDirectory = "bazel-bin/tools/base/dynamic-layout-inspector/agent/appinspection/",
-    releaseDirectory = "plugins/android/resources/app-inspection/"
+    releaseDirectory = "plugins/android/resources/app-inspection/",
   )
 
 /**
@@ -98,7 +98,7 @@ class ViewLayoutInspectorClient(
   private val errorListener: InspectorClient.ErrorListener = InspectorClient.ErrorListener {},
   private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
-  private val launchMonitor: InspectorClientLaunchMonitor
+  private val launchMonitor: InspectorClientLaunchMonitor,
 ) {
 
   private val project = model.project
@@ -111,7 +111,7 @@ class ViewLayoutInspectorClient(
     val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResult?
+    val composeEvent: GetComposablesResult?,
   )
 
   companion object {
@@ -132,7 +132,7 @@ class ViewLayoutInspectorClient(
       errorListener: InspectorClient.ErrorListener,
       fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
-      launchMonitor: InspectorClientLaunchMonitor
+      launchMonitor: InspectorClientLaunchMonitor,
     ): ViewLayoutInspectorClient {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
       // version was
@@ -151,7 +151,7 @@ class ViewLayoutInspectorClient(
         errorListener,
         fireRootsEvent,
         fireTreeEvent,
-        launchMonitor
+        launchMonitor,
       )
     }
   }
@@ -250,7 +250,7 @@ class ViewLayoutInspectorClient(
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
       throw ConnectionFailedException(
         response.startFetchResponse.error,
-        response.startFetchResponse.code.toAttachErrorCode()
+        response.startFetchResponse.code.toAttachErrorCode(),
       )
     }
   }
@@ -332,7 +332,7 @@ class ViewLayoutInspectorClient(
       composeInspector?.getComposeables(
         layoutEvent.rootView.id,
         generation,
-        !isFetchingContinuously
+        !isFetchingContinuously,
       )
 
     val data = Data(generation, currRoots, layoutEvent, composablesResult)
@@ -369,7 +369,7 @@ class ViewLayoutInspectorClient(
         sourceVersion = ApplicationInfo.getInstance().fullVersion,
         dpi = model.resourceLookup.dpi,
         fontScale = model.resourceLookup.fontScale,
-        screenDimension = model.resourceLookup.screenDimension
+        screenDimension = model.resourceLookup.screenDimension,
       )
 
     if (isFetchingContinuously) {
@@ -408,7 +408,7 @@ class ViewLayoutInspectorClient(
       properties,
       composeParameters,
       snapshotMetadata,
-      model.foldInfo
+      model.foldInfo,
     )
   }
 
@@ -421,7 +421,7 @@ class ViewLayoutInspectorClient(
       LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
         .logEvent(
           DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
-          stats
+          stats,
         )
       // Delete the file in case we wrote out partial data
       Files.delete(path)
@@ -466,7 +466,7 @@ class ViewLayoutInspectorClient(
             snapshotResponse.windowRoots.idsList.associateWith { id ->
               Pair(
                 composeInspector.getComposeables(id, generation, forSnapshot = true),
-                composeInspector.getAllParameters(id)
+                composeInspector.getAllParameters(id),
               )
             }
           } ?: mapOf()
@@ -476,7 +476,7 @@ class ViewLayoutInspectorClient(
           snapshotResponse,
           composeInfo,
           snapshotMetadata,
-          model.foldInfo
+          model.foldInfo,
         )
       } ?: throw Exception()
   }

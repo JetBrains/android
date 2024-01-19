@@ -61,12 +61,12 @@ class StackTraceAnalyzerTest {
         Frame(
           symbol = "com.google.firebase.assistant.test.RuntimeInit.foo",
           file = "RuntimeInit.java",
-          line = 8
+          line = 8,
         )
       val first =
         analyzer.match(
           runtimeInitFile,
-          CrashFrame(npeFrame, Cause.Throwable("java.lang.NullPointerException"))
+          CrashFrame(npeFrame, Cause.Throwable("java.lang.NullPointerException")),
         )
       val second =
         analyzer.match(
@@ -75,10 +75,10 @@ class StackTraceAnalyzerTest {
             Frame(
               symbol = "com.google.firebase.assistant.test.MainActivity.onCreate\$lambda-1",
               file = "MainActivity.kt",
-              line = 22
+              line = 22,
             ),
-            Cause.Frame(npeFrame)
-          )
+            Cause.Frame(npeFrame),
+          ),
         )
       val third =
         analyzer.match(
@@ -87,10 +87,10 @@ class StackTraceAnalyzerTest {
             Frame(
               symbol = "com.google.firebase.assistant.test.MainActivity.onCreate",
               file = "MainActivity.kt",
-              line = 20
+              line = 20,
             ),
-            Cause.Throwable("java.lang.IllegalArgumentException")
-          )
+            Cause.Throwable("java.lang.IllegalArgumentException"),
+          ),
         )
 
       assertThat(first!!.confidence).isEqualTo(Confidence.HIGH)
@@ -118,7 +118,7 @@ class StackTraceAnalyzerTest {
       androidProjectRule.fixture
         .configureByFiles(
           "src/com/google/firebase/assistant/test/MainActivity.kt",
-          "src/com/google/firebase/assistant/test/RuntimeInit.java"
+          "src/com/google/firebase/assistant/test/RuntimeInit.java",
         )[0]
 
     val analyzer = StackTraceAnalyzer()
@@ -127,7 +127,7 @@ class StackTraceAnalyzerTest {
         Frame(
           symbol = "com.google.firebase.assistant.test.RuntimeInit.foo",
           file = "RuntimeInit.java",
-          line = 6
+          line = 6,
         )
       val crashFrames =
         listOf(
@@ -135,18 +135,18 @@ class StackTraceAnalyzerTest {
             Frame(
               symbol = "com.google.firebase.assistant.test.MainActivity.randomMethod\$lambda-1",
               file = "MainActivity.java",
-              line = 29
+              line = 29,
             ),
-            Cause.Frame(npeFrame)
+            Cause.Frame(npeFrame),
           ),
           CrashFrame(
             Frame(
               symbol = "com.google.firebase.assistant.test.MainActivity.randomMethod\$lambda-1",
               file = "MainActivity.java",
-              line = 33
+              line = 33,
             ),
-            Cause.Frame(npeFrame)
-          )
+            Cause.Frame(npeFrame),
+          ),
         )
 
       val (first, second) = crashFrames.map { analyzer.match(psiFile, it) }

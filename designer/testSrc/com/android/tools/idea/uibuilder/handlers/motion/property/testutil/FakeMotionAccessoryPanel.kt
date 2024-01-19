@@ -39,7 +39,7 @@ class FakeMotionAccessoryPanel : AccessoryPanelInterface, MotionDesignSurfaceEdi
 
   override fun updateAccessoryPanelWithSelection(
     type: AccessoryPanel.Type,
-    selection: MutableList<NlComponent>
+    selection: MutableList<NlComponent>,
   ) {
     throw Error("should not be called")
   }

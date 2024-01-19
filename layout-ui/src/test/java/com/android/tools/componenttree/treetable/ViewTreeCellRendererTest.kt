@@ -66,13 +66,13 @@ class ViewTreeCellRendererTest {
       SimpleTextAttributes.STYLE_STRIKEOUT,
       null,
       null,
-      null
+      null,
     )
   private val grey = SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES
   private val greyStrikeout =
     SimpleTextAttributes(
       SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.STYLE_STRIKEOUT,
-      null
+      null,
     )
 
   @Before
@@ -88,7 +88,7 @@ class ViewTreeCellRendererTest {
         installTreeSearch = false,
         autoScroll = false,
         expandAllOnRootChange = false,
-        treeHeaderRenderer = null
+        treeHeaderRenderer = null,
       )
     }
     tree = table!!.tree
@@ -152,7 +152,7 @@ class ViewTreeCellRendererTest {
       renderAndCheckFragments(
         item,
         Fragment("TextView", normal),
-        Fragment(" \"Hello World\"", grey)
+        Fragment(" \"Hello World\"", grey),
       )
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
     assertThat(component.toolTipText).isNull()
@@ -206,7 +206,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = false,
           enabled = false,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(faint)
@@ -216,7 +216,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = true,
           enabled = false,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(faint)
@@ -226,7 +226,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = false,
           enabled = false,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(selected)
@@ -236,7 +236,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = true,
           enabled = false,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(focused)
@@ -246,7 +246,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = false,
           enabled = true,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(normal)
@@ -256,7 +256,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = true,
           enabled = true,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(normal)
@@ -266,7 +266,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = false,
           enabled = true,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(selected)
@@ -276,7 +276,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = true,
           enabled = true,
-          deEmphasized = false
+          deEmphasized = false,
         )
       )
       .isEqualTo(focused)
@@ -286,7 +286,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = false,
           enabled = false,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(faint)
@@ -296,7 +296,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = true,
           enabled = false,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(faint)
@@ -306,7 +306,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = false,
           enabled = false,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(selected)
@@ -316,7 +316,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = true,
           enabled = false,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(focused)
@@ -326,7 +326,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = false,
           enabled = true,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(faint)
@@ -336,7 +336,7 @@ class ViewTreeCellRendererTest {
           selected = false,
           hasFocus = true,
           enabled = true,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(faint)
@@ -346,7 +346,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = false,
           enabled = true,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(selected)
@@ -356,7 +356,7 @@ class ViewTreeCellRendererTest {
           selected = true,
           hasFocus = true,
           enabled = true,
-          deEmphasized = true
+          deEmphasized = true,
         )
       )
       .isEqualTo(focused)
@@ -370,7 +370,7 @@ class ViewTreeCellRendererTest {
       renderAndCheckFragments(
         item,
         Fragment("text", strikeout),
-        Fragment(" \"Hello\"", greyStrikeout)
+        Fragment(" \"Hello\"", greyStrikeout),
       )
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
     assertThat(component.toolTipText)
@@ -393,7 +393,7 @@ class ViewTreeCellRendererTest {
       renderAndCheckFragments(
         item,
         Fragment("text", strikeout),
-        Fragment(" $LONG_TEXT_VALUE", greyStrikeout)
+        Fragment(" $LONG_TEXT_VALUE", greyStrikeout),
       )
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
     assertThat(component.toolTipText)
@@ -432,15 +432,15 @@ class ViewTreeCellRendererTest {
       .isSameAs(normal)
     assertIconsEqual(
       getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!,
-      selectedWithFocus
+      selectedWithFocus,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)!!,
-      faint
+      faint,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)!!,
-      faint
+      faint,
     )
     assertThat(
         getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)
@@ -448,15 +448,15 @@ class ViewTreeCellRendererTest {
       .isSameAs(normal)
     assertIconsEqual(
       getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!,
-      selectedWithFocus
+      selectedWithFocus,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)!!,
-      faint
+      faint,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)!!,
-      faint
+      faint,
     )
     assertThat(
         getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)
@@ -464,15 +464,15 @@ class ViewTreeCellRendererTest {
       .isSameAs(normal)
     assertIconsEqual(
       getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!,
-      selectedWithFocus
+      selectedWithFocus,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)!!,
-      faint
+      faint,
     )
     assertIconsEqual(
       getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!,
-      faint
+      faint,
     )
     assertThat(
         getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)
@@ -480,7 +480,7 @@ class ViewTreeCellRendererTest {
       .isSameAs(normal)
     assertIconsEqual(
       getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!,
-      selectedWithFocus
+      selectedWithFocus,
     )
   }
 
@@ -500,7 +500,7 @@ class ViewTreeCellRendererTest {
     selected: Boolean,
     hasFocus: Boolean,
     enabled: Boolean,
-    deEmphasized: Boolean
+    deEmphasized: Boolean,
   ): Color {
     item.enabled = enabled
     item.deEmphasized = deEmphasized
@@ -516,7 +516,7 @@ class ViewTreeCellRendererTest {
     selected: Boolean,
     hasFocus: Boolean,
     enabled: Boolean,
-    deEmphasized: Boolean
+    deEmphasized: Boolean,
   ): Color {
     item.enabled = enabled
     item.deEmphasized = deEmphasized
@@ -532,7 +532,7 @@ class ViewTreeCellRendererTest {
     selected: Boolean,
     hasFocus: Boolean,
     enabled: Boolean,
-    deEmphasized: Boolean
+    deEmphasized: Boolean,
   ): Icon? {
     item.enabled = enabled
     item.deEmphasized = deEmphasized

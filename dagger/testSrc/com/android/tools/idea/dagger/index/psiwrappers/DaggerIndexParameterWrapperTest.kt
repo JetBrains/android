@@ -59,7 +59,7 @@ class DaggerIndexParameterWrapperTest {
         fun bar(arg: Bat): Baz {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtParameter = myFixture.getEnclosing("a|rg")
@@ -82,7 +82,7 @@ class DaggerIndexParameterWrapperTest {
         fun bar(arg): Baz {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtParameter = myFixture.getEnclosing("a|rg")
@@ -105,7 +105,7 @@ class DaggerIndexParameterWrapperTest {
         fun bar(: Int): Baz {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtParameter = myFixture.getEnclosing("bar(|: Int)")
@@ -128,7 +128,7 @@ class DaggerIndexParameterWrapperTest {
         public Baz bar(Bat arg) {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiParameter = myFixture.getEnclosing("a|rg")

@@ -101,7 +101,7 @@ class ResourceCompletionContributorTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -142,7 +142,7 @@ class ResourceCompletionContributorTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -183,7 +183,7 @@ class ResourceCompletionContributorTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -216,7 +216,7 @@ class ResourceCompletionContributorTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 

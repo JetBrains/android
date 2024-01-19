@@ -54,7 +54,7 @@ class AccessibilityLintIntegratorTest {
     integrator.createIssue(
       createTestIssue(),
       ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
+      mockModel,
     )
 
     assertEquals(1, integrator.issues.size)
@@ -86,7 +86,7 @@ class AccessibilityLintIntegratorTest {
     integrator.createIssue(
       createTestIssue(),
       ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
+      mockModel,
     )
     assertEquals(1, integrator.issues.size)
 
@@ -101,7 +101,7 @@ class AccessibilityLintIntegratorTest {
     integrator.createIssue(
       createTestIssue(),
       ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
+      mockModel,
     )
     assertEquals(1, integrator.issues.size)
 

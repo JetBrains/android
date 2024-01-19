@@ -37,7 +37,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val atfAnalyzer = VisualLintAtfAnalysis(model)
     val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
@@ -49,7 +49,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
       VisualLintIssueContent(
         issue.component.viewInfo,
         COLOR_BLIND_ISSUE_SUMMARY,
-        VisualLintErrorType.ATF_COLORBLIND
+        VisualLintErrorType.ATF_COLORBLIND,
       ) { count: Int ->
         colorBLindModeDescriptionProvider(issue, count)
       }
@@ -81,7 +81,7 @@ private val colorBLindModeDescriptionProvider: (VisualLintAtfIssue, Int) -> Html
             1 -> "colorblind configuration"
             2 -> "and 1 other colorblind configuration"
             else -> "and ${count - 1} other colorblind configurations"
-          },
+          }
         )
         .append(".<br>")
         .append(description)

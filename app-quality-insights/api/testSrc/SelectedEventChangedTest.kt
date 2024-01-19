@@ -41,7 +41,7 @@ class SelectedEventChangedTest {
         TEST_FILTERS,
         LoadingState.Loading,
         currentEvents =
-          LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, ""))
+          LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, "")),
       )
     val transition =
       SelectedEventChanged(EventMovement.NEXT).transition(state, TestAppInsightsTracker, TEST_KEY)
@@ -58,7 +58,7 @@ class SelectedEventChangedTest {
         TEST_FILTERS,
         LoadingState.Loading,
         currentEvents =
-          LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, ""))
+          LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, "")),
       )
     val transition =
       SelectedEventChanged(EventMovement.PREVIOUS)
@@ -75,7 +75,7 @@ class SelectedEventChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
-        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, ""))
+        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
       )
     var transition =
       SelectedEventChanged(EventMovement.PREVIOUS)
@@ -98,7 +98,7 @@ class SelectedEventChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "abc"))
+        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "abc")),
       )
 
     val transition =

@@ -241,7 +241,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "BottomAppBar.java",
-      "src/java/com/google/android/material/bottomappbar/BottomAppBar.java"
+      "src/java/com/google/android/material/bottomappbar/BottomAppBar.java",
     )
     val util = InspectorTestUtil(projectRule, BOTTOM_APP_BAR, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -264,11 +264,11 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "AppCompatButton.java",
-      "src/java/android/support/v7/widget/MaterialButton.java"
+      "src/java/android/support/v7/widget/MaterialButton.java",
     )
     projectRule.fixture.copyFileToProject(
       "MaterialButton.java",
-      "src/java/com/google/android/material/button/MaterialButton.java"
+      "src/java/com/google/android/material/button/MaterialButton.java",
     )
     val util = InspectorTestUtil(projectRule, MATERIAL_BUTTON, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -305,7 +305,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "ChipGroup.java",
-      "src/java/com/google/android/material/chip/ChipGroup.java"
+      "src/java/com/google/android/material/chip/ChipGroup.java",
     )
     val util = InspectorTestUtil(projectRule, CHIP_GROUP, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -328,15 +328,15 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "AppCompatCheckBox.java",
-      "src/java/android/support/v7/widget/AppCompatCheckBox.java"
+      "src/java/android/support/v7/widget/AppCompatCheckBox.java",
     )
     projectRule.fixture.copyFileToProject(
       "Chip.java",
-      "src/java/com/google/android/material/chip/Chip.java"
+      "src/java/com/google/android/material/chip/Chip.java",
     )
     projectRule.fixture.copyFileToProject(
       "ChipGroup.java",
-      "src/java/com/google/android/material/chip/ChipGroup.java"
+      "src/java/com/google/android/material/chip/ChipGroup.java",
     )
     val util = InspectorTestUtil(projectRule, CHIP, parentTag = CHIP_GROUP)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -361,7 +361,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "BottomNavigationView.java",
-      "src/java/android/support/design/widget/BottomNavigationView.java"
+      "src/java/android/support/design/widget/BottomNavigationView.java",
     )
     val util =
       InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.oldName(), parentTag = LINEAR_LAYOUT)
@@ -386,7 +386,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "BottomNavigationViewX.java",
-      "src/java/com/google/android/material/bottomnavigation/BottomNavigationView.java"
+      "src/java/com/google/android/material/bottomnavigation/BottomNavigationView.java",
     )
     val util =
       InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.newName(), parentTag = LINEAR_LAYOUT)
@@ -411,7 +411,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "FloatingActionButton.java",
-      "src/java/android/support/design/floatingactionbutton/FloatingActionButton.java"
+      "src/java/android/support/design/floatingactionbutton/FloatingActionButton.java",
     )
     val util =
       InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.oldName(), parentTag = LINEAR_LAYOUT)
@@ -444,7 +444,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "FloatingActionButtonX.java",
-      "src/java/com/google/android/material/floatingactionbutton/FloatingActionButton.java"
+      "src/java/com/google/android/material/floatingactionbutton/FloatingActionButton.java",
     )
     val util =
       InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.newName(), parentTag = LINEAR_LAYOUT)
@@ -477,7 +477,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "TabLayout.java",
-      "src/java/android/support/design/TabLayout.java"
+      "src/java/android/support/design/TabLayout.java",
     )
     val util = InspectorTestUtil(projectRule, TAB_LAYOUT.oldName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -521,7 +521,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "TabLayoutX.java",
-      "src/java/com/google/android/material/tabs/TabLayout.java"
+      "src/java/com/google/android/material/tabs/TabLayout.java",
     )
     val util = InspectorTestUtil(projectRule, TAB_LAYOUT.newName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
@@ -565,7 +565,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "TextInputLayout.java",
-      "src/java/android/support/design/text/TextInputLayout.java"
+      "src/java/android/support/design/text/TextInputLayout.java",
     )
     val util =
       InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.oldName(), parentTag = LINEAR_LAYOUT)
@@ -606,7 +606,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject(
       "TextInputLayoutX.java",
-      "src/java/com/google/android/material/textfield/TextInputLayout.java"
+      "src/java/com/google/android/material/textfield/TextInputLayout.java",
     )
     val util =
       InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.newName(), parentTag = LINEAR_LAYOUT)

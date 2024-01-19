@@ -66,7 +66,7 @@ class ComposePreviewElementFlowTest {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
@@ -164,7 +164,7 @@ class ComposePreviewElementFlowTest {
           @Preview(name = "B")
           annotation class MultiPreview
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFile =
       projectRule.fixture.addFileToProject(
@@ -179,7 +179,7 @@ class ComposePreviewElementFlowTest {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
@@ -192,7 +192,7 @@ class ComposePreviewElementFlowTest {
           .map { it.asCollection() }
           .filter { it.size == 2 }
           .first()
-          .joinToString(",") { it.displaySettings.name }
+          .joinToString(",") { it.displaySettings.name },
       )
 
       // Make change
@@ -212,7 +212,7 @@ class ComposePreviewElementFlowTest {
           .map { it.asCollection() }
           .filter { it.size == 3 }
           .first()
-          .joinToString(",") { it.displaySettings.name }
+          .joinToString(",") { it.displaySettings.name },
       )
 
       // Terminate the flow

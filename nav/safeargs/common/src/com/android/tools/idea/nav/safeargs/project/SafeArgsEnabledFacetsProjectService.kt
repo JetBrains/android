@@ -57,7 +57,7 @@ class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTr
 
           CachedValueProvider.Result.create(facets, this)
         },
-        false
+        false,
       )
   }
 

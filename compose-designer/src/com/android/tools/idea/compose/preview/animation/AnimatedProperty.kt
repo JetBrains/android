@@ -43,14 +43,14 @@ private constructor(
   val endMs: Int,
   val grouped: Boolean,
   val components: List<AnimatedComponent<A>>,
-  val dimension: Int
+  val dimension: Int,
 ) where A : Number, A : Comparable<A> {
 
   class AnimatedComponent<A>(
     val maxValue: A,
     val minValue: A,
     val linkToNext: Boolean,
-    val points: SortedMap<Int, A>
+    val points: SortedMap<Int, A>,
   ) where A : Number, A : Comparable<A>
 
   // Transforms list of [ComposeUnit.Unit<*>] to list of it components.
@@ -134,10 +134,10 @@ private constructor(
               maxValue = maxValues[index],
               minValue = minValues[index],
               linkToNext = index != dimension - 1,
-              points = units.mapValues { it.value.componentAsDouble(index) }.toSortedMap()
+              points = units.mapValues { it.value.componentAsDouble(index) }.toSortedMap(),
             )
           },
-        dimension = dimension
+        dimension = dimension,
       )
     }
   }

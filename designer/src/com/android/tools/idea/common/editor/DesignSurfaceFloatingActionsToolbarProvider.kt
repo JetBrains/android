@@ -30,7 +30,7 @@ import javax.swing.JComponent
 class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface<*>,
   component: JComponent,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) :
   EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface"),
   DesignSurfaceListener {

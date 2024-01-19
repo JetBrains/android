@@ -63,7 +63,7 @@ class AppInspectionAnalyticsTrackerService(private val project: Project) :
 
   private fun toEnvironmentMetadata(
     numDevices: Int,
-    numProcesses: Int
+    numProcesses: Int,
   ): AppInspectionEvent.EnvironmentMetadata {
     return AppInspectionEvent.EnvironmentMetadata.newBuilder()
       .setNumDevices(numDevices)
@@ -73,7 +73,7 @@ class AppInspectionAnalyticsTrackerService(private val project: Project) :
 
   private class Events(
     val studioEvent: AndroidStudioEvent.Builder,
-    val inspectionEvent: AppInspectionEvent.Builder
+    val inspectionEvent: AppInspectionEvent.Builder,
   )
 
   private fun track(type: AppInspectionEvent.Type, addMetadataTo: (Events) -> Unit = {}) {

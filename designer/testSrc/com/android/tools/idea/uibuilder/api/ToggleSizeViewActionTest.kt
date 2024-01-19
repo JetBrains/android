@@ -59,7 +59,7 @@ class ToggleSizeViewActionTest : SceneTest() {
             .height("100dp")
             .withAttribute("android:layout_x", "100dp")
             .withAttribute("android:layout_y", "100dp")
-        )
+        ),
     )
   }
 }

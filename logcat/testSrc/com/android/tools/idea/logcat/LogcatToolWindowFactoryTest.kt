@@ -69,10 +69,10 @@ class LogcatToolWindowFactoryTest {
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,
-        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker },
       ),
       EdtRule(),
-      disposableRule
+      disposableRule,
     )
 
   private val project
@@ -132,7 +132,7 @@ class LogcatToolWindowFactoryTest {
         formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
         "filter",
         filterMatchCase = true,
-        isSoftWrap = false
+        isSoftWrap = false,
       )
 
     val logcatMainPanel =
@@ -140,7 +140,7 @@ class LogcatToolWindowFactoryTest {
         .createChildComponent(
           project,
           ActionGroup.EMPTY_GROUP,
-          clientState = LogcatPanelConfig.toJson(logcatPanelConfig)
+          clientState = LogcatPanelConfig.toJson(logcatPanelConfig),
         )
 
     // It's enough to assert on just one field in the config. We test more thoroughly in
@@ -221,12 +221,12 @@ class LogcatToolWindowFactoryTest {
   }
 
   private fun logcatToolWindowFactory(
-    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
+    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor()
   ): LogcatToolWindowFactory {
     project.registerOrReplaceServiceInstance(
       ProcessNameMonitor::class.java,
       processNameMonitor,
-      disposable
+      disposable,
     )
     return LogcatToolWindowFactory()
   }

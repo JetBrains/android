@@ -68,7 +68,7 @@ class ComposePreviewFakeUiGradleRule(
   testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
-  enableRenderQuality: Boolean = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()
+  enableRenderQuality: Boolean = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get(),
 ) : ComposeGradleProjectRule(projectPath, testDataPath, kotlinVersion, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
@@ -126,7 +126,7 @@ class ComposePreviewFakeUiGradleRule(
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -181,13 +181,13 @@ class ComposePreviewFakeUiGradleRule(
   suspend fun waitForAnyRefreshToStart(
     timeout: Duration,
     expectedRefreshType: ComposePreviewRefreshType,
-    runnable: suspend () -> Unit
+    runnable: suspend () -> Unit,
   ) = coroutineScope {
     // Make sure to start waiting for the change before triggering it
     val awaitingJob = launch {
       refreshManager.refreshingTypeFlow.awaitStatus(
         "Timeout waiting for refresh to start",
-        timeout
+        timeout,
       ) {
         it == expectedRefreshType
       }
@@ -203,7 +203,7 @@ class ComposePreviewFakeUiGradleRule(
   suspend fun waitForAllRefreshesToFinish(timeout: Duration) {
     refreshManager.refreshingTypeFlow.awaitStatus(
       "Timeout waiting for refresh to finish",
-      timeout
+      timeout,
     ) {
       it == null
     }
@@ -219,7 +219,7 @@ class ComposePreviewFakeUiGradleRule(
     allRefreshesFinishTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     expectedRefreshType: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
     aRefreshMustStart: Boolean = true,
-    runnable: suspend () -> Unit
+    runnable: suspend () -> Unit,
   ) {
     waitForAllRefreshesToFinish(timeout = 5.seconds)
     try {
@@ -245,7 +245,7 @@ class ComposePreviewFakeUiGradleRule(
         // zoom to fit might (but not always) trigger a render quality change
         runAndWaitForRefresh(
           expectedRefreshType = ComposePreviewRefreshType.QUALITY,
-          aRefreshMustStart = false
+          aRefreshMustStart = false,
         ) {
           previewView.mainSurface.zoomToFit()
           fakeUi.root.validate()
@@ -257,7 +257,7 @@ class ComposePreviewFakeUiGradleRule(
 
   fun createComposePreviewRepresentation(
     psiFile: PsiFile,
-    view: TestComposePreviewView
+    view: TestComposePreviewView,
   ): ComposePreviewRepresentation {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }

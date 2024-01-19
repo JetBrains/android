@@ -71,7 +71,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
           override fun showLogcatFile(path: Path, displayName: String?) {
             openLogcatFile(toolWindow, path, displayName)
           }
-        }
+        },
       )
 
     ApplicationManager.getApplication().executeOnPooledThread {
@@ -120,7 +120,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         formattingConfig = getDefaultFormattingConfig(),
         filter = filter,
         filterMatchCase = false,
-        isSoftWrap = false
+        isSoftWrap = false,
       )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
@@ -136,13 +136,13 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
             formattingConfig = getDefaultFormattingConfig(),
             filter = "",
             filterMatchCase = false,
-            isSoftWrap = false
+            isSoftWrap = false,
           )
 
         createNewTab(
           toolWindow,
           displayName ?: path.fileName.name,
-          LogcatPanelConfig.toJson(config)
+          LogcatPanelConfig.toJson(config),
         )
         toolWindow.activate(null)
       } finally {
@@ -159,13 +159,13 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun createChildComponent(
     project: Project,
     popupActionGroup: ActionGroup,
-    clientState: String?
+    clientState: String?,
   ) =
     LogcatMainPanel(
         project,
         popupActionGroup,
         logcatColors,
-        LogcatPanelConfig.fromJson(clientState)
+        LogcatPanelConfig.fromJson(clientState),
       )
       .also {
         logcatPresenters.add(it)

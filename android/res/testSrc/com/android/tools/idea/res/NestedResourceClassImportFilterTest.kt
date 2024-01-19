@@ -59,7 +59,7 @@ class NestedResourceClassImportFilterTest {
       package com.example.sub
       data class MyDataClass(resId: Int)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -73,7 +73,7 @@ class NestedResourceClassImportFilterTest {
           val resString = MyDataClass(R.string.foo)
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.openFileInEditor(file.virtualFile)
@@ -113,7 +113,7 @@ class NestedResourceClassImportFilterTest {
 
         fun myOtherGreatFunction() = R.string.foo
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.openFileInEditor(file.virtualFile)
 
@@ -146,7 +146,7 @@ class NestedResourceClassImportFilterTest {
         ClassKind.CLASS,
         Modality.FINAL,
         visibilityThatDoesNotMatter,
-        isNested = true
+        isNested = true,
       )
 
     val filter = NestedResourceClassImportFilter()

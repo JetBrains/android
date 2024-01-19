@@ -67,7 +67,7 @@ class DrawableBackgroundLayerTest {
           ScreenView(
             mockDesignSurface,
             mockLayoutlibSceneManager,
-            { _, outDimension -> outDimension.setSize(300, 200) }
+            { _, outDimension -> outDimension.setSize(300, 200) },
           ) {
           override fun getScale(): Double = 1.0
         }
@@ -85,21 +85,21 @@ class DrawableBackgroundLayerTest {
       resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/white.png"),
       renderLayerForBackgroundType(DrawableBackgroundType.WHITE),
       0.0,
-      0
+      0,
     )
 
     assertImageSimilar(
       resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/black.png"),
       renderLayerForBackgroundType(DrawableBackgroundType.BLACK),
       0.0,
-      0
+      0,
     )
 
     assertImageSimilar(
       resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/checkered.png"),
       renderLayerForBackgroundType(DrawableBackgroundType.CHECKERED),
       0.0,
-      0
+      0,
     )
   }
 }

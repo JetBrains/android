@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 class AppInsightsDisplayRefreshTimestampAction(
   timestamp: Flow<Timestamp>,
   private val clock: Clock,
-  scope: CoroutineScope
+  scope: CoroutineScope,
 ) : AnAction() {
   private val lastModifiedTimestamp: AtomicReference<Timestamp> =
     AtomicReference(Timestamp.UNINITIALIZED)

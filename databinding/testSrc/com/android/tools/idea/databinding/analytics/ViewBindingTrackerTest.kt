@@ -68,7 +68,7 @@ class ViewBindingTrackerTest {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -82,7 +82,7 @@ class ViewBindingTrackerTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
@@ -116,7 +116,7 @@ class ViewBindingTrackerTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProject(
       "src/main/res/layout/activity_ignored.xml",
@@ -127,7 +127,7 @@ class ViewBindingTrackerTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())

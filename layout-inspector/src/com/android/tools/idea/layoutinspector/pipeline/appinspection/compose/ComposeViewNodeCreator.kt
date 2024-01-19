@@ -90,7 +90,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
 
   private fun ComposableNode.convert(
     shouldInterrupt: () -> Boolean,
-    access: ViewNode.WriteAccess
+    access: ViewNode.WriteAccess,
   ): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
@@ -120,7 +120,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
         offset,
         lineNumber,
         flags,
-        anchorHash
+        anchorHash,
       )
 
     composeFlags = composeFlags or flags

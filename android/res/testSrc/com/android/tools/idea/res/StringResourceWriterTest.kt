@@ -201,7 +201,7 @@ class StringResourceWriterTest {
           resourceKey,
           NEW_VALUE,
           FRENCH_LOCALE,
-          insertBefore = insertBefore
+          insertBefore = insertBefore,
         )
       )
       .isTrue()
@@ -223,7 +223,7 @@ class StringResourceWriterTest {
           resourceKey,
           value,
           locale = FRENCH_LOCALE,
-          resourceFileName = resourceFileName
+          resourceFileName = resourceFileName,
         )
       )
       .isTrue()
@@ -292,7 +292,7 @@ class StringResourceWriterTest {
           project,
           attributeName,
           attributeValue,
-          listOf(frenchResourceItem, englishResourceItem)
+          listOf(frenchResourceItem, englishResourceItem),
         )
       )
       .isTrue()
@@ -307,7 +307,7 @@ class StringResourceWriterTest {
           project,
           attributeName,
           nextAttributeValue,
-          listOf(frenchResourceItem, englishResourceItem)
+          listOf(frenchResourceItem, englishResourceItem),
         )
       )
       .isTrue()
@@ -322,7 +322,7 @@ class StringResourceWriterTest {
           project,
           attributeName,
           value = "",
-          listOf(frenchResourceItem, englishResourceItem)
+          listOf(frenchResourceItem, englishResourceItem),
         )
       )
       .isTrue()
@@ -336,7 +336,7 @@ class StringResourceWriterTest {
           project,
           attributeName,
           value = null,
-          listOf(frenchResourceItem, englishResourceItem)
+          listOf(frenchResourceItem, englishResourceItem),
         )
       )
       .isTrue()
@@ -367,7 +367,7 @@ class StringResourceWriterTest {
     assertThat(
         stringResourceWriter.delete(
           project,
-          listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+          listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE)),
         )
       )
       .isTrue()
@@ -527,7 +527,7 @@ class StringResourceWriterTest {
         stringResourceWriter.setItemText(
           project,
           getResourceItem(KEY2, FRENCH_LOCALE),
-          "L'Étranger"
+          "L'Étranger",
         )
       )
       .isTrue()
@@ -543,7 +543,7 @@ class StringResourceWriterTest {
         stringResourceWriter.setItemText(
           project,
           getResourceItem(KEY2, FRENCH_LOCALE),
-          "<![CDATA[L'Étranger]]>"
+          "<![CDATA[L'Étranger]]>",
         )
       )
       .isTrue()
@@ -559,7 +559,7 @@ class StringResourceWriterTest {
         stringResourceWriter.setItemText(
           project,
           getResourceItem(KEY2, FRENCH_LOCALE),
-          "<xliff:g>L'Étranger</xliff:g>"
+          "<xliff:g>L'Étranger</xliff:g>",
         )
       )
       .isTrue()
@@ -643,12 +643,12 @@ class StringResourceWriterTest {
 
   private fun interactWithSafeDeleteDialog(
     item: ResourceItem,
-    dialogInteraction: (DialogWrapper) -> Unit
+    dialogInteraction: (DialogWrapper) -> Unit,
   ) = interactWithSafeDeleteDialog(listOf(item), dialogInteraction)
 
   private fun interactWithSafeDeleteDialog(
     items: List<ResourceItem>,
-    dialogInteraction: (DialogWrapper) -> Unit
+    dialogInteraction: (DialogWrapper) -> Unit,
   ) {
     assertThat(DumbService.isDumb(project)).isFalse()
     runBlocking {
@@ -690,7 +690,7 @@ class StringResourceWriterTest {
 
     private inline fun <reified T> DialogWrapper.getTextComponent(
       text: String,
-      getText: (T) -> String
+      getText: (T) -> String,
     ): T {
       val components = TreeWalker(rootPane).descendants().toList()
       return TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull {

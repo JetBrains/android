@@ -72,7 +72,7 @@ class EntryDetailsView(
   private val entriesView: BackgroundTaskEntriesView,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher
+  private val uiDispatcher: CoroutineDispatcher,
 ) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
@@ -84,7 +84,7 @@ class EntryDetailsView(
   val stackTraceViews =
     listOf(
       EntryDetailsStackTraceView(uiComponentsProvider),
-      EntryDetailsStackTraceView(uiComponentsProvider)
+      EntryDetailsStackTraceView(uiComponentsProvider),
     )
 
   init {
@@ -210,7 +210,7 @@ class EntryDetailsView(
         results.add(
           buildKeyValuePair(
             "Elapsed time",
-            StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs)
+            StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs),
           )
         )
       }
@@ -229,7 +229,7 @@ class EntryDetailsView(
         listOf(
           buildKeyValuePair("Tag", wakeLockAcquired.tag),
           buildKeyValuePair("Level", wakeLockAcquired.level),
-        )
+        ),
       )
     )
 
@@ -241,7 +241,7 @@ class EntryDetailsView(
       results.add(
         buildKeyValuePair(
           "Elapsed time",
-          StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)
+          StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs),
         )
       )
     }
@@ -260,9 +260,9 @@ class EntryDetailsView(
           buildKeyValuePair(
             "Service",
             job.serviceName,
-            ClassNameProvider(ideServices, client.scope, client.tracker)
+            ClassNameProvider(ideServices, client.scope, client.tracker),
           )
-        )
+        ),
       )
     )
 
@@ -270,7 +270,7 @@ class EntryDetailsView(
       mutableListOf(
         buildKeyValuePair("Constraints", job, JobConstraintProvider),
         buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
-        buildKeyValuePair("State", jobEntry, StateProvider)
+        buildKeyValuePair("State", jobEntry, StateProvider),
       )
     jobEntry.targetWorkId
       ?.let { id -> client.getEntry(id) }
@@ -291,14 +291,14 @@ class EntryDetailsView(
         results.add(
           buildKeyValuePair(
             "Elapsed time",
-            StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs)
+            StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs),
           )
         )
         if (latestEvent.backgroundTaskEvent.hasJobFinished()) {
           results.add(
             buildKeyValuePair(
               "Needs reschedule",
-              latestEvent.backgroundTaskEvent.jobFinished.needsReschedule
+              latestEvent.backgroundTaskEvent.jobFinished.needsReschedule,
             )
           )
         }
@@ -333,11 +333,11 @@ class EntryDetailsView(
           buildKeyValuePair(
             "Class",
             work.workerClassName,
-            ClassNameProvider(ideServices, client.scope, client.tracker)
+            ClassNameProvider(ideServices, client.scope, client.tracker),
           ),
           buildKeyValuePair("Tags", work.tagsList.toList(), StringListProvider),
-          buildKeyValuePair("UUID", work.id)
-        )
+          buildKeyValuePair("UUID", work.id),
+        ),
       )
     )
 
@@ -346,11 +346,11 @@ class EntryDetailsView(
         buildKeyValuePair(
           "Enqueued by",
           work.callStack,
-          EnqueuedAtProvider(ideServices, client.scope, client.tracker)
+          EnqueuedAtProvider(ideServices, client.scope, client.tracker),
         ),
         buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
         buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
-        buildKeyValuePair("State", workEntry, StateProvider)
+        buildKeyValuePair("State", workEntry, StateProvider),
       )
 
     entriesView.tableView.treeModel.getJobUnderWork(work.id)?.let { jobEntry ->
@@ -384,9 +384,9 @@ class EntryDetailsView(
             buildKeyValuePair(
               "Unique work chain",
               client.getOrderedWorkChain(work.id).map { it.id },
-              idListProvider
-            )
-          )
+              idListProvider,
+            ),
+          ),
         )
       )
     }
@@ -397,8 +397,8 @@ class EntryDetailsView(
         listOf(
           buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
           buildKeyValuePair("Retries", work.runAttemptCount),
-          buildKeyValuePair("Output data", work, OutputDataProvider)
-        )
+          buildKeyValuePair("Output data", work, OutputDataProvider),
+        ),
       )
     )
   }
@@ -421,7 +421,7 @@ class EntryDetailsView(
   private fun <T> buildKeyValuePair(
     key: String,
     value: T,
-    componentProvider: ComponentProvider<T> = ToStringProvider()
+    componentProvider: ComponentProvider<T> = ToStringProvider(),
   ): JPanel {
     val panel =
       JPanel(TabularLayout("155px,*")).apply {
@@ -430,7 +430,7 @@ class EntryDetailsView(
     val keyPanel = JPanel(BorderLayout())
     keyPanel.add(
       JBLabel(key),
-      BorderLayout.NORTH
+      BorderLayout.NORTH,
     ) // If value is multi-line, key should stick to the top of its cell
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
     panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
@@ -439,7 +439,7 @@ class EntryDetailsView(
 
   private fun ScrollablePanel.addStackTraceViews(
     callStacks: List<BackgroundTaskCallStack>,
-    labels: List<String>
+    labels: List<String>,
   ) {
     val labelsToStackTraces =
       (labels zip callStacks)
@@ -478,7 +478,7 @@ class EntryDetailsView(
 class CloseButton(actionListener: ActionListener?) :
   InplaceButton(
     IconButton("Close", AllIcons.Ide.Notification.Close, AllIcons.Ide.Notification.CloseHover),
-    actionListener
+    actionListener,
   ) {
 
   init {

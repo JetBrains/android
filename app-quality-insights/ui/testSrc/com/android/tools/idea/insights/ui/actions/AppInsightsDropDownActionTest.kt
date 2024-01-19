@@ -80,7 +80,7 @@ class AppInsightsDropDownActionTest {
           null,
           flow,
           { value -> if (value == TestValues.TWO) ICON else null },
-          {}
+          {},
         )
 
       val fakeUi = initUi(dropdown)

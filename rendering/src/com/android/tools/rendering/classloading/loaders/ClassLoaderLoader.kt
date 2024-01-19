@@ -29,7 +29,7 @@ class ClassLoaderLoader
 @JvmOverloads
 constructor(
   private val classLoader: ClassLoader,
-  private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> }
+  private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> },
 ) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
     val diskName = fqcn.fromPackageNameToBinaryName() + SdkConstants.DOT_CLASS

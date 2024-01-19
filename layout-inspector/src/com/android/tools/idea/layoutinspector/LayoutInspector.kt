@@ -114,7 +114,7 @@ private constructor(
     { launcher.activeClient },
     executor,
     renderModel,
-    renderLogic
+    renderLogic,
   ) {
     launcher.addClientChangedListener(::onClientChanged)
   }
@@ -148,7 +148,7 @@ private constructor(
     currentClientProvider = { client },
     workerExecutor = executor,
     renderModel,
-    renderLogic
+    renderLogic,
   ) {
     onClientChanged(client)
   }

@@ -59,7 +59,7 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
             FIELD_VERTICAL_BORDER_PX,
             HORIZONTAL_BORDER_PX,
             FIELD_VERTICAL_BORDER_PX,
-            0
+            0,
           )
       }
     )
@@ -70,7 +70,7 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
             FIELD_VERTICAL_BORDER_PX,
             0,
             FIELD_VERTICAL_BORDER_PX,
-            HORIZONTAL_BORDER_PX
+            HORIZONTAL_BORDER_PX,
           )
       }
     )

@@ -32,7 +32,7 @@ internal class SelectMultipleDevicesDialogTableModel(devices: List<DeploymentTar
         setValueAt(
           selectedTargets.contains(rows[rowIndex].target),
           rowIndex,
-          SELECTED_MODEL_COLUMN_INDEX
+          SELECTED_MODEL_COLUMN_INDEX,
         )
       }
     }

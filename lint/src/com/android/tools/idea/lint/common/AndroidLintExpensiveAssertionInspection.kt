@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.AssertDetector
 class AndroidLintExpensiveAssertionInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.expensive.assertion"),
-    AssertDetector.EXPENSIVE
+    AssertDetector.EXPENSIVE,
   )

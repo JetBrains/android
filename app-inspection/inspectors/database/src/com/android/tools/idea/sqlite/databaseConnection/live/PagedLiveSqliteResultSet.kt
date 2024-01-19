@@ -28,7 +28,7 @@ class PagedLiveSqliteResultSet(
   private val sqliteStatement: SqliteStatement,
   messenger: DatabaseInspectorMessenger,
   connectionId: Int,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : LiveSqliteResultSet(sqliteStatement, messenger, connectionId, taskExecutor) {
 
   override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
@@ -44,12 +44,12 @@ class PagedLiveSqliteResultSet(
   override fun getRowBatch(
     rowOffset: Int,
     rowBatchSize: Int,
-    responseSizeByteLimitHint: Long?
+    responseSizeByteLimitHint: Long?,
   ): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
     return sendQueryCommand(
         sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize),
-        responseSizeByteLimitHint
+        responseSizeByteLimitHint,
       )
       .transform(taskExecutor) { response ->
         val columnNames = response.query.columnNamesList

@@ -51,12 +51,12 @@ class InspectionsGradleTest {
     val vFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
-        ProjectRootManager.getInstance(projectRule.project).contentRoots[0]
+        ProjectRootManager.getInstance(projectRule.project).contentRoots[0],
       )!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertEquals(
       "21: Preview is not supported in unit test files",
-      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber(),
     )
   }
 
@@ -66,7 +66,7 @@ class InspectionsGradleTest {
     val vFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-        ProjectRootManager.getInstance(projectRule.project).contentRoots[0]
+        ProjectRootManager.getInstance(projectRule.project).contentRoots[0],
       )!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertTrue(fixture.doHighlighting(HighlightSeverity.ERROR).isEmpty())

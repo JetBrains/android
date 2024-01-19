@@ -142,11 +142,11 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
         PsiPickerManager.show(
           location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
           displayTitle = message("picker.spring.title"),
-          model = model
+          model = model,
         )
       },
       GutterIconRenderer.Alignment.LEFT,
-      { message("picker.spring.annotator.tooltip") }
+      { message("picker.spring.annotator.tooltip") },
     )
   }
 }

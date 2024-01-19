@@ -72,7 +72,7 @@ class SelectDeviceActionTest {
   private fun createFakeStream(
     deviceName: String = FakeTransportService.FAKE_DEVICE_NAME,
     serial: String = UUID.randomUUID().toString(),
-    isEmulator: Boolean = true
+    isEmulator: Boolean = true,
   ): Common.Stream {
     val device =
       createFakeDevice(deviceName)
@@ -87,14 +87,14 @@ class SelectDeviceActionTest {
 
   private fun Common.Stream.createFakeProcess(
     name: String? = null,
-    pid: Int = 0
+    pid: Int = 0,
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
       FakeTransportService.FAKE_PROCESS.toBuilder()
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
-        .build()
+        .build(),
     )
   }
 
@@ -128,8 +128,8 @@ class SelectDeviceActionTest {
         model,
         setOf(
           physicalStream.device.toDeviceDescriptor(),
-          emulatorStream.device.toDeviceDescriptor()
-        )
+          emulatorStream.device.toDeviceDescriptor(),
+        ),
       )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
@@ -167,8 +167,8 @@ class SelectDeviceActionTest {
         setOf(
           fakeStream1.device.toDeviceDescriptor(),
           fakeStream2.device.toDeviceDescriptor(),
-          fakeStream3.device.toDeviceDescriptor()
-        )
+          fakeStream3.device.toDeviceDescriptor(),
+        ),
       )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
@@ -195,7 +195,7 @@ class SelectDeviceActionTest {
       DeviceModel(
         projectRule.testRootDisposable,
         model,
-        setOf(fakeStream.device.toDeviceDescriptor())
+        setOf(fakeStream.device.toDeviceDescriptor()),
       )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
@@ -232,7 +232,7 @@ class SelectDeviceActionTest {
         deviceModel,
         {},
         onDetachAction = { callbackFiredLatch.countDown() },
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -270,7 +270,7 @@ class SelectDeviceActionTest {
           processesModel.selectedProcess = null
           callbackFiredLatch.countDown()
         },
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     // has selected device, but no selected process
@@ -357,7 +357,7 @@ class SelectDeviceActionTest {
       DeviceModel(
         projectRule.testRootDisposable,
         model,
-        setOf(fakeStream.device.toDeviceDescriptor())
+        setOf(fakeStream.device.toDeviceDescriptor()),
       )
     val callbackFiredLatch = CountDownLatch(1)
     var actionPerformed = false
@@ -368,7 +368,7 @@ class SelectDeviceActionTest {
           actionPerformed = true
           callbackFiredLatch.countDown()
         },
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -400,7 +400,7 @@ class SelectDeviceActionTest {
       DeviceModel(
         projectRule.testRootDisposable,
         model,
-        setOf(physicalStream.device.toDeviceDescriptor())
+        setOf(physicalStream.device.toDeviceDescriptor()),
       )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
@@ -453,7 +453,7 @@ class SelectDeviceActionTest {
       DeviceModel(
         projectRule.testRootDisposable,
         model,
-        setOf(physicalStream.device.toDeviceDescriptor())
+        setOf(physicalStream.device.toDeviceDescriptor()),
       )
     var actionPerformed = false
     val selectDeviceAction =
@@ -463,7 +463,7 @@ class SelectDeviceActionTest {
         {
           actionPerformed = true
           callbackFiredLatch.countDown()
-        }
+        },
       )
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)

@@ -31,7 +31,7 @@ internal object NoOpTracker : ComposePickerTracker {
   override fun registerModification(
     name: String,
     value: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
-    device: Device?
+    device: Device?,
   ) {} // Do nothing
 
   override fun logUsageData() {} // Do nothing

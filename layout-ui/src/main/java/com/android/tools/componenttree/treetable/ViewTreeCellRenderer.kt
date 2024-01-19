@@ -62,7 +62,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     renderer.reset()
     val node = type.clazz.cast(value) ?: return renderer
@@ -205,7 +205,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       text: String?,
       attributes: SimpleTextAttributes,
       metrics: FontMetrics,
-      maxWidth: Int
+      maxWidth: Int,
     ): Boolean {
       var actual = text ?: return true
       var unchanged = true

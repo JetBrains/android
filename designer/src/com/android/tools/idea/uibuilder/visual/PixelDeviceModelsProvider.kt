@@ -42,7 +42,7 @@ val DEVICES_TO_DISPLAY =
     "Pixel 2 XL",
     "Pixel",
     "Pixel XL",
-    "Pixel C"
+    "Pixel C",
   )
 
 private const val EFFECTIVE_FLAGS =
@@ -63,7 +63,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -83,7 +83,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
         deviceCaches[configurationManager] = deviceList
         Disposer.register(
           configurationManager,
-          Disposable { deviceCaches.remove(configurationManager) }
+          Disposable { deviceCaches.remove(configurationManager) },
         )
         deviceList
       }

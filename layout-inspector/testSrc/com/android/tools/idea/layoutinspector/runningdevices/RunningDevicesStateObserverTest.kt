@@ -47,14 +47,14 @@ class RunningDevicesStateObserverTest {
         DeviceId.ofPhysicalDevice("tab1"),
         JPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView()
+        displayViewRule.newEmulatorView(),
       )
     tab2 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab2"),
         JPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView()
+        displayViewRule.newEmulatorView(),
       )
 
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())
@@ -63,7 +63,7 @@ class RunningDevicesStateObserverTest {
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
       fakeToolWindowManager,
-      displayViewRule.disposable
+      displayViewRule.disposable,
     )
   }
 
@@ -141,7 +141,7 @@ class RunningDevicesStateObserverTest {
         emptyList<DeviceId>(),
         listOf(tab1.deviceId),
         listOf(tab1.deviceId, tab2.deviceId),
-        listOf(tab2.deviceId)
+        listOf(tab2.deviceId),
       )
   }
 

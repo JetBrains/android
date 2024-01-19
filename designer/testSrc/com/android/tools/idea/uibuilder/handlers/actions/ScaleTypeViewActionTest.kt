@@ -50,7 +50,7 @@ class ScaleTypeViewActionTest : SceneTest() {
             .id("@id/imageView")
             .width("100dp")
             .height("100dp")
-        )
+        ),
     )
   }
 }

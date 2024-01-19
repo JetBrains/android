@@ -76,7 +76,7 @@ class ComposeProximityWeigherTest {
       package aaa.example.foo
 
       interface Modifier
-      """
+      """,
     )
 
     myFixture.addFileToProject(
@@ -86,7 +86,7 @@ class ComposeProximityWeigherTest {
       package androidx.compose.ui
 
       interface Modifier
-      """
+      """,
     )
 
     val psiFile =
@@ -101,7 +101,7 @@ class ComposeProximityWeigherTest {
       @Composable
       fun HomeScreen(modifier: Mod${caret}ifier) {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val action = myFixture.getIntentionAction("Import class 'Modifier'")!!
@@ -137,7 +137,7 @@ class ComposeProximityWeigherTest {
       package android.graphics;
 
       public class Color {}
-      """
+      """,
     )
 
     myFixture.addFileToProject(
@@ -147,7 +147,7 @@ class ComposeProximityWeigherTest {
       package androidx.compose.ui.graphics
 
       value class Color
-      """
+      """,
     )
 
     myFixture.addFileToProject(
@@ -161,7 +161,7 @@ class ComposeProximityWeigherTest {
 
       @Composable
       fun Surface(color: Color) {}
-      """
+      """,
     )
 
     val psiFile =
@@ -180,7 +180,7 @@ class ComposeProximityWeigherTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val action = myFixture.getIntentionAction("Import class 'Color'")!!
@@ -221,7 +221,7 @@ class ComposeProximityWeigherTest {
       """
           .trimIndent(),
         "ComposableFunction",
-        KtNamedFunction::class.java
+        KtNamedFunction::class.java,
       )
 
     val deprecatedComposableFunction =
@@ -239,7 +239,7 @@ class ComposeProximityWeigherTest {
       """
           .trimIndent(),
         "ComposableFunction",
-        KtNamedFunction::class.java
+        KtNamedFunction::class.java,
       )
 
     val nonComposableFunction =
@@ -253,7 +253,7 @@ class ComposeProximityWeigherTest {
       """
           .trimIndent(),
         "NonComposableFunction",
-        KtNamedFunction::class.java
+        KtNamedFunction::class.java,
       )
 
     val manuallyWeightedElement =
@@ -267,7 +267,7 @@ class ComposeProximityWeigherTest {
       """
           .trimIndent(),
         "Modifier",
-        KtObjectDeclaration::class.java
+        KtObjectDeclaration::class.java,
       )
 
     val locationFile =
@@ -277,7 +277,7 @@ class ComposeProximityWeigherTest {
         """
       package com.example
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val proximityLocation = ProximityLocation(locationFile, myFixture.module)
@@ -286,7 +286,7 @@ class ComposeProximityWeigherTest {
           nonComposableFunction,
           deprecatedComposableFunction,
           composableFunction,
-          manuallyWeightedElement
+          manuallyWeightedElement,
         )
         .sortedByDescending { element ->
           ComposeProximityWeigher().weigh(element, proximityLocation)
@@ -298,7 +298,7 @@ class ComposeProximityWeigherTest {
         manuallyWeightedElement,
         composableFunction,
         nonComposableFunction,
-        deprecatedComposableFunction
+        deprecatedComposableFunction,
       )
       .inOrder()
   }
@@ -307,13 +307,13 @@ class ComposeProximityWeigherTest {
     relativePath: String,
     fileText: String,
     targetElementText: String,
-    targetElementClass: Class<T>
+    targetElementClass: Class<T>,
   ): T {
     val psiFile = myFixture.addFileToProject(relativePath, fileText)
     return runReadAction {
       PsiTreeUtil.getParentOfType(
         psiFile.findElementAt(psiFile.text.indexOf(targetElementText)),
-        targetElementClass
+        targetElementClass,
       )!!
     }
   }

@@ -124,7 +124,7 @@ class EditorBasedTableCellRendererTest {
     ui: FakeUi,
     items: BiMap<ControlType, FakePropertyItem>,
     controlType: ControlType,
-    x: Int
+    x: Int,
   ): Boolean {
     val table = ui.root as PTableImpl
     val item = items[controlType]!!
@@ -160,7 +160,7 @@ class EditorBasedTableCellRendererTest {
     table: PTable,
     renderer: PTableCellRenderer,
     item: PTableItem,
-    emulateExpansionState: TableExpansionState
+    emulateExpansionState: TableExpansionState,
   ): JComponent {
     table.expansionHandler.emulate(emulateExpansionState, item)
     val component =
@@ -171,7 +171,7 @@ class EditorBasedTableCellRendererTest {
         0,
         isSelected = false,
         hasFocus = false,
-        isExpanded = false
+        isExpanded = false,
       ) as JComponent
 
     val wrapped =
@@ -198,7 +198,7 @@ class EditorBasedTableCellRendererTest {
   private fun createTable(
     items: BiMap<ControlType, FakePropertyItem>,
     renderer: PTableCellRenderer,
-    withFakeHandler: Boolean = false
+    withFakeHandler: Boolean = false,
   ): PTable {
     val itemList = items.values.toList()
     val model =
@@ -215,7 +215,7 @@ class EditorBasedTableCellRendererTest {
         override fun invoke(
           table: PTable,
           item: PTableItem,
-          colum: PTableColumn
+          colum: PTableColumn,
         ): PTableCellRenderer = renderer
       }
     return object :
@@ -233,7 +233,7 @@ class EditorBasedTableCellRendererTest {
 
   private fun createRenderer(
     items: BiMap<ControlType, FakePropertyItem>,
-    performLayout: Boolean = false
+    performLayout: Boolean = false,
   ): PTableCellRenderer {
     val controlTypeProvider =
       object : ControlTypeProvider<FakePropertyItem> {
@@ -254,7 +254,7 @@ class EditorBasedTableCellRendererTest {
         controlTypeProvider,
         EditorProvider.create(enumSupportProvider, controlTypeProvider),
         FontSize.NORMAL,
-        DefaultPTableCellRenderer()
+        DefaultPTableCellRenderer(),
       )
     val wrapped =
       object : PTableCellRenderer {
@@ -265,7 +265,7 @@ class EditorBasedTableCellRendererTest {
           depth: Int,
           isSelected: Boolean,
           hasFocus: Boolean,
-          isExpanded: Boolean
+          isExpanded: Boolean,
         ): JComponent? {
           val component =
             renderer.getEditorComponent(
@@ -275,7 +275,7 @@ class EditorBasedTableCellRendererTest {
               depth,
               isSelected,
               hasFocus,
-              isExpanded
+              isExpanded,
             )
           if (performLayout) {
             val row = table.tableModel.items.indexOf(item)
@@ -335,7 +335,7 @@ class EditorBasedTableCellRendererTest {
         "flags",
         listOf("one", "two", "three", "four"),
         listOf(1, 2, 4, 8),
-        "one, two, three"
+        "one, two, three",
       )
     map[ControlType.LINK_EDITOR] = FakeLinkPropertyItem("", "link", "bla bla", link)
     return map
@@ -352,7 +352,7 @@ class EditorBasedTableCellRendererTest {
       ClientProperty.put(
         table.component,
         ExpandableItemsHandler.EXPANDED_RENDERER,
-        state == TableExpansionState.EXPANDED_POPUP
+        state == TableExpansionState.EXPANDED_POPUP,
       )
       isPopupShowing = state == TableExpansionState.EXPANDED_CELL_FOR_POPUP
     }

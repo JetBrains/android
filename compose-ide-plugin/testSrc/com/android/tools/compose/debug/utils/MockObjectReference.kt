@@ -25,7 +25,7 @@ import com.sun.jdi.VirtualMachine
 
 sealed class MockObjectReference(
   private val referenceType: ReferenceType,
-  private val virtualMachine: VirtualMachine
+  private val virtualMachine: VirtualMachine,
 ) : ObjectReference by MockitoKt.mock() {
   override fun toString(): String {
     return "instance of " + referenceType().name()
@@ -40,7 +40,7 @@ sealed class MockObjectReference(
 
 class MockClassObjectReference(
   private val referenceType: ReferenceType,
-  private val virtualMachine: VirtualMachine
+  private val virtualMachine: VirtualMachine,
 ) : ClassObjectReference, MockObjectReference(referenceType, virtualMachine) {
   override fun reflectedType(): ReferenceType = referenceType
 
@@ -59,7 +59,7 @@ class MockClassObjectReference(
 class MockStringReference(
   private val value: String,
   referenceType: ReferenceType,
-  vm: VirtualMachine
+  vm: VirtualMachine,
 ) : StringReference, MockObjectReference(referenceType, vm) {
   override fun value(): String = value
 

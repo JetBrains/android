@@ -36,12 +36,12 @@ interface DatabaseInspectorAnalyticsTracker {
 
   fun trackStatementExecuted(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   )
 
   fun trackStatementExecutionCanceled(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   )
 
   fun trackLiveUpdatedToggled(enabled: Boolean)
@@ -66,7 +66,7 @@ interface DatabaseInspectorAnalyticsTracker {
       AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
-    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
   )
 }
 
@@ -99,7 +99,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
 
   override fun trackStatementExecuted(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   ) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
@@ -111,7 +111,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
 
   override fun trackStatementExecutionCanceled(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   ) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
@@ -174,7 +174,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
       AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
-    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
   ) {
     val event =
       AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.newBuilder()

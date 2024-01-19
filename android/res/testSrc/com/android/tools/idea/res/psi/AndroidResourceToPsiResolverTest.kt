@@ -64,14 +64,14 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
             int n = R.drawable.ic${caret}on;
           }
         }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
     checkFileDeclarations(
       fakePsiElement,
-      arrayOf("drawable/icon.png", "drawable-hdpi/icon.png", "drawable-xhdpi/icon.png")
+      arrayOf("drawable/icon.png", "drawable-hdpi/icon.png", "drawable-xhdpi/icon.png"),
     )
   }
 
@@ -85,7 +85,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"/>
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val file =
       myFixture.addFileToProject(
@@ -98,7 +98,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
             int n = R.layout.la${caret}yout;
           }
         }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -117,7 +117,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
                 int attribute = android.R.drawable.btn_${caret}default;
             }
         }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -143,7 +143,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
               android:layout_height="match_parent"
               android:textColor="@mipmap/ic${caret}on"/>
       </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -153,7 +153,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
 
   private fun checkFileDeclarations(
     fakePsiElement: ResourceReferencePsiElement,
-    expectedFileNames: Array<String>
+    expectedFileNames: Array<String>,
   ) {
     val context = myFixture.file.findElementAt(myFixture.caretOffset)!!
     val fileBasedResources =
@@ -179,7 +179,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
               android:layout_height="match_parent"
               android:textColor="@android:color/secondary${caret}_text_dark"/>
       </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -198,7 +198,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
             <string name="app_name">Captures Application</string>
         </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.addFileToProject(
       "$dynamicFeatureModuleName/res/values/strings.xml",
@@ -208,7 +208,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
             <string name="dynamic_name">Captures Application</string>
         </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -220,7 +220,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
             <string name="references">context<caret></string>
         </resources>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     return myFixture.elementAtCaret
@@ -229,7 +229,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
   private fun addDynamicFeatureModule(
     moduleName: String,
     module: Module,
-    fixture: JavaCodeInsightTestFixture
+    fixture: JavaCodeInsightTestFixture,
   ) {
     val project = module.project
     val dynamicFeatureModule =
@@ -237,11 +237,11 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
         project,
         JavaModuleType.getModuleType(),
         moduleName,
-        fixture.tempDirFixture.findOrCreateDir(moduleName)
+        fixture.tempDirFixture.findOrCreateDir(moduleName),
       )
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "$moduleName/${SdkConstants.FN_ANDROID_MANIFEST_XML}"
+      "$moduleName/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
     )
     addAndroidFacetAndSdk(dynamicFeatureModule)
     enableNamespacing(dynamicFeatureModule.androidFacet!!, "p1.p2.dynamic")
@@ -281,32 +281,32 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
           <color name="newColor">@color/testColor</color>
       </resources>
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     MODULE_WITH_DEPENDENCY_COLOR_FILE =
       myFixture
         .addFileToProject(
           getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml",
-          COLORS_XML
+          COLORS_XML,
         )
         .virtualFile
     MODULE_WITHOUT_DEPENDENCY_COLOR_FILE =
       myFixture
         .addFileToProject(
           getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
-          COLORS_XML
+          COLORS_XML,
         )
         .virtualFile
 
     enableNamespacing("p1.p2")
     enableNamespacing(
       getAdditionalModuleByName(MODULE_WITH_DEPENDENCY)!!.androidFacet!!,
-      "p1.p2.module_with_dep"
+      "p1.p2.module_with_dep",
     )
     enableNamespacing(
       getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY)!!.androidFacet!!,
-      "p1.p2.module_without_dep"
+      "p1.p2.module_without_dep",
     )
   }
 
@@ -321,33 +321,33 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
+    modules: MutableList<MyAdditionalModuleData>,
   ) {
     addModuleWithAndroidFacet(
       projectBuilder,
       modules,
       MODULE_WITHOUT_DEPENDENCY,
       AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      false
+      false,
     )
     addModuleWithAndroidFacet(
       projectBuilder,
       modules,
       MODULE_WITH_DEPENDENCY,
       AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true
+      true,
     )
   }
 
   private fun checkScopePerModuleForOpenFile(
     mainModule: Boolean,
     moduleWithDependency: Boolean,
-    moduleWithoutDependency: Boolean
+    moduleWithoutDependency: Boolean,
   ) {
     val scope =
       ResourceRepositoryToPsiResolver.getResourceSearchScope(
         (myFixture.elementAtCaret as ResourceReferencePsiElement).resourceReference,
-        myFixture.file.findElementAt(myFixture.caretOffset)!!
+        myFixture.file.findElementAt(myFixture.caretOffset)!!,
       )
     assertThat(scope.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
     assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
@@ -361,7 +361,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkScopePerModuleForOpenFile(
       mainModule = true,
       moduleWithDependency = true,
-      moduleWithoutDependency = false
+      moduleWithoutDependency = false,
     )
 
     myFixture.configureFromExistingVirtualFile(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)
@@ -369,7 +369,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkScopePerModuleForOpenFile(
       mainModule = false,
       moduleWithDependency = false,
-      moduleWithoutDependency = true
+      moduleWithoutDependency = true,
     )
 
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_USAGE_COLOR_FILE)
@@ -377,7 +377,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkScopePerModuleForOpenFile(
       mainModule = true,
       moduleWithDependency = false,
-      moduleWithoutDependency = false
+      moduleWithoutDependency = false,
     )
 
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_COLOR_FILE)
@@ -385,7 +385,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkScopePerModuleForOpenFile(
       mainModule = true,
       moduleWithDependency = false,
-      moduleWithoutDependency = false
+      moduleWithoutDependency = false,
     )
   }
 
@@ -398,7 +398,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
         .resolveReference(
           ResourceValue.referenceTo('@', null, "string", "app_name"),
           elementAtCaret as XmlElement,
-          elementAtCaret.androidFacet!!
+          elementAtCaret.androidFacet!!,
         )
     assertThat(appNameReference).isNotEmpty()
     with((appNameReference[0].element as ResourceReferencePsiElement).resourceReference) {
@@ -409,7 +409,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
         .resolveReference(
           ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
           elementAtCaret,
-          elementAtCaret.androidFacet!!
+          elementAtCaret.androidFacet!!,
         )
     assertThat(dynamicNameReference).isEmpty()
     val appNameReferenceIncluded =
@@ -417,7 +417,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
         .resolveReferenceWithDynamicFeatureModules(
           ResourceValue.referenceTo('@', null, "string", "app_name"),
           elementAtCaret,
-          elementAtCaret.androidFacet!!
+          elementAtCaret.androidFacet!!,
         )
     assertThat(appNameReferenceIncluded).isNotEmpty()
     with((appNameReferenceIncluded[0].element as ResourceReferencePsiElement).resourceReference) {
@@ -428,7 +428,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
         .resolveReferenceWithDynamicFeatureModules(
           ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
           elementAtCaret,
-          elementAtCaret.androidFacet!!
+          elementAtCaret.androidFacet!!,
         )
     assertThat(dynamicNameReferenceIncluded).isNotEmpty()
     with(
@@ -453,7 +453,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
             int n = R.drawable.ic${caret}on;
           }
         }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -493,7 +493,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
             int n = R.string.ex${caret}ample;
           }
         }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -514,7 +514,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     resourceReferencePsiElement: ResourceReferencePsiElement,
     context: PsiElement,
     locale: Locale,
-    expectedFileName: String
+    expectedFileName: String,
   ) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.localeQualifier = locale.qualifier
@@ -522,7 +522,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
           resourceReferencePsiElement.resourceReference,
           context,
-          folderConfiguration
+          folderConfiguration,
         )!!
         .containingFile
     assertThat(
@@ -535,7 +535,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     resourceReferencePsiElement: ResourceReferencePsiElement,
     context: PsiElement,
     density: Density,
-    expectedFileName: String
+    expectedFileName: String,
   ) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.densityQualifier = DensityQualifier(density)
@@ -543,7 +543,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
           resourceReferencePsiElement.resourceReference,
           context,
-          folderConfiguration
+          folderConfiguration,
         )!!
         .containingFile
     assertThat(

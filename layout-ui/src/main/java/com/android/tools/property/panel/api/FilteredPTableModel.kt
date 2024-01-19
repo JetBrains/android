@@ -71,7 +71,7 @@ inline fun <reified P : PropertyItem> FilteredPTableModel(
   keepNewAfterFlyAway: Boolean = true,
   allowEditing: Boolean = true,
   noinline valueEditable: (P) -> Boolean = { true },
-  noinline hasCustomCursor: (P) -> Boolean = { false }
+  noinline hasCustomCursor: (P) -> Boolean = { false },
 ): FilteredPTableModel<P> {
   return FilteredPTableModelImpl(
     P::class.java,
@@ -84,6 +84,6 @@ inline fun <reified P : PropertyItem> FilteredPTableModel(
     keepNewAfterFlyAway,
     allowEditing,
     valueEditable,
-    hasCustomCursor
+    hasCustomCursor,
   )
 }

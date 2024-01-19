@@ -37,7 +37,7 @@ internal abstract class PopupActionGroupAction(
         DefaultActionGroup(getPopupActions()),
         e.dataContext,
         null,
-        true
+        true,
       )
       .showUnderneathOf(e.inputEvent!!.component)
   }

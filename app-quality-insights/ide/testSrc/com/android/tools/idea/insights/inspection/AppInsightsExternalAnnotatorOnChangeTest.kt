@@ -62,10 +62,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
 
   @Test
   fun `annotations are not shifted if error vcs info`() {
-    val original =
-      listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(errorAppVcsInfo)),
-      )
+    val original = listOf(buildAppInsight(Frame(line = 4), buildIssue(errorAppVcsInfo)))
 
     withFakedInsights(original)
 
@@ -93,16 +90,13 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, original)),
-      afterLineToInsights = listOf(LineToInsights(3, original))
+      afterLineToInsights = listOf(LineToInsights(3, original)),
     )
   }
 
   @Test
   fun `annotations are not shifted if no vcs info`() {
-    val original =
-      listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(AppVcsInfo.NONE)),
-      )
+    val original = listOf(buildAppInsight(Frame(line = 4), buildIssue(AppVcsInfo.NONE)))
 
     withFakedInsights(original)
 
@@ -130,16 +124,13 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, original)),
-      afterLineToInsights = listOf(LineToInsights(3, original))
+      afterLineToInsights = listOf(LineToInsights(3, original)),
     )
   }
 
   @Test
   fun `annotations are shifted when adding a line`() {
-    val original =
-      listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)),
-      )
+    val original = listOf(buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)))
 
     withFakedInsights(original)
 
@@ -173,10 +164,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
 
   @Test
   fun `annotations are shifted when deleting a line`() {
-    val original =
-      listOf(
-        buildAppInsight(Frame(line = 5), buildIssue(validAppVcsInfo)),
-      )
+    val original = listOf(buildAppInsight(Frame(line = 5), buildIssue(validAppVcsInfo)))
 
     withFakedInsights(original)
 
@@ -210,10 +198,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
 
   @Test
   fun `annotations are gone when touching the line`() {
-    val expected =
-      listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)),
-      )
+    val expected = listOf(buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)))
 
     withFakedInsights(expected)
 
@@ -249,7 +234,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
     beforeSource: String,
     afterSource: String,
     beforeLineToInsights: List<LineToInsights>,
-    afterLineToInsights: List<LineToInsights>
+    afterLineToInsights: List<LineToInsights>,
   ) {
     val psiFile = projectRule.fixture.addFileToProject("src/$fileName", beforeSource)
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)

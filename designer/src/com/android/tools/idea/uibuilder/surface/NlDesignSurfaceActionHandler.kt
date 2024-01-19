@@ -31,7 +31,7 @@ class NlDesignSurfaceActionHandler
 @JvmOverloads
 constructor(
   surface: DesignSurface<*>,
-  @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
+  @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance(),
 ) : DesignSurfaceActionHandler(surface, copyPasteManager) {
 
   override fun deleteElement(dataContext: DataContext) {
@@ -65,7 +65,7 @@ constructor(
 
   override fun canHandleChildren(
     component: NlComponent,
-    pasted: MutableList<NlComponent>
+    pasted: MutableList<NlComponent>,
   ): Boolean {
     val handlerManager = ViewHandlerManager.get(component.model.project)
     val handler = handlerManager.getHandler(component) {}

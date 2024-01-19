@@ -42,7 +42,7 @@ class AccessibilityViewInfoTest {
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
         ),
-        false
+        false,
       )
     val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
     try {

@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.DateFormatDetector
 class AndroidLintWeekBasedYearInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.week.based.year"),
-    DateFormatDetector.WEEK_YEAR
+    DateFormatDetector.WEEK_YEAR,
   )

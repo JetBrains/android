@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.SelectedPhotoAccessDetector
 class AndroidLintSelectedPhotoAccessInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.selected.photo.access"),
-    SelectedPhotoAccessDetector.ISSUE
+    SelectedPhotoAccessDetector.ISSUE,
   )

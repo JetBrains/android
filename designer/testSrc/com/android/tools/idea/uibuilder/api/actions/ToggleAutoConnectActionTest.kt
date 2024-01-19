@@ -49,7 +49,7 @@ class ToggleAutoConnectActionTest : AndroidTestCase() {
 
     assertEquals(
       ToggleAutoConnectAction.isAutoconnectOn(),
-      action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren)
+      action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren),
     )
 
     action.setSelected(mockEditor, mockHandler, mockParent, selectedChildren, true)

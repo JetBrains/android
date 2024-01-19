@@ -24,9 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * represented by this ActionGroup in the device selector, which expands to show the various target
  * options.
  */
-internal class SnapshotActionGroup(
-  val device: DeploymentTargetDevice,
-) : ActionGroup() {
+internal class SnapshotActionGroup(val device: DeploymentTargetDevice) : ActionGroup() {
   init {
     isPopup = true
   }

@@ -71,7 +71,7 @@ object RecipeUtils {
         outputRoot = rootPath,
         moduleRoot = moduleRoot,
         dryRun = false,
-        showErrors = true
+        showErrors = true,
       )
 
     // TODO(b/149085696): create logging events for Firebase?
@@ -123,7 +123,7 @@ object RecipeUtils {
         outputRoot = rootPath,
         moduleRoot = moduleRoot,
         dryRun = false,
-        showErrors = true
+        showErrors = true,
       )
 
     writeCommandAction(module.project).withName("Executing recipe instructions").run<Exception> {
@@ -145,7 +145,7 @@ object RecipeUtils {
             uri: String,
             localName: String,
             tagName: String,
-            attributes: Attributes
+            attributes: Attributes,
           ) {
             if (
               tagName == SdkConstants.TAG_USES_PERMISSION ||
@@ -161,7 +161,7 @@ object RecipeUtils {
               metadata.permissions.add(permission)
             }
           }
-        }
+        },
       )
     } catch (e: Exception) {
       // This method shouldn't crash the user for any reason, as showing permissions is just

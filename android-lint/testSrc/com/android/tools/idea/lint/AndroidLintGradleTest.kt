@@ -63,7 +63,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           private String path = "/sdcard/foo"; // Deliberate lint warning
                                 ~~~~~~~~~~~~~
           Fix: Suppress SdCardPath with an annotation
-      """
+      """,
     )
   }
 
@@ -77,7 +77,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       debug,
       AndroidLintMockLocationInspection(),
       "android.permission.ACCESS_|MOCK_LOCATION",
-      "No warnings."
+      "No warnings.",
     )
     val main = myFixture.loadFile("app/src/main/AndroidManifest.xml")
 
@@ -91,7 +91,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           Fix: Move to debug-specific manifest
           Fix: Suppress: Add tools:ignore="MockLocation" attribute
-      """
+      """,
     )
   }
 
@@ -119,7 +119,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
         Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.O) { ... }
         Fix: Add @RequiresApi(O) Annotation
         Fix: Suppress NewApi with an annotation
-    """
+    """,
     )
 
     val unitTestFile = myFixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
@@ -134,7 +134,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
         Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.N) { ... }
         Fix: Add @RequiresApi(N) Annotation
         Fix: Suppress NewApi with an annotation
-    """
+    """,
     )
 
     val androidTestFile =
@@ -143,13 +143,13 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       androidTestFile,
       AndroidLintNewApiInspection(),
       "LocalDate.n|ow",
-      "No warnings."
+      "No warnings.",
     )
     myFixture.checkLint(
       androidTestFile,
       AndroidLintNewApiInspection(),
       "collection.st|ream",
-      "No warnings."
+      "No warnings.",
     )
   }
 
@@ -169,7 +169,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           Fix: Replace with valueOf()
           Fix: Suppress UseValueOf with an annotation
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -182,7 +182,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
 
   fun doGlobalInspectionTest(
     tool: GlobalInspectionTool,
-    scope: AnalysisScope
+    scope: AnalysisScope,
   ): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     // We can't just override
     //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
@@ -216,7 +216,7 @@ fun JavaCodeInsightTestFixture.checkLint(
   psiFile: PsiFile,
   inspection: AndroidLintInspectionBase,
   caret: String,
-  expected: String
+  expected: String,
 ) {
   AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
   enableInspections(inspection)
@@ -265,6 +265,6 @@ fun JavaCodeInsightTestFixture.checkLint(
 
   AndroidGradleTestCase.assertEquals(
     expected.trimIndent().trim(),
-    sb.toString().trimIndent().trim()
+    sb.toString().trimIndent().trim(),
   )
 }

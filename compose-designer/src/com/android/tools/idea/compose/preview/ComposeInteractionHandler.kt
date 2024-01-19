@@ -43,7 +43,7 @@ private val colorAttributeValue = Color(0x80, 0x17, 0x8B)
 
 open class ComposeNavigationInteractionHandler(
   surface: DesignSurface<*>,
-  private val base: InteractionHandler
+  private val base: InteractionHandler,
 ) : InteractionHandler by base {
 
   private val inspector =
@@ -54,7 +54,7 @@ open class ComposeNavigationInteractionHandler(
           sceneView.scene.root?.nlComponent?.viewInfo ?: return@ComposePreviewInspector emptyList()
         parseViewInfo(info, Logger.getInstance(ComposeNavigationInteractionHandler::class.java))
       },
-      TooltipPopupCreator(surface)
+      TooltipPopupCreator(surface),
     )
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int) = null
@@ -64,7 +64,7 @@ open class ComposeNavigationInteractionHandler(
   override fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ) {
     base.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx)
     inspector.inspect(mouseX, mouseY)
@@ -78,7 +78,7 @@ open class ComposeNavigationInteractionHandler(
     override fun invoke(
       viewInfos: List<ComposeViewInfo>,
       @SwingCoordinate swingX: Int,
-      @SwingCoordinate swingY: Int
+      @SwingCoordinate swingY: Int,
     ) {
       if (viewInfos.isEmpty()) {
         currentViewInfo = null

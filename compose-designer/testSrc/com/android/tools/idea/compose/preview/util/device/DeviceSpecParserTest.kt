@@ -38,7 +38,7 @@ class DeviceSpecParserTest :
           PsiElement(STRING_T)('my_device_spec')
       """
         .trimIndent(),
-      toParseTreeText("id:my_device_spec")
+      toParseTreeText("id:my_device_spec"),
     )
 
     assertEquals(
@@ -49,7 +49,7 @@ class DeviceSpecParserTest :
           PsiElement(STRING_T)('A Device Name')
       """
         .trimIndent(),
-      toParseTreeText("name:A Device Name")
+      toParseTreeText("name:A Device Name"),
     )
 
     assertEquals(
@@ -93,7 +93,7 @@ class DeviceSpecParserTest :
         .trimIndent(),
       toParseTreeText(
         "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait"
-      )
+      ),
     )
   }
 
@@ -134,7 +134,7 @@ class DeviceSpecParserTest :
           name=my_device
       """
           .trimIndent()
-      )
+      ),
     )
   }
 
@@ -149,7 +149,7 @@ class DeviceSpecParserTest :
           PsiElement(STRING_T)('1080.0px')
       """
         .trimIndent(),
-      toParseTreeText("id:1080.0px")
+      toParseTreeText("id:1080.0px"),
     )
     assertEquals(
       """
@@ -159,7 +159,7 @@ class DeviceSpecParserTest :
           PsiElement(STRING_T)('1080.0px')
       """
         .trimIndent(),
-      toParseTreeText("name:1080.0px")
+      toParseTreeText("name:1080.0px"),
     )
     assertEquals(
       """
@@ -173,7 +173,7 @@ class DeviceSpecParserTest :
               PsiElement(STRING_T)('1080.0px')
       """
         .trimIndent(),
-      toParseTreeText("spec:parent=1080.0px")
+      toParseTreeText("spec:parent=1080.0px"),
     )
 
     // Same value on width parameter is a SIZE_T element with Numeric + px tokens
@@ -192,7 +192,7 @@ class DeviceSpecParserTest :
                   PsiElement(px)('px')
       """
         .trimIndent(),
-      toParseTreeText("spec:width=1080.0px")
+      toParseTreeText("spec:width=1080.0px"),
     )
     assertEquals(
       """
@@ -209,7 +209,7 @@ class DeviceSpecParserTest :
                   PsiElement(px)('px')
       """
         .trimIndent(),
-      toParseTreeText("spec:width= 1080px ")
+      toParseTreeText("spec:width= 1080px "),
     )
 
     assertEquals(
@@ -230,7 +230,7 @@ class DeviceSpecParserTest :
                 PsiElement(landscape)('landscape')
       """
         .trimIndent(),
-      toParseTreeText("spec:parent=1024.0px by 1800.0px Custom,orientation=landscape")
+      toParseTreeText("spec:parent=1024.0px by 1800.0px Custom,orientation=landscape"),
     )
 
     // Error on unsupported characters
@@ -248,7 +248,7 @@ class DeviceSpecParserTest :
           PsiElement(BAD_CHARACTER)('e')
       """
         .trimIndent(),
-      toParseTreeText("spec:width=e 1080px e")
+      toParseTreeText("spec:width=e 1080px e"),
     )
   }
 }

@@ -51,7 +51,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -95,7 +95,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
         firstModel,
         currentFileConfig,
         defaultLocaleConfig,
-        EFFECTIVE_FLAGS
+        EFFECTIVE_FLAGS,
       )
     }
 

@@ -41,7 +41,7 @@ data class IssueResponse(
   val versions: List<WithCount<Version>>,
   val devices: List<WithCount<Device>>,
   val operatingSystems: List<WithCount<OperatingSystemInfo>>,
-  val permission: Permission
+  val permission: Permission,
 )
 
 interface AppInsightsClient {
@@ -51,18 +51,18 @@ interface AppInsightsClient {
     request: IssueRequest,
     fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource? = null,
     mode: ConnectionMode = ConnectionMode.ONLINE,
-    permission: Permission = Permission.NONE
+    permission: Permission = Permission.NONE,
   ): LoadingState.Done<IssueResponse>
 
   suspend fun getIssueVariants(
     request: IssueRequest,
-    issueId: IssueId
+    issueId: IssueId,
   ): LoadingState.Done<List<IssueVariant>>
 
   suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest,
-    variantId: String? = null
+    variantId: String? = null,
   ): LoadingState.Done<DetailedIssueStats?>
 
   suspend fun listEvents(
@@ -70,25 +70,25 @@ interface AppInsightsClient {
     variantId: String?,
     request: IssueRequest,
     failureType: FailureType,
-    token: String?
+    token: String?,
   ): LoadingState.Done<EventPage>
 
   suspend fun updateIssueState(
     connection: Connection,
     issueId: IssueId,
-    state: IssueState
+    state: IssueState,
   ): LoadingState.Done<Unit>
 
   suspend fun listNotes(
     connection: Connection,
     issueId: IssueId,
-    mode: ConnectionMode
+    mode: ConnectionMode,
   ): LoadingState.Done<List<Note>>
 
   suspend fun createNote(
     connection: Connection,
     issueId: IssueId,
-    message: String
+    message: String,
   ): LoadingState.Done<Note>
 
   suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit>

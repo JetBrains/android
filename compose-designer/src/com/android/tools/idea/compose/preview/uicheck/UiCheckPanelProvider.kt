@@ -34,7 +34,7 @@ val TAB_VIRTUAL_FILE: Key<VirtualFile> =
 
 class UiCheckPanelProvider(
   private val instance: ComposePreviewElementInstance,
-  private val psiPointer: SmartPsiElementPointer<PsiFile>
+  private val psiPointer: SmartPsiElementPointer<PsiFile>,
 ) : ProblemsViewPanelProvider {
   override fun create(): ProblemsViewTab? {
     val project = psiPointer.project

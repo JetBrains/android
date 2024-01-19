@@ -35,7 +35,7 @@ internal data class TestIssue(
   override val source: IssueSource = EmptyIssueSource,
   override val category: String = "",
   val fixList: List<Fix> = emptyList(),
-  override val hyperlinkListener: HyperlinkListener? = null
+  override val hyperlinkListener: HyperlinkListener? = null,
 ) : Issue() {
 
   override val fixes: Stream<Fix>
@@ -83,7 +83,7 @@ fun createTestVisualLintRenderIssue(
   type: VisualLintErrorType,
   components: List<NlComponent>,
   issueProvider: VisualLintIssueProvider,
-  summary: String = ""
+  summary: String = "",
 ): VisualLintRenderIssue {
   return VisualLintRenderIssue.builder()
     .model(components.first().model)

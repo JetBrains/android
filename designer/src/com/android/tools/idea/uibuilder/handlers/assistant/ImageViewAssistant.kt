@@ -56,7 +56,7 @@ private const val NONE_VALUE = "None"
  */
 class ImageViewAssistant(
   private val context: ComponentAssistantFactory.Context,
-  private val imageHandler: ImageViewHandler
+  private val imageHandler: ImageViewHandler,
 ) {
   private val nlComponent = context.component
 
@@ -123,11 +123,11 @@ class ImageViewAssistant(
               .getSampleDataOfType(IMAGE)
               .toList()
           },
-          AppExecutorUtil.getAppExecutorService()
+          AppExecutorUtil.getAppExecutorService(),
         )
         .whenCompleteAsync(
           { sampleDataItems, _ -> populateWidget(sampleDataItems) },
-          EdtExecutorService.getScheduledExecutorInstance()
+          EdtExecutorService.getScheduledExecutorInstance(),
         )
   }
 
@@ -168,7 +168,7 @@ class ImageViewAssistant(
         nlComponent.model.facet.module,
         DefaultListModel<ResourceValue>(),
         IMAGE_SIZE,
-        ITEM_COUNT.toLong()
+        ITEM_COUNT.toLong(),
       )
       .apply {
         isOpaque = false
@@ -260,7 +260,7 @@ class ImageViewAssistant(
         showColorStateLists = true,
         showSampleData = true,
         showThemeAttributes = true,
-        file = virtualFile
+        file = virtualFile,
       )
 
     if (dialog.showAndGet()) {

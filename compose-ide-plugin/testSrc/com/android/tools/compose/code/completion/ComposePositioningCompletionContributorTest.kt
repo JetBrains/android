@@ -90,7 +90,7 @@ class ComposePositioningCompletionContributorTest {
         val Right: Alignment.Horizontal = object : Alignment.Horizontal {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -123,7 +123,7 @@ class ComposePositioningCompletionContributorTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -152,7 +152,7 @@ class ComposePositioningCompletionContributorTest {
           content: @Composable () -> Unit
       ) {}
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -173,7 +173,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithAlignment(<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -182,16 +182,9 @@ class ComposePositioningCompletionContributorTest {
     // `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings.subList(0, 3))
-      .containsExactly(
-        "Alignment.Start",
-        "Alignment.CenterHorizontally",
-        "Alignment.End",
-      )
+      .containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
     assertThat(lookupStrings.subList(3, 5))
-      .containsExactly(
-        "AbsoluteAlignment.Left",
-        "AbsoluteAlignment.Right",
-      )
+      .containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
 
     val alignmentStartLookupItem =
       myFixture.lookupElements?.find { it.lookupString == "Alignment.Start" }!!
@@ -236,7 +229,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithAlignment(<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -245,16 +238,9 @@ class ComposePositioningCompletionContributorTest {
     // `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings.subList(0, 3))
-      .containsExactly(
-        "Alignment.Start",
-        "Alignment.CenterHorizontally",
-        "Alignment.End",
-      )
+      .containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
     assertThat(lookupStrings.subList(3, 5))
-      .containsExactly(
-        "AbsoluteAlignment.Left",
-        "AbsoluteAlignment.Right",
-      )
+      .containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
 
     val alignmentStartLookupItem =
       myFixture.lookupElements?.find { it.lookupString == "AbsoluteAlignment.Left" }!!
@@ -299,7 +285,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithAlignment(Alignment.<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -307,12 +293,7 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Horizontal entries on `Alignment` should come first. No entries from
     // `AbsoluteAlignment` should be present.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 3))
-      .containsExactly(
-        "Start",
-        "CenterHorizontally",
-        "End",
-      )
+    assertThat(lookupStrings.subList(0, 3)).containsExactly("Start", "CenterHorizontally", "End")
 
     assertThat(lookupStrings).doesNotContain("AbsoluteAlignment.Left")
     assertThat(lookupStrings).doesNotContain("AbsoluteAlignment.Right")
@@ -360,7 +341,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithAlignment(verticalAlignment = <caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.completeBasic()
 
@@ -368,11 +349,7 @@ class ComposePositioningCompletionContributorTest {
     // Vertical entries on `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings.subList(0, 3))
-      .containsExactly(
-        "Alignment.Top",
-        "Alignment.CenterVertically",
-        "Alignment.Bottom",
-      )
+      .containsExactly("Alignment.Top", "Alignment.CenterVertically", "Alignment.Bottom")
 
     val centerVerticallyLookupElement =
       myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterVertically" }!!
@@ -416,7 +393,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithAlignment(twoDimensionalAlignment = <caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.completeBasic()
 
@@ -487,7 +464,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -556,7 +533,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -625,7 +602,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(Arrangement.<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -634,14 +611,7 @@ class ComposePositioningCompletionContributorTest {
     // `Arrangement.Absolute`.
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings.subList(0, 6))
-      .containsExactly(
-        "Start",
-        "End",
-        "Center",
-        "SpaceEvenly",
-        "SpaceBetween",
-        "SpaceAround",
-      )
+      .containsExactly("Start", "End", "Center", "SpaceEvenly", "SpaceBetween", "SpaceAround")
     assertThat(lookupStrings.subList(6, 12))
       .containsExactly(
         "Absolute.Left",
@@ -694,7 +664,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(Arrangement.Absolute.<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -749,7 +719,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(verticalArrangement = <caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.completeBasic()
 
@@ -807,7 +777,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(horizontalOrVerticalArrangement = <caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.completeBasic()
 
@@ -868,7 +838,7 @@ class ComposePositioningCompletionContributorTest {
         RowWithArrangement(horizontalArrangement = Arrangement.Absolute.L)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.moveCaret("(horizontalArrangement = A|)")

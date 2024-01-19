@@ -27,7 +27,7 @@ internal class PauseLogcatAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.pause.action.pause.text"),
     "",
-    AllIcons.Actions.Pause
+    AllIcons.Actions.Pause,
   ) {
 
   override fun update(e: AnActionEvent) {

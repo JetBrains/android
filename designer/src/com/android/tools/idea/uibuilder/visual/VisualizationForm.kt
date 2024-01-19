@@ -93,7 +93,7 @@ import org.jetbrains.annotations.VisibleForTesting
 class VisualizationForm(
   private val project: Project,
   parentDisposable: Disposable,
-  private val initializer: ContentInitializer
+  private val initializer: ContentInitializer,
 ) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
@@ -125,7 +125,7 @@ class VisualizationForm(
       NlConstants.DEFAULT_SCREEN_OFFSET_Y,
       GRID_HORIZONTAL_SCREEN_DELTA,
       VERTICAL_SCREEN_DELTA,
-      false
+      false,
     )
   private val myUpdateQueue: MergingUpdateQueue
 
@@ -214,7 +214,7 @@ class VisualizationForm(
         null,
         this,
         null,
-        Alarm.ThreadToUse.POOLED_THREAD
+        Alarm.ThreadToUse.POOLED_THREAD,
       )
     myUpdateQueue.setRestartTimerOnAdd(true)
 
@@ -382,7 +382,7 @@ class VisualizationForm(
           }
           models
         },
-        AppExecutorUtil.getAppExecutorService()
+        AppExecutorUtil.getAppExecutorService(),
       )
       .thenAcceptAsync(
         { models: List<NlModel>? ->
@@ -425,10 +425,10 @@ class VisualizationForm(
                 removeAndDisposeModels(models)
               }
             },
-            EdtExecutorService.getInstance()
+            EdtExecutorService.getInstance(),
           )
         },
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
   }
 
@@ -654,7 +654,7 @@ class VisualizationForm(
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       myLayoutManager.setLayoutManager(
         myGridSurfaceLayoutManager,
-        DesignSurface.SceneViewAlignment.LEFT
+        DesignSurface.SceneViewAlignment.LEFT,
       )
       refresh()
     }

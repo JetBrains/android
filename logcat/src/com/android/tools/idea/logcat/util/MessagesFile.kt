@@ -39,10 +39,7 @@ private val logger = Logger.getInstance(MessagesFile::class.java)
  * rather than deleting entries from the start of the file when the size is exceeded, we keep a
  * rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is OK.
  */
-internal class MessagesFile(
-  private val name: String,
-  private val maxSizeBytes: Int,
-) {
+internal class MessagesFile(private val name: String, private val maxSizeBytes: Int) {
   private val tempFileFactory = TempFileFactory.getInstance()
   private var file: Path? = null
   private var previousFile: Path? = null

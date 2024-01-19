@@ -59,7 +59,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 2 errors found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       val notificationsPath: Path =
@@ -69,7 +69,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 1 error found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       val homePath: Path =
@@ -79,7 +79,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 2 errors found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       // Make button 100dp wide instead of 0dp (corresponding to match_parent). That should fix one
@@ -88,7 +88,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 1 error found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
     }
   }

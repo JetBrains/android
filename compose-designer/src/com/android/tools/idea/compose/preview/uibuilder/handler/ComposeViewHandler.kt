@@ -33,6 +33,6 @@ class ComposeViewAdapterHandler : ViewGroupHandler() {
     screenView: ScreenView,
     x: Int,
     y: Int,
-    component: NlComponent
+    component: NlComponent,
   ): Interaction? = SceneInteraction(screenView)
 }

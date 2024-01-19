@@ -63,7 +63,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
           object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
             override fun renderAsync(
               trigger: LayoutEditorRenderResult.Trigger?,
-              ignore: AtomicBoolean
+              ignore: AtomicBoolean,
             ): CompletableFuture<RenderResult> {
               return CompletableFuture.completedFuture(null)
             }
@@ -207,9 +207,9 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
                   .withBounds(0, 0, 100, 100)
                   .id("@+id/text3")
                   .wrapContentWidth()
-                  .wrapContentHeight()
-              )
-          )
+                  .wrapContentHeight(),
+              ),
+          ),
       )
     return builder.build()
   }

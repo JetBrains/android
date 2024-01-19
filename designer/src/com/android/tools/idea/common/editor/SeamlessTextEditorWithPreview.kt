@@ -50,7 +50,7 @@ fun <P : FileEditor> SeamlessTextEditorWithPreview<P>.setEditorLayout(
 open class SeamlessTextEditorWithPreview<P : FileEditor>(
   textEditor: TextEditor,
   preview: P,
-  editorName: String
+  editorName: String,
 ) : SplitEditor<P>(textEditor, preview, editorName) {
 
   private var toolbarComponent: Component? = null

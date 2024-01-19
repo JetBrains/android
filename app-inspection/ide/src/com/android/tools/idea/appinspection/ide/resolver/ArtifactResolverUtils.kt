@@ -21,9 +21,8 @@ import com.intellij.util.io.ZipUtil
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.exists
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
 import kotlin.io.path.isDirectory
+import kotlinx.coroutines.withContext
 
 /**
  * Unzips the library to a temporary scratch directory if it's a zip.
@@ -34,8 +33,7 @@ suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) =
   withContext(AndroidDispatchers.diskIoThread) {
     if (libraryPath.isDirectory()) {
       libraryPath
-    }
-    else {
+    } else {
       ZipUtil.extract(libraryPath, targetDir) { _, name -> name == INSPECTOR_JAR }
       targetDir
     }

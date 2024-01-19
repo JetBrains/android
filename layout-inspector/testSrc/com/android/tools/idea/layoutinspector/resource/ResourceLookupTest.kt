@@ -61,7 +61,7 @@ class ResourceLookupTest {
       process,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120)
+      screenSize = Dimension(1440, 3120),
     )
     assertThat(resourceLookup.resolver).isNotNull()
     assertThat(resourceLookup.displayOrientation).isEqualTo(90)
@@ -80,7 +80,7 @@ class ResourceLookupTest {
       process,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120)
+      screenSize = Dimension(1440, 3120),
     )
     assertThat(resourceLookup.resolver).isNotNull()
   }
@@ -107,7 +107,7 @@ class ResourceLookupTest {
         PropertySection.DECLARED,
         null,
         title.drawId,
-        context
+        context,
       )
     val icon = context.resourceLookup.resolveAsIcon(property.value, title)
     assertThat(icon)

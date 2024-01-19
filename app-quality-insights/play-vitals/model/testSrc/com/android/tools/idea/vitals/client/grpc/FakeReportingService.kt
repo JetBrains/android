@@ -30,11 +30,11 @@ import kotlinx.coroutines.channels.SendChannel
 
 class FakeReportingService(
   private val connection: VitalsConnection,
-  private val requestChannel: SendChannel<GeneratedMessageV3>? = null
+  private val requestChannel: SendChannel<GeneratedMessageV3>? = null,
 ) : ReportingServiceImplBase() {
   override fun fetchReleaseFilterOptions(
     request: FetchReleaseFilterOptionsRequest,
-    responseObserver: StreamObserver<ReleaseFilterOptions>
+    responseObserver: StreamObserver<ReleaseFilterOptions>,
   ) {
     requestChannel?.trySend(request)
     responseObserver.onNext(
@@ -64,7 +64,7 @@ class FakeReportingService(
 
   override fun searchAccessibleApps(
     request: SearchAccessibleAppsRequest,
-    responseObserver: StreamObserver<SearchAccessibleAppsResponse>
+    responseObserver: StreamObserver<SearchAccessibleAppsResponse>,
   ) {
     requestChannel?.trySend(request)
     responseObserver.onNext(

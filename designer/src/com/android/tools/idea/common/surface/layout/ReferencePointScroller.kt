@@ -33,7 +33,7 @@ open class ReferencePointScroller(
   oldScale: Double,
   newScale: Double,
   private val oldRectangles: Map<SceneView, Rectangle?> = emptyMap(),
-  private val newRectangleProvider: (SceneView) -> Rectangle? = { null }
+  private val newRectangleProvider: (SceneView) -> Rectangle? = { null },
 ) : DesignSurfaceViewportScroller {
   private val scaleChange = newScale / maxOf(oldScale, 1e-6)
 
@@ -56,7 +56,7 @@ open class ReferencePointScroller(
           oldScrollPosition.x,
           oldReferencePoint.x,
           newReferencePoint.x,
-          portSize.width
+          portSize.width,
         )
       }
     val newViewPositionY =
@@ -66,7 +66,7 @@ open class ReferencePointScroller(
           oldScrollPosition.y,
           oldReferencePoint.y,
           newReferencePoint.y,
-          portSize.height
+          portSize.height,
         )
       }
     port.viewPosition = Point(newViewPositionX, newViewPositionY)
@@ -80,7 +80,7 @@ open class ReferencePointScroller(
     oldScrollPosition: Int,
     oldReference: Int,
     newReference: Int,
-    maxDistance: Int
+    maxDistance: Int,
   ): Int {
     val distance = (oldReference - oldScrollPosition).coerceIn(0, maxDistance)
     return (newReference - distance).coerceAtLeast(0)

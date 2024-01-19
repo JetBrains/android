@@ -56,7 +56,7 @@ class SingleStateTest {
           Mockito.mock(DesignSurface::class.java),
           ElementState("Title"),
           state.extraActions,
-          NoopAnimationTracker
+          NoopAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
 

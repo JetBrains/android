@@ -49,7 +49,7 @@ import kotlin.math.sqrt
  */
 class GroupedGridSurfaceLayoutManager(
   private val padding: GroupPadding,
-  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
+  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   /** Get the total required size to layout the [content] with the given conditions. */
@@ -58,7 +58,7 @@ class GroupedGridSurfaceLayoutManager(
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension {
     val dim = dimension ?: Dimension()
 
@@ -73,7 +73,7 @@ class GroupedGridSurfaceLayoutManager(
 
     dim.setSize(
       max(0, padding.canvasLeftPadding + requiredWidth),
-      max(0, padding.canvasTopPadding + requiredHeight)
+      max(0, padding.canvasTopPadding + requiredHeight),
     )
     return dim
   }
@@ -82,7 +82,7 @@ class GroupedGridSurfaceLayoutManager(
   private fun getGroupSize(
     layoutGroup: GridLayoutGroup,
     sizeFunc: PositionableContent.() -> Dimension,
-    scaleFunc: PositionableContent.() -> Double
+    scaleFunc: PositionableContent.() -> Double,
   ): Dimension {
     var groupRequiredWidth = 0
     var groupRequiredHeight = 0
@@ -116,7 +116,7 @@ class GroupedGridSurfaceLayoutManager(
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.isEmpty()) {
       // No content. Use 100% as zoom level
@@ -134,7 +134,7 @@ class GroupedGridSurfaceLayoutManager(
         val framePadding = padding.previewPaddingProvider(1.0)
         Dimension(
           contentSize.width + margin.horizontal + framePadding * 2,
-          contentSize.height + margin.vertical + framePadding * 2
+          contentSize.height + margin.vertical + framePadding * 2,
         )
       }
 
@@ -160,8 +160,8 @@ class GroupedGridSurfaceLayoutManager(
         0.01,
         minOf(
           (availableWidth - padding.canvasLeftPadding) / totalWidth.toDouble(),
-          (availableHeight - padding.canvasTopPadding) / totalHeight.toDouble()
-        )
+          (availableHeight - padding.canvasTopPadding) / totalHeight.toDouble(),
+        ),
       )
     }
 
@@ -175,7 +175,7 @@ class GroupedGridSurfaceLayoutManager(
       upperBound,
       availableWidth,
       availableHeight,
-      Dimension()
+      Dimension(),
     )
   }
 
@@ -188,7 +188,7 @@ class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
     cache: Dimension,
-    depth: Int = 0
+    depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
@@ -216,7 +216,7 @@ class GroupedGridSurfaceLayoutManager(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate widthFunc: PositionableContent.() -> Int
+    @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): GridLayoutGroup {
     val content = group.content
     if (content.isEmpty()) {
@@ -253,7 +253,7 @@ class GroupedGridSurfaceLayoutManager(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
       return emptyMap()
@@ -294,7 +294,7 @@ class GroupedGridSurfaceLayoutManager(
               framePadding +
               view.margin.vertical +
               view.scaledContentSize.height +
-              framePadding
+              framePadding,
           )
       }
 

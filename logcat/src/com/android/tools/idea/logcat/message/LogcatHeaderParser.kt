@@ -101,7 +101,7 @@ internal class LogcatHeaderParser(
       processNames?.applicationId ?: processName,
       processName,
       groups["tag"]!!.value,
-      timestamp
+      timestamp,
     )
   }
 
@@ -131,7 +131,7 @@ private fun MatchResult.getEpochTimestamp(): Instant {
   // We can use `!!.` below because the regex matched so the group must exist
   return Instant.ofEpochSecond(
     parseEpochSeconds(groups["epochSec"]!!.value),
-    MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong())
+    MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong()),
   )
 }
 
@@ -146,7 +146,7 @@ private fun MatchResult.getStandardTimestamp(defaultYear: Int, defaultZoneId: Zo
       groups["min"]!!.value.toInt(),
       groups["sec"]!!.value.toInt(),
       MILLISECONDS.toNanos(groups["milli"]!!.value.toLong()).toInt(),
-      defaultZoneId
+      defaultZoneId,
     )
   )
 }

@@ -68,7 +68,7 @@ data class ContextDataForDiff(
   val revision: String,
   val filePath: FilePath,
   val lineNumber: Int,
-  val origin: Connection?
+  val origin: Connection?,
 )
 
 /**
@@ -89,7 +89,7 @@ fun goToDiff(context: ContextDataForDiff, project: Project) {
         FileEditorProvider.KEY,
         FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { ex ->
           ex.accept(project, it)
-        }
+        },
       )
     }
 
@@ -132,7 +132,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
     val vcsKey: VCS_CATEGORY,
     val revision: String,
     val filePath: FilePath,
-    val project: Project
+    val project: Project,
   )
 
   override fun createDiffRequestProcessor(): DiffRequestProcessor {
@@ -149,7 +149,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
 
       override fun loadRequest(
         provider: ChangeDiffRequestProducer,
-        indicator: ProgressIndicator
+        indicator: ProgressIndicator,
       ): DiffRequest {
         val request = provider.process(context, indicator)
 
@@ -171,7 +171,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
       vcsKey = insightsContext.vcsKey,
       revision = insightsContext.revision,
       filePath = insightsContext.filePath,
-      project
+      project,
     )
   }
 
@@ -185,12 +185,12 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
       DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
         listOfNotNull(
           createEditorTitleFromContext(insightsContext, project),
-          createEditorTitle("Current source")
+          createEditorTitle("Current source"),
         ),
       // Customize caret place
       DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, insightsContext.lineNumber - 1),
       // Customize diff alignment.
-      DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true
+      DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true,
     )
 
   private val change: Change
@@ -209,7 +209,7 @@ private fun createEditorTitle(title: String): DiffEditorTitleCustomizer {
 
 private fun createEditorTitleFromContext(
   vcsContext: ContextDataForDiff,
-  project: Project
+  project: Project,
 ): DiffEditorTitleCustomizer {
   val shortVcsRevisionNumber = createShortRevisionString(vcsContext.vcsKey, vcsContext.revision)
 

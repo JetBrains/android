@@ -80,7 +80,7 @@ class IssueNodeTest {
       IssueNode(
         null,
         TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
-        null
+        null,
       )
     node.update()
 
@@ -98,13 +98,13 @@ class IssueNodeTest {
       IssueNode(
         null,
         TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
-        null
+        null,
       )
     val node2 =
       IssueNode(
         null,
         TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
-        null
+        null,
       )
     Assert.assertEquals(node1, node2)
   }
@@ -116,7 +116,7 @@ class IssueNodeTest {
     HighlightDisplayLevel.registerSeverity(
       customSeverity,
       TextAttributesKey.createTextAttributesKey("test"),
-      StudioIcons.Common.ANDROID_HEAD
+      StudioIcons.Common.ANDROID_HEAD,
     )
 
     val node =

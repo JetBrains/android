@@ -86,7 +86,7 @@ open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) :
           action,
           mouseEvent,
           ActionPlaces.UNKNOWN,
-          DataManager.getInstance().getDataContext(this)
+          DataManager.getInstance().getDataContext(this),
         )
       action.actionPerformed(event)
     }

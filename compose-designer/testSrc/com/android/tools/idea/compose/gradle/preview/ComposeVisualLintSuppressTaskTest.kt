@@ -62,7 +62,7 @@ class ComposeVisualLintSuppressTaskTest {
           val psiFile =
             getPsiFile(
               projectRule.project,
-              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt"
+              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
             )
           runReadAction {
             PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
@@ -81,7 +81,7 @@ class ComposeVisualLintSuppressTaskTest {
     val file =
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
-        previewElement.toPreviewXml().buildString()
+        previewElement.toPreviewXml().buildString(),
       ) {
         previewElement.previewElementDefinitionPsi?.virtualFile
       }
@@ -93,13 +93,13 @@ class ComposeVisualLintSuppressTaskTest {
         useLayoutScanner = false,
         classesToPreload = emptyList(),
         customViewInfoParser = accessibilityBasedHierarchyParser,
-        configure = previewElement::applyTo
+        configure = previewElement::applyTo,
       )
 
     val renderResultFuture =
       CompletableFuture.supplyAsync(
           { renderTaskFuture.get() },
-          AppExecutorUtil.getAppExecutorService()
+          AppExecutorUtil.getAppExecutorService(),
         )
         .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
@@ -147,7 +147,7 @@ class ComposeVisualLintSuppressTaskTest {
           val psiFile =
             getPsiFile(
               projectRule.project,
-              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt"
+              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
             )
           runReadAction {
             PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
@@ -166,7 +166,7 @@ class ComposeVisualLintSuppressTaskTest {
     val file =
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
-        previewElement.toPreviewXml().buildString()
+        previewElement.toPreviewXml().buildString(),
       ) {
         previewElement.previewElementDefinitionPsi?.virtualFile
       }
@@ -178,13 +178,13 @@ class ComposeVisualLintSuppressTaskTest {
         useLayoutScanner = false,
         classesToPreload = emptyList(),
         customViewInfoParser = accessibilityBasedHierarchyParser,
-        configure = previewElement::applyTo
+        configure = previewElement::applyTo,
       )
 
     val renderResultFuture =
       CompletableFuture.supplyAsync(
           { renderTaskFuture.get() },
-          AppExecutorUtil.getAppExecutorService()
+          AppExecutorUtil.getAppExecutorService(),
         )
         .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }

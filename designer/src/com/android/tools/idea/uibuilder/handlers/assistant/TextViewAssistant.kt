@@ -135,7 +135,7 @@ private class TextViewAssistantListRenderer : CommonComboBoxRenderer() {
     value: Any?,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean
+    cellHasFocus: Boolean,
   ): Component {
     val displayValue = (value as? ResourceUrl)?.name ?: NONE_VALUE
     return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus)

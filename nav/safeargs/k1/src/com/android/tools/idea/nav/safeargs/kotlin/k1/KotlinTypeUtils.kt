@@ -40,7 +40,7 @@ fun KotlinBuiltIns.getKotlinType(
   typeStr: String?,
   defaultValue: String?,
   moduleDescriptor: ModuleDescriptor,
-  isNonNull: Boolean = true
+  isNonNull: Boolean = true,
 ): KotlinType {
   val modulePackageName =
     moduleDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
@@ -69,7 +69,7 @@ fun KotlinBuiltIns.getKotlinType(
 
 private fun KotlinBuiltIns.getKotlinClassType(
   fqName: FqName,
-  moduleDescriptor: ModuleDescriptor
+  moduleDescriptor: ModuleDescriptor,
 ): KotlinType {
   val classId = JavaToKotlinClassMap.mapJavaToKotlin(fqName)
   val classDescriptor =

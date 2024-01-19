@@ -37,7 +37,7 @@ internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 class CustomViewLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?
+  originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal fun PsiClass.extendsView(): Boolean =

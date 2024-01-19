@@ -45,7 +45,7 @@ private fun buildState(
   screenWidthPx: Int,
   screenHeightPx: Int,
   density: Density = Density.MEDIUM,
-  screenRound: ScreenRound? = null
+  screenRound: ScreenRound? = null,
 ): State =
   State().apply {
     this.name = name
@@ -78,7 +78,7 @@ private fun buildDevice(
   tagId: String? = null,
   manufacturer: String = "Google",
   software: List<Software> = listOf(Software()),
-  states: List<State> = listOf(buildState("default", 1000, 2000).apply { isDefaultState = true })
+  states: List<State> = listOf(buildState("default", 1000, 2000).apply { isDefaultState = true }),
 ): Device =
   Device.Builder()
     .apply {
@@ -105,14 +105,14 @@ private val roundWearOsDevice =
         buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply {
           isDefaultState = true
         }
-      )
+      ),
   )
 private val deviceWithCustomDensity =
   buildDevice(
     name = "Device with custom density",
     id = "device_with_custom_density",
     states =
-      listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true })
+      listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true }),
   )
 
 private val deviceProvider: (Configuration) -> Collection<Device> = {
@@ -148,14 +148,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { defaultDevice }
+          defaultDeviceProvider = { defaultDevice },
         )
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(1000, screenSize.width)
@@ -166,14 +166,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { defaultDevice }
+          defaultDeviceProvider = { defaultDevice },
         )
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(123, screenSize.width)
@@ -185,14 +185,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, true, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { defaultDevice }
+          defaultDeviceProvider = { defaultDevice },
         )
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(1000, screenSize.width)
@@ -204,14 +204,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { deviceWithCustomDensity }
+          defaultDeviceProvider = { deviceWithCustomDensity },
         )
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(338, screenSize.width)
@@ -229,14 +229,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { roundWearOsDevice }
+          defaultDeviceProvider = { roundWearOsDevice },
         )
         assertEquals("@android:style/Theme.DeviceDefault", configuration.theme)
       }
@@ -246,14 +246,14 @@ class ComposePreviewElementConfigurationTest {
         PreviewDisplaySettings("Name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
           configuration,
           highestApiTarget = { null },
           devicesProvider = deviceProvider,
-          defaultDeviceProvider = { pixel4Device }
+          defaultDeviceProvider = { pixel4Device },
         )
         assertEquals("@android:style/Theme", configuration.theme)
       }
@@ -281,7 +281,7 @@ class ComposePreviewElementConfigurationTest {
         it,
         highestApiTarget = { configManager.highestApiTarget },
         devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
+        defaultDeviceProvider = { defaultDevice },
       )
       assertEquals(30, it.fullConfig.versionQualifier?.version)
     }
@@ -300,13 +300,13 @@ class ComposePreviewElementConfigurationTest {
           null,
           null,
           null,
-          wallpaperParameterValue
+          wallpaperParameterValue,
         )
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { null },
         devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
+        defaultDeviceProvider = { defaultDevice },
       )
       assertEquals(expectedWallpaperPath, it.wallpaperPath)
     }
@@ -321,7 +321,7 @@ class ComposePreviewElementConfigurationTest {
         it,
         highestApiTarget = { null },
         devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
+        defaultDeviceProvider = { defaultDevice },
       )
       assertEquals(expectedDevice, it.device)
     }

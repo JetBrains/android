@@ -73,7 +73,7 @@ class ResolutionStackEditorProviderTest {
         PropertySection.DECLARED,
         null,
         2,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
@@ -93,7 +93,7 @@ class ResolutionStackEditorProviderTest {
         PropertySection.DECLARED,
         null,
         2,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
@@ -118,7 +118,7 @@ class ResolutionStackEditorProviderTest {
         "",
         34,
         34,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
@@ -139,7 +139,7 @@ class ResolutionStackEditorProviderTest {
           PropertySection.DECLARED,
           null,
           2,
-          mock()
+          mock(),
         )
       )
     val property =
@@ -153,7 +153,7 @@ class ResolutionStackEditorProviderTest {
         null,
         1,
         mock(),
-        children
+        children,
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =

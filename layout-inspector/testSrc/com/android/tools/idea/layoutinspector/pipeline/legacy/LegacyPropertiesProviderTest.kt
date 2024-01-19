@@ -58,7 +58,7 @@ class LegacyPropertiesProviderTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       propertiesComponent,
-      disposableRule.disposable
+      disposableRule.disposable,
     )
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
@@ -135,35 +135,35 @@ class LegacyPropertiesProviderTest {
       ANDROID_URI,
       SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
       "0px",
-      PropertySection.LAYOUT
+      PropertySection.LAYOUT,
     )
     check(
       properties,
       ANDROID_URI,
       SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
       "0px",
-      PropertySection.LAYOUT
+      PropertySection.LAYOUT,
     )
     check(
       properties,
       ANDROID_URI,
       SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
       "0px",
-      PropertySection.LAYOUT
+      PropertySection.LAYOUT,
     )
     check(
       properties,
       ANDROID_URI,
       SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
       "0px",
-      PropertySection.LAYOUT
+      PropertySection.LAYOUT,
     )
     check(
       properties,
       ANDROID_URI,
       SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
       "1px",
-      PropertySection.LAYOUT
+      PropertySection.LAYOUT,
     )
   }
 
@@ -172,7 +172,7 @@ class LegacyPropertiesProviderTest {
     namespace: String,
     name: String,
     expectedValue: String,
-    expectedSection: PropertySection = PropertySection.DEFAULT
+    expectedSection: PropertySection = PropertySection.DEFAULT,
   ) {
     val property = properties.getOrNull(namespace, name) ?: error("Property: $name is missing")
     assertThat(property.value).isEqualTo(expectedValue)

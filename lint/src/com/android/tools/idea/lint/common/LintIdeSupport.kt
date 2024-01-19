@@ -119,7 +119,7 @@ abstract class LintIdeSupport {
   open fun createProject(
     client: LintIdeClient,
     files: List<VirtualFile>?,
-    vararg modules: Module
+    vararg modules: Module,
   ): List<com.android.tools.lint.detector.api.Project> {
     return LintIdeProject.create(client, files, *modules)
   }
@@ -127,9 +127,10 @@ abstract class LintIdeSupport {
   open fun createProjectForSingleFile(
     client: LintIdeClient,
     file: VirtualFile?,
-    module: Module
+    module: Module,
   ): Pair<
-    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+    com.android.tools.lint.detector.api.Project,
+    com.android.tools.lint.detector.api.Project,
   > {
     return LintIdeProject.createForSingleFile(client, file, module)
   }
@@ -137,7 +138,7 @@ abstract class LintIdeSupport {
   /** Creates a lint client */
   open fun createClient(
     project: Project,
-    lintResult: LintResult = LintIgnoredResult()
+    lintResult: LintResult = LintIgnoredResult(),
   ): LintIdeClient {
     return LintIdeClient(project, lintResult)
   }
@@ -189,7 +190,7 @@ abstract class LintIdeSupport {
   open fun ensureNamespaceImported(
     file: XmlFile,
     namespaceUri: String,
-    suggestedPrefix: String?
+    suggestedPrefix: String?,
   ): String = ""
 }
 

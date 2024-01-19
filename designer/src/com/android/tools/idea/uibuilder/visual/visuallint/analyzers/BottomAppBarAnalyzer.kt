@@ -43,7 +43,7 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val configuration = model.configuration
@@ -81,7 +81,7 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
     return VisualLintIssueContent(
       view = view,
       message = "Bottom app bars are only recommended for compact screens",
-      descriptionProvider = content
+      descriptionProvider = content,
     )
   }
 }

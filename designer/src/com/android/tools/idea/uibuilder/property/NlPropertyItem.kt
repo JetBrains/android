@@ -114,7 +114,7 @@ internal constructor(
   open val components: List<NlComponent>,
   val optionalValue1: Any?,
   val optionalValue2: Any?,
-  val supervisorScope: CoroutineScope
+  val supervisorScope: CoroutineScope,
 ) : PropertyItem {
   constructor(
     namespace: String,
@@ -138,7 +138,7 @@ internal constructor(
     components,
     optionalValue1,
     optionalValue2,
-    model.supervisorScope
+    model.supervisorScope,
   )
 
   override fun toString(): String {
@@ -268,7 +268,7 @@ internal constructor(
           model,
           components,
           optionalValue1,
-          optionalValue2
+          optionalValue2,
         )
 
   override fun equals(other: Any?) =
@@ -315,12 +315,12 @@ internal constructor(
       ResourceNamespace.fromNamespacePrefix(
         themeOverlayUrl.namespace,
         ResourceNamespace.RES_AUTO,
-        ResourceNamespace.Resolver.EMPTY_RESOLVER
+        ResourceNamespace.Resolver.EMPTY_RESOLVER,
       )
     val themeReference =
       themeOverlayUrl.resolve(
         namespace ?: ResourceNamespace.RES_AUTO,
-        ResourceNamespace.Resolver.EMPTY_RESOLVER
+        ResourceNamespace.Resolver.EMPTY_RESOLVER,
       ) ?: return null
 
     val themeOverlayStyle = resolver?.getStyle(themeReference) ?: return null
@@ -377,7 +377,7 @@ internal constructor(
           model.firePropertyValueChanged()
         }
       },
-      null
+      null,
     )
 
   val resolver: ResourceResolver?

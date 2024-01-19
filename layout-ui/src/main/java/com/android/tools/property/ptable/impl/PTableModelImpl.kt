@@ -218,7 +218,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private fun computeExpanded(
     item: PTableGroupItem,
     expanded: Set<PTableGroupItem>,
-    list: MutableList<PTableItem>
+    list: MutableList<PTableItem>,
   ) {
     item.children.forEach {
       list.add(it)
@@ -277,7 +277,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     destination: MutableList<E>,
     destinationOffset: Int = 0,
     startIndex: Int = 0,
-    endIndex: Int = size
+    endIndex: Int = size,
   ) {
     for (index in startIndex until endIndex) {
       destination[destinationOffset + index - startIndex] = this[index]

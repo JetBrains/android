@@ -109,7 +109,7 @@ class DataBindingUtilTest {
 
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val modelClass = fixture.findClass("p1.p2.ModelWithGettersSetters")
 

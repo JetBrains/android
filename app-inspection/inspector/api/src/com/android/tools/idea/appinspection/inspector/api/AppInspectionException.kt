@@ -86,5 +86,5 @@ class AppInspectionAppProguardedException(message: String) : AppInspectionServic
 class AppInspectionArtifactNotFoundException(
   message: String,
   val artifactCoordinate: RunningArtifactCoordinate,
-  cause: Throwable? = null
+  cause: Throwable? = null,
 ) : AppInspectionServiceException(message, cause)

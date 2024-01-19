@@ -39,7 +39,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/navigation/my_nav.xml",
-        generateContent(SdkConstants.TAG_NAVIGATION)
+        generateContent(SdkConstants.TAG_NAVIGATION),
       )
     assertFalse(provider.accept(project, file.virtualFile))
   }
@@ -48,7 +48,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/layout/my_layout.xml",
-        generateContent(SdkConstants.LINEAR_LAYOUT)
+        generateContent(SdkConstants.LINEAR_LAYOUT),
       )
     assertFalse(provider.accept(project, file.virtualFile))
   }
@@ -57,7 +57,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/mipmap/my_icon.xml",
-        generateContent(SdkConstants.TAG_ADAPTIVE_ICON)
+        generateContent(SdkConstants.TAG_ADAPTIVE_ICON),
       )
     assertTrue(provider.accept(project, file.virtualFile))
   }
@@ -66,7 +66,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/drawable/my_selector.xml",
-        generateContent(SdkConstants.TAG_SELECTOR)
+        generateContent(SdkConstants.TAG_SELECTOR),
       )
     assertTrue(provider.accept(project, file.virtualFile))
   }
@@ -75,7 +75,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/drawable/my_vector.xml",
-        generateContent(SdkConstants.TAG_ANIMATED_VECTOR)
+        generateContent(SdkConstants.TAG_ANIMATED_VECTOR),
       )
     assertTrue(provider.accept(project, file.virtualFile))
   }
@@ -84,7 +84,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/font/my_font.xml",
-        generateContent(SdkConstants.TAG_FONT_FAMILY)
+        generateContent(SdkConstants.TAG_FONT_FAMILY),
       )
     assertTrue(provider.accept(project, file.virtualFile))
   }
@@ -93,7 +93,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
     val file =
       myFixture.addFileToProject(
         "res/drawable/my_gradient.xml",
-        generateContent(SdkConstants.TAG_GRADIENT)
+        generateContent(SdkConstants.TAG_GRADIENT),
       )
     assertTrue(provider.accept(project, file.virtualFile))
   }

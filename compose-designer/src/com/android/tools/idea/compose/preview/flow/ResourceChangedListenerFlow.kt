@@ -31,7 +31,7 @@ fun resourceChangedFlow(
   module: com.intellij.openapi.module.Module,
   parentDisposable: Disposable,
   logger: Logger? = null,
-  onConnected: (() -> Unit)? = null
+  onConnected: (() -> Unit)? = null,
 ): Flow<Set<ResourceNotificationManager.Reason>> =
   disposableCallbackFlow("ResourceChangedFlow", logger, parentDisposable) {
     val facet =

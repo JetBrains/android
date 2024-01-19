@@ -49,7 +49,7 @@ data class InsightsFilterSettings(
   /** List of selected devices. */
   var devices: List<DeviceSetting>? = null,
   /** List of selected OSes. */
-  var operatingSystems: List<OperatingSystemSetting>? = null
+  var operatingSystems: List<OperatingSystemSetting>? = null,
 ) {
   /**
    * Overwrite the [filters] with the stored settings field by field when they are non-null.
@@ -57,9 +57,7 @@ data class InsightsFilterSettings(
    * Since the persisted settings only stores the previously selected filter values and doesn't care
    * about counts, restored filters are created with 0 as count.
    */
-  fun overwriteFilters(
-    filters: Filters,
-  ): Filters {
+  fun overwriteFilters(filters: Filters): Filters {
     var result = filters
     operatingSystems?.let { setting ->
       val items = setting.map { WithCount(0, it.toOperatingSystemInfo()) }
@@ -102,7 +100,7 @@ data class ConnectionSetting(
   var appId: String = "",
   var projectId: String? = null,
   var projectNumber: String? = null,
-  var mobileSdkAppId: String? = null
+  var mobileSdkAppId: String? = null,
 ) {
   fun equalsConnection(connection: Connection) =
     appId == connection.appId &&
@@ -115,7 +113,7 @@ data class DeviceSetting(
   var manufacturer: String = "",
   var model: String = "",
   var displayName: String = "",
-  var deviceType: String = ""
+  var deviceType: String = "",
 ) {
   fun toDevice() = Device(manufacturer, model, displayName, DeviceType(deviceType))
 }
@@ -128,7 +126,7 @@ data class VersionSetting(
   var buildVersion: String = "",
   var displayVersion: String = "",
   var displayName: String = "",
-  var tracks: List<String> = mutableListOf()
+  var tracks: List<String> = mutableListOf(),
 ) {
   fun toVersion() =
     Version(
@@ -143,7 +141,7 @@ data class VersionSetting(
             null
           }
         }
-        .toSet()
+        .toSet(),
     )
 }
 
@@ -166,7 +164,7 @@ internal fun AppInsightsState.toFilterSettings() =
     filters.failureTypeToggles.mapNotAllSelected { it.name },
     filters.versions.mapNotAllSelected { it.value.toSetting() },
     filters.devices.mapNotAllSelected { it.value.toSetting() },
-    filters.operatingSystems.mapNotAllSelected { it.value.toSetting() }
+    filters.operatingSystems.mapNotAllSelected { it.value.toSetting() },
   )
 
 private fun <T, R> MultiSelection<T>.mapNotAllSelected(transform: (T) -> R) =

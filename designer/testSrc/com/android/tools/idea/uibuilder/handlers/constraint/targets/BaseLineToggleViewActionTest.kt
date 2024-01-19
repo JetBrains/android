@@ -64,7 +64,7 @@ class BaseLineToggleViewActionTest : SceneTest() {
             .id("@id/textView")
             .width("100dp")
             .height("100dp")
-        )
+        ),
     )
   }
 }

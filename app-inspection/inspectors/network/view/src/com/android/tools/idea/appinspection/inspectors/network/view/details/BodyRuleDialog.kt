@@ -37,7 +37,7 @@ const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 /** A dialog box that allows adding and editing body rules. */
 class BodyRuleDialog(
   transformation: RuleData.TransformationRuleData?,
-  private val saveAction: (RuleData.TransformationRuleData) -> Unit
+  private val saveAction: (RuleData.TransformationRuleData) -> Unit,
 ) : DialogWrapper(false) {
 
   @VisibleForTesting val findTextArea = JBTextArea(15, 25)
@@ -105,7 +105,7 @@ class BodyRuleDialog(
           add(replaceEntireBodyCheckBox, BorderLayout.WEST)
           add(regexCheckBox.withRegexLabel(), BorderLayout.EAST)
         },
-        TabularLayout.Constraint(2, 0)
+        TabularLayout.Constraint(2, 0),
       )
       minimumSize = Dimension(800, preferredSize.height)
     }
@@ -119,7 +119,7 @@ class BodyRuleDialog(
         RuleData.BodyModifiedRuleData(
           findTextArea.text,
           regexCheckBox.isSelected,
-          replaceTextArea.text
+          replaceTextArea.text,
         )
       )
     }

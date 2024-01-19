@@ -26,7 +26,7 @@ import kotlin.properties.Delegates
 class FakeTableLineModel(
   override val tableModel: PTableModel,
   val tableUI: TableUIProvider,
-  override val isSearchable: Boolean
+  override val isSearchable: Boolean,
 ) : FakeInspectorLineModel(FakeLineType.TABLE), TableLineModel {
 
   override var selectedItem: PTableItem? = null

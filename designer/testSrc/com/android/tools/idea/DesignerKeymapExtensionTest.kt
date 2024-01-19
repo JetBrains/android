@@ -30,7 +30,7 @@ private val DESIGNER_SHORTCUT_ACTIONS =
     DesignerActions.ACTION_TOGGLE_DEVICE_ORIENTATION,
     DesignerActions.ACTION_TOGGLE_DEVICE_NIGHT_MODE,
     DesignerActions.ACTION_NEXT_DEVICE,
-    DesignerActions.ACTION_PREVIOUS_DEVICE
+    DesignerActions.ACTION_PREVIOUS_DEVICE,
   )
 
 class DesignerKeymapExtensionTest : JavaProjectTestCase() {

@@ -59,7 +59,7 @@ internal object PsiPickerManager {
     location: Point,
     displayTitle: String,
     model: PsiPropertiesModel,
-    balloonPosition: Balloon.Position = Balloon.Position.below
+    balloonPosition: Balloon.Position = Balloon.Position.below,
   ) {
     val tracker = model.tracker
     val disposable = Disposer.newDisposable()
@@ -82,7 +82,7 @@ internal object PsiPickerManager {
       parentComponent = null,
       location = location,
       position = balloonPosition,
-      hideOnOutsideClick = false
+      hideOnOutsideClick = false,
     )
   }
 }
@@ -91,7 +91,7 @@ private fun createPickerPanel(
   disposable: Disposable,
   closePopupCallBack: () -> Unit,
   displayTitle: String,
-  model: PsiPropertiesModel
+  model: PsiPropertiesModel,
 ): JPanel {
   val propertiesPanel =
     PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model)) }
@@ -115,7 +115,7 @@ private fun createPickerPanel(
       closePopupCallBack,
       KeyStrokes.ESCAPE,
       name = "close",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
   }
 }
@@ -126,7 +126,7 @@ private fun createPickerPanel(
  */
 private class PopupCloseHandler(
   private val ownerWindow: Window,
-  private val closePopupCallback: () -> Unit
+  private val closePopupCallback: () -> Unit,
 ) : AWTEventListener {
   override fun eventDispatched(event: AWTEvent?) {
     if (event is MouseEvent) {

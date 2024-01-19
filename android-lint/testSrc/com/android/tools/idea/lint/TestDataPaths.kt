@@ -49,7 +49,7 @@ enum class LintTestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
   BASIC_CMAKE_APP(TestDataPaths.BASIC_CMAKE_APP),
   COMPOSITE_BUILD(TestDataPaths.COMPOSITE_BUILD),
@@ -70,7 +70,7 @@ enum class LintTestProject(
     listOf(
       File(
         AndroidTestBase.getTestDataPath(),
-        PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO)
+        PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO),
       )
     )
 }

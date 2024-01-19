@@ -51,7 +51,7 @@ private class AnimationToolingNopTracker : AnimationToolingUsageTracker {
 private class InternalAnimationToolingUsageTracker(
   private val executor: Executor,
   private val surface: DesignSurface<*>?,
-  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
+  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>,
 ) : AnimationToolingUsageTracker {
   override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
     event.createAndroidStudioEvent().setApplicationId(surface).let {

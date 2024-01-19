@@ -24,6 +24,6 @@ interface HitProvider {
   fun intersects(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    @AndroidDpCoordinate rectangle: Rectangle
+    @AndroidDpCoordinate rectangle: Rectangle,
   ): Boolean
 }

@@ -31,7 +31,7 @@ class DesignSurfaceNotificationProvider : EditorNotificationProvider {
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<in FileEditor, out JComponent?> {
     return Function { fileEditor: FileEditor ->
       val surface: DesignSurface<*> =

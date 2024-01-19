@@ -31,7 +31,7 @@ internal class DefaultAppInspectionApiServices
 internal constructor(
   private val targetManager: AppInspectionTargetManager,
   private val createJarCopier: JarCopierCreator,
-  private val discovery: AppInspectionProcessDiscovery
+  private val discovery: AppInspectionProcessDiscovery,
 ) : AppInspectionApiServices {
   override val processDiscovery = discovery
 
@@ -41,7 +41,7 @@ internal constructor(
 
   private suspend fun doAttachToProcess(
     process: ProcessDescriptor,
-    projectName: String
+    projectName: String,
   ): AppInspectionTarget {
     val jarCopierCreator =
       createJarCopier(process.device)
@@ -56,7 +56,7 @@ internal constructor(
 
   override suspend fun attachToProcess(
     process: ProcessDescriptor,
-    projectName: String
+    projectName: String,
   ): AppInspectionTarget {
     return doAttachToProcess(process, projectName)
   }

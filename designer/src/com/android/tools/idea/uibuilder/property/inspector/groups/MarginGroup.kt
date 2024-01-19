@@ -30,5 +30,5 @@ class MarginGroup(properties: PropertiesTable<NlPropertyItem>) :
     properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP),
     properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM),
     properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_HORIZONTAL),
-    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_VERTICAL)
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_VERTICAL),
   )

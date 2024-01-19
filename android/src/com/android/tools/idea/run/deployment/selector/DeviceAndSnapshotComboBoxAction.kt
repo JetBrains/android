@@ -122,7 +122,7 @@ internal constructor(
 
   override fun createPopupActionGroup(
     button: JComponent,
-    context: DataContext
+    context: DataContext,
   ): DefaultActionGroup {
     val project = context.getData(CommonDataKeys.PROJECT)!!
     return createDeviceSelectorActionGroup(

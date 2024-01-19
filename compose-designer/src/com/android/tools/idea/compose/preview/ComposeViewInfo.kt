@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting
 data class ComposeViewInfo(
   val sourceLocation: SourceLocation,
   val bounds: PxBounds,
-  val children: List<ComposeViewInfo>
+  val children: List<ComposeViewInfo>,
 ) {
   override fun toString(): String =
     """$sourceLocation
@@ -37,7 +37,7 @@ data class ComposeViewInfo(
 fun ComposeViewInfo.findHitWithDepth(
   x: Int,
   y: Int,
-  depth: Int = 0
+  depth: Int = 0,
 ): Collection<Pair<Int, ComposeViewInfo>> =
   if (bounds.isNotEmpty() && bounds.containsPoint(x, y)) {
     listOf(Pair(depth, this)) + children.flatMap { it.findHitWithDepth(x, y, depth + 1) }.toList()
@@ -48,17 +48,17 @@ fun ComposeViewInfo.findHitWithDepth(
 fun List<ComposeViewInfo>.findHitWithDepth(
   x: Int,
   y: Int,
-  depth: Int = 0
+  depth: Int = 0,
 ): Collection<Pair<Int, ComposeViewInfo>> = flatMap { it.findHitWithDepth(x, y, depth) }
 
 fun ComposeViewInfo.findDeepestHits(
   @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int
+  @AndroidCoordinate y: Int,
 ): Collection<ComposeViewInfo> = listOf(this).findDeepestHits(x, y)
 
 fun List<ComposeViewInfo>.findDeepestHits(
   @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int
+  @AndroidCoordinate y: Int,
 ): Collection<ComposeViewInfo> =
   findHitWithDepth(x, y)
     .groupBy { it.first }

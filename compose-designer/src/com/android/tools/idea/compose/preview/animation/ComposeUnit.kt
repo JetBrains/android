@@ -95,7 +95,7 @@ object ComposeUnit {
     val component1: A,
     val component2: A,
     val component3: A,
-    val component4: A
+    val component4: A,
   ) : Unit<A> {
     override val components = listOf(component1, component2, component3, component4)
 

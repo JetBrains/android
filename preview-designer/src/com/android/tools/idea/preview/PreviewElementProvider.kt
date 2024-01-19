@@ -38,7 +38,7 @@ class StaticPreviewProvider<P : PreviewElement>(private val collection: Collecti
 /** A [PreviewElementProvider] that applies a filter to the result. */
 class FilteredPreviewElementProvider<P : PreviewElement>(
   private val delegate: PreviewElementProvider<P>,
-  private val filter: (P) -> Boolean
+  private val filter: (P) -> Boolean,
 ) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
 }
@@ -50,7 +50,7 @@ class FilteredPreviewElementProvider<P : PreviewElement>(
  */
 class MemoizedPreviewElementProvider<P : PreviewElement>(
   private val delegate: PreviewElementProvider<P>,
-  private val modificationTracker: ModificationTracker
+  private val modificationTracker: ModificationTracker,
 ) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()

@@ -68,7 +68,7 @@ class VitalsTabProviderTest {
     projectRule.project.replaceService(
       VitalsConfigurationService::class.java,
       mockService,
-      projectRule.disposable
+      projectRule.disposable,
     )
     val googleLoginMock = MockitoKt.mock<GoogleLogin>()
     Mockito.`when`(googleLoginMock.getActiveUserAuthInterceptor()).thenReturn(ForwardingInterceptor)

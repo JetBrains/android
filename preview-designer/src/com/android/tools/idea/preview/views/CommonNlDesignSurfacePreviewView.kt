@@ -76,7 +76,7 @@ class CommonNlDesignSurfacePreviewView(
   override fun showErrorMessage(
     message: String,
     recoveryUrl: UrlData?,
-    actionToRecover: ActionData?
+    actionToRecover: ActionData?,
   ) {
     workbench.hideContent()
     workbench.loadingStopped(message, null, recoveryUrl, actionToRecover)

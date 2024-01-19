@@ -61,7 +61,7 @@ object ArgumentUtils {
    */
   private fun checkArguments(
     entry: Map.Entry<String, List<NavArgumentData>>,
-    modulePackage: String
+    modulePackage: String,
   ) {
     val types =
       entry.value

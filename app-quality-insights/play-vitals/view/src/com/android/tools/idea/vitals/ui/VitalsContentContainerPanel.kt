@@ -45,7 +45,7 @@ class VitalsContentContainerPanel(
   projectController: AppInsightsProjectLevelController,
   project: Project,
   tracker: AppInsightsTracker,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : JPanel(CardLayout()), Disposable {
 
   private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
@@ -65,12 +65,12 @@ class VitalsContentContainerPanel(
           appendLine(
             "Request that your app Admin provides you with the ",
             SimpleTextAttributes.GRAYED_ATTRIBUTES,
-            null
+            null,
           )
           @Suppress("DialogTitleCapitalization")
           appendLine(
             "View App Quality Information (read-only)",
-            SimpleTextAttributes.LINK_ATTRIBUTES
+            SimpleTextAttributes.LINK_ATTRIBUTES,
           ) {
             BrowserUtil.browse(
               "https://support.google.com/googleplay/android-developer/answer/9844686?hl=en#zippy=%2Cview-app-quality-information-read-only"
@@ -80,7 +80,7 @@ class VitalsContentContainerPanel(
           appendText(
             " permission via the Play Console.",
             SimpleTextAttributes.GRAYED_ATTRIBUTES,
-            null
+            null,
           )
         }
     val selectProjectTextPanel =
@@ -103,11 +103,11 @@ class VitalsContentContainerPanel(
         this,
         AppInsightsIssuesTableCellRenderer,
         VITALS_WORKBENCH_NAME,
-        listOf(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state))
+        listOf(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state)),
       ) {
         VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
       },
-      MAIN_CARD
+      MAIN_CARD,
     )
 
     scope.launch {

@@ -72,7 +72,7 @@ class PropertiesPageTest {
       .registerOrReplaceServiceInstance(
         PropertiesComponent::class.java,
         PropertiesComponentMock(),
-        disposable!!
+        disposable!!,
       )
     tableUI = TableUIProvider(controlTypeProvider, editorProvider)
     tableModel = mock(PTableModel::class.java)
@@ -121,7 +121,7 @@ class PropertiesPageTest {
     checkLineModels(
       pageLines,
       SeparatorLineModel::class.java,
-      GenericInspectorLineModel::class.java
+      GenericInspectorLineModel::class.java,
     )
   }
 
@@ -142,7 +142,7 @@ class PropertiesPageTest {
       pageLines,
       CollapsibleLabelModel::class.java,
       TableLineModel::class.java,
-      CollapsibleLabelModel::class.java
+      CollapsibleLabelModel::class.java,
     )
   }
 
@@ -159,7 +159,7 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator before title
       TitleLineModel::class.java, // Title
       SeparatorLineModel::class.java, // Separator after title
-      CollapsibleLabelModel::class.java
+      CollapsibleLabelModel::class.java,
     ) // Editor
   }
 
@@ -177,13 +177,13 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator before title
       TitleLineModel::class.java, // Title
       SeparatorLineModel::class.java, // Separator after title
-      CollapsibleLabelModel::class.java
+      CollapsibleLabelModel::class.java,
     ) // Editor
 
     checkLineModels(
       title.children,
       SeparatorLineModel::class.java, // Separator after title
-      CollapsibleLabelModel::class.java
+      CollapsibleLabelModel::class.java,
     ) // Editor
   }
 
@@ -200,7 +200,7 @@ class PropertiesPageTest {
       CollapsibleLabelModel::class.java,
       SeparatorLineModel::class.java,
       TitleLineModel::class.java,
-      TableLineModel::class.java
+      TableLineModel::class.java,
     )
 
     checkLineModels(title.children, TableLineModel::class.java)
@@ -223,14 +223,14 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator after first title
       CollapsibleLabelModel::class.java, // Editor
       SeparatorLineModel::class.java, // Separator before second title
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // Second title
 
     checkLineModels(
       title1.children,
       SeparatorLineModel::class.java, // Separator after first title
       CollapsibleLabelModel::class.java, // Editor
-      SeparatorLineModel::class.java
+      SeparatorLineModel::class.java,
     ) // Separator before second title, must be in previous group
   }
 
@@ -247,7 +247,7 @@ class PropertiesPageTest {
       CollapsibleLabelModel::class.java, // First editor
       CollapsibleLabelModel::class.java, // Second editor
       SeparatorLineModel::class.java, // Separator before second title
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // Title
 
     checkLineModels(editor1.children, CollapsibleLabelModel::class.java) // Second editor
@@ -276,14 +276,14 @@ class PropertiesPageTest {
       CollapsibleLabelModel::class.java, // Third editor
       CollapsibleLabelModel::class.java, // Forth editor
       SeparatorLineModel::class.java, // Separator before second title
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // Second title
 
     checkLineModels(
       title1.children,
       SeparatorLineModel::class.java, // Separator after first editor
       CollapsibleLabelModel::class.java, // First editor
-      SeparatorLineModel::class.java
+      SeparatorLineModel::class.java,
     ) // Separator before second title
   }
 
@@ -309,7 +309,7 @@ class PropertiesPageTest {
       CollapsibleLabelModel::class.java, // Second editor
       CollapsibleLabelModel::class.java, // Third editor
       SeparatorLineModel::class.java, // Separator after third editor
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // Second title
 
     checkLineModels(
@@ -317,7 +317,7 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator before first editor
       CollapsibleLabelModel::class.java, // First editor
       SeparatorLineModel::class.java, // Separator after first editor
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // First subtitle
 
     checkLineModels(
@@ -325,7 +325,7 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator before second editor
       CollapsibleLabelModel::class.java, // Second editor
       CollapsibleLabelModel::class.java, // Third editor
-      SeparatorLineModel::class.java
+      SeparatorLineModel::class.java,
     ) // Separator after third editor  (bug: missing)
   }
 
@@ -352,7 +352,7 @@ class PropertiesPageTest {
       SeparatorLineModel::class.java, // Separator before third editor
       CollapsibleLabelModel::class.java, // Third editor
       SeparatorLineModel::class.java, // Separator after third editor
-      TitleLineModel::class.java
+      TitleLineModel::class.java,
     ) // Second title
 
     checkLineModels(
@@ -363,13 +363,13 @@ class PropertiesPageTest {
       TitleLineModel::class.java, // First subtitle
       SeparatorLineModel::class.java, // Separator before third editor
       CollapsibleLabelModel::class.java, // Third editor
-      SeparatorLineModel::class.java
+      SeparatorLineModel::class.java,
     ) // Separator after third editor
 
     checkLineModels(
       subtitle1.children,
       SeparatorLineModel::class.java, // Separator before second editor
-      CollapsibleLabelModel::class.java
+      CollapsibleLabelModel::class.java,
     ) // Second editor
   }
 

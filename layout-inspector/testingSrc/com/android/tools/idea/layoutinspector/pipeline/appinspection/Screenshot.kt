@@ -50,7 +50,7 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
           0,
           image.width,
           image.height,
-          ShortArray(image.width * image.height)
+          ShortArray(image.width * image.height),
         ) as ShortArray
       dataElements.flatMapTo(imageBytes) {
         listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte())
@@ -62,7 +62,7 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
           0,
           image.width,
           image.height,
-          IntArray(image.width * image.height)
+          IntArray(image.width * image.height),
         ) as IntArray
       dataElements.flatMapTo(imageBytes) { it.toBytes().asIterable() }
     }

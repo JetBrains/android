@@ -40,7 +40,7 @@ class ResourceChangedListenerFlowTest {
                 android:pathData="M0,0 l 100,0 0,100 -100,0 0,-100z" />
         </vector>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     withTimeout(30.seconds) {
@@ -50,7 +50,7 @@ class ResourceChangedListenerFlowTest {
         resourceChangedFlow(
             projectRule.module,
             projectRule.testRootDisposable,
-            onConnected = { flowConnected.complete(Unit) }
+            onConnected = { flowConnected.complete(Unit) },
           )
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()
@@ -79,7 +79,7 @@ class ResourceChangedListenerFlowTest {
           <string name="app_name">My Application</string>
       </resources>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     withTimeout(30.seconds) {
@@ -89,7 +89,7 @@ class ResourceChangedListenerFlowTest {
         resourceChangedFlow(
             projectRule.module,
             projectRule.testRootDisposable,
-            onConnected = { flowConnected.complete(Unit) }
+            onConnected = { flowConnected.complete(Unit) },
           )
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()

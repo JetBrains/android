@@ -66,7 +66,7 @@ class AssistedFactoryDaggerConceptTest {
           fun create2(dep3: Dep3, dep4: Dep4): CreatedObject2
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = AssistedFactoryDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -76,7 +76,7 @@ class AssistedFactoryDaggerConceptTest {
         MY_ASSISTED_FACTORY_ID.asFqNameString(),
         setOf(AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)),
         "CreatedObject1",
-        setOf(AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1"))
+        setOf(AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")),
       )
   }
 
@@ -103,7 +103,7 @@ class AssistedFactoryDaggerConceptTest {
 
       interface NotAnAssistedFactory
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryDaggerElement =
@@ -141,7 +141,7 @@ class AssistedFactoryDaggerConceptTest {
 
       interface NotAnAssistedFactory {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryDaggerElement =
@@ -191,7 +191,7 @@ class AssistedFactoryDaggerConceptTest {
       class Dep2
       class CreatedObject
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryMethodDaggerElement =
@@ -237,7 +237,7 @@ class AssistedFactoryDaggerConceptTest {
       class Dep2 {}
       class CreatedObject {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryMethodDaggerElement =
@@ -286,7 +286,7 @@ class AssistedFactoryDaggerConceptTest {
 
       class CreatedObject @AssistedInject constructor(@Assisted dep1: Dep1, @Assisted  dep2: Dep2, dep3: Dep3)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedFactoryMethodDaggerElement =
@@ -303,7 +303,7 @@ class AssistedFactoryDaggerConceptTest {
           assistedInjectConstructorDaggerElement,
           "AssistedInject constructors",
           "navigate.to.assisted.inject",
-          "CreatedObject"
+          "CreatedObject",
         )
       )
   }

@@ -71,7 +71,7 @@ class ComposePreviewRefreshRequest(
   private val delegateRefresh: (ComposePreviewRefreshRequest) -> Job,
   private var completableDeferred: CompletableDeferred<Unit>?,
   override val refreshType: ComposePreviewRefreshType,
-  val requestId: String = UUID.randomUUID().toString().substring(0, 5)
+  val requestId: String = UUID.randomUUID().toString().substring(0, 5),
 ) : PreviewRefreshRequest {
 
   var requestSources: List<Throwable> = listOf(Throwable())
@@ -97,7 +97,7 @@ class ComposePreviewRefreshRequest(
       RenderService.getRenderAsyncActionExecutor()
         .cancelActionsByTopic(
           listOf(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW),
-          true
+          true,
         )
     }
   }

@@ -44,7 +44,7 @@ class ToggleLayoutInspectorAction :
   ToggleAction(
     "Toggle Layout Inspector",
     "Toggles Layout Inspection on and off for this device.",
-    StudioIcons.Shell.ToolWindows.CAPTURES
+    StudioIcons.Shell.ToolWindows.CAPTURES,
   ),
   TooltipDescriptionProvider,
   TooltipLinkProvider {

@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.PublicKeyCredentialDetector
 class AndroidLintPublicKeyCredentialInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.public.key.credential"),
-    PublicKeyCredentialDetector.ISSUE
+    PublicKeyCredentialDetector.ISSUE,
   ) {}

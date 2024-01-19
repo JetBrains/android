@@ -77,7 +77,7 @@ class AccessibilityModelUpdaterTest {
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -95,7 +95,7 @@ class AccessibilityModelUpdaterTest {
 
   private fun createComposePreviewRepresentation(
     psiFile: PsiFile,
-    view: TestComposePreviewView
+    view: TestComposePreviewView,
   ): ComposePreviewRepresentation {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
@@ -115,10 +115,7 @@ class AccessibilityModelUpdaterTest {
       composePreviewRepresentation.waitForAnyPendingRefresh()
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
       composePreviewRepresentation.setMode(
-        PreviewMode.UiCheck(
-          uiCheckElement,
-          atfChecksEnabled = true,
-        )
+        PreviewMode.UiCheck(uiCheckElement, atfChecksEnabled = true)
       )
       onRefreshCompletable.join()
     }

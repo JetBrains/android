@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project
 
 class SelectMultipleDevicesAction
 internal constructor(
-  private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service,
+  private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service
 ) : AnAction() {
   override fun update(event: AnActionEvent) {
     val project = event.project

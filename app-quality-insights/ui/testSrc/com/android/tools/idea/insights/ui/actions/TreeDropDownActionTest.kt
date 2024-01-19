@@ -100,7 +100,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -151,7 +151,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -196,7 +196,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 3 }
@@ -273,7 +273,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 2 }
@@ -309,7 +309,7 @@ class TreeDropDownActionTest {
         MutableStateFlow(
           MultiSelection(
             setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
           )
         )
 
@@ -321,7 +321,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
@@ -384,7 +384,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) },
         )
 
       dropdown.selectionState.first { it.items.size == MAX_DROPDOWN_ITEMS + 1 }
@@ -423,7 +423,7 @@ class TreeDropDownActionTest {
         MutableStateFlow(
           MultiSelection(
             setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
           )
         )
       val dropdown =
@@ -437,7 +437,7 @@ class TreeDropDownActionTest {
             setOf(SimpleGroup(if (it.groupingKey == "1") "ONE" else "OTHER"))
           },
           onSelected = {},
-          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) },
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }

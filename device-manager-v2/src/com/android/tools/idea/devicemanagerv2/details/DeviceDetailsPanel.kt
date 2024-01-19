@@ -69,7 +69,7 @@ private constructor(
       scope: CoroutineScope,
       handle: DeviceHandle,
       devicesFlow: Flow<List<DeviceHandle>>,
-      pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
+      pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
     ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
       deviceInfoPanel.trackDeviceProperties(scope, handle)
@@ -83,7 +83,7 @@ private constructor(
             uiThread,
             handle,
             devicesFlow,
-            pairedDevicesFlow
+            pairedDevicesFlow,
           )
         }
       val tabbedPane =
@@ -94,7 +94,7 @@ private constructor(
 
     private fun createTabbedPane(
       deviceInfoPanel: DeviceInfoPanel,
-      pairedDevicesPanel: PairedDevicesPanel
+      pairedDevicesPanel: PairedDevicesPanel,
     ) =
       JBTabbedPane().apply {
         tabComponentInsets = JBUI.emptyInsets()
@@ -104,7 +104,7 @@ private constructor(
           null,
           JBScrollPane(pairedDevicesPanel),
           null,
-          PAIRED_DEVICES_TAB_INDEX
+          PAIRED_DEVICES_TAB_INDEX,
         )
       }
 

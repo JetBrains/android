@@ -92,7 +92,19 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicInteger
 import junit.framework.TestCase.fail
+import kotlin.io.path.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -115,18 +127,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.io.path.*
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -155,7 +155,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         TestConfig(DatabaseType.File, targetFileAlreadyExists = true),
         TestConfig(DatabaseType.File, targetFileAlreadyExists = false),
         TestConfig(DatabaseType.Live, targetFileAlreadyExists = true),
-        TestConfig(DatabaseType.Live, targetFileAlreadyExists = false)
+        TestConfig(DatabaseType.Live, targetFileAlreadyExists = false),
       )
   }
 
@@ -212,7 +212,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     sqliteCliClient =
       SqliteCliClientImpl(
         SqliteCliProviderImpl(project).getSqliteCli()!!,
-        taskExecutor.asCoroutineDispatcher()
+        taskExecutor.asCoroutineDispatcher(),
       )
     OpenDatabaseRepository(project, taskExecutor).let {
       databaseRepository = it
@@ -238,7 +238,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         edtExecutor,
         exportInProgressListener,
         exportProcessedListener::onExportComplete,
-        exportProcessedListener::onExportError
+        exportProcessedListener::onExportError,
       )
     controller.setUp()
     controller.responseSizeByteLimitHint =
@@ -295,7 +295,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         ExportTableRequest(database, targetTable, SQL, dstPath)
       },
       expectedTableNames = listOf(targetTable),
-      expectedOutputDumpCommand = DumpTable(targetTable)
+      expectedOutputDumpCommand = DumpTable(targetTable),
     )
   }
 
@@ -307,7 +307,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       databaseTables = databaseTables,
       exportRequestCreator = { database, dstPath -> ExportDatabaseRequest(database, SQL, dstPath) },
       expectedTableNames = databaseTables,
-      expectedOutputDumpCommand = DumpDatabase
+      expectedOutputDumpCommand = DumpDatabase,
     )
   }
 
@@ -316,7 +316,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     databaseTables: List<String>,
     exportRequestCreator: (SqliteDatabaseId, dstPath: Path) -> ExportRequest,
     expectedTableNames: List<String>,
-    expectedOutputDumpCommand: DumpCommand
+    expectedOutputDumpCommand: DumpCommand,
   ) {
     val database = createEmptyDatabase(databaseType)
     populateDatabase(database, databaseTables, listOf(view1, view2)).map { it.name }
@@ -364,7 +364,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     testExport(
       exportRequest,
       decompress = { file -> listOf(file) },
-      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)) // no-op
+      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)), // no-op
     )
 
   /**
@@ -382,9 +382,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         analyticsTracker,
         exportRequest,
         durationMs,
-        Outcome.SUCCESS_OUTCOME
+        Outcome.SUCCESS_OUTCOME,
       )
-    }
+    },
   ) {
     // then: compare output file(s) with expected output
     val stopwatch = Stopwatch.createStarted()
@@ -414,7 +414,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
     exportRequest: ExportRequest,
     maxDurationMs: Long,
-    expectedOutcome: Outcome
+    expectedOutcome: Outcome,
   ) {
     // Using captors below to go the opposite way than the prod code: from analytics values to
     // export-request values.
@@ -437,7 +437,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         destinationCaptor.capture() ?: Destination.UNKNOWN_DESTINATION,
         durationMsCaptor.capture(),
         outcomeCaptor.capture() ?: Outcome.UNKNOWN_OUTCOME,
-        connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE
+        connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE,
       )
 
     when (sourceCaptor.allValues.single()) {
@@ -480,7 +480,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
           .isAnyOf(
             ExportDatabaseRequest::class.java,
             ExportTableRequest::class.java,
-            ExportQueryResultsRequest::class.java
+            ExportQueryResultsRequest::class.java,
           )
       }
       else -> fail()
@@ -532,7 +532,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         databaseId,
         "ignored",
         CSV(SEMICOLON),
-        tempDirTestFixture.toNioPath().resolve(outputFileName)
+        tempDirTestFixture.toNioPath().resolve(outputFileName),
       )
     val stopwatch = Stopwatch.createStarted()
     requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
@@ -559,7 +559,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       analyticsTracker,
       exportRequest,
       stopwatch.elapsed(MILLISECONDS),
-      Outcome.CANCELLED_BY_USER_OUTCOME
+      Outcome.CANCELLED_BY_USER_OUTCOME,
     )
   }
 
@@ -579,7 +579,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       tableValuePairs.map { (table, values) ->
         ExpectedOutputFile(
           tmpDir.toNioPath().resolve("$table.csv"),
-          values.toCsvOutputLines(exportRequest.delimiter)
+          values.toCsvOutputLines(exportRequest.delimiter),
         )
       }
 
@@ -637,7 +637,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       listOf(
         ExpectedOutputFile(actualTablesPath, expectedTables),
         ExpectedOutputFile(actualViewsPath, expectedViews),
-        ExpectedOutputFile(actualSchemaPath, expectedSchema)
+        ExpectedOutputFile(actualSchemaPath, expectedSchema),
       )
 
     // when/then:
@@ -662,7 +662,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         createEmptyDatabase(testConfig.databaseType),
         "non-existing-table", // this will cause an exception (we are a database without any tables)
         CSV(TAB),
-        tempDirTestFixture.createFile("ignored-output-file").toNioPath()
+        tempDirTestFixture.createFile("ignored-output-file").toNioPath(),
       )
 
     // when/then
@@ -691,9 +691,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
           analyticsTracker,
           exportRequest,
           stopwatch.elapsed(MILLISECONDS),
-          Outcome.ERROR_OUTCOME
+          Outcome.ERROR_OUTCOME,
         )
-      }
+      },
     )
   }
 
@@ -714,8 +714,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
     // Directory case is unusual, and better to fail than accidentally delete too much data.
     assertWithMessage(
-      "Export target ($path) is an existing directory. Expecting a file or a new path."
-    )
+        "Export target ($path) is an existing directory. Expecting a file or a new path."
+      )
       .that(path.isDirectory())
       .isFalse()
 
@@ -770,7 +770,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun populateDatabase(
     database: SqliteDatabaseId,
     tableNames: List<String>,
-    viewNames: List<String>
+    viewNames: List<String>,
   ): List<Table> {
     fun createTable(database: SqliteDatabaseId, table: Table) {
       database.execute("create table '${table.name}' ('$column1' int, '$column2' text)")
@@ -810,7 +810,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       getJdbcDatabaseConnection(
           testRootDisposable,
           databaseFile,
-          FutureCallbackExecutor.wrap(taskExecutor)
+          FutureCallbackExecutor.wrap(taskExecutor),
         )
         .await()
     }
@@ -880,7 +880,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
 
   fun downloadDatabase(
     db: LiveSqliteDatabaseId,
-    handleError: (String, Throwable?) -> Unit
+    handleError: (String, Throwable?) -> Unit,
   ): Flow<DownloadProgress> = flow {
     try {
       val downloadedDatabase = createDatabaseCopy(db)

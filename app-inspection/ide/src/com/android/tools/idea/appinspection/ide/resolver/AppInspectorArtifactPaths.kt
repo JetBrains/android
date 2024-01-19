@@ -69,7 +69,7 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
           inspector.groupId,
           inspector.artifactId,
           inspector.version,
-          inspector.inspectorJarFileName()
+          inspector.inspectorJarFileName(),
         )
       if (jarPath.exists()) {
         jars[inspector] = jarPath

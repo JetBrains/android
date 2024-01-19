@@ -50,7 +50,7 @@ import javax.swing.JButton
 fun ToggleButton(
   withIssue: ((ToggleButtonState) -> Unit) -> Unit,
   onOpen: (AppInsightsIssue) -> Unit,
-  onClose: (AppInsightsIssue) -> Unit
+  onClose: (AppInsightsIssue) -> Unit,
 ): JButton {
   val button = JButton("").apply { isOpaque = false }
   var activeIssue: AppInsightsIssue? = null
@@ -92,7 +92,7 @@ data class ToggleButtonEnabledState(val permission: Permission, val mode: Connec
 
 data class ToggleButtonState(
   val issue: AppInsightsIssue,
-  val buttonState: ToggleButtonEnabledState
+  val buttonState: ToggleButtonEnabledState,
 ) {
   fun shouldBeEnabled() =
     buttonState.mode == ConnectionMode.ONLINE && buttonState.permission == Permission.FULL

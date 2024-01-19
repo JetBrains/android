@@ -63,7 +63,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   constructor(
     project: Project,
     tag: XmlTag,
-    pointer: SmartPsiElementPointer<XmlTag>
+    pointer: SmartPsiElementPointer<XmlTag>,
   ) : this(project) {
     myTag = tag
     myTagName = tag.name

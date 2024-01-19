@@ -49,7 +49,7 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
 
   override fun trackDataBindingCompletion(
     eventType: DataBindingEvent.EventType,
-    context: DataBindingEvent.DataBindingContext
+    context: DataBindingEvent.DataBindingContext,
   ) {
     if (isDataBindingEnabled()) {
       trackUserEvent(eventType, context)
@@ -66,7 +66,7 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
 
   private fun trackUserEvent(
     eventType: DataBindingEvent.EventType,
-    context: DataBindingEvent.DataBindingContext
+    context: DataBindingEvent.DataBindingContext,
   ) {
     val studioEventBuilder =
       createStudioEventBuilder().apply {
@@ -84,7 +84,7 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
   private fun trackPollingEvent(
     eventType: DataBindingEvent.EventType,
     dataBindingMetadata: DataBindingEvent.DataBindingPollMetadata?,
-    viewBindingMetaData: DataBindingEvent.ViewBindingPollMetadata?
+    viewBindingMetaData: DataBindingEvent.ViewBindingPollMetadata?,
   ) {
     val studioEventBuilder =
       createStudioEventBuilder().apply {
@@ -154,7 +154,7 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
             viewBindingEnabled = isViewBindingEnabled()
             layoutXmlCount = viewBindingLayoutCount
           }
-          .build()
+          .build(),
       )
     }
   }

@@ -113,7 +113,7 @@ fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
 /** Wrapper that delegates whether the given action is visible or not to the passed condition. */
 private class ShowUnderConditionWrapper(
   delegate: AnAction,
-  private val isVisible: (DataContext) -> Boolean
+  private val isVisible: (DataContext) -> Boolean,
 ) : AnActionWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
@@ -154,7 +154,7 @@ fun hasSceneViewErrors(dataContext: DataContext) =
  */
 private class EnableUnderConditionWrapper(
   delegate: AnAction,
-  private val isEnabled: (context: DataContext) -> Boolean
+  private val isEnabled: (context: DataContext) -> Boolean,
 ) : AnActionWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {

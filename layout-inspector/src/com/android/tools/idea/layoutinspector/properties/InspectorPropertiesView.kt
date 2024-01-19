@@ -76,7 +76,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         { it.section == PropertySection.DECLARED },
         model,
         enumSupportProvider,
-        controlTypeProvider
+        controlTypeProvider,
       )
     )
     tab.builders.add(
@@ -86,7 +86,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        androidSortOrder
+        androidSortOrder,
       )
     )
     tab.builders.add(
@@ -96,7 +96,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        searchable = true
+        searchable = true,
       )
     )
     tab.builders.add(
@@ -106,7 +106,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        searchable = true
+        searchable = true,
       )
     )
     tab.builders.add(
@@ -116,7 +116,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        searchable = true
+        searchable = true,
       )
     )
     tab.builders.add(
@@ -126,7 +126,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        searchable = true
+        searchable = true,
       )
     )
     tab.builders.add(
@@ -136,7 +136,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
         model,
         enumSupportProvider,
         controlTypeProvider,
-        searchable = true
+        searchable = true,
       )
     )
   }

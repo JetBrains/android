@@ -94,7 +94,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
           centerY,
           myLastX.toFloat(),
           myLastY.toFloat(),
-          type.ordinal
+          type.ordinal,
         )
       }
     }
@@ -199,7 +199,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
   override fun mouseRelease(
     @AndroidDpCoordinate x: Int,
     @AndroidDpCoordinate y: Int,
-    closestTargets: List<Target>
+    closestTargets: List<Target>,
   ) {
     super.mouseRelease(x, y, closestTargets)
     if (isParent) {
@@ -232,7 +232,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
 
   private fun handleConstraintConnection(
     attributesTransaction: AttributesTransaction,
-    target: RelativeAnchorTarget
+    target: RelativeAnchorTarget,
   ) {
     val nlComponent = myComponent.authoritativeNlComponent
     connectTo(target, attributesTransaction)
@@ -300,7 +300,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
           ATTR_LAYOUT_CENTER_VERTICAL,
           ATTR_LAYOUT_ALIGN_PARENT_TOP,
           ATTR_LAYOUT_ALIGN_TOP,
-          ATTR_LAYOUT_BELOW
+          ATTR_LAYOUT_BELOW,
         )
       Type.LEFT ->
         arrayOf(
@@ -308,7 +308,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
           ATTR_LAYOUT_CENTER_HORIZONTAL,
           ATTR_LAYOUT_ALIGN_PARENT_LEFT,
           ATTR_LAYOUT_ALIGN_LEFT,
-          ATTR_LAYOUT_TO_RIGHT_OF
+          ATTR_LAYOUT_TO_RIGHT_OF,
         )
       Type.BOTTOM ->
         arrayOf(
@@ -316,7 +316,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
           ATTR_LAYOUT_CENTER_VERTICAL,
           ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
           ATTR_LAYOUT_ALIGN_BOTTOM,
-          ATTR_LAYOUT_ABOVE
+          ATTR_LAYOUT_ABOVE,
         )
       Type.RIGHT ->
         arrayOf(
@@ -324,7 +324,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
           ATTR_LAYOUT_CENTER_HORIZONTAL,
           ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
           ATTR_LAYOUT_ALIGN_RIGHT,
-          ATTR_LAYOUT_TO_LEFT_OF
+          ATTR_LAYOUT_TO_LEFT_OF,
         )
       Type.BASELINE -> arrayOf(ATTR_LAYOUT_ALIGN_BASELINE)
     }
@@ -349,7 +349,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
 
   private fun calculateMargin(
     other: RelativeAnchorTarget,
-    alignAttribute: String
+    alignAttribute: String,
   ): Pair<String, String>? {
     val marginAttribute =
       when (alignAttribute) {
@@ -399,7 +399,7 @@ private val SIBLING_ALIGNMENT_ATTRIBUTES =
     ATTR_LAYOUT_ALIGN_START,
     ATTR_LAYOUT_ALIGN_END,
     ATTR_LAYOUT_TO_START_OF,
-    ATTR_LAYOUT_TO_END_OF
+    ATTR_LAYOUT_TO_END_OF,
   )
 
 private val PARENT_CONNECTION_TYPES =
@@ -407,7 +407,7 @@ private val PARENT_CONNECTION_TYPES =
     Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ALIGN_PARENT_TOP,
     Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_PARENT_LEFT,
     Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
-    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_PARENT_RIGHT
+    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
   )
 
 private val SIBLING_CONNECTION_TYPES =
@@ -419,5 +419,5 @@ private val SIBLING_CONNECTION_TYPES =
     Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_LEFT,
     Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_TO_RIGHT_OF,
     Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_TO_LEFT_OF,
-    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_RIGHT
+    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_RIGHT,
   )

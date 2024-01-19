@@ -83,10 +83,7 @@ class LayoutInspectorTest {
   val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  private val deviceToStreamMap =
-    mapOf(
-      device1 to createFakeStream(1, device1),
-    )
+  private val deviceToStreamMap = mapOf(device1 to createFakeStream(1, device1))
 
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
@@ -122,7 +119,7 @@ class LayoutInspectorTest {
         inspectorModel,
         NotificationModel(projectRule.project),
         mockTreeSettings,
-        renderModel = mockRenderModel
+        renderModel = mockRenderModel,
       )
   }
 
@@ -184,7 +181,7 @@ class LayoutInspectorTest {
           mockLauncher,
           inspectorModel,
           NotificationModel(projectRule.project),
-          mockTreeSettings
+          mockTreeSettings,
         )
 
       val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
@@ -247,7 +244,7 @@ class LayoutInspectorTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }

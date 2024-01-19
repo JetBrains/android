@@ -42,7 +42,7 @@ private const val ICON_LEFT_BORDER = 2
 open class PropertyTextFieldWithLeftButton(
   private val editorModel: TextFieldWithLeftButtonEditorModel,
   context: EditorContext,
-  component: JComponent? = null
+  component: JComponent? = null,
 ) : AdtSecondaryPanel(BorderLayout()), DataProvider {
   protected open val buttonAction = editorModel.buttonAction
   protected val leftComponent = component ?: IconWithFocusBorder { buttonAction }
@@ -114,7 +114,7 @@ open class PropertyTextFieldWithLeftButton(
     ClientProperty.put(
       this,
       HIDE_RIGHT_BORDER,
-      editorModel.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP
+      editorModel.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP,
     )
   }
 

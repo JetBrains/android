@@ -55,9 +55,9 @@ class DesignerIssueNodeVisitorTest {
                 .withAttribute(
                   SdkConstants.TOOLS_URI,
                   SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue
+                  errorType.ignoredAttributeValue,
                 )
-            )
+            ),
         )
         .build()
 
@@ -67,14 +67,14 @@ class DesignerIssueNodeVisitorTest {
         errorType,
         model.components.first().children,
         issueProvider,
-        "summaryA"
+        "summaryA",
       )
     val issue2 =
       createTestVisualLintRenderIssue(
         errorType,
         model.components.first().children,
         issueProvider,
-        "summaryB"
+        "summaryB",
       )
 
     val node1 = TestIssueNode(issue1)
@@ -83,7 +83,7 @@ class DesignerIssueNodeVisitorTest {
     val visitor = DesignerIssueNodeVisitor(node1)
     assertEquals(
       TreeVisitor.Action.CONTINUE,
-      visitor.visit(TreePathUtil.pathToCustomNode(node2) { null })
+      visitor.visit(TreePathUtil.pathToCustomNode(node2) { null }),
     )
   }
 

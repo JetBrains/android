@@ -23,11 +23,8 @@ class StackTraceAnalyzer(
   @TestOnly
   private val matcher: CrashMatcher =
     DelegatingConfidenceMatcher(
-      listOf(
-        FullMatcher(),
-        MethodMatcher(),
-      ),
-      minConfidence = Confidence.HIGH
+      listOf(FullMatcher(), MethodMatcher()),
+      minConfidence = Confidence.HIGH,
     )
 ) {
 

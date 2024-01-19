@@ -52,7 +52,7 @@ class RulesTableView(
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   private val model: NetworkInspectorModel,
-  private val usageTracker: NetworkInspectorTracker
+  private val usageTracker: NetworkInspectorTracker,
 ) {
 
   private val persistentStateComponent: RulesPersistentStateComponent = project.service()
@@ -72,7 +72,7 @@ class RulesTableView(
           val isConfirmed =
             MessageDialogBuilder.okCancel(
                 NetworkInspectorBundle.message("confirmation.title"),
-                NetworkInspectorBundle.message("confirmation.rule")
+                NetworkInspectorBundle.message("confirmation.rule"),
               )
               .ask(table)
           if (!isConfirmed) return@setRemoveAction

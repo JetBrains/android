@@ -33,9 +33,8 @@ import org.junit.Test
 
 class BackgroundTaskTreeModelTest {
 
-  private class FakeAppInspectorMessenger(
-    override val scope: CoroutineScope,
-  ) : AppInspectorMessenger {
+  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
+    AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = rawData
 
     override val eventFlow = emptyFlow<ByteArray>()
@@ -58,7 +57,7 @@ class BackgroundTaskTreeModelTest {
         backgroundTaskInspectorMessenger,
         WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
         scope,
-        StubBackgroundTaskInspectorTracker()
+        StubBackgroundTaskInspectorTracker(),
       )
     model = BackgroundTaskTreeModel(client, scope, dispatcher)
   }

@@ -53,7 +53,7 @@ class SyncVisualizationEditorChangeHandler(
   override fun onFileEditorChange(
     newEditor: FileEditor?,
     project: Project,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
   ) {
     if (toolWindow.isDisposed) {
       return
@@ -94,7 +94,7 @@ class SyncVisualizationEditorChangeHandler(
                 }
               }
             }
-          }
+          },
         )
     }
     if (Disposer.isDisposed(toolWindowContent!!)) {

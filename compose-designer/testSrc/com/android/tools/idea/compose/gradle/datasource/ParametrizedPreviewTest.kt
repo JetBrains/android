@@ -96,7 +96,7 @@ class ParametrizedPreviewTest {
 
     assertTrue(
       "The project must compile correctly for the test to pass",
-      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful
+      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful,
     )
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
@@ -117,7 +117,7 @@ class ParametrizedPreviewTest {
     val parametrizedPreviews =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        ProjectRootManager.getInstance(project).contentRoots[0]
+        ProjectRootManager.getInstance(project).contentRoots[0],
       ) ?: throw RuntimeException("Cannot find relative file")
 
     run {
@@ -194,7 +194,7 @@ class ParametrizedPreviewTest {
         // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
         assertEquals(
           "google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD",
-          it.methodFqn
+          it.methodFqn,
         )
         assertTrue(it is SingleComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -214,7 +214,7 @@ class ParametrizedPreviewTest {
 
       assertEquals(
         listOf("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"),
-        getEnumerationNumberFromPreviewName(elements)
+        getEnumerationNumberFromPreviewName(elements),
       )
 
       elements.forEach {
@@ -248,7 +248,7 @@ class ParametrizedPreviewTest {
         // we'll try to render a composable with an empty sequence defined in ParametrizedPreviews
         assertEquals(
           "google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider",
-          it.methodFqn
+          it.methodFqn,
         )
         assertTrue(it is ParametrizedComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -265,7 +265,7 @@ class ParametrizedPreviewTest {
     val parametrizedPreviews =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        ProjectRootManager.getInstance(project).contentRoots[0]
+        ProjectRootManager.getInstance(project).contentRoots[0],
       ) ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
@@ -304,7 +304,7 @@ class ParametrizedPreviewTest {
       .inOrder()
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed waiting to start UI check mode",
-      5.seconds
+      5.seconds,
     ) {
       val stringValue =
         it

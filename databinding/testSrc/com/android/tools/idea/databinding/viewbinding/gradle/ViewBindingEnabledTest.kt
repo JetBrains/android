@@ -75,7 +75,7 @@ class ViewBindingEnabledTest {
       preLoad = { projectRoot ->
         buildFile = File(projectRoot, "app/build.gradle")
         enableViewBinding(buildFile, false)
-      }
+      },
     )
 
     // Trigger resource repository initialization
@@ -91,7 +91,7 @@ class ViewBindingEnabledTest {
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNull()
@@ -106,7 +106,7 @@ class ViewBindingEnabledTest {
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNotNull()
@@ -120,7 +120,7 @@ class ViewBindingEnabledTest {
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNull()

@@ -56,7 +56,7 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
       component,
       model.property,
       forValue = true,
-      text = model.property.value.orEmpty()
+      text = model.property.value.orEmpty(),
     )
     return null
   }
@@ -78,7 +78,7 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     ClientProperty.put(
       this,
       HIDE_RIGHT_BORDER,
-      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP
+      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP,
     )
   }
 

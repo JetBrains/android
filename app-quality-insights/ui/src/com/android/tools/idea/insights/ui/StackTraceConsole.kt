@@ -63,13 +63,13 @@ data class StackTraceConsoleState(
   val connection: Connection? = null,
   val mode: ConnectionMode? = null,
   val issue: AppInsightsIssue? = null,
-  val event: Event? = null
+  val event: Event? = null,
 )
 
 class StackTraceConsole(
   controller: AppInsightsProjectLevelController,
   private val project: Project,
-  private val tracker: AppInsightsTracker
+  private val tracker: AppInsightsTracker,
 ) : Disposable {
 
   private val resolvedInfoCache =
@@ -103,7 +103,7 @@ class StackTraceConsole(
       .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() }
+        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
       )
   }
 
@@ -119,7 +119,7 @@ class StackTraceConsole(
     issue: AppInsightsIssue,
     event: Event,
     connection: Connection?,
-    consoleView: ConsoleViewImpl
+    consoleView: ConsoleViewImpl,
   ) {
     if (event == currentEvent) {
       return
@@ -138,7 +138,7 @@ class StackTraceConsole(
       for (stack in event.stacktraceGroup.exceptions) {
         consoleView.print(
           "${stack.rawExceptionMessage}\n",
-          stack.stacktrace.blames.getConsoleViewContentType()
+          stack.stacktrace.blames.getConsoleViewContentType(),
         )
         val startOffset = consoleView.contentSize
         for (frame in stack.stacktrace.frames) {
@@ -161,7 +161,7 @@ class StackTraceConsole(
                 consoleView.editor.foldingModel.addFoldRegion(
                   startOffset,
                   endOffset,
-                  "    <${stack.stacktrace.frames.size} frames>"
+                  "    <${stack.stacktrace.frames.size} frames>",
                 )
               if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
@@ -183,7 +183,7 @@ class StackTraceConsole(
               consoleView.editor.foldingModel.addFoldRegion(
                 startOfOtherThreads,
                 consoleView.contentSize,
-                "    Show all ${event.stacktraceGroup.exceptions.size} threads"
+                "    Show all ${event.stacktraceGroup.exceptions.size} threads",
               )
             region?.isExpanded = false
           }
@@ -233,7 +233,7 @@ class ListenerForTracking(
   private val consoleView: ConsoleViewImpl,
   private val tracker: AppInsightsTracker,
   private val project: Project,
-  private val stackTraceConsoleState: StateFlow<StackTraceConsoleState>
+  private val stackTraceConsoleState: StateFlow<StackTraceConsoleState>,
 ) : EditorMouseListener {
   override fun mouseReleased(event: EditorMouseEvent) {
     val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return

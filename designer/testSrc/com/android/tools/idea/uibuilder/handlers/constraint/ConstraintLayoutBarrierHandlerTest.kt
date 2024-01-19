@@ -11,7 +11,7 @@ private val VERTICAL_BARRIER_DIRECTIONS =
     SdkConstants.CONSTRAINT_BARRIER_START,
     SdkConstants.CONSTRAINT_BARRIER_END,
     SdkConstants.CONSTRAINT_BARRIER_LEFT,
-    SdkConstants.CONSTRAINT_BARRIER_RIGHT
+    SdkConstants.CONSTRAINT_BARRIER_RIGHT,
   )
 
 private val HORIZONTAL_BARRIER_DIRECTION =
@@ -27,7 +27,7 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
       val barrier = model.find("barrier")!!
       assertEquals(
         StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL,
-        barrierHandler.getIcon(barrier)
+        barrierHandler.getIcon(barrier),
       )
     }
 
@@ -36,7 +36,7 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
       val barrier = model.find("barrier")!!
       assertEquals(
         StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL,
-        barrierHandler.getIcon(barrier)
+        barrierHandler.getIcon(barrier),
       )
     }
   }
@@ -81,9 +81,9 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
               .withAttribute(
                 SdkConstants.SHERPA_URI,
                 SdkConstants.ATTR_BARRIER_DIRECTION,
-                direction
+                direction,
               )
-          )
+          ),
       )
     return builder.build()
   }
@@ -103,7 +103,7 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
               .id("@+id/barrier")
               .width("wrap_content")
               .height("wrap_content")
-          )
+          ),
       )
     return builder.build()
   }

@@ -119,7 +119,7 @@ class DeviceViewPanel(
       hasForegroundProcess = { hasForegroundProcess },
       renderLogic = layoutInspector.renderLogic,
       renderModel = layoutInspector.renderModel,
-      coroutineScope = layoutInspector.coroutineScope
+      coroutineScope = layoutInspector.coroutineScope,
     )
 
   private fun showGrab() {
@@ -194,7 +194,7 @@ class DeviceViewPanel(
     MyViewportLayoutManager(
       scrollPane.viewport,
       { contentPanel.renderModel.layerSpacing },
-      { contentPanel.rootLocation }
+      { contentPanel.rootLocation },
     )
 
   private val actionToolbar =
@@ -202,7 +202,7 @@ class DeviceViewPanel(
       disposableParent,
       this,
       layoutInspector,
-      targetSelectedAction?.dropDownAction
+      targetSelectedAction?.dropDownAction,
     )
 
   private var isCurrentForegroundProcessDebuggable = false
@@ -343,7 +343,7 @@ class DeviceViewPanel(
               notificationModel.addNotification(
                 it,
                 LayoutInspectorBundle.message(it),
-                Status.Warning
+                Status.Warning,
               )
             }
           } else {
@@ -416,7 +416,7 @@ class DeviceViewPanel(
     floatingToolbar.location =
       Point(
         layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
-        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET
+        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET,
       )
   }
 
@@ -500,7 +500,7 @@ class DeviceViewPanel(
 class MyViewportLayoutManager(
   private val viewport: JViewport,
   private val layerSpacing: () -> Int,
-  private val rootLocation: () -> Point?
+  private val rootLocation: () -> Point?,
 ) : LayoutManager by viewport.layout {
   private var lastLayerSpacing = INITIAL_LAYER_SPACING
   private var lastRootLocation: Point? = null
@@ -530,7 +530,7 @@ class MyViewportLayoutManager(
               val size = viewport.view.preferredSize
               Point(
                 (size.width - bounds.width).coerceAtLeast(0) / 2,
-                (size.height - bounds.height).coerceAtLeast(0) / 2
+                (size.height - bounds.height).coerceAtLeast(0) / 2,
               )
             }
             else -> {
@@ -538,7 +538,7 @@ class MyViewportLayoutManager(
                 SwingUtilities.convertPoint(
                   viewport,
                   Point(viewport.width / 2, viewport.height / 2),
-                  viewport.view
+                  viewport.view,
                 )
               val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
               val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
@@ -548,7 +548,7 @@ class MyViewportLayoutManager(
               val newPosition =
                 Point(
                   (viewport.view.width * xPercent).toInt(),
-                  (viewport.view.height * yPercent).toInt()
+                  (viewport.view.height * yPercent).toInt(),
                 )
               newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
               newPosition

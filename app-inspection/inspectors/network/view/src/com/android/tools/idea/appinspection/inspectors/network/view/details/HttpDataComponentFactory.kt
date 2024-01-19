@@ -45,7 +45,7 @@ import kotlin.math.min
  */
 internal class HttpDataComponentFactory(
   httpData: HttpData,
-  private val componentsProvider: UiComponentsProvider
+  private val componentsProvider: UiComponentsProvider,
 ) : DataComponentFactory(httpData) {
   private val httpData: HttpData
     get() = data as HttpData
@@ -55,7 +55,7 @@ internal class HttpDataComponentFactory(
       createRawDataComponent(
         getPayload(ConnectionType.REQUEST),
         getContentType(ConnectionType.REQUEST),
-        componentsProvider
+        componentsProvider,
       )
     }
   private val requestPrettyComponent by
@@ -63,7 +63,7 @@ internal class HttpDataComponentFactory(
       createParsedDataComponent(
         getPayload(ConnectionType.REQUEST),
         getContentType(ConnectionType.REQUEST),
-        componentsProvider
+        componentsProvider,
       )
     }
   private val responseRawComponent by
@@ -71,7 +71,7 @@ internal class HttpDataComponentFactory(
       createRawDataComponent(
         getPayload(ConnectionType.RESPONSE),
         getContentType(ConnectionType.RESPONSE),
-        componentsProvider
+        componentsProvider,
       )
     }
   private val responsePrettyComponent by
@@ -79,7 +79,7 @@ internal class HttpDataComponentFactory(
       createParsedDataComponent(
         getPayload(ConnectionType.RESPONSE),
         getContentType(ConnectionType.RESPONSE),
-        componentsProvider
+        componentsProvider,
       )
     }
 
@@ -153,7 +153,7 @@ internal class HttpDataComponentFactory(
       getPayload(type).toByteArray(),
       ContentType.fromMimeType(getMimeTypeString(type)),
       DataViewer.Style.PRETTY,
-      formatted
+      formatted,
     )
   }
 
@@ -180,11 +180,11 @@ internal class HttpDataComponentFactory(
             0,
             0,
             parentWidth,
-            Short.MAX_VALUE.toInt()
+            Short.MAX_VALUE.toInt(),
           ) // Short.MAX_VALUE since that's what Swing uses (not Integer.MAX_VALUE).
           c.preferredSize
         },
-        preferredSize
+        preferredSize,
       )
     }
 
@@ -251,7 +251,7 @@ internal class HttpDataComponentFactory(
       private fun getSize(
         parent: Container,
         componentSizeGetter: Function<Component, Dimension>,
-        resultDimension: Dimension
+        resultDimension: Dimension,
       ): Dimension {
         if (resultDimension.width != INVALID_SIZE && resultDimension.height != INVALID_SIZE) {
           return resultDimension
@@ -281,7 +281,7 @@ internal class HttpDataComponentFactory(
     private fun createRawDataComponent(
       payload: ByteString,
       contentType: HttpData.ContentType,
-      componentsProvider: UiComponentsProvider
+      componentsProvider: UiComponentsProvider,
     ): JComponent {
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
       val viewer =
@@ -289,7 +289,7 @@ internal class HttpDataComponentFactory(
           payload.toByteArray(),
           contentTypeFromMime,
           DataViewer.Style.RAW,
-          false
+          false,
         )
       val viewerComponent = viewer.component
       viewerComponent.name = ID_PAYLOAD_VIEWER
@@ -308,7 +308,7 @@ internal class HttpDataComponentFactory(
     private fun createParsedDataComponent(
       payload: ByteString,
       contentType: HttpData.ContentType,
-      componentsProvider: UiComponentsProvider
+      componentsProvider: UiComponentsProvider,
     ): JComponent? {
       if (contentType.isFormData) {
         val contentToParse = payload.toStringUtf8()
@@ -332,7 +332,7 @@ internal class HttpDataComponentFactory(
           payload.toByteArray(),
           contentTypeFromMime,
           DataViewer.Style.PRETTY,
-          true
+          true,
         )
 
       // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we

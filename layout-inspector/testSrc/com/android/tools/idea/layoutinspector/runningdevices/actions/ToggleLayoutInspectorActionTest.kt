@@ -73,14 +73,14 @@ class ToggleLayoutInspectorActionTest {
         DeviceId.ofPhysicalDevice("tab1"),
         JPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView()
+        displayViewRule.newEmulatorView(),
       )
 
     // replace ToolWindowManager with fake one
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
       FakeToolWindowManager(displayViewRule.project, listOf(tab1)),
-      displayViewRule.disposable
+      displayViewRule.disposable,
     )
 
     displayView = spy(displayViewRule.newEmulatorView())
@@ -92,7 +92,7 @@ class ToggleLayoutInspectorActionTest {
       .replaceService(
         CustomActionsSchema::class.java,
         mockCustomActionSchema,
-        displayViewRule.disposable
+        displayViewRule.disposable,
       )
 
     // replace LayoutInspectorManager with fake one
@@ -100,7 +100,7 @@ class ToggleLayoutInspectorActionTest {
     displayViewRule.project.replaceService(
       LayoutInspectorManager::class.java,
       fakeLayoutInspectorManager,
-      displayViewRule.disposable
+      displayViewRule.disposable,
     )
   }
 
@@ -155,7 +155,7 @@ class ToggleLayoutInspectorActionTest {
       displayViewRule.project.replaceService(
         LayoutInspectorManager::class.java,
         mockLayoutInspectorManager,
-        displayViewRule.disposable
+        displayViewRule.disposable,
       )
 
       val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
@@ -199,7 +199,7 @@ class ToggleLayoutInspectorActionTest {
 
   private fun AnAction.getFakeActionEvent(
     deviceSerialNumber: String = "serial_number",
-    deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+    deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber),
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
     val contentPanel = BorderLayoutPanel()

@@ -34,7 +34,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
         sceneManager.triggerTouchEventAsync(
           RenderSession.TouchEventType.RELEASE,
           androidX,
-          androidY
+          androidY,
         )
     }
     sceneView.surface.repaint()
@@ -80,7 +80,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
             sceneManager.triggerTouchEventAsync(
               RenderSession.TouchEventType.DRAG,
               androidX,
-              androidY
+              androidY,
             )
         }
         sceneView.surface.repaint()

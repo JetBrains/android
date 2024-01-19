@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.transform
  */
 internal class ProjectAppMonitor(
   private val processNameMonitor: ProcessNameMonitor,
-  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
 ) {
 
   suspend fun monitorDevice(serialNumber: String): Flow<LogcatMessage> {
@@ -48,7 +48,7 @@ internal class ProjectAppMonitor(
             emit(
               LogcatMessage(
                 SYSTEM_HEADER,
-                LogcatBundle.message("logcat.process.started", it.pid.toString(), applicationId)
+                LogcatBundle.message("logcat.process.started", it.pid.toString(), applicationId),
               )
             )
           }
@@ -58,7 +58,7 @@ internal class ProjectAppMonitor(
           emit(
             LogcatMessage(
               SYSTEM_HEADER,
-              LogcatBundle.message("logcat.process.ended", it.pid.toString(), applicationId)
+              LogcatBundle.message("logcat.process.ended", it.pid.toString(), applicationId),
             )
           )
         }

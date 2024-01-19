@@ -35,7 +35,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** The Overlay Layer to be displayed on top of the layout preview */
 class OverlayLayer(
   private val sceneView: SceneView,
-  private val overlayConfiguration: () -> OverlayConfiguration
+  private val overlayConfiguration: () -> OverlayConfiguration,
 ) : Layer() {
   private var screenViewSize = Dimension()
 
@@ -56,7 +56,7 @@ class OverlayLayer(
     g.drawString(
       PLACEHOLDER_TEXT,
       sceneView.x + screenViewSize.width / 2 - textWidth.toInt() / 2,
-      sceneView.y + screenViewSize.height / 2 + textHeight.toInt() / 2
+      sceneView.y + screenViewSize.height / 2 + textHeight.toInt() / 2,
     )
   }
 
@@ -68,7 +68,7 @@ class OverlayLayer(
     g.composite = AlphaComposite.SrcOver.derive(overlayConfiguration.overlayAlpha)
     g.setRenderingHint(
       RenderingHints.KEY_INTERPOLATION,
-      RenderingHints.VALUE_INTERPOLATION_BILINEAR
+      RenderingHints.VALUE_INTERPOLATION_BILINEAR,
     )
     g.drawImage(image, sceneView.x, sceneView.y, screenViewSize.width, screenViewSize.height, null)
   }

@@ -25,7 +25,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
   fun attachToInspector(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    getTitleLine: () -> InspectorLineModel
+    getTitleLine: () -> InspectorLineModel,
   ) {
     if (!isApplicable(properties)) return
 
@@ -34,12 +34,12 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
     val drawable =
       inspector.addEditor(
         editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS_DRAWABLE]),
-        titleLine
+        titleLine,
       )
     val drawableInt =
       inspector.addEditor(
         editorProvider.createEditor(properties[ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE]),
-        titleLine
+        titleLine,
       )
     val tint =
       addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_PROGRESS_TINT), titleLine)
@@ -47,17 +47,17 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
       addOptionalEditor(
         inspector,
         properties.getOrNull(ANDROID_URI, ATTR_INDETERMINATE_TINT),
-        titleLine
+        titleLine,
       )
     val max =
       inspector.addEditor(
         editorProvider.createEditor(properties[ANDROID_URI, ATTR_MAXIMUM]),
-        titleLine
+        titleLine,
       )
     val progress =
       inspector.addEditor(
         editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS]),
-        titleLine
+        titleLine,
       )
     val indeterminate = properties[ANDROID_URI, ATTR_INDETERMINATE]
     val model = addEditorAndReturnEditorModel(inspector, indeterminate, titleLine)
@@ -65,7 +65,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
       StateUpdater(
         indeterminate,
         listOf(drawable, tint, max, progress),
-        listOf(drawableInt, tintInt)
+        listOf(drawableInt, tintInt),
       )
     model.addListener(updater)
     updater.valueChanged()
@@ -74,7 +74,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
   private fun addOptionalEditor(
     inspector: InspectorPanel,
     property: NlPropertyItem?,
-    group: InspectorLineModel
+    group: InspectorLineModel,
   ): InspectorLineModel? {
     if (property == null) return null
     return inspector.addEditor(editorProvider.createEditor(property), group)
@@ -83,7 +83,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
   private fun addEditorAndReturnEditorModel(
     inspector: InspectorPanel,
     property: NlPropertyItem,
-    group: InspectorLineModel
+    group: InspectorLineModel,
   ): PropertyEditorModel {
     val (model, editor) = editorProvider.createEditor(property)
     inspector.addCustomEditor(model, editor, group)
@@ -102,14 +102,14 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
         ATTR_INDETERMINATE_DRAWABLE,
         ATTR_MAXIMUM,
         ATTR_PROGRESS,
-        ATTR_INDETERMINATE
+        ATTR_INDETERMINATE,
       )
   }
 
   private class StateUpdater(
     private val indeterminate: NlPropertyItem,
     private val determinateLines: List<InspectorLineModel?>,
-    private val indeterminateLines: List<InspectorLineModel?>
+    private val indeterminateLines: List<InspectorLineModel?>,
   ) : ValueChangedListener {
     var previousState: Boolean? = null
 

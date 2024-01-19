@@ -43,8 +43,8 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
@@ -75,8 +75,8 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
@@ -107,8 +107,8 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
@@ -129,7 +129,7 @@ class SelectActionsTest : LayoutTestCase() {
     )
     AndroidTestCase.assertEquals(
       listOf(outer, button, inner, textView1, textView2),
-      surface.selectionModel.selection
+      surface.selectionModel.selection,
     )
   }
 

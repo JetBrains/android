@@ -80,7 +80,7 @@ class ComposePreviewRepresentationGradleTest {
   val projectRule =
     ComposePreviewFakeUiGradleRule(
       SIMPLE_COMPOSE_PROJECT_PATH,
-      SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
+      SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
     )
   private val project: Project
     get() = projectRule.project
@@ -120,7 +120,7 @@ class ComposePreviewRepresentationGradleTest {
 
           override fun onCompilationComplete(
             result: CompilationResult,
-            files: Collection<PsiFile>
+            files: Collection<PsiFile>,
           ) {
             logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
             compileDeferred.complete(result)
@@ -155,7 +155,7 @@ class ComposePreviewRepresentationGradleTest {
       fakeUi
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
-        .joinToString("\n") { it.displayName }
+        .joinToString("\n") { it.displayName },
     )
 
     val output = fakeUi.render()
@@ -167,7 +167,7 @@ class ComposePreviewRepresentationGradleTest {
         defaultPreviewSceneViewPeerPanel.x,
         defaultPreviewSceneViewPeerPanel.y,
         defaultPreviewSceneViewPeerPanel.width,
-        defaultPreviewSceneViewPeerPanel.height
+        defaultPreviewSceneViewPeerPanel.height,
       )
     ImageDiffUtil.assertImageSimilar(
       Paths.get(
@@ -175,7 +175,7 @@ class ComposePreviewRepresentationGradleTest {
       ),
       defaultPreviewRender,
       10.0,
-      20
+      20,
     )
   }
 
@@ -200,7 +200,7 @@ class ComposePreviewRepresentationGradleTest {
     val secondRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
     assertTrue(
       "Second image expected at least 10% higher but were second=${secondRender.height} first=${firstRender.height}",
-      secondRender.height > (firstRender.height * 1.10)
+      secondRender.height > (firstRender.height * 1.10),
     )
     try {
       ImageDiffUtil.assertImageSimilar("testImage", firstRender, secondRender, 10.0, 20)
@@ -245,7 +245,7 @@ class ComposePreviewRepresentationGradleTest {
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
         .map { it.displayName }
-        .sorted()
+        .sorted(),
     )
   }
 
@@ -295,7 +295,7 @@ class ComposePreviewRepresentationGradleTest {
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
           .map { it.displayName }
-          .joinToString("\n")
+          .joinToString("\n"),
       )
 
       projectRule.runAndWaitForRefresh {
@@ -328,7 +328,7 @@ class ComposePreviewRepresentationGradleTest {
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
           .map { it.displayName }
-          .joinToString("\n")
+          .joinToString("\n"),
       )
     }
 
@@ -344,7 +344,7 @@ class ComposePreviewRepresentationGradleTest {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
-        completableDeferred = completableDeferred
+        completableDeferred = completableDeferred,
       )
       completableDeferred
     }
@@ -355,7 +355,7 @@ class ComposePreviewRepresentationGradleTest {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
-        completableDeferred = completableDeferred
+        completableDeferred = completableDeferred,
       )
       completableDeferred
     }
@@ -372,7 +372,7 @@ class ComposePreviewRepresentationGradleTest {
     project.replaceService(
       FastPreviewTrackerManager::class.java,
       testTracker,
-      fixture.testRootDisposable
+      fixture.testRootDisposable,
     )
 
     runAndWaitForFastRefresh {
@@ -396,7 +396,7 @@ class ComposePreviewRepresentationGradleTest {
 
     assertEquals(
       "compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)",
-      testTracker.logOutput()
+      testTracker.logOutput(),
     )
   }
 
@@ -518,7 +518,7 @@ class ComposePreviewRepresentationGradleTest {
         firstPreview!!.sceneView.let {
           previewView.mainSurface.zoomAndCenter(
             it,
-            Rectangle(Point(it.x, it.y), it.scaledContentSize)
+            Rectangle(Point(it.x, it.y), it.scaledContentSize),
           )
         }
       }
@@ -531,7 +531,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
 
       // Now zoom out a lot to go below the threshold (quality change refresh should happen)
@@ -548,7 +548,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
 
       // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
@@ -565,7 +565,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
     }
 
@@ -579,7 +579,7 @@ class ComposePreviewRepresentationGradleTest {
         firstPreview!!.sceneView.let {
           previewView.mainSurface.zoomAndCenter(
             it,
-            Rectangle(Point(it.x, it.y), it.scaledContentSize)
+            Rectangle(Point(it.x, it.y), it.scaledContentSize),
           )
         }
       }
@@ -592,7 +592,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
 
       // Now deactivate the preview representation (quality change refresh should happen)
@@ -607,7 +607,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
 
       // Now reactivate the preview representation (quality change refresh should happen)
@@ -622,7 +622,7 @@ class ComposePreviewRepresentationGradleTest {
             .first { it.displayName == firstPreview!!.displayName }
             .sceneView
             .sceneManager as LayoutlibSceneManager)
-          .lastRenderQuality
+          .lastRenderQuality,
       )
     }
 }

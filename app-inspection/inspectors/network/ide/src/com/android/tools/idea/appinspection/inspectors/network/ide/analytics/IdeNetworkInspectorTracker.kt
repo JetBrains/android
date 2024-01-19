@@ -88,7 +88,7 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
     headerAdded: Boolean,
     headerReplaced: Boolean,
     bodyReplaced: Boolean,
-    bodyModified: Boolean
+    bodyModified: Boolean,
   ) {
     track(
       NetworkInspectorEvent.newBuilder().apply {

@@ -50,7 +50,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = :barVal and baz = :bazVal"
+        "select * from Foo where bar = :barVal and baz = :bazVal",
       )
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
     Disposer.register(project, controller)
@@ -70,7 +70,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = ? and baz = ?"
+        "select * from Foo where bar = ? and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -88,7 +88,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = ? and baz = :paramName and p = ?"
+        "select * from Foo where bar = ? and baz = :paramName and p = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -109,7 +109,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar >> ? and baz >> ?"
+        "select * from Foo where bar >> ? and baz >> ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -127,7 +127,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = :barVal and baz = :bazVal"
+        "select * from Foo where bar = :barVal and baz = :bazVal",
       )
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
     Disposer.register(project, controller)
@@ -138,7 +138,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     listener.bindingCompletedInvoked(
       mapOf(
         SqliteParameter(":barVal") to SqliteParameterValue.fromAny("1"),
-        SqliteParameter(":bazVal") to SqliteParameterValue.fromAny("2")
+        SqliteParameter(":bazVal") to SqliteParameterValue.fromAny("2"),
       )
     )
 
@@ -150,9 +150,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf("1", "2").toSqliteValues(),
-          "select * from Foo where bar = '1' and baz = '2'"
+          "select * from Foo where bar = '1' and baz = '2'",
         )
-      )
+      ),
     )
   }
 
@@ -161,7 +161,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = :barVal and baz = :bazVal"
+        "select * from Foo where bar = :barVal and baz = :bazVal",
       )
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
     Disposer.register(project, controller)
@@ -172,7 +172,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     listener.bindingCompletedInvoked(
       mapOf(
         SqliteParameter(":barVal") to SqliteParameterValue.fromAny(null),
-        SqliteParameter(":bazVal") to SqliteParameterValue.fromAny("null")
+        SqliteParameter(":bazVal") to SqliteParameterValue.fromAny("null"),
       )
     )
 
@@ -184,9 +184,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf(null, "null").toSqliteValues(),
-          "select * from Foo where bar = null and baz = 'null'"
+          "select * from Foo where bar = null and baz = 'null'",
         )
-      )
+      ),
     )
   }
 
@@ -195,7 +195,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = '?' and baz = ?"
+        "select * from Foo where bar = '?' and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -216,9 +216,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '?' and baz = ?",
           listOf("42").toSqliteValues(),
-          "select * from Foo where bar = '?' and baz = '42'"
+          "select * from Foo where bar = '?' and baz = '42'",
         )
-      )
+      ),
     )
   }
 
@@ -227,7 +227,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = '?1' and baz = ?"
+        "select * from Foo where bar = '?1' and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -248,9 +248,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '?1' and baz = ?",
           listOf("42").toSqliteValues(),
-          "select * from Foo where bar = '?1' and baz = '42'"
+          "select * from Foo where bar = '?1' and baz = '42'",
         )
-      )
+      ),
     )
   }
 
@@ -259,7 +259,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = ':bar' and baz = ?"
+        "select * from Foo where bar = ':bar' and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -280,9 +280,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ':bar' and baz = ?",
           listOf("42").toSqliteValues(),
-          "select * from Foo where bar = ':bar' and baz = '42'"
+          "select * from Foo where bar = ':bar' and baz = '42'",
         )
-      )
+      ),
     )
   }
 
@@ -291,7 +291,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = '@bar' and baz = ?"
+        "select * from Foo where bar = '@bar' and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -312,9 +312,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '@bar' and baz = ?",
           listOf("42").toSqliteValues(),
-          "select * from Foo where bar = '@bar' and baz = '42'"
+          "select * from Foo where bar = '@bar' and baz = '42'",
         )
-      )
+      ),
     )
   }
 
@@ -323,7 +323,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = '\$bar' and baz = ?"
+        "select * from Foo where bar = '\$bar' and baz = ?",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -344,9 +344,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '\$bar' and baz = ?",
           listOf("42").toSqliteValues(),
-          "select * from Foo where bar = '\$bar' and baz = '42'"
+          "select * from Foo where bar = '\$bar' and baz = '42'",
         )
-      )
+      ),
     )
   }
 
@@ -373,9 +373,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
-          "select * from Foo where bar in ('1', '2', '3')"
+          "select * from Foo where bar in ('1', '2', '3')",
         )
-      )
+      ),
     )
   }
 
@@ -402,9 +402,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
-          "select * from Foo where bar in ('1', '2', '3')"
+          "select * from Foo where bar in ('1', '2', '3')",
         )
-      )
+      ),
     )
   }
 
@@ -431,9 +431,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
-          "select * from Foo where bar in ('1', '2', '3')"
+          "select * from Foo where bar in ('1', '2', '3')",
         )
-      )
+      ),
     )
   }
 
@@ -460,9 +460,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
-          "select * from Foo where bar in ('1', '2', '3')"
+          "select * from Foo where bar in ('1', '2', '3')",
         )
-      )
+      ),
     )
   }
 
@@ -489,9 +489,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
-          "select * from Foo where bar in ('1', '2', '3')"
+          "select * from Foo where bar in ('1', '2', '3')",
         )
-      )
+      ),
     )
   }
 
@@ -500,7 +500,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from foo where bar in (select id from baz where bax > ?)"
+        "select * from foo where bar in (select id from baz where bax > ?)",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -521,9 +521,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from foo where bar in (select id from baz where bax > ?)",
           listOf("1").toSqliteValues(),
-          "select * from foo where bar in (select id from baz where bax > '1')"
+          "select * from foo where bar in (select id from baz where bax > '1')",
         )
-      )
+      ),
     )
   }
 
@@ -532,7 +532,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     val psiFile =
       AndroidSqlParserDefinition.parseSqlQuery(
         project,
-        "select * from Foo where bar = :barVal and baz = :barVal"
+        "select * from Foo where bar = :barVal and baz = :barVal",
       )
 
     controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
@@ -553,9 +553,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf("1", "1").toSqliteValues(),
-          "select * from Foo where bar = '1' and baz = '1'"
+          "select * from Foo where bar = '1' and baz = '1'",
         )
-      )
+      ),
     )
   }
 
@@ -582,9 +582,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("te'st").toSqliteValues(),
-          "select * from Foo where bar = 'te''st'"
+          "select * from Foo where bar = 'te''st'",
         )
-      )
+      ),
     )
   }
 
@@ -611,9 +611,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("'test'").toSqliteValues(),
-          "select * from Foo where bar = '''test'''"
+          "select * from Foo where bar = '''test'''",
         )
-      )
+      ),
     )
   }
 
@@ -640,9 +640,9 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("\"test\"").toSqliteValues(),
-          "select * from Foo where bar = '\"test\"'"
+          "select * from Foo where bar = '\"test\"'",
         )
-      )
+      ),
     )
   }
 }

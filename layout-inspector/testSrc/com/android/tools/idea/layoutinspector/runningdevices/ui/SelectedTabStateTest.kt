@@ -76,7 +76,7 @@ class SelectedTabStateTest {
         launcher = launcher,
         layoutInspectorModel = model(displayViewRule.disposable) {},
         notificationModel = notificationModel,
-        treeSettings = FakeTreeSettings()
+        treeSettings = FakeTreeSettings(),
       )
   }
 
@@ -143,7 +143,7 @@ class SelectedTabStateTest {
         displayViewRule.project,
         DeviceId.ofPhysicalDevice("tab"),
         tabsComponents1,
-        layoutInspector
+        layoutInspector,
       )
 
     selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
@@ -152,7 +152,7 @@ class SelectedTabStateTest {
       UiConfig.VERTICAL,
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      emulatorView
+      emulatorView,
     )
 
     Disposer.dispose(tabsComponents1)
@@ -160,7 +160,7 @@ class SelectedTabStateTest {
     verifyUiRemoved(
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      emulatorView
+      emulatorView,
     )
 
     val tabsComponents2 =
@@ -170,7 +170,7 @@ class SelectedTabStateTest {
         displayViewRule.project,
         DeviceId.ofPhysicalDevice("tab"),
         tabsComponents2,
-        layoutInspector
+        layoutInspector,
       )
 
     selectedTabState2.enableLayoutInspector()
@@ -179,7 +179,7 @@ class SelectedTabStateTest {
       UiConfig.VERTICAL,
       tabsComponents2.tabContentPanel,
       tabsComponents2.tabContentPanelContainer,
-      emulatorView
+      emulatorView,
     )
   }
 
@@ -195,7 +195,7 @@ class SelectedTabStateTest {
         displayViewRule.project,
         DeviceId.ofPhysicalDevice("tab"),
         tabsComponents,
-        layoutInspector
+        layoutInspector,
       )
 
     selectedTabState.enableLayoutInspector(uiConfig)
@@ -204,7 +204,7 @@ class SelectedTabStateTest {
       uiConfig,
       tabsComponents.tabContentPanel,
       tabsComponents.tabContentPanelContainer,
-      emulatorView
+      emulatorView,
     )
 
     Disposer.dispose(tabsComponents)
@@ -212,7 +212,7 @@ class SelectedTabStateTest {
     verifyUiRemoved(
       tabsComponents.tabContentPanel,
       tabsComponents.tabContentPanelContainer,
-      emulatorView
+      emulatorView,
     )
   }
 }

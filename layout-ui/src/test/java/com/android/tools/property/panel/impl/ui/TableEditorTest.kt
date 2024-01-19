@@ -52,7 +52,7 @@ class TableEditorTest {
         override fun invoke(
           table: PTable,
           property: PTableItem,
-          column: PTableColumn
+          column: PTableColumn,
         ): PTableCellEditor {
           return editor
         }
@@ -64,7 +64,7 @@ class TableEditorTest {
       FakePTableModel(
         true,
         mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
-        listOf(group1, group2)
+        listOf(group1, group2),
       )
     val model = TableLineModelImpl(tableModel, true)
     val editor = TableEditor(model, DefaultPTableCellRendererProvider(), editorProvider)
@@ -88,7 +88,7 @@ class TableEditorTest {
         override fun invoke(
           table: PTable,
           property: PTableItem,
-          column: PTableColumn
+          column: PTableColumn,
         ): PTableCellEditor {
           return editor
         }
@@ -100,7 +100,7 @@ class TableEditorTest {
       FakePTableModel(
         false,
         mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
-        listOf(group1, group2)
+        listOf(group1, group2),
       )
     val lineModel = TableLineModelImpl(tableModel, true)
     val editor = TableEditor(lineModel, DefaultPTableCellRendererProvider(), editorProvider)

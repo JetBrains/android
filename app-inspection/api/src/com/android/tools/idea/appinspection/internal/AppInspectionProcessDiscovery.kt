@@ -47,7 +47,7 @@ import kotlinx.coroutines.launch
 @AnyThread
 internal class AppInspectionProcessDiscovery(
   private val manager: TransportStreamManager,
-  private val scope: CoroutineScope
+  private val scope: CoroutineScope,
 ) : ProcessDiscovery {
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()

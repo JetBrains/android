@@ -47,7 +47,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
     HelpSupportBinding.registerHelpKeyActions(
       this,
       { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     button.addFocusListener(EditorFocusListener(this, model))
 
@@ -62,7 +62,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
             ActionPlaces.UNKNOWN,
             presentation,
             ActionManager.getInstance(),
-            0
+            0,
           )
         ActionUtil.performDumbAwareUpdate(false, action, event, false)
         if (model.focusRequest && !isFocusOwner) {

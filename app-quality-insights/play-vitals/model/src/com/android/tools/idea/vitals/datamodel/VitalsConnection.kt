@@ -20,7 +20,7 @@ import com.android.tools.idea.insights.Connection
 data class VitalsConnection(
   override val appId: String,
   val displayName: String,
-  val isPreferred: Boolean
+  val isPreferred: Boolean,
 ) : Connection {
   override val isConfigured: Boolean = true
   override val mobileSdkAppId = null

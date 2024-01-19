@@ -75,7 +75,7 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
   private class KotlinVisitor(
     private val results: IndexEntries,
     private val conceptIndexers: DaggerConceptIndexers,
-    ktFile: KtFile
+    ktFile: KtFile,
   ) : KtTreeVisitorVoid() {
     private val wrapperFactory = DaggerIndexPsiWrapper.KotlinFactory(ktFile)
 
@@ -108,7 +108,7 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
   private class JavaVisitor(
     private val results: IndexEntries,
     private val conceptIndexers: DaggerConceptIndexers,
-    psiJavaFile: PsiJavaFile
+    psiJavaFile: PsiJavaFile,
   ) : JavaRecursiveElementWalkingVisitor() {
     private val wrapperFactory = DaggerIndexPsiWrapper.JavaFactory(psiJavaFile)
 
@@ -145,7 +145,7 @@ fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
 class DaggerConceptIndexers(
   val classIndexers: List<DaggerConceptIndexer<DaggerIndexClassWrapper>> = emptyList(),
   val fieldIndexers: List<DaggerConceptIndexer<DaggerIndexFieldWrapper>> = emptyList(),
-  val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()
+  val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList(),
 ) {
 
   fun doIndexing(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) =

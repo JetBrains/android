@@ -104,7 +104,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -129,7 +129,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -148,7 +148,7 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -164,7 +164,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -189,7 +189,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -208,7 +208,7 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -223,7 +223,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -249,7 +249,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -275,7 +275,7 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -291,7 +291,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -322,20 +322,20 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     // supported
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED,
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -351,7 +351,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -382,20 +382,20 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     // not supported
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED,
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -411,7 +411,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -438,14 +438,14 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     // unknown not resolved
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED,
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -461,7 +461,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -506,14 +506,14 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     // unknown not resolved
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED,
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -529,7 +529,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -580,43 +580,43 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.NOT_SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED,
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        true
+        true,
       )
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED),
         deviceDescriptor,
-        true
+        true,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED,
         deviceDescriptor,
-        true
+        true,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED,
         deviceDescriptor,
-        true
+        true,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -631,7 +631,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       handshakeExecutor.post(HandshakeState.Connected)
@@ -661,19 +661,19 @@ class HandshakeExecutorTest {
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.UNKNOWN),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeResult(
         createTrackingForegroundProcessSupportedEvent(SupportType.SUPPORTED),
         deviceDescriptor,
-        false
+        false,
       )
     verify(mockMetrics)
       .logHandshakeConversion(
         DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED,
         deviceDescriptor,
-        false
+        false,
       )
     verifyNoMoreInteractions(mockMetrics)
   }
@@ -688,7 +688,7 @@ class HandshakeExecutorTest {
         workDispatcher,
         mockClient,
         mockMetrics,
-        pollingIntervalMs
+        pollingIntervalMs,
       )
     runBlocking {
       assertThat(handshakeExecutor.isHandshakeInProgress).isFalse()

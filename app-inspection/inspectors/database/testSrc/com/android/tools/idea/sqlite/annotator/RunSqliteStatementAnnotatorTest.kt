@@ -66,22 +66,22 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
         createController = { _, _, _, _ ->
           FakeDatabaseInspectorController(
             DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
-            model
+            model,
           )
-        }
+        },
       )
 
     ideComponents = IdeComponents(myFixture)
     ideComponents.replaceProjectService(
       DatabaseInspectorProjectService::class.java,
-      databaseInspectorProjectService
+      databaseInspectorProjectService,
     )
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
     databaseInspectorProjectService.openSqliteDatabase(
       sqliteDatabaseId1,
-      getMockLiveDatabaseConnection()
+      getMockLiveDatabaseConnection(),
     )
 
     myFixture.configureByText(
@@ -96,7 +96,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
           }
         }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.doHighlighting()
 
@@ -108,7 +108,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
     databaseInspectorProjectService.openSqliteDatabase(
       sqliteDatabaseId1,
-      getMockLiveDatabaseConnection()
+      getMockLiveDatabaseConnection(),
     )
 
     myFixture.configureByText(
@@ -123,7 +123,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
           }
         }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.doHighlighting()
 
@@ -135,7 +135,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
   fun testAnnotatorWorksWithKotlin() {
     databaseInspectorProjectService.openSqliteDatabase(
       sqliteDatabaseId1,
-      getMockLiveDatabaseConnection()
+      getMockLiveDatabaseConnection(),
     )
 
     myFixture.configureByText(
@@ -150,7 +150,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
           }
         }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.doHighlighting()
 
@@ -165,7 +165,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
       testRootDisposable,
       databaseInspectorMessenger,
       0,
-      EdtExecutorService.getInstance()
+      EdtExecutorService.getInstance(),
     )
   }
 }

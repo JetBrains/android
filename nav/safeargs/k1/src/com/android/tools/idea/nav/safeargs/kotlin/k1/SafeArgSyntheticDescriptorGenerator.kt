@@ -41,7 +41,7 @@ internal fun ClassDescriptorImpl.createMethod(
   valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = {
     emptyList()
   },
-  sourceElement: SourceElement = this.source.withFunctionIcon(name, this.fqNameSafe.asString())
+  sourceElement: SourceElement = this.source.withFunctionIcon(name, this.fqNameSafe.asString()),
 ): SimpleFunctionDescriptorImpl {
 
   val method =
@@ -52,7 +52,7 @@ internal fun ClassDescriptorImpl.createMethod(
         Annotations.EMPTY,
         Name.identifier(name),
         CallableMemberDescriptor.Kind.SYNTHESIZED,
-        sourceElement
+        sourceElement,
       ) {
       override fun isOperator(): Boolean {
         return isOperator
@@ -66,7 +66,7 @@ internal fun ClassDescriptorImpl.createMethod(
     valueParametersProvider(method),
     returnType,
     Modality.FINAL,
-    DescriptorVisibilities.PUBLIC
+    DescriptorVisibilities.PUBLIC,
   )
 }
 
@@ -79,7 +79,7 @@ internal fun ClassDescriptorImpl.createConstructor(
       this,
       Annotations.EMPTY,
       true,
-      this.source
+      this.source,
     )
     .apply {
       this.initialize(valueParameterProvider(this), DescriptorVisibilities.PUBLIC)
@@ -90,7 +90,7 @@ internal fun ClassDescriptorImpl.createConstructor(
 internal fun ClassDescriptorImpl.createProperty(
   name: String,
   type: KotlinType,
-  sourceElement: SourceElement = SourceElement.NO_SOURCE
+  sourceElement: SourceElement = SourceElement.NO_SOURCE,
 ): PropertyDescriptor {
   val property =
     object :
@@ -109,7 +109,7 @@ internal fun ClassDescriptorImpl.createProperty(
         false,
         false,
         false,
-        false
+        false,
       ) {}
 
   property.setType(type, emptyList<TypeParameterDescriptor>(), this.thisAsReceiverParameter, null)
@@ -125,7 +125,7 @@ internal fun ClassDescriptorImpl.createProperty(
       false,
       CallableMemberDescriptor.Kind.SYNTHESIZED,
       null,
-      sourceElement
+      sourceElement,
     )
   getter.initialize(type)
 

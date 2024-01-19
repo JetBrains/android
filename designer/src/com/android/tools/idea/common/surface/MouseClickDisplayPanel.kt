@@ -53,7 +53,7 @@ constructor(
   private val durationMs: Long = DEFAULT_DURATION_MS,
   private val decorationColor: Color = DEFAULT_DECORATION_COLOR,
   private val startRadius: Int = DEFAULT_START_RADIUS,
-  private val endRadius: Int = DEFAULT_END_RADIUS
+  private val endRadius: Int = DEFAULT_END_RADIUS,
 ) : JComponent(), Disposable {
   /** True if the bubble drawing is enabled. */
   private var isMouseTrackingEnabled: Boolean = false

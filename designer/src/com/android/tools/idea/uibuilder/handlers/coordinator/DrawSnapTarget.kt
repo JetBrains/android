@@ -41,7 +41,7 @@ class DrawSnapTarget : DrawRegion {
     @SwingCoordinate y: Int,
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
-    mode: Int
+    mode: Int,
   ) : super(x, y, width, height) {
     myMode = mode
   }
@@ -79,7 +79,7 @@ class DrawSnapTarget : DrawRegion {
       @AndroidDpCoordinate top: kotlin.Float,
       @AndroidDpCoordinate right: kotlin.Float,
       @AndroidDpCoordinate bottom: kotlin.Float,
-      isOver: Boolean
+      isOver: Boolean,
     ) {
       @SwingCoordinate val l = transform.getSwingXDip(left)
       @SwingCoordinate val t = transform.getSwingYDip(top)

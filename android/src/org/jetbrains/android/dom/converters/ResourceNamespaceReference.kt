@@ -46,7 +46,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  */
 class ResourceNamespaceReference(
   domValue: GenericDomValue<*>,
-  private val resourceValue: ResourceValue
+  private val resourceValue: ResourceValue,
 ) : PsiReferenceBase<XmlElement>(DomUtil.getValueElement(domValue)!!, null, true) {
 
   override fun getVariants(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
@@ -98,7 +98,7 @@ class ResourceNamespaceReference(
  */
 class ResourceNamespaceFakePsiElement(
   private val resourceNamespace: ResourceNamespace,
-  private val parent: XmlElement
+  private val parent: XmlElement,
 ) : FakePsiElement(), NavigatablePsiElement {
   override fun getParent(): PsiElement? = parent
 

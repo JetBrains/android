@@ -86,7 +86,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<DimensionsAndMetrics> {
     val timezone: TimeZone = freshness.latestEndTime.timeZone
     val zoneId = ZoneId.of(timezone.id)
@@ -132,14 +132,12 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       .map { row ->
         DimensionsAndMetrics(
           dimensions = row.dimensionsList.map { Dimension.fromProto(it) },
-          metrics = row.metricsList.map { Metric.fromProto(it) }
+          metrics = row.metricsList.map { Metric.fromProto(it) },
         )
       }
   }
 
-  override suspend fun getErrorCountMetricsFreshnessInfo(
-    connection: Connection,
-  ): List<Freshness> {
+  override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection): List<Freshness> {
     val queryErrorCountMetricsSetRequest =
       GetErrorCountMetricSetRequest.newBuilder()
         .apply {
@@ -186,7 +184,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     connection: Connection,
     filters: QueryFilters,
     maxNumResults: Int,
-    pageTokenFromPreviousCall: String?
+    pageTokenFromPreviousCall: String?,
   ): List<IssueDetails> {
     val searchErrorIssuesRequest =
       SearchErrorIssuesRequest.newBuilder()
@@ -216,7 +214,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<Event> {
     val searchErrorReportsRequest =
       SearchErrorReportsRequest.newBuilder()
@@ -267,7 +265,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 it.shutdownNow()
               }
             },
-        authTokenInterceptor = GoogleLogin.instance.getActiveUserAuthInterceptor()
+        authTokenInterceptor = GoogleLogin.instance.getActiveUserAuthInterceptor(),
       )
     }
   }

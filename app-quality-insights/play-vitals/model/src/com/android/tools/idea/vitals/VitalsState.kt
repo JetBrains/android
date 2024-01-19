@@ -35,7 +35,7 @@ internal val VitalsTimeIntervals =
     TimeIntervalFilter.SEVEN_DAYS,
     TimeIntervalFilter.FOURTEEN_DAYS,
     TimeIntervalFilter.TWENTY_EIGHT_DAYS,
-    TimeIntervalFilter.SIXTY_DAYS
+    TimeIntervalFilter.SIXTY_DAYS,
   )
 
 fun createVitalsFilters(
@@ -50,7 +50,7 @@ fun createVitalsFilters(
   operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
   signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-  visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL)
+  visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL),
 ) =
   Filters(
     versions,
@@ -60,5 +60,5 @@ fun createVitalsFilters(
     devices,
     operatingSystems,
     signal,
-    visibilityTypes
+    visibilityTypes,
   )

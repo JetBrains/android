@@ -38,7 +38,7 @@ open class AppInsightsDropDownAction<T>(
   private val flow: StateFlow<Selection<T>>,
   private val getIconForValue: ((T) -> Icon?)?,
   private val onSelect: (T) -> Unit,
-  private val getDisplayTitle: (T?) -> String = { it.toString() }
+  private val getDisplayTitle: (T?) -> String = { it.toString() },
 ) : DropDownAction(text, description, icon) {
   override fun updateActions(context: DataContext): Boolean {
     removeAll()

@@ -58,7 +58,7 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
         override fun addCompletions(
           parameters: CompletionParameters,
           context: ProcessingContext,
-          result: CompletionResultSet
+          result: CompletionResultSet,
         ) {
 
           val position = parameters.position
@@ -125,7 +125,7 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
         private fun getImportedDirectives(element: KtSimpleNameExpression): Set<ImportPath> {
           return element.containingKtFile.importDirectives.mapNotNull { it.importPath }.toSet()
         }
-      }
+      },
     )
   }
 }

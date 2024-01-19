@@ -65,7 +65,7 @@ enum class DrawableBackgroundType {
 private class SetScreenViewProviderAction(
   name: String,
   description: String,
-  private val backgroundType: DrawableBackgroundType
+  private val backgroundType: DrawableBackgroundType,
 ) : ToggleAction(name, description, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
@@ -113,7 +113,7 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView {
     return ScreenView.newBuilder(surface, manager)
       .withLayersProvider { screenView -> createScreenLayer(surface, screenView) }
@@ -124,7 +124,7 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
 
   private fun createScreenLayer(
     surface: NlDesignSurface,
-    screenView: ScreenView
+    screenView: ScreenView,
   ): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)
     myDrawableBackgroundLayer = backgroundLayer
@@ -142,7 +142,7 @@ private val CHECKERED_GRID_GRAY = Color(236, 236, 236)
 @VisibleForTesting
 class DrawableBackgroundLayer(
   private val screenView: ScreenView,
-  var backgroundType: DrawableBackgroundType
+  var backgroundType: DrawableBackgroundType,
 ) : Layer() {
   private val dim = Dimension()
 

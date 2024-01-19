@@ -37,7 +37,7 @@ class LayoutEditorPreviewTest {
     system.installation.ideaLog.waitForMatchingLine(
       ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:$xmlName.*",
       10,
-      TimeUnit.SECONDS
+      TimeUnit.SECONDS,
     )
   }
 

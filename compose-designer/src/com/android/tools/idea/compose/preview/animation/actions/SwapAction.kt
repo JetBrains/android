@@ -26,7 +26,7 @@ import icons.StudioIcons
 class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
   AnActionButton(
     message("animation.inspector.action.swap.states"),
-    StudioIcons.LayoutEditor.Motion.PLAY_YOYO
+    StudioIcons.LayoutEditor.Motion.PLAY_YOYO,
   ) {
 
   private var isSwappingStates = false

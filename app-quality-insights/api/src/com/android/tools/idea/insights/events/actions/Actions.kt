@@ -149,7 +149,7 @@ sealed class Action {
   data class Multiple
   @Deprecated(
     "This is an internal constructor. Use and() to compose actions",
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.ERROR,
   )
   internal constructor(val actions: List<Single>) : Action() {
 
@@ -214,7 +214,7 @@ sealed class Action {
 
     private fun Action.cancelIf(
       reasons: Iterable<Single>,
-      predicate: (Action) -> Boolean
+      predicate: (Action) -> Boolean,
     ): Action? = if (reasons.any(predicate)) null else this
   }
 }

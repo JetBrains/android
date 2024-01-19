@@ -54,7 +54,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
 
   override fun collectSlowLineMarkers(
     elements: List<PsiElement>,
-    result: MutableCollection<in LineMarkerInfo<*>>
+    result: MutableCollection<in LineMarkerInfo<*>>,
   ) {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
@@ -75,7 +75,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   private fun collectRunMarkers(
     injectedLanguageManager: InjectedLanguageManager,
     element: PsiElement,
-    result: MutableCollection<in LineMarkerInfo<*>>
+    result: MutableCollection<in LineMarkerInfo<*>>,
   ) {
     if (element.children.isNotEmpty()) return // not leaf element
 
@@ -113,7 +113,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         { message("marker.run.sqlite.statement") },
         getNavHandler(SmartPointerManager.createPointer(injectionHost)),
         Alignment.CENTER,
-        { message("marker.run.sqlite.statement") }
+        { message("marker.run.sqlite.statement") },
       )
     )
   }
@@ -140,7 +140,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         RunSqliteStatementGutterIconAction(
           element.project,
           targetElement,
-          DatabaseInspectorViewsFactoryImpl.getInstance()
+          DatabaseInspectorViewsFactoryImpl.getInstance(),
         )
       action.actionPerformed(
         AnActionEvent.createFromAnAction(action, event, "", DataContext.EMPTY_CONTEXT)

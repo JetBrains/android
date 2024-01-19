@@ -79,7 +79,7 @@ class AnimationInspectionsTest {
 
       fun <T> updateTransition(targetState: T, label: String? = null) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/AnimatedContent.kt",
@@ -91,7 +91,7 @@ class AnimationInspectionsTest {
       // Extension is without label.
       fun <S> Transition.AnimatedContent(targetState: S) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProjectAndInvalidate(
@@ -106,7 +106,7 @@ class AnimationInspectionsTest {
       fun InfiniteTransition.animateFloat(initialValue: Float, targetValue: Float, label: String = "FloatAnimation")
       fun <T> InfiniteTransition.animateValue(initialValue: T,targetValue: T,label: String = "ValueAnimation")
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProjectAndInvalidate(
@@ -121,7 +121,7 @@ class AnimationInspectionsTest {
       fun Transition.animateColor(transitionSpec: () -> Unit, label: String = "ColorAnimation") {}
       fun InfiniteTransition.animateColor(initialValue: Any, targetValue: Any, label: String = "ColorAnimation") {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/core/AnimateAsState.kt",
@@ -134,7 +134,7 @@ class AnimationInspectionsTest {
       fun animateIntAsState(targetValue: Int) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/SingleValueAnimation.kt",
@@ -144,7 +144,7 @@ class AnimationInspectionsTest {
 
       fun animateColorAsState(targetValue: Any, label: String = "ColorAnimation") {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/Crossfade.kt",
@@ -154,7 +154,7 @@ class AnimationInspectionsTest {
 
       fun <T> Crossfade(targetState: T, label: String = "Crossfade") {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.enableInspections(UpdateTransitionLabelInspection() as InspectionProfileEntry)
     fixture.enableInspections(TransitionPropertiesLabelInspection() as InspectionProfileEntry)

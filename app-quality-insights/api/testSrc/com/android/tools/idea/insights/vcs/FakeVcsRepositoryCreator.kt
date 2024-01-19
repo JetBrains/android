@@ -28,7 +28,7 @@ class FakeVcsRepositoryCreator(private val fakeVcs: AbstractVcs) : VcsRepository
   override fun createRepositoryIfValid(
     project: Project,
     root: VirtualFile,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): Repository {
     return object : RepositoryImpl(project, root, parentDisposable) {
       override fun getState(): Repository.State {

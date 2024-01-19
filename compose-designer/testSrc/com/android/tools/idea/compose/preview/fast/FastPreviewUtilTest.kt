@@ -55,7 +55,7 @@ class FastPreviewUtilTest {
         testA()
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
   }
 
@@ -67,7 +67,7 @@ class FastPreviewUtilTest {
         fastCompile(
           projectRule.testRootDisposable,
           runReadAction { testFile.module }!!,
-          setOf(testFile)
+          setOf(testFile),
         )
       assertEquals(CompilationResult.Success, result)
     }
@@ -92,7 +92,7 @@ class FastPreviewUtilTest {
                   projectRule.testRootDisposable,
                   runReadAction { testFile.module }!!,
                   setOf(testFile),
-                  testPreviewManager
+                  testPreviewManager,
                 )
               assertTrue(result is CompilationResult.CompilationAborted)
             } catch (_: CancellationException) {}

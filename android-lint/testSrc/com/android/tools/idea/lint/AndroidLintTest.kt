@@ -181,27 +181,27 @@ import org.jetbrains.android.util.AndroidBundle
 class AndroidLintTest : AbstractAndroidLintTest() {
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: List<MyAdditionalModuleData>
+    modules: List<MyAdditionalModuleData>,
   ) {
     if ("testImlFileOutsideContentRoot" == name) {
       addModuleWithAndroidFacet(
         projectBuilder,
         modules,
         "module1",
-        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
       )
       addModuleWithAndroidFacet(
         projectBuilder,
         modules,
         "module2",
-        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
       )
     } else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
       addModuleWithAndroidFacet(
         projectBuilder,
         modules,
         "appcompat",
-        AndroidProjectTypes.PROJECT_TYPE_APP
+        AndroidProjectTypes.PROJECT_TYPE_APP,
       )
     } else if (
       "testAddSdkIntJava" == name ||
@@ -212,7 +212,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         projectBuilder,
         modules,
         "module1",
-        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
       )
     }
   }
@@ -257,7 +257,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // the edit inspection settings quickfix (they are suppressed in AndroidLintExternalAnnotator)
     assertEquals(
       "" + "Extract string resource\n" + "Suppress: Add tools:ignore=\"HardcodedText\" attribute\n",
-      listAvailableFixes()
+      listAvailableFixes(),
     )
   }
 
@@ -267,7 +267,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     val action =
       myFixture.getIntentionAction(
         AndroidAddStringResourceQuickFix::class.java,
-        AndroidBundle.message("add.string.resource.intention.text")
+        AndroidBundle.message("add.string.resource.intention.text"),
       )
     assertNotNull(action)
     assertTrue(action!!.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
@@ -293,7 +293,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         AndroidLintContentDescriptionInspection(),
         "Set contentDescription",
         "/res/layout/layout.xml",
-        "xml"
+        "xml",
       )
       val loggedLintSessions =
         usageTracker.usages
@@ -346,7 +346,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           myModule,
           mainFile.virtualFile,
           source,
-          setOf(HardcodedValuesDetector.ISSUE)
+          setOf(HardcodedValuesDetector.ISSUE),
         )
       val data =
         LintProblemData(
@@ -355,7 +355,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           "Sample issue",
           TextRange.EMPTY_RANGE,
           Severity.WARNING,
-          null
+          null,
         )
       (result.problems as MutableList).add(data)
       val client = lint.createEditorClient(result)
@@ -380,7 +380,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         "Unexpected percentage of reports submitted",
         expectedPercentage,
         percentage,
-        0.001
+        0.001,
       )
     } finally {
       usageTracker.close()
@@ -410,7 +410,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           Fix: Set contentDescription
           Fix: Suppress: Add tools:ignore="ContentDescription" attribute
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -427,7 +427,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     psiFile: PsiFile,
     inspection: AndroidLintInspectionBase,
     caret: String,
-    expected: String
+    expected: String,
   ) {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     enableInspections(inspection)
@@ -476,7 +476,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
     AndroidGradleTestCase.assertEquals(
       expected.trimIndent().trim(),
-      sb.toString().trimIndent().trim()
+      sb.toString().trimIndent().trim(),
     )
   }
 
@@ -493,7 +493,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingPrefixInspection(),
       AndroidLintBundle.message("android.lint.fix.add.android.prefix"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -502,7 +502,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingPrefixInspection(),
       AndroidLintBundle.message("android.lint.fix.add.android.prefix"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -548,7 +548,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintInefficientWeightInspection(),
       AndroidLintBundle.message("android.lint.fix.replace.with.zero.dp"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -557,7 +557,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintDisableBaselineAlignmentInspection(),
       "Set baselineAligned=\"false\"",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -566,7 +566,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintObsoleteLayoutParamInspection(),
       AndroidLintBundle.message("android.lint.fix.remove.attribute"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -575,7 +575,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintPxUsageInspection(),
       AndroidLintBundle.message("android.lint.fix.convert.to.dp"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -584,7 +584,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintPxUsageInspection(),
       AndroidLintBundle.message("android.lint.fix.convert.to.dp"),
       "/res/values/convertToDp.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -593,7 +593,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintScrollViewSizeInspection(),
       AndroidLintBundle.message("android.lint.fix.set.to.wrap.content"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -602,7 +602,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUnusedAttributeInspection(),
       "Suppress with tools:targetApi attribute",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -612,7 +612,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSdCardPathInspection(),
       "Suppress SdCardPath with an annotation",
       "/src/p1/p2/Foo.java",
-      "java"
+      "java",
     )
   }
 
@@ -622,7 +622,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintClickableViewAccessibilityInspection(),
       "Suppress ClickableViewAccessibility with an annotation",
       "/src/p1/p2/suppressInit.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -632,7 +632,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSuspiciousImportInspection(),
       "Suppress SuspiciousImport with a comment",
       "/src/p1/p2/SuppressImportJava.java",
-      "java"
+      "java",
     )
   }
 
@@ -644,7 +644,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSuspiciousImportInspection(),
       "Suppress SuspiciousImport with a comment",
       "/src/p1/p2/SuppressImportJava.java",
-      "java"
+      "java",
     )
   }
 
@@ -654,7 +654,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSuspiciousImportInspection(),
       "Suppress SuspiciousImport with a comment",
       "/src/p1/p2/SuppressImportKotlin.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -664,7 +664,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintExportedServiceInspection(),
       "Set permission",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -674,7 +674,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintExportedContentProviderInspection(),
       "Set exported=\"false\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -684,7 +684,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintExportedReceiverInspection(),
       "Set permission",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -693,7 +693,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTextFieldsInspection(),
       "Set inputType",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -703,7 +703,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintInvalidPermissionInspection(),
       AndroidLintBundle.message("android.lint.fix.remove.attribute"),
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -713,7 +713,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingPermissionInspection(),
       "Add permission check",
       "/src/p1/p2/LocationTestJava.java",
-      "java"
+      "java",
     )
   }
 
@@ -723,7 +723,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingPermissionInspection(),
       "Add permission check",
       "/src/p1/p2/LocationTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -737,13 +737,13 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
       </manifest>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     doTestWithFix(
       AndroidLintNotificationPermissionInspection(),
       "Add Permission POST_NOTIFICATIONS",
       "/src/test/pkg/notificationPermission.kt",
-      "kt"
+      "kt",
     )
     val updatedManifest = manifest.text
     assertEquals(
@@ -755,7 +755,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       </manifest>
     """
         .trimIndent(),
-      updatedManifest
+      updatedManifest,
     )
   }
 
@@ -764,7 +764,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUselessLeafInspection(),
       AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view"),
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -777,7 +777,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTypographyDashesInspection(),
       "Replace with –",
       "/res/values/typography.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -787,7 +787,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTypographyQuotesInspection(),
       "Replace with ‘aba’",
       "/res/values/typography.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -796,7 +796,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintGridLayoutInspection(),
       "Update to `myns:layout_column`",
       "/res/layout/grid_layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -805,7 +805,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintGridLayoutInspection(),
       "Update to `app:layout_column`",
       "/res/layout/grid_layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -814,7 +814,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintAlwaysShowActionInspection(),
       "Replace with ifRoom",
       "/res/menu/menu.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -825,7 +825,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintRtlCompatInspection(),
       "Set paddingLeft=\"12sp\"",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -841,21 +841,21 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     testProjectSystem.addDependency(
       GoogleMavenArtifactId.APP_COMPAT_V7,
       myFixture.module,
-      GradleVersion.parse("+")
+      GradleVersion.parse("+"),
     )
     myFixture.copyFileToProject(
       "$globalTestDir/AppCompatActivity.java.txt",
-      "src/android/support/v7/app/AppCompatActivity.java"
+      "src/android/support/v7/app/AppCompatActivity.java",
     )
     myFixture.copyFileToProject(
       "$globalTestDir/ActionMode.java.txt",
-      "src/android/support/v7/view/ActionMode.java"
+      "src/android/support/v7/view/ActionMode.java",
     )
     doTestWithFix(
       AndroidLintAppCompatMethodInspection(),
       "Replace with getSupportActionBar()",
       "/src/test/pkg/AppCompatTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -864,7 +864,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintEnforceUTF8Inspection(),
       "Replace with utf-8",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -886,20 +886,20 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         "<com.android.support>\n" +
           "  <support-v4 versions=\"26.0.2,26.0.2\"/>\n" +
           "  <appcompat-v7 versions=\"18.0.0,19.0.0,19.0.1,19.1.0,20.0.0,21.0.0,21.0.2,22.0.0-alpha1\"/>\n" +
-          "</com.android.support>\n"
+          "</com.android.support>\n",
       )
     val repository = StubGoogleMavenRepository(cache)
     val disposable = Disposer.newDisposable()
     IdeComponents(null, disposable)
       .replaceApplicationService(
         RepositoryUrlManager::class.java,
-        RepositoryUrlManager(repository, repository, true, false)
+        RepositoryUrlManager(repository, repository, true, false),
       )
     doTestWithFix(
       AndroidLintGradleDynamicVersionInspection(),
       "Replace with specific version",
       "build.gradle",
-      "gradle"
+      "gradle",
     )
     Disposer.dispose(disposable)
   }
@@ -909,7 +909,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintGradleDeprecatedInspection(),
       "Replace with com.android.library",
       "build.gradle",
-      "gradle"
+      "gradle",
     )
   }
 
@@ -919,7 +919,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingApplicationIconInspection(),
       "Set icon",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -929,7 +929,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingLeanbackSupportInspection(),
       "Add uses-feature tag",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -939,7 +939,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintPermissionImpliesUnsupportedHardwareInspection(),
       "Add uses-feature tag",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -949,7 +949,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMissingTvBannerInspection(),
       "Set banner",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -958,7 +958,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintInvalidUsesTagAttributeInspection(),
       "Replace with \"media\"",
       "res/xml/automotive_app_desc.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -967,7 +967,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintInvalidVectorPathInspection(),
       "Replace with 67",
       "res/drawable/vector.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -977,7 +977,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUnsupportedChromeOsHardwareInspection(),
       "Set required=\"false\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -987,7 +987,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection(),
       "Add uses-feature tag",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -997,7 +997,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintLockedOrientationActivityInspection(),
       "Set screenOrientation=\"fullSensor\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1007,7 +1007,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNonResizeableActivityInspection(),
       "Set resizeableActivity=\"true\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1016,7 +1016,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSourceLockedOrientationActivityInspection(),
       "Set the orientation to SCREEN_ORIENTATION_UNSPECIFIED",
       "/src/test/pkg/TestActivity.java",
-      "java"
+      "java",
     )
   }
 
@@ -1025,7 +1025,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection(),
       "Switch to look for FEATURE_CAMERA_ANY",
       "/src/test/pkg/TestActivity.java",
-      "java"
+      "java",
     )
   }
 
@@ -1063,7 +1063,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintByteOrderMarkInspection(),
       "Remove byte order marks",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1087,7 +1087,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintApplySharedPrefInspection(),
       "Replace commit() with apply()",
       "/src/test/pkg/CommitToApply.java",
-      "java"
+      "java",
     )
   }
 
@@ -1097,7 +1097,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSwitchIntDefInspection(),
       "Add Missing @IntDef Constants",
       "/src/p1/p2/MissingIntDefSwitch.java",
-      "java"
+      "java",
     )
   }
 
@@ -1107,7 +1107,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSwitchIntDefInspection(),
       "Add Missing @IntDef Constants",
       "/src/p1/p2/MissingIntDefSwitch.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1117,7 +1117,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintAnimatorKeepInspection(),
       "Annotate with @Keep",
       "/src/p1/p2/AnimatorTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -1127,7 +1127,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintAnimatorKeepInspection(),
       "Annotate with @Keep",
       "/src/p1/p2/AnimatorTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1137,7 +1137,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUseCheckPermissionInspection(),
       "Call enforceFooPermission instead",
       "/src/p1/p2/JavaCheckResultTest2.java",
-      "java"
+      "java",
     )
   }
 
@@ -1147,7 +1147,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUseCheckPermissionInspection(),
       "Call enforceFooPermission instead",
       "/src/p1/p2/KotlinCheckResultTest2.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1159,7 +1159,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintObsoleteSdkIntInspection(),
       "Unwrap 'if' statement",
       "/src/p1/p2/JavaRemoveObsoleteSdkCheckTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -1171,7 +1171,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintObsoleteSdkIntInspection(),
       "Remove obsolete SDK version check",
       "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1186,7 +1186,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintObsoleteSdkIntInspection(),
       "Remove obsolete SDK version check",
       "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest2.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1199,7 +1199,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintObsoleteSdkIntInspection(),
       "Remove obsolete SDK version check",
       "/src/p1/p2/kotlinRemoveObsoleteSdkCheck3.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1208,7 +1208,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintIncludeLayoutParamInspection(),
       "Set layout_height",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1223,13 +1223,13 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                    };
                                }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
     doTestWithFix(
       AndroidLintInnerclassSeparatorInspection(),
       "Replace with .MyActivity\$Inner",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1254,7 +1254,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintReferenceTypeInspection(),
       "Replace with @string/",
       "/res/values/strings.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1267,7 +1267,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSelectableTextInspection(),
       "Set textIsSelectable=\"true\"",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1277,7 +1277,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSignatureOrSystemPermissionsInspection(),
       "Replace with signature",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1286,7 +1286,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintSpUsageInspection(),
       "Replace with sp",
       "/res/values/styles.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1295,7 +1295,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintStringShouldBeIntInspection(),
       "Replace with integer",
       "build.gradle",
-      "gradle"
+      "gradle",
     )
   }
 
@@ -1304,7 +1304,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTyposInspection(),
       "Replace with \"Android\"",
       "/res/values-nb/strings.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1314,7 +1314,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTyposInspection(),
       "Replace with \"Android\"",
       "/res/values-nb/strings.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1323,7 +1323,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWrongCallInspection(),
       "Replace call with draw()",
       "/src/test/pkg/WrongViewCall.java",
-      "java"
+      "java",
     )
   }
 
@@ -1332,7 +1332,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWrongCaseInspection(),
       "Replace with `<merge>`",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1360,12 +1360,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // view type of the referencing type
     myFixture.copyFileToProject(
       "$globalTestDir/stub_inflated_layout.xml",
-      "res/layout/stub_inflated_layout.xml"
+      "res/layout/stub_inflated_layout.xml",
     )
     myFixture.copyFileToProject("$globalTestDir/main.xml", "res/layout/main.xml")
     myFixture.copyFileToProject(
       "$globalTestDir/WrongCastActivity.java",
-      "src/p1/p2/WrongCastActivity.java"
+      "src/p1/p2/WrongCastActivity.java",
     )
     doGlobalInspectionTest(AndroidLintWrongViewCastInspection())
   }
@@ -1430,7 +1430,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @TargetApi(HONEYCOMB) Annotation",
       "/src/p1/p2/MyActivity.java",
-      "java"
+      "java",
     )
   }
 
@@ -1440,7 +1440,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Suppress NewApi with an annotation",
       "/src/p1/p2/MyActivity.java",
-      "java"
+      "java",
     )
   }
 
@@ -1450,7 +1450,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Suppress with tools:targetApi attribute",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1460,7 +1460,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Suppress: Add tools:ignore=\"NewApi\" attribute",
       "/res/layout/layout.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1470,7 +1470,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
       "/src/androidx/annotation/RequiresExtension.java",
-      "java"
+      "java",
     )
   }
 
@@ -1480,7 +1480,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 1) { ... }",
       "/src/androidx/annotation/RequiresExtension.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1490,7 +1490,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
       "/src/androidx/annotation/RequiresExtension.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1500,7 +1500,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1510,7 +1510,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1520,7 +1520,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.java",
-      "java"
+      "java",
     )
   }
 
@@ -1530,7 +1530,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.java",
-      "java"
+      "java",
     )
   }
 
@@ -1540,7 +1540,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=1000000, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1550,7 +1550,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
       "/src/p1/p2/MyActivity.java",
-      "java"
+      "java",
     )
   }
 
@@ -1560,7 +1560,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNewApiInspection(),
       "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
       "/src/p1/p2/MyActivity.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1574,7 +1574,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintAnnotateVersionCheckInspection(),
       "Annotate with @ChecksSdkIntAtLeast",
       "$srcRoot/p1/p2/JavaSdkIntTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -1586,7 +1586,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintAnnotateVersionCheckInspection(),
       "Annotate with @ChecksSdkIntAtLeast",
       "$srcRoot/p1/p2/SdkIntTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -1597,7 +1597,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Set desugaring level to DEFAULT which does not include java 8 desugaring.
     AndroidModel.set(
       myFacet,
-      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT)
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT),
     )
 
     val highlights =
@@ -1605,7 +1605,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         AndroidLintNewApiInspection(),
         "src/com/example/test/TestActivity.java",
         "java",
-        true
+        true,
       )
     // All Java8 features should be flagged as errors
     val errors =
@@ -1624,7 +1624,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         "Method reference requires API level 24 (current min is 16): `isEven::test`",
         "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
         "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
-        "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`"
+        "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`",
       )
   }
 
@@ -1635,7 +1635,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Explicitly enable full desugaring
     AndroidModel.set(
       myFacet,
-      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL)
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL),
     )
 
     val highlights =
@@ -1643,7 +1643,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         AndroidLintNewApiInspection(),
         "src/com/example/test/TestActivity.java",
         "java",
-        true
+        true,
       )
     // Java8 features should not be flagged as issues
     val errors =
@@ -1658,16 +1658,16 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testImlFileOutsideContentRoot() {
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML
+      "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML
+      "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
     val testDir = BASE_PATH_GLOBAL + "apiCheck1"
     myFixture.copyFileToProject(
       "$testDir/MyActivity.java",
-      "additionalModules/module1/src/p1/p2/MyActivity.java"
+      "additionalModules/module1/src/p1/p2/MyActivity.java",
     )
     doGlobalInspectionTest(AndroidLintNewApiInspection(), testDir, AnalysisScope(project))
   }
@@ -1756,7 +1756,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           manager.setCommunicationDevice(info);
         }
       }"""
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
@@ -1784,12 +1784,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           manager.setCommunicationDevice(info);
         }
       }"""
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
       "additionalModules/module1/AndroidManifest.xml",
-      manifestContents(32, 32)
+      manifestContents(32, 32),
     )
 
     val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
@@ -1826,7 +1826,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           manager.setCommunicationDevice(info);
         }
       }"""
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
@@ -1853,12 +1853,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           manager.clearCommunicationDevice();
         }
       }"""
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
       "additionalModules/module1/AndroidManifest.xml",
-      manifestContents(32, 32)
+      manifestContents(32, 32),
     )
 
     val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
@@ -1875,26 +1875,26 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     val v8strings =
       myFixture.copyFileToProject(
         "$globalTestDir/values-v8-strings.xml",
-        "res/values-v8/strings.xml"
+        "res/values-v8/strings.xml",
       )
     val v10strings =
       myFixture.copyFileToProject(
         "$globalTestDir/values-v10-strings.xml",
-        "res/values-v10/strings.xml"
+        "res/values-v10/strings.xml",
       )
     val mipmap =
       myFixture.copyFileToProject(
         "$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml",
-        "res/mipmap-anydpi-v26/ic_launcher.xml"
+        "res/mipmap-anydpi-v26/ic_launcher.xml",
       )
 
     myFixture.copyFileToProject(
       "$globalTestDir/layout-v11-activity_main.xml",
-      "res/layout-v11/activity_main.xml"
+      "res/layout-v11/activity_main.xml",
     )
     myFixture.copyFileToProject(
       "$globalTestDir/layout-activity_main.xml",
-      "res/layout/activity_main.xml"
+      "res/layout/activity_main.xml",
     )
 
     myFixture.configureFromExistingVirtualFile(mainFile)
@@ -1907,7 +1907,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     myFixture.checkResultByFile(
       "res/mipmap-anydpi/ic_launcher.xml",
       "$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml",
-      true
+      true,
     )
 
     // check that the other folders don't exist
@@ -1920,7 +1920,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintImpliedTouchscreenHardwareInspection(),
       "Add uses-feature tag",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1935,7 +1935,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintParcelClassLoaderInspection(),
       "Use getClass().getClassLoader()",
       "/src/test/pkg/ParcelClassLoaderTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -1944,7 +1944,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintParcelClassLoaderInspection(),
       "Use getClass().getClassLoader()",
       "/src/test/pkg/ParcelClassLoaderTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -1961,7 +1961,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
       "Set permission=\"android.permission.BROADCAST_SMS\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1979,7 +1979,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNetworkSecurityConfigInspection(),
       "Replace with `<domain-config>`",
       "res/xml/network-config.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1990,7 +1990,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNetworkSecurityConfigInspection(),
       "Replace with `includeSubdomains`",
       "res/xml/network-config.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -1999,7 +1999,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintTyposInspection(),
       "Delete repeated word",
       "res/values/strings.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2009,7 +2009,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintNetworkSecurityConfigInspection(),
       "Set digest to \"SHA-256\"",
       "res/xml/network-config.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2026,7 +2026,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintStringEscapingInspection(),
       "Escape Apostrophe",
       "/res/values/strings.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2034,7 +2034,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestHighlighting(
       AndroidLintRegisteredInspection(),
       "/src/p1/p2/RegistrationTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -2050,13 +2050,13 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     testProjectSystem.addDependency(
       GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
       myFixture.module,
-      GradleVersion.parse("+")
+      GradleVersion.parse("+"),
     )
     doTestWithFix(
       AndroidLintAppCompatCustomViewInspection(),
       "Extend AppCompat widget instead",
       "/src/p1/p2/MyButton.java",
-      "java"
+      "java",
     )
   }
 
@@ -2065,7 +2065,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintExifInterfaceInspection(),
       "Update all references in this file",
       "/src/test/pkg/ExifUsage.java",
-      "java"
+      "java",
     )
   }
 
@@ -2075,7 +2075,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWearStandaloneAppFlagInspection(),
       "Add meta-data element for 'com.google.android.wearable.standalone'",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2085,7 +2085,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWearStandaloneAppFlagInspection(),
       "Replace with true",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2095,7 +2095,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWearStandaloneAppFlagInspection(),
       "Set value=\"true\"",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2105,7 +2105,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintInvalidWearFeatureAttributeInspection(),
       "Remove attribute",
       "AndroidManifest.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2115,7 +2115,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWakelockTimeoutInspection(),
       "Set timeout to 10 minutes",
       "/src/test/pkg/WakelockTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -2128,7 +2128,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintWifiManagerLeakInspection(),
       "Add getApplicationContext()",
       "/src/test/pkg/WifiManagerLeak.java",
-      "java"
+      "java",
     )
   }
 
@@ -2164,7 +2164,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMotionSceneFileValidationErrorInspection(),
       "Set attributeName",
       "/res/xml/customTagWithoutName.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2173,7 +2173,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMotionSceneFileValidationErrorInspection(),
       "Delete this custom attribute",
       "/res/xml/customTagWithDuplicateName.xml",
-      "xml"
+      "xml",
     )
   }
 
@@ -2182,7 +2182,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       AndroidLintMotionLayoutInvalidSceneFileReferenceInspection(),
       "Generate MotionScene file",
       "/res/layout/motionLayoutWithoutLayoutDescription.xml",
-      "xml"
+      "xml",
     )
 
     val sceneFile = "${getTestName(true)}_scene.xml"
@@ -2198,7 +2198,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   private fun doGlobalInspectionWithFixes(
     inspection: GlobalInspectionTool,
-    vararg actionLabels: String
+    vararg actionLabels: String,
   ) {
     val map = doGlobalInspectionTest(inspection)
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if
@@ -2252,7 +2252,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                      int api() default 1;
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2278,7 +2278,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                      boolean flag() default false;
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2301,7 +2301,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  public @interface Keep {
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2322,7 +2322,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                      String suggest() default "";
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2346,7 +2346,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  public @interface DrawableRes {
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2370,7 +2370,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  public @interface ColorInt {
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2394,7 +2394,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  public @interface ColorRes {
                                  }
                                """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -2419,7 +2419,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                 int lambda() default -1;
             }
             """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 

@@ -48,7 +48,7 @@ class PropertyCurveTest {
             property,
             InspectorLayout.timelineHeaderHeightScaled(),
             0,
-            slider.sliderUI.positionProxy
+            slider.sliderUI.positionProxy,
           )
           .also { it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2)) }
 
@@ -58,7 +58,7 @@ class PropertyCurveTest {
           property,
           InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
           1,
-          slider.sliderUI.positionProxy
+          slider.sliderUI.positionProxy,
         )
 
       slider.sliderUI.elements.add(propertyCurveOne)

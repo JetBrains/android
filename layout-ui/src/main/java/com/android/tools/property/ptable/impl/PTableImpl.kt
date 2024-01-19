@@ -97,7 +97,7 @@ open class PTableImpl(
   private val editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
   private val customToolTipHook: (MouseEvent) -> String? = { null },
   private val updatingUI: () -> Unit = {},
-  private val nameColumnFraction: ColumnFraction = ColumnFraction()
+  private val nameColumnFraction: ColumnFraction = ColumnFraction(),
 ) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter(model)
@@ -109,7 +109,7 @@ open class PTableImpl(
       { 0 },
       { width },
       { columnModel.getColumn(0).minWidth },
-      ::onResizeModeChange
+      ::onResizeModeChange,
     )
   private var lastLeftFractionValue = nameColumnFraction.value
   private var initialized = false
@@ -231,7 +231,7 @@ open class PTableImpl(
     item: PTableItem,
     column: PTableColumn,
     cellEditor: JComponent,
-    scrollIntoView: Boolean
+    scrollIntoView: Boolean,
   ) {
     // The Border insets height for a DarculaTextBorder is different if
     // DarculaUIUtil.isTableCellEditor returns false.
@@ -799,7 +799,7 @@ open class PTableImpl(
                   event.`when`,
                   event.modifiers,
                   event.keyCode,
-                  event.keyChar
+                  event.keyChar,
                 )
               textEditor.dispatchEvent(keyEvent)
             }
@@ -912,7 +912,7 @@ class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHand
         false,
         false,
         cell.row,
-        cell.column
+        cell.column,
       )
     val bounds = myComponent.getCellRect(cell.row, cell.column, true)
     val componentUnderMouse =

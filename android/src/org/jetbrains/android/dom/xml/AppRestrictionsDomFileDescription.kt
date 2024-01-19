@@ -23,7 +23,7 @@ class AppRestrictionsDomFileDescription :
   SingleRootResourceDomFileDescription<Restrictions>(
     Restrictions::class.java,
     ROOT_TAG_NAME,
-    ResourceFolderType.XML
+    ResourceFolderType.XML,
   ) {
   companion object {
     const val ROOT_TAG_NAME = "restrictions"

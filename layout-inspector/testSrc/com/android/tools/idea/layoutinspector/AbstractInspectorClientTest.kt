@@ -57,7 +57,7 @@ class AbstractInspectorClientTest {
         socket: Socket,
         device: DeviceState,
         command: String,
-        args: String
+        args: String,
       ) =
         if (command == ("shell")) {
           writeOkay(socket.getOutputStream())
@@ -86,7 +86,7 @@ class AbstractInspectorClientTest {
       MODERN_DEVICE.manufacturer,
       MODERN_DEVICE.model,
       MODERN_DEVICE.version,
-      MODERN_DEVICE.apiLevel.toString()
+      MODERN_DEVICE.apiLevel.toString(),
     )
   }
 
@@ -126,7 +126,7 @@ class AbstractInspectorClientTest {
       true,
       DisconnectedClient.stats,
       AndroidCoroutineScope(disposable),
-      disposable
+      disposable,
     ) {
     override suspend fun doConnect() {}
 

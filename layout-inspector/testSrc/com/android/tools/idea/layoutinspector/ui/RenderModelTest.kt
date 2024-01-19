@@ -65,7 +65,7 @@ class RenderModelTest {
         VIEW1 to Rectangle(0, 0, 100, 50),
         VIEW2 to Rectangle(0, 0, 100, 50),
         VIEW3 to Rectangle(0, 50, 100, 50),
-        VIEW4 to Rectangle(40, 40, 20, 20)
+        VIEW4 to Rectangle(40, 40, 20, 20),
       )
 
     val model =
@@ -88,7 +88,7 @@ class RenderModelTest {
         VIEW1 to Rectangle(0, 0, 100, 100),
         VIEW2 to Rectangle(0, 0, 10, 10),
         VIEW3 to Rectangle(0, 0, 100, 100),
-        VIEW4 to Rectangle(40, 40, 20, 20)
+        VIEW4 to Rectangle(40, 40, 20, 20),
       )
 
     val model =
@@ -116,13 +116,13 @@ class RenderModelTest {
     panelModel.rotate(0.1, 0.2)
     assertEqualAffineTransform(
       AffineTransform(0.995, -0.010, -0.010, 0.980, -15.0, -30.0),
-      panelModel.hitRects[0].transform
+      panelModel.hitRects[0].transform,
     )
 
     panelModel.resetRotation()
     assertEqualAffineTransform(
       AffineTransform(1.0, 0.0, 0.0, 1.0, 0.0, -0.0),
-      panelModel.hitRects[0].transform
+      panelModel.hitRects[0].transform,
     )
   }
 
@@ -282,7 +282,7 @@ class RenderModelTest {
         ROOT to Rectangle(0, 0, 100, 200),
         VIEW1 to Rectangle(0, 0, 50, 60),
         VIEW2 to Rectangle(60, 70, 10, 10),
-        VIEW3 to Rectangle(10, 20, 30, 40)
+        VIEW3 to Rectangle(10, 20, 30, 40),
       )
 
     @Suppress("MapGetWithNotNullAssertionOperator")
@@ -304,7 +304,7 @@ class RenderModelTest {
     xOff: Double,
     yOff: Double,
     rectMap: Map<Long, Rectangle>,
-    hideSystemNodes: Boolean = false
+    hideSystemNodes: Boolean = false,
   ) {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = hideSystemNodes
@@ -321,7 +321,7 @@ class RenderModelTest {
       .forEach { (drawId, info) ->
         assertPathEqual(
           actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!,
-          info.bounds
+          info.bounds,
         )
       }
   }

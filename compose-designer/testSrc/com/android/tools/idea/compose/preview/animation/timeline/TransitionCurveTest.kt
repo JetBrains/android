@@ -54,20 +54,20 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
       val transitionCurveTwo =
         TransitionCurve.create(
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled() + transitionCurveOne.height,
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
 
       transitionCurveOne.timelineUnits =
         listOf(
           ComposeUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
-          ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5))
+          ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)),
         )
 
       slider.sliderUI.elements.add(transitionCurveOne)
@@ -81,7 +81,7 @@ class TransitionCurveTest {
           TooltipInfo("Property One", "width ( 0 , _ )"),
           TooltipInfo("Property One", "height ( _ , 0 )"),
           TooltipInfo("Property Two", "width ( 5 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 5 )")
+          TooltipInfo("Property Two", "height ( _ , 5 )"),
         )
       assertEquals(expected, tooltips)
 
@@ -102,7 +102,7 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
       slider.sliderUI.elements.add(transitionCurve)
       // No tooltips.
@@ -124,7 +124,7 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
       transitionCurve.timelineUnits =
         listOf(null, null, ComposeUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
@@ -135,7 +135,7 @@ class TransitionCurveTest {
       val expected =
         setOf(
           TooltipInfo("Property", "width ( 5 , _ )"),
-          TooltipInfo("Property", "height ( _ , 5 )")
+          TooltipInfo("Property", "height ( _ , 5 )"),
         )
       assertEquals(expected, tooltips)
       // Uncomment to preview ui.
@@ -154,7 +154,7 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
       transitionCurve.timelineUnits =
         listOf(ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
@@ -165,7 +165,7 @@ class TransitionCurveTest {
       val expected =
         setOf(
           TooltipInfo("Property Two", "width ( 5 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 5 )")
+          TooltipInfo("Property Two", "height ( _ , 5 )"),
         )
       assertEquals(expected, tooltips)
       // Uncomment to preview ui.
@@ -184,13 +184,13 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
       transitionCurve.timelineUnits =
         listOf(
           ComposeUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
           ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(0, 0)),
-          ComposeUnit.TimelineUnit("Property Three", ComposeUnit.IntSize(5, 5))
+          ComposeUnit.TimelineUnit("Property Three", ComposeUnit.IntSize(5, 5)),
         )
       slider.sliderUI.elements.add(transitionCurve)
       slider.sliderUI.elements.add(transitionCurve)
@@ -202,7 +202,7 @@ class TransitionCurveTest {
           TooltipInfo("Property One", "width ( 0 , _ )"),
           TooltipInfo("Property One", "height ( _ , 0 )"),
           TooltipInfo("Property Two", "width ( 0 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 0 )")
+          TooltipInfo("Property Two", "height ( _ , 0 )"),
         )
       assertEquals(expected, tooltips)
       // Uncomment to preview ui.
@@ -221,7 +221,7 @@ class TransitionCurveTest {
           state = ElementState(),
           transition = Transition(emptyMap()),
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
 
       slider.sliderUI.elements.add(transitionCurve)

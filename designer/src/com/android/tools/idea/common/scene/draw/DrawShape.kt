@@ -28,13 +28,13 @@ class DrawShape(
   @VisibleForTesting val shape: AnimatedValue<SwingShape>,
   @VisibleForTesting val color: Color,
   @VisibleForTesting val stroke: SwingStroke,
-  level: Int = 0
+  level: Int = 0,
 ) : DrawCommandBase(level) {
   constructor(
     shape: SwingShape,
     color: Color,
     stroke: SwingStroke,
-    level: Int = 0
+    level: Int = 0,
   ) : this(ConstantValue<SwingShape>(shape), color, stroke, level)
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

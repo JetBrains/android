@@ -71,7 +71,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   appInsightsModel.controller,
                   project,
                   Clock.systemDefaultZone(),
-                  AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+                  AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
                 )
               )
             }
@@ -97,7 +97,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             it.appendLine(
               "Waiting for initial sync...",
               SimpleTextAttributes.GRAYED_ATTRIBUTES,
-              null
+              null,
             )
             it.attachTo(this)
           }
@@ -119,12 +119,12 @@ class VitalsTabProvider : AppInsightsTabProvider {
             StudioIllustrations.Common.PLAY_CONSOLE,
             "",
             SimpleTextAttributes.REGULAR_ATTRIBUTES,
-            null
+            null,
           )
           appendLine(
             "See insights from Play Console with Android Vitals",
             SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-            null
+            null,
           )
           appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
             GoogleLogin.instance.logIn(null, null)
@@ -134,7 +134,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
           appendLine(
             AllIcons.General.ContextHelp,
             "More Info",
-            SimpleTextAttributes.LINK_ATTRIBUTES
+            SimpleTextAttributes.LINK_ATTRIBUTES,
           ) {
             BrowserUtil.browse("https://d.android.com/r/studio-ui/debug/aqi-android-vitals")
           }

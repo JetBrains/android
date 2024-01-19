@@ -29,7 +29,7 @@ import javax.swing.JComponent
 class ResolutionStackEditorProvider(
   model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
-  controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
+  controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
 ) : EditorProvider<InspectorPropertyItem> {
   private val baseTypeProvider = BaseTypeProvider(controlTypeProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, baseTypeProvider)
@@ -39,7 +39,7 @@ class ResolutionStackEditorProvider(
 
   override fun createEditor(
     property: InspectorPropertyItem,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
     // Use EditorContext.TABLE_RENDERER such that text will always be rendered as a PropertyLabel.
     // This will eliminate flickering from the table row being resized when a PropertyTextField is

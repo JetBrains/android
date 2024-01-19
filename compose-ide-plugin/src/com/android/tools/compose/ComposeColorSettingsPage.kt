@@ -29,19 +29,19 @@ import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
 private val COMPOSABLE_CALL_DESCRIPTOR =
   AttributesDescriptor(
     ComposeBundle.message("composable.function.rendering.text.attributes.description"),
-    COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+    COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
   )
 
 private val STATE_READ_DESCRIPTOR =
   AttributesDescriptor(
     ComposeBundle.message("state.read.text.attributes.description"),
-    COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
+    COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY,
   )
 
 private val STATE_READ_SCOPE_DESCRIPTOR =
   AttributesDescriptor(
     ComposeBundle.message("state.read.scope.highlighting.text.attributes.description"),
-    COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
+    COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY,
   )
 
 private val TAG_TO_DESCRIPTOR =

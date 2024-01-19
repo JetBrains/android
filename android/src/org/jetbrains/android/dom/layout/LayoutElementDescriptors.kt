@@ -52,7 +52,7 @@ class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlEl
 
   constructor(
     viewClass: PsiClass?,
-    element: LayoutViewElement
+    element: LayoutViewElement,
   ) : this(viewClass, DomElementXmlDescriptor(element))
 
   override fun getIcon(): Icon? {
@@ -123,7 +123,7 @@ open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
 
   override fun getAttributeDescriptor(
     @NonNls attributeName: String?,
-    context: XmlTag?
+    context: XmlTag?,
   ): XmlAttributeDescriptor? {
     return delegate.getAttributeDescriptor(attributeName, context)
       ?: AndroidAnyAttributeDescriptor(attributeName!!)
@@ -145,7 +145,7 @@ object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
       ViewTagDomFileDescription(),
       FragmentLayoutDomFileDescription(),
       MergeDomFileDescription(),
-      DataBindingDomFileDescription()
+      DataBindingDomFileDescription(),
     )
 
   override fun getRootElementsDescriptors(doc: XmlDocument?): Array<LayoutElementDescriptor> {
@@ -168,7 +168,7 @@ object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
           .toTypedArray()
       CachedValueProvider.Result.create(
         static,
-        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project)
+        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project),
       )
     }
   }

@@ -26,6 +26,6 @@ interface LayoutManagerSwitcher {
   /** Sets a new [SurfaceLayoutManager]. */
   fun setLayoutManager(
     layoutManager: SurfaceLayoutManager,
-    sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER
+    sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER,
   )
 }

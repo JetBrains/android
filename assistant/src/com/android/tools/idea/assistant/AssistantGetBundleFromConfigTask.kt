@@ -26,7 +26,7 @@ class AssistantGetBundleFromConfigTask(
   project: Project,
   private val config: URL,
   private val uiCallback: FutureCallback<TutorialBundleData>,
-  private val bundleCreatorId: String
+  private val bundleCreatorId: String,
 ) : Task.Backgroundable(project, "Loading assistant content...") {
 
   private lateinit var bundleData: TutorialBundleData

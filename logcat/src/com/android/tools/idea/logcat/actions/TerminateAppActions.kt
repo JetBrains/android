@@ -68,7 +68,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   private fun findProcess(
     project: Project,
     logcatHeader: LogcatHeader,
-    device: Device
+    device: Device,
   ): JdwpProcess? {
     val adbSession = AdbLibService.getSession(project)
     val connectedDevices = adbSession.connectedDevicesTracker.connectedDevices.value
@@ -106,7 +106,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   class ForceStopAppAction :
     TerminateAppActions(
       LogcatBundle.message("logcat.terminate.app.force.stop"),
-      StudioIcons.DeviceProcessMonitor.FORCE_STOP
+      StudioIcons.DeviceProcessMonitor.FORCE_STOP,
     ) {
     override fun isEnabled(logcatHeader: LogcatHeader): Boolean {
       return logcatHeader.applicationId != "system_process" &&
@@ -116,7 +116,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
     override fun actionPerformed(
       adbSession: AdbSession,
       process: JdwpProcess,
-      packageName: String
+      packageName: String,
     ) {
       adbSession.scope.launch {
         adbSession.deviceServices
@@ -136,12 +136,12 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   class KillAppAction :
     TerminateAppActions(
       LogcatBundle.message("logcat.terminate.app.kill"),
-      StudioIcons.DeviceProcessMonitor.KILL_PROCESS
+      StudioIcons.DeviceProcessMonitor.KILL_PROCESS,
     ) {
     override fun actionPerformed(
       adbSession: AdbSession,
       process: JdwpProcess,
-      packageName: String
+      packageName: String,
     ) {
       process.scope.launch { process.withJdwpSession { sendDdmsExit(1) } }
     }
@@ -167,7 +167,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   class CrashAppAction :
     TerminateAppActions(
       LogcatBundle.message("logcat.terminate.app.crash"),
-      StudioIcons.AppQualityInsights.ISSUE
+      StudioIcons.AppQualityInsights.ISSUE,
     ) {
     override fun isEnabled(logcatHeader: LogcatHeader): Boolean {
       return logcatHeader.applicationId != "system_process" &&
@@ -181,7 +181,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
     override fun actionPerformed(
       adbSession: AdbSession,
       process: JdwpProcess,
-      packageName: String
+      packageName: String,
     ) {
       adbSession.scope.launch {
         adbSession.deviceServices

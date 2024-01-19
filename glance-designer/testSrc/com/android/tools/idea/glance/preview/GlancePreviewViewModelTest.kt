@@ -45,7 +45,7 @@ private class TestPreviewView : PreviewView {
   override fun showErrorMessage(
     message: String,
     recoveryUrl: UrlData?,
-    actionToRecover: ActionData?
+    actionToRecover: ActionData?,
   ) {
     errorMessages.add(message)
   }
@@ -114,7 +114,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -124,7 +124,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -134,7 +134,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -246,7 +246,7 @@ class GlancePreviewViewModelTest {
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(
         "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue.",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
     }
 

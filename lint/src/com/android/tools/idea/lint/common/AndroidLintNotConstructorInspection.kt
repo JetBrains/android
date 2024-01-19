@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.WrongConstructorDetector
 class AndroidLintNotConstructorInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.not.constructor"),
-    WrongConstructorDetector.ISSUE
+    WrongConstructorDetector.ISSUE,
   )

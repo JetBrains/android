@@ -34,7 +34,7 @@ class AbsolutePlaceholder(host: SceneComponent) : Placeholder(host) {
       host.drawY,
       host.drawX + host.drawWidth,
       host.drawY + host.drawHeight,
-      host.depth
+      host.depth,
     )
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {

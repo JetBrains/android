@@ -30,7 +30,7 @@ interface TreeLoader {
   fun loadComponentTree(
     data: Any?,
     resourceLookup: ResourceLookup,
-    process: ProcessDescriptor
+    process: ProcessDescriptor,
   ): ComponentTreeData?
 
   fun getAllWindowIds(data: Any?): List<*>?
@@ -47,5 +47,5 @@ data class ComponentTreeData(
   val generation: Int,
 
   /** Dynamic capabilities based on the loaded data. */
-  val dynamicCapabilities: Set<Capability>
+  val dynamicCapabilities: Set<Capability>,
 )

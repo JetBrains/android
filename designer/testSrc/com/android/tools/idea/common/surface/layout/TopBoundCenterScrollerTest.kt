@@ -41,7 +41,7 @@ class TopBoundCenterScrollerTest {
         viewRect.location,
         viewport.extentSize,
         oldScale = 1.0,
-        newScale = 2.0
+        newScale = 2.0,
       )
     scroller.scroll(viewport)
     assertEquals(Point(250, 0), viewport.viewPosition)
@@ -63,7 +63,7 @@ class TopBoundCenterScrollerTest {
         viewRect.location,
         viewport.extentSize,
         oldScale = 1.0,
-        newScale = 2.0
+        newScale = 2.0,
       )
     scroller.scroll(viewport)
     assertEquals(Point(750, 500), viewport.viewPosition)
@@ -85,7 +85,7 @@ class TopBoundCenterScrollerTest {
         viewRect.location,
         viewport.extentSize,
         oldScale = 2.0,
-        newScale = 1.0
+        newScale = 1.0,
       )
     scroller.scroll(viewport)
     assertEquals(Point(0, 300), viewport.viewPosition)
@@ -107,7 +107,7 @@ class TopBoundCenterScrollerTest {
         viewRect.location,
         viewport.extentSize,
         oldScale = 2.0,
-        newScale = 1.0
+        newScale = 1.0,
       )
     scroller.scroll(viewport)
     assertEquals(Point(250, 500), viewport.viewPosition)
@@ -133,7 +133,7 @@ class TopBoundCenterScrollerTest {
           viewRect.location,
           viewport.extentSize,
           oldScale = 0.0,
-          newScale = 1.0
+          newScale = 1.0,
         )
       scroller.scroll(viewport)
       assertEquals(currentPosition, viewport.viewPosition)
@@ -151,7 +151,7 @@ class TopBoundCenterScrollerTest {
           viewRect.location,
           viewport.extentSize,
           oldScale = 0.0,
-          newScale = 1.0
+          newScale = 1.0,
         )
       scroller.scroll(viewport)
       assertEquals(currentPosition, viewport.viewPosition)

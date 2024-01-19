@@ -33,7 +33,7 @@ class DefaultValueTableCellRenderer : SimpleColoredComponent(), PTableCellRender
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)

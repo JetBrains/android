@@ -35,7 +35,7 @@ class RuleData(
   // must be a public var for PersistentStateComponent to set it
   var id: Int,
   name: String,
-  isActive: Boolean
+  isActive: Boolean,
 ) {
 
   companion object {
@@ -167,7 +167,7 @@ class RuleData(
     var findValue: String?,
     var isFindValueRegex: Boolean,
     var newName: String?,
-    var newValue: String?
+    var newValue: String?,
   ) : TransformationRuleData {
 
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
@@ -239,7 +239,7 @@ class RuleData(
                 else -> throw UnsupportedOperationException("Unknown item $item")
               }
             }
-          }
+          },
         )
       addTableModelListener { listener?.invoke() }
     }
@@ -282,7 +282,7 @@ class RuleData(
     // These must be public vars for PersistentStateComponent to set them.
     var targetText: String,
     var isRegex: Boolean,
-    var newText: String
+    var newText: String,
   ) : TransformationRuleData {
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this("", false, "")
@@ -336,7 +336,7 @@ class RuleData(
                 else -> ""
               }
             }
-          }
+          },
         )
       addTableModelListener { listener?.invoke() }
     }
@@ -400,7 +400,7 @@ private object MyRenderer : ColoredTableCellRenderer() {
     selected: Boolean,
     hasFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ) {
     clear()
     border = JBUI.Borders.empty()

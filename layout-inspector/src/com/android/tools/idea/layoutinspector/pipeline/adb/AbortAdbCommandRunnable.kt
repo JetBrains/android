@@ -30,7 +30,7 @@ import java.util.concurrent.CountDownLatch
 class AbortAdbCommandRunnable(
   private val adb: AndroidDebugBridge,
   private val device: DeviceDescriptor,
-  private val command: String
+  private val command: String,
 ) : Runnable {
 
   private val shouldQuit = CountDownLatch(1)

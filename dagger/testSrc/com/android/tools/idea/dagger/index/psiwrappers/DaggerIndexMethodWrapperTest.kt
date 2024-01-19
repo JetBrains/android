@@ -61,7 +61,7 @@ class DaggerIndexMethodWrapperTest {
         fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("b|ar")
@@ -88,7 +88,7 @@ class DaggerIndexMethodWrapperTest {
         fun bar(arg1: Integer, arg2: Bat) = resultOfSomeFunction
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("b|ar")
@@ -115,7 +115,7 @@ class DaggerIndexMethodWrapperTest {
         fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("b|ar")
@@ -138,7 +138,7 @@ class DaggerIndexMethodWrapperTest {
 
       fun bar(arg1: Integer, arg2: Bat): Baz {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("b|ar")
@@ -158,7 +158,7 @@ class DaggerIndexMethodWrapperTest {
 
       class Foo(arg1: Integer, arg2: Bat) {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtPrimaryConstructor = myFixture.findParentElement("Foo(a|rg1")
@@ -185,7 +185,7 @@ class DaggerIndexMethodWrapperTest {
         constructor(arg1: Integer)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtSecondaryConstructor = myFixture.findParentElement("constr|uctor")
@@ -211,7 +211,7 @@ class DaggerIndexMethodWrapperTest {
         public Baz bar(int arg1, Bat arg2) {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiMethod = myFixture.findParentElement("b|ar")
@@ -243,7 +243,7 @@ class DaggerIndexMethodWrapperTest {
         public Baz bar(int arg1, Bat arg2) {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiMethod = myFixture.findParentElement("b|ar")
@@ -267,7 +267,7 @@ class DaggerIndexMethodWrapperTest {
         public Foo(int arg1, Bat arg2) {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiMethod = myFixture.findParentElement("Fo|o(int")

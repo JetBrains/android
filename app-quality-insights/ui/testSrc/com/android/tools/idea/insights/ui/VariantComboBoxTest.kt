@@ -47,7 +47,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT)))
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT))),
         )
       )
 
@@ -76,7 +76,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Ready(Selection.emptySelection())
+          currentIssueVariants = LoadingState.Ready(Selection.emptySelection()),
         )
       )
 
@@ -96,7 +96,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.UnknownFailure("failed variants call")
+          currentIssueVariants = LoadingState.UnknownFailure("failed variants call"),
         )
       )
 
@@ -116,7 +116,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.NetworkFailure("offline")
+          currentIssueVariants = LoadingState.NetworkFailure("offline"),
         )
       )
 
@@ -136,7 +136,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Loading
+          currentIssueVariants = LoadingState.Loading,
         )
       )
 
@@ -157,7 +157,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Ready(Selection(variant2, listOf(variant1, variant2)))
+          currentIssueVariants = LoadingState.Ready(Selection(variant2, listOf(variant1, variant2))),
         )
       )
 
@@ -188,7 +188,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1)))
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1))),
         )
       )
 
@@ -199,7 +199,7 @@ class VariantComboBoxTest {
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1, variant2)))
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1, variant2))),
         )
       )
 

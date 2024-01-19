@@ -67,16 +67,16 @@ class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: ()
       enableAutoConnectCheckBox,
       Setting(
         getValue = { settings.autoConnectEnabled },
-        setValue = { settings.autoConnectEnabled = it }
-      )
+        setValue = { settings.autoConnectEnabled = it },
+      ),
     )
   private val embeddedLayoutInspectorSettingControl =
     ToggleSettingController(
       enableEmbeddedLayoutInspectorCheckBox,
       Setting(
         getValue = { settings.embeddedLayoutInspectorEnabled },
-        setValue = { settings.embeddedLayoutInspectorEnabled = it }
-      )
+        setValue = { settings.embeddedLayoutInspectorEnabled = it },
+      ),
     )
 
   init {
@@ -176,7 +176,7 @@ private fun showRestartStudioDialog(): Boolean {
       IdeBundle.message("dialog.title.restart.required"),
       action,
       IdeBundle.message("ide.notnow.action"),
-      Messages.getQuestionIcon()
+      Messages.getQuestionIcon(),
     )
 
   return if (result == Messages.YES) {

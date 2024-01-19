@@ -38,7 +38,7 @@ class PickDrawableViewAction(private val namespace: String?, private val attribu
     handler: ViewHandler,
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiers: Int
+    modifiers: Int,
   ) {
     val tag = component.tag ?: return
     val types = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP)
@@ -53,7 +53,7 @@ class PickDrawableViewAction(private val namespace: String?, private val attribu
         showColorStateLists = true,
         showSampleData = false,
         showThemeAttributes = true,
-        file = tag.containingFile.virtualFile
+        file = tag.containingFile.virtualFile,
       )
 
     if (dialog.showAndGet()) {

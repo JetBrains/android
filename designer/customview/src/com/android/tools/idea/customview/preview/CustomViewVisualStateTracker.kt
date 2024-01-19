@@ -22,7 +22,7 @@ class CustomViewVisualStateTracker(
   private val onNotificationStateChanged:
     (newState: CustomViewPreviewManager.NotificationsState) -> Unit =
     {},
-  private val onPreviewStateChanged: (newState: PreviewState) -> Unit = {}
+  private val onPreviewStateChanged: (newState: PreviewState) -> Unit = {},
 ) {
   enum class FileState {
     MODIFIED,

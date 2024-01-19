@@ -125,7 +125,7 @@ class NlVisibilityModel(val component: NlComponent) {
 
 private fun determineVisibility(
   childVisibility: Visibility,
-  parentVisibility: Visibility
+  parentVisibility: Visibility,
 ): Visibility {
   return when (parentVisibility) {
     Visibility.NONE -> childVisibility

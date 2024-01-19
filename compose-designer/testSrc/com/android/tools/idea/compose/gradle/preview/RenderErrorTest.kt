@@ -244,7 +244,7 @@ class RenderErrorTest {
         val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
         assertEquals(
           visibleActionCount,
-          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors)
+          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors),
         )
       }
     }
@@ -309,7 +309,7 @@ class RenderErrorTest {
   private fun countVisibleActions(
     actions: List<AnAction>,
     visibleBefore: Boolean,
-    sceneViewPeerPanel: SceneViewPeerPanel
+    sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
     var visibleAfterCount = 0
     val dataContext = DataContext { sceneViewPeerPanel.getData(it) }
@@ -335,10 +335,7 @@ class RenderErrorTest {
   private suspend fun startUiCheckForModel(model: String) {
     lateinit var uiCheckElement: ComposePreviewElementInstance
 
-    delayUntilCondition(
-      250,
-      timeout = 1.minutes,
-    ) {
+    delayUntilCondition(250, timeout = 1.minutes) {
       previewView.mainSurface.models
         .firstOrNull { it.modelDisplayName == model }
         ?.dataContext
@@ -353,7 +350,7 @@ class RenderErrorTest {
         baseElement = uiCheckElement,
         atfChecksEnabled = true,
         visualLintingEnabled = true,
-      ),
+      )
     )
     onRefreshCompletable.join()
 
@@ -361,7 +358,7 @@ class RenderErrorTest {
     // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
     withContext(uiThread) {
       composePreviewRepresentation.waitForRender(
-        fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(),
+        fakeUi.findAllComponents<SceneViewPeerPanel>().toSet()
       )
       fakeUi.root.validate()
     }

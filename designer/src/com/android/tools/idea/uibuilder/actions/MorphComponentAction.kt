@@ -33,7 +33,7 @@ class MorphComponentAction
 @JvmOverloads
 constructor(
   component: NlComponent,
-  private val getMorphSuggestions: (NlComponent) -> List<String> = MorphManager::getMorphSuggestion
+  private val getMorphSuggestions: (NlComponent) -> List<String> = MorphManager::getMorphSuggestion,
 ) : AnAction("Convert view...") {
 
   private val myNlComponent = component
@@ -48,7 +48,7 @@ constructor(
     val component =
       NlComponent(
         myNlComponent.model,
-        XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")
+        XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>"),
       )
     NlComponentRegistrar.accept(component)
     dependencyManager.addDependencies(listOf(component), facet, true) {
@@ -62,7 +62,7 @@ constructor(
     DumbService.getInstance(project).runWhenSmart {
       NlWriteCommandActionUtil.run(
         myNlComponent,
-        "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}"
+        "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}",
       ) {
         myNlComponent.tagDeprecated.name = newTagName
         myNlComponent.removeObsoleteAttributes()

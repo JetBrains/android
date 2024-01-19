@@ -22,5 +22,5 @@ class FakeLinkPropertyItem(
   namespace: String,
   name: String,
   initialValue: String? = null,
-  override val link: AnAction
+  override val link: AnAction,
 ) : FakePropertyItem(namespace, name, initialValue), LinkPropertyItem

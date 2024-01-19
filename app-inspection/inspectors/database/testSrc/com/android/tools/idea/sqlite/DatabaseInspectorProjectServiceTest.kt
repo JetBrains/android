@@ -93,7 +93,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         model = model,
         databaseRepository = repository,
         fileDatabaseManager = fileDatabaseManager,
-        createController = { _, _, _, _ -> databaseInspectorController }
+        createController = { _, _, _, _ -> databaseInspectorController },
       )
 
     processDescriptor = StubProcessDescriptor()
@@ -118,14 +118,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         1,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     val connection2 =
       LiveDatabaseConnection(
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         2,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
 
     pumpEventsAndWaitForFuture(
@@ -166,7 +166,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         databaseInspectorProjectService.startAppInspectionSession(
           clientCommandsChannel,
           appInspectionServices,
-          processDescriptor
+          processDescriptor,
         )
       }
 
@@ -181,7 +181,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
           clientCommandsChannel,
           appInspectionServices,
           processDescriptor,
-          processDescriptor.name
+          processDescriptor.name,
         )
       verify(databaseInspectorController).stopAppInspectionSession("processName", processDescriptor)
     }
@@ -204,7 +204,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         0,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
 
     pumpEventsAndWaitForFuture(
@@ -269,7 +269,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       databaseInspectorProjectService.startAppInspectionSession(
         clientCommandsChannel,
         appInspectionServices,
-        processDescriptor
+        processDescriptor,
       )
     }
 

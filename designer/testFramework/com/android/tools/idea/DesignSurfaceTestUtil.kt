@@ -46,7 +46,7 @@ object DesignSurfaceTestUtil {
   fun createMockSurface(
     disposableParent: Disposable,
     surfaceClass: Class<out DesignSurface<out SceneManager>>,
-    interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler
+    interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler,
   ): DesignSurface<out SceneManager> {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
@@ -93,7 +93,7 @@ object DesignSurfaceTestUtil {
     sceneManagerFactory: (DesignSurface<out SceneManager>, SyncNlModel) -> SceneManager,
     surfaceClass: Class<out DesignSurface<out SceneManager>>,
     interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler,
-    model: SyncNlModel
+    model: SyncNlModel,
   ): DesignSurface<out SceneManager> {
     val surface = createMockSurface(disposableParent, surfaceClass, interactionHandlerCreator)
 

@@ -66,7 +66,7 @@ fun LayoutInspectorComposeProtocol.ParameterReference.convert(): ParameterRefere
     anchorHash,
     kind.convert(),
     parameterIndex,
-    convertCompositeIndexList(compositeIndexList)
+    convertCompositeIndexList(compositeIndexList),
   )
 }
 

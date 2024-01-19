@@ -22,7 +22,6 @@ import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -48,12 +47,17 @@ import org.jetbrains.android.facet.AndroidFacet
 @Service(Service.Level.PROJECT)
 class SampleDataListener(project: Project) :
   PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
-  val subscriber = object: LazyFileListenerSubscriber<SampleDataListener>(this, AndroidPluginDisposable.getProjectInstance(project)) {
-    override fun subscribe() {
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
-      AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
+  val subscriber =
+    object :
+      LazyFileListenerSubscriber<SampleDataListener>(
+        this,
+        AndroidPluginDisposable.getProjectInstance(project),
+      ) {
+      override fun subscribe() {
+        VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+        AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
+      }
     }
-  }
 
   private fun ensureSubscribed() {
     subscriber.ensureSubscribed()
@@ -117,7 +121,8 @@ class SampleDataListener(project: Project) :
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
 
     @JvmStatic
-    fun getInstance(project: Project) = project.service<SampleDataListener>().also(SampleDataListener::ensureSubscribed)
+    fun getInstance(project: Project) =
+      project.service<SampleDataListener>().also(SampleDataListener::ensureSubscribed)
   }
 }
 

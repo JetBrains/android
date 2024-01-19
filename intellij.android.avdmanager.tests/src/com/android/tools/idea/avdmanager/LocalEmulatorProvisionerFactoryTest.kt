@@ -80,15 +80,15 @@ class LocalEmulatorProvisionerFactoryTest {
     validateIcon(avdManager.makeAvdInfo(1), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
     validateIcon(
       avdManager.makeAvdInfo(2, tag = SystemImageTags.GOOGLE_TV_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
     )
     validateIcon(
       avdManager.makeAvdInfo(3, tag = SystemImageTags.WEAR_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
     )
     validateIcon(
       avdManager.makeAvdInfo(4, tag = SystemImageTags.AUTOMOTIVE_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
     )
   }
 }

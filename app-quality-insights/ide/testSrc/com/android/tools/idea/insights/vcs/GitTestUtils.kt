@@ -26,7 +26,7 @@ internal fun git(
   project: Project,
   command: GitCommand,
   parameters: List<String>,
-  workingDir: VirtualFile
+  workingDir: VirtualFile,
 ): String {
   val handler = GitLineHandler(project, workingDir, command)
   handler.setWithMediator(false)

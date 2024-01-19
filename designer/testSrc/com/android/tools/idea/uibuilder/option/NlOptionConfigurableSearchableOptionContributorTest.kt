@@ -70,7 +70,7 @@ private class TestSearchableOptionProcessor : SearchableOptionProcessor() {
     hit: String?,
     configurableId: String,
     configurableDisplayName: String?,
-    applyStemming: Boolean
+    applyStemming: Boolean,
   ) {
     if (hit == null) {
       return

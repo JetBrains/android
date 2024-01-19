@@ -53,11 +53,8 @@ import com.intellij.psi.util.PsiTypesUtil
  *  }
  * ```
  */
-class LightArgsClass(
-  navInfo: NavInfo,
-  navEntry: NavEntry,
-  destination: NavDestinationData,
-) : SafeArgsLightBaseClass(navInfo, navEntry, destination, "Args") {
+class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDestinationData) :
+  SafeArgsLightBaseClass(navInfo, navEntry, destination, "Args") {
 
   private val NAV_ARGS_FQCN = "androidx.navigation.NavArgs"
   private val builderClass = LightArgsBuilderClass(navInfo, this)
@@ -109,7 +106,7 @@ class LightArgsClass(
         createMethod(
           name = "get${arg.name.toUpperCamelCase()}",
           navigationElement = getFieldNavigationElementByName(arg.name),
-          returnType = annotateNullability(psiType, arg.isNonNull())
+          returnType = annotateNullability(psiType, arg.isNonNull()),
         )
       }
     )
@@ -118,7 +115,7 @@ class LightArgsClass(
       createMethod(
           name = "fromBundle",
           modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-          returnType = annotateNullability(thisType)
+          returnType = annotateNullability(thisType),
         )
         .addParameter("bundle", bundleType)
     )
@@ -130,7 +127,7 @@ class LightArgsClass(
         createMethod(
             name = "fromSavedStateHandle",
             modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-            returnType = annotateNullability(thisType)
+            returnType = annotateNullability(thisType),
           )
           .addParameter("savedStateHandle", savedStateHandleType)
       )
@@ -142,7 +139,7 @@ class LightArgsClass(
       methods.add(
         createMethod(
           name = "toSavedStateHandle",
-          returnType = annotateNullability(savedStateHandleType)
+          returnType = annotateNullability(savedStateHandleType),
         )
       )
     }

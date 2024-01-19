@@ -38,7 +38,7 @@ private constructor(
   parentDisposable: Disposable,
   private val namespace: ResourceNamespace,
   addDynamicResources: Boolean,
-  delegates: List<LocalResourceRepository<VirtualFile>>? = null
+  delegates: List<LocalResourceRepository<VirtualFile>>? = null,
 ) :
   MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name),
   SingleNamespaceResourceRepository {
@@ -161,13 +161,13 @@ private constructor(
     fun forMainResources(
       facet: AndroidFacet,
       parentDisposable: Disposable,
-      namespace: ResourceNamespace
+      namespace: ResourceNamespace,
     ) =
       createIfNotEmpty(
         facet,
         parentDisposable,
         namespace,
-        addDynamicResources = AndroidModel.isRequired(facet)
+        addDynamicResources = AndroidModel.isRequired(facet),
       )
 
     /**
@@ -185,14 +185,14 @@ private constructor(
     fun forTestResources(
       facet: AndroidFacet,
       parentDisposable: Disposable,
-      namespace: ResourceNamespace
+      namespace: ResourceNamespace,
     ) = createIfNotEmpty(facet, parentDisposable, namespace, addDynamicResources = false)
 
     private fun createIfNotEmpty(
       facet: AndroidFacet,
       parentDisposable: Disposable,
       namespace: ResourceNamespace,
-      addDynamicResources: Boolean
+      addDynamicResources: Boolean,
     ): LocalResourceRepository<VirtualFile> =
       if (
         !AndroidModel.isRequired(facet) &&
@@ -208,7 +208,7 @@ private constructor(
       facet: AndroidFacet,
       resourceDirectories: Collection<VirtualFile>,
       namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
-      dynamicResourceValueRepository: DynamicValueResourceRepository? = null
+      dynamicResourceValueRepository: DynamicValueResourceRepository? = null,
     ): ModuleResourceRepository {
       assert(ApplicationManager.getApplication().isUnitTestMode)
       val delegates: MutableList<LocalResourceRepository<VirtualFile>> = mutableListOf()
@@ -225,7 +225,7 @@ private constructor(
         parentDisposable = facet,
         namespace,
         addDynamicResources = false,
-        delegates
+        delegates,
       )
     }
   }

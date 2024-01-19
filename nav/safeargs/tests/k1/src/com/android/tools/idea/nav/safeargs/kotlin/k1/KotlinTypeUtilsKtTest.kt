@@ -50,7 +50,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "integer",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.intType)
   }
@@ -61,7 +61,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "integer[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type)
       .isEqualTo(builtIn.getPrimitiveArrayKotlinTypeByPrimitiveKotlinType(builtIn.intType))
@@ -73,7 +73,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "float",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.floatType)
   }
@@ -84,7 +84,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "float[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type)
       .isEqualTo(builtIn.getPrimitiveArrayKotlinTypeByPrimitiveKotlinType(builtIn.floatType))
@@ -96,7 +96,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "long",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.longType)
   }
@@ -107,7 +107,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "long[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type)
       .isEqualTo(builtIn.getPrimitiveArrayKotlinTypeByPrimitiveKotlinType(builtIn.longType))
@@ -119,7 +119,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "boolean",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.booleanType)
   }
@@ -130,7 +130,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "boolean[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type)
       .isEqualTo(builtIn.getPrimitiveArrayKotlinTypeByPrimitiveKotlinType(builtIn.booleanType))
@@ -143,7 +143,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "string",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.stringType)
   }
@@ -154,7 +154,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "string[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.getArrayType(Variance.INVARIANT, builtIn.stringType))
   }
@@ -165,7 +165,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "reference",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.intType)
   }
@@ -176,7 +176,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "test.safeargs.MyCustomType",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       ) as ErrorType
 
     assertThat(type.nullability()).isEqualTo(TypeNullability.NOT_NULL)
@@ -189,7 +189,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = "test.safeargs.MyCustomType[]",
         defaultValue = null,
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
 
     val elementType = builtIn.getArrayElementType(type) as ErrorType
@@ -210,7 +210,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "1f",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.floatType)
   }
@@ -221,7 +221,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "1L",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.longType)
   }
@@ -232,7 +232,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "true",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.booleanType)
   }
@@ -243,7 +243,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "someString",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.stringType)
   }
@@ -254,7 +254,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "@null",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
 
     assertThat(type).isEqualTo(builtIn.stringType)
@@ -266,7 +266,7 @@ class KotlinTypeUtilsKtTest {
       builtIn.getKotlinType(
         typeStr = null,
         defaultValue = "@resourceType/resourceName",
-        moduleDescriptor = moduleDescriptor
+        moduleDescriptor = moduleDescriptor,
       )
     assertThat(type).isEqualTo(builtIn.intType)
   }
@@ -279,7 +279,7 @@ class KotlinTypeUtilsKtTest {
         typeStr = "string",
         defaultValue = null,
         moduleDescriptor = moduleDescriptor,
-        isNonNull = false
+        isNonNull = false,
       )
     assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
   }
@@ -291,7 +291,7 @@ class KotlinTypeUtilsKtTest {
         typeStr = "test.safeargs.MyCustomType",
         defaultValue = "@null",
         moduleDescriptor = moduleDescriptor,
-        isNonNull = false
+        isNonNull = false,
       )
 
     assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
@@ -304,7 +304,7 @@ class KotlinTypeUtilsKtTest {
         typeStr = "string[]",
         defaultValue = null,
         moduleDescriptor = moduleDescriptor,
-        isNonNull = false
+        isNonNull = false,
       )
     assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
   }
@@ -316,7 +316,7 @@ class KotlinTypeUtilsKtTest {
         typeStr = "test.safeargs.MyCustomType[]",
         defaultValue = null,
         moduleDescriptor = moduleDescriptor,
-        isNonNull = false
+        isNonNull = false,
       )
     assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
   }

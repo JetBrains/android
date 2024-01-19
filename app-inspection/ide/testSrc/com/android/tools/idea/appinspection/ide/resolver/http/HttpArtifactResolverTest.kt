@@ -50,7 +50,7 @@ class HttpArtifactResolverTest {
         url: URL,
         target: Path,
         checksum: Checksum?,
-        indicator: ProgressIndicator
+        indicator: ProgressIndicator,
       ) {}
 
       override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
@@ -59,7 +59,7 @@ class HttpArtifactResolverTest {
         url: URL,
         target: Path,
         checksum: Checksum?,
-        indicator: ProgressIndicator
+        indicator: ProgressIndicator,
       ) {
         // Fake download by resolving the URL against the local testData directory.
         val srcFile = testData.resolve(url.path.substringAfter('/'))
@@ -77,7 +77,7 @@ class HttpArtifactResolverTest {
       val request =
         RunningArtifactCoordinate(
           mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
-          "2.5.0-beta01"
+          "2.5.0-beta01",
         )
       val jar = resolver.resolveArtifact(request)
 

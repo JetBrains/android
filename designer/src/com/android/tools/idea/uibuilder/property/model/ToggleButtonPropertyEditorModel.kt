@@ -31,7 +31,7 @@ class ToggleButtonPropertyEditorModel(
   val icon: Icon,
   @get:VisibleForTesting val trueValue: String,
   @get:VisibleForTesting val falseValue: String,
-  private val nlProperty: NlPropertyItem
+  private val nlProperty: NlPropertyItem,
 ) : BasePropertyEditorModel(nlProperty) {
 
   var selected: Boolean

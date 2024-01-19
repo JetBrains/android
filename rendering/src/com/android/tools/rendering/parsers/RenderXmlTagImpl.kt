@@ -23,7 +23,7 @@ internal class RenderXmlTagImpl(
   override val namespace: String,
   private val prefixToNamespace: Map<String, String>,
   override val subTags: List<RenderXmlTag>,
-  attrs: List<RenderXmlAttribute>
+  attrs: List<RenderXmlAttribute>,
 ) : RenderXmlTag {
   private val attrsMap = attrs.associateBy { it.localName }
   override var parentTag: RenderXmlTag? = null

@@ -44,7 +44,7 @@ internal class LogcatHeaderParserTest {
           "pid-5755",
           "pid-5755",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -55,7 +55,7 @@ internal class LogcatHeaderParserTest {
       logcatHeaderParser(
         STANDARD_FORMAT,
         defaultYear = 2022,
-        defaultZoneId = ZoneId.of("Asia/Yerevan")
+        defaultZoneId = ZoneId.of("Asia/Yerevan"),
       )
 
     assertThat(logCatHeaderParser.parseHeader("[ 05-26 14:58:23.972 5755:601 I/Tag ]", "device"))
@@ -76,9 +76,9 @@ internal class LogcatHeaderParserTest {
               58,
               23,
               TimeUnit.MILLISECONDS.toNanos(972).toInt(),
-              ZoneId.of("Asia/Yerevan")
+              ZoneId.of("Asia/Yerevan"),
             )
-          )
+          ),
         )
       )
   }
@@ -90,7 +90,7 @@ internal class LogcatHeaderParserTest {
     assertThat(
         logCatHeaderParser.parseHeader(
           "[     1517266949.472     5755:601     I/Tag     ]",
-          "device"
+          "device",
         )
       )
       .isEqualTo(
@@ -101,7 +101,7 @@ internal class LogcatHeaderParserTest {
           "pid-5755",
           "pid-5755",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -119,7 +119,7 @@ internal class LogcatHeaderParserTest {
           "pid-5755",
           "pid-5755",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -137,7 +137,7 @@ internal class LogcatHeaderParserTest {
           "kernel",
           "kernel",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -156,7 +156,7 @@ internal class LogcatHeaderParserTest {
           "application-id",
           "process-name",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -168,7 +168,7 @@ internal class LogcatHeaderParserTest {
     assertThat(
         logCatHeaderParser.parseHeader(
           "[ 1517266949.472 1234567890123456789012345678901234567890:601 I/Tag ]",
-          "device"
+          "device",
         )
       )
       .isEqualTo(
@@ -179,7 +179,7 @@ internal class LogcatHeaderParserTest {
           "pid--1",
           "pid--1",
           "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }
@@ -191,7 +191,7 @@ internal class LogcatHeaderParserTest {
     assertThat(
         logCatHeaderParser.parseHeader(
           "[ 1234567890123456789012345678901234567890.472 5755:601 I/Tag ]",
-          "device"
+          "device",
         )
       )
       .isEqualTo(
@@ -202,7 +202,7 @@ internal class LogcatHeaderParserTest {
           "pid-5755",
           "pid-5755",
           "Tag",
-          Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472))
+          Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472)),
         )
       )
   }

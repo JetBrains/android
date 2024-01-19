@@ -56,7 +56,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val insights: List<AppInsight>,
     val vFile: VirtualFile,
     val editor: Editor,
-    val project: Project
+    val project: Project,
   )
 
   data class AnnotationResult(val insights: List<AppInsight>)
@@ -96,7 +96,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         insight.updateToCurrentLineNumber(
           collectedInfo.vFile,
           collectedInfo.editor.document,
-          project
+          project,
         )
       }
 
@@ -187,7 +187,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   private fun AppInsight.updateToCurrentLineNumber(
     vFile: VirtualFile,
     document: Document,
-    project: Project
+    project: Project,
   ): AppInsight? {
     val startTime = System.currentTimeMillis()
 

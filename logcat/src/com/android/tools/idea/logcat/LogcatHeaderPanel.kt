@@ -104,13 +104,13 @@ internal class LogcatHeaderPanel(
           deviceComboBox,
           ComboBox<String>().minimumSize.width,
           GroupLayout.DEFAULT_SIZE,
-          JBUI.scale(400)
+          JBUI.scale(400),
         )
         .addComponent(
           filterTextField,
           JBUI.scale(350),
           GroupLayout.DEFAULT_SIZE,
-          GroupLayout.DEFAULT_SIZE
+          GroupLayout.DEFAULT_SIZE,
         )
         .addComponent(helpIcon)
     )

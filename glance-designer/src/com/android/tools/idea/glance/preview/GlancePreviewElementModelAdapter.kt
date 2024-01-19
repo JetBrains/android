@@ -36,7 +36,7 @@ abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
 
   override fun applyToConfiguration(
     previewElement: GlancePreviewElement,
-    configuration: Configuration
+    configuration: Configuration,
   ) {
     configuration.target = configuration.settings.highestApiTarget
   }
@@ -56,7 +56,7 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content) { backedFile }
 }
@@ -75,7 +75,7 @@ object WearTilesModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     GlanceTileAdapterLightVirtualFile("model-glance-weartile-$id.xml", content) { backedFile }
 }

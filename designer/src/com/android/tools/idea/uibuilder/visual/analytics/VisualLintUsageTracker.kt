@@ -32,7 +32,7 @@ interface VisualLintUsageTracker {
   fun trackIssueCreation(
     issueType: VisualLintErrorType,
     origin: VisualLintOrigin,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ) {
     track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet, origin)
   }
@@ -40,7 +40,7 @@ interface VisualLintUsageTracker {
   fun trackIssueIgnored(
     issueType: VisualLintErrorType,
     origin: VisualLintOrigin,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ) {
     track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet, origin)
   }

@@ -57,7 +57,7 @@ class LightArgsClassTest {
               android:label="Fragment2" />
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work

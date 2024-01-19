@@ -144,7 +144,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       GotoDeclarationAction.registerCustomShortcutSet(
         gotoDeclarationAction.shortcutSet,
         componentTreePanel,
-        parentDisposable
+        parentDisposable,
       )
     }
     componentTreeSelectionModel.addSelectionListener(componentTreeSelectionListener)
@@ -170,7 +170,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       listOf(
         FilterGroupAction { layoutInspector?.renderModel },
         commonActionManager.createExpandAllAction(treeExpander, tree),
-        commonActionManager.createCollapseAllAction(treeExpander, tree)
+        commonActionManager.createCollapseAllAction(treeExpander, tree),
       )
   }
 
@@ -182,7 +182,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         leftDivider = true,
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
-        headerRenderer = createCountsHeader()
+        headerRenderer = createCountsHeader(),
       )
 
     val recompositionSkipsColumn =
@@ -192,7 +192,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         foreground = JBColor(Gray._192, Gray._128),
         maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
         minInt = { 0 },
-        headerRenderer = createSkipsHeader()
+        headerRenderer = createSkipsHeader(),
       )
 
     return ComponentTreeBuilder()
@@ -240,14 +240,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun createCountsHeader(): TableCellRenderer {
     return createIconHeader(
       StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
-      toolTipText = "Number of times this composable has been recomposed"
+      toolTipText = "Number of times this composable has been recomposed",
     )
   }
 
   private fun createSkipsHeader(): TableCellRenderer {
     return createIconHeader(
       StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_SKIPPED,
-      toolTipText = "Number of times recomposition for this component has been skipped"
+      toolTipText = "Number of times recomposition for this component has been skipped",
     )
   }
 
@@ -286,7 +286,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       GotoDeclarationAction.navigateToSelectedView(
         it.coroutineScope,
         it.inspectorModel,
-        it.notificationModel
+        it.notificationModel,
       )
     }
   }

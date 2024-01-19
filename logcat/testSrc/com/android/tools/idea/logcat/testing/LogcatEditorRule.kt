@@ -47,7 +47,7 @@ internal class LogcatEditorRule(private val projectRule: ProjectRule) : External
 
   fun putLogcatMessages(
     vararg messages: LogcatMessage,
-    formatMessage: LogcatMessage.() -> String = LogcatMessage::toString
+    formatMessage: LogcatMessage.() -> String = LogcatMessage::toString,
   ) {
     val document = editor.document
     messages.forEach {

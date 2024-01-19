@@ -54,7 +54,7 @@ interface EnvironmentContext {
   /** Returns a [RenderSecurityManager] for the SDK path and project path. */
   fun createRenderSecurityManager(
     projectPath: String?,
-    platform: AndroidPlatform?
+    platform: AndroidPlatform?,
   ): RenderSecurityManager
 
   fun getOriginalFile(psiFile: PsiFile): PsiFile

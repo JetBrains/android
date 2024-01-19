@@ -68,10 +68,7 @@ interface AppInsightsProjectLevelController {
 
   fun insightsInFile(file: PsiFile): List<AppInsight>
 
-  fun insightsInFile(
-    file: PsiFile,
-    analyzer: StackTraceAnalyzer,
-  )
+  fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer)
 
   fun revertToSnapshot(state: AppInsightsState)
 

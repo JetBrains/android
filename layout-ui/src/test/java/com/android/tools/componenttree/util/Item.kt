@@ -23,7 +23,7 @@ class Item(
   val id: String? = null,
   val textValue: String? = null,
   var treeIcon: Icon? = null,
-  var parent: Item? = null
+  var parent: Item? = null,
 ) {
   val children = mutableListOf<Any>()
   var column1: Int = tagName.hashCode().rem(5)
@@ -53,6 +53,6 @@ class Item(
     val data: Transferable,
     val before: Any?,
     val isMove: Boolean,
-    val draggedFromTree: List<Any>
+    val draggedFromTree: List<Any>,
   )
 }

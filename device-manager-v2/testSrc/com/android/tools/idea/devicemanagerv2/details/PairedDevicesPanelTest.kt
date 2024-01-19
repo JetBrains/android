@@ -112,7 +112,7 @@ class PairedDevicesPanelTest {
         mainHandle.name to
           listOf(
             handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED),
-            handle3.pairingStatus(WearPairingManager.PairingState.CONNECTED)
+            handle3.pairingStatus(WearPairingManager.PairingState.CONNECTED),
           )
       )
     )
@@ -164,10 +164,7 @@ class PairedDevicesPanelTest {
     fun createHandle(name: String) = FakeDeviceHandle(scope, name)
   }
 
-  class FakeDeviceHandle(
-    override val scope: CoroutineScope,
-    val name: String,
-  ) : DeviceHandle {
+  class FakeDeviceHandle(override val scope: CoroutineScope, val name: String) : DeviceHandle {
     override val id = DeviceId("Fake", false, name)
     override val stateFlow =
       MutableStateFlow<DeviceState>(

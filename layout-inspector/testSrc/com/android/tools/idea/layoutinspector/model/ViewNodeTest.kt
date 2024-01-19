@@ -54,12 +54,12 @@ class ViewNodeTest {
       ROOT,
       VIEW1,
       VIEW3,
-      VIEW2
+      VIEW2,
     )
     UsefulTestCase.assertSameElements(
       model[VIEW1]!!.flattenedList().map { it.drawId }.toList(),
       VIEW1,
-      VIEW3
+      VIEW3,
     )
   }
 

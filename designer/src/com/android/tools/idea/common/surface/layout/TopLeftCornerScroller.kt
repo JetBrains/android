@@ -27,12 +27,12 @@ class TopLeftCornerScroller(
   @SwingCoordinate oldViewSize: Dimension,
   @SwingCoordinate scrollPosition: Point,
   oldScale: Double,
-  newScale: Double
+  newScale: Double,
 ) :
   ReferencePointScroller(
     oldViewSize,
     scrollPosition,
     Point(scrollPosition.x, scrollPosition.y),
     oldScale,
-    newScale
+    newScale,
   )

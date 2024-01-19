@@ -72,7 +72,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
                 val parent =
                   bindParameter.parentOfType(
                     AndroidSqlEquivalenceExpression::class,
-                    AndroidSqlComparisonExpression::class
+                    AndroidSqlComparisonExpression::class,
                   )
 
                 // If there is no parent of type EquivalenceExpression or ComparisonExpression keep
@@ -88,7 +88,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
             parametersNames.add(SqliteParameter(parameterName, parentIsInExpression(bindParameter)))
             bindParameter.node.replaceChild(
               bindParameter.node.firstChildNode,
-              ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?")
+              ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"),
             )
           }
         }
@@ -104,7 +104,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
 
 fun expandCollectionParameters(
   psiElement: PsiElement,
-  parameterValues: Deque<SqliteParameterValue>
+  parameterValues: Deque<SqliteParameterValue>,
 ): PsiElement {
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
@@ -163,7 +163,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
                 is SqliteValue.StringValue -> {
                   ASTFactory.leaf(
                     AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
-                    AndroidSqlLexer.getValidStringValue(sqliteValue.value)
+                    AndroidSqlLexer.getValidStringValue(sqliteValue.value),
                   )
                 }
                 is SqliteValue.NullValue -> ASTFactory.leaf(AndroidSqlPsiTypes.NULL, "null")

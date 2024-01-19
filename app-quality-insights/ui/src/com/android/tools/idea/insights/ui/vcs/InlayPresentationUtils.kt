@@ -36,12 +36,12 @@ internal fun InlayPresentation.withLineCentered(editor: Editor): InlayPresentati
 
 internal fun InlayPresentation.withOnClick(
   factory: PresentationFactory,
-  onClick: (MouseEvent, Point) -> Unit
+  onClick: (MouseEvent, Point) -> Unit,
 ): InlayPresentation {
   return factory.onClick(
     base = this,
     buttons = EnumSet.of(MouseButton.Left, MouseButton.Middle),
-    onClick = onClick
+    onClick = onClick,
   )
 }
 
@@ -53,7 +53,7 @@ internal fun InlayPresentation.withHandCursor(editor: Editor): InlayPresentation
 @VisibleForTesting
 fun InlayPresentation.withTooltip(
   tooltipText: HelpTooltip,
-  factory: PresentationFactory
+  factory: PresentationFactory,
 ): InlayPresentation {
   // We are using a workaround to show and hide tooltips reliably, but it is not the best solution.
   val tempComponent = JPanel().apply { tooltipText.installOn(this) }

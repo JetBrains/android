@@ -81,7 +81,7 @@ class SessionStatisticsTest {
         APP_INSPECTION_CLIENT,
         areMultipleProjectsOpen = { true },
         isAutoConnectEnabled = { true },
-        isEmbeddedLayoutInspector = { true }
+        isEmbeddedLayoutInspector = { true },
       )
     val compose1 = model[COMPOSE1]
     stats.start()
@@ -130,7 +130,7 @@ class SessionStatisticsTest {
       SessionStatisticsImpl(
         APP_INSPECTION_CLIENT,
         areMultipleProjectsOpen = { hasMultipleProjects },
-        isAutoConnectEnabled = { isAutoConnectEnabled }
+        isAutoConnectEnabled = { isAutoConnectEnabled },
       )
 
     stats.start()

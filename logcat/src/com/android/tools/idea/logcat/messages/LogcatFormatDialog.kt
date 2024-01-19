@@ -78,9 +78,9 @@ private val previewMessages =
         "com.example.app1",
         "com.example.app1:process",
         "ExampleTag1",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 1."
+      "Sample logcat message 1.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -90,9 +90,9 @@ private val previewMessages =
         "com.example.app1",
         "com.example.app1:process",
         "ExampleTag1",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 2."
+      "Sample logcat message 2.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -102,9 +102,9 @@ private val previewMessages =
         "com.example.app2",
         "com.example.app2:process",
         "ExampleTag2",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 3."
+      "Sample logcat message 3.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -114,9 +114,9 @@ private val previewMessages =
         "com.example.app2",
         "com.example.app2:process",
         "ExampleTag2",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat multiline\nmessage."
+      "Sample logcat multiline\nmessage.",
     ),
   )
 private val MAX_SAMPLE_DOCUMENT_TEXT_LENGTH =
@@ -250,7 +250,7 @@ internal class LogcatFormatDialog(
     applyAction.apply(
       standardFormattingOptions.copy(),
       compactFormattingOptions.copy(),
-      defaultFormatting
+      defaultFormatting,
     )
   }
 
@@ -491,10 +491,9 @@ internal class LogcatFormatDialog(
         .appendToDocument(textAccumulator)
       previewEditor.document.insertString(
         previewEditor.document.textLength,
-        " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH)
+        " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH),
       )
-    }
-    finally {
+    } finally {
       previewEditor.document.setReadOnly(true)
     }
 
@@ -543,7 +542,7 @@ internal class LogcatFormatDialog(
     fun apply(
       standardOptions: FormattingOptions,
       compactOptions: FormattingOptions,
-      defaultStyle: FormattingOptions.Style
+      defaultStyle: FormattingOptions.Style,
     )
   }
 

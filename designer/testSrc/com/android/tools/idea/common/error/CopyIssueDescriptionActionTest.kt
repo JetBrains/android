@@ -67,7 +67,7 @@ class CopyIssueDescriptionActionTest {
     action.actionPerformed(issueNodeEvent2)
     assertEquals(
       "another description",
-      CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor)
+      CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor),
     )
   }
 

@@ -29,7 +29,7 @@ abstract class AnimationState(callback: () -> Unit = {}) {
     /** Create an [AnimationState] based on [ComposeAnimationType] and type of state. */
     fun ComposeAnimation.createState(
       tracker: AnimationTracker,
-      callback: () -> Unit
+      callback: () -> Unit,
     ): AnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {

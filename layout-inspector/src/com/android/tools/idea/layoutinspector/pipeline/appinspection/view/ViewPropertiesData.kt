@@ -76,7 +76,7 @@ class ViewPropertiesDataGenerator(
     return ViewPropertiesData(
       PropertiesTable.create(propertyTable),
       resolutionStackTable,
-      classNamesTable
+      classNamesTable,
     )
   }
 

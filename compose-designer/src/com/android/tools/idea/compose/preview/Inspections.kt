@@ -88,7 +88,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   )
 
   /**
@@ -105,13 +105,13 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   )
 
   final override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
-    session: LocalInspectionToolSession
+    session: LocalInspectionToolSession,
   ): PsiElementVisitor =
     if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
       object : KtVisitorVoid() {
@@ -198,13 +198,13 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
       holder.registerProblem(
         previewAnnotation.psiOrParent as PsiElement,
         message("inspection.no.parameters.or.provider.description"),
-        ProblemHighlightType.ERROR
+        ProblemHighlightType.ERROR,
       )
     }
   }
@@ -213,7 +213,7 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -231,7 +231,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter =
@@ -248,7 +248,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     holder.registerProblem(
       secondPreviewParameter as PsiElement,
       message("inspection.no.multiple.preview.provider.description"),
-      ProblemHighlightType.ERROR
+      ProblemHighlightType.ERROR,
     )
   }
 
@@ -256,7 +256,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -275,7 +275,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     val nonComposable =
       function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
@@ -283,7 +283,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
       holder.registerProblem(
         previewAnnotation.psiOrParent as PsiElement,
         message("inspection.no.composable.description"),
-        ProblemHighlightType.ERROR
+        ProblemHighlightType.ERROR,
       )
     }
   }
@@ -292,7 +292,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -311,14 +311,14 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     if (function.isValidPreviewLocation()) return
 
     holder.registerProblem(
       previewAnnotation.psiOrParent as PsiElement,
       message("inspection.top.level.function"),
-      ProblemHighlightType.ERROR
+      ProblemHighlightType.ERROR,
     )
   }
 
@@ -326,7 +326,7 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -344,7 +344,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkMaxWidthAndHeight(holder, previewAnnotation, isMultiPreview)
   }
@@ -353,7 +353,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkMaxWidthAndHeight(holder, previewAnnotation, isMultiPreview)
   }
@@ -361,7 +361,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
   private fun checkMaxWidthAndHeight(
     holder: ProblemsHolder,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // MultiPreview parameters don't affect the Previews
     if (isMultiPreview) return
@@ -371,7 +371,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
         holder.registerProblem(
           it.psiOrParent as PsiElement,
           message("inspection.width.limit.description", MAX_WIDTH),
-          ProblemHighlightType.WARNING
+          ProblemHighlightType.WARNING,
         )
       }
     }
@@ -381,7 +381,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
         holder.registerProblem(
           it.psiOrParent as PsiElement,
           message("inspection.height.limit.description", MAX_HEIGHT),
-          ProblemHighlightType.WARNING
+          ProblemHighlightType.WARNING,
         )
       }
     }
@@ -397,7 +397,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkMinFontScale(holder, previewAnnotation, isMultiPreview)
   }
@@ -406,7 +406,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkMinFontScale(holder, previewAnnotation, isMultiPreview)
   }
@@ -414,7 +414,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
   private fun checkMinFontScale(
     holder: ProblemsHolder,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // MultiPreview parameters don't affect the Previews
     if (isMultiPreview) return
@@ -427,7 +427,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
         holder.registerProblem(
           it.psiOrParent as PsiElement,
           message("inspection.preview.font.scale.description"),
-          ProblemHighlightType.ERROR
+          ProblemHighlightType.ERROR,
         )
       }
     }
@@ -442,7 +442,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
   }
@@ -451,7 +451,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
   }
@@ -459,7 +459,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
   private fun checkApiLevelIsValid(
     holder: ProblemsHolder,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // MultiPreview parameters don't affect the Previews
     if (isMultiPreview) return
@@ -483,7 +483,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
         holder.registerProblem(
           it.psiOrParent as PsiElement,
           message("inspection.preview.api.level.description", min, max),
-          ProblemHighlightType.ERROR
+          ProblemHighlightType.ERROR,
         )
       }
     }
@@ -504,7 +504,7 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // If the annotation is not in a unit test file, then this inspection has nothing to do
     if (!function.isInUnitTestFile()) return
@@ -512,7 +512,7 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     holder.registerProblem(
       previewAnnotation.psiOrParent as PsiElement,
       message("inspection.unit.test.files"),
-      ProblemHighlightType.ERROR
+      ProblemHighlightType.ERROR,
     )
   }
 
@@ -520,7 +520,7 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
+    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -537,7 +537,7 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
-    session: LocalInspectionToolSession
+    session: LocalInspectionToolSession,
   ): PsiElementVisitor =
     if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
       object : KtVisitorVoid() {
@@ -549,7 +549,7 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
             holder.registerProblem(
               expression.psiOrParent as PsiElement,
               message("inspection.preview.recursive.description"),
-              ProblemHighlightType.WEAK_WARNING
+              ProblemHighlightType.WEAK_WARNING,
             )
           }
         }

@@ -107,7 +107,7 @@ class RootPanel(
     createTextPanel(
       listOf(
         LayoutInspectorBundle.message("application.not.inspectable"),
-        LayoutInspectorBundle.message("navigate.to.debuggable.application")
+        LayoutInspectorBundle.message("navigate.to.debuggable.application"),
       )
     )
 

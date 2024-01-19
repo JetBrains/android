@@ -80,7 +80,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
         override fun selectionChanged(event: FileEditorManagerEvent) {
           event.newFile?.let { updateIssuePanelVisibility(it, event.newEditor) }
         }
-      }
+      },
     )
 
     connection.subscribe(
@@ -89,7 +89,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
         FileEditorManager.getInstance(project).selectedEditors.forEach {
           updateIssuePanelVisibility(it.file, it)
         }
-      }
+      },
     )
 
     connection.subscribe(
@@ -100,7 +100,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
             updateIssuePanelVisibility(it.file, it)
           }
         }
-      }
+      },
     )
   }
 

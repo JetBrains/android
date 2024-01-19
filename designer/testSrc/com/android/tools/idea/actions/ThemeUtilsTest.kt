@@ -98,7 +98,7 @@ class ThemeUtilsTest : AndroidTestCase() {
     assertThat(themes)
       .containsExactly(
         "android:Theme.Black.NoTitleBar",
-        "android:Theme.Black.NoTitleBar.Fullscreen"
+        "android:Theme.Black.NoTitleBar.Fullscreen",
       )
   }
 }

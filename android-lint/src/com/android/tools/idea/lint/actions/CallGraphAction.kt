@@ -80,11 +80,11 @@ class ContextualCallPathTreeStructure(
   project: Project,
   val graph: ContextualCallGraph,
   element: PsiElement,
-  private val reverseEdges: Boolean
+  private val reverseEdges: Boolean,
 ) :
   HierarchyTreeStructure(
     project,
-    CallHierarchyNodeDescriptor(project, null, element, true, false)
+    CallHierarchyNodeDescriptor(project, null, element, true, false),
   ) {
 
   private val reachableContextualNodes: Multimap<HierarchyNodeDescriptor, ContextualEdge> =
@@ -122,12 +122,12 @@ class ContextualCallPathTreeStructure(
 open class ContextualCallPathBrowser(
   project: Project,
   val graph: ContextualCallGraph,
-  element: PsiElement
+  element: PsiElement,
 ) : CallHierarchyBrowserBase(project, element) {
 
   override fun createHierarchyTreeStructure(
     kind: String,
-    psiElement: PsiElement
+    psiElement: PsiElement,
   ): HierarchyTreeStructure {
     val reverseEdges = kind == getCallerType()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
@@ -141,11 +141,11 @@ open class ContextualCallPathBrowser(
       PopupHandler.installPopupMenu(
         tree,
         IdeActions.GROUP_CALL_HIERARCHY_POPUP,
-        ActionPlaces.CALL_HIERARCHY_VIEW_POPUP
+        ActionPlaces.CALL_HIERARCHY_VIEW_POPUP,
       )
       baseOnThisMethodAction.registerCustomShortcutSet(
         ActionManager.getInstance().getAction(IdeActions.ACTION_CALL_HIERARCHY).shortcutSet,
-        tree
+        tree,
       )
       typeToTreeMap[kind] = tree
     }
@@ -173,7 +173,7 @@ class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProv
       element,
       PsiMethod::class.java,
       PsiLambdaExpression::class.java,
-      PsiClass::class.java
+      PsiClass::class.java,
     )
   }
 
@@ -181,7 +181,9 @@ class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProv
     ContextualCallPathBrowser(target.project, graph, target)
 
   override fun browserActivated(hierarchyBrowser: HierarchyBrowser) {
-    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.getCalleeType())
+    (hierarchyBrowser as ContextualCallPathBrowser).changeView(
+      CallHierarchyBrowserBase.getCalleeType()
+    )
   }
 }
 
@@ -217,7 +219,7 @@ class CallGraphAction : AnAction() {
                       BrowseHierarchyActionBase.createAndAddToPanel(project, provider, target)
                     }
                   },
-                  ModalityState.nonModal()
+                  ModalityState.nonModal(),
                 )
             }
           }

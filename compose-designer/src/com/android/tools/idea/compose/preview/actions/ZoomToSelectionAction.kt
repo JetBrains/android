@@ -39,7 +39,7 @@ import java.awt.Rectangle
  */
 class ZoomToSelectionAction(
   @SwingCoordinate private val x: Int,
-  @SwingCoordinate private val y: Int
+  @SwingCoordinate private val y: Int,
 ) : AnAction(message("action.zoom.to.selection")) {
 
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
@@ -83,12 +83,12 @@ class ZoomToSelectionAction(
       val topLeftCorner =
         Point(
           Coordinates.getSwingDimension(sceneView, it.left),
-          Coordinates.getSwingDimension(sceneView, it.top)
+          Coordinates.getSwingDimension(sceneView, it.top),
         )
       val size =
         Dimension(
           Coordinates.getSwingDimension(sceneView, it.width),
-          Coordinates.getSwingDimension(sceneView, it.height)
+          Coordinates.getSwingDimension(sceneView, it.height),
         )
       surface.zoomAndCenter(sceneView, Rectangle(topLeftCorner, size))
     }

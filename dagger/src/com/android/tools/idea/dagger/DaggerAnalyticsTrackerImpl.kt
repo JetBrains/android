@@ -26,7 +26,7 @@ interface DaggerAnalyticsTracker {
   fun trackNavigation(
     context: DaggerEditorEvent.NavigationMetadata.NavigationContext,
     fromElement: DaggerEditorEvent.ElementType,
-    toElement: DaggerEditorEvent.ElementType
+    toElement: DaggerEditorEvent.ElementType,
   )
 
   /**
@@ -54,7 +54,7 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
   override fun trackNavigation(
     context: DaggerEditorEvent.NavigationMetadata.NavigationContext,
     fromElement: DaggerEditorEvent.ElementType,
-    toElement: DaggerEditorEvent.ElementType
+    toElement: DaggerEditorEvent.ElementType,
   ) {
 
     val daggerEventBuilder =
@@ -76,7 +76,7 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
 
   override fun trackFindUsagesNodeWasDisplayed(
     ownerElement: DaggerEditorEvent.ElementType,
-    time: Long
+    time: Long,
   ) {
 
     val daggerEventBuilder =

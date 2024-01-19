@@ -39,13 +39,13 @@ object ForegroundProcessDetectionInitializer {
   @VisibleForTesting
   fun getDefaultForegroundProcessListener(
     deviceModel: DeviceModel,
-    processModel: ProcessesModel
+    processModel: ProcessesModel,
   ): ForegroundProcessListener {
     return object : ForegroundProcessListener {
       override fun onNewProcess(
         device: DeviceDescriptor,
         foregroundProcess: ForegroundProcess,
-        isDebuggable: Boolean
+        isDebuggable: Boolean,
       ) {
         // There could be multiple projects open. Project1 with device1 selected, Project2 with
         // device2 selected.
@@ -92,7 +92,7 @@ object ForegroundProcessDetectionInitializer {
       getDefaultForegroundProcessListener(deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
-    layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics
+    layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics,
   ): ForegroundProcessDetection {
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
@@ -104,7 +104,7 @@ object ForegroundProcessDetectionInitializer {
         layoutInspectorMetrics,
         metrics,
         coroutineScope,
-        streamManager
+        streamManager,
       )
 
     foregroundProcessDetection.addForegroundProcessListener(foregroundProcessListener)

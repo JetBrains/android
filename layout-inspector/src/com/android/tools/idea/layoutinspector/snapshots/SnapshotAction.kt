@@ -51,7 +51,7 @@ object ExportSnapshotAction :
   AnAction(
     "Export Snapshot",
     "Export a snapshot of Layout inspector to share, inspect, and use offline.",
-    AllIcons.ToolbarDecorator.Export
+    AllIcons.ToolbarDecorator.Export,
   ),
   TooltipDescriptionProvider {
 
@@ -73,7 +73,7 @@ object ExportSnapshotAction :
       FileSaverDescriptor(
         "Save Layout Snapshot",
         "Save layout inspector snapshot",
-        EXT_LAYOUT_INSPECTOR
+        EXT_LAYOUT_INSPECTOR,
       )
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
@@ -106,7 +106,7 @@ object ImportSnapshotAction :
   AnAction(
     "Import Snapshot",
     "Import a snapshot, open into an editor.",
-    AllIcons.ToolbarDecorator.Import
+    AllIcons.ToolbarDecorator.Import,
   ),
   TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {

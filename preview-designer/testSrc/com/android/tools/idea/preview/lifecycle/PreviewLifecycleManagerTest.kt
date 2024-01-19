@@ -69,7 +69,7 @@ class PreviewLifecycleManagerTest {
         { state = ActiveState.RESUMED },
         { state = ActiveState.DEACTIVATED },
         { state = ActiveState.FULLY_DEACTIVATED },
-        delayedExecutor
+        delayedExecutor,
       )
 
     manager.activate()

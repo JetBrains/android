@@ -71,14 +71,14 @@ class MotionLayoutDragTargetTest : SceneTest() {
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-              "@id/textView"
+              "@id/textView",
             )
             .withAttribute(
               SdkConstants.ANDROID_URI,
               SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-              "@id/textView"
-            )
-        )
+              "@id/textView",
+            ),
+        ),
     )
   }
 }

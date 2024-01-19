@@ -75,7 +75,7 @@ class AppInspectionProcessDiscoveryTest {
 
   private fun launchFakeProcess(
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
-    process: Common.Process = FakeTransportService.FAKE_PROCESS
+    process: Common.Process = FakeTransportService.FAKE_PROCESS,
   ) {
     transportService.addProcess(device, process)
     advanceTimer()
@@ -85,7 +85,7 @@ class AppInspectionProcessDiscoveryTest {
     // Removes process from FakeTransportService's internal cache.
     transportService.stopProcess(
       FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS
+      FakeTransportService.FAKE_PROCESS,
     )
     advanceTimer()
   }
@@ -123,7 +123,7 @@ class AppInspectionProcessDiscoveryTest {
   fun addListenerReceivesExistingConnections() {
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer)
+      TestAppInspectorCommandHandler(timer),
     )
 
     // Generate a new process.
@@ -491,7 +491,7 @@ class AppInspectionProcessDiscoveryTest {
     assertThat(appInspectionRule.processDiscovery.devices.map { it.toString() })
       .containsExactly(
         fakeDevice1.toDeviceDescriptor().toString(),
-        fakeDevice2.toDeviceDescriptor().toString()
+        fakeDevice2.toDeviceDescriptor().toString(),
       )
   }
 
@@ -529,7 +529,7 @@ class AppInspectionProcessDiscoveryTest {
             deviceId = 1
             name = "name1"
           }
-          .build()
+          .build(),
       )
 
       // Launch process with same pid in stream 2
@@ -547,7 +547,7 @@ class AppInspectionProcessDiscoveryTest {
             name = "name2"
             deviceId = 2
           }
-          .build()
+          .build(),
       )
 
       assertThat(processConnectedDeferred.await()).isEqualTo("name2")

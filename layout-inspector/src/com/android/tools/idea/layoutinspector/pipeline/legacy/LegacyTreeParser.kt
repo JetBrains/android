@@ -32,7 +32,7 @@ object LegacyTreeParser {
   /** Parses the flat string representation of a view node and returns the root node. */
   fun parseLiveViewNode(
     bytes: ByteArray,
-    propertyUpdater: LegacyPropertiesProvider.Updater
+    propertyUpdater: LegacyPropertiesProvider.Updater,
   ): Pair<ViewNode, String>? {
     var rootNodeAndHash: Pair<ViewNode, String>? = null
     var lastNodeAndHash: Pair<ViewNode, String>? = null
@@ -77,7 +77,7 @@ object LegacyTreeParser {
   private fun createViewNode(
     parent: ViewNode?,
     data: String,
-    propertyLoader: LegacyPropertiesProvider.Updater
+    propertyLoader: LegacyPropertiesProvider.Updater,
   ): Pair<ViewNode, String> {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)

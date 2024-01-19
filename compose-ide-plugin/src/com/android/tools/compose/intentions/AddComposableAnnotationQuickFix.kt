@@ -166,12 +166,12 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
           return ComposeBundle.message(
             "add.composable.to.lambda.parameter",
             functionName,
-            paramName
+            paramName,
           )
         }
         return ComposeBundle.message(
           "add.composable.to.lambda.parameter.of.anonymous.function",
-          paramName
+          paramName,
         )
       }
       // Second case - this is a type of a property (with a functional type).

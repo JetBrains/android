@@ -55,7 +55,7 @@ class DataBindingInspectionVerificationTest {
       "app/src/main/res/layout",
       "app/src/main/res/layout-land",
       "app/src/java/android/databinding/testapp",
-      "app/src/androidTest"
+      "app/src/androidTest",
     )
 
   // TODO(b/122983052): These are currently failing. Get these files down to zero!
@@ -64,7 +64,7 @@ class DataBindingInspectionVerificationTest {
       "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
       "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
       "app/src/main/res/layout/observable_field_test.xml",
-      "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml"
+      "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml",
     )
 
   @Before

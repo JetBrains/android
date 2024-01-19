@@ -146,7 +146,7 @@ class ComposePreviewRepresentationTest {
     project.replaceService(
       ToolWindowManager::class.java,
       TestToolWindowManager(project),
-      fixture.testRootDisposable
+      fixture.testRootDisposable,
     )
     ToolWindowManager.getInstance(project)
       .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
@@ -291,7 +291,7 @@ class ComposePreviewRepresentationTest {
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        25.seconds
+        25.seconds,
       ) {
         it.asCollection().size > 2
       }
@@ -370,7 +370,7 @@ class ComposePreviewRepresentationTest {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
-        }
+        },
       )
 
       // Change the scale of the surface
@@ -401,7 +401,7 @@ class ComposePreviewRepresentationTest {
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",
-        25.seconds
+        25.seconds,
       ) {
         it.asCollection().size == 2
       }
@@ -419,7 +419,7 @@ class ComposePreviewRepresentationTest {
           "\n"
         ) {
           "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
-        }
+        },
       )
 
       // Check that the UI Check tab is still present
@@ -577,7 +577,7 @@ class ComposePreviewRepresentationTest {
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        25.seconds
+        25.seconds,
       ) {
         it.asCollection().size > 2
       }
@@ -656,7 +656,7 @@ class ComposePreviewRepresentationTest {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
-        }
+        },
       )
 
       // Check that the UI Check tab has been created
@@ -675,7 +675,7 @@ class ComposePreviewRepresentationTest {
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",
-        25.seconds
+        25.seconds,
       ) {
         it.asCollection().size == 2
       }
@@ -693,7 +693,7 @@ class ComposePreviewRepresentationTest {
           "\n"
         ) {
           "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
-        }
+        },
       )
 
       // Check that the UI Check tab is still present
@@ -763,7 +763,7 @@ class ComposePreviewRepresentationTest {
         fun Preview() {
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
       }
 
@@ -826,7 +826,7 @@ class ComposePreviewRepresentationTest {
         fun Preview1() {
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
       }
       val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
@@ -865,7 +865,7 @@ class ComposePreviewRepresentationTest {
     project.replaceService(
       FileEditorManager::class.java,
       FileEditorManagerImpl(project, project.coroutineScope),
-      projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable,
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
 

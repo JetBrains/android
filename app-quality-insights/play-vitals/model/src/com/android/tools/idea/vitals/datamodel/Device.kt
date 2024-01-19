@@ -25,7 +25,7 @@ fun Device.Companion.fromProto(proto: DeviceModelSummary): Device {
   return Device(
     manufacturer = brand, // e.g. xiaomi
     model = model, // e.g. cereus
-    displayName = createFullDisplayName(brand, model, proto.marketingName)
+    displayName = createFullDisplayName(brand, model, proto.marketingName),
   )
 }
 
@@ -55,7 +55,7 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
     manufacturer = manufacturer,
     model = deviceModel,
     displayName = displayName,
-    deviceType = DeviceType(deviceType)
+    deviceType = DeviceType(deviceType),
   )
 }
 

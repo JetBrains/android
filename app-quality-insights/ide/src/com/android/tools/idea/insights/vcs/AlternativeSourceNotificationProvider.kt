@@ -65,7 +65,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<FileEditor, EditorNotificationPanel?>? {
     if (file !is InsightsDiffVirtualFile) return null
 
@@ -93,7 +93,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
           diffRequestContext,
           fileEditor,
           file,
-          project
+          project,
         )
       } else null
     }
@@ -105,7 +105,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
     diffRequestContext: ContextDataForDiff,
     fileEditor: FileEditor,
     file: VirtualFile,
-    project: Project
+    project: Project,
   ): EditorNotificationPanel {
     return object : EditorNotificationPanel(fileEditor, Status.Warning) {
       init {
@@ -144,7 +144,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
 
   private fun Connection?.ifMatchesCurrent(
     context: VirtualFile,
-    project: Project
+    project: Project,
   ): AppScopeMatchResult {
     this ?: return AppScopeMatchResult.UNKNOWN
 

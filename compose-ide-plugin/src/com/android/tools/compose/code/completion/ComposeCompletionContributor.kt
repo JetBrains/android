@@ -131,7 +131,7 @@ private fun PsiElement?.isKdoc() = this is KDocName
 class ComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    resultSet: CompletionResultSet
+    resultSet: CompletionResultSet,
   ) {
     if (
       parameters.position.getModuleSystem()?.usesCompose != true ||
@@ -350,7 +350,7 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
             VdPreview.getPreviewFromVectorXml(
               VdPreview.TargetSize.createFromMaxDimension(16),
               content,
-              errorLog
+              errorLog,
             )
           if (errorLog.isNotEmpty()) {
             Logger.getInstance(ComposeMaterialIconLookupElement::class.java)
@@ -408,7 +408,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
               }
             }
           }
-        }
+        },
       )
     }
 
@@ -420,7 +420,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
     template: Template,
     parameterInfoList: List<ParameterInfo>,
     insertLambda: Boolean,
-    isNextElementOpenCurlyBrace: Boolean
+    isNextElementOpenCurlyBrace: Boolean,
   ) =
     template.apply {
       isToReformat = true
@@ -455,7 +455,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
 
 private class ComposeInsertHandlerForK1(
   val functionDescriptor: FunctionDescriptor,
-  callType: CallType<*>
+  callType: CallType<*>,
 ) : ComposeInsertHandler(callType) {
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     val allParameters = functionDescriptor.valueParameters
@@ -470,21 +470,21 @@ private class ComposeInsertHandlerForK1(
       template,
       inParens.map { ParameterInfo(it.name.asString(), it.isLambdaWithNoParameters()) },
       insertLambda,
-      context.isNextElementOpenCurlyBrace()
+      context.isNextElementOpenCurlyBrace(),
     )
   }
 }
 
 private class ComposeInsertHandlerForK2(
   private val functionInfo: FunctionInfo,
-  callType: CallType<*>
+  callType: CallType<*>,
 ) : ComposeInsertHandler(callType) {
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     configureFunctionTemplate(
       template,
       functionInfo.parameters,
       functionInfo.insertLambda,
-      context.isNextElementOpenCurlyBrace()
+      context.isNextElementOpenCurlyBrace(),
     )
   }
 }
@@ -496,7 +496,7 @@ private class ComposeInsertHandlerForK2(
  */
 private class FunctionInfo(
   val parameters: List<ComposeInsertHandler.ParameterInfo>,
-  val insertLambda: Boolean
+  val insertLambda: Boolean,
 )
 
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo {

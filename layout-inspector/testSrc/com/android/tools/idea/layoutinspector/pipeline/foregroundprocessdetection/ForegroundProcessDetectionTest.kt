@@ -233,7 +233,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -292,7 +292,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection1.start()
 
@@ -310,7 +310,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection2.start()
 
@@ -374,7 +374,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -432,7 +432,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -479,7 +479,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -577,7 +577,7 @@ class ForegroundProcessDetectionTest {
           streamManagerRule.streamManager,
           workDispatcher,
           onDeviceDisconnected,
-          pollingIntervalMs = 500L
+          pollingIntervalMs = 500L,
         )
       foregroundProcessDetection.start()
 
@@ -619,7 +619,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -713,7 +713,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -796,7 +796,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -841,7 +841,7 @@ class ForegroundProcessDetectionTest {
           streamManagerRule.streamManager,
           workDispatcher,
           onDeviceDisconnected = {},
-          pollingIntervalMs = 500L
+          pollingIntervalMs = 500L,
         )
       foregroundProcessDetection.start()
 
@@ -909,7 +909,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = onDeviceDisconnected,
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -925,7 +925,7 @@ class ForegroundProcessDetectionTest {
     verify(layoutInspectorMetrics)
       .logTransportError(
         DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-        device1.toDeviceDescriptor()
+        device1.toDeviceDescriptor(),
       )
 
     disconnectDevice(device1)
@@ -946,7 +946,7 @@ class ForegroundProcessDetectionTest {
     verify(layoutInspectorMetrics)
       .logTransportError(
         DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-        device2.toDeviceDescriptor()
+        device2.toDeviceDescriptor(),
       )
 
     verifyNoMoreInteractions(layoutInspectorMetrics)
@@ -977,7 +977,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -1025,7 +1025,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -1086,7 +1086,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -1119,7 +1119,7 @@ class ForegroundProcessDetectionTest {
         streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = onDeviceDisconnected,
-        pollingIntervalMs = 500L
+        pollingIntervalMs = 500L,
       )
     foregroundProcessDetection.start()
 
@@ -1189,7 +1189,7 @@ class ForegroundProcessDetectionTest {
   private fun assertEqual(
     newForegroundProcess: NewForegroundProcess,
     device: Common.Device,
-    foregroundProcess: ForegroundProcess
+    foregroundProcess: ForegroundProcess,
   ) {
     assertThat(newForegroundProcess.device).isEqualTo(device.toDeviceDescriptor())
     assertThat(newForegroundProcess.foregroundProcess).isEqualTo(foregroundProcess)
@@ -1197,7 +1197,7 @@ class ForegroundProcessDetectionTest {
 
   private fun sendForegroundProcessEvent(
     device: Common.Device,
-    foregroundProcess: ForegroundProcess
+    foregroundProcess: ForegroundProcess,
   ) {
     val stream = deviceToStreamMap[device]!!
     val event = createForegroundProcessEvent(foregroundProcess, stream)
@@ -1220,7 +1220,7 @@ class ForegroundProcessDetectionTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -1238,7 +1238,7 @@ class ForegroundProcessDetectionTest {
 
   private fun createDeviceModel(
     devices: List<Common.Device>,
-    testProcessDiscovery: TestProcessDiscovery = TestProcessDiscovery()
+    testProcessDiscovery: TestProcessDiscovery = TestProcessDiscovery(),
   ): Pair<DeviceModel, ProcessesModel> {
     devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
     val processModel = ProcessesModel(testProcessDiscovery)
@@ -1247,7 +1247,7 @@ class ForegroundProcessDetectionTest {
 
   private fun createForegroundProcessEvent(
     foregroundProcess: ForegroundProcess,
-    stream: Common.Stream
+    stream: Common.Stream,
   ): Common.Event {
     val eventBuilder = Common.Event.newBuilder()
     return eventBuilder
@@ -1298,7 +1298,7 @@ class ForegroundProcessDetectionTest {
 
   private fun FakeTransportService.setCommandHandler(
     command: Command.CommandType,
-    block: (Command) -> Unit
+    block: (Command) -> Unit,
   ) {
     setCommandHandler(
       command,
@@ -1306,7 +1306,7 @@ class ForegroundProcessDetectionTest {
         override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
           block.invoke(command)
         }
-      }
+      },
     )
   }
 
@@ -1322,7 +1322,7 @@ class ForegroundProcessDetectionTest {
   /** Class containing all the information provided when a new foreground process shows up. */
   private data class NewForegroundProcess(
     val device: DeviceDescriptor,
-    val foregroundProcess: ForegroundProcess
+    val foregroundProcess: ForegroundProcess,
   )
 
   @Suppress("SameParameterValue")

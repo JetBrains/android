@@ -69,7 +69,7 @@ class ComposeAutoDocumentationTest {
 
       fun OpenDoorPolicy() {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.openFileInEditor(file.virtualFile)
@@ -94,7 +94,7 @@ class ComposeAutoDocumentationTest {
       package androidx.compose.ui
       interface Modifier
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val file =
       fixture.addFileToProject(
@@ -107,7 +107,7 @@ class ComposeAutoDocumentationTest {
       fun androidx.compose.ui.Modifier.formentera(): Modifier = this
       fun String.growUpAndBlowAway(): Int = 8675309
       """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.openFileInEditor(file.virtualFile)
 
@@ -138,7 +138,7 @@ class ComposeAutoDocumentationTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.openFileInEditor(file.virtualFile)

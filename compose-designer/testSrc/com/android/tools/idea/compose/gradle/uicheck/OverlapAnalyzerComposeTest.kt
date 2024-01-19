@@ -38,16 +38,11 @@ class OverlapAnalyzerComposeTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()!!
     val file = renderResult.sourceFile.virtualFile
-    val nlModel =
-      createNlModelForCompose(
-        projectRule.fixture.testRootDisposable,
-        facet,
-        file,
-      )
+    val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
     val issues = OverlapAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView is covered by Composable", issues[0].message)
@@ -62,16 +57,11 @@ class OverlapAnalyzerComposeTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview"
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()!!
     val file = renderResult.sourceFile.virtualFile
-    val nlModel =
-      createNlModelForCompose(
-        projectRule.fixture.testRootDisposable,
-        facet,
-        file,
-      )
+    val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
     val issues = OverlapAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(0, issues.size)
   }

@@ -44,7 +44,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         EmptyFilter,
-        SHARED_ISSUE_PANEL_TAB_ID
+        SHARED_ISSUE_PANEL_TAB_ID,
       )
     assertTrue(provider.getFilteredIssues().isEmpty())
 
@@ -76,7 +76,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         EmptyFilter,
-        "MyOtherComposable"
+        "MyOtherComposable",
       )
     assertTrue(provider1.getFilteredIssues().isEmpty())
     assertTrue(provider2.getFilteredIssues().isEmpty())
@@ -123,7 +123,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         EmptyFilter,
-        SHARED_ISSUE_PANEL_TAB_ID
+        SHARED_ISSUE_PANEL_TAB_ID,
       )
     assertTrue(provider.getFilteredIssues().isEmpty())
 
@@ -165,7 +165,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         SelectedEditorFilter(rule.project),
-        SHARED_ISSUE_PANEL_TAB_ID
+        SHARED_ISSUE_PANEL_TAB_ID,
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
@@ -193,7 +193,7 @@ class DesignToolsIssueProviderTest {
         rule.testRootDisposable,
         rule.project,
         SelectedEditorFilter(rule.project),
-        SHARED_ISSUE_PANEL_TAB_ID
+        SHARED_ISSUE_PANEL_TAB_ID,
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
@@ -213,7 +213,7 @@ class DesignToolsIssueProviderTest {
           VisualLintErrorType.BOUNDS,
           listOf(fakeNlComponent),
           issueProvider,
-          ""
+          "",
         )
       )
 

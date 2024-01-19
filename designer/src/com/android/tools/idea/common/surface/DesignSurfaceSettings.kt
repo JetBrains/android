@@ -97,7 +97,7 @@ class SurfaceState {
   fun saveDrawableBackgroundType(
     project: Project,
     file: VirtualFile,
-    type: DrawableBackgroundType
+    type: DrawableBackgroundType,
   ) {
     lastSelectedDrawableBackgroundType = type
     val relativePath = getRelativePathInProject(project, file) ?: return

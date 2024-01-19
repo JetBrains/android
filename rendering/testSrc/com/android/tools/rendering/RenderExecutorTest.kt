@@ -89,7 +89,7 @@ private fun RenderExecutor.runAsyncActionWithTestDefault(
   actionTimeout: Long = 1,
   actionTimeoutUnit: TimeUnit = TimeUnit.SECONDS,
   topic: RenderingTopic = getRandomTopic(),
-  runnable: () -> Unit
+  runnable: () -> Unit,
 ): CompletableFuture<Void> =
   runAsyncActionWithTimeout(
     queueingTimeout,
@@ -100,7 +100,7 @@ private fun RenderExecutor.runAsyncActionWithTestDefault(
     Callable<Void> {
       runnable()
       null
-    }
+    },
   )
 
 class RenderExecutorTest {
@@ -142,7 +142,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = actionExecutor,
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
     try {
       val result =
@@ -167,7 +167,7 @@ class RenderExecutorTest {
       RenderExecutor.createForTests(
         executorService = TestSingleThreadExecutorService(MoreExecutors.newDirectExecutorService()),
         scheduledExecutorService =
-          ScheduledThreadPoolExecutor(1).also { it.removeOnCancelPolicy = true }
+          ScheduledThreadPoolExecutor(1).also { it.removeOnCancelPolicy = true },
       )
     try {
       val counter = AtomicInteger(0)
@@ -193,7 +193,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = TestSingleThreadExecutorService(actionExecutor),
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
     val counterHighPriority = AtomicInteger(0)
     val counterLowPriority = AtomicInteger(0)
@@ -224,7 +224,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = TestSingleThreadExecutorService(actionExecutor),
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
 
     // Force three timeouts to exceed the counter for the sync call
@@ -269,7 +269,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = actionExecutor,
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
 
     val actionIsRunningLatch = CountDownLatch(1)
@@ -281,7 +281,7 @@ class RenderExecutorTest {
           queueingTimeoutUnit = TimeUnit.SECONDS,
           actionTimeout = 10,
           actionTimeoutUnit = TimeUnit.SECONDS,
-          renderingTopic = getRandomTopic()
+          renderingTopic = getRandomTopic(),
         ) {
           actionIsRunningLatch.countDown()
           completeActionLatch.await()
@@ -357,7 +357,7 @@ class RenderExecutorTest {
           actionIsRunningLatch.countDown()
           assertFalse(
             "The interrupted state should clear on every new action",
-            Thread.currentThread().isInterrupted
+            Thread.currentThread().isInterrupted,
           )
           completeActionLatch.countDown()
         }
@@ -380,7 +380,7 @@ class RenderExecutorTest {
         queueingTimeoutUnit = TimeUnit.SECONDS,
         actionTimeout = 10,
         actionTimeoutUnit = TimeUnit.SECONDS,
-        renderingTopic = getRandomTopic()
+        renderingTopic = getRandomTopic(),
       ) {
         runBlocking {
           CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
@@ -400,7 +400,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = TestSingleThreadExecutorService(actionExecutor),
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
     val highPriorityTopic = getHighPriorityRenderingTopicForTest()
     val lowPriorityTopic = getLowPriorityRenderingTopicForTest()
@@ -449,7 +449,7 @@ class RenderExecutorTest {
     val executor =
       RenderExecutor.createForTests(
         executorService = TestSingleThreadExecutorService(actionExecutor),
-        scheduledExecutorService = timeoutExecutorProvider
+        scheduledExecutorService = timeoutExecutorProvider,
       )
 
     val highPriorityTopic = getHighPriorityRenderingTopicForTest()

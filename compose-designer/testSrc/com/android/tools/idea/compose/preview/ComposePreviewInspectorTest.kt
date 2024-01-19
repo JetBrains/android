@@ -80,7 +80,7 @@ class ComposePreviewInspectorTest {
           ComposeViewInfo(
             TestSourceLocation("child0"),
             PxBounds(0, 0, 200, 100),
-            children = listOf()
+            children = listOf(),
           ),
           ComposeViewInfo(
             TestSourceLocation("child1"),
@@ -90,16 +90,16 @@ class ComposePreviewInspectorTest {
                 ComposeViewInfo(
                   TestSourceLocation("child1.0"),
                   PxBounds(250, 250, 500, 300),
-                  children = listOf()
+                  children = listOf(),
                 )
-              )
+              ),
           ),
           ComposeViewInfo(
             TestSourceLocation("child2"),
             PxBounds(400, 200, 1000, 300),
-            children = listOf()
-          )
-        )
+            children = listOf(),
+          ),
+        ),
     )
   }
 }
@@ -107,5 +107,5 @@ class ComposePreviewInspectorTest {
 private data class TestSourceLocation(
   override val fileName: String = "",
   override val lineNumber: Int = -1,
-  override val packageHash: Int = -1
+  override val packageHash: Int = -1,
 ) : SourceLocation

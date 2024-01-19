@@ -45,7 +45,7 @@ internal fun createDeviceSelectorActionGroup(
   return createActionGroup(
     ActionGroupSection(
       Heading.RUNNING_DEVICES_ID,
-      devices.filter { it.isConnected }.map { SelectDeviceAction(it) }
+      devices.filter { it.isConnected }.map { SelectDeviceAction(it) },
     ),
     ActionGroupSection(
       Heading.AVAILABLE_DEVICES_ID,
@@ -56,19 +56,19 @@ internal fun createDeviceSelectorActionGroup(
             it.snapshots.isNotEmpty() -> SnapshotActionGroup(it)
             else -> SelectDeviceAction(it)
           }
-        }
+        },
     ),
     ActionGroupSection(
       null,
       listOfNotNull(
         actionManager.getAction(SelectMultipleDevicesAction.ID),
         actionManager.getAction(PairDevicesUsingWiFiAction.ID),
-        actionManager.getAction("Android.DeviceManager")
-      )
+        actionManager.getAction("Android.DeviceManager"),
+      ),
     ),
     ActionGroupSection(
       null,
-      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant"))
+      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant")),
     ),
   )
 }

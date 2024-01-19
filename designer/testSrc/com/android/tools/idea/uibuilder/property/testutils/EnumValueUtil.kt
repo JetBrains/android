@@ -39,7 +39,7 @@ object EnumValueUtil {
     expectedHeader: String,
     expectedCount: Int,
     expectedValues: List<String>,
-    expectedDisplayValues: List<String>
+    expectedDisplayValues: List<String>,
   ): Int {
     assertThat(startIndex).isAtLeast(0)
     assertThat(startIndex).isAtMost(values.lastIndex)

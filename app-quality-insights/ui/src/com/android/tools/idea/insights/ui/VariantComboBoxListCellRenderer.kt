@@ -37,17 +37,17 @@ data class VariantRow(
   val name: String,
   val eventCount: Long,
   val userCount: Long,
-  val issueVariant: IssueVariant?
+  val issueVariant: IssueVariant?,
 ) : Row {
   override fun getRendererComponent(): Component {
     textLabel.update(if (issueVariant == null) name else "Variant $name", null)
     eventCountLabel.update(
       eventCount.formatNumberToPrettyString(),
-      StudioIcons.AppQualityInsights.ISSUE
+      StudioIcons.AppQualityInsights.ISSUE,
     )
     userCountLabel.update(
       userCount.formatNumberToPrettyString(),
-      StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE
+      StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
     )
     rendererComponent.invalidate()
     return rendererComponent
@@ -103,7 +103,7 @@ object HeaderRow : Row {
           isOpaque = false
           font = font.deriveFont(JBFont.BOLD)
         },
-        BorderLayout.WEST
+        BorderLayout.WEST,
       )
       add(
         JBLabel("Impact").apply {
@@ -111,7 +111,7 @@ object HeaderRow : Row {
           horizontalAlignment = SwingConstants.RIGHT
           font = font.deriveFont(JBFont.BOLD)
         },
-        BorderLayout.EAST
+        BorderLayout.EAST,
       )
       isOpaque = false
     }

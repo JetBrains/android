@@ -29,7 +29,7 @@ class ToggleShowTooltipsAction(label: String = "Show Tooltips") :
     editor: ViewEditor,
     handler: ViewHandler,
     parent: NlComponent,
-    selectedChildren: MutableList<NlComponent>
+    selectedChildren: MutableList<NlComponent>,
   ): Boolean {
     return Scene.getTooltipVisibility()
   }
@@ -39,7 +39,7 @@ class ToggleShowTooltipsAction(label: String = "Show Tooltips") :
     handler: ViewHandler,
     parent: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    selected: Boolean
+    selected: Boolean,
   ) {
     Scene.setTooltipVisibility(selected)
   }

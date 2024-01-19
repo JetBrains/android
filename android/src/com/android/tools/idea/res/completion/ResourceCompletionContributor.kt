@@ -56,7 +56,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class ResourceCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    resultSet: CompletionResultSet
+    resultSet: CompletionResultSet,
   ) {
     resultSet.runRemainingContributors(parameters) { completionResult ->
       transformCompletionResult(parameters.position.containingFile, completionResult)
@@ -70,7 +70,7 @@ class ResourceCompletionContributor : CompletionContributor() {
    */
   private fun transformCompletionResult(
     psiFile: PsiFile,
-    completionResult: CompletionResult
+    completionResult: CompletionResult,
   ): CompletionResult? {
     val lookupElement = completionResult.lookupElement
 
@@ -91,7 +91,7 @@ class ResourceCompletionContributor : CompletionContributor() {
 /** Returns a [LookupElementDecorator] for decorating the `Color` [LookupElement]. */
 private fun decorateColor(
   resourceLightField: ResourceLightField,
-  original: LookupElement
+  original: LookupElement,
 ): LookupElement? {
   if (!StudioFlags.RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED.get()) return null
   return computeColor(resourceLightField)?.let { ColorResourceLookupElement(original, it) }
@@ -105,10 +105,8 @@ private fun computeColor(resourceLightField: ResourceLightField): Color? {
   }
 }
 
-private class ColorResourceLookupElement(
-  original: LookupElement,
-  private val color: Color,
-) : LookupElementDecorator<LookupElement>(original) {
+private class ColorResourceLookupElement(original: LookupElement, private val color: Color) :
+  LookupElementDecorator<LookupElement>(original) {
 
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
@@ -127,7 +125,7 @@ private class ColorResourceLookupElement(
 private fun decorateDrawable(
   resourceLightField: ResourceLightField,
   psiFile: PsiFile,
-  original: LookupElement
+  original: LookupElement,
 ): LookupElement? {
   if (!StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get()) return null
   val module = ModuleUtilCore.findModuleForPsiElement(resourceLightField) ?: return null
@@ -164,7 +162,7 @@ private class SlowDrawableResourceLookupElement(
     object : LookupElementRenderer<SlowDrawableResourceLookupElement>() {
       override fun renderElement(
         element: SlowDrawableResourceLookupElement,
-        presentation: LookupElementPresentation
+        presentation: LookupElementPresentation,
       ) {
         this@SlowDrawableResourceLookupElement.renderElement(presentation)
         GutterIconCache.getInstance(facet.module.project)

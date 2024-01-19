@@ -66,7 +66,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
 
       CachedValueProvider.Result.create(
         scopeIncludingDeps,
-        PsiModificationTracker.MODIFICATION_COUNT
+        PsiModificationTracker.MODIFICATION_COUNT,
       )
     }
   }

@@ -35,7 +35,7 @@ class ComposeUnwrapAction : IntentionAction {
     setOf(
       "androidx.compose.foundation.layout.Box",
       "androidx.compose.foundation.layout.Row",
-      "androidx.compose.foundation.layout.Column"
+      "androidx.compose.foundation.layout.Column",
     )
 
   override fun startInWriteAction() = true

@@ -38,7 +38,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val sessionId = UUID.randomUUID().toString()
     val draft =
@@ -47,12 +47,12 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
         timestamp = clock.instant(),
         author = fetchEmail(),
         body = message,
-        state = NoteState.CREATING
+        state = NoteState.CREATING,
       )
 
     return StateTransition(
       newState = state.copy(currentNotes = state.currentNotes.addDraft(draft)),
-      action = Action.AddNote(draft)
+      action = Action.AddNote(draft),
     )
   }
 
@@ -73,15 +73,15 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     return StateTransition(
       newState =
         state.copy(
           currentNotes = state.currentNotes.deleteDraft(noteId.sessionId!!),
-          permission = state.permission.updatePermissionIfApplicable(cause)
+          permission = state.permission.updatePermissionIfApplicable(cause),
         ),
-      action = Action.NONE
+      action = Action.NONE,
     )
   }
 
@@ -101,7 +101,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
@@ -111,7 +111,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
           .apply {
             noteEvent = AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.ADDED
           }
-          .build()
+          .build(),
       )
     }
     return StateTransition(
@@ -121,15 +121,15 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
           currentNotes =
             if (state.selectedIssue?.id == note.id.issueId)
               state.currentNotes.markDraftDone(note, sessionId)
-            else state.currentNotes
+            else state.currentNotes,
         ),
-      action = Action.NONE
+      action = Action.NONE,
     )
   }
 
   private fun LoadingState<List<Note>?>.markDraftDone(
     newNote: Note,
-    sessionId: String
+    sessionId: String,
   ): LoadingState<List<Note>> {
     return map {
       checkNotNull(it) { "No prior notes fetched, thus adding on new note is not allowed." }
@@ -150,7 +150,7 @@ internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementNotesCoun
 
 private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.applyUpdate(
   issueId: IssueId,
-  update: (AppInsightsIssue) -> AppInsightsIssue
+  update: (AppInsightsIssue) -> AppInsightsIssue,
 ): LoadingState<Timed<Selection<AppInsightsIssue>>> = map { timed ->
   timed.copy(
     value =
@@ -161,7 +161,7 @@ private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.applyUpdate(
               update(selectedIssue)
             } else selectedIssue
           },
-        items = timed.value.items.map { if (it.id == issueId) update(it) else it }
+        items = timed.value.items.map { if (it.id == issueId) update(it) else it },
       )
   )
 }

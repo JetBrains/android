@@ -39,7 +39,7 @@ class UiCheckDropDownAction :
   DropDownAction(
     message("action.uicheck.toolbar.title"),
     message("action.uicheck.toolbar.description"),
-    AllIcons.General.ChevronDown
+    AllIcons.General.ChevronDown,
   ) {
   init {
     templatePresentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)

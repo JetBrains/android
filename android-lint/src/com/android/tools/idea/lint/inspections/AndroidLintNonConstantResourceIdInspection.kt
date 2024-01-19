@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.NonConstantResourceIdDetector
 class AndroidLintNonConstantResourceIdInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.non.constant.resource.id"),
-    NonConstantResourceIdDetector.NON_CONSTANT_RESOURCE_ID
+    NonConstantResourceIdDetector.NON_CONSTANT_RESOURCE_ID,
   )

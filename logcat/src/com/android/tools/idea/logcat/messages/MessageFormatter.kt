@@ -26,7 +26,7 @@ private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
   private val logcatColors: LogcatColors,
-  private val zoneId: ZoneId
+  private val zoneId: ZoneId,
 ) {
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for
@@ -61,7 +61,7 @@ internal class MessageFormatter(
         textAccumulator.accumulate(
           text = formattingOptions.tagFormat.format(tag, previousTag),
           textAttributes =
-            if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null
+            if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null,
         )
         textAccumulator.accumulate(
           text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid)
@@ -83,7 +83,7 @@ internal class MessageFormatter(
 
         textAccumulator.accumulate(
           text = msg.replace("\n", newline),
-          textAttributesKey = logcatColors.getMessageKey(header.logLevel)
+          textAttributesKey = logcatColors.getMessageKey(header.logLevel),
         )
         previousTag = tag
         previousPid = header.pid

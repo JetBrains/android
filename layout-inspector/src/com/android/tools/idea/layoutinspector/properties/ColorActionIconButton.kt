@@ -35,7 +35,7 @@ class ColorActionIconButton(override val actionIcon: Icon?) : ActionIconButton {
       type: PropertyType,
       value: String?,
       view: ViewNode,
-      lookup: ResourceLookup
+      lookup: ResourceLookup,
     ): ActionIconButton? =
       when (type) {
         PropertyType.COLOR,
@@ -47,7 +47,7 @@ class ColorActionIconButton(override val actionIcon: Icon?) : ActionIconButton {
     private suspend fun createColorButtonIcon(
       value: String?,
       view: ViewNode,
-      lookup: ResourceLookup
+      lookup: ResourceLookup,
     ): Icon? {
       lookup.resolveAsIcon(value, view)?.let {
         return it

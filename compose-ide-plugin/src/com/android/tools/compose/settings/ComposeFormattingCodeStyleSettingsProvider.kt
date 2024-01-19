@@ -41,7 +41,7 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
 
   override fun createConfigurable(
     originalSettings: CodeStyleSettings,
-    modelSettings: CodeStyleSettings
+    modelSettings: CodeStyleSettings,
   ): CodeStyleConfigurable {
     return object : CodeStyleConfigurable {
 

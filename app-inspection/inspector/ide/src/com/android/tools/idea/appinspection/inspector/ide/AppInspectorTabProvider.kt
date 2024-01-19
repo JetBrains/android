@@ -29,7 +29,7 @@ import javax.swing.Icon
 class AppInspectorLaunchConfig(
   /** The ID of the inspector, e.g. "example.inspection" */
   val id: String,
-  val params: AppInspectorLaunchParams
+  val params: AppInspectorLaunchParams,
 )
 
 /** A wrapper around a target inspector jar that either was successfully resolved or not. */
@@ -105,7 +105,7 @@ interface AppInspectorTabProvider : Comparable<AppInspectorTabProvider> {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messengerTargets: List<AppInspectorMessengerTarget>,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab
 
   override fun compareTo(other: AppInspectorTabProvider): Int =

@@ -32,7 +32,7 @@ import kotlin.math.max
  */
 class NlDesignSurfacePositionableContentLayoutManager(
   private val surface: NlDesignSurface,
-  var layoutManager: SurfaceLayoutManager
+  var layoutManager: SurfaceLayoutManager,
 ) : PositionableContentLayoutManager(), LayoutManagerSwitcher {
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
@@ -40,20 +40,20 @@ class NlDesignSurfacePositionableContentLayoutManager(
       content,
       availableSize.width,
       availableSize.height,
-      surface.isCanvasResizing
+      surface.isCanvasResizing,
     )
   }
 
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ): Dimension {
     availableSize.size = surface.extentSize
     val dimension =
       layoutManager.getRequiredSize(content, availableSize.width, availableSize.height, null)
     dimension.setSize(
       max(surface.scrollableViewMinSize.width.toDouble(), dimension.width.toDouble()),
-      max(surface.scrollableViewMinSize.height.toDouble(), dimension.height.toDouble())
+      max(surface.scrollableViewMinSize.height.toDouble(), dimension.height.toDouble()),
     )
 
     return dimension
@@ -65,7 +65,7 @@ class NlDesignSurfacePositionableContentLayoutManager(
   @UiThread
   override fun setLayoutManager(
     layoutManager: SurfaceLayoutManager,
-    sceneViewAlignment: SceneViewAlignment
+    sceneViewAlignment: SceneViewAlignment,
   ) {
     this.layoutManager = layoutManager
     surface.setSceneViewAlignment(sceneViewAlignment)
@@ -76,7 +76,7 @@ class NlDesignSurfacePositionableContentLayoutManager(
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
     availableWidth: Int,
-    availableHeight: Int
+    availableHeight: Int,
   ): Map<PositionableContent, Point> {
     return layoutManager.measure(content, availableWidth, availableHeight, surface.isCanvasResizing)
   }

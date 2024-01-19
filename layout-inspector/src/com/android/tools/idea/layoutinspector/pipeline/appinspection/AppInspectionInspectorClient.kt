@@ -103,7 +103,7 @@ class AppInspectionInspectorClient(
   private val apiServices: AppInspectionApiServices =
     AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly
-  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
 ) :
   AbstractInspectorClient(
     APP_INSPECTION_CLIENT,
@@ -113,7 +113,7 @@ class AppInspectionInspectorClient(
     isInstantlyAutoConnected,
     SessionStatisticsImpl(APP_INSPECTION_CLIENT),
     coroutineScope,
-    parentDisposable
+    parentDisposable,
   ) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
@@ -135,7 +135,7 @@ class AppInspectionInspectorClient(
     EnumSet.of(
       Capability.SUPPORTS_CONTINUOUS_MODE,
       Capability.SUPPORTS_SYSTEM_NODES,
-      Capability.SUPPORTS_SKP
+      Capability.SUPPORTS_SKP,
     )!!
 
   private val skiaParser =
@@ -175,7 +175,7 @@ class AppInspectionInspectorClient(
             treeSettings,
             capabilities,
             launchMonitor,
-            ::logComposeAttachError
+            ::logComposeAttachError,
           )
         val viewIns =
           ViewLayoutInspectorClient.launch(
@@ -188,13 +188,13 @@ class AppInspectionInspectorClient(
             this::notifyError,
             ::fireRootsEvent,
             ::fireTreeEvent,
-            launchMonitor
+            launchMonitor,
           )
         propertiesProvider =
           AppInspectionPropertiesProvider(
             viewIns.propertiesCache,
             composeInspector?.parametersCache,
-            model
+            model,
           )
         viewInspector = viewIns
 
@@ -401,7 +401,7 @@ class AppInspectionInspectorClient(
   private fun checkApi29Version(
     process: ProcessDescriptor,
     project: Project,
-    sdkHandler: AndroidSdkHandler
+    sdkHandler: AndroidSdkHandler,
   ) {
     val (success, image) =
       checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
@@ -438,11 +438,11 @@ class AppInspectionInspectorClient(
                     Messages.showInfoMessage(
                       project,
                       "Please restart the emulator for update to take effect.",
-                      "Restart Required"
+                      "Restart Required",
                     )
                   }
                 },
-                notificationModel.dismissAction
+                notificationModel.dismissAction,
               )
           } else {
             message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
@@ -452,7 +452,7 @@ class AppInspectionInspectorClient(
             SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
             message,
             Status.Warning,
-            actions
+            actions,
           )
         }
       sdkHandler
@@ -464,19 +464,19 @@ class AppInspectionInspectorClient(
           null,
           StudioProgressRunner(false, false, "Checking available system images", null),
           StudioDownloader(),
-          StudioSettingsController.getInstance()
+          StudioSettingsController.getInstance(),
         )
     } else {
       notificationModel.addNotification(
         SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
         LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
         Status.Warning,
-        listOf(notificationModel.dismissAction)
+        listOf(notificationModel.dismissAction),
       )
     }
     throw ConnectionFailedException(
       "Unsupported system image revision",
-      AttachErrorCode.LOW_API_LEVEL
+      AttachErrorCode.LOW_API_LEVEL,
     )
   }
 }
@@ -485,7 +485,7 @@ class AppInspectionInspectorClient(
 fun checkSystemImageForAppInspectionCompatibility(
   process: ProcessDescriptor,
   project: Project,
-  sdkHandler: AndroidSdkHandler
+  sdkHandler: AndroidSdkHandler,
 ): Pair<Boolean, RepoPackage?> {
   if (process.device.isEmulator && process.device.apiLevel == 29) {
     val adb = AdbUtils.getAdbFuture(project).get()

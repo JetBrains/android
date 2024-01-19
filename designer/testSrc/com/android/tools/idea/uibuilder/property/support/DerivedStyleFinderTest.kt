@@ -40,7 +40,7 @@ class DerivedStyleFinderTest {
   private val theme =
     ResourceUrl.parseStyleParentReference("AppTheme")!!.resolve(
       ResourceNamespace.TODO(),
-      ResourceNamespace.Resolver.EMPTY_RESOLVER
+      ResourceNamespace.Resolver.EMPTY_RESOLVER,
     )
   private var resolver: ResourceResolver? =
     ResourceResolver.create(
@@ -57,40 +57,40 @@ class DerivedStyleFinderTest {
                 auto,
                 "Base.TextAppearance.AppCompat",
                 "android:TextAppearance.Material",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(
                 auto,
                 "TextAppearance.AppCompat",
                 "android:TextAppearance.Material",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(
                 auto,
                 "TextAppearance.AppCompat.Body1",
                 "TextAppearance.AppCompat",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(
                 auto,
                 "TextAppearance.AppCompat.Body2",
                 "TextAppearance.AppCompat",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(
                 auto,
                 "Widget.AppCompat.TextView",
                 "android:Widget.Material.TextView",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(
                 auto,
                 "Widget.AppCompat.TextView.SpinnerItem",
                 "Widget.AppCompat.TextView",
-                "appcompat"
+                "appcompat",
               ),
               mkStyleResourceValue(auto, "Theme.Design", "Theme.AppCompat", "design"),
-              mkStyleResourceValue(auto, "Theme.Design.NoActionBar", "Theme.AppCompat", "design")
+              mkStyleResourceValue(auto, "Theme.Design.NoActionBar", "Theme.AppCompat", "design"),
             )
           ),
         android to
@@ -102,43 +102,43 @@ class DerivedStyleFinderTest {
                 android,
                 "Widget.Material.TextView",
                 "android:Widget.TextView",
-                ""
+                "",
               ),
               mkStyleResourceValue(android, "TextAppearance", "", ""),
               mkStyleResourceValue(
                 android,
                 "internal.textappearance",
                 "android:TextAppearance",
-                ""
+                "",
               ),
               mkStyleResourceValue(
                 android,
                 "TextAppearance.DeviceDefault",
                 "android:TextAppearance",
-                ""
+                "",
               ),
               mkStyleResourceValue(
                 android,
                 "TextAppearance.Material",
                 "android:TextAppearance",
-                ""
+                "",
               ),
               mkStyleResourceValue(
                 android,
                 "TextAppearance.Material.Body1",
                 "android:TextAppearance.Material",
-                ""
+                "",
               ),
               mkStyleResourceValue(
                 android,
                 "TextAppearance.Material.Body2",
                 "android:TextAppearance.Material",
-                ""
-              )
+                "",
+              ),
             )
-          )
+          ),
       ),
-      theme
+      theme,
     )
 
   @Before
@@ -171,7 +171,7 @@ class DerivedStyleFinderTest {
         resolve(android, "TextAppearance.DeviceDefault"),
         resolve(android, "TextAppearance.Material"),
         resolve(android, "TextAppearance.Material.Body1"),
-        resolve(android, "TextAppearance.Material.Body2")
+        resolve(android, "TextAppearance.Material.Body2"),
       )
       .inOrder()
   }
@@ -187,7 +187,7 @@ class DerivedStyleFinderTest {
         resolve(auto, "AppTheme"),
         resolve(auto, "Theme.AppCompat"),
         resolve(auto, "Theme.Design"),
-        resolve(auto, "Theme.Design.NoActionBar")
+        resolve(auto, "Theme.Design.NoActionBar"),
       )
       .inOrder()
   }
@@ -221,7 +221,7 @@ class DerivedStyleFinderTest {
         for (style in styles) {
           put(style)
         }
-      }
+      },
     )
   }
 
@@ -229,12 +229,12 @@ class DerivedStyleFinderTest {
     namespace: ResourceNamespace,
     name: String,
     parentStyle: String,
-    library: String
+    library: String,
   ): StyleResourceValue {
     return StyleResourceValueImpl(
       ResourceReference(namespace, ResourceType.STYLE, name),
       parentStyle,
-      library
+      library,
     )
   }
 }

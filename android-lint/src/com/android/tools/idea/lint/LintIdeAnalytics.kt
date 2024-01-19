@@ -75,7 +75,7 @@ class LintIdeAnalytics(private val project: Project) {
     driver: LintDriver,
     severityModule: Module?,
     warnings1: List<LintProblemData>?,
-    warnings2: Map<Issue, Map<File, List<LintProblemData>>>?
+    warnings2: Map<Issue, Map<File, List<LintProblemData>>>?,
   ) {
     if (project.isDisposed) return
 
@@ -180,7 +180,7 @@ class LintIdeAnalytics(private val project: Project) {
   private fun recordSeverityOverride(
     map: HashMap<String, LintIssueId.Builder>,
     id: String,
-    lintSeverity: LintSeverity
+    lintSeverity: LintSeverity,
   ) {
     val builder = map[id]
     if (builder != null) {
@@ -220,7 +220,7 @@ class LintIdeAnalytics(private val project: Project) {
   private fun computeIssueData(
     warnings1: List<LintProblemData>?,
     warnings2: Map<Issue, Map<File, List<LintProblemData>>>?,
-    severityModule: Module?
+    severityModule: Module?,
   ): Map<String, LintIssueId.Builder> {
     val map = HashMap<String, LintIssueId.Builder>(100)
 
@@ -257,7 +257,7 @@ class LintIdeAnalytics(private val project: Project) {
 
   private fun recordIssueData(
     warnings: List<LintProblemData>,
-    map: HashMap<String, LintIssueId.Builder>
+    map: HashMap<String, LintIssueId.Builder>,
   ) {
     for (warning in warnings) {
       val issue = warning.issue

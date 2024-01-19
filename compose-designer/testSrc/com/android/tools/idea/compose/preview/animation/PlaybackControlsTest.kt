@@ -50,7 +50,7 @@ class PlaybackControlsTest {
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
@@ -75,7 +75,7 @@ class PlaybackControlsTest {
           clockControl = SliderClockControl(JSlider()),
           NoopAnimationTracker,
           surface,
-          parentDisposable
+          parentDisposable,
         )
       val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
       val ui =
@@ -97,7 +97,7 @@ class PlaybackControlsTest {
           clockControl = SliderClockControl(JSlider()),
           NoopAnimationTracker,
           surface,
-          parentDisposable
+          parentDisposable,
         )
       val toolbar =
         playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }

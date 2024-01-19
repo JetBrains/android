@@ -83,7 +83,7 @@ class ComposePreviewRefreshManagerTest {
         ::testRefresh,
         completable1,
         ComposePreviewRefreshType.NORMAL,
-        requestId = "req1"
+        requestId = "req1",
       )
     )
     startLatch.await()
@@ -93,7 +93,7 @@ class ComposePreviewRefreshManagerTest {
         ::testRefresh,
         completable2,
         ComposePreviewRefreshType.NORMAL,
-        requestId = "req2"
+        requestId = "req2",
       )
     )
 
@@ -109,7 +109,7 @@ class ComposePreviewRefreshManagerTest {
       finish req2
     """
         .trimIndent(),
-      log.toString().trimIndent()
+      log.toString().trimIndent(),
     )
   }
 
@@ -124,7 +124,7 @@ class ComposePreviewRefreshManagerTest {
         ::testRefresh,
         completable1,
         ComposePreviewRefreshType.NORMAL,
-        requestId = "req1"
+        requestId = "req1",
       )
     )
     startLatch.await()
@@ -135,7 +135,7 @@ class ComposePreviewRefreshManagerTest {
         ::testRefresh,
         completable2,
         ComposePreviewRefreshType.QUICK,
-        requestId = "req2"
+        requestId = "req2",
       )
     )
     refreshManager.requestRefresh(
@@ -144,7 +144,7 @@ class ComposePreviewRefreshManagerTest {
         ::testRefresh,
         completable3,
         ComposePreviewRefreshType.QUICK,
-        requestId = "req3"
+        requestId = "req3",
       )
     )
 
@@ -171,7 +171,7 @@ class ComposePreviewRefreshManagerTest {
       start req2
       finish req2
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .contains(log.toString().trimIndent())
     )

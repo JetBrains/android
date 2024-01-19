@@ -207,7 +207,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 20
     val manager =
       GroupedListSurfaceLayoutManager(
-        GroupPadding(canvasTopPadding, PREVIEW_LEFT_PADDING) { framePadding },
+        GroupPadding(canvasTopPadding, PREVIEW_LEFT_PADDING) { framePadding }
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
@@ -298,7 +298,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 50
     val manager =
       GroupedListSurfaceLayoutManager(
-        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() },
+        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() }
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
@@ -334,7 +334,7 @@ class GroupedListSurfaceLayoutManagerTest {
     val framePadding = 50
     val manager =
       GroupedListSurfaceLayoutManager(
-        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() },
+        GroupPadding(0, PREVIEW_LEFT_PADDING) { (it * framePadding).toInt() }
       ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }

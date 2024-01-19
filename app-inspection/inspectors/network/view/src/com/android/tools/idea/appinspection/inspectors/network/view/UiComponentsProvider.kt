@@ -40,7 +40,7 @@ interface UiComponentsProvider {
     bytes: ByteArray,
     contentType: ContentType,
     styleHint: DataViewer.Style,
-    formatted: Boolean
+    formatted: Boolean,
   ): DataViewer
 
   /** Creates a stack trace group that represents a list of stack trace views. */

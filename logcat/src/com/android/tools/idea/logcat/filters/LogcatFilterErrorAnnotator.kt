@@ -34,19 +34,19 @@ internal class LogcatFilterErrorAnnotator : Annotator {
           element.lastChild.checkForError(
             holder,
             String::isValidLogLevel,
-            message("logcat.filter.error.log.level")
+            message("logcat.filter.error.log.level"),
           )
         "age:" ->
           element.lastChild.checkForError(
             holder,
             String::isValidLogAge,
-            message("logcat.filter.error.duration")
+            message("logcat.filter.error.duration"),
           )
         "is:" ->
           element.lastChild.checkForError(
             holder,
             String::isValidIsFilter,
-            message("logcat.filter.error.qualifier")
+            message("logcat.filter.error.qualifier"),
           )
       }
     }
@@ -56,7 +56,7 @@ internal class LogcatFilterErrorAnnotator : Annotator {
 private fun PsiElement.checkForError(
   holder: AnnotationHolder,
   isValid: (String) -> Boolean,
-  message: String
+  message: String,
 ) {
   if (!isValid(text)) {
     holder

@@ -34,14 +34,14 @@ import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.ArgumentMatchers
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.readBytes
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.ArgumentMatchers
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -141,7 +141,7 @@ DONE.
     treeSample: String,
     windowName: String,
     imageFile: Path,
-    legacyClient: LegacyClient
+    legacyClient: LegacyClient,
   ) {
     val client = mock<Client>()
     whenever(client.device).thenReturn(mock())
@@ -151,7 +151,7 @@ DONE.
           ArgumentMatchers.anyBoolean(),
           ArgumentMatchers.anyBoolean(),
           ArgumentMatchers.anyBoolean(),
-          ArgumentMatchers.any(DebugViewDumpHandler::class.java)
+          ArgumentMatchers.any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -176,7 +176,7 @@ DONE.
         client.captureView(
           ArgumentMatchers.eq(windowName),
           ArgumentMatchers.any(),
-          ArgumentMatchers.any()
+          ArgumentMatchers.any(),
         )
       )
       .thenAnswer { invocation ->
@@ -187,7 +187,7 @@ DONE.
             DebugViewDumpHandler.CHUNK_VUOP,
             ByteBuffer.wrap(imageFile.readBytes()),
             true,
-            1234
+            1234,
           )
       }
     whenever(client.device.density).thenReturn(560)

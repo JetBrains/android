@@ -31,9 +31,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
 
 /** Action used to Toggle Live Updates on/off. */
-class ToggleLiveUpdatesAction(
-  private val layoutInspector: LayoutInspector,
-) :
+class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :
   ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.Toolbar.LIVE_UPDATES),
   TooltipDescriptionProvider,
   TooltipLinkProvider {

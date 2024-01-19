@@ -76,7 +76,7 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarSix(icon: String, optionalOnClick: () -> Unit = {}) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val expectedLookupItems =
@@ -103,7 +103,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -133,7 +133,7 @@ class ComposeCompletionContributorTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -160,7 +160,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -177,7 +177,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -216,7 +216,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     var file =
@@ -233,7 +233,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}()
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -271,7 +271,7 @@ class ComposeCompletionContributorTest {
         ${caret}()
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -314,7 +314,7 @@ class ComposeCompletionContributorTest {
       fun FoobarTwo(children: () -> Unit) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -331,7 +331,7 @@ class ComposeCompletionContributorTest {
         FoobarO${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -354,7 +354,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
 
     val file2 =
@@ -371,7 +371,7 @@ class ComposeCompletionContributorTest {
         FoobarT${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -394,7 +394,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -413,7 +413,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(children: @Composable() () -> Unit) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     var file =
@@ -433,7 +433,7 @@ class ComposeCompletionContributorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -458,7 +458,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
 
     // Given:
@@ -479,7 +479,7 @@ class ComposeCompletionContributorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -504,7 +504,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -523,7 +523,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(optional: String? = null, children: @Composable() () -> Unit) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -540,7 +540,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -563,7 +563,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -582,7 +582,7 @@ class ComposeCompletionContributorTest {
       fun AppBarIcon(icon: String, onClick: () -> Unit) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -599,7 +599,7 @@ class ComposeCompletionContributorTest {
         AppBarIcon${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -622,7 +622,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -641,7 +641,7 @@ class ComposeCompletionContributorTest {
       fun RadioButton(text: String, onClick: () -> Unit, label: String = "label") {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -658,7 +658,7 @@ class ComposeCompletionContributorTest {
         RadioButton${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -679,7 +679,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -698,7 +698,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -715,7 +715,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     try {
@@ -759,7 +759,7 @@ class ComposeCompletionContributorTest {
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -778,7 +778,7 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -822,7 +822,7 @@ class ComposeCompletionContributorTest {
       // This simulates the Canvas composable
       @Composable
       fun Canvas(children: @Composable() () -> Unit) {}
-    """
+    """,
     )
 
     // Given:
@@ -839,7 +839,7 @@ class ComposeCompletionContributorTest {
       fun Test() {
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -859,7 +859,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -882,7 +882,7 @@ class ComposeCompletionContributorTest {
         @Composable
         fun TestMethod(children: @Composable() () -> Unit) {}
       }
-    """
+    """,
     )
 
     // Given:
@@ -899,7 +899,7 @@ class ComposeCompletionContributorTest {
         ObjectWithComposables.Test${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -922,7 +922,7 @@ class ComposeCompletionContributorTest {
       }
       """
           .trimIndent(),
-        true
+        true,
       )
     } else {
       myFixture.checkResult(
@@ -941,7 +941,7 @@ class ComposeCompletionContributorTest {
       }
       """
           .trimIndent(),
-        true
+        true,
       )
     }
   }
@@ -978,7 +978,7 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarSix(optionalArg: Int = 0) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameterWithComposeAnnotation =
@@ -1007,7 +1007,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -1038,7 +1038,7 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Given:
@@ -1055,7 +1055,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -1075,7 +1075,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1095,7 +1095,7 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(vararg inputs: Any?, children: @Composable () -> Unit) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Given:
@@ -1112,7 +1112,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -1134,7 +1134,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1154,7 +1154,7 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(vararg children: @Composable () -> Unit) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Given:
@@ -1171,7 +1171,7 @@ class ComposeCompletionContributorTest {
         Foobar${caret}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -1191,7 +1191,7 @@ class ComposeCompletionContributorTest {
       }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1221,7 +1221,7 @@ class ComposeCompletionContributorTest {
           override fun Foo${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     // When:
@@ -1288,7 +1288,7 @@ class ComposeCompletionContributorTest {
 
       class ImageVector
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -1301,7 +1301,7 @@ class ComposeCompletionContributorTest {
         object Filled
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.loadNewFile(
@@ -1316,7 +1316,7 @@ class ComposeCompletionContributorTest {
         get() = ImageVector()
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val accountBox = runReadAction { myFixture.elementAtCaret }
@@ -1335,7 +1335,7 @@ class ComposeCompletionContributorTest {
 
       class ImageVector
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -1348,7 +1348,7 @@ class ComposeCompletionContributorTest {
         object Unknown
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.loadNewFile(
@@ -1363,7 +1363,7 @@ class ComposeCompletionContributorTest {
         get() = ImageVector()
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val accountBox = runReadAction { myFixture.elementAtCaret }

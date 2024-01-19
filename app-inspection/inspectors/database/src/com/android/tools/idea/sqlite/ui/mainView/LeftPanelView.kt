@@ -328,7 +328,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     PopupHandler.installFollowingSelectionTreePopup(
       tree,
       DefaultActionGroup(exportAction),
-      ActionPlaces.UNKNOWN
+      ActionPlaces.UNKNOWN,
     )
   }
 
@@ -383,7 +383,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     treeModel: DefaultTreeModel,
     databaseNode: DefaultMutableTreeNode,
     sqliteTableToAdd: IndexedSqliteTable,
-    sqliteColumnsToAdd: List<IndexedSqliteColumn>
+    sqliteColumnsToAdd: List<IndexedSqliteColumn>,
   ) {
     val (sqliteTable, index) = sqliteTableToAdd
     val newTableNode = DefaultMutableTreeNode(sqliteTable)
@@ -398,7 +398,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun addColumnsToTableNode(
     treeModel: DefaultTreeModel,
     tableNode: DefaultMutableTreeNode,
-    columnsToAdd: List<IndexedSqliteColumn>
+    columnsToAdd: List<IndexedSqliteColumn>,
   ) {
     columnsToAdd.forEach { indexedSqliteColumn ->
       val (sqliteColumn, index) = indexedSqliteColumn
@@ -418,7 +418,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private fun findTableNode(
     databaseNode: DefaultMutableTreeNode,
-    tableName: String
+    tableName: String,
   ): DefaultMutableTreeNode? {
     return databaseNode
       .children()
@@ -430,7 +430,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private fun findColumnNode(
     databaseNode: DefaultMutableTreeNode,
-    columnName: String
+    columnName: String,
   ): DefaultMutableTreeNode? {
     return databaseNode
       .children()
@@ -467,7 +467,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       expanded: Boolean,
       leaf: Boolean,
       row: Int,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       toolTipText = null
       if (value is DefaultMutableTreeNode) {

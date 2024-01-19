@@ -72,7 +72,7 @@ class LegacyClientTest {
         client.stats,
         unused,
         timeoutScope,
-        debuggerScope
+        debuggerScope,
       )
     client
   }
@@ -96,19 +96,19 @@ class LegacyClientTest {
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window1" },
         any(ResourceLookup::class.java),
-        eq(client.process)
+        eq(client.process),
       )
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window2" },
         any(ResourceLookup::class.java),
-        eq(client.process)
+        eq(client.process),
       )
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window3" },
         any(ResourceLookup::class.java),
-        eq(client.process)
+        eq(client.process),
       )
   }
 
@@ -156,7 +156,7 @@ class LegacyClientTest {
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window1" },
         any(ResourceLookup::class.java),
-        eq(client.process)
+        eq(client.process),
       )
   }
 }

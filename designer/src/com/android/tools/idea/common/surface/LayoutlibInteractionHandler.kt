@@ -31,7 +31,7 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     return LayoutlibInteraction(view)

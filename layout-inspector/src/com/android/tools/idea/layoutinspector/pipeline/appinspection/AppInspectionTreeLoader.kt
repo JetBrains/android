@@ -34,12 +34,12 @@ import org.jetbrains.annotations.VisibleForTesting
 class AppInspectionTreeLoader(
   private val notificationModel: NotificationModel,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-  @VisibleForTesting var skiaParser: SkiaParser
+  @VisibleForTesting var skiaParser: SkiaParser,
 ) : TreeLoader {
   override fun loadComponentTree(
     data: Any?,
     resourceLookup: ResourceLookup,
-    process: ProcessDescriptor
+    process: ProcessDescriptor,
   ): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
       val treeLoader =
@@ -50,7 +50,7 @@ class AppInspectionTreeLoader(
           resourceLookup,
           process,
           data.composeEvent,
-          logEvent
+          logEvent,
         )
       val window = treeLoader.loadComponentTree()
       return ComponentTreeData(window, data.generation, treeLoader.dynamicCapabilities)

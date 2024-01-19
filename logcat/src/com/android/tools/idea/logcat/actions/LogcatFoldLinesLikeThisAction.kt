@@ -50,7 +50,7 @@ internal class LogcatFoldLinesLikeThisAction(private val editor: Editor) :
             super.reset()
             UIUtil.invokeLaterIfNeeded { addRule(selection) }
           }
-        }
+        },
       )
     LogcatToolWindowFactory.logcatPresenters.forEach { it.foldImmediately() }
   }

@@ -30,6 +30,6 @@ open class OpenOfflineModeManager(
       project,
       fileDatabaseManager,
       uiDispatcher,
-      isFileDownloadAllowed = { true }
-    )
+      isFileDownloadAllowed = { true },
+    ),
 ) : OfflineModeManager by offlineModeManager

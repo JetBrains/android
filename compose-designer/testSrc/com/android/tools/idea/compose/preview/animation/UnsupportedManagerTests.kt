@@ -41,7 +41,7 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
         arrayOf(ComposeAnimationType.ANIMATE_CONTENT_SIZE),
         arrayOf(ComposeAnimationType.DECAY_ANIMATION),
         arrayOf(ComposeAnimationType.TARGET_BASED_ANIMATION),
-        arrayOf(ComposeAnimationType.UNSUPPORTED)
+        arrayOf(ComposeAnimationType.UNSUPPORTED),
       )
   }
 

@@ -103,7 +103,7 @@ object ComposeRenderErrorContributor {
     logger: RenderLogger,
     linkManager: HtmlLinkManager,
     linkHandler: HyperlinkListener,
-    project: Project
+    project: Project,
   ): List<RenderErrorModel.Issue> =
     logger.messages
       .mapNotNull {
@@ -118,7 +118,7 @@ object ComposeRenderErrorContributor {
                     "This preview uses a ",
                     "ViewModel",
                     ". ",
-                    "https://developer.android.com/topic/libraries/architecture/viewmodel"
+                    "https://developer.android.com/topic/libraries/architecture/viewmodel",
                   )
                   .add(
                     "ViewModels often trigger operations not supported by Compose Preview, " +
@@ -129,7 +129,7 @@ object ComposeRenderErrorContributor {
                     "read more",
                     " about preview limitations in our external documentation.",
                     "https://developer.android.com/jetpack/compose/tooling/" +
-                      "previews#preview-viewmodel"
+                      "previews#preview-viewmodel",
                   )
                   .newlineIfNecessary()
                   .addExceptionMessage(linkManager, project, it.throwable)
@@ -145,7 +145,7 @@ object ComposeRenderErrorContributor {
                     "This preview was unable to find a ",
                     "CompositionLocal",
                     ". ",
-                    "https://developer.android.com/jetpack/compose/compositionlocal"
+                    "https://developer.android.com/jetpack/compose/compositionlocal",
                   )
                   .add("You might need to define it so it can render correctly.")
                   .newlineIfNecessary()
@@ -161,7 +161,7 @@ object ComposeRenderErrorContributor {
               .addMessageTip(
                 createBuildTheProjectMessage(
                   linkManager,
-                  "The preview will display after rebuilding the project."
+                  "The preview will display after rebuilding the project.",
                 )
               )
           }
@@ -172,7 +172,7 @@ object ComposeRenderErrorContributor {
               .addMessageTip(
                 createBuildTheProjectMessage(
                   linkManager,
-                  "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it."
+                  "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.",
                 )
               )
           }
@@ -186,7 +186,7 @@ object ComposeRenderErrorContributor {
                   .add(
                     "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the " +
                       "values property implementation. The IDE logs should contain the full exception stack trace."
-                  )
+                  ),
               )
           }
           isTimeoutToLoadPreview(it.throwable) -> {

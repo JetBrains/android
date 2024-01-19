@@ -70,7 +70,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         project,
         fileDatabaseManager,
         uiDispatcher,
-        isFileDownloadAllowed = { true }
+        isFileDownloadAllowed = { true },
       )
 
     processDescriptor = StubProcessDescriptor()
@@ -82,7 +82,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
       offlineModeManager.downloadFiles(
         listOf(liveDb1, liveDb2, inMemoryDb),
         processDescriptor,
-        null
+        null,
       ) { _, _ ->
       }
     val results = runDispatching { flow.toList(mutableListOf()) }
@@ -93,25 +93,25 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           emptyList(),
-          2
+          2,
         ),
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           listOf(fileDatabaseManager.databaseFileData),
-          2
+          2,
         ),
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           listOf(fileDatabaseManager.databaseFileData, fileDatabaseManager.databaseFileData),
-          2
+          2,
         ),
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.COMPLETED,
           listOf(fileDatabaseManager.databaseFileData, fileDatabaseManager.databaseFileData),
-          2
-        )
+          2,
+        ),
       ),
-      results
+      results,
     )
   }
 
@@ -163,7 +163,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         project,
         fileDatabaseManager,
         uiDispatcher,
-        isFileDownloadAllowed = { true }
+        isFileDownloadAllowed = { true },
       )
 
     var handleErrorInvoked = false
@@ -193,7 +193,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         project,
         fileDatabaseManager,
         uiDispatcher,
-        isFileDownloadAllowed = { false }
+        isFileDownloadAllowed = { false },
       )
 
     // Act
@@ -201,7 +201,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
       offlineModeManager.downloadFiles(
         listOf(liveDb1, liveDb2, inMemoryDb),
         processDescriptor,
-        null
+        null,
       ) { s, _ ->
         errorMessage = s
       }
@@ -213,22 +213,22 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           emptyList(),
-          2
+          2,
         ),
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.COMPLETED,
           emptyList(),
-          2
-        )
+          2,
+        ),
       ),
-      results
+      results,
     )
 
     assertEquals(
       "For security reasons offline mode is disabled when " +
         "the process being inspected does not correspond to the project open in studio " +
         "or when the project has been generated from a prebuilt apk.",
-      errorMessage
+      errorMessage,
     )
   }
 
@@ -242,7 +242,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
           askUser = {
             askUserCalled0 = true
             false
-          }
+          },
         )
       assertFalse(canDownloadFiles)
       assertTrue(askUserCalled0)
@@ -255,7 +255,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
           askUser = {
             askUserCalled1 = true
             true
-          }
+          },
         )
       assertTrue(canDownloadFiles)
       assertTrue(askUserCalled1)
@@ -268,7 +268,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
           askUser = {
             askUserCalled2 = true
             true
-          }
+          },
         )
       assertTrue(canDownloadFiles)
       assertFalse(askUserCalled2)

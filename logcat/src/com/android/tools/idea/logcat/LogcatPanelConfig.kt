@@ -140,7 +140,7 @@ internal data class LogcatPanelConfig(
       override fun serialize(
         src: FormattingConfig,
         type: Type,
-        context: JsonSerializationContext
+        context: JsonSerializationContext,
       ): JsonElement {
         val obj = JsonObject()
         when (src) {
@@ -153,7 +153,7 @@ internal data class LogcatPanelConfig(
       override fun deserialize(
         element: JsonElement,
         type: Type,
-        context: JsonDeserializationContext
+        context: JsonDeserializationContext,
       ): FormattingConfig {
         return element.asJsonObject.run {
           when {
@@ -174,7 +174,7 @@ internal data class LogcatPanelConfig(
       val name: String,
       val isEmulator: Boolean,
       val avdName: String,
-      val properties: Map<String, String>
+      val properties: Map<String, String>,
     )
   }
 }

@@ -71,7 +71,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
             canvas.restore()
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val ioFile = VfsUtilCore.virtualToIoFile(file.virtualFile)
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -80,7 +80,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       oldText: String,
       start: Int,
       end: Int,
-      replacement: String
+      replacement: String,
     ): LintFix.ReplaceStringBuilder {
       val text = file.text
       val actual = text.substring(start, end)
@@ -109,7 +109,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
           deleteRestore.build(),
           deleteReceiver.build(),
           deleteTranslate.build(),
-          indent.build()
+          indent.build(),
         )
     val incident =
       Incident().location(Location.create(VfsUtilCore.virtualToIoFile(file.virtualFile)))
@@ -144,14 +144,14 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       }
       """
         .trimIndent(),
-      myFixture.editor.document.text
+      myFixture.editor.document.text,
     )
     // Make sure we've selected the right thing
     assertEquals(file.text, myFixture.editor.document.text)
     assertEquals("Translation", myFixture.editor.selectionModel.selectedText)
     assertEquals(
       file.text.indexOf("withTranslation(200") + "with".length,
-      myFixture.editor.caretModel.offset
+      myFixture.editor.caretModel.offset,
     )
   }
 
@@ -173,7 +173,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
                 android:text="TextView" />
         </GridLayout>
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -223,7 +223,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       </GridLayout>
       """
         .trimIndent(),
-      myFixture.editor.document.text
+      myFixture.editor.document.text,
     )
     // Make sure we've selected the right thing
     assertEquals(file.text, myFixture.editor.document.text)
@@ -245,7 +245,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -295,7 +295,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       }
       """
         .trimIndent(),
-      myFixture.editor.document.text
+      myFixture.editor.document.text,
     )
     // Make sure we've selected the right thing
     assertEquals(file.text, myFixture.editor.document.text)

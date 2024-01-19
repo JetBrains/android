@@ -49,7 +49,7 @@ import org.mockito.Mockito.verify
 class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
-  sceneComponentProvider: SceneComponentHierarchyProvider? = null
+  sceneComponentProvider: SceneComponentHierarchyProvider? = null,
 ) : SceneManager(model, surface, sceneComponentProvider, null) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
@@ -102,7 +102,7 @@ class SceneManagerTest {
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter")
+          ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter"),
         )
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
@@ -117,17 +117,17 @@ class SceneManagerTest {
         object : SceneManager.SceneComponentHierarchyProvider {
           override fun createHierarchy(
             manager: SceneManager,
-            component: NlComponent
+            component: NlComponent,
           ): MutableList<SceneComponent> =
             mutableListOf(
               SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
               SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
               SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
-              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 30, 60, 60)
+              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 30, 60, 60),
             )
 
           override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
-        }
+        },
       )
 
     sceneManager.updateSceneView()

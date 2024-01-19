@@ -179,7 +179,7 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
 
 private fun findSnapshotKtObserversField(
   classLoader: ModuleClassLoader,
-  fieldName: String
+  fieldName: String,
 ): MutableCollection<*>? {
   try {
     val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)

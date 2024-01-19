@@ -62,7 +62,7 @@ class NetworkInspectorTabTest {
           override val eventFlow = emptyFlow<ByteArray>()
           override val scope = this@NetworkInspectorTabTest.scope
         }
-      )
+      ),
     )
 
   @Test
@@ -75,7 +75,7 @@ class NetworkInspectorTabTest {
         dataSource,
         services,
         scope,
-        projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable,
       )
 
     tab.launchJob.join()
@@ -126,7 +126,7 @@ class NetworkInspectorTabTest {
         FakeNetworkInspectorDataSource(),
         services,
         scope,
-        projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable,
       )
 
     tab.launchJob.join()

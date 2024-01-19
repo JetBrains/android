@@ -37,7 +37,7 @@ private class TestMethodPreviewElement(
   override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
-  override val hasAnimations: Boolean = false
+  override val hasAnimations: Boolean = false,
 ) : MethodPreviewElement
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
@@ -53,22 +53,20 @@ private class TestAdapter :
 
   override fun applyToConfiguration(
     previewElement: TestMethodPreviewElement,
-    configuration: Configuration
+    configuration: Configuration,
   ) {}
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
 }
 
-private fun someDisplaySettings(
-  name: String = "",
-) =
+private fun someDisplaySettings(name: String = "") =
   PreviewDisplaySettings(
     name = name,
     group = null,
     showDecoration = false,
     showBackground = false,
-    backgroundColor = null
+    backgroundColor = null,
   )
 
 class MethodPreviewElementModelAdapterTest {
@@ -110,7 +108,7 @@ class MethodPreviewElementModelAdapterTest {
     val previewElement =
       TestMethodPreviewElement(
         methodFqn = "someMethodFqn",
-        displaySettings = someDisplaySettings(name = "preview settings name")
+        displaySettings = someDisplaySettings(name = "preview settings name"),
       )
 
     assertEquals(
@@ -119,7 +117,7 @@ class MethodPreviewElementModelAdapterTest {
         methodName=someMethodFqn
     """
         .trimIndent(),
-      adapter.toLogString(previewElement)
+      adapter.toLogString(previewElement),
     )
   }
 }

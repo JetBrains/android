@@ -84,7 +84,7 @@ fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95
 class DefaultRenderQualityManager(
   private val mySurface: NlDesignSurface,
   private val myPolicy: RenderQualityPolicy,
-  private val onQualityChangeMightBeNeeded: () -> Unit
+  private val onQualityChangeMightBeNeeded: () -> Unit,
 ) : RenderQualityManager {
   private val scope = AndroidCoroutineScope(mySurface)
   private var isPaused = false
@@ -99,7 +99,7 @@ class DefaultRenderQualityManager(
       disposableCallbackFlow<Unit>(
           "RenderQualityManager flow",
           logger = null,
-          parentDisposable = mySurface
+          parentDisposable = mySurface,
         ) {
           val panZoomListener =
             object : PanZoomListener {
@@ -161,12 +161,7 @@ class DefaultRenderQualityManager(
     !isPaused &&
       sceneManager.let {
         (!it.renderResult.isErrorResult() || it.renderResult.isCancellationException()) &&
-          abs(
-            it.lastRenderQuality -
-              getTargetQuality(
-                it,
-              ),
-          ) > myPolicy.acceptedErrorMargin
+          abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin
       }
 
   override fun pause() {

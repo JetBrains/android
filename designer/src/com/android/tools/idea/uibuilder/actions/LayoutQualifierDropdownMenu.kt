@@ -57,7 +57,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
   DropDownAction(
     generateLayoutAndQualifierTitle(file),
     "Action to switch and create qualifiers for layout files",
-    null
+    null,
   ) {
 
   /**
@@ -151,7 +151,7 @@ class SwitchToVariationAction(
   private val title: String,
   private val myProject: Project,
   private val myFile: VirtualFile,
-  private val selected: Boolean
+  private val selected: Boolean,
 ) : AnAction(title, null, null), Toggleable {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -170,7 +170,7 @@ class SwitchToVariationAction(
 class CreateVariationAction(
   private val mySurface: EditorDesignSurface,
   title: String,
-  private val myNewFolder: String?
+  private val myNewFolder: String?,
 ) : AnAction(title, null, null) {
   override fun actionPerformed(e: AnActionEvent) {
     OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true)

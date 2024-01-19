@@ -88,7 +88,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
   private val query =
     SqliteStatement(
       SELECT,
-      "select * from ${table1.name} where ${table1.columns.first().name} == qwerty"
+      "select * from ${table1.name} where ${table1.columns.first().name} == qwerty",
     )
   private val analyticsTracker = mock<DatabaseInspectorAnalyticsTracker>()
 
@@ -110,12 +110,12 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_availableUiElements_exportDatabase(
     databaseId: SqliteDatabaseId,
-    expectedExportFormats: List<ExportFormat>
+    expectedExportFormats: List<ExportFormat>,
   ) {
     test_availableUiElements(
       params = ExportDatabaseDialogParams(databaseId, Origin.UNKNOWN_ORIGIN),
       expectedTitle = "Export Database",
-      expectedExportFormats = expectedExportFormats
+      expectedExportFormats = expectedExportFormats,
     )
   }
 
@@ -129,12 +129,12 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_availableUiElements_exportTable(
     databaseId: SqliteDatabaseId,
-    expectedExportFormats: List<ExportFormat>
+    expectedExportFormats: List<ExportFormat>,
   ) {
     test_availableUiElements(
       params = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
       expectedTitle = "Export Table",
-      expectedExportFormats = expectedExportFormats
+      expectedExportFormats = expectedExportFormats,
     )
   }
 
@@ -150,14 +150,14 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_availableUiElements(
       params = ExportQueryResultsDialogParams(databaseId, query, Origin.SCHEMA_TREE_EXPORT_BUTTON),
       expectedTitle = "Export Query Results",
-      expectedExportFormats = listOf(CSV(mock()))
+      expectedExportFormats = listOf(CSV(mock())),
     )
   }
 
   private fun test_availableUiElements(
     params: ExportDialogParams,
     expectedTitle: String,
-    expectedExportFormats: List<ExportFormat>
+    expectedExportFormats: List<ExportFormat>,
   ) {
     val dialog = ExportToFileDialogViewImpl(project, params)
     val dialogListener = mock<ExportToFileDialogView.Listener>()

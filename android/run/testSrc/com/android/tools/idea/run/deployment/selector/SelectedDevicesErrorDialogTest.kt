@@ -47,7 +47,7 @@ internal class SelectedDevicesErrorDialogTest {
     val device =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message")
+        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
       )
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
@@ -76,7 +76,7 @@ internal class SelectedDevicesErrorDialogTest {
     val device =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
@@ -105,13 +105,13 @@ internal class SelectedDevicesErrorDialogTest {
     val deviceWithWarning =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     val deviceWithError =
       createDevice(
         "Pixel 3 API 30",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message")
+        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
       )
 
     val dialog =
@@ -146,7 +146,7 @@ internal class SelectedDevicesErrorDialogTest {
     val deviceWithWarning =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     var dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))

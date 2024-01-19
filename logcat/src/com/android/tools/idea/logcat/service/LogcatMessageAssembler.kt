@@ -173,7 +173,7 @@ internal class LogcatMessageAssembler(
   private class Batch(
     val messages: List<LogcatMessage>,
     val lastHeader: LogcatHeader?,
-    val lastLines: List<String>
+    val lastLines: List<String>,
   )
 
   /** A header and lines of a possibly unfinished message. */

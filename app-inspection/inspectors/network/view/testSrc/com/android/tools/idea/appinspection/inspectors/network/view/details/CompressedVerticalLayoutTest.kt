@@ -57,7 +57,7 @@ class CompressedVerticalLayoutTest {
     private var maxWidth: Int,
     private var maxHeight: Int,
     preferredWidth: Int,
-    preferredHeight: Int
+    preferredHeight: Int,
   ) : JComponent() {
     private var _preferredWidth = preferredWidth
       set(value) {

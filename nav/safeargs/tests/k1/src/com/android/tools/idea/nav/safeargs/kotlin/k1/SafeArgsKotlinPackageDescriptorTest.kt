@@ -74,7 +74,7 @@ class SafeArgsKotlinPackageDescriptorTest {
               app:destination="@id/fragment1" />                      
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -96,7 +96,7 @@ class SafeArgsKotlinPackageDescriptorTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     // Check contents for Fragment1
@@ -110,7 +110,7 @@ class SafeArgsKotlinPackageDescriptorTest {
       .containsExactly(
         "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
         "test.safeargs.Fragment1Directions",
-        "test.safeargs.MainDirections"
+        "test.safeargs.MainDirections",
       )
 
     // Check contents for Fragment2
@@ -123,7 +123,7 @@ class SafeArgsKotlinPackageDescriptorTest {
     assertThat(classesMetadata2.map { it.toString() })
       .containsExactly(
         "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",
-        "test.safeargs.sub1.Fragment2Directions"
+        "test.safeargs.sub1.Fragment2Directions",
       )
   }
 }

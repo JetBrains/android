@@ -31,7 +31,7 @@ class CustomDrawableElementDomFileDescription :
   CustomLogicResourceDomFileDescription<CustomDrawableDomElement>(
     CustomDrawableDomElement::class.java,
     ResourceFolderType.DRAWABLE,
-    "customDrawable"
+    "customDrawable",
   ) {
 
   override fun checkFile(file: XmlFile, module: Module?): Boolean {

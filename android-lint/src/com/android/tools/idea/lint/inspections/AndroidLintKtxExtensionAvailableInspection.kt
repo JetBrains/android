@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintKtxExtensionAvailableInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.ktx.extension.available"),
-    GradleDetector.KTX_EXTENSION_AVAILABLE
+    GradleDetector.KTX_EXTENSION_AVAILABLE,
   )

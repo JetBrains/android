@@ -82,7 +82,7 @@ object BackgroundTaskInspectorTestUtils {
       backgroundTaskInspectorMessenger,
       WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
       scope,
-      StubBackgroundTaskInspectorTracker()
+      StubBackgroundTaskInspectorTracker(),
     )
   }
 
@@ -92,14 +92,14 @@ object BackgroundTaskInspectorTestUtils {
     handleEvent(
       EventWrapper(
         EventWrapper.Case.WORK,
-        WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray()
+        WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray(),
       )
     )
   }
 
   fun BackgroundTaskInspectorClient.sendBackgroundTaskEvent(
     timestamp: Long,
-    map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit
+    map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit,
   ): BackgroundTaskInspectorProtocol.Event {
     val event =
       BackgroundTaskInspectorProtocol.Event.newBuilder()

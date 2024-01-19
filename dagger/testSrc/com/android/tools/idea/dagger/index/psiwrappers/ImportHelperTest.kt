@@ -52,7 +52,7 @@ class ImportHelperTest {
         """
         package dagger
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -73,7 +73,7 @@ class ImportHelperTest {
         package dagger
         import javax.inject.*
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -94,7 +94,7 @@ class ImportHelperTest {
         package dagger
         import javax.inject.Inject
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -115,7 +115,7 @@ class ImportHelperTest {
         package dagger
         import javax.inject.Inject as OtherInject
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -138,7 +138,7 @@ class ImportHelperTest {
         import javax.inject.Inject
         import javax.inject.Inject as OtherInject
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -159,25 +159,16 @@ class ImportHelperTest {
         import dagger.Component as Comp
         import dagger.Component.Builder
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
     assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_BUILDER))
-      .containsExactly(
-        "dagger.Component.Builder",
-        "Component.Builder",
-        "Builder",
-        "Comp.Builder",
-      )
+      .containsExactly("dagger.Component.Builder", "Component.Builder", "Builder", "Comp.Builder")
 
     assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_FACTORY))
-      .containsExactly(
-        "dagger.Component.Factory",
-        "Component.Factory",
-        "Comp.Factory",
-      )
+      .containsExactly("dagger.Component.Factory", "Component.Factory", "Comp.Factory")
   }
 
   @Test
@@ -190,7 +181,7 @@ class ImportHelperTest {
         package com.example
         import javax.*
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -208,7 +199,7 @@ class ImportHelperTest {
         """
         package com.example
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -229,7 +220,7 @@ class ImportHelperTest {
         import com.other.Foo
         import java.util.List
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -250,7 +241,7 @@ class ImportHelperTest {
         import com.other.Foo as Bar
         import java.util.List as MyList
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
@@ -267,7 +258,7 @@ class ImportHelperTest {
         """
         package dagger;
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
@@ -288,7 +279,7 @@ class ImportHelperTest {
         package dagger;
         import javax.inject.*;
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
@@ -309,7 +300,7 @@ class ImportHelperTest {
         package dagger;
         import javax.inject.Inject;
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
@@ -331,7 +322,7 @@ class ImportHelperTest {
         import javax.inject.*;
         import javax.inject.Inject;
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
@@ -354,7 +345,7 @@ class ImportHelperTest {
         import dagger.Component;
         import dagger.Component.Builder;
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)

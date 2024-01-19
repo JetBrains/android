@@ -31,7 +31,7 @@ object DistributionToolWindow {
   fun create(
     name: String,
     scope: CoroutineScope,
-    state: Flow<AppInsightsState>
+    state: Flow<AppInsightsState>,
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Details",
@@ -42,7 +42,7 @@ object DistributionToolWindow {
       AutoHide.DOCKED,
       ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-      ToolWindowDefinition.ALLOW_BASICS
+      ToolWindowDefinition.ALLOW_BASICS,
     ) {
       DetailsToolWindowContent(scope, state)
     }

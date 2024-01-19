@@ -25,7 +25,7 @@ import com.sun.jdi.ObjectReference
 
 internal fun mockEvaluationContext(
   debugProcess: DebugProcessImpl,
-  objectReference: ObjectReference
+  objectReference: ObjectReference,
 ): EvaluationContextImpl {
   val mockSuspendContext = MockitoKt.mock<SuspendContextImpl>()
   whenever(mockSuspendContext.debugProcess).thenReturn(debugProcess)

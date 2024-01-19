@@ -94,7 +94,7 @@ class InspectorPropertiesModelTest {
       inspectorModel,
       NotificationModel(projectRule.project),
       mockTreeSettings,
-      renderModel = mockRenderModel
+      renderModel = mockRenderModel,
     )
   }
 

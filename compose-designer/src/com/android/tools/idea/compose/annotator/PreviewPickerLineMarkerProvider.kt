@@ -87,7 +87,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       info,
       message("picker.preview.annotator.action.title"),
       null,
-      icon
+      icon,
     )
     return info
   }
@@ -105,7 +105,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     textRange: TextRange,
     project: Project,
     module: Module,
-    previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
+    previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   ): LineMarkerInfo<PsiElement> {
     // Make sure there's a configuration available
     ConfigurationManager.getOrCreateInstance(module)
@@ -120,16 +120,16 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
             project,
             module,
             previewElementDefinitionPsi,
-            PreviewPickerTracker()
+            PreviewPickerTracker(),
           )
         PsiPickerManager.show(
           location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
           displayTitle = message("picker.preview.title"),
-          model = model
+          model = model,
         )
       },
       GutterIconRenderer.Alignment.LEFT,
-      { message("picker.preview.annotator.tooltip") }
+      { message("picker.preview.annotator.tooltip") },
     )
   }
 }

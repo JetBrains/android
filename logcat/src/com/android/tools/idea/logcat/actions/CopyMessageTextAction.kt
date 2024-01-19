@@ -40,7 +40,7 @@ internal class CopyMessageTextAction : DumbAwareAction(null as Icon?) {
       TextBlockTransferable(
         e.getLogcatMessages().joinToString("\n", postfix = "\n") { it.message },
         emptyList(),
-        null
+        null,
       )
     CopyPasteManager.getInstance().setContents(transferable)
   }

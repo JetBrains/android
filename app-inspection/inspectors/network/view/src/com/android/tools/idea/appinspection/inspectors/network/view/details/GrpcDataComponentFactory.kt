@@ -48,7 +48,7 @@ internal class GrpcDataComponentFactory(
   private val project: Project,
   private val parentDisposable: Disposable,
   data: GrpcData,
-  private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project)
+  private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project),
 ) : DataComponentFactory(data) {
   private val grpcData: GrpcData
     get() = data as GrpcData
@@ -132,7 +132,7 @@ internal class GrpcDataComponentFactory(
         bytes,
         fileType,
         true,
-        parentDisposable
+        parentDisposable,
       )
       .component
   }

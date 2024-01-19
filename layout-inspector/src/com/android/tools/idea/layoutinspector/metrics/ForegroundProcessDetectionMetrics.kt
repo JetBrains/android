@@ -33,7 +33,7 @@ object ForegroundProcessDetectionMetrics {
   fun logHandshakeResult(
     handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported,
     device: DeviceDescriptor,
-    isRecoveryHandshake: Boolean
+    isRecoveryHandshake: Boolean,
   ) {
     val autoConnectInfo =
       getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(handshakeInfo)
@@ -45,7 +45,7 @@ object ForegroundProcessDetectionMetrics {
   fun logHandshakeConversion(
     conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
     device: DeviceDescriptor,
-    isRecoveryHandshake: Boolean
+    isRecoveryHandshake: Boolean,
   ) {
     val autoConnectInfo =
       getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(conversion)
@@ -55,7 +55,7 @@ object ForegroundProcessDetectionMetrics {
 
   private fun buildLayoutInspectorEvent(
     autoConnect: DynamicLayoutInspectorAutoConnectInfo,
-    device: DeviceDescriptor
+    device: DeviceDescriptor,
   ): AndroidStudioEvent.Builder {
     return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
@@ -71,7 +71,7 @@ object ForegroundProcessDetectionMetrics {
   }
 
   private fun DynamicLayoutInspectorAutoConnectInfo.Builder.buildAutoConnectInfo(
-    supportInfo: LayoutInspector.TrackingForegroundProcessSupported,
+    supportInfo: LayoutInspector.TrackingForegroundProcessSupported
   ): DynamicLayoutInspectorAutoConnectInfo {
     val supportType = supportInfo.supportType
     if (supportType != null) {
@@ -88,7 +88,7 @@ object ForegroundProcessDetectionMetrics {
   }
 
   private fun DynamicLayoutInspectorAutoConnectInfo.Builder.buildAutoConnectInfo(
-    handshakeConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
+    handshakeConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
   ): DynamicLayoutInspectorAutoConnectInfo {
     return apply { handshakeConversionInfo = handshakeConversion }.build()
   }

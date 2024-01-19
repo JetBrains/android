@@ -30,7 +30,7 @@ class TestPositionableContent(
   val width: Int,
   val height: Int,
   override var scale: Double = 1.0,
-  private val marginFunc: (Double) -> Insets = { JBInsets.emptyInsets() }
+  private val marginFunc: (Double) -> Insets = { JBInsets.emptyInsets() },
 ) : PositionableContent {
 
   private val dimension = Dimension(width, height)
@@ -87,12 +87,12 @@ class ScanlineUtilsTest {
     // Verify end vertical scanlines
     assertArrayEquals(
       arrayOf(110, 212),
-      sceneViews.findAllScanlines { it.x + it.getScaledContentSize(null).width }.toTypedArray()
+      sceneViews.findAllScanlines { it.x + it.getScaledContentSize(null).width }.toTypedArray(),
     )
     // Verify end horizontal scanlines
     assertArrayEquals(
       arrayOf(112, 214),
-      sceneViews.findAllScanlines { it.y + it.getScaledContentSize(null).height }.toTypedArray()
+      sceneViews.findAllScanlines { it.y + it.getScaledContentSize(null).height }.toTypedArray(),
     )
   }
 

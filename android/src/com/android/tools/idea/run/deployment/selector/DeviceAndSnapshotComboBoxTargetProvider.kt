@@ -57,7 +57,7 @@ internal constructor(
   override fun createConfigurable(
     project: Project,
     parent: Disposable,
-    context: DeployTargetConfigurableContext
+    context: DeployTargetConfigurableContext,
   ): DeployTargetConfigurable {
     return DeployTargetConfigurable.DEFAULT_CONFIGURABLE
   }

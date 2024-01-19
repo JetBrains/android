@@ -33,7 +33,7 @@ class EnableUiCheckAction :
   AnActionButton(
     message("action.uicheck.title"),
     message("action.uicheck.description"),
-    StudioIcons.Compose.Toolbar.UI_CHECK
+    StudioIcons.Compose.Toolbar.UI_CHECK,
   ) {
 
   override fun updateButton(e: AnActionEvent) {

@@ -45,7 +45,7 @@ class ComponentAssistantViewAction
 @JvmOverloads
 constructor(
   assistantLabel: String = "Set Sample Data",
-  private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?
+  private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?,
 ) : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
@@ -59,7 +59,7 @@ constructor(
           fireCancelEvent()
           onCancel()
         }
-      }
+      },
     )
     component
       .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
@@ -75,7 +75,7 @@ constructor(
     handler: ViewHandler,
     parent: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiers: Int
+    modifiers: Int,
   ) {
     if (selectedChildren.size != 1) {
       // The ComponentAssistant can only be invoked on 1 specific component. If there are multiple
@@ -93,7 +93,7 @@ constructor(
     val popup =
       LightCalloutPopup(
         closedCallback = this::fireCloseEvent,
-        cancelCallBack = this::fireCancelEvent
+        cancelCallBack = this::fireCancelEvent,
       )
     val popupRef = WeakReference(popup)
     val assistantContext =
@@ -115,7 +115,7 @@ constructor(
     val position =
       Point(
         context.getSwingXDip(sceneComponent.centerX.toFloat()),
-        context.getSwingYDip(sceneComponent.drawBottom.toFloat())
+        context.getSwingYDip(sceneComponent.drawBottom.toFloat()),
       )
     val parentComponent = designSurface.layeredPane
     if (canShowBelow(parentComponent, position, component)) {
@@ -124,7 +124,7 @@ constructor(
       val location =
         Point(
           context.getSwingXDip(sceneComponent.centerX.toFloat()),
-          context.getSwingYDip(sceneComponent.drawBottom.toFloat())
+          context.getSwingYDip(sceneComponent.drawBottom.toFloat()),
         )
       popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
@@ -136,7 +136,7 @@ constructor(
     handler: ViewHandler,
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiersEx: Int
+    modifiersEx: Int,
   ) {
     super.updatePresentation(
       presentation,
@@ -144,7 +144,7 @@ constructor(
       handler,
       component,
       selectedChildren,
-      modifiersEx
+      modifiersEx,
     )
 
     val visible = (selectedChildren.size == 1).and(panelFactoryFactory(selectedChildren[0]) != null)

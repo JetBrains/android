@@ -34,13 +34,13 @@ class IgnoreTargetSdkEditFix :
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean = IdeInfo.getInstance().isAndroidStudio
 
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     stopFlaggingTargetSdkEditsForSession(startElement.project)
   }
@@ -48,7 +48,7 @@ class IgnoreTargetSdkEditFix :
   override fun generatePreview(
     project: Project,
     editor: Editor,
-    file: PsiFile
+    file: PsiFile,
   ): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
 }
 

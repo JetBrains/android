@@ -29,7 +29,7 @@ class ToggleAllLiveRenderingAction(label: String = "Live Rendering") :
     editor: ViewEditor,
     handler: ViewHandler,
     parent: NlComponent,
-    selectedChildren: MutableList<NlComponent>
+    selectedChildren: MutableList<NlComponent>,
   ): Boolean = editor.scene.isLiveRenderingEnabled
 
   override fun setSelected(
@@ -37,7 +37,7 @@ class ToggleAllLiveRenderingAction(label: String = "Live Rendering") :
     handler: ViewHandler,
     parent: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    selected: Boolean
+    selected: Boolean,
   ) {
     // We also persist the settings to the RenderSettings
     RenderSettings.getProjectSettings(editor.model.project).useLiveRendering = selected

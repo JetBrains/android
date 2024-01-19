@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WearBackNavigationDetector
 class AndroidLintWearBackNavigationInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wear.back.navigation"),
-    WearBackNavigationDetector.ISSUE
+    WearBackNavigationDetector.ISSUE,
   )

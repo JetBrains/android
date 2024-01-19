@@ -57,7 +57,7 @@ constructor(
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
   scope: CoroutineScope,
-  errorsSideChannel: ErrorsSideChannel = { _, _ -> }
+  errorsSideChannel: ErrorsSideChannel = { _, _ -> },
 ) : DatabaseInspectorClientCommandsChannel {
   private val dbMessenger =
     DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
@@ -80,7 +80,7 @@ constructor(
               parentDisposable,
               dbMessenger,
               openedDatabase.databaseId,
-              taskExecutor
+              taskExecutor,
             )
           onDatabaseAddedListener(databaseId, databaseConnection)
         }
@@ -93,7 +93,7 @@ constructor(
           onDatabaseClosed(
             SqliteDatabaseId.fromLiveDatabase(
               event.databaseClosed.path,
-              event.databaseClosed.databaseId
+              event.databaseClosed.databaseId,
             )
           )
         }

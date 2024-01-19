@@ -96,7 +96,7 @@ class DatabaseInspectorControllerImpl(
   private val fileDatabaseManager: FileDatabaseManager,
   private val offlineModeManager: OfflineModeManager,
   private val edtExecutor: Executor,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseInspectorController {
 
   private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
@@ -153,7 +153,7 @@ class DatabaseInspectorControllerImpl(
       @UiThread
       override fun onDatabasesChanged(
         openDatabaseIds: List<SqliteDatabaseId>,
-        closeDatabaseIds: List<SqliteDatabaseId>
+        closeDatabaseIds: List<SqliteDatabaseId>,
       ) {
         val currentState =
           currentOpenDatabaseIds.map { ViewDatabase(it, true) } +
@@ -179,14 +179,14 @@ class DatabaseInspectorControllerImpl(
       override fun onSchemaChanged(
         databaseId: SqliteDatabaseId,
         oldSchema: SqliteSchema,
-        newSchema: SqliteSchema
+        newSchema: SqliteSchema,
       ) {
         updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
       }
 
       private fun closeTabsBelongingToClosedDatabases(
         currentlyOpenDbs: List<SqliteDatabaseId>,
-        newOpenDbs: List<SqliteDatabaseId>
+        newOpenDbs: List<SqliteDatabaseId>,
       ) {
         val closedDbs = currentlyOpenDbs.filter { !newOpenDbs.contains(it) }
         val tabsToClose =
@@ -199,7 +199,7 @@ class DatabaseInspectorControllerImpl(
 
       private fun performDiff(
         currentState: List<ViewDatabase>,
-        newState: List<ViewDatabase>
+        newState: List<ViewDatabase>,
       ): List<DatabaseDiffOperation> {
         val sortedNewState = newState.sortedBy { it.databaseId.name }
 
@@ -210,7 +210,7 @@ class DatabaseInspectorControllerImpl(
               DatabaseDiffOperation.AddDatabase(
                 it,
                 model.getDatabaseSchema(it.databaseId),
-                sortedNewState.indexOf(it)
+                sortedNewState.indexOf(it),
               )
             }
         val toRemove =
@@ -243,7 +243,7 @@ class DatabaseInspectorControllerImpl(
   @AnyThread
   override suspend fun runSqlStatement(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ) =
     withContext(uiDispatcher) {
       openNewEvaluatorTab().showAndExecuteSqlStatement(databaseId, sqliteStatement).await()
@@ -305,7 +305,7 @@ class DatabaseInspectorControllerImpl(
   @UiThread
   override fun stopAppInspectionSession(
     appPackageName: String?,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ) {
     databaseInspectorClientCommandsChannel = null
     this.processDescriptor = null
@@ -323,7 +323,7 @@ class DatabaseInspectorControllerImpl(
   private fun enterOfflineMode(
     databasesToDownload: List<SqliteDatabaseId>,
     appPackageName: String?,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ) {
     val isDatabaseInspectorSelected =
       appInspectionIdeServices?.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)
@@ -518,7 +518,7 @@ class DatabaseInspectorControllerImpl(
   private fun updateExistingDatabaseSchemaView(
     databaseId: SqliteDatabaseId,
     oldSchema: SqliteSchema,
-    newSchema: SqliteSchema
+    newSchema: SqliteSchema,
   ) {
     val diffOperations = mutableListOf<SchemaDiffOperation>()
 
@@ -584,14 +584,14 @@ class DatabaseInspectorControllerImpl(
         object : SchemaProvider {
           override fun getSchema(databaseId: SqliteDatabaseId) = model.getDatabaseSchema(databaseId)
         },
-        viewFactory.createTableView()
+        viewFactory.createTableView(),
       )
 
     view.openTab(
       tabId,
       "New Query [$evaluatorTabCount]",
       StudioIcons.DatabaseInspector.TABLE,
-      sqliteEvaluatorView.component
+      sqliteEvaluatorView.component,
     )
 
     val sqliteEvaluatorController =
@@ -604,7 +604,7 @@ class DatabaseInspectorControllerImpl(
         { closeTab(tabId) },
         ::showExportDialog,
         edtExecutor,
-        taskExecutor
+        taskExecutor,
       )
     Disposer.register(project, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp(evaluationParams)
@@ -642,7 +642,7 @@ class DatabaseInspectorControllerImpl(
         sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
         showExportDialog = ::showExportDialog,
         edtExecutor = edtExecutor,
-        taskExecutor = taskExecutor
+        taskExecutor = taskExecutor,
       )
     Disposer.register(project, tableController)
     resultSetControllers[tabId] = tableController
@@ -658,7 +658,7 @@ class DatabaseInspectorControllerImpl(
             view.reportError("Error reading Sqlite table \"${table.name}\"", t)
             closeTab(tabId)
           }
-        }
+        },
       )
   }
 
@@ -674,7 +674,7 @@ class DatabaseInspectorControllerImpl(
       viewFactory.createExportToFileView(
         project,
         exportDialogParams,
-        databaseInspectorAnalyticsTracker
+        databaseInspectorAnalyticsTracker,
       )
     val controller =
       ExportToFileController(
@@ -708,11 +708,11 @@ class DatabaseInspectorControllerImpl(
                 true ->
                   DatabaseInspectorBundle.message(
                     "export.notification.success.message.reveal",
-                    RevealFileAction.getActionName()
+                    RevealFileAction.getActionName(),
                   )
                 else -> ""
               },
-            hyperlinkClicked = { RevealFileAction.openFile(request.dstPath) }
+            hyperlinkClicked = { RevealFileAction.openFile(request.dstPath) },
           )
         },
         notifyExportError = { _, throwable ->
@@ -723,9 +723,9 @@ class DatabaseInspectorControllerImpl(
           appInspectionIdeServices?.showNotification(
             title = title,
             content = throwable?.message ?: throwable?.toString() ?: "",
-            severity = Severity.ERROR
+            severity = Severity.ERROR,
           )
-        }
+        },
       )
     controller.setUp()
     controller.showView()
@@ -735,13 +735,13 @@ class DatabaseInspectorControllerImpl(
   private fun downloadDatabase(
     databaseId: LiveSqliteDatabaseId,
     onError: (String, Throwable?) -> Unit,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ): Flow<DownloadProgress> {
     return offlineModeManager.downloadFiles(
       listOf(databaseId),
       processDescriptor,
       appPackageName,
-      onError
+      onError,
     )
   }
 
@@ -757,7 +757,7 @@ class DatabaseInspectorControllerImpl(
 
       databaseInspectorAnalyticsTracker.trackStatementExecuted(
         connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT,
       )
       openTableTab(databaseId, table)
     }

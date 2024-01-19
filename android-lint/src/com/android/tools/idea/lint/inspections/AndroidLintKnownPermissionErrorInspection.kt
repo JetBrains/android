@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.PermissionErrorDetector
 class AndroidLintKnownPermissionErrorInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.known.permission.error"),
-    PermissionErrorDetector.KNOWN_PERMISSION_ERROR
+    PermissionErrorDetector.KNOWN_PERMISSION_ERROR,
   )

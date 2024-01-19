@@ -37,13 +37,13 @@ private const val EDITOR_NAME = "Design"
 open class DesignToolsSplitEditor(
   textEditor: TextEditor,
   val designerEditor: DesignerEditor,
-  private val project: Project
+  private val project: Project,
 ) :
   SplitEditor<DesignerEditor>(
     textEditor,
     designerEditor,
     EDITOR_NAME,
-    defaultLayout(designerEditor)
+    defaultLayout(designerEditor),
   ) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
@@ -170,13 +170,13 @@ open class DesignToolsSplitEditor(
 
   private inner class MyToolBarAction(
     delegate: SplitEditorAction,
-    val panelState: DesignerEditorPanel.State
+    val panelState: DesignerEditorPanel.State,
   ) :
     SplitEditor<DesignerEditor>.SplitEditorAction(
       delegate.name,
       delegate.icon,
       delegate.delegate,
-      panelState != DesignerEditorPanel.State.FULL
+      panelState != DesignerEditorPanel.State.FULL,
     ) {
 
     override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {

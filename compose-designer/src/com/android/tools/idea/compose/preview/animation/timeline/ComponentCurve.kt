@@ -37,7 +37,7 @@ class ComponentCurve(
   rowMinY: Int,
   private val curve: Path2D,
   private val colorIndex: Int,
-  positionProxy: PositionProxy
+  positionProxy: PositionProxy,
 ) : TimelineElement(state, minX, maxX, positionProxy) {
 
   companion object {
@@ -55,7 +55,7 @@ class ComponentCurve(
       componentId: Int,
       rowMinY: Int,
       positionProxy: PositionProxy,
-      colorIndex: Int
+      colorIndex: Int,
     ): ComponentCurve =
       property.components[componentId].let { component ->
         val curve: Path2D = Path2D.Double()
@@ -86,7 +86,7 @@ class ComponentCurve(
             component.points.forEach { (ms, value) ->
               curve.lineTo(
                 positionProxy.xPositionForValue(ms).toDouble(),
-                maxY - (value.toDouble() - animationYMin) * stepY
+                maxY - (value.toDouble() - animationYMin) * stepY,
               )
             }
           }
@@ -102,7 +102,7 @@ class ComponentCurve(
           rowMinY = rowMinY,
           curve = curve,
           colorIndex,
-          positionProxy
+          positionProxy,
         )
       }
   }
@@ -137,9 +137,9 @@ class ComponentCurve(
       Point(
         (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(
           positionProxy.minimumXPosition(),
-          positionProxy.maximumXPosition()
+          positionProxy.maximumXPosition(),
         ),
-        boxedLabelPositionWithoutOffset.y
+        boxedLabelPositionWithoutOffset.y,
       )
     curveOffset += actualDelta
     curve.transform(AffineTransform.getTranslateInstance(actualDelta.toDouble(), 0.0))
@@ -189,13 +189,13 @@ class ComponentCurve(
         minX + offsetPx,
         curveBaseY,
         minX + offsetPx,
-        curveBaseY + heightScaled() - Diamond.diamondSize()
+        curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.drawLine(
         maxX + offsetPx,
         curveBaseY,
         maxX + offsetPx,
-        curveBaseY + heightScaled() - Diamond.diamondSize()
+        curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.stroke = InspectorLayout.simpleStroke
     }
@@ -210,11 +210,11 @@ class ComponentCurve(
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
     startDiamond.paint(
       g,
-      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered
+      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
     )
     endDiamond.paint(
       g,
-      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered
+      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
     )
 
     if (offsetPx != 0) {
@@ -225,7 +225,7 @@ class ComponentCurve(
           minX + Diamond.diamondSize() + 1,
           curveBaseY,
           minX + offsetPx - Diamond.diamondSize() - 1,
-          curveBaseY
+          curveBaseY,
         )
         startDiamondNoOffset.paintOutline(g)
       } else if (offsetPx < 0) {
@@ -233,7 +233,7 @@ class ComponentCurve(
           maxX - Diamond.diamondSize() - 1,
           curveBaseY,
           maxX + offsetPx + Diamond.diamondSize() + 1,
-          curveBaseY
+          curveBaseY,
         )
         endDiamondNoOffset.paintOutline(g)
       }

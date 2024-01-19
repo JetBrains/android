@@ -44,7 +44,7 @@ object RenderingBundle {
   private fun readFromBundleAndFormat(
     bundle: ResourceBundle,
     key: String,
-    vararg params: Any
+    vararg params: Any,
   ): String {
     val rawValue = bundle.getString(key)
     val locale = bundle.locale

@@ -77,7 +77,7 @@ class PreviewPickerValuesProviderTest {
       rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
     rule.fixture.addFileToProjectAndInvalidate(
       "res/values/strings.xml",
-      STRINGS_CONTENT
+      STRINGS_CONTENT,
     ) // Should not affect locale options
     rule.fixture.addFileToProjectAndInvalidate("res/values-es-rES/strings.xml", STRINGS_CONTENT)
     rule.fixture.addFileToProjectAndInvalidate("res/values-en-rUS/strings.xml", STRINGS_CONTENT)
@@ -87,7 +87,7 @@ class PreviewPickerValuesProviderTest {
       rule.fixture.projectDisposable,
       NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url)
         .withResDirectoryUrls(listOf(rule.fixture.findFileInTempDir("res").url))
-        .build()
+        .build(),
     )
 
     val valuesProvider = PreviewPickerValuesProvider.createPreviewValuesProvider(module, null)
@@ -106,7 +106,7 @@ class PreviewPickerValuesProviderTest {
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     assertEquals(
       18,
-      deviceValues.size
+      deviceValues.size,
     ) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
@@ -228,7 +228,7 @@ class PreviewPickerValuesProviderTest {
         @Composable
         fun preview3() {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val valuesProvider =

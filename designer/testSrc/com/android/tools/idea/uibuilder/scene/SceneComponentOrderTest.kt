@@ -37,7 +37,7 @@ class SceneComponentOrderTest : SceneTest() {
       listOf(editText),
       constraintLayout,
       textView,
-      myModel.surface.selectionModel
+      myModel.surface.selectionModel,
     )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -79,7 +79,7 @@ class SceneComponentOrderTest : SceneTest() {
       listOf(editText),
       constraintLayout,
       null,
-      myModel.surface.selectionModel
+      myModel.surface.selectionModel,
     )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -157,8 +157,8 @@ class SceneComponentOrderTest : SceneTest() {
             .width("100dp")
             .height("20dp")
             .withAttribute("tools:layout_editor_absoluteX", "200dp")
-            .withAttribute("tools:layout_editor_absoluteY", "400dp")
-        )
+            .withAttribute("tools:layout_editor_absoluteY", "400dp"),
+        ),
     )
   }
 }

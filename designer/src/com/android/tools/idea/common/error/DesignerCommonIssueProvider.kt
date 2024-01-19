@@ -74,7 +74,7 @@ class DesignToolsIssueProvider(
   parentDisposable: Disposable,
   project: Project,
   private val issueFilter: DesignerCommonIssueProvider.Filter,
-  val instanceId: String
+  val instanceId: String,
 ) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
 
@@ -114,7 +114,7 @@ class DesignToolsIssueProvider(
           }
         }
         listeners.forEach { it.run() }
-      }
+      },
     )
 
     // This is a workaround to make issue panel update the tree, because the displaying issues need
@@ -131,7 +131,7 @@ class DesignToolsIssueProvider(
         override fun selectionChanged(event: FileEditorManagerEvent) {
           listeners.forEach { it.run() }
         }
-      }
+      },
     )
   }
 

@@ -33,7 +33,7 @@ class IssueNotificationActionTest {
     IssueNotificationAction(
         createStatusInfo = { _, _ -> null },
         createInformationPopup = { _, _ -> popup },
-        popupAlarm = alarm
+        popupAlarm = alarm,
       )
       .also {
         // Adding a fake action event with the action event that contains our fake [DataContext]

@@ -56,7 +56,7 @@ private val ISSUE_RESPONSE =
       listOf(DEFAULT_FETCHED_VERSIONS, WithCount(42, Version("2", "2.0"))),
       listOf(DEFAULT_FETCHED_DEVICES, WithCount(42, Device("Google", "Pixel 2"))),
       listOf(DEFAULT_FETCHED_OSES, WithCount(43, OperatingSystemInfo("12", "Android (12)"))),
-      DEFAULT_FETCHED_PERMISSIONS
+      DEFAULT_FETCHED_PERMISSIONS,
     )
   )
 
@@ -104,7 +104,7 @@ class AppInsightsTrackerTest {
             it.signalFilter ==
               AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter
                 .REGRESSIVE_SIGNAL
-        }
+        },
       )
   }
 
@@ -117,7 +117,7 @@ class AppInsightsTrackerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       )
     )
@@ -134,7 +134,7 @@ class AppInsightsTrackerTest {
         argThat {
           it.statusChange ==
             AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.CLOSED
-        }
+        },
       )
 
     controllerRule.controller.openIssue(ISSUE1)
@@ -149,7 +149,7 @@ class AppInsightsTrackerTest {
         argThat {
           it.statusChange ==
             AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.OPENED
-        }
+        },
       )
   }
 
@@ -162,7 +162,7 @@ class AppInsightsTrackerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.FULL
+          Permission.FULL,
         )
       )
     )
@@ -176,7 +176,7 @@ class AppInsightsTrackerTest {
       .logNotesAction(
         any(),
         eq(ConnectionMode.ONLINE),
-        argThat { it.noteEvent == AppQualityInsightsNotesDetails.NoteEvent.ADDED }
+        argThat { it.noteEvent == AppQualityInsightsNotesDetails.NoteEvent.ADDED },
       )
 
     controllerRule.controller.deleteNote(NOTE1)
@@ -188,7 +188,7 @@ class AppInsightsTrackerTest {
       .logNotesAction(
         any(),
         eq(ConnectionMode.ONLINE),
-        argThat { it.noteEvent == AppQualityInsightsNotesDetails.NoteEvent.REMOVED }
+        argThat { it.noteEvent == AppQualityInsightsNotesDetails.NoteEvent.REMOVED },
       )
   }
 
@@ -211,7 +211,7 @@ class AppInsightsTrackerTest {
       .logOfflineTransitionAction(
         any(),
         eq(ConnectionMode.ONLINE),
-        eq(AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.ONLINE_TO_OFFLINE)
+        eq(AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.ONLINE_TO_OFFLINE),
       )
 
     controllerRule.refreshAndConsumeLoadingState()
@@ -219,13 +219,13 @@ class AppInsightsTrackerTest {
       LoadingState.Ready(
         IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
       ),
-      isTransitionToOnlineMode = true
+      isTransitionToOnlineMode = true,
     )
     verify(controllerRule.tracker)
       .logOfflineTransitionAction(
         any(),
         eq(ConnectionMode.OFFLINE),
-        eq(AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.OFFLINE_TO_ONLINE)
+        eq(AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.OFFLINE_TO_ONLINE),
       )
   }
 

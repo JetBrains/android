@@ -79,7 +79,7 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
               EditorFactory.getInstance().releaseEditor(editor)
             }
           }
-        }
+        },
       )
   }
 
@@ -164,7 +164,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
       JBScrollPane(
         contentPanel,
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
       )
     scrollPane.border = JBUI.Borders.emptyTop(12)
     add(scrollPane, BorderLayout.CENTER)
@@ -207,7 +207,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
           override fun createHyperlinkListener(): HyperlinkListener {
             return hyperlinkListener.takeIf { it != null } ?: super.createHyperlinkListener()
           }
-        },
+        }
       )
     }
 
@@ -230,10 +230,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     }
   }
 
-  private fun JPanel.addVisualRenderIssue(
-    issue: VisualLintRenderIssue,
-    project: Project,
-  ) {
+  private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue, project: Project) {
     val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
     affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
 
@@ -246,7 +243,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
             font = font.deriveFont(Font.BOLD)
             alignmentX = LEFT_ALIGNMENT
             border = JBUI.Borders.empty(4, 0)
-          },
+          }
         )
       }
       for (file in relatedFiles) {

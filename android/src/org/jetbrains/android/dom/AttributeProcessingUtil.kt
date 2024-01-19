@@ -143,7 +143,7 @@ object AttributeProcessingUtil {
       AndroidXConstants.FQCN_GRID_LAYOUT_V7.oldName(),
       AndroidXConstants.FQCN_GRID_LAYOUT_V7.newName(),
       CLASS_PERCENT_RELATIVE_LAYOUT,
-      CLASS_PERCENT_FRAME_LAYOUT
+      CLASS_PERCENT_FRAME_LAYOUT,
     )
   private val REQUIRED_LAYOUT_ATTRIBUTE_LOCAL_NAMES = setOf(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
 
@@ -188,7 +188,7 @@ object AttributeProcessingUtil {
     styleable: StyleableDefinition,
     namespaceUri: String?,
     callback: AttributeProcessor,
-    skippedAttributes: MutableSet<XmlName>
+    skippedAttributes: MutableSet<XmlName>,
   ) {
     for (attrDef in styleable.getAttributes()) {
       val xmlName = getXmlName(attrDef, namespaceUri)
@@ -206,7 +206,7 @@ object AttributeProcessingUtil {
     xmlName: XmlName,
     parentStyleableName: String?,
     element: DomElement,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     val extension = callback.processAttribute(xmlName, attrDef, parentStyleableName) ?: return
 
@@ -228,7 +228,7 @@ object AttributeProcessingUtil {
   private fun getSpecificConverter(
     xmlName: XmlName,
     attrDef: AttributeDefinition,
-    element: DomElement
+    element: DomElement,
   ): Converter<Any>? {
     val specificConverter = AndroidDomUtil.getSpecificConverter(xmlName, element)
     if (specificConverter != null) return specificConverter
@@ -248,7 +248,7 @@ object AttributeProcessingUtil {
     styleableName: String,
     resPackage: String?,
     callback: AttributeProcessor,
-    skipNames: MutableSet<XmlName>
+    skipNames: MutableSet<XmlName>,
   ) {
     val attrDefs =
       ModuleResourceManagers.getInstance(facet)
@@ -272,7 +272,7 @@ object AttributeProcessingUtil {
     element: DomElement,
     clazz: PsiClass?,
     callback: AttributeProcessor,
-    skipNames: MutableSet<XmlName>
+    skipNames: MutableSet<XmlName>,
   ) {
     if (clazz == null) return
 
@@ -284,7 +284,7 @@ object AttributeProcessingUtil {
         styleableName,
         getResourcePackage(clazz),
         callback,
-        skipNames
+        skipNames,
       )
     }
 
@@ -298,7 +298,7 @@ object AttributeProcessingUtil {
           additionalStyleableName,
           getResourcePackage(additional),
           callback,
-          skipNames
+          skipNames,
         )
       }
     }
@@ -308,7 +308,7 @@ object AttributeProcessingUtil {
       element,
       getSuperclass(clazz),
       callback,
-      skipNames
+      skipNames,
     )
   }
 
@@ -347,7 +347,7 @@ object AttributeProcessingUtil {
     tag: XmlTag,
     element: XmlResourceElement,
     skipAttrNames: MutableSet<XmlName>,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     val tagName = tag.name
     val styleableName = AndroidXmlResourcesUtil.SPECIAL_STYLEABLE_NAMES[tagName]
@@ -361,7 +361,7 @@ object AttributeProcessingUtil {
         styleableName,
         SYSTEM_RESOURCE_PACKAGE,
         callback,
-        newSkipAttrNames
+        newSkipAttrNames,
       )
     }
 
@@ -386,7 +386,7 @@ object AttributeProcessingUtil {
             element,
             widgetClass,
             callback,
-            skipAttrNames
+            skipAttrNames,
           )
         }
       }
@@ -420,7 +420,7 @@ object AttributeProcessingUtil {
     element: DomElement,
     psiClass: PsiClass,
     callback: AttributeProcessor,
-    skipAttrNames: MutableSet<XmlName>
+    skipAttrNames: MutableSet<XmlName>,
   ) {
     val primary = getLayoutStyleablePrimary(psiClass)
     if (primary != null) {
@@ -430,7 +430,7 @@ object AttributeProcessingUtil {
         primary,
         getResourcePackage(psiClass),
         callback,
-        skipAttrNames
+        skipAttrNames,
       )
     }
 
@@ -444,21 +444,21 @@ object AttributeProcessingUtil {
     facet: AndroidFacet,
     element: DomElement,
     callback: AttributeProcessor,
-    skipAttrNames: MutableSet<XmlName>
+    skipAttrNames: MutableSet<XmlName>,
   ) {
     registerAttributesFromSuffixedStyleablesForNamespace(
       facet,
       element,
       callback,
       skipAttrNames,
-      ResourceNamespace.ANDROID
+      ResourceNamespace.ANDROID,
     )
     registerAttributesFromSuffixedStyleablesForNamespace(
       facet,
       element,
       callback,
       skipAttrNames,
-      ResourceNamespace.RES_AUTO
+      ResourceNamespace.RES_AUTO,
     )
   }
 
@@ -467,7 +467,7 @@ object AttributeProcessingUtil {
     element: DomElement,
     callback: AttributeProcessor,
     skipAttrNames: MutableSet<XmlName>,
-    resourceNamespace: ResourceNamespace
+    resourceNamespace: ResourceNamespace,
   ) {
     val repo =
       StudioResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace)
@@ -495,7 +495,7 @@ object AttributeProcessingUtil {
           name,
           getResourcePackage(psiClass),
           callback,
-          skipAttrNames
+          skipAttrNames,
         )
       }
     }
@@ -507,7 +507,7 @@ object AttributeProcessingUtil {
     tag: XmlTag,
     element: NavDestinationElement,
     skipAttrNames: MutableSet<XmlName>,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     try {
       NavigationSchema.createIfNecessary(facet.module)
@@ -529,7 +529,7 @@ object AttributeProcessingUtil {
     tag: XmlTag,
     element: LayoutElement,
     skipAttrNames: MutableSet<XmlName>,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
 
     // Add tools namespace attributes to layout tags, but not those that are databinding-specific
@@ -603,7 +603,7 @@ object AttributeProcessingUtil {
               element,
               aClass,
               callback,
-              skipAttrNames
+              skipAttrNames,
             )
           }
         }
@@ -617,7 +617,7 @@ object AttributeProcessingUtil {
           element,
           findViewValidInXMLByName(facet, VIEW_MERGE),
           callback,
-          skipAttrNames
+          skipAttrNames,
         )
         val parentTagName = tag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI)
         if (parentTagName != null) {
@@ -626,7 +626,7 @@ object AttributeProcessingUtil {
             element,
             findViewValidInXMLByName(facet, parentTagName),
             callback,
-            skipAttrNames
+            skipAttrNames,
           )
         }
       }
@@ -666,7 +666,7 @@ object AttributeProcessingUtil {
             element,
             parentViewClass,
             callback,
-            skipAttrNames
+            skipAttrNames,
           )
           parentViewClass = getSuperclass(parentViewClass)
         }
@@ -697,7 +697,7 @@ object AttributeProcessingUtil {
     element: AndroidDomElement,
     facet: AndroidFacet,
     processAllExistingAttrsFirst: Boolean,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     if (DumbService.getInstance(facet.module.project).isDumb) return
 
@@ -751,7 +751,7 @@ object AttributeProcessingUtil {
           styleable,
           if (isSystem) ANDROID_URI else AUTO_URI,
           callback,
-          skippedAttributes
+          skippedAttributes,
         )
       } else if (isSystem) {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
@@ -796,7 +796,7 @@ object AttributeProcessingUtil {
   private fun processManifestAttributes(
     tag: XmlTag,
     element: AndroidDomElement,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     // Don't register manifest merger attributes for root element
     if (tag.parentTag != null) {
@@ -814,7 +814,7 @@ object AttributeProcessingUtil {
     facet: AndroidFacet,
     element: DomElement,
     skippedAttributes: MutableCollection<XmlName>,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ) {
     val styleables =
       ModuleResourceManagers.getInstance(facet)
@@ -871,7 +871,7 @@ object AttributeProcessingUtil {
     facet: AndroidFacet,
     tag: XmlTag,
     element: AndroidDomElement,
-    callback: AttributeProcessor
+    callback: AttributeProcessor,
   ): MutableSet<XmlName> {
     val result: MutableSet<XmlName> = mutableSetOf()
 
@@ -900,7 +900,7 @@ object AttributeProcessingUtil {
     val attrNamespaceUri = attrReference.namespace.xmlNamespaceUri
     return XmlName(
       attrReference.name,
-      if (namespaceUri == TOOLS_URI) TOOLS_URI else attrNamespaceUri
+      if (namespaceUri == TOOLS_URI) TOOLS_URI else attrNamespaceUri,
     )
   }
 
@@ -908,7 +908,7 @@ object AttributeProcessingUtil {
     fun processAttribute(
       xmlName: XmlName,
       attrDef: AttributeDefinition,
-      parentStyleableName: String?
+      parentStyleableName: String?,
     ): DomExtension?
   }
 }

@@ -48,7 +48,7 @@ import javax.swing.KeyStroke
 class ParametersBindingDialogViewImpl(
   sqliteStatementText: String,
   project: Project,
-  canBeParent: Boolean
+  canBeParent: Boolean,
 ) : DialogWrapper(project, canBeParent), ParametersBindingDialogView {
 
   val component = JPanel(BorderLayout())
@@ -61,7 +61,7 @@ class ParametersBindingDialogViewImpl(
   private val statementTextField =
     ExpandableTextField(
       Function { value: String -> listOf(value) },
-      ParametersListUtil.DEFAULT_LINE_JOINER
+      ParametersListUtil.DEFAULT_LINE_JOINER,
     )
 
   init {
@@ -182,7 +182,7 @@ class ParametersBindingDialogViewImpl(
     private val mainInputComponent =
       InputComponent(
         sqliteParameter.name,
-        InputComponent.Action.Add(true, this::createRemovableInputComponent)
+        InputComponent.Action.Add(true, this::createRemovableInputComponent),
       )
 
     override val component = JPanel()
@@ -214,7 +214,7 @@ class ParametersBindingDialogViewImpl(
             additionalInputComponents.remove(it)
             additionalInputComponentsPanel.remove(it.component)
             additionalInputComponentsPanel.revalidate()
-          }
+          },
         )
       removableInputComponent.nameLabel.setFixedWidth(parent.nameLabel.preferredSize.width)
 
@@ -273,7 +273,7 @@ class ParametersBindingDialogViewImpl(
           override fun actionPerformed(e: ActionEvent) {
             action.action(this@InputComponent)
           }
-        }
+        },
       )
 
       val actionButton = CommonButton(action.icon)
@@ -296,7 +296,7 @@ class ParametersBindingDialogViewImpl(
           override fun actionPerformed(e: ActionEvent) {
             setTextFieldToNull()
           }
-        }
+        },
       )
 
       val setToNullButton = CommonButton(AllIcons.RunConfigurations.ShowIgnored)
@@ -322,7 +322,7 @@ class ParametersBindingDialogViewImpl(
 
       internal data class Add(
         override val enabled: Boolean,
-        override val action: (InputComponent) -> Unit
+        override val action: (InputComponent) -> Unit,
       ) : Action() {
         override val description = "Add value"
         override val icon = AllIcons.General.Add

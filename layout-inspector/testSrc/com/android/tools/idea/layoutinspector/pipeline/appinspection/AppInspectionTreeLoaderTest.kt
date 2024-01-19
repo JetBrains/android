@@ -111,7 +111,7 @@ class AppInspectionTreeLoaderTest {
       LayoutInspectorViewProtocol.Screenshot.Type.SKP,
     bitmapType: BitmapType = BitmapType.RGB_565,
     pendingRecompositionCountReset: Boolean = true,
-    hasScreenshot: Boolean = true
+    hasScreenshot: Boolean = true,
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent =
       LayoutInspectorViewProtocol.LayoutEvent.newBuilder()
@@ -308,7 +308,7 @@ class AppInspectionTreeLoaderTest {
       11,
       listOf(123, 456),
       viewLayoutEvent,
-      GetComposablesResult(composablesResponse, pendingRecompositionCountReset)
+      GetComposablesResult(composablesResponse, pendingRecompositionCountReset),
     )
   }
 
@@ -336,11 +336,11 @@ class AppInspectionTreeLoaderTest {
           SkiaViewNode(1, image1),
           SkiaViewNode(
             2,
-            listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3))))
+            listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3)))),
           ),
           SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
-          SkiaViewNode(5, listOf(SkiaViewNode(5, image5)))
-        )
+          SkiaViewNode(5, listOf(SkiaViewNode(5, image5))),
+        ),
       )
 
     val skiaParser: SkiaParser = mock()
@@ -349,7 +349,7 @@ class AppInspectionTreeLoaderTest {
           eq(sample565.bytes),
           argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) },
           any(),
-          any()
+          any(),
         )
       )
       .thenReturn(skiaResponse)
@@ -363,7 +363,7 @@ class AppInspectionTreeLoaderTest {
           assertThat(loggedEvent).isNull()
           loggedEvent = it
         },
-        skiaParser
+        skiaParser,
       )
 
     val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
@@ -532,13 +532,13 @@ class AppInspectionTreeLoaderTest {
       AppInspectionTreeLoader(
         notificationModel,
         logEvent = { fail() }, // Metrics shouldn't be logged until we come back with a screenshot
-        skiaParser
+        skiaParser,
       )
     val (window, _) =
       treeLoader.loadComponentTree(
         createFakeData(),
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess()
+        MODERN_DEVICE.createProcess(),
       )!!
     window!!.refreshImages(1.0)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -592,7 +592,7 @@ class AppInspectionTreeLoaderTest {
         logEvent = {
           assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
         },
-        skiaParser
+        skiaParser,
       )
 
     val data = createFakeData(BITMAP)
@@ -600,7 +600,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess()
+        MODERN_DEVICE.createProcess(),
       )!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
@@ -613,7 +613,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data2,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess()
+        MODERN_DEVICE.createProcess(),
       )!!
     window2!!.refreshImages(1.0)
 
@@ -632,7 +632,7 @@ class AppInspectionTreeLoaderTest {
         logEvent = {
           assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
         },
-        skiaParser
+        skiaParser,
       )
 
     val data = createFakeData(hasScreenshot = false)
@@ -640,7 +640,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess()
+        MODERN_DEVICE.createProcess(),
       )!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)

@@ -63,8 +63,8 @@ class StartStopButtonTest {
       AndroidExecutorsRule(
         workerThreadExecutor = testDispatcher.asExecutor(),
         diskIoThreadExecutor = testDispatcher.asExecutor(),
-        uiThreadExecutor = { _, runnable -> testScope.launch { runnable.run() } }
-      )
+        uiThreadExecutor = { _, runnable -> testScope.launch { runnable.run() } },
+      ),
     )
 
   @Test
@@ -77,7 +77,7 @@ class StartStopButtonTest {
             DeviceProperties.buildForTest {
               isVirtual = true
               icon = EmptyIcon.DEFAULT
-            }
+            },
         )
       handle.activationAction.presentation.update { it.copy(enabled = true) }
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
@@ -125,7 +125,7 @@ class StartStopButtonTest {
             DeviceProperties.buildForTest {
               isVirtual = true
               icon = EmptyIcon.DEFAULT
-            }
+            },
         )
       handle.activationAction.presentation.update { it.copy(enabled = true) }
       handle.activationAction.exception = DeviceActionException("Activation error")
@@ -153,7 +153,7 @@ class StartStopButtonTest {
           handle,
           handle.activationAction,
           handle.deactivationAction,
-          handle.repairDeviceAction
+          handle.repairDeviceAction,
         )
       // Disable activation, since StartStopButton favors it over repair
       handle.activationAction.presentation.update { it.copy(enabled = false) }
@@ -171,7 +171,7 @@ class StartStopButtonTest {
           DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning = false,
           "Disconnected",
-          error = TestError()
+          error = TestError(),
         )
       }
       handle.repairDeviceAction.presentation.update {

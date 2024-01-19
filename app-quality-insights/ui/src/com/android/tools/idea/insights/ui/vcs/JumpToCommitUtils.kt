@@ -51,7 +51,7 @@ private fun tryCreateHash(revision: String): Hash? {
 internal fun jumpToRevision(project: Project, hash: Hash) {
   runInMainLog(
     project,
-    Consumer { logUi: MainVcsLogUi -> jumpToRevisionUnderProgress(project, logUi, hash) }
+    Consumer { logUi: MainVcsLogUi -> jumpToRevisionUnderProgress(project, logUi, hash) },
   )
 }
 
@@ -66,7 +66,7 @@ private fun jumpToRevisionUnderProgress(project: Project, logUi: VcsLogUiEx, has
             project,
             "Searching for Revision ${hash.asString()}",
             false,
-            ALWAYS_BACKGROUND
+            ALWAYS_BACKGROUND,
           ) {
           override fun run(indicator: ProgressIndicator) {
             try {

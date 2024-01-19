@@ -30,7 +30,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 /** Builder for a panel for transform properties in the layout editor */
 class TransformsAttributesInspectorBuilder(
   private val model: NlPropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
 
   private val newPropertyInstance =
@@ -40,7 +40,7 @@ class TransformsAttributesInspectorBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.TRANSFORMS.visible) {
       return
@@ -58,7 +58,7 @@ class TransformsAttributesInspectorBuilder(
         "translationX",
         "translationY",
         "translationZ",
-        "alpha"
+        "alpha",
       )
 
     val titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title)

@@ -45,7 +45,7 @@ class DelegatingConfidenceMatcherTest {
     val matcher =
       DelegatingConfidenceMatcher(
         listOf(CrashMatcher { _, _ -> lowMatch }, CrashMatcher { _, _ -> highMatch }, mockMatcher),
-        Confidence.MEDIUM
+        Confidence.MEDIUM,
       )
 
     val result = matcher.match(mockFile, testCrash)
@@ -64,9 +64,9 @@ class DelegatingConfidenceMatcherTest {
         listOf(
           CrashMatcher { _, _ -> lowMatch },
           CrashMatcher { _, _ -> mediumMatch },
-          mockMatcher
+          mockMatcher,
         ),
-        Confidence.MEDIUM
+        Confidence.MEDIUM,
       )
 
     val result = matcher.match(mockFile, testCrash)
@@ -84,7 +84,7 @@ class DelegatingConfidenceMatcherTest {
     val matcher =
       DelegatingConfidenceMatcher(
         listOf(CrashMatcher { _, _ -> lowMatch }, mockMatcher),
-        Confidence.MEDIUM
+        Confidence.MEDIUM,
       )
 
     val result = matcher.match(mockFile, testCrash)
@@ -110,9 +110,9 @@ class DelegatingConfidenceMatcherTest {
           CrashMatcher { _, _ -> lowMatch },
           CrashMatcher { _, _ -> mediumMatch },
           lowMockMatcher,
-          mediumMockMatcher
+          mediumMockMatcher,
         ),
-        minConfidence = Confidence.HIGH
+        minConfidence = Confidence.HIGH,
       )
 
     val result = matcher.match(mockFile, testCrash)

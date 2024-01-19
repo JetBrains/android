@@ -81,15 +81,15 @@ class DeviceTest {
         Dimension(
           DimensionType.DEVICE_MODEL,
           DimensionValue.StringValue("blqt"),
-          "samsung blqt (Galaxy A7)"
+          "samsung blqt (Galaxy A7)",
         ),
-        Dimension(DimensionType.DEVICE_TYPE, DimensionValue.StringValue("phone"), "phone")
+        Dimension(DimensionType.DEVICE_TYPE, DimensionValue.StringValue("phone"), "phone"),
       )
 
     val unknown =
       listOf(
         Dimension(DimensionType.DEVICE_BRAND, DimensionValue.StringValue("unknown"), "unknown"),
-        Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("unknown"), "")
+        Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("unknown"), ""),
       )
 
     assertThat(Device.fromDimensions(dimension))

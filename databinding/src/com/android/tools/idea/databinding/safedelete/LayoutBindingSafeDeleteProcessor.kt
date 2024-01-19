@@ -58,7 +58,7 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   override fun findUsages(
     element: PsiElement,
     allElementsToDelete: Array<PsiElement>,
-    result: MutableList<in UsageInfo>
+    result: MutableList<in UsageInfo>,
   ): NonCodeUsageSearchInfo? {
     val resourceFile = element as PsiFile
     val facet = AndroidFacet.getInstance(element)!!
@@ -76,7 +76,7 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
 
   override fun getElementsToSearch(
     element: PsiElement,
-    allElementsToDelete: Collection<PsiElement>
+    allElementsToDelete: Collection<PsiElement>,
   ): Collection<PsiElement>? {
     return delegateProcessor.getElementsToSearch(element, allElementsToDelete)
   }
@@ -84,14 +84,14 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   override fun getAdditionalElementsToDelete(
     element: PsiElement,
     allElementsToDelete: Collection<PsiElement>,
-    askUser: Boolean
+    askUser: Boolean,
   ): Collection<PsiElement>? {
     return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete, askUser)
   }
 
   override fun findConflicts(
     element: PsiElement,
-    allElementsToDelete: Array<PsiElement>
+    allElementsToDelete: Array<PsiElement>,
   ): Collection<String>? {
     return delegateProcessor.findConflicts(element, allElementsToDelete)
   }

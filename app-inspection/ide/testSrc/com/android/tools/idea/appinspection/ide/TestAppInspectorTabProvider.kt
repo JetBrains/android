@@ -36,7 +36,7 @@ import javax.swing.JPanel
 open class StubTestAppInspectorTabProvider(
   override val inspectorId: String,
   override val inspectorLaunchParams: AppInspectorLaunchParams =
-    FrameworkInspectorLaunchParams(TEST_JAR)
+    FrameworkInspectorLaunchParams(TEST_JAR),
 ) : SingleAppInspectorTabProvider() {
   override val displayName
     get() = inspectorId
@@ -46,7 +46,7 @@ open class StubTestAppInspectorTabProvider(
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
     return object : SingleAppInspectorTab(StubTestAppInspectorMessenger()) {
       override val component = TestAppInspectorTabComponent()

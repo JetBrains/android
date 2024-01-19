@@ -46,7 +46,7 @@ class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
       fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
       """
-            .trimIndent()
+            .trimIndent(),
         )
 
       configureFromExistingVirtualFile(file.virtualFile)

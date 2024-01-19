@@ -82,7 +82,7 @@ class DetailsPanelHeaderTest {
           "DetailsPanelTest",
           "testMethod",
           120,
-          JBFont.label()
+          JBFont.label(),
         )
       )
       .matches("<html>\\.\\.\\.\\w+\\.<B>testMethod</B></html>")
@@ -92,7 +92,7 @@ class DetailsPanelHeaderTest {
           "DetailsPanelTest",
           "testMethod",
           60,
-          JBFont.label()
+          JBFont.label(),
         )
       )
       .matches("<html><B>\\.\\.\\.\\w+</B></html>")

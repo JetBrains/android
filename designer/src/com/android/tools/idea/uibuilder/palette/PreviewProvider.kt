@@ -78,13 +78,13 @@ private const val LINEAR_LAYOUT =
  */
 class PreviewProvider(
   private val myDesignSurfaceSupplier: Supplier<DesignSurface<*>?>,
-  private val myDependencyManager: DependencyManager
+  private val myDependencyManager: DependencyManager,
 ) {
   class ImageAndDimension(
     val image: BufferedImage,
     val dimension: Dimension,
     val rendering: Future<*>?,
-    val disposal: Future<*>?
+    val disposal: Future<*>?,
   )
 
   @VisibleForTesting var renderTimeoutMillis = 600L
@@ -189,7 +189,7 @@ class PreviewProvider(
         view.left,
         view.top,
         min(view.right + shadowIncrement, image.width),
-        min(view.bottom + shadowIncrement, image.height)
+        min(view.bottom + shadowIncrement, image.height),
       )
     } catch (ignore: RasterFormatException) {
       // catch exception
@@ -209,7 +209,7 @@ class PreviewProvider(
 
   private fun renderImage(
     renderTask: RenderTask?,
-    xml: String
+    xml: String,
   ): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
     if (renderTask == null) {
       return CompletableFuture.completedFuture(Pair(null, null))

@@ -36,7 +36,7 @@ class CustomViewVisualStateTrackerTest(
   private val buildState: BuildState,
   private val visualState: VisualState,
   private val expectedNotificationsState: NotificationsState,
-  private val expectedPreviewState: PreviewState
+  private val expectedPreviewState: PreviewState,
 ) {
   companion object {
     @Parameterized.Parameters(
@@ -50,127 +50,127 @@ class CustomViewVisualStateTrackerTest(
           BuildState.SUCCESSFUL,
           VisualState.RENDERING,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.SUCCESSFUL,
           VisualState.OK,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.SUCCESSFUL,
           VisualState.NONE,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.FAILED,
           VisualState.RENDERING,
           NotificationsState.BUILD_FAILED,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.FAILED,
           VisualState.OK,
           NotificationsState.BUILD_FAILED,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.FAILED,
           VisualState.NONE,
           NotificationsState.BUILD_FAILED,
-          PreviewState.BUILD_FAILED
+          PreviewState.BUILD_FAILED,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.IN_PROGRESS,
           VisualState.RENDERING,
           NotificationsState.BUILDING,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.IN_PROGRESS,
           VisualState.OK,
           NotificationsState.BUILDING,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.UP_TO_DATE,
           BuildState.IN_PROGRESS,
           VisualState.NONE,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.BUILDING
+          PreviewState.BUILDING,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.SUCCESSFUL,
           VisualState.RENDERING,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.SUCCESSFUL,
           VisualState.OK,
           NotificationsState.CODE_MODIFIED,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.SUCCESSFUL,
           VisualState.NONE,
           NotificationsState.CODE_MODIFIED,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.FAILED,
           VisualState.RENDERING,
           NotificationsState.CODE_MODIFIED,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.FAILED,
           VisualState.OK,
           NotificationsState.CODE_MODIFIED,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.FAILED,
           VisualState.NONE,
           NotificationsState.CODE_MODIFIED,
-          PreviewState.BUILD_FAILED
+          PreviewState.BUILD_FAILED,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.IN_PROGRESS,
           VisualState.RENDERING,
           NotificationsState.BUILDING,
-          PreviewState.RENDERING
+          PreviewState.RENDERING,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.IN_PROGRESS,
           VisualState.OK,
           NotificationsState.BUILDING,
-          PreviewState.OK
+          PreviewState.OK,
         ),
         arrayOf<Any>(
           FileState.MODIFIED,
           BuildState.IN_PROGRESS,
           VisualState.NONE,
           NotificationsState.NO_NOTIFICATIONS,
-          PreviewState.BUILDING
-        )
+          PreviewState.BUILDING,
+        ),
       )
   }
 

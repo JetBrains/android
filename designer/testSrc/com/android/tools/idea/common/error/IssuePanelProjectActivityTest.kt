@@ -41,7 +41,7 @@ class IssuePanelProjectActivityTest {
   fun setup() {
     rule.projectRule.replaceProjectService(
       ToolWindowManager::class.java,
-      TestToolWindowManager(rule.project)
+      TestToolWindowManager(rule.project),
     )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
@@ -77,7 +77,7 @@ class IssuePanelProjectActivityTest {
       waitUntil(timeout = 1.seconds) { toolWindow.contentManager.contentCount == 2 }
       assertEquals(
         "Layout and Qualifiers".toTabTitle(),
-        toolWindow.contentManager.getContent(1)!!.displayName
+        toolWindow.contentManager.getContent(1)!!.displayName,
       )
 
       // Verify the issue panel exists even there is no IssueModel created.

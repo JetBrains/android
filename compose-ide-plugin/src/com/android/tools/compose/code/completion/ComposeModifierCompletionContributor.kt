@@ -37,14 +37,12 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -68,7 +66,6 @@ import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupEle
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
-import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -81,7 +78,6 @@ import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -139,7 +135,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         lookupElementFactory,
         importStrategyDetector,
         2.0,
-        insertModifier = isNewModifier
+        insertModifier = isNewModifier,
       )
     )
     // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
@@ -150,7 +146,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           lookupElementFactory,
           importStrategyDetector,
           0.0,
-          insertModifier = isNewModifier
+          insertModifier = isNewModifier,
         )
       )
     }
@@ -167,7 +163,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           completionResult,
           extensionFunctionsNames,
           originalPosition,
-          resultSet
+          resultSet,
         )
       }
     }
@@ -175,7 +171,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    resultSet: CompletionResultSet
+    resultSet: CompletionResultSet,
   ) {
     val element = parameters.position
     if (!isComposeEnabled(element) || parameters.originalFile !is KtFile) {
@@ -200,7 +196,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           parameters,
           nameExpression,
           isMethodCalledOnImportedModifier,
-          resultSet
+          resultSet,
         )
       }
       return
@@ -240,7 +236,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           completionResult,
           extensionFunctionsNames,
           element,
-          resultSet
+          resultSet,
         )
       }
     }
@@ -251,7 +247,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     completionResult: CompletionResult,
     extensionFunctionsNames: Set<String>,
     completionPositionElement: PsiElement,
-    resultSet: CompletionResultSet
+    resultSet: CompletionResultSet,
   ) {
     val suggestedKtFunction = completionResult.lookupElement.psiElement as? KtFunction
     val alreadyAddedResult =
@@ -296,7 +292,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       return isVisible(
         symbolWithVisibility,
         useSiteFile = ktFile.getFileSymbol(),
-        position = completionPosition
+        position = completionPosition,
       )
     }
   }
@@ -304,7 +300,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun List<CallableDescriptor>.toLookupElements(
     lookupElementFactory: LookupElementFactory,
     weight: Double,
-    insertModifier: Boolean
+    insertModifier: Boolean,
   ) = flatMap { descriptor ->
     lookupElementFactory
       .createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
@@ -319,14 +315,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     lookupElementFactory: KotlinFirLookupElementFactory,
     importStrategyDetector: ImportStrategyDetector,
     weight: Double,
-    insertModifier: Boolean
+    insertModifier: Boolean,
   ) =
     functionSymbols.map { symbol ->
       with(lookupElementFactory) {
         val lookupElement = createLookupElement(symbol as KtNamedSymbol, importStrategyDetector)
         PrioritizedLookupElement.withPriority(
           ModifierLookupElement(lookupElement, insertModifier),
-          weight
+          weight,
         )
       }
     }
@@ -338,7 +334,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun createLookupElementFactory(
     editor: Editor,
     nameExpression: KtSimpleNameExpression,
-    parameters: CompletionParameters
+    parameters: CompletionParameters,
   ): LookupElementFactory {
     val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
     val file = parameters.originalFile as KtFile
@@ -355,7 +351,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         resolutionFacade,
         stableSmartCastsOnly =
           true, /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
-        withImplicitReceiversWhenExplicitPresent = true
+        withImplicitReceiversWhenExplicitPresent = true,
       )
 
     val inDescriptor =
@@ -370,7 +366,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       receiverTypes,
       callTypeAndReceiver.callType,
       inDescriptor,
-      CollectRequiredTypesContextVariablesProvider()
+      CollectRequiredTypesContextVariablesProvider(),
     )
   }
 
@@ -392,7 +388,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun KtAnalysisSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
-    prefixMatcher: PrefixMatcher
+    prefixMatcher: PrefixMatcher,
   ): Collection<KtCallableSymbol> {
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.getFileSymbol()
@@ -404,14 +400,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     return KtSymbolFromIndexProvider.createForElement(nameExpression)
       .getTopLevelExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
-        listOf(receiverType)
+        listOf(receiverType),
       )
       .filter {
         isVisible(
           it as KtSymbolWithVisibility,
           fileSymbol,
           callTypeAndReceiver.receiver as? KtExpression,
-          originalPosition
+          originalPosition,
         )
       }
       .toList()
@@ -420,7 +416,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
-    prefixMatcher: PrefixMatcher
+    prefixMatcher: PrefixMatcher,
   ): Collection<CallableDescriptor> {
     val file = nameExpression.containingFile as KtFile
     val searchScope = getResolveScope(file)
@@ -434,7 +430,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           originalPosition,
           callTypeAndReceiver.receiver as? KtExpression,
           bindingContext,
-          resolutionFacade
+          resolutionFacade,
         )
       }
 
@@ -449,7 +445,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       nameExpression,
       bindingContext,
       null,
-      nameFilter
+      nameFilter,
     )
   }
 
@@ -536,7 +532,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         context.document.insertString(context.startOffset, callOnModifierObject)
         context.offsetMap.addOffset(
           CompletionInitializationContext.START_OFFSET,
-          context.startOffset + callOnModifierObject.length
+          context.startOffset + callOnModifierObject.length,
         )
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)

@@ -153,7 +153,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
             inputLines,
             outputWriter,
             errWriter,
-            dispatcher
+            dispatcher,
           )
         val stdOutput =
           if (outputWriter is StringWriter) outputWriter.toString()
@@ -179,7 +179,7 @@ private object ProcessExecutor {
     inputLines: List<String>,
     stdWriter: Writer,
     errWriter: Writer,
-    dispatcher: CoroutineDispatcher
+    dispatcher: CoroutineDispatcher,
   ): Int =
     withContext(dispatcher) {
       val process = ProcessBuilder(listOf(executable)).start()
@@ -215,7 +215,7 @@ private object ProcessExecutor {
     source: InputStream?,
     outputWriter: Writer,
     process: Process,
-    dispatcher: CoroutineDispatcher
+    dispatcher: CoroutineDispatcher,
   ) =
     withContext(dispatcher) {
       if (source == null) return@withContext

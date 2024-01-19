@@ -32,7 +32,7 @@ abstract class DrawableFileType(private val allowedRootTags: Set<String>) : Desi
       FileDescriptionUtils.isResourceOfTypeWithRootTag(
         file,
         ResourceFolderType.DRAWABLE,
-        allowedRootTags
+        allowedRootTags,
       )
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups =

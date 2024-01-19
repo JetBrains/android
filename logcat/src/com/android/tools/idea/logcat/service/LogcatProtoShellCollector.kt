@@ -53,7 +53,7 @@ class LogcatProtoShellCollector(
 
   override suspend fun collectStdout(
     collector: FlowCollector<List<LogcatMessage>>,
-    stdout: ByteBuffer
+    stdout: ByteBuffer,
   ) {
     stdout.order(LITTLE_ENDIAN)
 
@@ -69,7 +69,7 @@ class LogcatProtoShellCollector(
 
   override suspend fun collectStderr(
     collector: FlowCollector<List<LogcatMessage>>,
-    stderr: ByteBuffer
+    stderr: ByteBuffer,
   ) {}
 
   override suspend fun end(collector: FlowCollector<List<LogcatMessage>>, exitCode: Int) {}
@@ -177,9 +177,9 @@ class LogcatProtoShellCollector(
         processNameMonitor.getProcessNames(serialNumber, pid.toInt())?.applicationId ?: processName,
         processName,
         tag.toTag(),
-        Instant.ofEpochSecond(timeSec, timeNsec)
+        Instant.ofEpochSecond(timeSec, timeNsec),
       ),
-      message.toMessage()
+      message.toMessage(),
     )
 }
 

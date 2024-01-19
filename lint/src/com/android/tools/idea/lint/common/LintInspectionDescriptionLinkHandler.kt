@@ -136,7 +136,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
         "${TextFormat.A_HREF_PREFIX}${LINK_PREFIX}" +
           "${LINK_INFO_MARKER}${LINK_INFO_SEPARATOR}" +
           "${issueId}${LINK_INFO_SEPARATOR}" +
-          "http"
+          "http",
       )
     }
 
@@ -146,7 +146,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
     class LinkInfo(
       val issueId: String? = null,
       val url: String? = null,
-      val problem: String? = null
+      val problem: String? = null,
     )
 
     fun decodeLinkInfo(href: String): LinkInfo {

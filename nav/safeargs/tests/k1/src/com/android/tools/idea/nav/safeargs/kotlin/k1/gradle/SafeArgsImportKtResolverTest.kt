@@ -127,7 +127,7 @@ class SafeArgsImportKtResolverTest {
           }
         """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
     fixture.configureFromExistingVirtualFile(file!!)
@@ -182,7 +182,7 @@ class SafeArgsImportKtResolverTest {
           }
         """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
     fixture.configureFromExistingVirtualFile(file!!)

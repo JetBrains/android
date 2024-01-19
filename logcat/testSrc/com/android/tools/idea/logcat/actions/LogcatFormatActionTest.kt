@@ -93,5 +93,5 @@ private fun anActionEvent(component: JComponent) =
     "place",
     Presentation(),
     ActionManager.getInstance(),
-    0
+    0,
   )

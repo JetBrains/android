@@ -103,7 +103,7 @@ fun NlComponent.setBounds(
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
   @AndroidCoordinate w: Int,
-  @AndroidCoordinate h: Int
+  @AndroidCoordinate h: Int,
 ) {
   this.x = x
   this.y = y
@@ -425,7 +425,7 @@ fun NlComponent.getLayoutHandler(handlerUpdated: Runnable): ViewGroupHandler? =
 fun NlComponent.createChild(
   fqcn: String,
   before: NlComponent?,
-  insertType: InsertType
+  insertType: InsertType,
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   return createChild(tagName, false, null, null, before, insertType)
@@ -449,7 +449,7 @@ fun NlComponent.createChild(
   namespace: String? = null,
   bodyText: String? = null,
   before: NlComponent? = null,
-  insertType: InsertType = InsertType.CREATE
+  insertType: InsertType = InsertType.CREATE,
 ): NlComponent? {
   if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
     Logger.getInstance(NlWriteCommandActionUtil::class.java)
@@ -502,7 +502,7 @@ internal data class NlComponentData(
   var scrollY: Int = 0,
   var viewInfo: ViewInfo? = null,
   var margins: Insets? = null,
-  var padding: Insets? = null
+  var padding: Insets? = null,
 )
 
 @VisibleForTesting
@@ -529,7 +529,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
         ResourceNamespace.TODO(),
         ResourceType.STYLE,
         component.tagName,
-        styleAttributeValue
+        styleAttributeValue,
       )
 
     val styleResourceValue =
@@ -588,7 +588,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
   override fun afterMove(
     insertType: InsertType,
     previousParent: NlComponent?,
-    receiver: NlComponent
+    receiver: NlComponent,
   ) {
     if (previousParent != receiver) {
       previousParent?.getLayoutHandler {}?.onChildRemoved(previousParent, component, insertType)

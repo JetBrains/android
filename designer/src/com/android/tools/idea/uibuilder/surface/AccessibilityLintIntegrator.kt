@@ -79,7 +79,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
     result: ValidatorData.Issue,
     component: NlComponent,
     model: NlModel,
-    eventListener: NlAtfIssue.EventListener? = null
+    eventListener: NlAtfIssue.EventListener? = null,
   ) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
       if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
@@ -145,7 +145,7 @@ open class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: IssueSource,
   private val model: NlModel,
-  private val eventListener: EventListener? = null
+  private val eventListener: EventListener? = null,
 ) : Issue() {
 
   /** Event listeners for the ATF issue */
@@ -277,7 +277,7 @@ open class NlAtfIssue(
   /** Let the user to pick a new string resource as the suggested value. */
   private fun applySetViewAttributeFixWithEmptySuggestedValue(
     model: NlModel,
-    viewAttribute: ValidatorData.ViewAttribute
+    viewAttribute: ValidatorData.ViewAttribute,
   ) {
     val source = source
     val dialog: ResourcePickerDialog =
@@ -290,7 +290,7 @@ open class NlAtfIssue(
         showColorStateLists = false,
         showSampleData = false,
         showThemeAttributes = false,
-        file = null
+        file = null,
       )
     if (dialog.showAndGet() && (source is NlComponentIssueSource)) {
       val resourceName = dialog.resourceName ?: return
@@ -307,7 +307,7 @@ open class NlAtfIssue(
         source.setAttribute(
           fix.mViewAttribute.mNamespaceUri,
           fix.mViewAttribute.mAttributeName,
-          fix.mSuggestedValue
+          fix.mSuggestedValue,
         )
       is ValidatorData.CompoundFix -> fix.mFixes.forEach { applyFixImpl(it, source) }
       else -> {

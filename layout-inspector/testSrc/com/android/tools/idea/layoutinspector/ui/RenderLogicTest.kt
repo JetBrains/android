@@ -90,7 +90,7 @@ class RenderLogicTest {
     val renderLogic: RenderLogic,
     val renderImage: BufferedImage,
     val renderDimension: Dimension,
-    val centerTransform: AffineTransform
+    val centerTransform: AffineTransform,
   )
 
   @Before
@@ -375,7 +375,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -391,7 +391,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -409,7 +409,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -428,7 +428,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -448,7 +448,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -467,7 +467,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = false
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -482,7 +482,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.HORIZONTAL
+        InspectorModel.FoldOrientation.HORIZONTAL,
       )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -822,13 +822,13 @@ class RenderLogicTest {
     image: BufferedImage,
     transform: AffineTransform,
     renderLogic: RenderLogic,
-    renderDimension: Dimension
+    renderDimension: Dimension,
   ) {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.fillRect(
       Rectangle(0, 0, renderDimension.width, renderDimension.height),
-      Color(250, 250, 250)
+      Color(250, 250, 250),
     )
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     // add transform to center render in buffered image
@@ -848,14 +848,14 @@ class RenderLogicTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
       renderImage,
-      DIFF_THRESHOLD
+      DIFF_THRESHOLD,
     )
   }
 
   /** Re-used to generate all configs starting from an [InspectorModel] and [Dimension]. */
   private fun createPaintConfig(
     inspectorModel: InspectorModel,
-    renderDimension: Dimension
+    renderDimension: Dimension,
   ): TestConfig {
     val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
@@ -867,7 +867,7 @@ class RenderLogicTest {
         // make the center of the view correspond to the center of the buffered image
         translate(
           -renderModel.model.screenDimension.width / 2.0,
-          -renderModel.model.screenDimension.height / 2.0
+          -renderModel.model.screenDimension.height / 2.0,
         )
       }
 
@@ -878,7 +878,7 @@ class RenderLogicTest {
       renderLogic,
       BufferedImage(renderDimension.width, renderDimension.height, BufferedImage.TYPE_INT_ARGB),
       renderDimension,
-      centerTransform
+      centerTransform,
     )
   }
 
@@ -1022,7 +1022,7 @@ class RenderLogicTest {
             100,
             300,
             300,
-            bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)
+            bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4),
           ) {
             image(image1)
           }
@@ -1049,7 +1049,7 @@ class RenderLogicTest {
             20,
             60,
             60,
-            bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)
+            bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4),
           ) {
             image(image1)
           }
@@ -1093,7 +1093,7 @@ class RenderLogicTest {
         viewLayoutEvent,
         folderConfiguration,
         { false },
-        {}
+        {},
       )
     inspectorModel.update(window, listOf(1L), 2)
     inspectorModel.windows[1L]?.refreshImages(1.0)

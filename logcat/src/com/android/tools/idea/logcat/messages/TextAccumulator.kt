@@ -33,7 +33,7 @@ internal class TextAccumulator {
   fun accumulate(
     text: String,
     textAttributes: TextAttributes? = null,
-    textAttributesKey: TextAttributesKey? = null
+    textAttributesKey: TextAttributesKey? = null,
   ): TextAccumulator {
     assert(textAttributes == null || textAttributesKey == null) {
       "Only one of textAttributesKey and textAttributesKeyKey can be set"

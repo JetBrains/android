@@ -116,7 +116,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
                 manager.setMode(manager.mode.value.deriveWithLayout(selectedOption))
               }
             },
-            additionalActionProvider = ColorBlindModeAction()
+            additionalActionProvider = ColorBlindModeAction(),
           )
           .visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),
@@ -134,7 +134,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           )
           .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-      ),
+      )
     ) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -149,7 +149,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           ApplicationManager.getApplication().invokeLater {
             layoutSwitcher?.setLayoutManager(
               PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
-              PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment
+              PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment,
             )
           }
         }
@@ -166,7 +166,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
 class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?
+  originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
@@ -179,7 +179,7 @@ class ComposePreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       ComposeAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.COMPOSE,
-      ::ComposePreviewToolbar
+      ::ComposePreviewToolbar,
     )
 
   init {

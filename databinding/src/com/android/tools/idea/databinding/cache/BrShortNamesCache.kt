@@ -56,7 +56,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
             CachedValueProvider.Result.create(allFields, bindingFacetsProvider)
           },
-          false
+          false,
         )
   }
 
@@ -84,7 +84,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiMethod> {
     // BR files are only fields, no methods
     return PsiMethod.EMPTY_ARRAY
@@ -93,7 +93,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun processMethodsWithName(
     name: String,
     scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>
+    processor: Processor<in PsiMethod>,
   ): Boolean {
     // BR files are only fields, no methods
     return true
@@ -121,7 +121,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getFieldsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }

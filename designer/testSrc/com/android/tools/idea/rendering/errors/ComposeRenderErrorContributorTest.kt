@@ -92,7 +92,7 @@ class ComposeRenderErrorContributorTest {
       "This preview was unable to find a <A HREF=\"https://developer.android.com/jetpack/compose/compositionlocal\">CompositionLocal</A>. " +
         "You might need to define it so it can render correctly.<BR/>" +
         "<A HREF=\"runnable:0\">Show Exception</A>",
-      issues[0].htmlContent
+      issues[0].htmlContent,
     )
   }
 
@@ -140,8 +140,8 @@ class ComposeRenderErrorContributorTest {
       MessageTip(
         AllIcons.General.Information,
         "The preview will display after rebuilding the project.<BR/>" +
-          "Tip: <A HREF=\"action:build\">Build</A> the project."
-      )
+          "Tip: <A HREF=\"action:build\">Build</A> the project.",
+      ),
     )
   }
 
@@ -263,7 +263,7 @@ class ComposeRenderErrorContributorTest {
         "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
         "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
         " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-      issues[0].htmlContent
+      issues[0].htmlContent,
     )
   }
 
@@ -333,7 +333,7 @@ class ComposeRenderErrorContributorTest {
       issues[0],
       MessageTip(
         AllIcons.General.Information,
-        "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.<BR/>Tip: <A HREF=\"action:build\">Build</A> the project."
+        "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.<BR/>Tip: <A HREF=\"action:build\">Build</A> the project.",
       ),
     )
   }
@@ -387,7 +387,7 @@ class ComposeRenderErrorContributorTest {
       MessageTip(
         AllIcons.General.Error,
         "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
-          "implementation. The IDE logs should contain the full exception stack trace."
+          "implementation. The IDE logs should contain the full exception stack trace.",
       ),
     )
   }
@@ -416,18 +416,18 @@ class ComposeRenderErrorContributorTest {
     assertEquals(
       "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
         "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
-      issues[0].htmlContent
+      issues[0].htmlContent,
     )
 
     assertBottomPanelEquals(
       issues[0],
-      MessageTip(AllIcons.General.Information, "<A HREF=\"runnable:0\">Report Bug</A>.")
+      MessageTip(AllIcons.General.Information, "<A HREF=\"runnable:0\">Report Bug</A>."),
     )
   }
 
   private fun assertBottomPanelEquals(
     issue: RenderErrorModel.Issue,
-    vararg expectedMessageTips: MessageTip
+    vararg expectedMessageTips: MessageTip,
   ) {
     val actualMessageTips = issue.messageTip
     assertNotNull(actualMessageTips)

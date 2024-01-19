@@ -149,7 +149,7 @@ class WidgetConstraintSectionTest {
     val bottomAttrs =
       listOf(
         SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
       )
     assertTrue(
       bottomAttrs.all {
@@ -177,7 +177,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
         SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
         SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-        SdkConstants.ATTR_LAYOUT_END_TO_START_OF
+        SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
       )
     assertTrue(
       leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT }
@@ -188,7 +188,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
         SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
         SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-        SdkConstants.ATTR_LAYOUT_START_TO_START_OF
+        SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
       )
     assertTrue(
       rightAttrs.all {
@@ -205,7 +205,7 @@ class WidgetConstraintSectionTest {
     val bottomAttrs =
       listOf(
         SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
       )
     assertTrue(
       bottomAttrs.all {
@@ -233,7 +233,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
         SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
         SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-        SdkConstants.ATTR_LAYOUT_START_TO_START_OF
+        SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
       )
     assertTrue(
       leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT }
@@ -244,7 +244,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
         SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
         SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-        SdkConstants.ATTR_LAYOUT_END_TO_START_OF
+        SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
       )
     assertTrue(
       rightAttrs.all {
@@ -261,7 +261,7 @@ class WidgetConstraintSectionTest {
     val bottomAttrs =
       listOf(
         SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
       )
     assertTrue(
       bottomAttrs.all {

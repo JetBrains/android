@@ -70,7 +70,7 @@ import org.junit.Test
 private class TestPreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
-  private val previewElement: ComposePreviewElementInstance
+  private val previewElement: ComposePreviewElementInstance,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
@@ -83,7 +83,7 @@ private class TestPreviewElementDataContext(
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
-  layoutlibSceneManager: LayoutlibSceneManager
+  layoutlibSceneManager: LayoutlibSceneManager,
 ) =
   configureLayoutlibSceneManager(
     layoutlibSceneManager,
@@ -92,7 +92,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     requestPrivateClassLoader = false,
     runAtfChecks = false,
     runVisualLinting = false,
-    quality = 1f
+    quality = 1f,
   )
 
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */
@@ -159,12 +159,12 @@ class ComposePreviewViewImplTest {
 
       </manifest>
     """
-            .trimIndent()
+            .trimIndent(),
         )
       SourceProviderManager.replaceForTest(
         projectRule.module.androidFacet!!,
         fixture.projectDisposable,
-        NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build()
+        NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build(),
       )
 
       val psiMainFile =
@@ -173,7 +173,7 @@ class ComposePreviewViewImplTest {
           """
       fun main() {}
     """
-            .trimIndent()
+            .trimIndent(),
         )
 
       val navigationHandler = ComposePreviewNavigationHandler()
@@ -191,7 +191,7 @@ class ComposePreviewViewImplTest {
           fixture.testRootDisposable,
           sceneComponentProvider,
           ComposeScreenViewProvider(NopComposePreviewManager()),
-          { false }
+          { false },
         )
       val composePreviewViewImpl =
         ComposePreviewViewImpl(
@@ -215,7 +215,7 @@ class ComposePreviewViewImplTest {
             add(composePreviewViewImpl.component, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -227,7 +227,7 @@ class ComposePreviewViewImplTest {
   private fun updatePreviewAndRefreshWithProvider(
     previewProvider: PreviewElementProvider<ComposePreviewElementInstance>,
     composePreviewManager: ComposePreviewManager,
-    surface: NlDesignSurface = previewView.mainSurface
+    surface: NlDesignSurface = previewView.mainSurface,
   ) {
     val testPreviewElementModelAdapter =
       object : ComposePreviewElementModelAdapter() {
@@ -258,7 +258,7 @@ class ComposePreviewViewImplTest {
         testPreviewElementModelAdapter,
         DefaultModelUpdater(),
         navigationHandler = ComposePreviewNavigationHandler(),
-        ::configureLayoutlibSceneManagerForPreviewElement
+        ::configureLayoutlibSceneManagerForPreviewElement,
       )
     }
     ApplicationManager.getApplication().invokeAndWait {
@@ -283,7 +283,7 @@ class ComposePreviewViewImplTest {
       [Using the Compose preview]
     """
         .trimIndent(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText()
+      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
     )
   }
 
@@ -308,7 +308,7 @@ class ComposePreviewViewImplTest {
       [Build & Refresh... (shortcut)]
     """
         .trimIndent(),
-      instructionsText
+      instructionsText,
     )
   }
 
@@ -318,7 +318,7 @@ class ComposePreviewViewImplTest {
     val previews =
       listOf(
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<ComposePreviewElementInstance> {
@@ -342,7 +342,7 @@ class ComposePreviewViewImplTest {
     val previews =
       listOf(
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<ComposePreviewElementInstance> {
@@ -381,7 +381,7 @@ class ComposePreviewViewImplTest {
       [Build & Refresh... (Ctrl+Shift+F5)]
     """
         .trimIndent(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText()
+      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
     )
   }
 
@@ -391,7 +391,7 @@ class ComposePreviewViewImplTest {
     val previews =
       listOf(
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<ComposePreviewElementInstance> {

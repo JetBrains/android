@@ -19,13 +19,7 @@ class SimpleFileLinkFilterTest {
     get() = projectRule.project
 
   private val projectFiles =
-    listOf(
-      "File.kt",
-      "File2.kt",
-      "package1/MultiFile.kt",
-      "package2/MultiFile.kt",
-      "_Strange-File",
-    )
+    listOf("File.kt", "File2.kt", "package1/MultiFile.kt", "package2/MultiFile.kt", "_Strange-File")
 
   @get:Rule
   val rule =
@@ -111,10 +105,7 @@ class SimpleFileLinkFilterTest {
     val result = filter.applyFilter(line, line.length) ?: fail()
 
     assertThat(result.resultItems.map { it.describeLink() })
-      .containsExactly(
-        "File.kt:11",
-        "File2.kt:20",
-      )
+      .containsExactly("File.kt:11", "File2.kt:20")
     result.resultItems.forEach { assertHighlight(it, line) }
   }
 

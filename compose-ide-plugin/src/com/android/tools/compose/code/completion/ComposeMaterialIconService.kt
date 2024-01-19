@@ -99,7 +99,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
 
   private fun materialVdIconsLoadedCallback(
     icons: MaterialVdIcons,
-    status: MaterialVdIconsProvider.Status
+    status: MaterialVdIconsProvider.Status,
   ) {
     // Store a wrapper using returned icons. When this callback is called multiple times, each call
     // supersedes the last and contains a
@@ -135,7 +135,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
      */
     private fun callLoadMaterialVdIcons(
       refreshUiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit,
-      parentDisposable: Disposable
+      parentDisposable: Disposable,
     ) {
       MaterialVdIconsProvider.loadMaterialVdIcons(refreshUiCallback, parentDisposable)
     }

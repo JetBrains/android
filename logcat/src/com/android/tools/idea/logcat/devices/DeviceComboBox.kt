@@ -112,7 +112,7 @@ internal class DeviceComboBox(
           val itemRemoved =
             handleItemError(
               item,
-              LogcatBundle.message("logcat.device.combo.error.message", item.path)
+              LogcatBundle.message("logcat.device.combo.error.message", item.path),
             )
           if (itemRemoved) {
             return
@@ -133,7 +133,7 @@ internal class DeviceComboBox(
     val answer =
       MessageDialogBuilder.yesNo(
           LogcatBundle.message("logcat.device.combo.error.title"),
-          LogcatBundle.message("logcat.device.combo.error.message", message)
+          LogcatBundle.message("logcat.device.combo.error.message", message),
         )
         .ask(project)
     if (answer) {
@@ -192,7 +192,7 @@ internal class DeviceComboBox(
       true ->
         deviceComboModel.replaceDevice(
           device,
-          device.deviceId == (item as? DeviceItem)?.device?.deviceId
+          device.deviceId == (item as? DeviceItem)?.device?.deviceId,
         )
       false -> deviceAdded(device) // Device was removed manually so we re-add it
     }
@@ -250,7 +250,7 @@ internal class DeviceComboBox(
       item: DeviceComboItem?,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       if (item == null) {
         append(LogcatBundle.message("logcat.device.combo.no.connected.devices"), ERROR_ATTRIBUTES)
@@ -271,7 +271,7 @@ internal class DeviceComboBox(
       }
       append(
         LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()),
-        GRAY_ATTRIBUTES
+        GRAY_ATTRIBUTES,
       )
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)

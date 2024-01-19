@@ -48,7 +48,7 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
     listOf(
       File(
         getComposePluginTestDataPath(),
-        PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)
+        PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST),
       )
     )
 
@@ -67,7 +67,7 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
     assertThat(androidxSamples.map { it.name })
       .containsExactly(
         "haptics-1.0.0-alpha01-sources.jar",
-        "haptics-1.0.0-alpha01-samples-sources.jar"
+        "haptics-1.0.0-alpha01-samples-sources.jar",
       )
   }
 
@@ -77,7 +77,7 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
     val file =
       VfsUtil.findFile(
         Paths.get(project.basePath!!, "/app/src/main/java/com/example/appforsamplestest/Main.kt"),
-        false
+        false,
       )
     assume().that(file).isNotNull()
     myFixture.openFileInEditor(file!!)

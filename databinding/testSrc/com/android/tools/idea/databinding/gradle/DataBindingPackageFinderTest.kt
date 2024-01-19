@@ -74,7 +74,7 @@ class DataBindingPackageFinderTest {
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isInstanceOf(LightBindingClass::class.java)
@@ -99,7 +99,7 @@ class DataBindingPackageFinderTest {
     assertThat(
         fixture.findClass(
           "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isInstanceOf(LightBindingClass::class.java)

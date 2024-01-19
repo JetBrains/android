@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.InternalInsetResourceDetector
 class AndroidLintInternalInsetResourceInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.internal.inset.resource"),
-    InternalInsetResourceDetector.ISSUE
+    InternalInsetResourceDetector.ISSUE,
   )

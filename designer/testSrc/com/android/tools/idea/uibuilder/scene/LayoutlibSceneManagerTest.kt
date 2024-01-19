@@ -185,7 +185,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
       assertFalse("broken render should have failed", it.renderResult.isSuccess)
       assertTrue(
         "image should be still valid because of a previous successful render",
-        it.renderedImage.isValid
+        it.renderedImage.isValid,
       )
       assertEquals(768, it.rootViewDimensions.width)
       assertEquals(1280, it.rootViewDimensions.height)
@@ -199,7 +199,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
       component(PREFERENCE_SCREEN)
         .withBounds(0, 0, 1000, 1000)
         .matchParentWidth()
-        .matchParentHeight()
+        .matchParentHeight(),
     )
   }
 }

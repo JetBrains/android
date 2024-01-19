@@ -63,18 +63,9 @@ class LambdaParameterItem(
   val functionName: String,
   val startLineNumber: Int,
   val endLineNumber: Int,
-  lookup: ViewNodeAndResourceLookup
+  lookup: ViewNodeAndResourceLookup,
 ) :
-  ParameterItem(
-    name,
-    PropertyType.LAMBDA,
-    value = "λ",
-    section,
-    viewId,
-    lookup,
-    rootId,
-    index,
-  ),
+  ParameterItem(name, PropertyType.LAMBDA, value = "λ", section, viewId, lookup, rootId, index),
   LinkPropertyItem {
   override val link =
     object : AnAction("$fileName:$startLineNumber") {
@@ -95,7 +86,7 @@ class LambdaParameterItem(
         lambdaName,
         functionName,
         startLineNumber,
-        endLineNumber
+        endLineNumber,
       )
 
     location.navigatable?.let {
@@ -147,6 +138,6 @@ class LambdaParameterItem(
       functionName,
       startLineNumber,
       endLineNumber,
-      lookup
+      lookup,
     )
 }

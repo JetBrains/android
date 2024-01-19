@@ -39,7 +39,7 @@ abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messengerTargets: List<AppInspectorMessengerTarget>,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
     return when (val target = messengerTargets.single()) {
       is AppInspectorMessengerTarget.Resolved ->
@@ -58,6 +58,6 @@ abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab
 }

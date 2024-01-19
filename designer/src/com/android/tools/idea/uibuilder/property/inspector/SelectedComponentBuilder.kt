@@ -42,7 +42,7 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) :
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     val components = properties.first?.components ?: emptyList()
     if (components.isEmpty()) {

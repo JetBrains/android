@@ -48,7 +48,7 @@ class LayoutInspectorLoadingObserverTest {
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
       projectRule = projectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+      isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
   @get:Rule

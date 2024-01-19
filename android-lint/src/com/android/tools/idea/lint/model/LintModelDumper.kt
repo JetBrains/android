@@ -56,7 +56,7 @@ fun ProjectDumper.dumpLintModels(project: Project) {
                   gradleAndroidModel.variants,
                   gradleAndroidModel.androidProject.multiVariantData!!,
                   gradleAndroidModel.rootDirPath,
-                  deep = true
+                  deep = true,
                 )
             dump(lintModelModule)
           }

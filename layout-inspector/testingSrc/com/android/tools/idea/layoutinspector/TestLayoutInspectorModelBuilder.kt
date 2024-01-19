@@ -52,7 +52,7 @@ fun model(
   project: Project = mock(),
   treeSettings: TreeSettings = FakeTreeSettings(),
   scheduler: ScheduledExecutorService? = null,
-  body: InspectorModelDescriptor.() -> Unit
+  body: InspectorModelDescriptor.() -> Unit,
 ) = InspectorModelDescriptor(disposable, project, scheduler).also(body).build(treeSettings)
 
 fun window(
@@ -66,7 +66,7 @@ fun window(
   imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
   layoutFlags: Int = 0,
   onRefreshImages: () -> Unit = {},
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ): AndroidWindow {
   val inspectorViewDescriptor =
     InspectorViewDescriptor(
@@ -80,7 +80,7 @@ fun window(
         null,
         "",
         layoutFlags,
-        null
+        null,
       )
       .also(body)
       .build()
@@ -111,7 +111,7 @@ fun view(
   textValue: String = "",
   layoutFlags: Int = 0,
   layout: ResourceReference? = defaultLayout,
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ) =
   InspectorViewDescriptor(
       drawId,
@@ -124,7 +124,7 @@ fun view(
       viewId,
       textValue,
       layoutFlags,
-      layout
+      layout,
     )
     .also(body)
     .build()
@@ -140,7 +140,7 @@ fun compose(
   y: Int = 0,
   width: Int = 0,
   height: Int = 0,
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ) =
   InspectorViewDescriptor(
       drawId,
@@ -156,7 +156,7 @@ fun compose(
       composeFilename = composeFilename,
       composePackageHash = composePackageHash,
       composeOffset = composeOffset,
-      composeLineNumber = composeLineNumber
+      composeLineNumber = composeLineNumber,
     )
     .also(body)
 
@@ -183,7 +183,7 @@ class InspectorViewDescriptor(
   private val composeOffset: Int = 0,
   private val composeLineNumber: Int = 0,
   private val composeFlags: Int = 0,
-  val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED
+  val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
 ) : InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
@@ -203,7 +203,7 @@ class InspectorViewDescriptor(
     textValue: String = "",
     layoutFlags: Int = 0,
     layout: ResourceReference? = defaultLayout,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     children.add(
       InspectorViewDescriptor(
@@ -217,7 +217,7 @@ class InspectorViewDescriptor(
           viewId,
           textValue,
           layoutFlags,
-          layout
+          layout,
         )
         .apply(body)
     )
@@ -229,7 +229,7 @@ class InspectorViewDescriptor(
     viewId: ResourceReference? = null,
     textValue: String = "",
     layout: ResourceReference? = null,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     view(
       drawId,
@@ -243,7 +243,7 @@ class InspectorViewDescriptor(
       textValue,
       0,
       layout,
-      body
+      body,
     )
 
   fun compose(
@@ -260,7 +260,7 @@ class InspectorViewDescriptor(
     y: Int = 0,
     width: Int = 0,
     height: Int = 0,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     children.add(
       InspectorViewDescriptor(
@@ -280,7 +280,7 @@ class InspectorViewDescriptor(
           composeLineNumber = composeLineNumber,
           composeFlags = composeFlags,
           composeCount = composeCount,
-          composeSkips = composeSkips
+          composeSkips = composeSkips,
         )
         .apply(body)
     )
@@ -299,7 +299,7 @@ class InspectorViewDescriptor(
           renderBounds,
           viewId,
           textValue,
-          layoutFlags
+          layoutFlags,
         )
       } else {
         ComposeViewNode(
@@ -318,7 +318,7 @@ class InspectorViewDescriptor(
           composeOffset,
           composeLineNumber,
           composeFlags,
-          0
+          0,
         )
       }
     ViewNode.writeAccess {
@@ -343,7 +343,7 @@ class InspectorViewDescriptor(
 class InspectorModelDescriptor(
   val disposable: Disposable,
   val project: Project,
-  private val scheduler: ScheduledExecutorService?
+  private val scheduler: ScheduledExecutorService?,
 ) {
   private var root: InspectorViewDescriptor? = null
 
@@ -360,7 +360,7 @@ class InspectorModelDescriptor(
     layoutFlags: Int = 0,
     layout: ResourceReference? = defaultLayout,
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) {
     root =
       InspectorViewDescriptor(
@@ -375,7 +375,7 @@ class InspectorModelDescriptor(
           textValue,
           layoutFlags,
           layout,
-          imageType = imageType
+          imageType = imageType,
         )
         .apply(body)
   }
@@ -388,7 +388,7 @@ class InspectorModelDescriptor(
     textValue: String = "",
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
     layout: ResourceReference? = defaultLayout,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     view(
       drawId,
@@ -403,7 +403,7 @@ class InspectorModelDescriptor(
       0,
       layout,
       imageType,
-      body
+      body,
     )
 
   fun build(treeSettings: TreeSettings): InspectorModel {
@@ -454,7 +454,7 @@ class InspectorModelDescriptor(
         theme,
         process,
         screenSize = context.screenSize,
-        mainDisplayOrientation = context.mainDisplayOrientation
+        mainDisplayOrientation = context.mainDisplayOrientation,
       )
     }
     // This is usually added by DeviceViewPanel

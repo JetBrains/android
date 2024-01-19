@@ -22,7 +22,7 @@ import java.lang.ref.WeakReference
 
 class DesignerEditorBackgroundHighlightingPass(
   editor: DesignerEditorPanel,
-  private val annotator: ModelLintIssueAnnotator
+  private val annotator: ModelLintIssueAnnotator,
 ) : HighlightingPass {
 
   private val surfaceRef = WeakReference(editor.surface)

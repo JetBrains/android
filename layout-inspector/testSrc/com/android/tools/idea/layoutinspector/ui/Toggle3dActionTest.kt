@@ -78,7 +78,7 @@ class Toggle3dActionTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       PropertiesComponentMock(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
@@ -100,7 +100,7 @@ class Toggle3dActionTest {
         inspectorModel,
         mock(),
         mock(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     renderModel = RenderModel(inspectorModel, mock(), inspector.treeSettings) { DisconnectedClient }
     val process: ProcessDescriptor = mock()

@@ -24,7 +24,7 @@ import java.util.Objects
 class FakePTableModel(
   expanded: Boolean,
   values: Map<String, String>,
-  groups: List<PTableGroupItem>
+  groups: List<PTableGroupItem>,
 ) : PTableModel {
   override var editedItem: PTableItem? = null
   override val items = mutableListOf<PTableItem>()

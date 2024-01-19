@@ -84,7 +84,7 @@ private const val MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE = 20L
 private data class IssueDetailsValue(
   val issueDetails: IssueDetails,
   val sampleEvents: SortedSet<Event>,
-  val state: IssueState
+  val state: IssueState,
 ) {
   fun toIssue() = AppInsightsIssue(issueDetails, sampleEvents.first(), state)
 }
@@ -214,11 +214,11 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
       if (issue.issueDetails.eventsCount < issueDetails.eventsCount) {
         issue.issueDetails.copy(
           eventsCount = issueDetails.eventsCount,
-          impactedDevicesCount = issueDetails.impactedDevicesCount
+          impactedDevicesCount = issueDetails.impactedDevicesCount,
         )
       } else issue.issueDetails,
       sampleEvents.apply { add(issue.sampleEvent) },
-      issue.state
+      issue.state,
     )
   }
 

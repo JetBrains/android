@@ -87,7 +87,7 @@ class CopyMessageTextActionTest {
 
     editor.selectionModel.setSelection(
       editor.document.getLineStartOffset(1),
-      editor.document.getLineStartOffset(2)
+      editor.document.getLineStartOffset(2),
     )
     val action = CopyMessageTextAction()
 
@@ -108,7 +108,7 @@ class CopyMessageTextActionTest {
 
     editor.selectionModel.setSelection(
       editor.document.getLineStartOffset(1) - 1,
-      editor.document.getLineStartOffset(2) + 1
+      editor.document.getLineStartOffset(2) + 1,
     )
     val action = CopyMessageTextAction()
 
@@ -141,7 +141,7 @@ class CopyMessageTextActionTest {
 
     editor.selectionModel.setSelection(
       editor.document.getLineStartOffset(1),
-      editor.document.getLineStartOffset(2)
+      editor.document.getLineStartOffset(2),
     )
     val action = CopyMessageTextAction()
 
@@ -161,7 +161,7 @@ class CopyMessageTextActionTest {
 
     editor.selectionModel.setSelection(
       editor.document.getLineStartOffset(1) - 1,
-      editor.document.getLineStartOffset(2) + 1
+      editor.document.getLineStartOffset(2) + 1,
     )
     val action = CopyMessageTextAction()
 

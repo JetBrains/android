@@ -230,7 +230,7 @@ class LayoutInspectorRendererTest {
 
   private fun allPossibleCombinations(
     displayQuadrants: List<Int>,
-    deviceRotations: List<Int>
+    deviceRotations: List<Int>,
   ): List<RotationCombination> {
     val combinations = mutableListOf<RotationCombination>()
 
@@ -443,7 +443,7 @@ class LayoutInspectorRendererTest {
     fakeUi.mouse.click(
       deviceDisplayRectangle.x + 10,
       deviceDisplayRectangle.y + 15,
-      FakeMouse.Button.RIGHT
+      FakeMouse.Button.RIGHT,
     )
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(ROOT, VIEW1)
   }
@@ -591,13 +591,13 @@ class LayoutInspectorRendererTest {
   private fun paint(
     image: BufferedImage,
     layoutInspectorRenderer: LayoutInspectorRenderer,
-    displayQuadrant: Int = 0
+    displayQuadrant: Int = 0,
   ) {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.fillRect(
       Rectangle(0, 0, screenDimension.width, screenDimension.height),
-      Color(250, 250, 250)
+      Color(250, 250, 250),
     )
     // render the display rectangle in black, the rendering from LI should be overlaid to it.
     graphics.color = Color(0, 0, 0)
@@ -612,7 +612,7 @@ class LayoutInspectorRendererTest {
             deviceDisplayRectangle.y,
             deviceDisplayRectangle.x,
             deviceDisplayRectangle.height,
-            deviceDisplayRectangle.width
+            deviceDisplayRectangle.width,
           )
         else -> throw IllegalArgumentException()
       }
@@ -626,7 +626,7 @@ class LayoutInspectorRendererTest {
     renderModel: RenderModel = this.renderModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
-    notificationModel: NotificationModel = NotificationModel(androidProjectRule.project)
+    notificationModel: NotificationModel = NotificationModel(androidProjectRule.project),
   ): LayoutInspectorRenderer {
     return LayoutInspectorRenderer(
       androidProjectRule.testRootDisposable,
@@ -656,7 +656,7 @@ class LayoutInspectorRendererTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
       renderImage,
-      DIFF_THRESHOLD
+      DIFF_THRESHOLD,
     )
   }
 
@@ -675,7 +675,7 @@ class LayoutInspectorRendererTest {
               }
             }
           }
-        }
+        },
     )
 
   private fun loadComposeFiles() {

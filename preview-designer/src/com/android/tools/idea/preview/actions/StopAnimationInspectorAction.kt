@@ -31,7 +31,7 @@ class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) ->
     message("action.stop.animation.inspector.title"),
     message("action.stop.animation.inspector.description"),
     // TODO(b/157895086): Generalize the icon or use a specific one for animation inspector
-    STOP_INTERACTIVE_MODE
+    STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 

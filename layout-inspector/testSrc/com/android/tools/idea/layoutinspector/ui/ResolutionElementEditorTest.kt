@@ -144,7 +144,7 @@ class ResolutionElementEditorTest {
         projectRule.testRootDisposable,
         projectRule.project,
         FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture)
+        body = DemoExample.setUpDemo(projectRule.fixture),
       )
     }
     val node = model["title"]!!
@@ -156,7 +156,7 @@ class ResolutionElementEditorTest {
         node.layout,
         emptyList(),
         node,
-        model
+        model,
       )
     val item2 =
       createTestProperty(ATTR_ELEVATION, PropertyType.FLOAT, null, null, emptyList(), node, model)
@@ -199,7 +199,7 @@ class ResolutionElementEditorTest {
       TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH),
       "testResolutionEditorPaint$expected",
       generatedImage,
-      DIFF_THRESHOLD
+      DIFF_THRESHOLD,
     )
   }
 
@@ -217,7 +217,7 @@ class ResolutionElementEditorTest {
         projectRule.testRootDisposable,
         projectRule.project,
         FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture)
+        body = DemoExample.setUpDemo(projectRule.fixture),
       )
     }
     val node = model["title"]!!
@@ -231,7 +231,7 @@ class ResolutionElementEditorTest {
         node.layout,
         listOf(textStyleMaterial),
         node,
-        model
+        model,
       )
         as InspectorGroupPropertyItem
     val value = model.resourceLookup.findAttributeValue(property, node, property.source!!)
@@ -244,7 +244,7 @@ class ResolutionElementEditorTest {
           node.layout,
           listOf(textStyleMaterial),
           node,
-          model
+          model,
         )
           as InspectorGroupPropertyItem
     }
@@ -257,7 +257,7 @@ class ResolutionElementEditorTest {
       Filler(
         Dimension(0, 0),
         Dimension(Int.MAX_VALUE, Int.MAX_VALUE),
-        Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+        Dimension(Int.MAX_VALUE, Int.MAX_VALUE),
       )
     )
     editors.background = JBColor.WHITE
@@ -270,7 +270,7 @@ class ResolutionElementEditorTest {
 
   private fun createEditor(
     property: PropertyItem,
-    propertiesModel: InspectorPropertiesModel
+    propertiesModel: InspectorPropertiesModel,
   ): ResolutionElementEditor {
     val model = ResolutionStackModel(propertiesModel)
     val editorModel = TextFieldPropertyEditorModel(property, true)

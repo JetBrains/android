@@ -38,7 +38,7 @@ class LambdaResolverTest {
     fixture.copyFileToProject("java/androidx/compose/runtime/Composable.kt")
     fixture.copyFileToProject(
       "java/com/example/MyLambdas.kt-no-format",
-      "java/com/example/MyLambdas.kt"
+      "java/com/example/MyLambdas.kt",
     )
   }
 
@@ -68,7 +68,7 @@ class LambdaResolverTest {
         number * number
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     checkLambda(
       "1",
@@ -85,7 +85,7 @@ class LambdaResolverTest {
         )
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     checkLambda("1", 10, 10, 10, null) // A function reference should not be found as a lambda expr
     checkLambda("1", 100, 120, 92, null) // Lambda of inline function (lines are out of range)
@@ -109,7 +109,7 @@ class LambdaResolverTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     checkLambda("lambda-10\$1\$1", 83, 83, 83, "{ it + 1 }")
     checkLambda("lambda-10\$1\$2", 83, 83, 83, "{ Element() }")
@@ -127,7 +127,7 @@ class LambdaResolverTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     checkLambda("lambda-9\$1\$1", 84, 84, 84, "{ it + 3 }")
     checkLambda("lambda-9\$1\$2", 84, 84, 84, "{ it + 4 }")
@@ -142,7 +142,7 @@ class LambdaResolverTest {
         Element(l1 = { 1 })
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     checkLambda("lambda-8\$1\$1", 86, 86, 86, "{ 1 }")
   }
@@ -173,7 +173,7 @@ class LambdaResolverTest {
     startLine: Int,
     endLine: Int,
     expectedStartLine: Int,
-    expectedText: String? = null
+    expectedText: String? = null,
   ) = check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
 
   private suspend fun check(
@@ -182,7 +182,7 @@ class LambdaResolverTest {
     startLine: Int,
     endLine: Int,
     expectedStartLine: Int,
-    expectedText: String?
+    expectedText: String?,
   ) {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result =
@@ -192,7 +192,7 @@ class LambdaResolverTest {
         lambdaName,
         functionName,
         startLine,
-        endLine
+        endLine,
       )
     if (expectedText == null) {
       val fileDescriptor = result.navigatable as? OpenFileDescriptor

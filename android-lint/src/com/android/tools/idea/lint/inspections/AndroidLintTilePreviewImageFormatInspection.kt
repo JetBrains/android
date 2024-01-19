@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.TileProviderDetector
 class AndroidLintTilePreviewImageFormatInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.tile.preview.image.format"),
-    TileProviderDetector.TILE_PREVIEW_IMAGE_FORMAT
+    TileProviderDetector.TILE_PREVIEW_IMAGE_FORMAT,
   )

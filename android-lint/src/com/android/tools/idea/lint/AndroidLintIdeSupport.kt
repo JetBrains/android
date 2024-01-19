@@ -133,7 +133,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
                 Messages.getQuestionIcon(),
                 variants,
                 variants[0],
-                null
+                null,
               )
             }
           }
@@ -189,7 +189,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun createProject(
     client: LintIdeClient,
     files: List<VirtualFile>?,
-    vararg modules: Module
+    vararg modules: Module,
   ): List<com.android.tools.lint.detector.api.Project> {
     return AndroidLintIdeProject.create(client, files, *modules)
   }
@@ -197,9 +197,10 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun createProjectForSingleFile(
     client: LintIdeClient,
     file: VirtualFile?,
-    module: Module
+    module: Module,
   ): Pair<
-    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+    com.android.tools.lint.detector.api.Project,
+    com.android.tools.lint.detector.api.Project,
   > {
     return AndroidLintIdeProject.createForSingleFile(client, file, module)
   }
@@ -302,7 +303,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
         lint,
         lintResult.getModule(),
         lintResult.problems,
-        null
+        null,
       )
     }
   }
@@ -314,7 +315,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       lint,
       module,
       null,
-      lintResult.problemMap
+      lintResult.problemMap,
     )
   }
 
@@ -331,7 +332,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun ensureNamespaceImported(
     file: XmlFile,
     namespaceUri: String,
-    suggestedPrefix: String?
+    suggestedPrefix: String?,
   ): String {
     return com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
   }

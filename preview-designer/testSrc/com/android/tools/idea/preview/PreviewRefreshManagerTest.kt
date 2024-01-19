@@ -53,7 +53,7 @@ private class TestPreviewRefreshRequest(
   val name: String,
   override val refreshEventBuilder: PreviewRefreshEventBuilder?,
   val doBeforeLaunchingRefresh: () -> Unit = {},
-  val doInsideRefreshJob: suspend () -> Unit = {}
+  val doInsideRefreshJob: suspend () -> Unit = {},
 ) : PreviewRefreshRequest {
   companion object {
     // A lock is needed because these properties are shared between all requests
@@ -157,7 +157,7 @@ class PreviewRefreshManagerTest {
         "client1",
         5,
         "req5",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     val priorities = listOf(1, 2, 3, 4).shuffled()
@@ -167,7 +167,7 @@ class PreviewRefreshManagerTest {
         "client2",
         priorities[0],
         "req${priorities[0]}",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     refreshManager.requestRefreshSync(
@@ -176,7 +176,7 @@ class PreviewRefreshManagerTest {
         "client3",
         priorities[1],
         "req${priorities[1]}",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     refreshManager.requestRefreshSync(
@@ -185,7 +185,7 @@ class PreviewRefreshManagerTest {
         "client4",
         priorities[2],
         "req${priorities[2]}",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     refreshManager.requestRefreshSync(
@@ -194,7 +194,7 @@ class PreviewRefreshManagerTest {
         "client5",
         priorities[3],
         "req${priorities[3]}",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
@@ -212,7 +212,7 @@ class PreviewRefreshManagerTest {
       finish req1
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
     assertEquals(5, TestPreviewRefreshTracker.logList.size)
     assertTrue(TestPreviewRefreshTracker.logList.all { it.result == RefreshResult.SUCCESS })
@@ -232,7 +232,7 @@ class PreviewRefreshManagerTest {
         "client1",
         100,
         "req1",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     val priorities2 = listOf(11, 22, 33)
@@ -244,7 +244,7 @@ class PreviewRefreshManagerTest {
           "client2",
           priorities2[i],
           "req2-${priorities2[i]}",
-          PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+          PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
         )
       )
       refreshManager.requestRefreshSync(
@@ -253,7 +253,7 @@ class PreviewRefreshManagerTest {
           "client3",
           priorities3[i],
           "req3-${priorities3[i]}",
-          PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+          PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
         )
       )
     }
@@ -298,7 +298,7 @@ class PreviewRefreshManagerTest {
         "client1",
         1,
         "req1",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     // wait for start of previous request and create a new one with higher priority
@@ -310,7 +310,7 @@ class PreviewRefreshManagerTest {
         "client1",
         2,
         "req2",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
@@ -322,7 +322,7 @@ class PreviewRefreshManagerTest {
       finish req2
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
     assertEquals(2, TestPreviewRefreshTracker.logList.size)
@@ -353,7 +353,7 @@ class PreviewRefreshManagerTest {
         "client1",
         1,
         "req1",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     // wait for start of previous request and create a new one with same priority
@@ -365,7 +365,7 @@ class PreviewRefreshManagerTest {
         "client1",
         1,
         "req2",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
@@ -377,7 +377,7 @@ class PreviewRefreshManagerTest {
       finish req2
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
     assertEquals(2, TestPreviewRefreshTracker.logList.size)
@@ -408,7 +408,7 @@ class PreviewRefreshManagerTest {
         "client1",
         1,
         "req1",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     // wait for start of previous request and create a new one with lower priority
@@ -420,7 +420,7 @@ class PreviewRefreshManagerTest {
         "client1",
         0,
         "req2",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
@@ -432,7 +432,7 @@ class PreviewRefreshManagerTest {
       finish req2
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
     assertEquals(2, TestPreviewRefreshTracker.logList.size)
@@ -462,7 +462,7 @@ class PreviewRefreshManagerTest {
         "client1",
         0,
         "req0",
-        PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
       )
     )
     refreshWaitJob.join()
@@ -474,7 +474,7 @@ class PreviewRefreshManagerTest {
     val waitForARefreshJob = launch {
       refreshManager.refreshingTypeFlow.awaitStatus(
         "Failed waiting for the first refresh",
-        1.seconds
+        1.seconds,
       ) {
         it != null
       }
@@ -486,7 +486,7 @@ class PreviewRefreshManagerTest {
           "client1",
           0,
           "req$it",
-          PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+          PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
         )
       )
     }
@@ -496,7 +496,7 @@ class PreviewRefreshManagerTest {
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
     refreshManager.refreshingTypeFlow.awaitStatus(
       "Failed waiting for refreshingTypeFlow to become null",
-      5.seconds
+      5.seconds,
     ) {
       it == null
     }
@@ -524,7 +524,7 @@ class PreviewRefreshManagerTest {
           // Here is one of the sides of the deadlock seen in b/291792172,
           // this would hang if we regress
           runWriteActionAndWait { /*do nothing, just try to get the UI thread*/}
-        }
+        },
       )
     )
 
@@ -538,7 +538,7 @@ class PreviewRefreshManagerTest {
           "client1",
           1,
           "req1",
-          PreviewRefreshEventBuilder(testPreviewType, refreshTracker)
+          PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
         )
       )
     }
@@ -551,7 +551,7 @@ class PreviewRefreshManagerTest {
       finish req1
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
   }
 
@@ -570,7 +570,7 @@ class PreviewRefreshManagerTest {
           while (true) {
             delay(500)
           }
-        }
+        },
       )
     refreshManager.requestRefreshSync(refreshRequest)
     // wait for refresh to start and then cancel its "internal" job
@@ -584,7 +584,7 @@ class PreviewRefreshManagerTest {
       user-cancel req1
     """
         .trimIndent(),
-      TestPreviewRefreshRequest.log.toString().trimIndent()
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
     assertEquals(1, TestPreviewRefreshTracker.logList.size)

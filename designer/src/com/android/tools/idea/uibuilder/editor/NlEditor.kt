@@ -49,7 +49,7 @@ private val LAYOUT_EDITOR_SUPPORTED_ACTIONS =
     NlSupportedActions.SWITCH_DESIGN_MODE,
     NlSupportedActions.SWITCH_NIGHT_MODE,
     NlSupportedActions.TOGGLE_ISSUE_PANEL,
-    NlSupportedActions.REFRESH
+    NlSupportedActions.REFRESH,
   )
 
 class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
@@ -74,7 +74,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
       },
       NlComponentRegistrar,
       { toolWindowDefinitions(it) },
-      AndroidEditorSettings.getInstance().globalState.preferredSurfaceState()
+      AndroidEditorSettings.getInstance().globalState.preferredSurfaceState(),
     )
 
   private fun toolWindowDefinitions(

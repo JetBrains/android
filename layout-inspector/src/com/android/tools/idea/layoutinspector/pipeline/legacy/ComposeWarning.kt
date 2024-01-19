@@ -32,7 +32,7 @@ private const val COMPOSE_WARNING_V29_KEY = "compose.warning.v29"
 /** Supply a warning banner if a LegacyClient is used for a compose application. */
 class ComposeWarning(
   private val project: Project,
-  private val notificationModel: NotificationModel
+  private val notificationModel: NotificationModel,
 ) {
   fun performCheck(client: InspectorClient) {
     if (isRunningCurrentProject(client) && isUsingCompose()) {
@@ -47,7 +47,7 @@ class ComposeWarning(
         COMPOSE_WARNING_KEY,
         message,
         Status.Warning,
-        listOf(notificationModel.dismissAction)
+        listOf(notificationModel.dismissAction),
       )
     }
   }

@@ -40,7 +40,7 @@ class GlanceScreenViewProviderTest {
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",
-          ComponentDescriptor("LinearLayout")
+          ComponentDescriptor("LinearLayout"),
         )
         .build()
     }

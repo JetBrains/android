@@ -101,7 +101,7 @@ interface PTable {
     item: PTableItem,
     column: PTableColumn,
     cellEditor: JComponent,
-    scrollIntoView: Boolean
+    scrollIntoView: Boolean,
   )
 
   /** Start editing the specified row, and stop editing if row is -1. */
@@ -121,7 +121,7 @@ interface PTable {
       editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
       customToolTipHook: (MouseEvent) -> String? = { null },
       updatingUI: () -> Unit = {},
-      nameColumnFraction: ColumnFraction = ColumnFraction()
+      nameColumnFraction: ColumnFraction = ColumnFraction(),
     ): PTable {
       return PTableImpl(
         tableModel,
@@ -130,7 +130,7 @@ interface PTable {
         editorProvider,
         customToolTipHook,
         updatingUI,
-        nameColumnFraction
+        nameColumnFraction,
       )
     }
   }

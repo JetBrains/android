@@ -52,7 +52,7 @@ private constructor(
   private val onResumeActivate: CoroutineScope.() -> Unit,
   private val onDeactivate: () -> Unit,
   private val onDelayedDeactivate: () -> Unit,
-  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit
+  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit,
 ) {
 
   /**
@@ -73,7 +73,7 @@ private constructor(
     onInitActivate: CoroutineScope.() -> Unit,
     onResumeActivate: CoroutineScope.() -> Unit,
     onDeactivate: () -> Unit,
-    onDelayedDeactivate: () -> Unit
+    onDelayedDeactivate: () -> Unit,
   ) : this(
     parentScope,
     onInitActivate,
@@ -81,7 +81,7 @@ private constructor(
     onDeactivate,
     onDelayedDeactivate,
     project.getService(PreviewDeactivationProjectService::class.java).deactivationQueue::
-      addDelayedAction
+      addDelayedAction,
   )
 
   private val scopeDisposable = parentScope.scopeDisposable()
@@ -167,7 +167,7 @@ private constructor(
       onResumeActivate: CoroutineScope.() -> Unit = {},
       onDeactivate: () -> Unit = {},
       onDelayedDeactivate: () -> Unit = {},
-      scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> }
+      scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> },
     ): PreviewLifecycleManager =
       PreviewLifecycleManager(
         parentScope,
@@ -175,7 +175,7 @@ private constructor(
         onResumeActivate,
         onDeactivate,
         onDelayedDeactivate,
-        scheduleDelayed
+        scheduleDelayed,
       )
   }
 }

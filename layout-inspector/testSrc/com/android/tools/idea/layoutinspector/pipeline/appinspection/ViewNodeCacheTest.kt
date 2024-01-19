@@ -135,7 +135,7 @@ class ViewNodeCacheTest {
     model: InspectorModel,
     cache: ViewNodeCache<*>,
     window: AndroidWindow,
-    allIds: List<Long>
+    allIds: List<Long>,
   ) {
     model.update(window, allIds, 0)
     cache.retain(allIds)

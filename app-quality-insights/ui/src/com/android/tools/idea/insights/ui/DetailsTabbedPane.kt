@@ -51,7 +51,7 @@ data class TabbedPaneDefinition(val name: String, val component: JComponent)
 class DetailsTabbedPane(
   name: String,
   definitions: List<TabbedPaneDefinition>,
-  stackTraceConsole: StackTraceConsole
+  stackTraceConsole: StackTraceConsole,
 ) {
   val component: JComponent
 
@@ -70,7 +70,7 @@ class DetailsTabbedPane(
             gridy = 0
             anchor = GridBagConstraints.FIRST_LINE_END
             weightx = 0.1
-          }
+          },
         )
         add(
           tabbedPane,
@@ -82,7 +82,7 @@ class DetailsTabbedPane(
             anchor = GridBagConstraints.FIRST_LINE_START
             weightx = 0.9
             weighty = 1.0
-          }
+          },
         )
       }
     tabbedPane.tabComponentInsets = null
@@ -116,7 +116,7 @@ class DetailsTabbedPane(
   private fun createToolbar(
     editor: Editor,
     targetComponent: JComponent,
-    place: String
+    place: String,
   ): JComponent {
     val wrapAction =
       object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {

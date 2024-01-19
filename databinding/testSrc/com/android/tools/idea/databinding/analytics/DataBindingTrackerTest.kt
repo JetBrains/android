@@ -65,7 +65,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
 
@@ -141,7 +141,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:onClick="@{ModelWithBindableMethodsJava::d${caret}}"/>
       </layout>
     """
-            .trimIndent()
+            .trimIndent(),
         )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -213,7 +213,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:onClick="@{() -> member.do${caret}}"/>
       </layout>
     """
-            .trimIndent()
+            .trimIndent(),
         )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
 

@@ -69,7 +69,7 @@ fun AndroidDebugBridge.startShellCommand(
   device: DeviceDescriptor,
   command: String,
   timeoutSecs: Long = ADB_NEVER_TIMEOUT,
-  latch: CountDownLatch = CountDownLatch(1)
+  latch: CountDownLatch = CountDownLatch(1),
 ): CollectingOutputReceiver {
   if (findDevice(device) == null) {
     println("Device: ${device.serial} is not found in monitor task list")

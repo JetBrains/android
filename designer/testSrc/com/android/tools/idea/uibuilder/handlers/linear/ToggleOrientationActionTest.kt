@@ -28,7 +28,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_HORIZONTAL,
-      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -39,7 +39,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_HORIZONTAL,
-      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -51,7 +51,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_HORIZONTAL,
-      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -64,7 +64,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_HORIZONTAL,
-      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -75,7 +75,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(nested) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_VERTICAL,
-      nested.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      nested.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -87,11 +87,11 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(
       SdkConstants.VALUE_VERTICAL,
-      nested1.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      nested1.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
     assertEquals(
       SdkConstants.VALUE_HORIZONTAL,
-      nested2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION)
+      nested2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION),
     )
   }
 
@@ -104,7 +104,7 @@ class ToggleOrientationActionTest : SceneTest() {
         .withAttribute(
           SdkConstants.ANDROID_URI,
           SdkConstants.ATTR_ORIENTATION,
-          SdkConstants.VALUE_VERTICAL
+          SdkConstants.VALUE_VERTICAL,
         )
         .children(
           component(SdkConstants.BUTTON)
@@ -128,7 +128,7 @@ class ToggleOrientationActionTest : SceneTest() {
                 .id("@+id/textView")
                 .withBounds(10, 10, 10, 10)
                 .width("5dp")
-                .height("5dp")
+                .height("5dp"),
             ),
           component(SdkConstants.BUTTON)
             .id("@id/button2")
@@ -143,9 +143,9 @@ class ToggleOrientationActionTest : SceneTest() {
             .withAttribute(
               SdkConstants.ANDROID_URI,
               SdkConstants.ATTR_ORIENTATION,
-              SdkConstants.VALUE_VERTICAL
-            )
-        )
+              SdkConstants.VALUE_VERTICAL,
+            ),
+        ),
     )
   }
 }

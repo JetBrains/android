@@ -26,12 +26,12 @@ import com.android.tools.idea.insights.events.actions.Action
 /** Issue details changed. */
 data class IssueDetailsChanged(
   val issueId: IssueId,
-  val stats: LoadingState.Done<DetailedIssueStats?>
+  val stats: LoadingState.Done<DetailedIssueStats?>,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> = StateTransition(state.copy(currentIssueDetails = stats), Action.NONE)
 
   override fun toString(): String = "IssueDetailsChange(issueId=$issueId)"

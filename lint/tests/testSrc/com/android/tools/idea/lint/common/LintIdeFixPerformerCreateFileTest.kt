@@ -43,7 +43,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         public @interface CheckResult {
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(keepFile.virtualFile)
     return keepFile
@@ -123,7 +123,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
       }
       """
         .trimIndent(),
-      editor?.document?.text
+      editor?.document?.text,
     )
     assertEquals("your code here", editor?.selectionModel?.selectedText)
   }
@@ -146,7 +146,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
     val contents = virtualBinFile?.contentsToByteArray()
     assertEquals(
       Base64.getEncoder().encodeToString(binary),
-      Base64.getEncoder().encodeToString(contents)
+      Base64.getEncoder().encodeToString(contents),
     )
   }
 

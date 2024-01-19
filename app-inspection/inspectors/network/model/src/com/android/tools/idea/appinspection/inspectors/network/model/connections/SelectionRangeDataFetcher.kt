@@ -48,7 +48,7 @@ abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
 class SelectionRangeDataFetcher(
   private val dataModel: ConnectionDataModel,
   private val selectionRange: Range,
-  private val dataRange: Range
+  private val dataRange: Range,
 ) {
   private val aspectObserver = AspectObserver()
   private val listeners = mutableListOf<SelectionRangeDataListener>()

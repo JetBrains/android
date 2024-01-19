@@ -155,7 +155,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     project: Project,
     file: PsiFile,
     offset: Int,
-    commentPrefix: String = "//"
+    commentPrefix: String = "//",
   ) {
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = file.viewProvider.document ?: return
@@ -169,7 +169,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       if (index != -1) {
         document.insertString(
           prevLineStart + index + NO_INSPECTION_PREFIX.length,
-          getLintId(id) + ","
+          getLintId(id) + ",",
         )
         return
       }
@@ -188,7 +188,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         NO_INSPECTION_PREFIX +
         getLintId(id) +
         "\n" +
-        linePrefix.substring(0, nonSpace)
+        linePrefix.substring(0, nonSpace),
     )
     documentManager.commitDocument(document)
   }
@@ -231,7 +231,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           ClassId.fromString(ClassContext.getInternalName(getAnnotationClass(element))),
           argument,
           whiteSpaceText = if (target.isNewLineNeededForAnnotation()) "\n" else " ",
-          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) }
+          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) },
         )
       }
       else -> {
@@ -308,7 +308,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       project: Project,
       container: PsiElement,
       modifierOwner: PsiModifierListOwner,
-      id: String
+      id: String,
     ) {
       val annotationName = getAnnotationClass(container)
       val annotation = AnnotationUtil.findAnnotation(modifierOwner, annotationName)
@@ -328,7 +328,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       project: Project,
       container: PsiElement,
       annotation: PsiAnnotation?,
-      id: String
+      id: String,
     ): PsiAnnotation? {
       if (annotation != null) {
         val currentSuppressedId = "\"" + id + "\""
@@ -343,7 +343,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
                 .elementFactory
                 .createAnnotationFromText(
                   "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})",
-                  container
+                  container,
                 )
           }
         } else {

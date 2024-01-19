@@ -33,12 +33,12 @@ import com.android.tools.lint.model.LintModelLintOptions
 class LintIdeConfiguration(
   configurations: ConfigurationHierarchy,
   project: Project,
-  private val issues: Set<Issue>
+  private val issues: Set<Issue>,
 ) : LintXmlConfiguration(configurations, project) {
   override fun getDefinedSeverity(
     issue: Issue,
     source: Configuration,
-    visibleDefault: Severity
+    visibleDefault: Severity,
   ): Severity? {
     val known = issues.contains(issue)
     if (!known) {
@@ -63,12 +63,12 @@ class LintIdeConfiguration(
 class LintIdeGradleConfiguration(
   configurations: ConfigurationHierarchy,
   lintOptions: LintModelLintOptions,
-  private val issues: Set<Issue>
+  private val issues: Set<Issue>,
 ) : LintOptionsConfiguration(configurations, lintOptions) {
   override fun getDefinedSeverity(
     issue: Issue,
     source: Configuration,
-    visibleDefault: Severity
+    visibleDefault: Severity,
   ): Severity? {
     val known = issues.contains(issue)
     if (!known) {

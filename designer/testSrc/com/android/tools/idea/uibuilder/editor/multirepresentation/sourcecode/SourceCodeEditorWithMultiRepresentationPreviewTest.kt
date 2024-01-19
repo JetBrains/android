@@ -57,7 +57,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     )
     assertTrue(
       "The editor was expected to switch to split mode when navigating to source",
-      editor.isSplitMode()
+      editor.isSplitMode(),
     )
   }
 }

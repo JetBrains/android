@@ -30,7 +30,7 @@ const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttribu
 val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
   TextAttributesKey.createTextAttributesKey(
     COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.FUNCTION_CALL
+    DefaultLanguageHighlighterColors.FUNCTION_CALL,
   )
 
 /**

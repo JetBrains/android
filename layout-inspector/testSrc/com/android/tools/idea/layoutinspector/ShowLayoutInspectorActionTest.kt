@@ -60,7 +60,7 @@ class ShowLayoutInspectorActionTest {
     projectRule.project.replaceService(
       ToolWindowManager::class.java,
       fakeToolWindowManager,
-      disposableRule.disposable
+      disposableRule.disposable,
     )
 
     fakeNotificationGroupManager = FakeNotificationGroupManager()
@@ -68,7 +68,7 @@ class ShowLayoutInspectorActionTest {
       .replaceService(
         NotificationGroupManager::class.java,
         fakeNotificationGroupManager,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
   }
 
@@ -103,7 +103,7 @@ class ShowLayoutInspectorActionTest {
       .createNotification(
         "Layout Inspector is now embedded in the Running Devices window.",
         "Launch, connect, or mirror a device to start inspecting.",
-        NotificationType.INFORMATION
+        NotificationType.INFORMATION,
       )
     verify(fakeNotificationGroupManager.mockNotification).notify(any())
   }
@@ -152,7 +152,7 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
         mockNotificationGroup.createNotification(
           MockitoKt.any<String>(),
           MockitoKt.any<String>(),
-          MockitoKt.any<NotificationType>()
+          MockitoKt.any<NotificationType>(),
         )
       )
       .thenAnswer { mockNotification }

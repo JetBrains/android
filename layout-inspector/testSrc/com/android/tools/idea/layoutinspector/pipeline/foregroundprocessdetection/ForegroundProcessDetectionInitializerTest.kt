@@ -53,7 +53,7 @@ class ForegroundProcessDetectionInitializerTest {
   private val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer(
       "ForegroundProcessDetectionInitializerTest",
-      transportService
+      transportService,
     )
   private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
 
@@ -101,7 +101,7 @@ class ForegroundProcessDetectionInitializerTest {
     val foregroundProcessListener =
       ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(
         deviceModel,
-        processModel
+        processModel,
       )
     ForegroundProcessDetectionInitializer.initialize(
       parentDisposable = projectRule.testRootDisposable,
@@ -228,7 +228,7 @@ class ForegroundProcessDetectionInitializerTest {
 
   private fun Common.Stream.createFakeProcess(
     name: String? = null,
-    pid: Int = 0
+    pid: Int = 0,
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
@@ -236,7 +236,7 @@ class ForegroundProcessDetectionInitializerTest {
         .setDeviceId(streamId)
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
-        .build()
+        .build(),
     )
   }
 
@@ -249,7 +249,7 @@ class ForegroundProcessDetectionInitializerTest {
 
   private fun FakeTransportService.setCommandHandler(
     command: Commands.Command.CommandType,
-    block: (Commands.Command) -> Unit
+    block: (Commands.Command) -> Unit,
   ) {
     setCommandHandler(
       command,
@@ -257,7 +257,7 @@ class ForegroundProcessDetectionInitializerTest {
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
           block.invoke(command)
         }
-      }
+      },
     )
   }
 
@@ -288,6 +288,6 @@ class ForegroundProcessDetectionInitializerTest {
     override val isEmulator: Boolean = false,
     override val apiLevel: Int = 1,
     override val version: String = "version",
-    override val codename: String? = "codename"
+    override val codename: String? = "codename",
   ) : DeviceDescriptor
 }

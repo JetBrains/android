@@ -93,11 +93,11 @@ data class SelectedTabState(
           displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
           displayOrientationQuadrantCorrection = {
             tabComponents.displayView.displayOrientationCorrectionQuadrants
-          }
+          },
         )
       },
       { layoutInspector.currentClient.stats },
-    )
+    ),
 ) : Disposable {
 
   private var uiConfig = UiConfig.HORIZONTAL
@@ -126,7 +126,7 @@ data class SelectedTabState(
     layoutInspector.inspectorModel.addSelectionListener(selectionChangedListener)
     layoutInspector.processModel?.addSelectedProcessListeners(
       EdtExecutorService.getInstance(),
-      selectedProcessListener
+      selectedProcessListener,
     )
   }
 
@@ -187,7 +187,7 @@ data class SelectedTabState(
   private fun createToolsPanel(
     disposable: Disposable,
     uiConfig: UiConfig,
-    centerPanel: JComponent? = null
+    centerPanel: JComponent? = null,
   ): JPanel {
     val toolsPanel = BorderLayoutPanel()
 
@@ -219,13 +219,13 @@ data class SelectedTabState(
       ToggleDeepInspectAction(
         { layoutInspectorRenderer.interceptClicks },
         { layoutInspectorRenderer.interceptClicks = it },
-        { layoutInspector.currentClient }
+        { layoutInspector.currentClient },
       )
 
     val processPicker =
       TargetSelectionActionFactory.getSingleDeviceProcessPicker(
         layoutInspector,
-        deviceId.serialNumber
+        deviceId.serialNumber,
       )
     return createEmbeddedLayoutInspectorToolbar(
       parentDisposable,
@@ -244,9 +244,9 @@ data class SelectedTabState(
           RightVerticalSplitAction(::uiConfig, ::updateUi),
           SwapRightVerticalSplitAction(::uiConfig, ::updateUi),
           Separator.create(),
-          DimensionUnitAction
-        )
-      )
+          DimensionUnitAction,
+        ),
+      ),
     )
   }
 
@@ -297,7 +297,7 @@ data class SelectedTabState(
     parentDisposable: Disposable,
     layoutInspector: LayoutInspector,
     uiConfig: UiConfig,
-    centerPanel: JComponent?
+    centerPanel: JComponent?,
   ): WorkBench<LayoutInspector> {
     ApplicationManager.getApplication().assertIsDispatchThread()
     val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
@@ -322,38 +322,38 @@ data class SelectedTabState(
       UiConfig.VERTICAL -> {
         listOf(
           createTreePanel(Side.LEFT, Split.BOTTOM),
-          createPropertiesPanel(Side.RIGHT, Split.BOTTOM)
+          createPropertiesPanel(Side.RIGHT, Split.BOTTOM),
         )
       }
       UiConfig.VERTICAL_SWAP,
       UiConfig.HORIZONTAL_SWAP -> {
         listOf(
           createTreePanel(Side.RIGHT, Split.BOTTOM),
-          createPropertiesPanel(Side.LEFT, Split.BOTTOM)
+          createPropertiesPanel(Side.LEFT, Split.BOTTOM),
         )
       }
       UiConfig.LEFT_VERTICAL -> {
         listOf(
           createTreePanel(Side.LEFT, Split.TOP),
-          createPropertiesPanel(Side.LEFT, Split.BOTTOM)
+          createPropertiesPanel(Side.LEFT, Split.BOTTOM),
         )
       }
       UiConfig.LEFT_VERTICAL_SWAP -> {
         listOf(
           createTreePanel(Side.LEFT, Split.BOTTOM),
-          createPropertiesPanel(Side.LEFT, Split.TOP)
+          createPropertiesPanel(Side.LEFT, Split.TOP),
         )
       }
       UiConfig.RIGHT_VERTICAL -> {
         listOf(
           createTreePanel(Side.RIGHT, Split.TOP),
-          createPropertiesPanel(Side.RIGHT, Split.BOTTOM)
+          createPropertiesPanel(Side.RIGHT, Split.BOTTOM),
         )
       }
       UiConfig.RIGHT_VERTICAL_SWAP -> {
         listOf(
           createTreePanel(Side.RIGHT, Split.BOTTOM),
-          createPropertiesPanel(Side.RIGHT, Split.TOP)
+          createPropertiesPanel(Side.RIGHT, Split.TOP),
         )
       }
     }
@@ -372,7 +372,7 @@ data class SelectedTabState(
 
   private fun createPropertiesPanel(
     side: Side,
-    split: Split
+    split: Split,
   ): LayoutInspectorPropertiesPanelDefinition {
     return LayoutInspectorPropertiesPanelDefinition(
       showGearAction = false,
@@ -416,7 +416,7 @@ data class SelectedTabState(
 fun calculateRotationCorrection(
   layoutInspectorModel: InspectorModel,
   displayOrientationQuadrant: () -> Int,
-  displayOrientationQuadrantCorrection: () -> Int
+  displayOrientationQuadrantCorrection: () -> Int,
 ): Int {
   val orientationCorrectionFromRunningDevices = displayOrientationQuadrantCorrection()
 

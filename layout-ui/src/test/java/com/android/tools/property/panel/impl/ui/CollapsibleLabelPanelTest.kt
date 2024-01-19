@@ -57,7 +57,7 @@ class CollapsibleLabelPanelTest {
         model,
         UIUtil.FontSize.NORMAL,
         Font.BOLD,
-        nameColumnFraction = columnFraction
+        nameColumnFraction = columnFraction,
       )
     val label = panel.label
     panel.size = Dimension(500, 200)
@@ -92,7 +92,7 @@ class CollapsibleLabelPanelTest {
             assertThat(panel.label.font.size).isEqualTo(size * 4)
           }
         },
-        mock()
+        mock(),
       )
       .evaluate()
   }
@@ -115,7 +115,7 @@ class CollapsibleLabelPanelTest {
         UIUtil.FontSize.NORMAL,
         Font.BOLD,
         listOf(action1, action2),
-        columnFraction
+        columnFraction,
       )
     panel.size = Dimension(500, 50)
     panel.doLayout()

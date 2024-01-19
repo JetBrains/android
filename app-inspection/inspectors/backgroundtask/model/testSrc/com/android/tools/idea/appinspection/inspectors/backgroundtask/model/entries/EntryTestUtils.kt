@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Even
 fun BackgroundTaskEntry.consumeAndAssert(
   event: BackgroundTaskInspectorProtocol.BackgroundTaskEvent,
   timestamp: Long = 123,
-  checkConsume: BackgroundTaskEntry.() -> Unit
+  checkConsume: BackgroundTaskEntry.() -> Unit,
 ) {
   val wrapper =
     EventWrapper(

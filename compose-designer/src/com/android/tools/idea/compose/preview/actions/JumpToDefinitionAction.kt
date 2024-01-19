@@ -34,7 +34,7 @@ class JumpToDefinitionAction(
   @SwingCoordinate private val x: Int,
   @SwingCoordinate private val y: Int,
   private val navigationHandler: NavigationHandler,
-  title: String = message("action.jump.to.definition")
+  title: String = message("action.jump.to.definition"),
 ) : AnAction(title) {
 
   override fun update(e: AnActionEvent) {

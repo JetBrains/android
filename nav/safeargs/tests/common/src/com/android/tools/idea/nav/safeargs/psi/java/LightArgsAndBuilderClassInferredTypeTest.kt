@@ -54,7 +54,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
         DefaultValueTypeMapping("@null", "String"),
         DefaultValueTypeMapping("@resourceType/resourceName", PsiTypes.intType().name),
         DefaultValueTypeMapping("someCustomType", "String"), // custom type can't be recognized
-        DefaultValueTypeMapping("someEnumType", "String") // custom type can't be recognized
+        DefaultValueTypeMapping("someEnumType", "String"), // custom type can't be recognized
       )
   }
 
@@ -79,7 +79,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -98,12 +98,12 @@ class LightArgsAndBuilderClassInferredTypeTest(
       constructors[0].checkSignaturesAndReturnType(
         name = "Builder",
         returnType = PsiTypes.nullType().presentableText,
-        parameters = listOf(Parameter("original", "FragmentArgs"))
+        parameters = listOf(Parameter("original", "FragmentArgs")),
       )
 
       constructors[1].checkSignaturesAndReturnType(
         name = "Builder",
-        returnType = PsiTypes.nullType().presentableText
+        returnType = PsiTypes.nullType().presentableText,
       )
     }
 
@@ -115,13 +115,13 @@ class LightArgsAndBuilderClassInferredTypeTest(
       methods[0].checkSignaturesAndReturnType(
         name = "setArg1",
         returnType = "Builder",
-        parameters = listOf(Parameter("arg1", defaultValueTypeMapping.inferredTypeStr))
+        parameters = listOf(Parameter("arg1", defaultValueTypeMapping.inferredTypeStr)),
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = defaultValueTypeMapping.inferredTypeStr,
-        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null",
       )
 
       methods[2].checkSignaturesAndReturnType(name = "build", returnType = "FragmentArgs")
@@ -153,7 +153,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -170,19 +170,19 @@ class LightArgsAndBuilderClassInferredTypeTest(
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = defaultValueTypeMapping.inferredTypeStr,
-        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null",
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle")),
       )
 
       methods[3].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
@@ -214,7 +214,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -231,24 +231,24 @@ class LightArgsAndBuilderClassInferredTypeTest(
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = defaultValueTypeMapping.inferredTypeStr,
-        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null",
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle")),
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "toSavedStateHandle",
-        returnType = "SavedStateHandle"
+        returnType = "SavedStateHandle",
       )
 
       methods[4].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")

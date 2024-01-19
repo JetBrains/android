@@ -59,14 +59,14 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
+    modules: MutableList<MyAdditionalModuleData>,
   ) {
     super.configureAdditionalModules(projectBuilder, modules)
     addModuleWithAndroidFacet(
       projectBuilder,
       modules,
       "myLibrary",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
     )
   }
 
@@ -84,7 +84,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -107,7 +107,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -132,7 +132,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -157,7 +157,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -181,7 +181,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -215,7 +215,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
           }
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val notPreview = file.findFunctionIdentifier("NotAPreview")

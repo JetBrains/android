@@ -191,7 +191,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       else {
         ResourceUpdateTracer.pathForLogging(
           parent.toPathString().resolve(childName),
-          registry.project
+          registry.project,
         )
       }
 
@@ -202,7 +202,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     companion object {
       private fun onFileOrDirectoryCreated(
         created: VirtualFile,
-        repository: ResourceFolderRepository?
+        repository: ResourceFolderRepository?,
       ) {
         if (repository == null) return
 

@@ -59,7 +59,7 @@ internal enum class TemplateTag {
 internal data class Template(
   private val myTemplateName: String,
   val myTemplate: String,
-  private val tags: Set<TemplateTag>
+  private val tags: Set<TemplateTag>,
 ) {
   private val hash: ByteArray by lazy { hash(myTemplate) }
 

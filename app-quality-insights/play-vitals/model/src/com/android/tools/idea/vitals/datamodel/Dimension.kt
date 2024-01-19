@@ -32,7 +32,7 @@ data class Dimension(val type: DimensionType, val value: DimensionValue, val dis
       return Dimension(
         type = dimensionType,
         value = dimensionValue,
-        displayValue = proto.valueLabel
+        displayValue = proto.valueLabel,
       )
     }
   }

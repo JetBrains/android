@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.SdCardDetector
 class AndroidLintSdCardPathInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.sd.card.path"),
-    SdCardDetector.ISSUE
+    SdCardDetector.ISSUE,
   )

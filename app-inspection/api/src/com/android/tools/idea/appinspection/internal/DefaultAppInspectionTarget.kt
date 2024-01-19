@@ -58,7 +58,7 @@ import kotlinx.coroutines.cancel
 internal suspend fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
   jarCopier: AppInspectionJarCopier,
-  parentScope: CoroutineScope
+  parentScope: CoroutineScope,
 ): AppInspectionTarget {
   var lastAgentAttachedEventTimestampNs = Long.MIN_VALUE
   val processEvents =
@@ -112,7 +112,7 @@ internal suspend fun attachAppInspectionTarget(
       startTimeNs = { lastAgentAttachedEventTimestampNs },
       filter = {
         it.agentData.status == ATTACHED && it.timestamp >= lastAgentAttachedEventTimestampNs
-      }
+      },
     )
   transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
 
@@ -123,7 +123,7 @@ internal suspend fun attachAppInspectionTarget(
 internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
-  parentScope: CoroutineScope
+  parentScope: CoroutineScope,
 ) : AppInspectionTarget() {
   private val scope = parentScope.createChildScope(true)
 
@@ -150,7 +150,7 @@ internal class DefaultAppInspectionTarget(
     val eventQuery =
       transport.createStreamEventQuery(
         eventKind = APP_INSPECTION_RESPONSE,
-        filter = { it.appInspectionResponse.commandId == commandId }
+        filter = { it.appInspectionResponse.commandId == commandId },
       )
     val event = transport.executeCommand(appInspectionCommand, eventQuery)
     if (
@@ -161,7 +161,7 @@ internal class DefaultAppInspectionTarget(
         transport,
         params.inspectorId,
         event.timestamp,
-        scope.createChildScope(false)
+        scope.createChildScope(false),
       )
     } else {
       throw event.appInspectionResponse.getException(params.inspectorId)
@@ -192,7 +192,7 @@ internal class DefaultAppInspectionTarget(
     val streamQuery =
       StreamEventQuery(
         eventKind = APP_INSPECTION_RESPONSE,
-        filter = { it.appInspectionResponse.commandId == commandId }
+        filter = { it.appInspectionResponse.commandId == commandId },
       )
     val response = transport.executeCommand(appInspectionCommand, streamQuery)
     // The API call should always return a list of the same size.
@@ -212,7 +212,7 @@ fun launchInspectorForTest(
   inspectorId: String,
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
-  scope: CoroutineScope
+  scope: CoroutineScope,
 ): AppInspectorMessenger {
   return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
 }

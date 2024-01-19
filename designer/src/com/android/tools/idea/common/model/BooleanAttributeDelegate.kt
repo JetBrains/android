@@ -27,7 +27,7 @@ import kotlin.reflect.KProperty
 open class BooleanAttributeDelegate(
   private val namespace: String?,
   private val propertyName: String,
-  private val defaultForSet: Boolean? = false
+  private val defaultForSet: Boolean? = false,
 ) : ReadWriteProperty<NlComponent, Boolean?> {
 
   // This has to be separate rather than just using default arguments due to KT-8834
@@ -41,7 +41,7 @@ open class BooleanAttributeDelegate(
     thisRef.setAttribute(
       namespace,
       propertyName,
-      if (value == defaultForSet) null else value?.toString()
+      if (value == defaultForSet) null else value?.toString(),
     )
   }
 }

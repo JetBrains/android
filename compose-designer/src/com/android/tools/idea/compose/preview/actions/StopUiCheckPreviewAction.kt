@@ -28,7 +28,7 @@ class StopUiCheckPreviewAction :
   AnActionButton(
     message("action.stop.uicheck.title"),
     message("action.stop.uicheck.description"),
-    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 

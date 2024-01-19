@@ -82,7 +82,7 @@ internal class ColorPsiCallParameter(
               colorPickedCallback = { value = colorToStringWithAlpha(it) },
               colorResourcePickedCallback = {
                 // Do nothing.
-              }
+              },
             )
           }
         }
@@ -97,7 +97,7 @@ internal class ColorPsiCallParameter(
           (colorValue shr 16 and 0xFF).toInt(),
           (colorValue shr 8 and 0xFF).toInt(),
           (colorValue and 0xFF).toInt(),
-          (colorValue shr 24 and 0xFF).toInt()
+          (colorValue shr 24 and 0xFF).toInt(),
         )
       )
     }

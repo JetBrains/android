@@ -52,7 +52,7 @@ class AllAttributesInspectorBuilderTest {
       InspectorTestUtil(
         projectRule,
         SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
       )
     util.loadProperties()
     val builder = createBuilder(util.model)
@@ -71,7 +71,7 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_TEXT,
         SdkConstants.ATTR_TEXT_COLOR,
         SdkConstants.ATTR_TEXT_SIZE,
-        SdkConstants.ATTR_VISIBILITY
+        SdkConstants.ATTR_VISIBILITY,
       )
       .inOrder()
 
@@ -85,7 +85,7 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
         SdkConstants.ATTR_LAYOUT_MARGIN_END,
         SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-        SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+        SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
       )
       .inOrder()
 
@@ -99,7 +99,7 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_PADDING_TOP,
         SdkConstants.ATTR_PADDING_END,
         SdkConstants.ATTR_PADDING_RIGHT,
-        SdkConstants.ATTR_PADDING_BOTTOM
+        SdkConstants.ATTR_PADDING_BOTTOM,
       )
       .inOrder()
 
@@ -184,7 +184,7 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_MAX_HEIGHT,
         SdkConstants.ATTR_MAX_WIDTH,
         SdkConstants.ATTR_MIN_HEIGHT,
-        SdkConstants.ATTR_MIN_WIDTH
+        SdkConstants.ATTR_MIN_WIDTH,
       )
       .inOrder()
   }
@@ -207,7 +207,7 @@ class AllAttributesInspectorBuilderVisibilityTest {
       InspectorTestUtil(
         projectRule,
         SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
       )
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)
@@ -223,7 +223,7 @@ class AllAttributesInspectorBuilderVisibilityTest {
       InspectorTestUtil(
         projectRule,
         SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
       )
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)

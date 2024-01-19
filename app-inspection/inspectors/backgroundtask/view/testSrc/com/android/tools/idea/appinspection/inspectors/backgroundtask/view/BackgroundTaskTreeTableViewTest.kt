@@ -90,7 +90,7 @@ class BackgroundTaskTreeTableViewTest {
           backgroundTaskInspectorMessenger,
           WmiMessengerTarget.Resolved(workMessenger),
           scope,
-          StubBackgroundTaskInspectorTracker()
+          StubBackgroundTaskInspectorTracker(),
         )
       tab =
         BackgroundTaskInspectorTab(
@@ -98,7 +98,7 @@ class BackgroundTaskTreeTableViewTest {
           AppInspectionIdeServicesAdapter(),
           IntellijUiComponentsProvider(projectRule.project),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       selectionModel = tab.selectionModel
       entriesView = tab.component.firstComponent as BackgroundTaskEntriesView

@@ -28,5 +28,5 @@ import com.android.tools.adtui.common.SwingCoordinate
 class GroupPadding(
   @SwingCoordinate val canvasTopPadding: Int,
   @SwingCoordinate val canvasLeftPadding: Int,
-  @SwingCoordinate val previewPaddingProvider: (scale: Double) -> Int
+  @SwingCoordinate val previewPaddingProvider: (scale: Double) -> Int,
 )

@@ -29,14 +29,14 @@ class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection :
     AndroidLintBundle.message(
       "android.lint.inspections.motion.layout.invalid.scene.file.reference"
     ),
-    MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE
+    MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE,
   ) {
 
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
     message: String,
-    fixData: LintFix?
+    fixData: LintFix?,
   ): Array<LintIdeQuickFix> {
     return generateMotionSceneFix(fixData)
       ?: super.getQuickFixes(startElement, endElement, message, fixData)

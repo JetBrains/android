@@ -93,7 +93,7 @@ class AppInspectionPropertiesProviderTest {
           getClientSettings = { inspectorClientSettings }
         )
       ),
-      projectRule
+      projectRule,
     ) {
       it.name == MODERN_PROCESS.name
     }
@@ -184,14 +184,14 @@ class AppInspectionPropertiesProviderTest {
           "id",
           PropertyType.RESOURCE,
           "@com.example:id/fab",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "src",
           PropertyType.DRAWABLE,
           "@drawable/?",
           source = layout("activity_main"),
-          classLocation = "android.graphics.drawable.VectorDrawable"
+          classLocation = "android.graphics.drawable.VectorDrawable",
         )
         assertProperty(
           "stateListAnimator",
@@ -199,7 +199,7 @@ class AppInspectionPropertiesProviderTest {
           "@animator/?",
           source = layout("activity_main"),
           resolutionStack = listOf(ResStackItem(style("Widget.Material.Button"), null)),
-          classLocation = "android.animation.StateListAnimator"
+          classLocation = "android.animation.StateListAnimator",
         )
       }
     }
@@ -252,19 +252,19 @@ class AppInspectionPropertiesProviderTest {
           "id",
           PropertyType.RESOURCE,
           "@com.example:id/fab",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "src",
           PropertyType.DRAWABLE,
           "@drawable/?",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "stateListAnimator",
           PropertyType.ANIMATOR,
           "@animator/?",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
       }
     }
@@ -304,35 +304,35 @@ class AppInspectionPropertiesProviderTest {
           PropertyType.STRING,
           "androidx.constraintlayout.widget.ConstraintLayout",
           group = PropertySection.VIEW,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "x",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "y",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "width",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "height",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
       }
     }
@@ -509,7 +509,7 @@ class AppInspectionPropertiesProviderTest {
             groupItem.children[0],
             "stringProperty",
             PropertyType.STRING,
-            "stringValue"
+            "stringValue",
           )
           assertParameter(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
           assertParameter(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
@@ -723,7 +723,7 @@ class AppInspectionPropertiesProviderTest {
         package com.google.android.material.textview;
         public class MaterialTextView extends android.widget.TextView {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
     propertiesModel.layoutInspector = inspectorRule.inspector
@@ -811,7 +811,7 @@ class AppInspectionPropertiesProviderTest {
       group,
       namespace,
       classLocation,
-      resolutionStack
+      resolutionStack,
     )
 
   private fun assertParameter(
@@ -865,7 +865,7 @@ class AppInspectionPropertiesProviderTest {
     val view: ViewNode,
     val table: PropertiesTable<InspectorPropertyItem>,
     val model: InspectorModel,
-    val cache: ComposeParametersCache?
+    val cache: ComposeParametersCache?,
   ) {
 
     init {

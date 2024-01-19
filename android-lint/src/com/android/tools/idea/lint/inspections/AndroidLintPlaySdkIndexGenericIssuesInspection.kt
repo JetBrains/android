@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintPlaySdkIndexGenericIssuesInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.play.sdk.index.generic.issues"),
-    GradleDetector.PLAY_SDK_INDEX_GENERIC_ISSUES
+    GradleDetector.PLAY_SDK_INDEX_GENERIC_ISSUES,
   )

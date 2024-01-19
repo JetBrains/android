@@ -120,7 +120,7 @@ class DeviceSpecInjectionPerformer : LanguageInjectionPerformer {
   override fun performInjection(
     registrar: MultiHostRegistrar,
     injection: Injection,
-    context: PsiElement
+    context: PsiElement,
   ): Boolean {
     val containingExpression =
       context.parentOfType<KtValueArgument>()?.getArgumentExpression() ?: return false
@@ -151,14 +151,14 @@ class DeviceSpecInjectionPerformer : LanguageInjectionPerformer {
 private data class InjectionSegment(
   val injectionHost: PsiLanguageInjectionHost,
   val precedingContent: String = "",
-  val followingContent: String = ""
+  val followingContent: String = "",
 ) {
   fun injectTo(registrar: MultiHostRegistrar) {
     registrar.addPlace(
       precedingContent,
       followingContent,
       injectionHost,
-      TextRange.from(1, injectionHost.textLength - 1)
+      TextRange.from(1, injectionHost.textLength - 1),
     )
   }
 }
@@ -183,7 +183,7 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
             InjectionSegment(
               injectionHost = it,
               precedingContent = prefixConstant,
-              followingContent = ""
+              followingContent = "",
             )
           )
           prefixConstant = ""
@@ -203,7 +203,7 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
       InjectionSegment(
         injectionHost = it,
         precedingContent = prefixConstant,
-        followingContent = suffixConstant
+        followingContent = suffixConstant,
       )
     )
   }
@@ -218,7 +218,7 @@ private fun KtValueArgument.getFirstStringExpression(): KtStringTemplateExpressi
   return PsiTreeUtil.findChildOfType(
     containingExpression,
     KtStringTemplateExpression::class.java,
-    false
+    false,
   )
 }
 

@@ -24,9 +24,8 @@ import org.junit.Test
 
 class SurfaceLayoutManagerOptionTest {
 
-  open class TestPositionableContent(
-    override val organizationGroup: String?,
-  ) : PositionableContent {
+  open class TestPositionableContent(override val organizationGroup: String?) :
+    PositionableContent {
     override val scale = 0.0
     override val x = 0
     override val y = 0
@@ -38,9 +37,8 @@ class SurfaceLayoutManagerOptionTest {
     override fun getMargin(scale: Double): Insets = Insets(0, 0, 0, 0)
   }
 
-  class HeaderTestPositionableContent(
-    override val organizationGroup: String?,
-  ) : TestPositionableContent(organizationGroup), HeaderPositionableContent
+  class HeaderTestPositionableContent(override val organizationGroup: String?) :
+    TestPositionableContent(organizationGroup), HeaderPositionableContent
 
   @Test
   fun groupByOrganizationId1() {

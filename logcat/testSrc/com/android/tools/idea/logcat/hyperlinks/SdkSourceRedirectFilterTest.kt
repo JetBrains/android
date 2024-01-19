@@ -48,9 +48,9 @@ class SdkSourceRedirectFilterTest {
       ProjectServiceRule(
         projectRule,
         SdkSourcePositionFinder::class.java,
-        mockSdkSourcePositionFinder
+        mockSdkSourcePositionFinder,
       ),
-      EdtRule()
+      EdtRule(),
     )
 
   private val project
@@ -138,7 +138,7 @@ class SdkSourceRedirectFilterTest {
             TestFilter("Foo", info2),
             TestFilter("Bar", info3),
             TestFilter("2", null),
-          )
+          ),
         )
         .apply { setForceUseAllFilters(true) }
     val filter = SdkSourceRedirectFilter(project, delegate)
@@ -172,7 +172,7 @@ class SdkSourceRedirectFilterTest {
             TestFilter("Foo", info2),
             TestFilter("Bar", info3),
             TestFilter("2", null),
-          )
+          ),
         )
         .apply { setForceUseAllFilters(true) }
     val filter = SdkSourceRedirectFilter(project, delegate)
@@ -206,7 +206,7 @@ class SdkSourceRedirectFilterTest {
   private fun ResultItem.toInfo(line: String): ResultInfo {
     return ResultInfo(
       line.substring(highlightStartOffset, highlightEndOffset),
-      hyperlinkInfo?.let { it::class.simpleName }
+      hyperlinkInfo?.let { it::class.simpleName },
     )
   }
 }

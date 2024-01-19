@@ -48,21 +48,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-private val keys =
-  mapOf(
-    "tag" to TAG,
-    "package" to APP,
-    "message" to MESSAGE,
-    "line" to LINE,
-  )
+private val keys = mapOf("tag" to TAG, "package" to APP, "message" to MESSAGE, "line" to LINE)
 
-private val ageValues =
-  listOf(
-    "10s",
-    "10m",
-    "10h",
-    "10d",
-  )
+private val ageValues = listOf("10s", "10m", "10h", "10d")
 
 private val invalidAges =
   listOf(
@@ -91,7 +79,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
       projectRule,
       EdtRule(),
       LogcatFilterLanguageRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER)
+      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
     )
 
   private val fakeProjectApplicationIdsProvider by lazy {
@@ -146,7 +134,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
               """"foobar"""",
               field,
               matchCase,
-              filterString.rangeOf("$key:\\\"foobar\\\"")
+              filterString.rangeOf("$key:\\\"foobar\\\""),
             ),
             StringFilter("""foo\bar""", field, matchCase, filterString.rangeOf("$key:foo\\\\bar")),
           )
@@ -629,7 +617,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
       androidProjectDetector,
       joinConsecutiveTopLevelValue,
       topLevelSameKeyTreatment,
-      clock
+      clock,
     )
 }
 

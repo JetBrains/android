@@ -61,9 +61,9 @@ class DeviceSelectorIntegrationTest {
             }
           }
         ),
-        launchCompatibilityCheckerFlow(project)
+        launchCompatibilityCheckerFlow(project),
       ),
-      projectRule.project
+      projectRule.project,
     )
   }
 

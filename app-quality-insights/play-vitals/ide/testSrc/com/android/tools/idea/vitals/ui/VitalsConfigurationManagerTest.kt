@@ -63,7 +63,7 @@ class VitalsConfigurationManagerTest {
           cache,
           MutableStateFlow(LoginStatus.LoggedIn("test@goog.com")),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -91,7 +91,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -110,7 +110,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           MutableStateFlow(LoginStatus.LoggedOut),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -130,7 +130,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -170,7 +170,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           loggedInFlow,
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -194,7 +194,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -221,7 +221,7 @@ class VitalsConfigurationManagerTest {
           AppInsightsCacheImpl(),
           MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
           projectRule.testRootDisposable,
-          client
+          client,
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 

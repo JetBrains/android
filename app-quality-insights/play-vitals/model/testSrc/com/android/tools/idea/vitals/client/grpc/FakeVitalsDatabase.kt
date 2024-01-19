@@ -48,14 +48,14 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
     addIssueWithCustomStackTrace(
       issue,
       issue.sampleEvent.eventData,
-      issue.sampleEvent.stacktraceGroup.toRawString()
+      issue.sampleEvent.stacktraceGroup.toRawString(),
     )
   }
 
   fun addIssueWithCustomStackTrace(
     issue: AppInsightsIssue,
     eventData: EventData,
-    stacktrace: String
+    stacktrace: String,
   ) {
     val errorIssue = issue.issueDetails.toErrorIssue()
     val errorReport = eventToProto(issue, eventData, stacktrace)
@@ -71,7 +71,7 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
   private fun eventToProto(
     issue: AppInsightsIssue,
     eventData: EventData,
-    stacktrace: String
+    stacktrace: String,
   ): ErrorReport =
     ErrorReport.newBuilder()
       .apply {

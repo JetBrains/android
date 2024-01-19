@@ -128,7 +128,7 @@ class InsightsTrackerTest {
                   .TARGET_FILE_HYPER_LINK
             }
             .build()
-        )
+        ),
       )
   }
 
@@ -190,7 +190,7 @@ class InsightsTrackerTest {
                   .DIFF_INLAY
             }
             .build()
-        )
+        ),
       )
   }
 }

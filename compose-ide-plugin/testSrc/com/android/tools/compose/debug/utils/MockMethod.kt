@@ -28,7 +28,7 @@ class MockMethod(
   private val argumentTypeNames: List<String>,
   private val lines: List<Int>,
   private val declaringType: ReferenceType,
-  private val debugProcess: DebugProcessImpl
+  private val debugProcess: DebugProcessImpl,
 ) : Method by MockitoKt.mock() {
   override fun name() = name
 

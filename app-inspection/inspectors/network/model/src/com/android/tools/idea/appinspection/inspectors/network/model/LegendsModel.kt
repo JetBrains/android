@@ -26,7 +26,7 @@ private val TRAFFIC_AXIS_FORMATTER = NetworkTrafficFormatter(1, 5, 5)
 class LegendsModel(
   speedLineChartModel: NetworkSpeedLineChartModel,
   range: Range,
-  tooltip: Boolean
+  tooltip: Boolean,
 ) : LegendComponentModel(range) {
   val rxLegend =
     SeriesLegend(
@@ -34,7 +34,7 @@ class LegendsModel(
       TRAFFIC_AXIS_FORMATTER,
       range,
       NetworkTrafficLabel.BYTES_RECEIVED.getLabel(tooltip),
-      Interpolatable.SegmentInterpolator
+      Interpolatable.SegmentInterpolator,
     )
   val txLegend =
     SeriesLegend(
@@ -42,7 +42,7 @@ class LegendsModel(
       TRAFFIC_AXIS_FORMATTER,
       range,
       NetworkTrafficLabel.BYTES_SENT.getLabel(tooltip),
-      Interpolatable.SegmentInterpolator
+      Interpolatable.SegmentInterpolator,
     )
 
   init {

@@ -28,12 +28,12 @@ import com.intellij.psi.PsiElement
 class AndroidLintGradleDynamicVersionInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.gradle.dynamic.version"),
-    GradleDetector.PLUS
+    GradleDetector.PLUS,
   ) {
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
-    incident: Incident
+    incident: Incident,
   ): Array<LintIdeQuickFix> {
     val fixData = incident.fix
     val gc = getString(fixData, KEY_COORDINATE, null)

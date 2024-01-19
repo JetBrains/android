@@ -43,7 +43,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<DimensionsAndMetrics> {
     return emptyList()
   }
@@ -56,7 +56,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<Event> {
     return emptyList()
   }
@@ -65,7 +65,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     maxNumResults: Int,
-    pageTokenFromPreviousCall: String?
+    pageTokenFromPreviousCall: String?,
   ): List<IssueDetails> {
     return emptyList()
   }

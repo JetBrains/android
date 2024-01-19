@@ -80,7 +80,7 @@ class NetworkInspectorDetailsPanelTest {
     scope =
       AndroidCoroutineScope(
         disposableRule.disposable,
-        MoreExecutors.directExecutor().asCoroutineDispatcher()
+        MoreExecutors.directExecutor().asCoroutineDispatcher(),
       )
     model =
       NetworkInspectorModel(
@@ -96,7 +96,7 @@ class NetworkInspectorDetailsPanelTest {
                 it.requestStartTimeUs <= timeCurrentRangeUs.max
             }
           }
-        }
+        },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
@@ -108,7 +108,7 @@ class NetworkInspectorDetailsPanelTest {
         component,
         services,
         scope,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel

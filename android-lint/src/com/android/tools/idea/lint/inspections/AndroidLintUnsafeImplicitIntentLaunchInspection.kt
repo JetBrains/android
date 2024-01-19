@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.UnsafeImplicitIntentDetector
 class AndroidLintUnsafeImplicitIntentLaunchInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.unsafe.implicit.intent.launch"),
-    UnsafeImplicitIntentDetector.ISSUE
+    UnsafeImplicitIntentDetector.ISSUE,
   )

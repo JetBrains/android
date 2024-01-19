@@ -30,14 +30,14 @@ class IdeBackgroundTaskInspectorTracker(private val project: Project) :
   override fun trackTableModeSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.TABLE_MODE_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.TABLE_MODE_SELECTED.toEvent(),
     )
     activeMode = BackgroundTaskInspectorEvent.Mode.TABLE_MODE
   }
 
   override fun trackGraphModeSelected(
     context: BackgroundTaskInspectorEvent.Context,
-    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo,
   ) {
     val event =
       BackgroundTaskInspectorEvent.Type.GRAPH_MODE_SELECTED.toEvent().setChainInfo(chainInfo)
@@ -48,14 +48,14 @@ class IdeBackgroundTaskInspectorTracker(private val project: Project) :
   override fun trackJumpedToSource() {
     track(
       BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.JUMPED_TO_SOURCE.toEvent()
+      BackgroundTaskInspectorEvent.Type.JUMPED_TO_SOURCE.toEvent(),
     )
   }
 
   override fun trackWorkCancelled() {
     track(
       BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.WORK_CANCELED.toEvent()
+      BackgroundTaskInspectorEvent.Type.WORK_CANCELED.toEvent(),
     )
   }
 
@@ -70,35 +70,35 @@ class IdeBackgroundTaskInspectorTracker(private val project: Project) :
   override fun trackJobSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.JOB_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.JOB_SELECTED.toEvent(),
     )
   }
 
   override fun trackJobUnderWorkSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.JOB_UNDER_WORK_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.JOB_UNDER_WORK_SELECTED.toEvent(),
     )
   }
 
   override fun trackAlarmSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.ALARM_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.ALARM_SELECTED.toEvent(),
     )
   }
 
   override fun trackWakeLockSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_SELECTED.toEvent(),
     )
   }
 
   override fun trackWakeLockUnderJobSelected() {
     track(
       BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
-      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_UNDER_JOB_SELECTED.toEvent()
+      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_UNDER_JOB_SELECTED.toEvent(),
     )
   }
 
@@ -106,7 +106,7 @@ class IdeBackgroundTaskInspectorTracker(private val project: Project) :
   // parameter ensures we never forget to do so.
   private fun track(
     context: BackgroundTaskInspectorEvent.Context,
-    inspectorEvent: BackgroundTaskInspectorEvent.Builder
+    inspectorEvent: BackgroundTaskInspectorEvent.Builder,
   ) {
     inspectorEvent.context = context
     inspectorEvent.mode = activeMode

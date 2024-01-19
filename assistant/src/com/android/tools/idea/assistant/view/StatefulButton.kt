@@ -62,7 +62,7 @@ class StatefulButton(
   action: ActionData,
   listener: ActionListener,
   stateManager: AssistActionStateManager?,
-  project: Project
+  project: Project,
 ) : JPanel(GridBagLayout()) {
   @JvmField @VisibleForTesting val myButton: ActionButton
   private val mySuccessMessage: String?
@@ -145,7 +145,7 @@ class StatefulButton(
       myMessageBusConnections.add(connection)
       connection.subscribe(
         StatefulButtonNotifier.BUTTON_STATE_TOPIC,
-        StatefulButtonNotifier { updateButtonState() }
+        StatefulButtonNotifier { updateButtonState() },
       )
     }
     super.addNotify()
@@ -255,7 +255,7 @@ class StatefulButton(
             override fun getBorderPaint(button: Component): Paint {
               return JBColor.namedColor(
                 "Button.default.focusedBorderColor",
-                JBColor.namedColor("Button.darcula.defaultFocusedOutlineColor", 0x87afda)
+                JBColor.namedColor("Button.darcula.defaultFocusedOutlineColor", 0x87afda),
               )
             }
           }

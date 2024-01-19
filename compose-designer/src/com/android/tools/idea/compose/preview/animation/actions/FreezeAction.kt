@@ -29,11 +29,11 @@ import java.util.function.Supplier
 class FreezeAction(
   private val previewState: AnimationPreviewState,
   val state: ElementState,
-  val tracker: AnimationTracker
+  val tracker: AnimationTracker,
 ) :
   ToggleAction(
     Supplier { message("animation.inspector.action.freeze") },
-    StudioIcons.Compose.Toolbar.FREEZE_ANIMATION
+    StudioIcons.Compose.Toolbar.FREEZE_ANIMATION,
   ) {
 
   override fun setSelected(e: AnActionEvent, frozen: Boolean) {

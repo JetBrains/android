@@ -40,7 +40,7 @@ open class NlIdPropertyItem(
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) :
   NlPropertyItem(
     ANDROID_URI,
@@ -52,7 +52,7 @@ open class NlIdPropertyItem(
     model,
     listOf(components.first()),
     optionalValue1,
-    optionalValue2
+    optionalValue2,
   ) {
 
   // TODO(b/120919869): The snapshot value in NlComponent may be stale.
@@ -119,7 +119,7 @@ open class NlIdPropertyItem(
     value: XmlAttributeValue?,
     oldId: String,
     newId: String,
-    newValue: String?
+    newValue: String?,
   ): Boolean {
     if (oldId.isEmpty() || newId.isEmpty() || newValue == null || value == null || !value.isValid) {
       return false

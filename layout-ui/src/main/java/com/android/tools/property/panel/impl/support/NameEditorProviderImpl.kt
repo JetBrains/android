@@ -33,7 +33,7 @@ class NameEditorProviderImpl<in P : NewPropertyItem> : EditorProvider<P> {
 
   override fun createEditor(
     property: P,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
     val model = PropertyNameEditorModel(property)
     val editor = PropertyTextField(model)

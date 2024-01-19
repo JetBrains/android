@@ -26,7 +26,7 @@ import java.util.Random
 
 class AppInsightsTrackerImpl(
   private val project: Project,
-  private val insightsProductType: AppInsightsTracker.ProductType
+  private val insightsProductType: AppInsightsTracker.ProductType,
 ) : AppInsightsTracker {
   private val appIdSalt: Int = Random().nextInt()
 
@@ -50,7 +50,7 @@ class AppInsightsTrackerImpl(
   override fun logCrashesFetched(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -87,7 +87,7 @@ class AppInsightsTrackerImpl(
 
   override fun logStacktraceClicked(
     mode: ConnectionMode?,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -106,7 +106,7 @@ class AppInsightsTrackerImpl(
 
   override fun logConsoleLinkClicked(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -141,7 +141,7 @@ class AppInsightsTrackerImpl(
 
   override fun logError(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -161,7 +161,7 @@ class AppInsightsTrackerImpl(
   override fun logIssueStatusChanged(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -182,7 +182,7 @@ class AppInsightsTrackerImpl(
   override fun logNotesAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -202,7 +202,7 @@ class AppInsightsTrackerImpl(
   override fun logOfflineTransitionAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   ) {
     // If the transition is redundant, ie: from online to online, then skip tracking this metric.
     if (

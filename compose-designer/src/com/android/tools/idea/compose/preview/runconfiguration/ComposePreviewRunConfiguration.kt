@@ -46,7 +46,7 @@ private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 open class ComposePreviewRunConfiguration(
   project: Project,
   factory: ConfigurationFactory,
-  activityName: String = "androidx.compose.ui.tooling.PreviewActivity"
+  activityName: String = "androidx.compose.ui.tooling.PreviewActivity",
 ) : AndroidRunConfiguration(project, factory) {
 
   /**

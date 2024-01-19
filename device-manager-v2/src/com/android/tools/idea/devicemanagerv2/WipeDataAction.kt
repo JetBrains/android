@@ -43,7 +43,7 @@ class WipeDataAction :
     if (
       MessageDialogBuilder.yesNo(
           "Confirm Data Wipe",
-          "Do you really want to wipe user files from ${deviceHandle.state.properties.title}?$runningSuffix"
+          "Do you really want to wipe user files from ${deviceHandle.state.properties.title}?$runningSuffix",
         )
         .ask(e.componentToRestoreFocusTo())
     ) {

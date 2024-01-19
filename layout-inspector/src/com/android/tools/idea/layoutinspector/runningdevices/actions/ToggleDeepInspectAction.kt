@@ -28,11 +28,11 @@ import icons.StudioIcons
 class ToggleDeepInspectAction(
   @UiThread private val isSelected: () -> Boolean,
   @UiThread private val setSelected: (Boolean) -> Unit,
-  @UiThread private val connectedClientProvider: () -> InspectorClient
+  @UiThread private val connectedClientProvider: () -> InspectorClient,
 ) :
   ToggleAction(
     { LayoutInspectorBundle.message("toggle.deep.inspect") },
-    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
+    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW,
   ),
   TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()

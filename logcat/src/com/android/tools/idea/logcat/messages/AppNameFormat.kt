@@ -29,7 +29,7 @@ internal typealias ProcessNameFormat = NameFormat
 internal data class NameFormat(
   val maxLength: Int = DEFAULT_LENGTH,
   val hideDuplicates: Boolean = false,
-  val enabled: Boolean = true
+  val enabled: Boolean = true,
 ) {
   init {
     assert(maxLength >= MIN_LENGTH)

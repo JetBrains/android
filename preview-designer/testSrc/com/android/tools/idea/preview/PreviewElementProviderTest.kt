@@ -29,7 +29,7 @@ class PreviewElementProviderTest {
         listOf(
           TestPreviewElement("PreviewMethod1"),
           TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod")
+          TestPreviewElement("AMethod"),
         )
       )
 
@@ -43,7 +43,7 @@ class PreviewElementProviderTest {
     // The filtered provider contains all elements without the word internal
     Assert.assertEquals(
       listOf("PreviewMethod1", "PreviewMethod2"),
-      filtered.previewElements().map { it.displaySettings.name }.toList()
+      filtered.previewElements().map { it.displaySettings.name }.toList(),
     )
 
     // Now remove all elements with the word Preview
@@ -58,7 +58,7 @@ class PreviewElementProviderTest {
         listOf(
           TestPreviewElement("PreviewMethod1"),
           TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod")
+          TestPreviewElement("AMethod"),
         )
       )
 
@@ -68,7 +68,7 @@ class PreviewElementProviderTest {
         object : PreviewElementProvider<PreviewElement> {
           override suspend fun previewElements() = staticPreviewProvider.previewElements()
         },
-        modificationTracker
+        modificationTracker,
       )
 
     // Before the first refresh, the list is empty

@@ -64,7 +64,7 @@ internal class DeploymentTargetDevice(
         androidDevice,
         connectionTime,
         snapshots,
-        launchCompatibilityChecker.validate(androidDevice)
+        launchCompatibilityChecker.validate(androidDevice),
       )
     }
   }
@@ -142,7 +142,7 @@ internal class DeploymentTargetDevice(
  * its disambiguator if there is a different device with the same name.
  */
 internal fun DeploymentTargetDevice.disambiguatedName(
-  otherDevices: List<DeploymentTargetDevice> = emptyList(),
+  otherDevices: List<DeploymentTargetDevice> = emptyList()
 ): String =
   if (disambiguator != null && otherDevices.any { it.id != id && it.name == name }) {
     "$name [$disambiguator]"

@@ -41,9 +41,9 @@ class ComposePreviewElementsModelTest {
           listOf(
             SingleComposePreviewElementInstance.forTesting(
               "Instance1",
-              groupName = "TemplateGroup"
+              groupName = "TemplateGroup",
             ),
-            SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup")
+            SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup"),
           )
 
         override fun resolve(): Sequence<ComposePreviewElementInstance> =
@@ -55,7 +55,7 @@ class ComposePreviewElementsModelTest {
         SingleComposePreviewElementInstance.forTesting("SeparatePreview", groupName = "GroupA"),
         SingleComposePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupB"),
         SingleComposePreviewElementInstance.forTesting("AMethod"),
-        template
+        template,
       )
 
     // Initialize flows
@@ -68,7 +68,7 @@ class ComposePreviewElementsModelTest {
         ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
           MutableStateFlow(FlowableCollection.Present(allPreviews))
         ),
-        filterFlow
+        filterFlow,
       )
 
     assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
@@ -78,7 +78,7 @@ class ComposePreviewElementsModelTest {
         "PreviewMethod2",
         "AMethod",
         "Instance1",
-        "Instance2"
+        "Instance2",
       )
       .inOrder()
 
@@ -105,7 +105,7 @@ class ComposePreviewElementsModelTest {
         "PreviewMethod2",
         "AMethod",
         "Instance1",
-        "Instance2"
+        "Instance2",
       )
       .inOrder()
 
@@ -116,10 +116,7 @@ class ComposePreviewElementsModelTest {
           "${it.instanceId} (${it.displaySettings.group})"
         }
       )
-      .containsExactly(
-        "PreviewMethod1 (GroupA)",
-        "SeparatePreview (GroupA)",
-      )
+      .containsExactly("PreviewMethod1 (GroupA)", "SeparatePreview (GroupA)")
       .inOrder()
   }
 
@@ -131,7 +128,7 @@ class ComposePreviewElementsModelTest {
         previewElement,
         SingleComposePreviewElementInstance.forTesting("A2", groupName = "GroupA"),
         SingleComposePreviewElementInstance.forTesting("B1", groupName = "GroupB"),
-        SingleComposePreviewElementInstance.forTesting("C1", groupName = "GroupC")
+        SingleComposePreviewElementInstance.forTesting("C1", groupName = "GroupC"),
       )
 
     // Initialize flows
@@ -142,7 +139,7 @@ class ComposePreviewElementsModelTest {
     val filteredInstancesFlow =
       ComposePreviewElementsModel.filteredPreviewElementsFlow(
         MutableStateFlow(FlowableCollection.Present(allPreviews)),
-        filterFlow
+        filterFlow,
       )
 
     filterFlow.value = ComposePreviewElementsModel.Filter.Single(previewElement)

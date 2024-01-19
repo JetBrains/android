@@ -27,5 +27,5 @@ data class RecipeMetadata(
   val classpathEntries: MutableList<String> = mutableListOf(),
   val plugins: MutableList<String> = mutableListOf(),
   val permissions: MutableList<String> = mutableListOf(),
-  val modifiedFiles: MutableList<File> = mutableListOf()
+  val modifiedFiles: MutableList<File> = mutableListOf(),
 )

@@ -22,10 +22,7 @@ import com.android.tools.rendering.api.RenderModelModule
 /**
  * Information required for rendering. Currently, this is [RenderModelModule] and [Configuration].
  */
-class RenderContext(
-  val module: RenderModelModule,
-  val configuration: Configuration,
-) {
+class RenderContext(val module: RenderModelModule, val configuration: Configuration) {
   val minSdkVersion = module.info.minSdkVersion
   val targetSdkVersion = module.info.targetSdkVersion
   /**

@@ -35,7 +35,7 @@ internal class FakeLogcatService : LogcatService {
     serialNumber: String,
     sdk: Int,
     duration: Duration,
-    newMessagesOnly: Boolean
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     return Channel<List<LogcatMessage>>(1).also { channel = it }.consumeAsFlow()
   }

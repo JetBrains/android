@@ -43,7 +43,7 @@ object InspectorLayout {
         BasicStroke.JOIN_BEVEL,
         0f,
         floatArrayOf(JBUI.scale(3).toFloat()),
-        0f
+        0f,
       )
     simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
     freezeLineStroke = BasicStroke(JBUI.scale(3).toFloat())

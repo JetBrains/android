@@ -53,7 +53,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -82,7 +82,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
 
     // Try importing again and make sure we don't double-import
@@ -128,7 +128,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
           // Extension methods.
           "test.pkg.myMethod",
           "test.pkg.myMethod2",
-          "test.pkg.myMethod3"
+          "test.pkg.myMethod3",
         )
         .build()
 
@@ -144,7 +144,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.addFileToProject(
@@ -160,7 +160,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       fun String.myMethod(): String = this
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -172,7 +172,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       fun String.myMethod2(): String = this
       fun String.myMethod3(): String = this
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fix = lintFix.toIdeFix(file)
@@ -201,7 +201,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
 
     // Try importing again and make sure we don't double-import
@@ -252,7 +252,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -281,7 +281,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 
@@ -310,7 +310,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -340,7 +340,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 
@@ -367,7 +367,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
           val o = String()
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -395,7 +395,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 
@@ -425,7 +425,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -439,7 +439,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
           public static void myUtilFunction() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fix = lintFix.toIdeFix(file)
@@ -469,7 +469,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 
@@ -497,7 +497,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
             val  doNotReformatMeEither = kotlin.String(  )
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -509,7 +509,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
 
       fun myUtilFunction() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val fix = lintFix.toIdeFix(file)
@@ -536,7 +536,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       }
       """
         .trimIndent(),
-      file.text
+      file.text,
     )
   }
 }

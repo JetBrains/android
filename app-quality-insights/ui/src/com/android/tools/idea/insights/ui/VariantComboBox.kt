@@ -122,18 +122,18 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
           value: Any,
           index: Int,
           isSelected: Boolean,
-          cellHasFocus: Boolean
+          cellHasFocus: Boolean,
         ): Component {
           // index == -1 means it's trying to render the title of the combo box
           if (index == -1 && value is VariantRow) {
             return JPanel(BorderLayout()).apply {
               add(
                 JBLabel("Variant: ").apply { font = font.deriveFont(JBFont.ITALIC) },
-                BorderLayout.WEST
+                BorderLayout.WEST,
               )
               add(
                 JBLabel(value.name).apply { font = font.deriveFont(JBFont.BOLD or JBFont.ITALIC) },
-                BorderLayout.CENTER
+                BorderLayout.CENTER,
               )
               border = JBUI.Borders.empty()
               verticalTextPosition = SwingConstants.CENTER
@@ -193,7 +193,7 @@ fun AppInsightsIssue.toVariantRow(size: Int) =
     "All${if (size > 1) " ($size variants)" else ""}",
     issueDetails.eventsCount,
     issueDetails.impactedDevicesCount,
-    null
+    null,
   )
 
 @VisibleForTesting

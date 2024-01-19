@@ -137,7 +137,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     val moduleDescriptor = projectRule.project.findAppModule().getMainModule().toDescriptor()!!
     moduleDescriptor.resolveClassByFqName(
       FqName("com.example.safeargtest.Foo"),
-      NoLookupLocation.WHEN_FIND_BY_FQNAME
+      NoLookupLocation.WHEN_FIND_BY_FQNAME,
     )
 
     allGeneratedCode.forEach { generated ->
@@ -146,7 +146,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
           moduleDescriptor
             .resolveClassByFqName(
               FqName(generated.qualifiedName).parent(),
-              NoLookupLocation.WHEN_FIND_BY_FQNAME
+              NoLookupLocation.WHEN_FIND_BY_FQNAME,
             )
             ?.companionObjectDescriptor
             ?.toDescription()
@@ -154,7 +154,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
           moduleDescriptor
             .resolveClassByFqName(
               FqName(generated.qualifiedName),
-              NoLookupLocation.WHEN_FIND_BY_FQNAME
+              NoLookupLocation.WHEN_FIND_BY_FQNAME,
             )
             ?.toDescription()
         }
@@ -237,7 +237,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
           .filterIsInstance<PropertyDescriptor>()
           .map { it.toDescription() }
           .sortedBy { it.name }
-          .toSet()
+          .toSet(),
     )
 
   private fun FunctionDescriptor.toDescription() =
@@ -245,21 +245,21 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
       name = this.name.asString(),
       type = this.returnType?.toDescription(),
       params = this.valueParameters.map { it.toDescription() }.toSet(),
-      modifiers = setOf(this.visibility.toString(), this.modality.toString())
+      modifiers = setOf(this.visibility.toString(), this.modality.toString()),
     )
 
   private fun PropertyDescriptor.toDescription() =
     FieldDescription(
       name = this.name.asString(),
       type = this.type.toDescription(),
-      modifiers = setOf(this.visibility.toString(), this.modality.toString())
+      modifiers = setOf(this.visibility.toString(), this.modality.toString()),
     )
 
   private fun ValueParameterDescriptor.toDescription() =
     ParamDescription(
       name = this.name.asString(),
       type = this.type.toDescription(),
-      modifiers = setOf(this.visibility.toString())
+      modifiers = setOf(this.visibility.toString()),
     )
 
   private fun KotlinType.toDescription(): String {
@@ -284,26 +284,26 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     val qualifiedName: String,
     val constructor: MethodDescription?,
     val methods: Set<MethodDescription>,
-    val fields: Set<FieldDescription>
+    val fields: Set<FieldDescription>,
   )
 
   private data class MethodDescription(
     val name: String,
     val type: String?,
     val modifiers: Set<String>,
-    val params: Set<ParamDescription>
+    val params: Set<ParamDescription>,
   )
 
   private data class FieldDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<String>
+    val modifiers: Set<String>,
   )
 
   private data class ParamDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<String>
+    val modifiers: Set<String>,
   )
 
   companion object {

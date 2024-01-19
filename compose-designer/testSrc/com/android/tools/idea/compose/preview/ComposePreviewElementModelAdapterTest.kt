@@ -33,7 +33,7 @@ class ComposePreviewElementModelAdapterTest {
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, just a different instance
@@ -43,7 +43,7 @@ class ComposePreviewElementModelAdapterTest {
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // Same as composable0 but with different display settings
@@ -53,7 +53,7 @@ class ComposePreviewElementModelAdapterTest {
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // Same as composable0 but with different display settings
@@ -63,7 +63,7 @@ class ComposePreviewElementModelAdapterTest {
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     val adapter =

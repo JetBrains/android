@@ -61,7 +61,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     selected: Boolean,
     focused: Boolean,
     viewRowIndex: Int,
-    viewColumnIndex: Int
+    viewColumnIndex: Int,
   ): Component {
     val issue = value as AppInsightsIssue
     renderer.removeAll()
@@ -72,7 +72,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
         issue.issueDetails.fatality,
         selected,
         foreground,
-        issue.issueDetails.notesCount > 0
+        issue.issueDetails.notesCount > 0,
       )
     var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(24)
 
@@ -129,9 +129,9 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
         classText,
         rendererPanel.getFontMetrics(classFont),
         availableWidth,
-        TRUNCATE_START
+        TRUNCATE_START,
       ),
-      classAttrs
+      classAttrs,
     )
   }
 }

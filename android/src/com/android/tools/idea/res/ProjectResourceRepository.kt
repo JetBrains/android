@@ -28,7 +28,7 @@ class ProjectResourceRepository
 private constructor(
   private val facet: AndroidFacet,
   parentDisposable: Disposable,
-  localResources: List<LocalResourceRepository<VirtualFile>>? = null
+  localResources: List<LocalResourceRepository<VirtualFile>>? = null,
 ) : MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name + " with modules") {
   init {
     setChildren(localResources ?: computeRepositories(facet), emptyList(), emptyList())

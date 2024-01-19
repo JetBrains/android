@@ -61,7 +61,7 @@ private fun UAnnotation.isGlancePreview(surfaceName: String) =
  */
 private fun toGlancePreviewElements(
   methods: List<UMethod>,
-  surfaceName: String
+  surfaceName: String,
 ): Sequence<GlancePreviewElement> =
   methods
     .flatMap { method ->
@@ -75,7 +75,7 @@ private fun toGlancePreviewElements(
             displaySettings,
             it.toSmartPsiPointer(),
             method.uastBody.toSmartPsiPointer(),
-            methodFqn
+            methodFqn,
           )
         }
     }
@@ -105,7 +105,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
       glanceSurfaceUAnnotationFilter,
-      methodsToElements
+      methodsToElements,
     )
 
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
@@ -121,7 +121,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       vFile,
       GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceKtAnnotationFilter
+      glanceSurfaceKtAnnotationFilter,
     )
   }
 }

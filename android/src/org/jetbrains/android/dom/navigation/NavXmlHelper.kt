@@ -35,7 +35,7 @@ import com.intellij.psi.xml.XmlTag
 fun getStartDestLayoutId(
   navResourceId: String,
   project: Project,
-  resourceResolver: ResourceResolver
+  resourceResolver: ResourceResolver,
 ): String? {
   if (!navResourceId.startsWith("@navigation/")) {
     return null

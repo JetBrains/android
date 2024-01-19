@@ -27,7 +27,7 @@ class FakeAsyncPropertyItem(
   name: String,
   initialValue: String? = null,
   browseButton: ActionIconButton? = null,
-  colorButton: ActionIconButton? = null
+  colorButton: ActionIconButton? = null,
 ) : FakePropertyItem(namespace, name, initialValue, browseButton, colorButton) {
 
   override var value: String? = initialValue

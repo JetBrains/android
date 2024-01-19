@@ -50,7 +50,7 @@ class StudioBotFilterTest {
       projectRule,
       logcatEditorRule,
       ApplicationServiceRule(StudioBot::class.java, mockStudioBot),
-      EdtRule()
+      EdtRule(),
     )
 
   private val project

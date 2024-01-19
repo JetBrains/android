@@ -136,11 +136,11 @@ class TreeTableHeaderTest {
     panel.add(icon2, BorderLayout.SOUTH)
     panel.setFocusTraversalKeys(
       KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-      setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB"))
+      setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")),
     )
     panel.setFocusTraversalKeys(
       KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-      setOf(AWTKeyStroke.getAWTKeyStroke("TAB"))
+      setOf(AWTKeyStroke.getAWTKeyStroke("TAB")),
     )
     val ui = FakeUi(panel, createFakeWindow = true)
     val manager = FakeKeyboardFocusManager(disposableRule.disposable)
@@ -261,7 +261,7 @@ class TreeTableHeaderTest {
       Toolkit.getDefaultToolkit()
         .addAWTEventListener(
           listener,
-          AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK
+          AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK,
         )
       Disposer.register(disposable) { Toolkit.getDefaultToolkit().removeAWTEventListener(listener) }
     }

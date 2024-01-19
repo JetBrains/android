@@ -62,7 +62,7 @@ class ShortNamesCacheTestMultiJavaModules {
     assertThat(cache.getContents("FirstFragmentArgs", fixture.project))
       .containsExactly(
         "com.example.myapplication.FirstFragmentArgs",
-        "com.example.mylibrary2.FirstFragmentArgs"
+        "com.example.mylibrary2.FirstFragmentArgs",
       )
 
     assertThat(cache.getContents("SecondFragmentArgs", fixture.project))
@@ -72,7 +72,7 @@ class ShortNamesCacheTestMultiJavaModules {
     assertThat(cache.getContents("FirstFragmentDirections", fixture.project))
       .containsExactly(
         "com.example.myapplication.FirstFragmentDirections",
-        "com.example.mylibrary2.FirstFragmentDirections"
+        "com.example.mylibrary2.FirstFragmentDirections",
       )
 
     assertThat(cache.getContents("SecondFragmentDirections", fixture.project))
@@ -82,7 +82,7 @@ class ShortNamesCacheTestMultiJavaModules {
     assertThat(cache.getContents("Builder", fixture.project))
       .containsAllOf(
         "com.example.myapplication.FirstFragmentArgs.Builder",
-        "com.example.mylibrary2.FirstFragmentArgs.Builder"
+        "com.example.mylibrary2.FirstFragmentArgs.Builder",
       )
 
     assertThat(cache.getContents("Builder", fixture.project))

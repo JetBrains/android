@@ -30,14 +30,14 @@ class ComposePreviewRunConfigurationType :
     composePreviewRunConfigurationId,
     "Compose Preview",
     "Compose Preview Run Configuration Type",
-    NotNullLazyValue.createValue { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION }
+    NotNullLazyValue.createValue { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION },
   ) {
   override fun createTemplateConfiguration(project: Project) =
     ComposePreviewRunConfiguration(project, this)
 
   override fun configureBeforeRunTaskDefaults(
     providerID: Key<out BeforeRunTask<*>?>,
-    task: BeforeRunTask<*>
+    task: BeforeRunTask<*>,
   ) {
     // A specific build is executed as part of the ComposePreviewRunConfiguration logic,
     // and then the default build performed as BeforeRunTask should be disabled to avoid

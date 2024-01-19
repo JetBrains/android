@@ -121,7 +121,7 @@ class NlIdRenamingTest {
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "100dp")
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "100dp")
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW, "@id/button1")
-          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView"),
       )
 
   @Language("JAVA")

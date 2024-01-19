@@ -82,7 +82,7 @@ interface SnapshotLoader {
     file: Path,
     model: InspectorModel,
     notificationModel: NotificationModel,
-    stats: SessionStatistics
+    stats: SessionStatistics,
   ): SnapshotMetadata?
 
   companion object {
@@ -117,7 +117,7 @@ private const val TITLE = "title"
 
 class LayoutInspectorCaptureOptions(
   var version: ProtocolVersion = ProtocolVersion.Version1,
-  var title: String = ""
+  var title: String = "",
 ) {
 
   override fun toString(): String {

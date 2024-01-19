@@ -211,7 +211,7 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
         headerAdded = interception.headerAdded,
         headerReplaced = interception.headerReplaced,
         bodyReplaced = interception.bodyReplaced,
-        bodyModified = interception.bodyModified
+        bodyModified = interception.bodyModified,
       )
     }
   }

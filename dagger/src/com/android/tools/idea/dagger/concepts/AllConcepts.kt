@@ -43,7 +43,7 @@ object AllConcepts : DaggerConcept {
       DaggerConceptIndexers(
         indexersList.flatMap(DaggerConceptIndexers::classIndexers),
         indexersList.flatMap(DaggerConceptIndexers::fieldIndexers),
-        indexersList.flatMap(DaggerConceptIndexers::methodIndexers)
+        indexersList.flatMap(DaggerConceptIndexers::methodIndexers),
       )
     }
 

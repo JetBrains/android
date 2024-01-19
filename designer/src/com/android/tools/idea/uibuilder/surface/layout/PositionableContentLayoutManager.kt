@@ -63,24 +63,24 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   open fun minimumLayoutSize(
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ): Dimension = Dimension(0, 0)
 
   final override fun minimumLayoutSize(parent: Container): Dimension =
     minimumLayoutSize(
       parent.findVisiblePositionablePanels().map { it.positionableAdapter },
-      parent.availableSize
+      parent.availableSize,
     )
 
   abstract fun preferredLayoutSize(
     content: Collection<PositionableContent>,
-    availableSize: Dimension
+    availableSize: Dimension,
   ): Dimension
 
   final override fun preferredLayoutSize(parent: Container): Dimension =
     preferredLayoutSize(
       parent.findVisiblePositionablePanels().map { it.positionableAdapter },
-      parent.availableSize
+      parent.availableSize,
     )
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
@@ -90,6 +90,6 @@ abstract class PositionableContentLayoutManager : LayoutManager {
   abstract fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
     availableWidth: Int,
-    availableHeight: Int
+    availableHeight: Int,
   ): Map<PositionableContent, Point>
 }

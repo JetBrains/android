@@ -66,14 +66,14 @@ private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttr
 internal val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
   TextAttributesKey.createTextAttributesKey(
     COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.FUNCTION_CALL
+    DefaultLanguageHighlighterColors.FUNCTION_CALL,
   )
 
 internal val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
   HighlightInfoType.HighlightInfoTypeImpl(
     HighlightInfoType.SYMBOL_TYPE_SEVERITY,
     COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
-    false
+    false,
   )
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false

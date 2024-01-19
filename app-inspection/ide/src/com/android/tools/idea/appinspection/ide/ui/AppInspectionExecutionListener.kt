@@ -32,7 +32,7 @@ class AppInspectionExecutionListener : ExecutionListener {
   override fun processStarted(
     executorId: String,
     env: ExecutionEnvironment,
-    handler: ProcessHandler
+    handler: ProcessHandler,
   ) {
     val project = env.project
     val info = AndroidSessionInfo.from(handler) ?: return
@@ -61,7 +61,7 @@ class AppInspectionExecutionListener : ExecutionListener {
     project: Project,
     device: IDevice,
     applicationId: String,
-    handler: ProcessHandler
+    handler: ProcessHandler,
   ) {
     val recentProcess = RecentProcess(device.serialNumber, applicationId)
     RecentProcess.set(project, recentProcess)

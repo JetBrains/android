@@ -88,7 +88,7 @@ fun createVerticalScrollPane(component: JComponent): JBScrollPane {
 fun createHideablePanel(
   title: String,
   content: JComponent,
-  northEastComponent: JComponent?
+  northEastComponent: JComponent?,
 ): HideablePanel {
   return HideablePanel.Builder(title, content)
     .setNorthEastComponent(northEastComponent)
@@ -119,7 +119,7 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
             border = emptyBorder
             verticalAlignment = JLabel.TOP
           },
-          BorderLayout.LINE_START
+          BorderLayout.LINE_START,
         )
         add(
           WrappedTextArea(if (value.size == 1) value.first() else value.toString()).apply {
@@ -128,7 +128,7 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
             isOpaque = false
             isEditable = false
           },
-          BorderLayout.CENTER
+          BorderLayout.CENTER,
         )
         alignmentX = JPanel.LEFT_ALIGNMENT
         alignmentY = JPanel.TOP_ALIGNMENT
@@ -145,7 +145,7 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
  */
 fun createCategoryPanel(
   name: String?,
-  vararg entryComponents: Pair<JComponent, JComponent>
+  vararg entryComponents: Pair<JComponent, JComponent>,
 ): JPanel {
   val panel = JPanel(VerticalLayout(6))
   if (name != null) {
@@ -176,7 +176,7 @@ fun createTextField(
   initialText: String?,
   hintText: String,
   name: String? = null,
-  focusLost: (String) -> Unit = {}
+  focusLost: (String) -> Unit = {},
 ) =
   JBTextField(initialText).apply {
     emptyText.appendText(hintText)
@@ -184,7 +184,7 @@ fun createTextField(
     preferredSize =
       Dimension(
         max(preferredSize.width, emptyText.preferredSize.width + font.size),
-        max(preferredSize.height, emptyText.preferredSize.height)
+        max(preferredSize.height, emptyText.preferredSize.height),
       )
     border = BorderFactory.createLineBorder(borderLight)
     this.name = name

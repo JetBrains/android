@@ -30,7 +30,7 @@ class BackgroundTaskInspectorTab(
   ideServices: AppInspectionIdeServices,
   uiComponentsProvider: UiComponentsProvider,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher
+  uiDispatcher: CoroutineDispatcher,
 ) {
 
   @VisibleForTesting val selectionModel = EntrySelectionModel()
@@ -46,7 +46,7 @@ class BackgroundTaskInspectorTab(
       entriesView,
       uiComponentsProvider,
       scope,
-      uiDispatcher
+      uiDispatcher,
     )
 
   var isDetailsViewVisible = false

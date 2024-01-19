@@ -40,14 +40,14 @@ internal interface PsiEnumValue : EnumValue {
       display: String,
       description: String?,
       trackingValue:
-        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
     ) = DescriptionEnumValue(value, display, trackingValue, description)
 
     fun indented(
       value: String,
       display: String,
       trackingValue:
-        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
     ) =
       object : PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
         override val indented: Boolean = true
@@ -62,7 +62,7 @@ internal open class PsiEnumValueImpl(
   override val value: String?,
   override val display: String,
   override val trackableValue:
-    EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+    EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
 ) : PsiEnumValue
 
 /** [PsiEnumValue] that includes a description, shown as a tooltip in [PsiEnumValueCellRenderer]. */
@@ -71,7 +71,7 @@ internal data class DescriptionEnumValue(
   override val display: String,
   override val trackableValue:
     EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
-  val description: String?
+  val description: String?,
 ) : PsiEnumValue {
   override val indented: Boolean = true
 

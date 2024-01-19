@@ -40,7 +40,7 @@ interface ExportInProgressView {
 class ExportInProgressViewImpl(
   private val project: Project,
   private val job: Job,
-  private val taskDispatcher: CoroutineDispatcher
+  private val taskDispatcher: CoroutineDispatcher,
 ) : ExportInProgressView {
   @VisibleForTesting var onShownListener: (ProgressIndicator) -> Unit = {}
   @VisibleForTesting var onClosedListener: () -> Unit = {}

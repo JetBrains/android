@@ -72,7 +72,7 @@ class AppInspectionServiceRule(
   private val transportService: FakeTransportService,
   private val grpcServer: FakeGrpcServer,
   private val stream: Common.Stream = DEFAULT_TEST_INSPECTION_STREAM,
-  private val process: ProcessDescriptor = DEFAULT_TEST_INSPECTION_PROCESS
+  private val process: ProcessDescriptor = DEFAULT_TEST_INSPECTION_PROCESS,
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
   lateinit var executorService: ExecutorService
@@ -117,11 +117,11 @@ class AppInspectionServiceRule(
       DefaultAppInspectionApiServices(
         targetManager,
         { jarCopier },
-        processDiscovery as AppInspectionProcessDiscovery
+        processDiscovery as AppInspectionProcessDiscovery,
       )
     transportService.setCommandHandler(
       Commands.Command.CommandType.ATTACH_AGENT,
-      defaultAttachHandler
+      defaultAttachHandler,
     )
   }
 
@@ -136,7 +136,7 @@ class AppInspectionServiceRule(
   internal suspend fun launchTarget(
     process: ProcessDescriptor,
     project: String = TEST_PROJECT,
-    commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer)
+    commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer),
   ): AppInspectionTarget {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also {
@@ -152,14 +152,14 @@ class AppInspectionServiceRule(
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer),
-    parentScope: CoroutineScope = scope
+    parentScope: CoroutineScope = scope,
   ): AppInspectorMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return launchInspectorForTest(
         inspectorId,
         transport,
         timer.currentTimeNs,
-        parentScope.createChildScope(false)
+        parentScope.createChildScope(false),
       )
       .also { timer.currentTimeNs += 1 }
   }
@@ -188,7 +188,7 @@ class AppInspectionServiceRule(
    */
   fun addAppInspectionPayload(
     payloadId: Long,
-    payloadEvents: List<AppInspection.AppInspectionPayload>
+    payloadEvents: List<AppInspection.AppInspectionPayload>,
   ) {
     payloadEvents.forEachIndexed { i, payloadEvent ->
       addAppInspectionPayload(payloadId, payloadEvent, i == payloadEvents.lastIndex)
@@ -198,7 +198,7 @@ class AppInspectionServiceRule(
   private fun addAppInspectionPayload(
     payloadId: Long,
     payloadEvent: AppInspection.AppInspectionPayload,
-    isEnded: Boolean
+    isEnded: Boolean,
   ) {
     addTransportEvent { transportEvent ->
       transportEvent.kind = Common.Event.Kind.APP_INSPECTION_PAYLOAD

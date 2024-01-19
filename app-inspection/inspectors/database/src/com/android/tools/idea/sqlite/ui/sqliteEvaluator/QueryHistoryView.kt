@@ -163,7 +163,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
       value: String,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       append("${index + 1}.")
       append("  ")

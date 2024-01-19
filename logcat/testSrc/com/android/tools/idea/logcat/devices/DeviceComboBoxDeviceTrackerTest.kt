@@ -59,11 +59,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
     val events = deviceTracker.trackDevices().take(deviceHandles.size).toList()
 
-    assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-        Added(emulator1.device),
-      )
+    assertThat(events).containsExactly(Added(device1.device), Added(emulator1.device))
   }
 
   @Test
@@ -74,10 +70,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
     val events = deviceTracker.trackDevices().take(1).toList()
 
-    assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-      )
+    assertThat(events).containsExactly(Added(device1.device))
   }
 
   @Test
@@ -88,11 +81,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
     val events = deviceTracker.trackDevices().take(2).toList()
 
-    assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-        Added(preexistingEmulator.device),
-      )
+    assertThat(events).containsExactly(Added(device1.device), Added(preexistingEmulator.device))
   }
 
   @Test
@@ -104,11 +93,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
       val events = deviceTracker.trackDevices().take(2).toList()
 
-      assertThat(events)
-        .containsExactly(
-          Added(emulator1.device),
-          Added(device1.device),
-        )
+      assertThat(events).containsExactly(Added(emulator1.device), Added(device1.device))
     }
 
   @Test
@@ -122,11 +107,7 @@ class DeviceComboBoxDeviceTrackerTest {
         .await()
 
     assertThat(events)
-      .containsExactly(
-        Added(preexistingDevice),
-        Added(device2.device),
-        Added(emulator1.device),
-      )
+      .containsExactly(Added(preexistingDevice), Added(device2.device), Added(emulator1.device))
   }
 
   @Test
@@ -143,10 +124,7 @@ class DeviceComboBoxDeviceTrackerTest {
       .join()
 
     assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-        StateChanged(device1.withState(OFFLINE).device),
-      )
+      .containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device))
       .inOrder()
   }
 
@@ -164,10 +142,7 @@ class DeviceComboBoxDeviceTrackerTest {
       .join()
 
     assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-        StateChanged(device1.withState(OFFLINE).device),
-      )
+      .containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device))
       .inOrder()
   }
 

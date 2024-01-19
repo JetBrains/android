@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.StringFormatDetector
 class AndroidLintStringFormatTrivialInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.string.format.trivial"),
-    StringFormatDetector.TRIVIAL
+    StringFormatDetector.TRIVIAL,
   )

@@ -86,7 +86,7 @@ class EntryDetailsViewTest {
           ideServices,
           StubUiComponentsProvider(),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView

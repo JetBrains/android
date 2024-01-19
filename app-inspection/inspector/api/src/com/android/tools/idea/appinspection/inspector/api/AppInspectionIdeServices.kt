@@ -50,7 +50,7 @@ interface AppInspectionIdeServices {
     content: String,
     title: String = "",
     severity: Severity = Severity.INFORMATION,
-    @UiThread hyperlinkClicked: () -> Unit = {}
+    @UiThread hyperlinkClicked: () -> Unit = {},
   )
 
   class CodeLocation
@@ -87,7 +87,7 @@ open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
     content: String,
     title: String,
     severity: AppInspectionIdeServices.Severity,
-    hyperlinkClicked: () -> Unit
+    hyperlinkClicked: () -> Unit,
   ) {}
 
   override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}

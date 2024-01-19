@@ -72,15 +72,15 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
           message("action.build.and.refresh.title").replace("&&", "&") +
             getBuildAndRefreshShortcut().asString(),
           BuildAndRefresh { viewModelStatus.previewedFile },
-          dataContext
+          dataContext,
         ),
         when (it) {
           is PreviewStatus.SyntaxError,
           PreviewStatus.RenderIssues ->
             actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
           else -> null
-        }
-      )
+        },
+      ),
     )
   }
 }

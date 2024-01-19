@@ -64,7 +64,7 @@ private const val ALL_FIELD = "_all"
 class LightBrClass(
   psiManager: PsiManager,
   private val facet: AndroidFacet,
-  private val qualifiedName: String
+  private val qualifiedName: String,
 ) : AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
 
   /** All fields in this BR class, including the top "_all" field */
@@ -110,7 +110,7 @@ class LightBrClass(
         CachedValueProvider.Result.create(
           psiFields,
           resourcesModifiedTracker,
-          psiManager.modificationTracker.javaStructureModificationTracker
+          psiManager.modificationTracker.javaStructureModificationTracker,
         )
       }
 
@@ -122,7 +122,7 @@ class LightBrClass(
       factory.createFileFromText(
         "BR.java",
         JavaFileType.INSTANCE,
-        "// This class is generated on-the-fly by the IDE."
+        "// This class is generated on-the-fly by the IDE.",
       ) as PsiJavaFile
     backingFile.packageName = qualifiedName.replace(".BR", "")
     containingFile = backingFile
@@ -145,7 +145,7 @@ class LightBrClass(
           bindableAnnotation,
           moduleScope,
           PsiMethod::class.java,
-          PsiField::class.java
+          PsiField::class.java,
         )
         // Asserting non-null as we are confident that @Bindable fields exist within a class
         .filter { element ->

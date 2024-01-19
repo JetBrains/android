@@ -41,7 +41,7 @@ class PlaybackControls(
   val clockControl: SliderClockControl,
   val tracker: AnimationTracker,
   val rootComponent: JComponent,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) {
 
   enum class TimelineSpeed(val speedMultiplier: Float, val displayText: String) {
@@ -92,10 +92,10 @@ class PlaybackControls(
               playPauseAction,
               GoToEndAction(),
               speedAction,
-              Separator()
+              Separator(),
             ) + extraActions
           ),
-          true
+          true,
         )
         .apply {
           targetComponent = rootComponent
@@ -109,7 +109,7 @@ class PlaybackControls(
     inner class GoToStartAction :
       AnActionButton(
         message("animation.inspector.action.go.to.start"),
-        StudioIcons.LayoutEditor.Motion.GO_TO_START
+        StudioIcons.LayoutEditor.Motion.GO_TO_START,
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToStart()
@@ -130,7 +130,7 @@ class PlaybackControls(
     inner class GoToEndAction :
       AnActionButton(
         message("animation.inspector.action.go.to.end"),
-        StudioIcons.LayoutEditor.Motion.GO_TO_END
+        StudioIcons.LayoutEditor.Motion.GO_TO_END,
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToEnd()
@@ -156,7 +156,7 @@ class PlaybackControls(
   private inner class PlayPauseAction(parentDisposable: Disposable) :
     AnActionButton(
       message("animation.inspector.action.play"),
-      StudioIcons.LayoutEditor.Motion.PLAY
+      StudioIcons.LayoutEditor.Motion.PLAY,
     ),
     Disposable {
     private val tickPeriod = Duration.ofMillis(30)
@@ -179,7 +179,7 @@ class PlaybackControls(
             }
           }
         },
-        tickPeriod
+        tickPeriod,
       )
 
     var isPlaying = false
@@ -246,7 +246,7 @@ class PlaybackControls(
     DropDownAction(
       message("animation.inspector.action.speed"),
       message("animation.inspector.action.speed"),
-      null
+      null,
     ) {
 
     init {
@@ -284,7 +284,7 @@ class PlaybackControls(
     ToggleAction(
       message("animation.inspector.action.loop"),
       message("animation.inspector.action.loop"),
-      StudioIcons.LayoutEditor.Motion.LOOP
+      StudioIcons.LayoutEditor.Motion.LOOP,
     ) {
 
     override fun isSelected(e: AnActionEvent) = clockControl.playInLoop

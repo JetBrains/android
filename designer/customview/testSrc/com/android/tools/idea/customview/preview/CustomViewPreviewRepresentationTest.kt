@@ -46,7 +46,7 @@ class CustomViewPreviewRepresentationTest {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     runBlocking {
@@ -55,7 +55,7 @@ class CustomViewPreviewRepresentationTest {
           withContext(scope) {
             CustomViewPreviewRepresentation(
                 file,
-                buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL }
+                buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL },
               )
               .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
           }

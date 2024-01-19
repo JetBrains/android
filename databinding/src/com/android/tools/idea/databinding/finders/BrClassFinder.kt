@@ -52,7 +52,7 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
 
             CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, bindingFacetsProvider)
           },
-          false
+          false,
         )
   }
 

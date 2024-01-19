@@ -45,7 +45,7 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
   override fun createEvaluatorView(
     project: Project,
     schemaProvider: SchemaProvider,
-    tableView: TableView
+    tableView: TableView,
   ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
 
   override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
@@ -54,13 +54,13 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
   override fun createExportToFileView(
     project: Project,
     params: ExportDialogParams,
-    analyticsTracker: DatabaseInspectorAnalyticsTracker
+    analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView = ExportToFileDialogViewImpl(project, params)
 
   override fun createExportInProgressView(
     project: Project,
     job: Job,
-    taskDispatcher: CoroutineDispatcher
+    taskDispatcher: CoroutineDispatcher,
   ): ExportInProgressView = ExportInProgressViewImpl(project, job, taskDispatcher)
 
   override fun createDatabaseInspectorView(project: Project) =

@@ -42,7 +42,7 @@ class MergingRenderingQueue(parentDisposable: Disposable) : RenderingQueue {
       null,
       parentDisposable,
       null,
-      Alarm.ThreadToUse.POOLED_THREAD
+      Alarm.ThreadToUse.POOLED_THREAD,
     )
 
   init {

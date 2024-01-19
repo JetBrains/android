@@ -43,7 +43,7 @@ class DebuggableProcessFilterTest {
       emptyMap(),
       USB,
       "MyAvd",
-      "/path"
+      "/path",
     )
     val device: IDevice = adbRule.bridge.devices.single()
     assertThat(device.isPackageDebuggable("com.google.android.webview")).isFalse()
@@ -61,7 +61,7 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
     socket: Socket,
     device: DeviceState,
     command: String,
-    args: String
+    args: String,
   ): Boolean {
     val response =
       when (command) {

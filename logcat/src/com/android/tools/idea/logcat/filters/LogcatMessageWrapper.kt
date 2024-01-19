@@ -42,7 +42,7 @@ private val DATE_TIME_FORMATTER =
  */
 internal class LogcatMessageWrapper(
   val logcatMessage: LogcatMessage,
-  zoneId: ZoneId = ZoneId.systemDefault()
+  zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
   val logLine by lazy { toLine(zoneId) }
 

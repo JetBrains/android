@@ -50,7 +50,7 @@ open class InspectorTests {
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
@@ -63,7 +63,7 @@ open class InspectorTests {
         """
       fun main() {}
     """
-          .trimIndent()
+          .trimIndent(),
       )
     ApplicationManager.getApplication().invokeAndWait {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
@@ -80,7 +80,7 @@ open class InspectorTests {
     ComposePreviewAnimationManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
-      psiFilePointer
+      psiFilePointer,
     ) {}
     Assert.assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
     return ComposePreviewAnimationManager.currentInspector!!

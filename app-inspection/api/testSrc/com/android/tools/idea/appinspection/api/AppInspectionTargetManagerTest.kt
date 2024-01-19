@@ -63,14 +63,14 @@ class AppInspectionTargetManagerTest {
       target.launchInspector(
         AppInspectionTestUtils.createFakeLaunchParameters(
           otherProcessDescriptor,
-          project = TEST_PROJECT
+          project = TEST_PROJECT,
         )
       )
       val disposeClient =
         disposeTarget.launchInspector(
           AppInspectionTestUtils.createFakeLaunchParameters(
             terminateProcessDescriptor,
-            project = "dispose"
+            project = "dispose",
           )
         )
 

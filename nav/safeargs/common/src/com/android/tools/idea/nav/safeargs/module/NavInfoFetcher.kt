@@ -104,7 +104,7 @@ class NavInfoFetcher(
    */
   private val mode: SafeArgsMode,
   /** A callback that will be called when the result of [getCurrentNavInfo] may have changed. */
-  private val onChange: (NavInfoChangeReason) -> Unit = {}
+  private val onChange: (NavInfoChangeReason) -> Unit = {},
 ) : NavInfoFetcherBase, ModificationTracker {
 
   private val modificationTracker = SimpleModificationTracker()
@@ -119,7 +119,7 @@ class NavInfoFetcher(
           if (changedModule == null || changedModule == module) {
             invalidate(NavInfoChangeReason.NAVIGATION_RESOURCE_CHANGED)
           }
-        }
+        },
       )
       // Track changes to module SafeArgs mode.
       subscribe(
@@ -128,12 +128,12 @@ class NavInfoFetcher(
           if (changedModule == module) {
             invalidate(NavInfoChangeReason.SAFE_ARGS_MODE_CHANGED)
           }
-        }
+        },
       )
       // Invalidate on project sync, in case nav version changes.
       subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { invalidate(NavInfoChangeReason.GRADLE_SYNC) }
+        ProjectSystemSyncManager.SyncResultListener { invalidate(NavInfoChangeReason.GRADLE_SYNC) },
       )
       subscribe(
         DumbService.DUMB_MODE,
@@ -145,7 +145,7 @@ class NavInfoFetcher(
           override fun exitDumbMode() {
             invalidate(NavInfoChangeReason.DUMB_MODE_CHANGED)
           }
-        }
+        },
       )
     }
     // Ensure listeners are loaded and sending events.
@@ -224,7 +224,7 @@ class NavStatusCache<TStatus : Any>
 constructor(
   private val onCacheInvalidate: (NavInfoChangeReason) -> Unit,
   private val update: (NavInfo) -> TStatus,
-  navInfoFetcherFactory: ((NavInfoChangeReason) -> Unit) -> NavInfoFetcherBase
+  navInfoFetcherFactory: ((NavInfoChangeReason) -> Unit) -> NavInfoFetcherBase,
 ) {
   constructor(
     /** The [Disposable] which controls the lifetime of this cache. */
@@ -244,11 +244,11 @@ constructor(
      *
      * Will be called with a lock held, and will be called at most once per new [navInfo] generated.
      */
-    update: (NavInfo) -> TStatus
+    update: (NavInfo) -> TStatus,
   ) : this(
     onCacheInvalidate,
     update,
-    { invalidate -> NavInfoFetcher(parent, module, mode, invalidate) }
+    { invalidate -> NavInfoFetcher(parent, module, mode, invalidate) },
   )
 
   private val lock = Any()

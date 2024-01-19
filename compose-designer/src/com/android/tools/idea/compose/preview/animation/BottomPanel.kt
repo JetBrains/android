@@ -40,7 +40,7 @@ import javax.swing.border.MatteBorder
 class BottomPanel(
   val previewState: AnimationPreviewState,
   rootComponent: JComponent,
-  private val tracker: AnimationTracker
+  private val tracker: AnimationTracker,
 ) : JPanel(BorderLayout()) {
 
   var clockTimeMs = 0
@@ -55,7 +55,7 @@ class BottomPanel(
       "ResetCoordinationTimeline",
       listOf(ClockTimeLabel(), Separator()) +
         if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
-        else emptyList()
+        else emptyList(),
     )
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()
@@ -90,7 +90,7 @@ class BottomPanel(
   private inner class ResetTimelineAction :
     AnActionButton(
       message("animation.inspector.action.reset.timeline"),
-      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED
+      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
     ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }

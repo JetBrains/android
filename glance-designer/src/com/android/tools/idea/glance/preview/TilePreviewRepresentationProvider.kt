@@ -37,7 +37,7 @@ import com.intellij.psi.PsiFile
 internal class GlanceTileAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?
+  originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal class GlanceTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
@@ -59,7 +59,7 @@ class TilePreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       GlanceTileAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.GLANCE_WEAR_TILE,
-      ::GlanceTilePreviewToolbar
+      ::GlanceTilePreviewToolbar,
     )
 
   init {
@@ -94,7 +94,7 @@ class TilePreviewRepresentationProvider(
       WEAR_TILE_VIEW_ADAPTER,
       psiFile,
       previewProvider,
-      WearTilesModelAdapter
+      WearTilesModelAdapter,
     )
   }
 

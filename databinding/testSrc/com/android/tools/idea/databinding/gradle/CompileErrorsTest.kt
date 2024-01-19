@@ -41,7 +41,7 @@ class CompileErrorsTest {
     AndroidProjectRule.testProject(
       testProjectTemplateFromPath(
         path = TestDataPaths.PROJECT_WITH_COMPILE_ERRORS,
-        testDataPath = TestDataPaths.TEST_DATA_ROOT
+        testDataPath = TestDataPaths.TEST_DATA_ROOT,
       )
     )
 
