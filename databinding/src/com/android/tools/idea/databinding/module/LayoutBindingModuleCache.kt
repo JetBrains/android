@@ -24,7 +24,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingModeTrackingService
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
 import com.android.tools.idea.databinding.index.BindingLayoutType
-import com.android.tools.idea.databinding.index.BindingXmlIndex
+import com.android.tools.idea.databinding.index.BindingXmlIndexModificationTracker
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
@@ -44,7 +44,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
-import com.intellij.util.indexing.FileBasedIndex
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
@@ -189,7 +188,8 @@ class LayoutBindingModuleCache(private val module: Module) : Disposable {
 
       // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
       // fail with an exception. To prevent this, we abort early with what we have.
-      if (DumbService.isDumb(module.project)) {
+      val project = module.project
+      if (DumbService.isDumb(project)) {
         Logger.getInstance(LayoutBindingModuleCache::class.java)
           .info(
             "Binding classes may be temporarily stale due to indices not being accessible right now."
@@ -201,7 +201,7 @@ class LayoutBindingModuleCache(private val module: Module) : Disposable {
       // so we must incorporate both into the modification count (see b/283753328).
       val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
       val bindingIndexModificationCount =
-        FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, module.project)
+        BindingXmlIndexModificationTracker.getInstance(project).modificationCount
       val modificationCount = moduleResources.modificationCount + bindingIndexModificationCount
       synchronized(lock) {
         if (modificationCount != lastResourcesModificationCount) {

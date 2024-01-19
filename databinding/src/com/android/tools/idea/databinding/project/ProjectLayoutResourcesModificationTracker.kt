@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.databinding.project
 
-import com.android.tools.idea.databinding.index.BindingXmlIndex
+import com.android.tools.idea.databinding.index.BindingXmlIndexModificationTracker
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.util.indexing.FileBasedIndex
 
 /**
  * Modification tracker which changes if any layout resource file across the whole project changes.
@@ -47,7 +46,7 @@ class ProjectLayoutResourcesModificationTracker(private val project: Project) :
         StudioResourceRepositoryManager.getModuleResources(facet).modificationCount
       }
     val bindingIndexModificationCount =
-      FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, project)
+      BindingXmlIndexModificationTracker.getInstance(project).modificationCount
     return resourceModificationCount + bindingIndexModificationCount
   }
 }

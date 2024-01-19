@@ -22,8 +22,11 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
@@ -45,17 +48,18 @@ import java.io.DataInput
 import java.io.DataOutput
 import java.io.Reader
 
+private val BINDING_XML_INDEX_NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
+
 /** File based index for data binding layout xml files. */
 class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
   /** An entry into this index, containing information associated with a target layout file. */
   data class Entry(val file: VirtualFile, val data: BindingXmlData)
 
   companion object {
-    @JvmField val NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
-
     private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
       val data =
-        FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project) ?: return null
+        FileBasedIndex.getInstance().getSingleEntryIndexData(BINDING_XML_INDEX_NAME, file, project)
+          ?: return null
 
       val parentFolderName = file.parent?.name ?: return null
       if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT)
@@ -76,7 +80,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     private fun getEntriesForLayout(
       project: Project,
       layoutName: String,
-      scope: GlobalSearchScope
+      scope: GlobalSearchScope,
     ) =
       FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).mapNotNull { file ->
         getDataForFile(file, project)?.let { data -> Entry(file, data) }
@@ -142,7 +146,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
               IOUtil.readUTF(input),
               IOUtil.readUTF(input),
               readNullableUTF(input),
-              readNullableUTF(input)
+              readNullableUTF(input),
             )
           )
         }
@@ -153,7 +157,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           customBindingName,
           imports,
           variables,
-          viewIds
+          viewIds,
         )
       }
 
@@ -168,7 +172,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
   }
 
   override fun getName(): ID<Int, BindingXmlData> {
-    return NAME
+    return BINDING_XML_INDEX_NAME
   }
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
@@ -223,7 +227,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
               nsPrefix: String?,
               nsURI: String?,
               systemID: String,
-              lineNr: Int
+              lineNr: Int,
             ) {
               tags.add(TagData(name))
               if (name == TAG_LAYOUT) {
@@ -240,7 +244,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
               nsPrefix: String?,
               nsURI: String?,
               value: String,
-              type: String
+              type: String,
             ) {
               val currTag = tags.last() // We are processing a tag so we know there's at least one
               when (currTag.name) {
@@ -307,7 +311,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
             override fun elementAttributesProcessed(
               name: String,
               nsPrefix: String?,
-              nsURI: String?
+              nsURI: String?,
             ) {
               val currTag = tags.last() // We are processing a tag so we know there's at least one
               when (currTag.name) {
@@ -334,7 +338,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                           currTag.viewId!!,
                           viewName,
                           currTag.viewLayout,
-                          currTag.viewTypeOverride
+                          currTag.viewTypeOverride,
                         )
                       )
                     }
@@ -345,7 +349,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
             override fun endElement(s: String?, s1: String?, s2: String?) {
               tags.removeAt(tags.lastIndex)
             }
-          }
+          },
         )
 
         return BindingXmlData(
@@ -355,7 +359,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           customBindingName,
           imports,
           variables,
-          viewIds
+          viewIds,
         )
       }
     }
@@ -501,4 +505,15 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   override fun close() {} // We just point at a String in memory, no need to close anything
+}
+
+@Service(Service.Level.PROJECT)
+class BindingXmlIndexModificationTracker(private val project: Project) : ModificationTracker {
+  override fun getModificationCount() =
+    FileBasedIndex.getInstance().getIndexModificationStamp(BINDING_XML_INDEX_NAME, project)
+
+  companion object {
+    fun getInstance(project: Project): ModificationTracker =
+      project.service<BindingXmlIndexModificationTracker>()
+  }
 }
