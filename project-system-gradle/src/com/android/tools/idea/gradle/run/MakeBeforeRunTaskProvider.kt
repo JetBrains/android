@@ -26,7 +26,6 @@ import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
 import com.android.builder.model.PROPERTY_SUPPORTS_PRIVACY_SANDBOX
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
@@ -69,7 +68,6 @@ import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOp
 import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -126,9 +124,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   }
 
   fun configurationTypeIsSupported(runConfiguration: RunConfiguration): Boolean {
-    return (ApplicationManager.getApplication().isUnitTestMode || IdeInfo.getInstance().isAndroidStudio)
-           && runConfiguration.project.getProjectSystem() is GradleProjectSystem
-           && (runConfiguration is PreferGradleMake || isUnitTestConfiguration(runConfiguration))
+    return runConfiguration.project.getProjectSystem() is GradleProjectSystem &&
+      (runConfiguration is PreferGradleMake || isUnitTestConfiguration(runConfiguration))
   }
 
   fun configurationTypeIsEnabledByDefault(runConfiguration: RunConfiguration): Boolean = runConfiguration is PreferGradleMake
