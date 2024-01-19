@@ -24,9 +24,8 @@ import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
 
-fun Project.getViewBindingClassName() : String {
-  return if (isAndroidx()) "androidx.viewbinding.ViewBinding"
-  else "android.viewbinding.ViewBinding"
+fun Project.getViewBindingClassName(): String {
+  return if (isAndroidx()) "androidx.viewbinding.ViewBinding" else "android.viewbinding.ViewBinding"
 }
 
 fun AndroidFacet.isViewBindingEnabled() = getModuleSystem().isViewBindingEnabled
@@ -34,5 +33,6 @@ fun AndroidFacet.isViewBindingEnabled() = getModuleSystem().isViewBindingEnabled
 // Note: We don't really need the "Project" here but it keeps the function from being globally
 // scoped and also indicates that the tracker is associated with a project and not a module.
 fun Project.getViewBindingEnabledTracker(): ModificationTracker {
-  return LayoutBindingSupport.EP_NAME.extensionList.firstOrNull()?.viewBindingEnabledTracker ?: ModificationTracker { 0L }
+  return LayoutBindingSupport.EP_NAME.extensionList.firstOrNull()?.viewBindingEnabledTracker
+    ?: ModificationTracker { 0L }
 }

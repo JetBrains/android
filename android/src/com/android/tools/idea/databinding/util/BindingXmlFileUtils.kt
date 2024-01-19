@@ -54,12 +54,11 @@ fun XmlFile.findImportTag(shortName: String): XmlTag? {
     val alias = tag.getAttributeValue(SdkConstants.ATTR_ALIAS)
     if (alias == null) {
       val type = tag.getAttributeValue(SdkConstants.ATTR_TYPE) ?: continue
-      val anImport = ImportData(StringUtil.unescapeXmlEntities(type), null);
+      val anImport = ImportData(StringUtil.unescapeXmlEntities(type), null)
       if (anImport.shortName == shortName) {
         return tag
       }
-    }
-    else if (shortName == StringUtil.unescapeXmlEntities(alias)) {
+    } else if (shortName == StringUtil.unescapeXmlEntities(alias)) {
       return tag
     }
   }
@@ -80,9 +79,7 @@ private fun XmlFile.findDataTag(): XmlTag? {
   return null
 }
 
-/**
- * Finds the first attribute in the format of android:id="[name]".
- */
+/** Finds the first attribute in the format of android:id="[name]". */
 fun XmlFile.findIdAttribute(name: String): XmlAttribute? {
   val rootTag = rootTag ?: return null
   if (rootTag.name == SdkConstants.TAG_LAYOUT) {
@@ -95,12 +92,13 @@ fun XmlFile.findIdAttribute(name: String): XmlAttribute? {
  * Recursively go through all XML tags to find the attribute in the format of android:id="[name]".
  */
 private fun XmlTag.findIdAttribute(name: String): XmlAttribute? {
-  attributes.firstOrNull { attribute ->
-    attribute.name == SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_ID && attribute.value == SdkConstants.NEW_ID_PREFIX + name
-  }?.let { validAttribute ->
-    return validAttribute
-  }
-  return subTags.firstNotNullOfOrNull { tag ->
-    tag.findIdAttribute(name)
-  }
+  attributes
+    .firstOrNull { attribute ->
+      attribute.name == SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_ID &&
+        attribute.value == SdkConstants.NEW_ID_PREFIX + name
+    }
+    ?.let { validAttribute ->
+      return validAttribute
+    }
+  return subTags.firstNotNullOfOrNull { tag -> tag.findIdAttribute(name) }
 }

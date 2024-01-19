@@ -19,11 +19,11 @@ import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.project.Project
 
-class DataBindingTrackerSyncListener(project: Project) : ProjectSystemSyncManager.SyncResultListener {
+class DataBindingTrackerSyncListener(project: Project) :
+  ProjectSystemSyncManager.SyncResultListener {
   private val dataBindingTracker = DataBindingTracker.getInstance(project)
 
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     dataBindingTracker.trackPolledMetaData()
   }
 }
-
