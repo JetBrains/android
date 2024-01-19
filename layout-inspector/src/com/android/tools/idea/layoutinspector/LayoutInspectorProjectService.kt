@@ -245,8 +245,7 @@ fun isPreferredProcess(
   val deviceModel = deviceModelProvider()
   return if (
     LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled &&
-      deviceModel?.forcedDeviceSerialNumber != null &&
-      deviceModel.forcedDeviceSerialNumber != processDescriptor.device.serial
+      deviceModel?.forcedDeviceSerialNumber != processDescriptor.device.serial
   ) {
     // When embedded LI is enabled, we don't want to force-connect to a process that doesn't belong
     // to the selected device.
