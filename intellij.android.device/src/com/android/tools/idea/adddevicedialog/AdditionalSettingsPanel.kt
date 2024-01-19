@@ -24,9 +24,12 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -39,7 +42,7 @@ internal fun AdditionalSettingsPanel(
   skins: ImmutableCollection<Skin>,
   state: AdditionalSettingsPanelState,
   onDeviceChange: (VirtualDevice) -> Unit,
-  onImportButtonClick: () -> Unit
+  onImportButtonClick: () -> Unit,
 ) {
   Row {
     Text("Device skin")
@@ -51,6 +54,7 @@ internal fun AdditionalSettingsPanel(
   NetworkGroup(device, onDeviceChange)
   StartupGroup(device, onDeviceChange)
   StorageGroup(device, state, onDeviceChange)
+  EmulatedPerformanceGroup(device, onDeviceChange)
 }
 
 @Composable
@@ -103,7 +107,7 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
         ORIENTATIONS.forEach {
           selectableItem(
             device.orientation == it,
-            onClick = { onDeviceChange(device.copy(orientation = it)) }
+            onClick = { onDeviceChange(device.copy(orientation = it)) },
           ) {
             Text(it.shortDisplayValue)
           }
@@ -129,7 +133,7 @@ private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 private fun StorageGroup(
   device: VirtualDevice,
   state: AdditionalSettingsPanelState,
-  onDeviceChange: (VirtualDevice) -> Unit
+  onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   GroupHeader("Storage")
 
@@ -148,7 +152,7 @@ private fun StorageGroup(
         } catch (exception: NumberFormatException) {
           // Use the old storage
         }
-      }
+      },
     )
 
     Dropdown(
@@ -157,12 +161,50 @@ private fun StorageGroup(
       onSelectedItemChange = {
         val newStorage = StorageCapacity(device.internalStorage.value, it)
         onDeviceChange(device.copy(internalStorage = newStorage))
-      }
+      },
     )
   }
 }
 
 private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
+
+@Composable
+private fun EmulatedPerformanceGroup(
+  device: VirtualDevice,
+  onDeviceChange: (VirtualDevice) -> Unit,
+) {
+  GroupHeader("Emulated Performance")
+
+  CheckboxRow(
+    "Enable multithreading",
+    device.cpuCoreCount != null,
+    onCheckedChange = {
+      val count = if (it) EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES else null
+      onDeviceChange(device.copy(cpuCoreCount = count))
+    },
+  )
+
+  Row {
+    Text("CPU cores")
+    val cpuCoreCount = device.cpuCoreCount ?: 1
+
+    Dropdown(
+      enabled = device.cpuCoreCount != null,
+      menuContent = {
+        for (count in 1..max(1, Runtime.getRuntime().availableProcessors() / 2)) {
+          selectableItem(
+            cpuCoreCount == count,
+            onClick = { onDeviceChange(device.copy(cpuCoreCount = count)) },
+          ) {
+            Text(count.toString())
+          }
+        }
+      },
+    ) {
+      Text(cpuCoreCount.toString())
+    }
+  }
+}
 
 internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
   internal var internalStorageTextFieldValue by
@@ -173,7 +215,7 @@ internal class AdditionalSettingsPanelState internal constructor(device: Virtual
 private fun <I> Dropdown(
   selectedItem: I,
   items: ImmutableCollection<I>,
-  onSelectedItemChange: (I) -> Unit
+  onSelectedItemChange: (I) -> Unit,
 ) {
   Dropdown(
     menuContent = {

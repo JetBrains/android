@@ -35,5 +35,6 @@ internal constructor(
   internal val latency: AvdNetworkLatency,
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
-  internal val internalStorage: StorageCapacity
+  internal val internalStorage: StorageCapacity,
+  internal val cpuCoreCount: Int?,
 )
