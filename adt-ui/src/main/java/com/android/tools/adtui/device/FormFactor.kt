@@ -18,7 +18,7 @@ package com.android.tools.adtui.device
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
-import com.android.sdklib.AndroidVersion.VersionCodes.N_MR1
+import com.android.sdklib.AndroidVersion.VersionCodes.R
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
@@ -61,7 +61,7 @@ enum class FormFactor(
 ) {
   MOBILE("Mobile", "Phone and Tablet", RECOMMENDED_MIN_SDK_VERSION, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
-  WEAR("Wear", "Wear OS", N_MR1, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
+  WEAR("Wear", "Wear OS", R, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
   TV("TV", "Television", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG)),
