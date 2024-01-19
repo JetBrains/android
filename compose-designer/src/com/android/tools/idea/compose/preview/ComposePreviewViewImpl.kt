@@ -60,6 +60,8 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.SlowOperations
+import com.intellij.util.ThrowableRunnable
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
@@ -327,11 +329,12 @@ internal class ComposePreviewViewImpl(
       val actionDataText =
         "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
-        psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
-        workbench
-          .repaint() // Repaint the workbench, otherwise the text and link will keep displaying if
-        // the mouse is hovering the link
-      }
+        SlowOperations.allowSlowOperations(ThrowableRunnable {
+          psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
+          // Repaint the workbench, otherwise the text and link will keep displaying if  the mouse
+          // is hovering the link
+          workbench.repaint()
+        })}
     }
 
   private val actionsToolbar: ActionsToolbar
