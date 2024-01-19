@@ -15,18 +15,12 @@
  */
 package com.android.tools.fonts
 
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.Locale
-import com.android.ide.common.resources.ResourceRepository
 import com.android.testutils.TestUtils
-import com.android.tools.res.CacheableResourceRepository
-import com.android.tools.res.ResourceNamespacing
-import com.android.tools.res.ResourceRepositoryManager
+import com.android.tools.res.SingleRepoResourceRepositoryManager
 import com.android.tools.res.apk.ApkResourceRepository
 import com.android.tools.res.apk.TEST_DATA_DIR
 import com.android.tools.res.ids.apk.ApkResourceIdManager
 import com.android.tools.res.ids.resolver
-import com.google.common.collect.ImmutableList
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -39,19 +33,6 @@ import org.junit.Test
 class ProjectFontsForApkTest {
   private val rootDisposable: Disposable = Disposer.newDisposable()
   private val application: MockApplication = MockApplication(rootDisposable)
-
-  private class SingleRepoResourceRepositoryManager(
-    resourcesRepo: CacheableResourceRepository
-  ) : ResourceRepositoryManager {
-    override val appResources: CacheableResourceRepository = resourcesRepo
-    override val projectResources: ResourceRepository = resourcesRepo
-    // TODO(): Support namespaced resources
-    override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
-    override val namespace: ResourceNamespace = ResourceNamespace.RES_AUTO
-    override val localesInProject: ImmutableList<Locale> = ImmutableList.of()
-    override val moduleResources: ResourceRepository = resourcesRepo
-    override fun getFrameworkResources(languages: Set<String>): ResourceRepository? = null
-  }
 
   @Before
   fun setUp() {
