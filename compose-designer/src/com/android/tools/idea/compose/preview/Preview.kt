@@ -1336,7 +1336,7 @@ class ComposePreviewRepresentation(
         composeWorkBench.onRefreshCompleted()
       }
 
-      if (previewModeManager.mode.value is PreviewMode.UiCheck) {
+      if (it == null && previewModeManager.mode.value is PreviewMode.UiCheck) {
         postIssueUpdateListenerForUiCheck.activate()
       }
 
