@@ -8,7 +8,7 @@ import com.intellij.testFramework.TestDataPath
 import org.jetbrains.kotlin.android.KotlinTestUtils
 
 @TestDataPath("\$PROJECT_ROOT")
-class AndroidLintQuickfixTestGenerated {
+class FindViewByIdQuickFixTest {
   // This isn't actually lint, but TypeParameterFindViewByIdInspection
   @TestDataPath("\$PROJECT_ROOT")
   class FindViewById : AbstractAndroidLintQuickfixTest() {
