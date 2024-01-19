@@ -128,11 +128,12 @@ constructor(
    * creates a device, or a DropDownAction that shows a popup menu of ways to create a device.
    */
   private val addDevice: AnAction? = run {
-    val createDeviceActions = createDeviceActions.map { it.toAnAction() }
-    val createTemplateActions = createTemplateActions.map { it.toAnAction() }
+    val createActionsCount = createDeviceActions.size + createTemplateActions.size
+    val createDeviceActions = createDeviceActions.map { it.toAnAction(createActionsCount == 1) }
+    val createTemplateActions = createTemplateActions.map { it.toAnAction(createActionsCount == 1) }
     val createActions = createDeviceActions + createTemplateActions
 
-    when (createActions.size) {
+    when (createActionsCount) {
       0 -> null
       1 -> createActions[0]
       else ->
@@ -287,19 +288,24 @@ constructor(
     }
   }
 
-  private fun <A : DeviceAction> A.toAnAction(action: suspend A.() -> Unit): DumbAwareAction {
+  private fun <A : DeviceAction> A.toAnAction(
+    action: suspend A.() -> Unit,
+    isIconEnabled: Boolean = true
+  ): DumbAwareAction {
     panelScope.launch {
       // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
       // update the AnAction presentation
       presentation.collect { ActivityTracker.getInstance().inc() }
     }
-    return object :
-      DumbAwareAction(presentation.value.label, presentation.value.label, presentation.value.icon) {
+    val icon = if (isIconEnabled) presentation.value.icon else null
+    return object : DumbAwareAction(presentation.value.label, presentation.value.label, icon) {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = presentation.value.enabled
-        e.presentation.icon = presentation.value.icon
+        if (isIconEnabled) {
+          e.presentation.icon = presentation.value.icon
+        }
         e.presentation.text = presentation.value.label
         e.presentation.description = presentation.value.label
       }
@@ -310,10 +316,11 @@ constructor(
     }
   }
 
-  private fun CreateDeviceAction.toAnAction() = toAnAction(CreateDeviceAction::create)
+  private fun CreateDeviceAction.toAnAction(isIconEnabled: Boolean) =
+    toAnAction(CreateDeviceAction::create, isIconEnabled)
 
-  private fun CreateDeviceTemplateAction.toAnAction() =
-    toAnAction(CreateDeviceTemplateAction::create)
+  private fun CreateDeviceTemplateAction.toAnAction(isIconEnabled: Boolean) =
+    toAnAction(CreateDeviceTemplateAction::create, isIconEnabled)
 
   private fun createToolbar(actions: List<AnAction>): ActionToolbar {
     val toolbar =
