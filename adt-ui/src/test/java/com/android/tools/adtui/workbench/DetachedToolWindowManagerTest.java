@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.KeyboardFocusManager;
 import java.util.Collections;
@@ -48,7 +49,7 @@ import org.mockito.Mock;
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
-  private static volatile boolean DARK = UIUtil.isUnderDarcula();
+  private static volatile boolean DARK = !JBColor.isBright();
   private static final String WORKBENCH_NAME1 = "NELE_EDITOR";
   private static final String WORKBENCH_TITLE1 = "Designer";
   private static final String WORKBENCH_NAME2 = "Layout Inspector";

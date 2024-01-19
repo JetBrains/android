@@ -112,7 +112,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   protected void installDefaults() {
-    padding = JBUI.insets(0, UIUtil.isUnderDarcula() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
+    padding = JBUI.insets(0, !JBColor.isBright() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
     squareButton = false;
   }
 

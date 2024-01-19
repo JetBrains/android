@@ -19,6 +19,7 @@ import com.intellij.openapi.actionSystem.ActionButtonComponent;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook;
 import com.intellij.openapi.keymap.impl.IdeMouseEventDispatcher;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
@@ -77,7 +78,7 @@ public class MEActionButton extends JButton {
       super.paintComponent(g);
       return;
     }
-    if (!UIUtil.isUnderDarcula()) {
+    if (!!JBColor.isBright()) {
       paintBackground(g);
     }
     super.paintComponent(g);
