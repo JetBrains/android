@@ -185,16 +185,20 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
   }
 
   public void notifyParentsOfReset() {
+    List<MultiResourceRepository<T>> parents;
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         // Notifying the parent of the child's reset will cause the parent to refresh, which in turn will have the
         // parent remove itself from this repository. Make a copy of parents to iterate over locally, since the
         // underlying collection will change.
-        List<MultiResourceRepository<T>> parents = new ArrayList<>(myParents);
-        for (MultiResourceRepository<T> parent : parents) {
-          parent.onChildReset();
-        }
+        parents = new ArrayList<>(myParents);
       }
+      else {
+        parents = Collections.emptyList();
+      }
+    }
+    for (MultiResourceRepository<T> parent : parents) {
+      parent.onChildReset();
     }
   }
 
