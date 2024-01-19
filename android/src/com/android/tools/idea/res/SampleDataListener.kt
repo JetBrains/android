@@ -22,6 +22,7 @@ import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -41,7 +42,6 @@ class SampleDataListener(project: Project) :
   PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener, Disposable {
   init {
     VirtualFileManager.getInstance().addVirtualFileListener(this, this)
-    AndroidFileChangeListener.getInstance(project).setSampleDataListener(this)
   }
 
   override fun dispose() {}
@@ -104,6 +104,8 @@ class SampleDataListener(project: Project) :
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
 
     @JvmStatic fun getInstance(project: Project): SampleDataListener = project.service()
+
+    fun getInstanceIfCreated(project: Project): SampleDataListener? = project.serviceIfCreated()
   }
 }
 

@@ -93,7 +93,8 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   private val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
   private val editorNotifications = EditorNotifications.getInstance(project)
 
-  private var sampleDataListener: SampleDataListener? = null
+  private val sampleDataListener
+    get() = SampleDataListener.getInstanceIfCreated(project)
 
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
@@ -113,22 +114,6 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   }
 
   override fun dispose() {}
-
-  /**
-   * Registers a [SampleDataListener] to be notified of possibly relevant PSI events. Because there
-   * should only be a single instance of [SampleDataListener] per project (it's a project service),
-   * this method can only be called once.
-   *
-   * We register the listener with this method instead of doing it right away in the constructor
-   * because [SampleDataListener] only needs to know about PSI updates if the user is working with
-   * resource or activity files.
-   *
-   * @param sampleDataListener the project's [SampleDataListener]
-   */
-  fun setSampleDataListener(sampleDataListener: SampleDataListener?) {
-    check(this.sampleDataListener == null) { "SampleDataListener already set!" }
-    this.sampleDataListener = sampleDataListener
-  }
 
   private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {
     if (file != null) {
