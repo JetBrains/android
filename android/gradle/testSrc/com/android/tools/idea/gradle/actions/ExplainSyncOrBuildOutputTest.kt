@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.testutils.MockitoKt
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetailsContext
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorFileLocationContext
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
@@ -60,6 +62,7 @@ import com.intellij.util.concurrency.Invoker
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -97,6 +100,12 @@ class ExplainSyncOrBuildOutputTest {
   @get:Rule
   val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, testStudioBot), EdtRule())
 
+  @Before
+  fun setUp() {
+    // By default, enable context for tests
+    StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.override(true)
+  }
+
   @Test
   fun testActionPerformedExplainerText() {
     val panel = createTree()
@@ -111,12 +120,28 @@ class ExplainSyncOrBuildOutputTest {
         I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
 
         Here are more details about the error and my project:
-
         START CONTEXT
         Project name: ${project.name}
         Project path: ${project.basePath}
         END CONTEXT
 
+        Explain this error and how to fix it.
+      """.trimIndent(), testStudioBot.wasCalled)
+  }
+
+  @Test
+  fun testActionPerformedWithContextFlagDisabled() {
+    StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.override(false)
+    val panel = createTree()
+    panel.setSelectionRow(5)
+
+    val action = ExplainSyncOrBuildOutput()
+    val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+
+    action.actionPerformed(event)
+    assertEquals(
+      """
+        I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
         Explain this error and how to fix it.
       """.trimIndent(), testStudioBot.wasCalled)
   }

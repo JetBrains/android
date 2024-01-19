@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.StudioBot
@@ -101,12 +102,14 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
       val result = node.result
       val isSyncIssue = (result is AndroidSyncIssueEventResult)
 
-      val aiExcludeService = studioBot.aiExcludeService()
-      val filesUsedAsContext = mutableListOf<VirtualFile>()
+      val contextEnabled = StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.get()
+      val compilerErrorContextEnabled = StudioFlags.STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED.get()
+      val gradleErrorContextEnabled = StudioFlags.STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED.get()
 
       // With context enabled, we can build a richer query by looking at the error details and location
-      val context = buildString {
-
+      val aiExcludeService = studioBot.aiExcludeService()
+      val filesUsedAsContext = mutableListOf<VirtualFile>()
+      val context = if (!contextEnabled) null else buildString {
         val projectInfo =
           """
         Project name: ${project.name}
@@ -125,8 +128,11 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         // Look at the error location and add context from that file, if applicable.
         val fileLocation = node.navigatables.filterIsInstance<FileNavigatable>().firstOrNull()
         val file = fileLocation?.fileDescriptor?.file
-
-        if (file != null && System.getProperty("studiobot.use.project.context.for.actions", "true").toBoolean()) {
+        val fileType = file?.fileType
+        val isCompilerIssue = fileType is JavaFileType || fileType is KotlinFileType
+        if (file != null &&
+            (isCompilerIssue && compilerErrorContextEnabled || !isCompilerIssue && gradleErrorContextEnabled)
+          ) {
           getErrorFileLocationContext(fileLocation, project, aiExcludeService)?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.add(it.second)
@@ -134,17 +140,11 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         }
 
         // For sync-related issues, attach source code from Gradle files in the project
-        if (result != null) {
-          val fileType = file?.fileType
-          val isCompilerIssue = fileType is JavaFileType || fileType is KotlinFileType
-
-          val areGradleFilesRelevant = (isSyncIssue || result is FailureResult) && !isCompilerIssue
-
-          if (areGradleFilesRelevant) {
-            getGradleFilesContext(project, aiExcludeService)?.let {
-              append("\n${it.first}\n")
-              filesUsedAsContext.addAll(it.second)
-            }
+        val areGradleFilesRelevant = (isSyncIssue || result is FailureResult) && !isCompilerIssue
+        if (areGradleFilesRelevant && gradleErrorContextEnabled) {
+          getGradleFilesContext(project, aiExcludeService)?.let {
+            append("\n${it.first}\n")
+            filesUsedAsContext.addAll(it.second)
           }
         }
       }
@@ -156,26 +156,25 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         """
           I'm getting an error trying to $issueType my project. The error is "$errorName".
           ${if (shortDescription == null) "" else "The description is \"$shortDescription\".\n"}
-          Here are more details about the error and my project:
-
-          START CONTEXT
           ___CONTEXT_GOES_HERE___
-          END CONTEXT
-
           Explain this error and how to fix it.
         """.trimIndent()
 
       // Trim down the context so that the entire query is below the maximum length
-      val trimmedContext = context.take(studioBot.MAX_QUERY_CHARS - queryScaffold.length)
+      val trimmedContext = context?.take(studioBot.MAX_QUERY_CHARS - queryScaffold.length)
+
+      val contextWithIntroAndBorders =
+        if (trimmedContext == null) "" else
+          "\nHere are more details about the error and my project:\nSTART CONTEXT\n$trimmedContext\nEND CONTEXT\n\n"
 
       // Construct the final query
-      val query = queryScaffold.replace("___CONTEXT_GOES_HERE___", trimmedContext)
+      val query = queryScaffold.replace("\n___CONTEXT_GOES_HERE___\n", contextWithIntroAndBorders)
 
       val source = if (isSyncIssue) StudioBot.RequestSource.SYNC else StudioBot.RequestSource.BUILD
 
       // This is how the query will appear in the chat timeline
       val displayText = "Explain build error: $errorName"
-      val validatedQuery = studioBot.aiExcludeService()
+      val validatedQuery = aiExcludeService
         .validateQuery(project, query, filesUsedAsContext)
         .getOrThrow()
       studioBot.chat(project).sendChatQuery(validatedQuery, source, displayText = displayText)

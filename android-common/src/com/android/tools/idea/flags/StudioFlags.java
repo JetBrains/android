@@ -28,6 +28,7 @@ import com.android.flags.IntFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.IdeChannel;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
@@ -1745,6 +1746,36 @@ public final class StudioFlags {
                     "Enable sending additional file context with completion requests",
                     "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
                     false);
+
+  public static final Flag<Boolean> STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
+                    "Enable sending context with build/sync error queries.",
+                    "When enabled, build/sync error queries will attach context from the project.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
+                "Enable sending context with compiler error queries.",
+                "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "gradle.error.context.enabled",
+                    "Enable sending contents of Gradle build files with applicable sync/build error queries.",
+                    "When enabled, applicable sync/build error queries will attach context (e.g. build file contents), from the project.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_EDITOR_ACTION_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.action.context.enabled",
+                    "Enable sending context with editor actions.",
+                    "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_CHAT_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.context.enabled",
+                    "Enable sending context with chat queries.",
+                    "When enabled, chat queries will attach context (e.g. project structure, currently open file) from the project.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
