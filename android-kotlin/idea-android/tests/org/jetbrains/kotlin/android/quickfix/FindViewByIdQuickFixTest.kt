@@ -4,102 +4,84 @@
  */
 package org.jetbrains.kotlin.android.quickfix
 
+import com.intellij.testFramework.TestDataFile
 import com.intellij.testFramework.TestDataPath
-import org.jetbrains.kotlin.android.KotlinTestUtils
 
 @TestDataPath("\$PROJECT_ROOT")
-class FindViewByIdQuickFixTest {
-  // This isn't actually lint, but TypeParameterFindViewByIdInspection
-  @TestDataPath("\$PROJECT_ROOT")
-  class FindViewById : AbstractAndroidLintQuickfixTest() {
+class FindViewByIdQuickFixTest : AbstractAndroidLintQuickfixTest() {
     fun testAlreadyHasTypeArgument() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/alreadyHasTypeArgument.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/alreadyHasTypeArgument.kt"))
     }
 
     fun testCastDoesNotSatisfyTypeParameterBounds() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/castDoesNotSatisfyTypeParameterBounds.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/castDoesNotSatisfyTypeParameterBounds.kt"))
     }
 
     fun testFindViewWithTag() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/findViewWithTag.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/findViewWithTag.kt"))
     }
 
     fun testNotReturningTypeParameter() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/notReturningTypeParameter.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/notReturningTypeParameter.kt"))
     }
 
     fun testNoTypeParameter() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/noTypeParameter.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/noTypeParameter.kt"))
     }
 
     fun testNullableType() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/nullableType.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/nullableType.kt"))
     }
 
     fun testParenthesized() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/parenthesized.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/parenthesized.kt"))
     }
 
     fun testPlatformNotNullExpression() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/platformNotNullExpression.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/platformNotNullExpression.kt"))
     }
 
     fun testPlatformNullableExpression() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/platformNullableExpression.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/platformNullableExpression.kt"))
     }
 
     fun testQualifiedRequireView() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/qualifiedRequireView.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/qualifiedRequireView.kt"))
     }
 
     fun testRequireView() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/requireView.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/requireView.kt"))
     }
 
     fun testRequireViewNullable() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/requireViewNullable.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/requireViewNullable.kt"))
     }
 
     fun testSafeCallOfNotNullFunction() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunction.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunction.kt"))
     }
 
     fun testSafeCallOfNotNullFunctionWithNonNullCast() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunctionWithNonNullCast.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunctionWithNonNullCast.kt"))
     }
 
     fun testSafeCast() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCast.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/safeCast.kt"))
     }
 
     fun testSimple() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/simple.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/simple.kt"))
     }
 
     fun testTooManyTypeParameters() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/tooManyTypeParameters.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/tooManyTypeParameters.kt"))
     }
 
     fun testVariableTypeAlreadyExists() {
-      val fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/variableTypeAlreadyExists.kt")
-      doTest(fileName)
+        doTest(testFile("idea-android/testData/android/lintQuickfix/findViewById/variableTypeAlreadyExists.kt"))
     }
-  }
+
+    private fun testFile(@TestDataFile testFile: String): String {
+        return testFile
+    }
 }
