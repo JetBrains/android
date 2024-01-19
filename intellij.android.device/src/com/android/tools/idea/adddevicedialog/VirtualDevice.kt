@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 
 @Immutable
@@ -37,4 +38,5 @@ internal constructor(
   internal val defaultBoot: Boot,
   internal val internalStorage: StorageCapacity,
   internal val cpuCoreCount: Int?,
+  internal val graphicAcceleration: GpuMode,
 )

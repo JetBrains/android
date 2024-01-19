@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.EmulatedProperties
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
@@ -204,7 +205,21 @@ private fun EmulatedPerformanceGroup(
       Text(cpuCoreCount.toString())
     }
   }
+
+  Row {
+    Text("Graphic acceleration")
+
+    Dropdown(
+      device.graphicAcceleration,
+      GRAPHIC_ACCELERATION_ITEMS,
+      onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
+    )
+  }
 }
+
+// TODO The third item depends on the system image
+private val GRAPHIC_ACCELERATION_ITEMS =
+  GpuMode.values().filterNot { it == GpuMode.OFF }.toImmutableList()
 
 internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
   internal var internalStorageTextFieldValue by

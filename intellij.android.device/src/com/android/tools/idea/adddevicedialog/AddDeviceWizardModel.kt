@@ -23,6 +23,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.sdk.AndroidSdks
@@ -56,6 +57,7 @@ internal constructor(
         Boot.QUICK,
         StorageCapacity(2_048, StorageCapacity.Unit.MB),
         EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
+        GpuMode.AUTO,
       )
     )
   }

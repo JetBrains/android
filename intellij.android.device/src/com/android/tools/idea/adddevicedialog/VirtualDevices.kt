@@ -57,8 +57,11 @@ internal object VirtualDevices {
         "hw.device.manufacturer" to "Google",
         "hw.device.name" to "pixel_7",
         "hw.gps" to "yes",
+        // TODO This depends on the system image and device.graphicAcceleration. See
+        //   ConfigureAvdOptionsStep.java.
         "hw.gpu.enabled" to "yes",
-        "hw.gpu.mode" to "auto",
+        // TODO Older emulators expect "guest" instead of "software". See AvdOptionsModel.java.
+        "hw.gpu.mode" to device.graphicAcceleration.gpuSetting,
         "hw.initialOrientation" to ScreenOrientation.PORTRAIT.shortDisplayValue.lowercase(),
         "hw.keyboard" to "yes",
         "hw.lcd.density" to "420",
