@@ -122,11 +122,6 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
   }
 
   @Override
-  public void deselectNotify() {
-    FileEditor.super.deselectNotify();
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 

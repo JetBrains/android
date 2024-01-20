@@ -193,12 +193,6 @@ class FontEditor implements FileEditor {
     return NAME;
   }
 
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditor.super.getState(level);
-  }
-
   @Override
   public void setState(@NotNull FileEditorState state) {
   }

@@ -93,11 +93,6 @@ public class BackNavigationComponent extends JPanel {
       public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
         updateBackNavigation();
       }
-
-      @Override
-      public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
-        return DesignSurfaceListener.super.activatePreferredEditor(surface, component);
-      }
     };
   }
 

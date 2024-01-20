@@ -124,9 +124,4 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   public final PsiFile getContainingFile() {
     return myFile;
   }
-
-  @Override
-  public TextRange getTextRange() {
-    return super.getTextRange();
-  }
 }

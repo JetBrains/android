@@ -96,11 +96,6 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   }
 
   @Override
-  public boolean startInWriteAction() {
-    return super.startInWriteAction();
-  }
-
-  @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file instanceof XmlFile && file.isValid() && AndroidFacet.getInstance(file) != null) {
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
@@ -552,13 +547,6 @@ public class OverrideResourceAction extends AbstractIntentionAction {
           }
         }
       }
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      return super.isApplicable(startElement, endElement, contextType);
     }
   }
 }

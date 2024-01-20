@@ -59,11 +59,6 @@ public class UnusedResourcesAction extends BaseRefactoringAction {
   }
 
   @Override
-  protected boolean isAvailableForLanguage(Language language) {
-    return super.isAvailableForLanguage(language);
-  }
-
-  @Override
   public boolean isEnabledOnElements(@NotNull PsiElement[] elements) {
     return true;
   }

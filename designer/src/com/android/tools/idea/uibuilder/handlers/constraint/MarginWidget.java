@@ -171,9 +171,4 @@ public class MarginWidget extends JComboBox<String> {
     super.setSelectedItem(anObject);
     if(hasFocus()) requestFocusInWindow();
   }
-
-  @Override
-  public void addActionListener(ActionListener actionListener) {
-    super.addActionListener(actionListener);
-  }
 }

@@ -58,11 +58,6 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
     return new MigrateToAppCompatHandler();
   }
 
-  @Override
-  protected boolean isAvailableForLanguage(Language language) {
-    return super.isAvailableForLanguage(language);
-  }
-
   private static boolean isEnabled(@Nullable Project project) {
     if (project == null) return false;
     return AndroidUtils.hasAndroidFacets(project);

@@ -64,18 +64,6 @@ public class SetAttributeQuickFix extends DefaultLintQuickFix {
     myMark = mark;
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return super.getName();
-  }
-
-  @Nullable
-  @Override
-  public String getFamilyName() {
-    return super.getFamilyName();
-  }
-
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);

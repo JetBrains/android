@@ -55,11 +55,6 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
   }
 
   @Override
-  public void reset() {
-    super.reset();
-  }
-
-  @Override
   @Nullable
   public Icon getIcon(boolean expanded) {
     return myModule.getIcon();

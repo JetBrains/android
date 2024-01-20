@@ -640,11 +640,6 @@ public class LightBindingClass extends AndroidLightClassBase {
     return new LightDataBindingField(myConfig.getTargetLayout(), viewIdData, getManager(), field, this);
   }
 
-  @Override
-  public boolean isInterface() {
-    return super.isInterface();
-  }
-
   @NotNull
   @Override
   public PsiElement getNavigationElement() {

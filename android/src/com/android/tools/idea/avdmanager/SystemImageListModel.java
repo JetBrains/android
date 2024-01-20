@@ -387,12 +387,6 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       public Object getCellEditorValue() {
         return null;
       }
-
-      @Override
-      public boolean isCellEditable(EventObject e) {
-        return true;
-      }
-
     }
 
     private void downloadImage(SystemImageDescription image) {

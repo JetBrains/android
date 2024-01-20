@@ -211,10 +211,6 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     return CommonBundle.getErrorTitle();
   }
 
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
   @Override
   protected String getCommandName() {
     return AndroidBundle.message("new.typed.resource.command.name", myResourceFolderType);

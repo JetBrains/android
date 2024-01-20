@@ -219,10 +219,5 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
                                 .build());
       responseObserver.onCompleted();
     }
-
-    @Override
-    public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
-      super.getEventGroups(request, responseObserver);
-    }
   }
 }

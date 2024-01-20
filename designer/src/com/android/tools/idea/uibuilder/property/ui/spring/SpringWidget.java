@@ -341,20 +341,6 @@ public class SpringWidget extends JPanel {
       baseDraw.add(mInitialVelocityCtl);
 
       MouseAdapter mouseAdapter = new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-          super.mouseWheelMoved(e);
-        }
 
         @Override
         public void mouseDragged(MouseEvent e) {

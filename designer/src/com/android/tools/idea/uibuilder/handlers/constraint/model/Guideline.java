@@ -112,9 +112,4 @@ public class Guideline extends ConstraintWidget {
         }
         throw new AssertionError(anchorType.name());
     }
-
-    @Override
-    public ArrayList<ConstraintAnchor> getAnchors() {
-      return super.getAnchors();
-    }
 }

@@ -138,12 +138,6 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
             null);
     }
 
-    @NotNull
-    @Override
-    public List<String> getLibraryClassesRoots() {
-      return super.getLibraryClassesRoots();
-    }
-
     @Nullable
     @Override
     public String getMinVersion() {

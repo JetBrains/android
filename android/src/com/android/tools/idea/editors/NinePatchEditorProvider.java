@@ -48,22 +48,6 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
     return new NinePatchEditor(project, file);
   }
 
-  @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
-    FileEditorProvider.super.disposeEditor(editor);
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    return FileEditorProvider.super.readState(sourceElement, project, file);
-  }
-
-  @Override
-  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
-    FileEditorProvider.super.writeState(state, project, targetElement);
-  }
-
   @NotNull
   @Override
   public String getEditorTypeId() {

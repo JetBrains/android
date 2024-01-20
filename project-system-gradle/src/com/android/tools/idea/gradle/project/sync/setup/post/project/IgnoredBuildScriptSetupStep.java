@@ -74,11 +74,6 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
     }
   }
 
-  @Override
-  public boolean invokeOnFailedSync() {
-    return super.invokeOnFailedSync();
-  }
-
   public static String getIgnoredFileTypesPathInSettings() {
     return String.format("%s → Editor → File Types", ShowSettingsUtil.getSettingsMenuName());
   }

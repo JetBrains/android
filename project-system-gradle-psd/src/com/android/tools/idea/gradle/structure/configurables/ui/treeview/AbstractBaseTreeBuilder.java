@@ -53,11 +53,6 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     return super.isAutoExpandNode(nodeDescriptor);
   }
 
-  @Override
-  protected boolean isSmartExpand() {
-    return super.isSmartExpand();
-  }
-
   public void expandAllNodes() {
     JTree tree = getTree();
     if (tree != null) {

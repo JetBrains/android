@@ -481,12 +481,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     repaint();
   }
 
-  @Override
-  @SuppressWarnings("EmptyMethod")
-  protected void clearToggledPaths() {
-    super.clearToggledPaths();
-  }
-
   @NotNull
   public List<NlComponent> getSelectedComponents() {
     List<NlComponent> selected = new ArrayList<>();
@@ -528,11 +522,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @UiThread
   public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     setModel(model, true);
-  }
-
-  @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
-    return DesignSurfaceListener.super.activatePreferredEditor(surface, component);
   }
 
   private class StructurePaneMouseListener extends MouseAdapter {

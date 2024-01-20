@@ -56,12 +56,6 @@ public class AndroidNotificationStub extends AndroidNotification {
     return myMessages;
   }
 
-  @Nullable
-  @Override
-  public Notification getNotification() {
-    return super.getNotification();
-  }
-
   public static class NotificationMessage {
     @NotNull private final String myTitle;
     @NotNull private final String myText;

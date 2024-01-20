@@ -72,11 +72,6 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
     }
   }
 
-  @Override
-  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    super.render(list, sceneContext);
-  }
-
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull NlComponent component) {
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {

@@ -577,11 +577,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() {
-    return super.getPreferenceLevel();
-  }
-
-  @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     super.mouseDown(x, y);
 

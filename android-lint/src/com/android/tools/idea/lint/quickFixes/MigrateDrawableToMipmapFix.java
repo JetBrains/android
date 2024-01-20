@@ -201,11 +201,4 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
       }
     });
   }
-
-  @Override
-  public boolean isApplicable(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    return super.isApplicable(startElement, endElement, contextType);
-  }
 }

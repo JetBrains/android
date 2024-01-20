@@ -75,10 +75,6 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
     myDownloadLocation.setText(DeviceFileExplorerSettings.getInstance().getDownloadLocation());
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   @NlsContexts.ConfigurableName
   @Override
   public String getDisplayName() {

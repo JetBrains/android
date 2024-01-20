@@ -313,11 +313,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return true;
   }
 
-  @Override
-  public boolean isPathVisible() {
-    return super.isPathVisible();
-  }
-
   public boolean shouldDownloadingComponentsStepBeShown() {
     String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert path != null;

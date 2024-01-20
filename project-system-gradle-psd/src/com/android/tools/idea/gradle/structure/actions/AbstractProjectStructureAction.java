@@ -51,11 +51,6 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
     }
   }
 
-  @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
   protected abstract Module getTargetModule(@NotNull AnActionEvent e);
 
   protected abstract void doPerform(@NotNull Module module,

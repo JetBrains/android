@@ -45,11 +45,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase {
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
   public void testExecuteWithGradle4dot0() throws Exception {
     // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
     verifyExecute("4.0");

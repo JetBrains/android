@@ -39,10 +39,4 @@ public class MultiDexKeepFile extends PsiFileBase {
   public String toString() {
     return "MultiDexKeep File";
   }
-
-  @Nullable
-  @Override
-  public Icon getIcon(int flags) {
-    return super.getIcon(flags);
-  }
 }

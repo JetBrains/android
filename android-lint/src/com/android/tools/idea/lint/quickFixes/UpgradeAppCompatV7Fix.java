@@ -49,11 +49,4 @@ public class UpgradeAppCompatV7Fix extends DefaultLintQuickFix {
       LintIdeSupport.get().updateToLatestStable(module, APPSUPPORT_MODULE);
     }
   }
-
-  @Override
-  public boolean isApplicable(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    return super.isApplicable(startElement, endElement, contextType);
-  }
 }

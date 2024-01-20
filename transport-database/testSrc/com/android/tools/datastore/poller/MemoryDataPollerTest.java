@@ -411,12 +411,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
-    public void listHeapDumpInfos(ListDumpInfosRequest request,
-                                  StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
-      super.listHeapDumpInfos(request, responseObserver);
-    }
-
-    @Override
     public void trackAllocations(TrackAllocationsRequest request,
                                  StreamObserver<TrackAllocationsResponse> responseObserver) {
       TrackAllocationsResponse.Builder response = TrackAllocationsResponse.newBuilder();

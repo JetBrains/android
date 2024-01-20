@@ -52,11 +52,6 @@ public class DrawLinearPlaceholder extends DrawRegion {
     g.setColor(defColor);
   }
 
-  @Override
-  public int getLevel() {
-    return super.getLevel();
-  }
-
   /**
    * @param isLayoutVertical The orientation of the LinearLayout where the place holder will be drawn
    * @param atEnd            set to true if the place holder should be displayed after

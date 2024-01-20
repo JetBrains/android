@@ -874,12 +874,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return FileEditor.super.getBackgroundHighlighter();
-  }
-
   @Override
   public void dispose() {
   }

@@ -181,9 +181,4 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     }).createPopup();
     popup.showInBestPositionFor(editor);
   }
-
-  @Override
-  public boolean startInWriteAction() {
-    return super.startInWriteAction();
-  }
 }

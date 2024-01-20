@@ -280,9 +280,6 @@ public class MarginPopup extends JPanel {
     add(myResourcePickerButton, gc);
 
     addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentShown(ComponentEvent e) {
-      }
 
       @Override
       public void componentHidden(ComponentEvent e) {

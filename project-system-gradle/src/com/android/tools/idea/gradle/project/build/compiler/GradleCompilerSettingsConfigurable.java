@@ -132,11 +132,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myEnableSyncWithFutureAGPVersion.setSelected(myBuildConfiguration.isSyncWithFutureAgpVersionEnabled());
   }
 
-  @Override
-  public void disposeUIResources() {
-    SearchableConfigurable.super.disposeUIResources();
-  }
-
   private void createUIComponents() {
     myParallelBuildDocHyperlinkLabel =
       createHyperlinkLabel("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".",

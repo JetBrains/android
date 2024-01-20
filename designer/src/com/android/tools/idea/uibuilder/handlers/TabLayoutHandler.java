@@ -158,15 +158,6 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
     }
   }
 
-  @Nullable
-  @Override
-  public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<NlComponent> components,
-                                       @NotNull DragType type) {
-    return super.createDragHandler(editor, layout, components, type);
-  }
-
   @Override
   public @NotNull List<Target> createChildTargets(@NotNull SceneComponent parentComponent,
                                                   @NotNull SceneComponent childComponent) {

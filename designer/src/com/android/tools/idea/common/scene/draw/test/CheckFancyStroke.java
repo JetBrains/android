@@ -47,11 +47,6 @@ public class CheckFancyStroke extends JPanel {
         fill();
         repaint();
       }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-
-      }
     });
   }
 

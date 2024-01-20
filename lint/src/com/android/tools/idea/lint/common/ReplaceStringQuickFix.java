@@ -208,12 +208,6 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
   }
 
   @Nullable
-  @Override
-  public String getFamilyName() {
-    return super.getFamilyName();
-  }
-
-  @Nullable
   protected String getNewValue() {
     return myExpandedNewValue != null ? myExpandedNewValue : myNewValue;
   }

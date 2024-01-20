@@ -274,11 +274,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     myToolbarComponent.setBorder(BorderFactory.createMatteBorder(0, 0, bottom, 0, StudioColorsKt.getBorder()));
   }
 
-  @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
-    return DesignSurfaceListener.super.activatePreferredEditor(surface, component);
-  }
-
   // ---- Implements ModelListener ----
 
   @Override

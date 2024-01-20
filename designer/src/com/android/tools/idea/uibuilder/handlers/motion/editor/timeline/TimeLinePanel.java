@@ -1033,14 +1033,6 @@ public class TimeLinePanel extends JPanel {
             }
           }
         }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-        }
       };
       addMouseListener(mouseAdapter);
     }

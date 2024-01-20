@@ -157,12 +157,6 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
   @Nullable
   @Override
-  public Point getInitialLocation() {
-    return super.getInitialLocation();
-  }
-
-  @Nullable
-  @Override
   public JComponent getPreferredFocusedComponent() {
     return mySearchTextField;
   }

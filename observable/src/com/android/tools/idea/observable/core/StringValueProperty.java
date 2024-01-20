@@ -41,18 +41,6 @@ public final class StringValueProperty extends StringProperty {
     return myValue;
   }
 
-  @NotNull
-  @Override
-  public ObservableBool isEmpty() {
-    return super.isEmpty();
-  }
-
-  @NotNull
-  @Override
-  public ObservableString trim() {
-    return super.trim();
-  }
-
   @Override
   protected void setDirectly(@NotNull String value) {
     myValue = value;

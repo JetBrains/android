@@ -48,11 +48,6 @@ public class GuidelineCycleTarget extends GuidelineTarget {
   }
 
   @Override
-  public int getPreferenceLevel() {
-    return super.getPreferenceLevel();
-  }
-
-  @Override
   public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }

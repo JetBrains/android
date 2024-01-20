@@ -648,11 +648,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
 
     @Override
-    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return super.isVisible(node);
-    }
-
-    @Override
     public void run(@NotNull List<DeviceFileEntryNode> nodes) {
       copyNodePaths(nodes);
     }
@@ -712,11 +707,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
         new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
         new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
       };
-    }
-
-    @Override
-    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return super.isVisible(node);
     }
 
     @Override
@@ -786,11 +776,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       return AllIcons.Actions.Cancel;
     }
 
-    @Override
-    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return super.isVisible(node);
-    }
-
     @Nullable
     @Override
     public String getShortcutId() {
@@ -822,11 +807,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     public String getShortcutId() {
       // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
       return "Refresh";
-    }
-
-    @Override
-    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return super.isVisible(node);
     }
 
     @Override

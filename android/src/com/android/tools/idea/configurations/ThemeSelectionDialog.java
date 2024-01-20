@@ -63,11 +63,6 @@ public class ThemeSelectionDialog extends DialogWrapper {
   }
 
   @Override
-  protected void doOKAction() {
-    super.doOKAction();
-  }
-
-  @Override
   protected String getDimensionServiceKey() {
     return "AndroidThemeDialog";
   }
