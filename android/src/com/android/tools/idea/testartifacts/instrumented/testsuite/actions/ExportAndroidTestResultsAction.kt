@@ -27,12 +27,12 @@ import com.intellij.execution.testframework.export.ExportTestResultsConfiguratio
 import com.intellij.execution.testframework.export.ExportTestResultsDialog
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
 import java.io.File
 import java.time.Duration
@@ -54,6 +54,8 @@ class ExportAndroidTestResultsAction :
   var rootResultsNode: AndroidTestResultsTreeNode? = null
   var runConfiguration: RunConfiguration? = null
   var toolWindowId: String? = null
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   @UiThread
   override fun update(e: AnActionEvent) {

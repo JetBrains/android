@@ -25,6 +25,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -182,15 +183,17 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
 /**
  * Action to refresh the previews of a particular type of resources.
  */
-private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+private class RefreshAction(val viewModel: ResourceExplorerToolbarViewModel)
   : AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun actionPerformed(e: AnActionEvent) {
     // TODO: update tracking to support this action.
     viewModel.refreshResourcesPreviewsCallback()
   }
 
   override fun update(e: AnActionEvent) {
-    super.update(e)
     if (viewModel.resourceType.isSlowResource()) {
       e.presentation.text = templatePresentation.text
       e.presentation.description = templatePresentation.description

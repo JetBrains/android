@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.editors.strings.table.filter.LocaleColumnFilter
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -33,6 +34,8 @@ class FilterLocalesAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
