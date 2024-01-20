@@ -63,10 +63,7 @@ public:
 
   static bool IsShuttingDown() { return shutting_down_; }
 
-  // Checks if the "ro.build.characteristics" system property contains the given string.
-  static bool HasBuildCharacteristic(const char* characteristic);
-
-  static bool IsWatch();
+  static bool is_watch() { return is_watch_; };
 
   static int32_t flags() { return flags_; }
 
@@ -78,6 +75,7 @@ private:
   static void Initialize(const std::vector<std::string>& args);
 
   static int32_t feature_level_;
+  static bool is_watch_;
   static std::string socket_name_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.

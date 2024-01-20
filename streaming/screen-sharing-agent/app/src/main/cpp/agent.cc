@@ -126,6 +126,28 @@ string GetBuildCharacteristics() {
   return result;
 }
 
+// Checks if the "ro.build.characteristics" system property contains the given string.
+bool HasBuildCharacteristic(const char* characteristic, const string& build_characteristics) {
+  auto len = strlen(characteristic);
+  string::size_type p = 0;
+  while (true) {
+    if (build_characteristics.compare(p, len, characteristic) == 0) {
+      auto end = p + len;
+      if (build_characteristics.length() == end || build_characteristics[end] == ',') {
+        Log::D("Agent::HasBuildCharacteristic(\"%s\", \"%s\") returned true", characteristic, build_characteristics.c_str());
+        return true;
+      }
+    }
+    p = build_characteristics.find(',', p);
+    if (p == string::npos) {
+      break;
+    }
+    ++p;
+  }
+  Log::D("Agent::HasBuildCharacteristic(\"%s\", \"%s\") returned false", characteristic, build_characteristics.c_str());
+  return false;
+}
+
 }  // namespace
 
 void Agent::Initialize(const vector<string>& args) {
@@ -184,6 +206,8 @@ void Agent::Initialize(const vector<string>& args) {
   }
 
   feature_level_ = GetFeatureLevel();
+  string build_characteristics = GetBuildCharacteristics();
+  is_watch_ = HasBuildCharacteristic("watch", build_characteristics);
 }
 
 void Agent::Run(const vector<string>& args) {
@@ -342,33 +366,8 @@ void Agent::RecordTouchEvent() {
   last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
-bool Agent::HasBuildCharacteristic(const char* characteristic) {
-  string characteristics = GetBuildCharacteristics();
-  auto len = strlen(characteristic);
-  string::size_type p = 0;
-  while (true) {
-    if (characteristics.compare(p, len, characteristic) == 0) {
-      auto end = p + len;
-      if (characteristics.length() == end || characteristics[end] == ',') {
-        Log::D("Agent::HasBuildCharacteristic(\"%s\") returned true", characteristic);
-        return true;
-      }
-    }
-    p = characteristics.find(',', p);
-    if (p == string::npos) {
-      break;
-    }
-    ++p;
-  }
-  Log::D("Agent::HasBuildCharacteristic(\"%s\") returned false", characteristic);
-  return false;
-}
-
-bool Agent::IsWatch() {
-  return HasBuildCharacteristic("watch");
-}
-
 int32_t Agent::feature_level_(0);
+bool Agent::is_watch_(false);
 string Agent::socket_name_("screen-sharing-agent");
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);
