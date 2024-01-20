@@ -60,7 +60,7 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
         name.append(manufacturer).append(' ')
       }
     }
-    name.append(model)
+    name.append(if (model.startsWith("Google Pixel")) model.removePrefix("Google ") else model)
   }
   else {
     name.append("unknown")
