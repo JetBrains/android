@@ -247,7 +247,7 @@ void DisplayStreamer::Run() {
       }
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      if (display_info.rotation == 2 && rotation_correction == 0) {
+      if (display_info.rotation == 2 && rotation_correction == 0 && !Agent::IsWatch()) {
         // Simulated rotation is not capable of distinguishing between regular and upside down
         // display orientation. Compensate for that using rotation_correction.
         display_info.rotation = 0;
