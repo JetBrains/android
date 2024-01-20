@@ -24,7 +24,8 @@ import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -35,6 +36,8 @@ private const val STUDIO_FLAG_PREFIX = "studio_flags/$TEST_GROUP"
 class ServerFlagOverridesTest {
   @get:Rule
   val appRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Test
   fun testServerFlagOverrides() {
@@ -53,7 +56,7 @@ class ServerFlagOverridesTest {
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
-    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
     Truth.assertThat(overrides.get(flagA)).isEqualTo("true")
     Truth.assertThat(overrides.get(flagB)).isEqualTo("false")
