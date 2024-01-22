@@ -57,7 +57,7 @@
     <orderEntry type="module" module-name="intellij.java.rt" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="kotlin.base.util" />
-    <orderEntry type="module" module-name="kotlin.completion.impl-shared" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.completion.impl.shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
   </component>
 </module>

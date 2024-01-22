@@ -31,7 +31,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.compose-common" />
-    <orderEntry type="module" module-name="kotlin.completion.impl-shared" />
+    <orderEntry type="module" module-name="kotlin.completion.impl.shared" />
     <orderEntry type="module" module-name="kotlin.base.plugin" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
@@ -60,7 +60,7 @@
     <orderEntry type="module" module-name="kotlin.highlighting.shared" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
-    <orderEntry type="module" module-name="kotlin.completion.impl-k1" />
+    <orderEntry type="module" module-name="kotlin.completion.impl.k1" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.java.psi.impl" />

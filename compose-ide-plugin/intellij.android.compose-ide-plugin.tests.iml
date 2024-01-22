@@ -66,9 +66,9 @@
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections-shared" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections-k1" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections-k2" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.code-insight.inspections.shared" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k1" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k2" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />
 </module>
