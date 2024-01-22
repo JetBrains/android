@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings.action
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
@@ -35,10 +34,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorTextField
 import org.jetbrains.android.facet.AndroidFacet
@@ -52,8 +51,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import javax.swing.JButton
 import kotlin.test.assertFailsWith
-import kotlin.test.fail
-
 
 /** Test [AddKeyAction] methods. */
 @RunWith(JUnit4::class)
@@ -64,13 +61,13 @@ class AddKeyActionTest {
 
   private val project: Project
     get() = projectRule.project
+
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val stringResourceWriter: StringResourceWriter = mock()
   private val table: StringResourceTable = mock()
   private val data: StringResourceData = mock()
   private val addKeyAction = AddKeyAction(stringResourceWriter)
-  private val mapDataContext = MapDataContext()
 
   private lateinit var facet: AndroidFacet
   private lateinit var event: AnActionEvent
@@ -78,12 +75,13 @@ class AddKeyActionTest {
   @Before
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
     event =
-        AnActionEvent(null, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, projectRule.project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+      AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -173,17 +171,21 @@ class AddKeyActionTest {
       set(value) {
         keyField.text = value
       }
+
     private var DialogWrapper.defaultValue
       get() = defaultValueField.text
       set(value) {
         defaultValueField.text = value
       }
+
     private val DialogWrapper.keyField: EditorTextField
-      get() = rootPane.getDescendant {it.name == KEY_FIELD_ID}
+      get() = rootPane.getDescendant { it.name == KEY_FIELD_ID }
+
     private val DialogWrapper.defaultValueField: EditorTextField
-      get() = rootPane.getDescendant {it.name == DEFAULT_VALUE_FIELD_ID}
+      get() = rootPane.getDescendant { it.name == DEFAULT_VALUE_FIELD_ID }
+
     private fun DialogWrapper.clickOk() {
-      rootPane.getDescendant<JButton> {it.name == OK_BUTTON_ID}.doClick()
+      rootPane.getDescendant<JButton> { it.name == OK_BUTTON_ID }.doClick()
     }
   }
 }

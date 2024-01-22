@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -254,10 +255,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         // the editor has to be showing or else performDumbAwareWithCallbacks will suppress the action.
         //
         // ...so by default, we create our own DataContext rather than getting one from a component.
-        MapDataContext dataContext = new MapDataContext();
-        dataContext.put(CommonDataKeys.PROJECT, projectForContext);
-        dataContext.put(CommonDataKeys.EDITOR, selectedTextEditor);
-        return dataContext;
+        return SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, projectForContext)
+          .add(CommonDataKeys.EDITOR, selectedTextEditor)
+          .build();
       }
       default -> throw new IllegalArgumentException("Invalid DataContextSource provided with ExecuteActionRequest.");
     }

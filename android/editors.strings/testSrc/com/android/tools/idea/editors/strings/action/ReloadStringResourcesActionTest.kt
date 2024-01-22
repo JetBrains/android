@@ -26,8 +26,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.MapDataContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,17 +46,15 @@ class ReloadStringResourcesActionTest {
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val reloadStringResourcesAction = ReloadStringResourcesAction()
-  private val mapDataContext = MapDataContext()
-
   private lateinit var event: AnActionEvent
 
   @Before
   fun setUp() {
-    event = AnActionEvent(null, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+    val dataContext = SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, project)
+      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+      .build()
+    event = AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
   }

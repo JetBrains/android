@@ -36,10 +36,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -55,7 +55,6 @@ import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 
-
 /** Test [AddLocaleAction] methods. */
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -68,6 +67,7 @@ class AddLocaleActionTest {
 
   private val project: Project
     get() = projectRule.project
+
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val stringResourceWriter: StringResourceWriter = mock()
@@ -78,7 +78,6 @@ class AddLocaleActionTest {
   private val stringResource: StringResource = mock()
   private val component = JPanel()
   private val addLocaleAction = AddLocaleAction(stringResourceWriter)
-  private val mapDataContext = MapDataContext()
 
   private lateinit var facet: AndroidFacet
   private lateinit var event: AnActionEvent
@@ -87,23 +86,32 @@ class AddLocaleActionTest {
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
     val mouseEvent =
-        MouseEvent(
-            component,
-            /* id= */ 0,
-            /* when= */ 0L,
-            /* modifiers= */ 0,
-            /* x= */ 0,
-            /* y= */ 0,
-            /* clickCount= */ 1,
-            /* popupTrigger= */ true)
+      MouseEvent(
+        component,
+        /* id= */ 0,
+        /* when= */ 0L,
+        /* modifiers= */ 0,
+        /* x= */ 0,
+        /* y= */ 0,
+        /* clickCount= */ 1,
+        /* popupTrigger= */ true,
+      )
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
 
     event =
-        AnActionEvent(
-            mouseEvent, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+      AnActionEvent(
+        mouseEvent,
+        dataContext,
+        "place",
+        Presentation(),
+        ActionManager.getInstance(),
+        0,
+      )
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -121,6 +129,7 @@ class AddLocaleActionTest {
 
     assertThat(event.presentation.isEnabled).isFalse()
   }
+
   @Test
   fun doUpdate_nullDirectory() {
     whenever(model.keys).thenReturn(listOf(StringResourceKey("foo")))
@@ -154,7 +163,7 @@ class AddLocaleActionTest {
   @Test
   fun actionPerformed_firstAvailableKey_addFails() {
     val firstAvailableKey =
-        StringResourceKey(name = "firstAvailable", directory = resourceDirectory)
+      StringResourceKey(name = "firstAvailable", directory = resourceDirectory)
     whenever(data.keys).thenReturn(listOf(StringResourceKey("bogusNoDirectory"), firstAvailableKey))
     whenever(data.localeSet).thenReturn(USED_LOCALES)
     whenever(data.getStringResource(firstAvailableKey)).thenReturn(stringResource)
@@ -166,7 +175,12 @@ class AddLocaleActionTest {
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .addTranslation(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
+      .addTranslation(
+        project,
+        firstAvailableKey,
+        DEFAULT_VALUE_AS_STRING,
+        locale = UNUSED_LOCALE_SAMPLE.first(),
+      )
     // Add did not succeed so should not reload.
     verify(panel, never()).reloadData()
   }
@@ -174,7 +188,7 @@ class AddLocaleActionTest {
   @Test
   fun actionPerformed_firstAvailableKey_addSucceeds() {
     val firstAvailableKey =
-        StringResourceKey(name = "firstAvailable", directory = resourceDirectory)
+      StringResourceKey(name = "firstAvailable", directory = resourceDirectory)
     whenever(data.keys).thenReturn(listOf(StringResourceKey("bogusNoDirectory"), firstAvailableKey))
     whenever(data.localeSet).thenReturn(USED_LOCALES)
     whenever(data.getStringResource(firstAvailableKey)).thenReturn(stringResource)
@@ -183,15 +197,25 @@ class AddLocaleActionTest {
     addLocaleAction.actionPerformed(event)
 
     whenever(
-            stringResourceWriter.addTranslation(
-                project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first()))
-        .thenReturn(true)
+        stringResourceWriter.addTranslation(
+          project,
+          firstAvailableKey,
+          DEFAULT_VALUE_AS_STRING,
+          locale = UNUSED_LOCALE_SAMPLE.first(),
+        )
+      )
+      .thenReturn(true)
     val popup = popupRule.fakePopupFactory.getPopup<Locale>(0)
 
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .addTranslation(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
+      .addTranslation(
+        project,
+        firstAvailableKey,
+        DEFAULT_VALUE_AS_STRING,
+        locale = UNUSED_LOCALE_SAMPLE.first(),
+      )
     verify(panel).reloadData()
   }
 
@@ -199,7 +223,10 @@ class AddLocaleActionTest {
   fun actionPerformed_appNameKey_addFails() {
     val resourceFolderManager: ResourceFolderManager = mock()
     projectRule.module.replaceService(
-        ResourceFolderManager::class.java, resourceFolderManager, project)
+      ResourceFolderManager::class.java,
+      resourceFolderManager,
+      project,
+    )
     whenever(resourceFolderManager.folders).thenReturn(listOf(resourceDirectory))
     val appNameKey = StringResourceKey(name = "app_name", directory = resourceDirectory)
     whenever(data.containsKey(appNameKey)).thenReturn(true)
@@ -214,7 +241,12 @@ class AddLocaleActionTest {
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .addTranslation(project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
+      .addTranslation(
+        project,
+        appNameKey,
+        DEFAULT_VALUE_AS_STRING,
+        locale = UNUSED_LOCALE_SAMPLE.first(),
+      )
     // Add did not succeed so should not reload.
     verify(panel, never()).reloadData()
   }
@@ -223,7 +255,10 @@ class AddLocaleActionTest {
   fun actionPerformed_appNameKey_addSucceeds() {
     val resourceFolderManager: ResourceFolderManager = mock()
     projectRule.module.replaceService(
-        ResourceFolderManager::class.java, resourceFolderManager, project)
+      ResourceFolderManager::class.java,
+      resourceFolderManager,
+      project,
+    )
     whenever(resourceFolderManager.folders).thenReturn(listOf(resourceDirectory))
     val appNameKey = StringResourceKey(name = "app_name", directory = resourceDirectory)
     whenever(data.containsKey(appNameKey)).thenReturn(true)
@@ -234,15 +269,25 @@ class AddLocaleActionTest {
     addLocaleAction.actionPerformed(event)
 
     whenever(
-            stringResourceWriter.addTranslation(
-                project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first()))
-        .thenReturn(true)
+        stringResourceWriter.addTranslation(
+          project,
+          appNameKey,
+          DEFAULT_VALUE_AS_STRING,
+          locale = UNUSED_LOCALE_SAMPLE.first(),
+        )
+      )
+      .thenReturn(true)
     val popup = popupRule.fakePopupFactory.getPopup<Locale>(0)
 
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .addTranslation(project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
+      .addTranslation(
+        project,
+        appNameKey,
+        DEFAULT_VALUE_AS_STRING,
+        locale = UNUSED_LOCALE_SAMPLE.first(),
+      )
     verify(panel).reloadData()
   }
 
@@ -254,20 +299,10 @@ class AddLocaleActionTest {
      * duplicating the code under test here in the test.
      */
     private val UNUSED_LOCALE_SAMPLE =
-        listOf(
-                "ab",
-                "eu",
-                "en-ZA",
-                "it-CH",
-                "ja",
-                "ru",
-                "ng",
-                "ii",
-                "es-US",
-                "xh")
-            .toLocales()
+      listOf("ab", "eu", "en-ZA", "it-CH", "ja", "ru", "ng", "ii", "es-US", "xh").toLocales()
 
     private fun List<String>.toLocales(): List<Locale> = map { s -> s.toLocale() }
+
     private fun String.toLocale(): Locale {
       if (contains('-')) {
         val (lang, region) = split('-')

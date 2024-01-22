@@ -24,6 +24,7 @@ import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFileSystem
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
@@ -37,7 +38,6 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Producer
@@ -375,11 +375,11 @@ internal class ResourcePasteProviderTest {
   private fun createDataContext(editor: Editor,
                                 psiFile: PsiFile,
                                 resourceUrl: ResourceUrl = DEFAULT_RESOURCE_URL): DataContext =
-    MapDataContext(mapOf(
-      PasteAction.TRANSFERABLE_PROVIDER to Producer<Transferable> { createTransferable(resourceUrl) },
-      CommonDataKeys.CARET to editor.caretModel.currentCaret,
-      CommonDataKeys.PSI_FILE to psiFile
-    ))
+    SimpleDataContext.builder()
+      .add(PasteAction.TRANSFERABLE_PROVIDER, Producer { createTransferable(resourceUrl) })
+      .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)
+      .add(CommonDataKeys.PSI_FILE, psiFile)
+      .build()
 
   private fun createTransferable(resourceUrl: ResourceUrl) = object : Transferable {
     override fun getTransferData(flavor: DataFlavor?): Any = when (flavor) {

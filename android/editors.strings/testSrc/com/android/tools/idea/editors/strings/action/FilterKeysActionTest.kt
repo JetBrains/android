@@ -40,13 +40,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.openapi.wm.impl.IdeFrameImpl
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -74,14 +74,12 @@ class FilterKeysActionTest {
   private val edtRule = EdtRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, edtRule, popupRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, edtRule, popupRule)
 
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
-  private val mapDataContext = MapDataContext()
   private val filterKeysAction = FilterKeysAction()
   private var rowFilter: StringResourceTableRowFilter? = null
 
@@ -100,13 +98,24 @@ class FilterKeysActionTest {
         /* x= */ 0,
         /* y= */ 0,
         /* clickCount= */ 1,
-        /* popupTrigger= */ true)
+        /* popupTrigger= */ true,
+      )
 
-    event = AnActionEvent(mouseEvent, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, projectRule.project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
+
+    event =
+      AnActionEvent(
+        mouseEvent,
+        dataContext,
+        "place",
+        Presentation(),
+        ActionManager.getInstance(),
+        0,
+      )
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -114,9 +123,11 @@ class FilterKeysActionTest {
 
     doAnswer { rowFilter }.whenever(table).rowFilter
     doAnswer {
-      rowFilter = it.getArgument(0)
-      Unit
-    }.whenever(table).setRowFilter(any())
+        rowFilter = it.getArgument(0)
+        Unit
+      }
+      .whenever(table)
+      .setRowFilter(any())
 
     // Mock the WindowManager so the call to windowManager.getFrame will not return null.
     // A null frame causes ComboBoxAction.actionPerformed(...) to return early before it invokes
@@ -125,7 +136,8 @@ class FilterKeysActionTest {
     val frame: IdeFrameImpl = mock()
     whenever(frame.component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
-    ApplicationManager.getApplication().replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
+    ApplicationManager.getApplication()
+      .replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -135,9 +147,32 @@ class FilterKeysActionTest {
 
   @Test
   fun update_noEditor() {
-    mapDataContext.put(PlatformDataKeys.FILE_EDITOR, null)
+    val mouseEvent =
+      MouseEvent(
+        JPanel(),
+        /* id= */ 0,
+        /* when= */ 0L,
+        /* modifiers= */ 0,
+        /* x= */ 0,
+        /* y= */ 0,
+        /* clickCount= */ 1,
+        /* popupTrigger= */ true,
+      )
 
-    filterKeysAction.update(event)
+    val dataContext =
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
+
+    val noEditorEvent =
+      AnActionEvent(
+        mouseEvent,
+        dataContext,
+        "place",
+        Presentation(),
+        ActionManager.getInstance(),
+        0,
+      )
+
+    filterKeysAction.update(noEditorEvent)
 
     verifyNoInteractions(stringResourceEditor, panel, table)
   }
@@ -153,11 +188,15 @@ class FilterKeysActionTest {
   @Test
   fun update_rowFilterPresent() {
     val presentationText = "Some amazing text!"
-    rowFilter = object : StringResourceTableRowFilter() {
-      override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean = throw NotImplementedError("Not called")
-      override fun getDescription(): String = presentationText
-      override fun getIcon(): Icon = AllIcons.Idea_logo_welcome
-    }
+    rowFilter =
+      object : StringResourceTableRowFilter() {
+        override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean =
+          throw NotImplementedError("Not called")
+
+        override fun getDescription(): String = presentationText
+
+        override fun getIcon(): Icon = AllIcons.Idea_logo_welcome
+      }
 
     filterKeysAction.update(event)
 
@@ -177,7 +216,7 @@ class FilterKeysActionTest {
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isNull()
-    verify(table).setRowFilter(null)  // Make sure it's not just still null
+    verify(table).setRowFilter(null) // Make sure it's not just still null
   }
 
   @Test
@@ -220,12 +259,12 @@ class FilterKeysActionTest {
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(AllIcons.General.Filter)
 
     createModalDialogAndInteractWithIt({ selectedAction.actionPerformed(event) }) {
-      it.text = "my great text"  // Won't matter, we're canceling.
+      it.text = "my great text" // Won't matter, we're canceling.
       it.click("Cancel")
     }
 
     assertThat(rowFilter).isNull()
-    verify(table, never()).setRowFilter(any())  // Make sure it's still null and wasn't overwritten.
+    verify(table, never()).setRowFilter(any()) // Make sure it's still null and wasn't overwritten.
   }
 
   @Test
@@ -242,12 +281,12 @@ class FilterKeysActionTest {
     enableHeadlessDialogs(projectRule.project)
 
     createModalDialogAndInteractWithIt({ selectedAction.actionPerformed(event) }) {
-      it.text = ""  // Empty string means we shouldn't do anything.
+      it.text = "" // Empty string means we shouldn't do anything.
       it.click("OK")
     }
 
     assertThat(rowFilter).isNull()
-    verify(table, never()).setRowFilter(any())  // Make sure it's still null and wasn't overwritten.
+    verify(table, never()).setRowFilter(any()) // Make sure it's still null and wasn't overwritten.
   }
 
   @Test
@@ -268,14 +307,16 @@ class FilterKeysActionTest {
     }
 
     assertThat(rowFilter).isInstanceOf(TextRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription()).isEqualTo("""Show Keys with Values Containing "$filterText"""")
+    assertThat(rowFilter!!.getDescription())
+      .isEqualTo("""Show Keys with Values Containing "$filterText"""")
   }
 
   @Test
   fun actionPerformed_keysNeedingTranslationForLocale() {
     whenever(model.columnCount).thenReturn(StringResourceTableModel.FIXED_COLUMN_COUNT + 2)
     whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT)).thenReturn(ARABIC_LOCALE)
-    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1)).thenReturn(US_SPANISH_LOCALE)
+    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1))
+      .thenReturn(US_SPANISH_LOCALE)
 
     filterKeysAction.actionPerformed(event)
 
@@ -283,23 +324,27 @@ class FilterKeysActionTest {
     assertThat(popup.actions).hasSize(6)
 
     var selectedAction = popup.actions[4]
-    assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(selectedAction.templateText)
+      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(rowFilter!!.getDescription())
+      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(rowFilter!!.getIcon()).isNull()
 
     selectedAction = popup.actions[5]
-    assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+    assertThat(selectedAction.templateText)
+      .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
     assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+    assertThat(rowFilter!!.getDescription())
+      .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
     assertThat(rowFilter!!.getIcon()).isNull()
   }
 
@@ -314,7 +359,7 @@ class FilterKeysActionTest {
       }
 
     private val DialogWrapper.textField: JTextField
-      get() = rootPane.getDescendant {it.name == null}
+      get() = rootPane.getDescendant { it.name == null }
 
     private fun DialogWrapper.click(text: String) {
       rootPane.getDescendant<JButton> { it.text == text }.doClick()

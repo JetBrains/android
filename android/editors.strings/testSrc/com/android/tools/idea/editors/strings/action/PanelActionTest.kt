@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,12 +44,12 @@ class PanelActionTest {
 
   private val falsePanelAction = TestPanelAction(false)
   private val truePanelAction = TestPanelAction(true)
-  private val mapDataContext = MapDataContext()
+  private val dataContextBuilder = SimpleDataContext.builder()
   private val project
     get() = projectRule.project
   // Lazy so that actionManager is initialized.
   private val e: AnActionEvent by lazy {
-    AnActionEvent(null, mapDataContext, "place", Presentation(), actionManager, 0)
+    AnActionEvent(null, dataContextBuilder.build(), "place", Presentation(), actionManager, 0)
   }
 
   @Test
@@ -69,7 +69,7 @@ class PanelActionTest {
 
   @Test
   fun update_nullFileEditor() {
-    mapDataContext.put(CommonDataKeys.PROJECT, project)
+    dataContextBuilder.add(CommonDataKeys.PROJECT, project)
     falsePanelAction.update(e)
 
     assertThat(e.presentation.isEnabled).isFalse()
@@ -85,7 +85,7 @@ class PanelActionTest {
 
   @Test
   fun update_nullProject() {
-    mapDataContext.put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+    dataContextBuilder.add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
 
     falsePanelAction.update(e)
 
@@ -102,8 +102,9 @@ class PanelActionTest {
 
   @Test
   fun update_hasRequiredData() {
-    mapDataContext.put(CommonDataKeys.PROJECT, project)
-    mapDataContext.put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+    dataContextBuilder
+      .add(CommonDataKeys.PROJECT, project)
+      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
 
     falsePanelAction.update(e)
 
@@ -120,8 +121,9 @@ class PanelActionTest {
 
   @Test
   fun getPanel() {
-    mapDataContext.put(CommonDataKeys.PROJECT, project)
-    mapDataContext.put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+    dataContextBuilder
+      .add(CommonDataKeys.PROJECT, project)
+      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
 
     whenever(stringResourceEditor.panel).thenReturn(mock())
     truePanelAction.actionPerformed(e)
@@ -134,7 +136,7 @@ class PanelActionTest {
       private set
 
     override fun doUpdate(event: AnActionEvent): Boolean =
-        doUpdateResult.also { doUpdateInvoked = true }
+      doUpdateResult.also { doUpdateInvoked = true }
 
     override fun actionPerformed(event: AnActionEvent) {
       assertThat(event.panel).isSameAs(stringResourceEditor.panel)
