@@ -75,7 +75,7 @@ public class SafeMode implements ApplicationLoadListener {
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
     String[] options = {"Safe Mode", "Cancel"};
-    if (JOptionPane.showOptionDialog(null,
+    if (JOptionPane.showOptionDialog(frame,
                                      "Would you like to restart studio in Safe Mode?",
                                      "Crash detected! Studio did not close properly last time.",
                                      JOptionPane.DEFAULT_OPTION,
