@@ -289,7 +289,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         assert false;
         return; // Should not happen
       }
-      Project project = configuration.getConfigModule().getProject();
+      Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
       PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
       XmlFile xmlFile = (XmlFile)psiFile;
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);

@@ -27,6 +27,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -249,7 +250,8 @@ public abstract class ViewEditor {
     if (file == null) {
       return;
     }
-    LayoutNavigationManager.getInstance(config.getConfigModule().getProject()).pushFile(model.getVirtualFile(), file);
+    ConfigurationManager manager = ConfigurationManager.getFromConfiguration(config);
+    LayoutNavigationManager.getInstance(manager.getProject()).pushFile(model.getVirtualFile(), file);
   }
 
   /**

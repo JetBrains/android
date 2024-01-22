@@ -24,7 +24,6 @@ import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 
 /**
  * Provides all module specific resources required for configuration
@@ -39,8 +38,6 @@ interface ConfigurationModelModule : Disposable {
   val layoutlibContext: LayoutlibContext
 
   val androidModuleInfo: AndroidModuleInfo?
-
-  val project: Project
 
   val name: String
 

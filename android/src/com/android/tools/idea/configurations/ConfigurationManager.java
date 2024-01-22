@@ -30,7 +30,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationModelModule;
 import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.layoutlib.AndroidTargets;
@@ -79,7 +78,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     ConfigurationManager.class.getName() + "ProjectCanonicalKey"
   );
 
-  @NotNull private final ConfigurationModelModule myConfigurationModule;
+  @NotNull private final StudioConfigurationModelModule myConfigurationModule;
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, ConfigurationForFile> myCache = ContainerUtil.createSoftValueMap();
@@ -149,14 +148,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
     return configurationManager.getConfiguration(projectFile);
   }
-  protected ConfigurationManager(@NotNull Module module, ConfigurationModelModule config) {
+  protected ConfigurationManager(@NotNull Module module, StudioConfigurationModelModule config) {
     myConfigurationModule = config;
     myModule = module;
     Disposer.register(myModule, this);
   }
 
   protected ConfigurationManager(@NotNull Module module) {
-    this(module,new StudioConfigurationModelModule(module));
+    this(module, new StudioConfigurationModelModule(module));
   }
 
   /**
@@ -362,7 +361,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
   @Override
   @NotNull
-  public final ConfigurationModelModule getConfigModule() {
+  public final StudioConfigurationModelModule getConfigModule() {
     return myConfigurationModule;
   }
 

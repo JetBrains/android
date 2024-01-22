@@ -21,6 +21,7 @@ import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationModelModule;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -578,7 +579,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   public void focus() {
-    final Project project = myConfiguration.getConfigModule().getProject();
+    final Project project = ConfigurationManager.getFromConfiguration(myConfiguration).getProject();
     final IdeFocusManager focusManager = project.isDefault() ? IdeFocusManager.getGlobalInstance() : IdeFocusManager.getInstance(project);
     focusManager.doWhenFocusSettlesDown(() -> focusManager.requestFocus(myThemeList, true));
   }

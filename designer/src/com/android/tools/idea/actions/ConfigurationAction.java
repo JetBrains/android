@@ -114,7 +114,7 @@ public abstract class ConfigurationAction extends AnAction implements Configurat
   }
 
   protected void pickedBetterMatch(@NotNull Configuration configuration, @NotNull VirtualFile file, @NotNull VirtualFile old) {
-    Project project = configuration.getConfigModule().getProject();
+    Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
     FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);

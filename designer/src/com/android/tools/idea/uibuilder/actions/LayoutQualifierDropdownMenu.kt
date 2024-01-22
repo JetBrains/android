@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.virtualFile
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceVariations
@@ -96,7 +97,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
   private fun createVariationsActions(configuration: Configuration, surface: EditorDesignSurface) {
     val virtualFile = configuration.virtualFile
     if (virtualFile != null) {
-      val project = configuration.configModule.project
+      val project = ConfigurationManager.getFromConfiguration(configuration).project
       val variations = getResourceVariations(virtualFile, true)
       for (file in variations) {
         val title = generateLayoutAndQualifierTitle(file)

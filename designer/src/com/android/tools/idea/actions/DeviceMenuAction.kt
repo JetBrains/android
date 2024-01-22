@@ -407,7 +407,7 @@ class AddDeviceDefinitionAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val config = e.dataContext.getData(CONFIGURATIONS)?.firstOrNull() ?: return
-    val project = config.configModule.project
+    val project = ConfigurationManager.getFromConfiguration(config).project
 
     val optionsModel = AvdOptionsModel(null)
     val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)

@@ -19,6 +19,7 @@ import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
 import com.android.SdkConstants;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -137,7 +138,7 @@ public class ThemeMenuAction extends DropDownAction {
     List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, filter);
     addThemes(recommendedThemes, currentThemeName, true);
 
-    Project project = configuration.getConfigModule().getProject();
+    Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
 
     // Add recent used themes
     // Don't show any theme added above as recent Theme.
@@ -244,9 +245,10 @@ public class ThemeMenuAction extends DropDownAction {
       // The theme in here must be one of default theme, project themes, recommend themes, or recent used themes.
       // It doesn't need to be added to recent used theme since it is in the dropdown menu already.
       configuration.setTheme(myTheme);
-      if (ThemeUtils.getRecentlyUsedThemes(configuration.getConfigModule().getProject()).contains(myTheme)) {
+      Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
+      if (ThemeUtils.getRecentlyUsedThemes(project).contains(myTheme)) {
         // Add this theme to recent Themes again to make it as the most recent one.
-        ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), myTheme);
+        ThemeUtils.addRecentlyUsedTheme(project, myTheme);
       }
     }
   }
@@ -271,7 +273,7 @@ public class ThemeMenuAction extends DropDownAction {
           String theme = dialog.getTheme();
           if (theme != null) {
             configuration.setTheme(theme);
-            ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), theme);
+            ThemeUtils.addRecentlyUsedTheme(ConfigurationManager.getFromConfiguration(configuration).getProject(), theme);
           }
         }
       }
