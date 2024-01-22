@@ -30,14 +30,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class StudioHtmlLinkManagerTest extends LayoutTestCase {
-  public void testRunnable() {
+  public void testAction() {
     StudioHtmlLinkManager manager = new StudioHtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
     final AtomicBoolean result2 = new AtomicBoolean(false);
-    Runnable runnable1 = () -> result1.set(true);
-    Runnable runnable2 = () -> result2.set(true);
-    String url1 = manager.createRunnableLink(runnable1);
-    String url2 = manager.createRunnableLink(runnable2);
+    HtmlLinkManager.Action runnable1 = (module) -> result1.set(true);
+    HtmlLinkManager.Action runnable2 = (module) -> result2.set(true);
+    String url1 = manager.createActionLink(runnable1);
+    String url2 = manager.createActionLink(runnable2);
     assertFalse(result1.get());
     manager.handleUrl(url1, null, null, false, HtmlLinkManager.NOOP_SURFACE);
     assertTrue(result1.get());

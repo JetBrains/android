@@ -61,18 +61,18 @@ import java.lang.ref.WeakReference
 class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
 
-  override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
+  override val actionFixFactory: RenderProblem.ActionFixFactory = ShowFixFactory
 
   override fun reportMissingSdkDependency(logger: IRenderLogger) {
     val message = RenderProblem.create(ProblemSeverity.ERROR)
     logger.addMessage(message)
     message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-                                logger.linkManager.createRunnableLink {
-                                  val project = module.project
+                                logger.linkManager.createActionLink { module ->
+                                  val project = module?.project ?: return@createActionLink
                                   val service = ProjectSettingsService.getInstance(project)
                                   if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
                                     (service as AndroidProjectSettingsService).openSdkSettings()
-                                    return@createRunnableLink
+                                    return@createActionLink
                                   }
                                   AndroidSdkUtils.openModuleDependenciesConfigurable(module)
                                 })

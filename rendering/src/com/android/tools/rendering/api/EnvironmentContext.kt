@@ -40,7 +40,7 @@ import com.intellij.psi.PsiFile
 interface EnvironmentContext {
   val layoutlibContext: LayoutlibContext
 
-  val runnableFixFactory: RenderProblem.RunnableFixFactory
+  val actionFixFactory: RenderProblem.ActionFixFactory
 
   fun reportMissingSdkDependency(logger: IRenderLogger)
 

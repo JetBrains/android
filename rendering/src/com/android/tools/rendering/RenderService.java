@@ -129,7 +129,7 @@ final public class RenderService implements Disposable {
   public RenderLogger createLogger(
     @Nullable Project project,
     boolean logFramework,
-    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull RenderProblem.ActionFixFactory fixFactory,
     @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
     return new RenderLogger(project, myCredential, logFramework, fixFactory, linkManagerFactory);
   }
@@ -570,7 +570,7 @@ final public class RenderService implements Disposable {
           message = message != null ? message : RenderingBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
             RenderProblem.createHtml(
-              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
+              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getActionFixFactory()));
           return null;
         }
 

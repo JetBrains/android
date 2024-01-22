@@ -939,7 +939,7 @@ public class RenderTask {
             message = ex.toString();
           }
           RenderModelModule module = myContext.getModule();
-          RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+          RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
           myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
         }
 
@@ -1155,7 +1155,7 @@ public class RenderTask {
           message = e.toString();
         }
         RenderModelModule module = myContext.getModule();
-        RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+        RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
         myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
         return CompletableFuture.completedFuture(
           RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, module, xmlFile, e, myLogger));

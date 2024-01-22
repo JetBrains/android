@@ -132,7 +132,7 @@ object ComposeRenderErrorContributor {
                       "previews#preview-viewmodel",
                   )
                   .newlineIfNecessary()
-                  .addExceptionMessage(linkManager, project, it.throwable)
+                  .addExceptionMessage(linkManager, it.throwable)
               )
           }
           isCompositionLocalStackTrace(it.throwable) -> {
@@ -149,7 +149,7 @@ object ComposeRenderErrorContributor {
                   )
                   .add("You might need to define it so it can render correctly.")
                   .newlineIfNecessary()
-                  .addExceptionMessage(linkManager, project, it.throwable)
+                  .addExceptionMessage(linkManager, it.throwable)
               )
           }
           isComposeNotFoundThrowable(it.throwable) -> {
@@ -203,7 +203,7 @@ object ComposeRenderErrorContributor {
                     "If you think this issue is not caused by your code, you can report a bug in our issue tracker."
                   )
               )
-              .addMessageTip(createAddReportBugMessage(project, linkManager, null))
+              .addMessageTip(createAddReportBugMessage(linkManager, null))
           }
           else -> null
         }

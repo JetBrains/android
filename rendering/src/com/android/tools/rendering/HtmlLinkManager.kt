@@ -24,12 +24,20 @@ import java.io.File
 import java.net.MalformedURLException
 
 interface HtmlLinkManager {
+  /** Handles a click in the [HtmlLinkManager]. */
+  fun interface Action {
+    /**
+     * Called when the action is clicked. If available, the [module] will be passed as a parameter.
+     */
+    fun actionPerformed(module: Module?)
+  }
+
   fun showNotification(content: String) = Unit
 
   fun handleUrl(
     url: String,
-    module: Module?,
-    file: PsiFile?,
+    module: Module,
+    file: PsiFile,
     hasRenderResult: Boolean,
     surface: RefreshableSurface,
   )
@@ -46,7 +54,7 @@ interface HtmlLinkManager {
 
   fun createCommandLink(command: CommandLink): String
 
-  fun createRunnableLink(runnable: Runnable): String
+  fun createActionLink(action: Action): String
 
   fun createShowTagUrl(tag: String): String = "$URL_SHOW_TAG$tag"
 
@@ -124,15 +132,15 @@ interface HtmlLinkManager {
       object : HtmlLinkManager {
         override fun handleUrl(
           url: String,
-          module: Module?,
-          file: PsiFile?,
+          module: Module,
+          file: PsiFile,
           hasRenderResult: Boolean,
           surface: RefreshableSurface,
         ) {}
 
         override fun createCommandLink(command: CommandLink): String = ""
 
-        override fun createRunnableLink(runnable: Runnable): String = ""
+        override fun createActionLink(action: Action): String = ""
       }
 
     @JvmField
