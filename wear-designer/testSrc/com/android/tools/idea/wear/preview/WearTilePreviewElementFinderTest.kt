@@ -379,6 +379,56 @@ class WearTilePreviewElementFinderTest {
       }
     }
   }
+
+  @Test
+  fun testWearTileElementsFinderFindsAliasImports() = runBlocking {
+    val previewsTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/Src.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import android.content.Context
+        import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.Preview as PreviewAlias
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+        import androidx.wear.tiles.tooling.preview.WearDevices
+
+        @PreviewAlias
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent()
+      )
+
+    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
+      .isTrue()
+
+    runBlocking {
+      val previewElements =
+        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      assertThat(previewElements).hasSize(1)
+
+      previewElements.first().let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreview")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
+
+        ReadAction.run<Throwable> {
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
+            .isEqualTo(previewsTest.textRange("tilePreview"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text).isEqualTo("@PreviewAlias")
+        }
+      }
+    }
+  }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {

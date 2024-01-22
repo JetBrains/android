@@ -18,6 +18,7 @@ package com.android.tools.idea.annotations
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -28,6 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolder
+import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -86,8 +88,10 @@ private fun hasAnnotationsUncached(
     }
 
   return@runReadAction PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java).any {
-    ((it.shortName?.asString() == shortAnnotationName && hasAnnotationImport) ||
-      isFullNameAnnotation(it)) && filter(it)
+    val shortName =
+      it.getQualifiedName()?.let { qualifiedName -> StringUtilRt.getShortName(qualifiedName) }
+    ((shortName == shortAnnotationName && hasAnnotationImport) || isFullNameAnnotation(it)) &&
+      filter(it)
   }
 }
 
