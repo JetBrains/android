@@ -38,7 +38,6 @@ import com.intellij.util.Processor
  * See also: [LightBindingClass]
  */
 class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
   private val lightBindingCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
@@ -49,10 +48,10 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     lightBindingCache =
       cachedValuesManager.createCachedValue {
+        val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
         val allBindingClasses =
           enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
             val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
@@ -70,8 +69,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
         CachedValueProvider.Result.create(
           groupedClasses as Map<String, List<LightBindingClass>>,
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
+          getModificationTrackers(project),
         )
       }
 
@@ -79,8 +77,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
       cachedValuesManager.createCachedValue {
         CachedValueProvider.Result.create(
           ArrayUtil.toStringArray(lightBindingCache.value.keys),
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
+          getModificationTrackers(project),
         )
       }
 
@@ -92,11 +89,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
             .flatMap { psiClass -> psiClass.methods.asIterable() }
             .groupBy { method -> method.name }
 
-        CachedValueProvider.Result.create(
-          allMethods,
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
-        )
+        CachedValueProvider.Result.create(allMethods, getModificationTrackers(project))
       }
 
     fieldsByNameCache =
@@ -107,33 +100,27 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
             .flatMap { psiClass -> psiClass.fields.asIterable() }
             .groupBy { field -> field.name }
 
-        CachedValueProvider.Result.create(
-          allFields,
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
-        )
+        CachedValueProvider.Result.create(allFields, getModificationTrackers(project))
       }
 
     allMethodNamesCache =
       cachedValuesManager.createCachedValue {
         val names = methodsByNameCache.value.keys
-        CachedValueProvider.Result.create(
-          names.toTypedArray(),
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
-        )
+        CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
       }
 
     allFieldNamesCache =
       cachedValuesManager.createCachedValue {
         val names = fieldsByNameCache.value.keys
-        CachedValueProvider.Result.create(
-          names.toTypedArray(),
-          enabledFacetsProvider,
-          resourcesModifiedTracker,
-        )
+        CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
       }
   }
+
+  private fun getModificationTrackers(project: Project): List<Any> =
+    listOf(
+      LayoutBindingEnabledFacetsProvider.getInstance(project),
+      ProjectLayoutResourcesModificationTracker.getInstance(project),
+    )
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     val bindingClasses =
