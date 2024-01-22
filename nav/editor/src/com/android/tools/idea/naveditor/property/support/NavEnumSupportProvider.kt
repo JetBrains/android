@@ -27,7 +27,9 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.util.ClassUtil
+import com.intellij.util.SlowOperations
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.getClassesForTag
@@ -57,7 +59,10 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
       }
       ANDROID_URI -> {
         when (property.name) {
-          ATTR_NAME -> return ClassEnumSupport(emptyList.plus(getClasses(component)))
+          ATTR_NAME -> {
+            val classes = SlowOperations.allowSlowOperations(ThrowableComputable { getClasses(component) })
+            return ClassEnumSupport(emptyList.plus(classes))
+          }
           else -> return null
         }
       }
