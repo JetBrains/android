@@ -151,6 +151,12 @@ iml_module(
     name = "intellij.android.kotlin.tests",
     generate_k2_tests = True,
     iml_files = ["intellij.android.kotlin.tests.iml"],
+    split_test_targets = {
+        "configure": {
+            "test_filter": "org.jetbrains.kotlin.android.configure",
+        },
+        "other": {},
+    },
     tags = [
         "no_test_mac",  # b/156004634
         "no_test_windows",
@@ -163,7 +169,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
     ],
-    test_shard_count = 2,
     test_srcs = ["idea-android/tests"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
