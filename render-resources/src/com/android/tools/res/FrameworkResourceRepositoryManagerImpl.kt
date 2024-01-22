@@ -21,7 +21,6 @@ import com.android.resources.aar.CachingData
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
-import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.annotations.TestOnly
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
