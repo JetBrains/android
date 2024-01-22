@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.LocalResourceRepository
-import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -82,7 +81,7 @@ private constructor(
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     val module = facet.module
-    ResourceIdManager.get(module).resetDynamicIds()
+    ResourceIdManagerImpl.get(module).resetDynamicIds()
     ResourceClassRegistry.get(module.project).clearCache()
     ModuleClassLoaderManager.get().clearCache(module)
   }

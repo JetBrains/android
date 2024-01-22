@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManagerImpl;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -161,7 +162,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
     ResourceRepository moduleResources = repositoryManager.getModuleResources();
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
-    rClassRegistry.addLibrary(moduleResources, ResourceIdManager.get(module), "test", namespace);
+    rClassRegistry.addLibrary(moduleResources, ResourceIdManagerImpl.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
       try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()

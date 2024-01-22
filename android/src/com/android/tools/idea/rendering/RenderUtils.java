@@ -20,9 +20,9 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManagerImpl;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
-import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import java.util.Objects;
@@ -40,7 +40,7 @@ public class RenderUtils {
         IAndroidTarget target = configuration.getTarget();
         Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
         ModuleClassLoaderManager.get().clearCache(module);
-        ResourceIdManager.get(module).resetDynamicIds();
+        ResourceIdManagerImpl.get(module).resetDynamicIds();
         ResourceClassRegistry.get(module.getProject()).clearCache();
         if (target != null) {
           AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));

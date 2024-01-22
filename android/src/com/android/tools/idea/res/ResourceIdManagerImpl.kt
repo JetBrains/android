@@ -21,4 +21,8 @@ import com.intellij.openapi.module.Module
 
 /** Studio-specific implementation of [ResourceIdManager]. */
 class ResourceIdManagerImpl private constructor(module: Module) :
-  ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module))
+  ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module)) {
+  companion object {
+    @JvmStatic fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
+  }
+}

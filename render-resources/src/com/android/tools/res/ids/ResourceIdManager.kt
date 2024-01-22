@@ -16,7 +16,6 @@
 package com.android.tools.res.ids
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.intellij.openapi.module.Module
 import java.util.function.Consumer
 
 /**
@@ -39,11 +38,6 @@ interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
   fun resetCompiledIds(rClassProvider: Consumer<RClassParser>)
 
   fun resetDynamicIds()
-
-  companion object {
-    @JvmStatic
-    fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
-  }
 
   fun interface RClassParser {
     fun parse(rClass: Class<*>)
