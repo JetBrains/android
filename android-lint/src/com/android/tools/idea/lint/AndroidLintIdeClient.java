@@ -56,7 +56,7 @@ import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
-import com.android.tools.res.FrameworkResourceRepositoryManager;
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -72,10 +72,8 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
-import com.intellij.util.TripleFunction;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -84,7 +82,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -433,7 +430,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
         if (scope == ResourceRepositoryScope.ANDROID) {
           IAndroidTarget target = project.getBuildTarget();
           if (target != null) {
-            return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
+            return StudioFrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
               target.getPath(IAndroidTarget.RESOURCES),
               // TBD: Do we need to get the framework resources to provide all languages?
               false, Collections.emptySet());

@@ -20,7 +20,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.rendering.RenderResult
-import com.android.tools.res.FrameworkResourceRepositoryManager
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -62,7 +62,7 @@ class RenderATFComplexPerfgateTest {
       }
     }
     finally {
-      FrameworkResourceRepositoryManager.getInstance().clearCache()
+      StudioFrameworkResourceRepositoryManager.getInstance().clearCache()
     }
   }
 

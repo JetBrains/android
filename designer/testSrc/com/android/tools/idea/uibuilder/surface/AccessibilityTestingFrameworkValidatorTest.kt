@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
 import com.android.tools.rendering.RenderResult
-import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.google.common.util.concurrent.Futures
 import java.util.EnumSet
 import java.util.stream.Collectors
@@ -50,7 +50,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
       RenderTestUtil.afterRenderTestCase()
       LayoutValidator.updatePolicy(LayoutValidator.DEFAULT_POLICY)
     } finally {
-      FrameworkResourceRepositoryManager.getInstance().clearCache()
+      StudioFrameworkResourceRepositoryManager.getInstance().clearCache()
       super.tearDown()
     }
   }

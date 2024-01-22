@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.res
+package com.android.tools.idea.res
 
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.tools.concurrency.AndroidIoManager
+import com.android.tools.res.FrameworkResourceRepositoryManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import java.util.concurrent.Executor
 
 /**
- * Studio-specific Application service for caching and reusing instances of [FrameworkResourceRepository].
+ * Studio-specific Application service for caching and reusing instances of
+ * [FrameworkResourceRepository].
  */
-class StudioFrameworkResourceRepositoryManager : FrameworkResourceRepositoryManager(
-  PathManager.getSystemPath(),
-  // Don't create a persistent cache in tests to avoid unnecessary overhead.
-  if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
-  else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
-)
+class StudioFrameworkResourceRepositoryManager :
+  FrameworkResourceRepositoryManagerImpl(
+    PathManager.getSystemPath(),
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
+    else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor(),
+  ) {
+  companion object {
+    @JvmStatic
+    fun getInstance() =
+      ApplicationManager.getApplication()
+        .getService(FrameworkResourceRepositoryManagerImpl::class.java)!!
+  }
+}

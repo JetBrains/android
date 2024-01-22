@@ -202,8 +202,8 @@
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
-    <applicationService serviceInterface="com.android.tools.res.FrameworkResourceRepositoryManager"
-                        serviceImplementation="com.android.tools.res.StudioFrameworkResourceRepositoryManager"/>
+    <applicationService serviceInterface="com.android.tools.res.FrameworkResourceRepositoryManagerImpl"
+                        serviceImplementation="com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.project.metrics.CacheInvalidatorMetricCollector"/>

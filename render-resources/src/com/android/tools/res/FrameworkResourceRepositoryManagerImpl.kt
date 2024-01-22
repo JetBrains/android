@@ -33,14 +33,10 @@ import java.util.concurrent.Executor
 /**
  * Class for caching and reusing instances of [FrameworkResourceRepository].
  */
-open class FrameworkResourceRepositoryManager(
+open class FrameworkResourceRepositoryManagerImpl(
   private val systemCachePath: String = "", // Empty path means no caching
   private val diskIoExecutor: Executor,
-) {
-  companion object {
-    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(FrameworkResourceRepositoryManager::class.java)!!
-  }
-
+) : FrameworkResourceRepositoryManager {
   private data class CacheKey(val path: Path, val useCompiled9Patches: Boolean)
 
   private val cache = ConcurrentHashMap<CacheKey, FrameworkResourceRepository>()
@@ -58,7 +54,7 @@ open class FrameworkResourceRepositoryManager(
    * @return the repository of Android framework resources
    */
   @Slow
-  fun getFrameworkResources(
+  override fun getFrameworkResources(
     resourceDirectoryOrFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>
