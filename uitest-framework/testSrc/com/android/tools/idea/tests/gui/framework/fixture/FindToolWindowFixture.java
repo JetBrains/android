@@ -46,7 +46,7 @@ public class FindToolWindowFixture {
           ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
           GroupNode rootNode = (GroupNode)getContentsTree().getModel().getRoot();
           for (GroupNode subGroup : rootNode.getSubGroups()) {
-            listBuilder.add(subGroup.getGroup().getText(null));
+            listBuilder.add(subGroup.getGroup().getPresentableGroupText());
           }
           return listBuilder.build();
         });
