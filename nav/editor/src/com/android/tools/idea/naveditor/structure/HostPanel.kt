@@ -41,6 +41,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
@@ -56,6 +57,7 @@ import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.Query
+import com.intellij.util.SlowOperations
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -164,7 +166,11 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         }
         icon = StudioIcons.NavEditor.Tree.ACTIVITY
         val containingFile = value.containingFile?.name ?: "Unknown File"
-        val id = runReadAction { value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
+        val id = runReadAction {
+          SlowOperations.allowSlowOperations(ThrowableComputable {
+            value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
+          })
+        }
         append(FileUtil.getNameWithoutExtension(containingFile))
         append(" (${id ?: "no id"})")
       }
