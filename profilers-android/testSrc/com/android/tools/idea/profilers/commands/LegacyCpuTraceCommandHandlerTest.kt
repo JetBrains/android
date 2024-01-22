@@ -118,6 +118,7 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = endTimestamp
+      isEnded = true
       traceData = Trace.TraceData.newBuilder().apply {
         traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()
@@ -197,6 +198,7 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = endTimestamp
+      isEnded = true
       traceData = Trace.TraceData.newBuilder().apply {
         traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()
