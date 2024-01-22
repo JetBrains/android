@@ -728,6 +728,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
                     interface="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerToken"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken"
+                    interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">

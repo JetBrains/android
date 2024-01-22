@@ -210,6 +210,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.instrumented">
     <androidTestConfigurationProducerToken implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.ui.resourcemanager.importer">
+    <createDefaultResDirectoryToken implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>

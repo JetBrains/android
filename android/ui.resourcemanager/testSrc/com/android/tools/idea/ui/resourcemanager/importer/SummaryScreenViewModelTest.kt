@@ -22,6 +22,8 @@ import com.android.resources.Density
 import com.android.resources.HighDynamicRange
 import com.android.resources.NightMode
 import com.android.resources.ResourceType
+import com.android.tools.idea.project.DefaultToken
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -30,13 +32,17 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManag
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -45,7 +51,7 @@ import java.io.File
 class SummaryScreenViewModelTest {
 
   @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  val rule = AndroidProjectRule.onDisk()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -56,8 +62,18 @@ class SummaryScreenViewModelTest {
     SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet, getSourceSetsResDirs(facet))
   }
 
+  @Before
+  fun setUp() {
+    val token = object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
+      override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
+        File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
+    }
+    maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable, areaInstance = rule.project)
+  }
+
   @Test
   fun initialState() {
+    assertThat(getOrCreateDefaultResDirectory(facet).isDirectory).isTrue()
     assertThat(viewModel.assetSetsToImport).isEmpty()
     val fileTreeModel = viewModel.fileTreeModel
     assertThat(fileTreeModel.getChildCount(fileTreeModel.root)).isEqualTo(0)

@@ -19,6 +19,8 @@ import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
+import com.android.tools.idea.project.DefaultToken
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -28,15 +30,18 @@ import com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurati
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil.findComponentsOfType
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -72,6 +77,11 @@ class ResourceImportDialogTest {
 
   @Before
   fun setUp() {
+    val token = object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
+      override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
+        File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
+    }
+    maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable, areaInstance = rule.project)
     rule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
     dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!,
                                                     getAssets(
