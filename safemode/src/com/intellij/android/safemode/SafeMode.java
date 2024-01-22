@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SafeMode implements ApplicationLoadListener {
   private static final Logger LOG = Logger.getInstance(SafeMode.class);
+  private static final String CRASH_DETECTION_FILE = "android.studio.safe.mode.sentinel";
 
   @Override
   public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path path) {
@@ -41,7 +42,7 @@ public class SafeMode implements ApplicationLoadListener {
       return;
     }
 
-    File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), "android.studio");
+    File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), CRASH_DETECTION_FILE);
 
     if (System.getProperty("studio.safe.mode") != null) {
       // If we entered safe mode, register a cleanup handler and return.
@@ -55,7 +56,7 @@ public class SafeMode implements ApplicationLoadListener {
       // Create crash files to detect if we've crashed for next time.
       try {
         //noinspection ResultOfMethodCallIgnored
-        File.createTempFile("android.studio", "");
+        File.createTempFile(CRASH_DETECTION_FILE, "");
       } catch (Exception e) {
         LOG.error("Unexpected error while creating safe mode crash detection file ", e);
       }
@@ -84,6 +85,8 @@ public class SafeMode implements ApplicationLoadListener {
                                      options,
                                      options[0]) != 0) {
       frame.dispose();
+      // Register a cleanup handler and return.
+      registerCleanupHandler();
       return;
     }
 
@@ -126,7 +129,7 @@ public class SafeMode implements ApplicationLoadListener {
       @Override
       public void appWillBeClosed(boolean isRestart) {
         //  SafeMode crash detection clean up
-        File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), "android.studio");
+        File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), CRASH_DETECTION_FILE);
 
         for (File f : studioCrashFiles) {
           //noinspection ResultOfMethodCallIgnored
