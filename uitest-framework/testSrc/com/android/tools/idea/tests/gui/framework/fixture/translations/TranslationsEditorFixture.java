@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -34,19 +32,12 @@ import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.swing.AbstractButton;
-import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
-import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,14 +46,12 @@ public final class TranslationsEditorFixture {
   private final Robot myRobot;
 
   private final JBLoadingPanel myLoadingPanel;
-  private final JButtonFixture myFilterKeysComboBox;
   private final FrozenColumnTable myTable;
 
   public TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor editor) {
     myRobot = robot;
 
     myLoadingPanel = (JBLoadingPanel)robot.finder().findByName("translationsEditor");
-    myFilterKeysComboBox = getButton("Show All Keys");
     myTable = editor.getPanel().getTable();
   }
 
@@ -87,25 +76,6 @@ public final class TranslationsEditorFixture {
     return new AddKeyDialogFixture(myRobot, myRobot.finder().find(DialogMatcher.withTitle("Add Key")));
   }
 
-  public void clickFilterKeysComboBoxItem(@NotNull String text) {
-    clickComboBoxItem(myFilterKeysComboBox, text);
-  }
-
-  public void clickFilterLocalesComboBoxItem(@NotNull String text) {
-    clickComboBoxItem(getButton("Show All Locales"), text);
-  }
-
-  public void clickReloadButton() {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        return "Reload string resources".equals(button.getAction().getTemplatePresentation().getText());
-      }
-    };
-
-    new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myLoadingPanel, matcher)).click();
-  }
-
   public void addNewLocale(@NotNull String newLocale) {
     getAddLocaleButton().click();
     GuiTests.waitForBackgroundTasks(myRobot);
@@ -113,16 +83,6 @@ public final class TranslationsEditorFixture {
     JListFixture listFixture = new JListFixture(myRobot, myRobot.finder().find(Matchers.byType(JBList.class)));
     listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
     listFixture.clickItem(newLocale);
-  }
-
-  @NotNull
-  private JBList getLocaleList() {
-    return waitUntilFound(myRobot, null, new GenericTypeMatcher<JBList>(JBList.class) {
-      @Override
-      protected boolean isMatching(@NotNull JBList list) {
-        return "localeList".equals(list.getName());
-      }
-    });
   }
 
   @NotNull
@@ -135,18 +95,6 @@ public final class TranslationsEditorFixture {
     };
 
     return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myLoadingPanel, matcher));
-  }
-
-  private JButtonFixture getButton(@NotNull String text) {
-    ComponentMatcher componentTextEqualsShowAllKeys =
-      component -> component instanceof AbstractButton && ((AbstractButton)component).getText().equals(text);
-
-    return new JButtonFixture(myRobot, (JButton)myRobot.finder().find(myLoadingPanel, componentTextEqualsShowAllKeys));
-  }
-
-  private void clickComboBoxItem(@NotNull JButtonFixture button, @NotNull String text) {
-    button.click();
-    GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), myRobot.finder().findByName(myLoadingPanel, "toolbar"), myRobot);
   }
 
   @NotNull
@@ -187,37 +135,6 @@ public final class TranslationsEditorFixture {
       .findFirst();
   }
 
-  public void waitUntilTableValueAtEquals(@NotNull TableCell cell, @NotNull Object value) {
-    FrozenColumnTableFixture table = getTable();
-
-    // There's nothing special about the 2 second wait, it's simply more than the 500 millisecond delay of the
-    // TranslationsEditorTextField.SetTableValueAtTimer
-    Wait.seconds(2).expecting("value at " + cell + " to equal " + value).until(() -> table.valueAt(cell).equals(value));
-  }
-
-  @NotNull
-  public SimpleColoredComponent getCellRenderer(@NotNull TableCell cell) {
-    return GuiQuery.get(() -> {
-      FrozenColumnTable target = getTable().target();
-      int columnCount = target.getFrozenColumnCount();
-
-      JTable table;
-      int columnIndex;
-
-      if (cell.column < columnCount) {
-        table = target.getFrozenTable();
-        columnIndex = cell.column;
-      }
-      else {
-        table = target.getScrollableTable();
-        columnIndex = cell.column - columnCount;
-      }
-
-      TableCellRenderer renderer = table.getCellRenderer(cell.row, columnIndex);
-      return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)table.prepareRenderer(renderer, cell.row, columnIndex));
-    });
-  }
-
   public static final class SimpleColoredComponent {
     public final String myValue;
     public final SimpleTextAttributes myAttributes;
@@ -230,18 +147,6 @@ public final class TranslationsEditorFixture {
       myAttributes = i.getTextAttributes();
       myTooltipText = component.getToolTipText();
     }
-  }
-
-  @NotNull
-  public JTextComponentFixture getDefaultValueTextField() {
-    TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myLoadingPanel, "defaultValueTextField");
-    return new JTextComponentFixture(myRobot, field.getTextField());
-  }
-
-  @NotNull
-  public JTextComponentFixture getTranslationTextField() {
-    TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myLoadingPanel, "translationTextField");
-    return new JTextComponentFixture(myRobot, field.getTextField());
   }
 
   @NotNull
