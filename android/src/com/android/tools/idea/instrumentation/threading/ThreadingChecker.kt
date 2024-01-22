@@ -44,7 +44,7 @@ class ThreadingChecker : ApplicationInitializedListener {
 
     if (agentLoadedAtStartup) {
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
-      thisLogger().debug("ThreadingChecker listener has been installed.")
+      thisLogger().info("ThreadingChecker listener has been installed.")
     } else {
       // Attempt to load the threading agent dynamically when running an EAP build of Android Studio.
       // As for the tests and running Android Studio from IntelliJ during development use the -javaagent JVM option instead.
@@ -87,7 +87,7 @@ class ThreadingChecker : ApplicationInitializedListener {
       }
       vm.loadAgent(threadingAgentJarPath.toString())
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
-      thisLogger().debug("ThreadingChecker listener has been installed (after threading agent was dynamically loaded).")
+      thisLogger().info("ThreadingChecker listener has been installed (after threading agent was dynamically loaded).")
     }
     catch (e: Exception) {
       thisLogger().error(e)

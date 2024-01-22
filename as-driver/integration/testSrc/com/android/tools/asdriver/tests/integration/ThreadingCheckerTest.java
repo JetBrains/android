@@ -22,7 +22,6 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Display;
 import java.util.concurrent.TimeUnit;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,7 +38,6 @@ public class ThreadingCheckerTest {
    * Verifies that threading errors triggered by the threading agent will cause
    * the AndroidSystem test rule to throw an exception.
    * */
-  @Ignore("b/316422425")
   @Test
   public void verifiesThreadingProblemsTest() throws Exception {
     thrown.expect(RuntimeException.class);
@@ -47,7 +45,6 @@ public class ThreadingCheckerTest {
 
     AndroidStudioInstallation installation = androidSystem.getInstallation();
     installation.addVmOption("-Didea.is.internal=true");
-    installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.instrumentation.threading.ThreadingChecker");
 
     try (Display display = Display.createDefault();
          AndroidStudio studio = installation.run(display)) {
