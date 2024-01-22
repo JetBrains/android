@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.kotlin.android.change
+package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.annotations.SystemDependent
-import org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator
 import org.jetbrains.kotlin.config.LanguageFeature.InlineClasses
 import org.jetbrains.kotlin.config.LanguageFeature.MultiPlatformProjects
 import org.jetbrains.kotlin.config.LanguageFeature.State.DISABLED
