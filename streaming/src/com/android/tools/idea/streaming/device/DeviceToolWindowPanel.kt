@@ -167,6 +167,9 @@ internal class DeviceToolWindowPanel(
           ConnectionState.CONNECTED -> {
             deviceClient.deviceController?.apply {
               addDisplayListener(displayConfigurator)
+              Disposer.register(disposable) {
+                removeDisplayListener(displayConfigurator)
+              }
               displayConfigurator.onDisplaysChanged()
               addDeviceStateListener(deviceStateListener)
             }
