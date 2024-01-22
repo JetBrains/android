@@ -139,7 +139,7 @@ class DesignerCommonIssuePanel(
 
     sidePanel = DesignerCommonIssueSidePanel(project, this)
 
-    splitter = OnePixelSplitter(false, 0.5f, 0.3f, 0.7f)
+    splitter = OnePixelSplitter(vertical, 0.5f, 0.3f, 0.7f)
     splitter.proportion = 0.5f
     splitter.firstComponent = ScrollPaneFactory.createScrollPane(tree, true)
     splitter.secondComponent = sidePanel
