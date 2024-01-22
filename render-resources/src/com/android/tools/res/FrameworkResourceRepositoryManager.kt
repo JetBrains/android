@@ -20,10 +20,8 @@ import com.android.annotations.concurrency.Slow
 import com.android.resources.aar.CachingData
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
-import com.android.tools.concurrency.AndroidIoManager
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.PathManager
 import org.jetbrains.annotations.TestOnly
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
@@ -33,9 +31,12 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
 /**
- * Application service for caching and reusing instances of [FrameworkResourceRepository].
+ * Class for caching and reusing instances of [FrameworkResourceRepository].
  */
-class FrameworkResourceRepositoryManager {
+open class FrameworkResourceRepositoryManager(
+  private val systemCachePath: String = "", // Empty path means no caching
+  private val diskIoExecutor: Executor,
+) {
   companion object {
     @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(FrameworkResourceRepositoryManager::class.java)!!
   }
@@ -83,6 +84,9 @@ class FrameworkResourceRepositoryManager {
     if (resFolderOrJar.fileName.toString().endsWith(DOT_JAR, ignoreCase = true)) {
       return null // Caching data is not used when loading framework resources from a JAR.
     }
+    if (systemCachePath.isEmpty()) {
+      return null
+    }
     val codeVersion = CodeVersionAdapter.getCodeVersion() ?: return null
     val contentVersion = try {
       Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
@@ -94,11 +98,8 @@ class FrameworkResourceRepositoryManager {
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
     val prefix = resFolderOrJar.parent?.parent?.fileName?.toString() ?: "framework"
     val filename = String.format("%s_%s.dat", prefix, pathHash)
-    val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
-    // Don't create a persistent cache in tests to avoid unnecessary overhead.
-    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
-                   else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
-    return CachingData(cacheFile, contentVersion, codeVersion, executor)
+    val cacheFile = Paths.get(systemCachePath, RESOURCE_CACHE_DIRECTORY, filename)
+    return CachingData(cacheFile, contentVersion, codeVersion, diskIoExecutor)
   }
 
   @TestOnly
