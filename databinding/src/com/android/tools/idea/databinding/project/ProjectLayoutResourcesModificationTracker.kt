@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding.project
 import com.android.tools.idea.databinding.index.BindingXmlIndexModificationTracker
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 
@@ -32,17 +33,15 @@ class ProjectLayoutResourcesModificationTracker(private val project: Project) :
   ModificationTracker {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker =
-      project.getService(ProjectLayoutResourcesModificationTracker::class.java)
+    fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker = project.service()
   }
-
-  private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
 
   override fun getModificationCount(): Long {
     // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
     // so we must incorporate both into the modification count (see b/283753328).
     val resourceModificationCount: Long =
-      enabledFacetsProvider.getAllBindingEnabledFacets().sumOf { facet ->
+      LayoutBindingEnabledFacetsProvider.getInstance(project).getAllBindingEnabledFacets().sumOf {
+        facet ->
         StudioResourceRepositoryManager.getModuleResources(facet).modificationCount
       }
     val bindingIndexModificationCount =
