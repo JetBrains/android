@@ -15,41 +15,23 @@
  */
 package org.jetbrains.android;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
-import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.rename.RenameHandler;
-import com.intellij.refactoring.rename.RenameProcessor;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.TestActionEvent;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidResourceRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
@@ -62,15 +44,15 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
                  .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext()))).hasSize(1);
   }
 
-  private MapDataContext createDataContext() {
-    MapDataContext context = new MapDataContext();
-    context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
-    context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
-    context.put(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
-                                                                                TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
-                                                                                | TargetElementUtil.ELEMENT_NAME_ACCEPTED));
-    context.put(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret());
-    return context;
+  private DataContext createDataContext() {
+    return SimpleDataContext.builder()
+      .add(CommonDataKeys.EDITOR, myFixture.getEditor())
+      .add(CommonDataKeys.PSI_FILE, myFixture.getFile())
+      .add(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
+                                                                           TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
+                                                                           | TargetElementUtil.ELEMENT_NAME_ACCEPTED))
+      .add(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret())
+      .build();
   }
 
   /**
