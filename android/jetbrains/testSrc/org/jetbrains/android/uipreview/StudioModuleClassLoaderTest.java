@@ -46,7 +46,7 @@ import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.res.ids.ResourceIdManager;
-import com.android.tools.res.ids.TestResourceIdManager;
+import com.android.tools.idea.res.TestResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;

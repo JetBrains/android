@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.res.ids
+package com.android.tools.idea.res
 
+import com.android.tools.res.ids.ResourceIdManager
+import com.android.tools.res.ids.StubbedResourceIdManager
 import com.intellij.openapi.module.Module
 
 class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager() {
@@ -31,6 +33,7 @@ class TestResourceIdManager private constructor(module: Module) : StubbedResourc
   }
 
   companion object {
-    fun getManager(module: Module) = module.getService(ResourceIdManager::class.java) as TestResourceIdManager
+    fun getManager(module: Module) =
+      module.getService(ResourceIdManager::class.java) as TestResourceIdManager
   }
 }
