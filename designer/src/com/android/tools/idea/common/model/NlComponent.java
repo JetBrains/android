@@ -60,6 +60,7 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -536,10 +537,11 @@ public class NlComponent implements NlAttributesHolder {
 
       ResourceResolver resolver = null;
       try {
-        resolver = Futures.getChecked(myModel.getConfiguration().getResourceResolverAsync(),
-                                      ExecutionException.class,
-                                      500,
-                                      TimeUnit.MILLISECONDS);
+        resolver =
+          Futures.getChecked(AppExecutorUtil.getAppExecutorService().submit(() -> myModel.getConfiguration().getResourceResolver()),
+                             ExecutionException.class,
+                             500,
+                             TimeUnit.MILLISECONDS);
       }
       catch (ExecutionException ignored) {
       }

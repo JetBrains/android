@@ -62,15 +62,12 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.MoreObjects;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1174,13 +1171,6 @@ public class Configuration extends UserDataHolderBase implements ModificationTra
       resolverCache.replaceCustomConfig(theme, getFullConfig());
     }
     return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
-  }
-
-  public @NotNull CompletableFuture<ResourceResolver> getResourceResolverAsync() {
-    CompletableFuture<ResourceResolver> completableFuture = new CompletableFuture<>();
-    AppExecutorUtil.getAppExecutorService().submit(() -> completableFuture.complete(getResourceResolver()));
-
-    return completableFuture;
   }
 
   /**
