@@ -2,11 +2,12 @@ package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.actions.InlineAction;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
@@ -78,10 +79,11 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
 
   @NotNull
   private AnActionEvent doInlineFileTest() {
-    MapDataContext context = new MapDataContext();
-    context.put(CommonDataKeys.PROJECT, getProject());
-    context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
-    context.put(CommonDataKeys.PSI_ELEMENT, myFixture.getFile());
+    DataContext context = SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, getProject())
+      .add(CommonDataKeys.EDITOR, myFixture.getEditor())
+      .add(CommonDataKeys.PSI_ELEMENT, myFixture.getFile())
+      .build();
     AnActionEvent e = TestActionEvent.createTestEvent(context);
     new InlineAction().actionPerformed(e);
     return e;
@@ -149,7 +151,7 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
       fail();
     }
     catch (IncorrectOperationException e) {
-      assertTrue(e.getMessage().length() > 0);
+      assertFalse(e.getMessage().isEmpty());
     }
     finally {
       AndroidInlineLayoutHandler.setTestConfig(null);
@@ -233,7 +235,7 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
       fail();
     }
     catch (IncorrectOperationException e) {
-      assertTrue(e.getMessage().length() > 0);
+      assertFalse(e.getMessage().isEmpty());
     }
   }
 }
