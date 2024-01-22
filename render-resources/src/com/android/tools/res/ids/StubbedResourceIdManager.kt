@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,5 @@
  */
 package com.android.tools.res.ids
 
-import com.intellij.openapi.module.Module
-
-class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager() {
-  private var _finalIdsUsed = true
-  override val finalIdsUsed: Boolean
-    get() = _finalIdsUsed
-
-  fun setFinalIdsUsed(finalIdsUsed: Boolean) {
-    _finalIdsUsed = finalIdsUsed
-  }
-
-  fun resetFinalIdsUsed() {
-    _finalIdsUsed = true
-  }
-
-  companion object {
-    fun getManager(module: Module) = module.getService(ResourceIdManager::class.java) as TestResourceIdManager
-  }
-}
+/** [ResourceIdManager] implementation with fixed final ids. Convenient for testing. */
+open class StubbedResourceIdManager : ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP)
