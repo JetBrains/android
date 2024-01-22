@@ -53,7 +53,4 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
     get() = ModuleKeyManager.getKey(module)
   override val resourcePackage: String?
     get() = module.getModuleSystem().getPackageName()
-
-  override fun dispose() {
-  }
 }
