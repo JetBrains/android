@@ -46,7 +46,7 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   fun trackUnknownEvent() = track(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE)
 
-  fun trackZoom(type: ZoomType) =
+  open fun trackZoom(type: ZoomType) =
     when (type) {
       ZoomType.ACTUAL -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
       ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)

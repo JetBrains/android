@@ -128,6 +128,7 @@ import org.jetbrains.annotations.TestOnly;
 
 /**
  * A generic design surface for use in a graphical editor.
+ * FIXME(b/291572358): [DesignSurface] shouldn't extend [ZoomController] as there is [DesignSurfaceZoomController] already
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
   implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport {
@@ -174,9 +175,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     AUTO_HIDE
   }
 
+  /**
+   * The [ZoomController] implementation containing the zoom logic of [DesignSurface].
+   */
+  @NotNull
+  private final DesignSurfaceZoomController myZoomController;
+
   @NotNull
   @Override
   public ZoomController getZoomable() {
+    // FIXME(b/291572358): replace this with [myZoomController] once the logic has been replaced with [DesignSurfaceZoomController]
     return this;
   }
 
@@ -464,6 +472,14 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     // Sets the maximum zoom level allowed for ZoomType#FIT.
     myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
+
+    myZoomController = new DesignSurfaceZoomController(
+      myAnalyticsManager,
+      selectionModel,
+      this::getFocusedSceneView,
+      this::getSceneManager
+    );
+    myZoomController.setOnScaleChangeListener(this::onScaleChanged);
   }
 
   /**
@@ -1209,14 +1225,17 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     double previousScale = myScale;
     myScale = newScale;
+    onScaleChanged(previousScale, myScale);
+    return true;
+  }
+
+  private void onScaleChanged(double previousScale, double newScale){
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
       storeCurrentScale(model);
     }
-
     revalidateScrollArea();
-    notifyScaleChanged(previousScale, myScale);
-    return true;
+    notifyScaleChanged(previousScale, newScale);
   }
 
   /**
