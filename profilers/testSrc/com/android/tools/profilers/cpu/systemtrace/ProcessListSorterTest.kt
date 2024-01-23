@@ -76,8 +76,8 @@ class ProcessListSorterTest {
 
   @Test
   fun processWithMoreThreadsHasPriority() {
-    val thread5 = ThreadModel(5, 1, "Thread", listOf(), listOf())
-    val thread6 = ThreadModel(6, 1, "Thread", listOf(), listOf())
+    val thread5 = ThreadModel(5, 1, "Thread", listOf(), listOf(), listOf())
+    val thread6 = ThreadModel(6, 1, "Thread", listOf(), listOf(), listOf())
 
     val processList: List<ProcessModel> = listOf(
       ProcessModel(1, "com.google.app", mapOf(5 to thread5, 6 to thread6), mapOf()),

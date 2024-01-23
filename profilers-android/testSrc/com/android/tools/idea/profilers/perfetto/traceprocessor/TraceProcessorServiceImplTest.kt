@@ -182,6 +182,8 @@ class TraceProcessorServiceImplTest {
                   .setTraceId(10)
                   .setAndroidFrameTimelineRequest(
                     TraceProcessor.QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(123)))
+      // The following requests are constructed for each process of interest.
+      // In production, they are usually the app process and the surfaceflinger process.
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(33)))
@@ -190,10 +192,16 @@ class TraceProcessorServiceImplTest {
                   .setProcessCountersRequest(TraceProcessor.QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(33)))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
+                  .setThreadStatesRequest(TraceProcessor.QueryParameters.ThreadStatesParameters.newBuilder().setProcessId(33)))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(42)))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setProcessCountersRequest(TraceProcessor.QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(42)))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setThreadStatesRequest(TraceProcessor.QueryParameters.ThreadStatesParameters.newBuilder().setProcessId(42)))
       .build()
     assertThat(fakeGrpcService.lastQueryBatchRequest).isEqualTo(expectedRequest)
 

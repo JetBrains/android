@@ -86,7 +86,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
       for (thread in process.threads) {
         val traceEvents = mapSlicesToTraceEvents(thread.slices)
         val schedEvents = mapSchedSliceToSchedEvent(thread.schedSlices, process.id, thread.id)
-        threadMap[thread.id] = ThreadModel(thread.id, process.id, thread.name, traceEvents, schedEvents)
+        threadMap[thread.id] = ThreadModel(thread.id, process.id, thread.name, traceEvents, schedEvents, listOf())
       }
 
       val counterMap = mutableMapOf<String, CounterModel>()

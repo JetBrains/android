@@ -21,6 +21,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTrac
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
+import com.android.tools.profilers.cpu.systemtrace.ThreadStateModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
@@ -66,7 +67,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
       val updatedThreadMap = process.threadById.mapValues { entry ->
         entry.value.copy(
           traceEvents = builder.threadToEventsMap.getOrDefault(entry.key, listOf()),
-          schedulingEvents = builder.threadToScheduling.getOrDefault(entry.key, listOf())
+          schedulingEvents = builder.threadToScheduling.getOrDefault(entry.key, listOf()),
+          threadStateEvents = builder.threadToThreadStates.getOrDefault(entry.key, listOf())
         )
       }.toSortedMap()
 
@@ -122,6 +124,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
+    internal val threadToThreadStates = mutableMapOf<Int, List<ThreadStateModel>>()
     internal val powerCounters = mutableListOf<CounterModel>()
     internal val androidFrameLayers = mutableListOf<Layer>()
     internal val androidFrameTimelineEvents = mutableListOf<AndroidFrameTimelineEvent>()
@@ -157,12 +160,13 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                                          process.id.toInt(),
                                                                          t.name,
                                                                          listOf(),
+                                                                         listOf(),
                                                                          listOf()) }.toSortedMap(),
           mapOf())
       }
 
       for (thread in processMetadataResult.danglingThreadList) {
-        danglingThreads[thread.id.toInt()] = ThreadModel(thread.id.toInt(), 0, thread.name, emptyList(), emptyList())
+        danglingThreads[thread.id.toInt()] = ThreadModel(thread.id.toInt(), 0, thread.name, emptyList(), emptyList(), emptyList())
       }
     }
 
@@ -268,6 +272,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                   startTimestampUs,
                                                   endTimestampUs,
                                                   durationUs,
+                                                  // Parameter `cpuTimeUs` is not used, so just use `durationUs` as a placeholder
                                                   durationUs,
                                                   event.processId.toInt(),
                                                   event.threadId.toInt(),
@@ -335,6 +340,27 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         CounterModel(counter.name, counter.valueList.associate {
           convertToUs(it.timestampNanoseconds) to it.value
         }.toSortedMap())
+      }
+    }
+
+    fun addThreadStates(states: TraceProcessor.ThreadStatesResult) {
+      val perThreadState = mutableMapOf<Int, MutableList<ThreadStateModel>>()
+
+      states.stateEventList.groupBy { it.threadId }.forEach { (tid, events) ->
+        events.forEach {
+          val threadStateEvent =
+            ThreadStateModel(if (it.state.running) ThreadState.RUNNING_CAPTURED else convertSchedulingState(it.state.nonRunning),
+                             convertToUs(it.timestampNanoseconds),
+                             convertToUs(it.timestampNanoseconds + it.durationNanoseconds))
+          perThreadState.getOrPut(tid.toInt()) { mutableListOf() }.apply {
+            add(threadStateEvent)
+          }
+        }
+      }
+
+      perThreadState.forEach {
+        val previousList = threadToThreadStates[it.key] ?: listOf()
+        threadToThreadStates[it.key] = previousList.plus(it.value).sortedBy { s -> s.startTimestampUs }
       }
     }
 

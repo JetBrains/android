@@ -30,7 +30,7 @@ class SystemTraceSurfaceflingerManagerTest {
                                                     createEvent(3000, 5000),
                                                     createEvent(7000, 15000),
                                                     createEvent(15000, 20000)),
-                                                  listOf())
+                                                  listOf(), listOf())
 
     private val VSYNC_COUNTER = CounterModel("VSYNC-app",
                                              sortedMapOf(

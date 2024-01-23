@@ -34,19 +34,24 @@ class SystemTraceCpuCaptureBuilderTest {
   fun `buildThreadStateData - termination state present`() {
     val sleepingThread = ThreadModel(1, 1, "ENDS_WITH_SLEEPING_STATE_THREAD",
                                      listOf(),
-                                     listOf(SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+                                     listOf(SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)),
+                                     listOf(ThreadStateModel(ThreadState.SLEEPING_CAPTURED, 0L, 5L)))
     val runningThread = ThreadModel(2, 2, "ENDS_WITH_RUNNING_STATE_THREAD",
                                     listOf(),
-                                    listOf(SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+                                    listOf(SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)),
+                                    listOf(ThreadStateModel(ThreadState.RUNNING_CAPTURED, 0L, 5L)))
     val waitingThread = ThreadModel(3, 3, "ENDS_WITH_WAITING_STATE_THREAD",
                                     listOf(),
-                                    listOf(SchedulingEventModel(ThreadState.WAITING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+                                    listOf(SchedulingEventModel(ThreadState.WAITING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)),
+                                    listOf(ThreadStateModel(ThreadState.WAITING_CAPTURED, 0L, 5L)))
     val deadThread = ThreadModel(4, 4, "ENDS_WITH_DEAD_STATE_THREAD",
                                     listOf(),
-                                    listOf(SchedulingEventModel(ThreadState.DEAD_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+                                    listOf(SchedulingEventModel(ThreadState.DEAD_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)),
+                                    listOf(ThreadStateModel(ThreadState.DEAD_CAPTURED, 0L, 5L)))
     val unknownThread = ThreadModel(5, 5, "ENDS_WITH_UNKNOWN_STATE_THREAD",
-                                 listOf(),
-                                 listOf(SchedulingEventModel(ThreadState.UNKNOWN, 0L, 5L, 5L, 5L, 1, 1, 1)))
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.UNKNOWN, 0L, 5L, 5L, 5L, 1, 1, 1)),
+                                    listOf(ThreadStateModel(ThreadState.UNKNOWN, 0L, 5L)))
 
     val processes = mapOf(1 to ProcessModel(
       1, "Process",
@@ -84,14 +89,17 @@ class SystemTraceCpuCaptureBuilderTest {
   @Test
   fun `buildThreadStateData - termination state not present`() {
     val noActivityThread = ThreadModel(1, 1, "ENDS_WITH_NO_ACTIVITY_STATE_THREAD",
-                                    listOf(),
-                                    listOf(
-                                      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
-                                      SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
-                                    ))
+                                       listOf(),
+                                       listOf(
+                                         SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                         SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                       ),
+                                       listOf(
+                                         ThreadStateModel(ThreadState.RUNNING_CAPTURED, 0L, 5L),
+                                         ThreadStateModel(ThreadState.NO_ACTIVITY, 5L, 10L)))
     val emptyThread = ThreadModel(2, 2, "NO_STATE_THREAD",
-                                  listOf(),
-                                  listOf())
+                                  listOf(), listOf(), listOf())
+
 
     val processes = mapOf(1 to ProcessModel(
       1, "Process",
@@ -120,10 +128,9 @@ class SystemTraceCpuCaptureBuilderTest {
                                  listOf(
                                    SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
                                    SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
-                                 ))
-    val nonMainThread = ThreadModel(2, 2, "NON_MAIN_THREAD",
-                                    listOf(),
-                                    listOf())
+                                 ),
+                                 listOf())
+    val nonMainThread = ThreadModel(2, 2, "NON_MAIN_THREAD", listOf(), listOf(), listOf())
 
     val processes = mapOf(1 to ProcessModel(
       1, "Main Process",
@@ -144,11 +151,10 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
-    val danglingThreads = mapOf(
-      33 to ThreadModel(33, 0, "DanglingThread", listOf(), listOf()))
+    val danglingThreads = mapOf(33 to ThreadModel(33, 0, "DanglingThread", listOf(), listOf(), listOf()))
 
     val cpuCores = listOf(
       CpuCoreModel(
@@ -184,7 +190,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     val cpuCores = listOf(
@@ -216,7 +222,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     val cpuCores = listOf(
@@ -257,7 +263,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf(
           // Will get these:
           "mem.rss" to CounterModel("rss", sortedMapOf(1L to 5.0, 4L to 6.0, 7L to 4.0)),
@@ -293,7 +299,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
@@ -341,7 +347,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
@@ -389,7 +395,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf("QueuedBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
                                                                                  sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
     val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
@@ -409,7 +415,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
@@ -425,14 +431,14 @@ class SystemTraceCpuCaptureBuilderTest {
     val mainThread = ThreadModel(1, 1, "main",
                                  listOf(TraceEventModel("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 42", 0, 500, 500, listOf()),
                                  TraceEventModel("${SystemTraceCpuCapture.MAIN_THREAD_EVENT_PREFIX} 43", 5000, 5500, 500, listOf())),
-                                 listOf())
+                                 listOf(), listOf())
     val renderThread = ThreadModel(2, 2, CpuThreadInfo.RENDER_THREAD_NAME,
                                    listOf(TraceEventModel("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 42", 500, 1500, 1000, listOf()),
                                           TraceEventModel("${SystemTraceCpuCapture.RENDER_THREAD_EVENT_PREFIX} 43", 5500, 6500, 1000, listOf())),
-                                   listOf())
+                                   listOf(), listOf())
     val gpuThread = ThreadModel(3, 3, CpuThreadInfo.GPU_THREAD_NAME,
                                 listOf(TraceEventModel("${SystemTraceCpuCapture.GPU_THREAD_EVENT_PREFIX} 123", 1500, 2000, 500, listOf())),
-                                listOf())
+                                listOf(), listOf())
     val processes = mapOf(1 to ProcessModel(
       1, "Process",
       mapOf(1 to mainThread, 2 to renderThread, 3 to gpuThread),

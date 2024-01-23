@@ -103,7 +103,7 @@ class FullTraceSummaryDetailsViewTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     val systemTraceCpuCaptureModel = SystemTraceCpuCaptureBuilderTest.TestModel(processes, emptyMap(), emptyList(), emptyList(),
@@ -130,7 +130,7 @@ class FullTraceSummaryDetailsViewTest {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
-        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf(), listOf())),
         mapOf()))
 
     val powerRails = listOf(

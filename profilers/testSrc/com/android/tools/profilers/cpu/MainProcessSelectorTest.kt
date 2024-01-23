@@ -98,7 +98,7 @@ class MainProcessSelectorTest {
       ProcessModel(100, "process1", emptyMap(), emptyMap()),
       // Second process has a blank name, but its main thread has a name.
       ProcessModel(10, "",
-                   mapOf( 10 to ThreadModel(10, 10, "process0", listOf(), listOf())),
+                   mapOf(10 to ThreadModel(10, 10, "process0", listOf(), listOf(), listOf())),
                    emptyMap()))
 
     assertThat(selector.apply(newProcessList)).isEqualTo(10)
@@ -111,7 +111,7 @@ class MainProcessSelectorTest {
       ProcessModel(100, "process1", emptyMap(), emptyMap()),
       // Second process has a name in the format of <PID>, but its main thread has a name.
       ProcessModel(10, "<10>",
-                   mapOf( 10 to ThreadModel(10, 10, "process0", listOf(), listOf())),
+                   mapOf(10 to ThreadModel(10, 10, "process0", listOf(), listOf(), listOf())),
                    emptyMap()))
 
     assertThat(selector.apply(newProcessList)).isEqualTo(10)
