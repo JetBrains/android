@@ -45,6 +45,12 @@ import java.nio.file.Path
 interface AndroidProjectSystem: ModuleHierarchyProvider {
   /** The IDE project this project system describes */
   val project: Project
+
+  /**
+   * Are the android-plugin tools likely to do anything useful for this project?
+   */
+  fun isAndroidProject(): Boolean
+
   /**
    * Returns path to android.jar
    */

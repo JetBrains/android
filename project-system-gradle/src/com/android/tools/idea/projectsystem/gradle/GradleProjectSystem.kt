@@ -73,6 +73,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -105,6 +106,10 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       AndroidManifestClassPsiElementFinder.getInstance(project),
       AndroidResourceClassPsiElementFinder(getLightResourceClassService())
     )
+  }
+
+  override fun isAndroidProject(): Boolean {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   override fun getBootClasspath(module: Module): Collection<String> {

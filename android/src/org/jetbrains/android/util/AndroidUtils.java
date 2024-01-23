@@ -19,6 +19,7 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -160,8 +161,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Override
   public boolean isAndroidProject(@NotNull Project project) {
-    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.ID);
+    return ProjectSystemUtil.getProjectSystem(project).isAndroidProject();
   }
 
   // TODO(b/291955340): Should have @RequiresBackgroundThread

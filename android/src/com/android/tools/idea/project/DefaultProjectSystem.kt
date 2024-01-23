@@ -31,7 +31,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemToken
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
-import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -74,6 +73,9 @@ import java.util.IdentityHashMap
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
 class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+  override fun isAndroidProject(): Boolean {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+  }
 
   override fun getBootClasspath(module: Module): Collection<String> {
     throw IllegalStateException("Not implemented")
