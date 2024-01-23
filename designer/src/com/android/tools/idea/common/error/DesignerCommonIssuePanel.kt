@@ -28,6 +28,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -106,7 +107,7 @@ class DesignerCommonIssuePanel(
   init {
     Disposer.register(parentDisposable, this)
     name = initialPanelName
-    issueProvider = DesignToolsIssueProvider(parentDisposable, project, issueFilter, tabId)
+    issueProvider = DesignToolsIssueProvider(this, project, issueFilter, tabId)
     treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).createModel()
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
     updateIssueOrder()
@@ -316,7 +317,10 @@ class DesignerCommonIssuePanel(
   }
 
   fun addIssueSelectionListener(listener: IssueListener, parentDisposable: Disposable) {
-    Disposer.register(parentDisposable) { issueListeners.remove(listener) }
+    Disposer.register(
+      parentDisposable,
+      WeakReferenceDisposableWrapper { issueListeners.remove(listener) },
+    )
     issueListeners.add(listener)
   }
 
