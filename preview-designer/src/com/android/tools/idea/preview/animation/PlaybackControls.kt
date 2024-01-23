@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager

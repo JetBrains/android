@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.SdkConstants
-import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.preview.NoopAnimationTracker
+import com.android.tools.idea.preview.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
@@ -29,7 +26,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
 import javax.swing.JSlider
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,7 +35,7 @@ class PlaybackControlsTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var surface: DesignSurface<*>
+  private lateinit var surface: com.android.tools.idea.common.surface.DesignSurface<*>
 
   private lateinit var parentDisposable: Disposable
 
@@ -46,15 +43,22 @@ class PlaybackControlsTest {
   fun setUp() {
     parentDisposable = projectRule.fixture.testRootDisposable
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
+      com.android.tools.idea.uibuilder.NlModelBuilderUtil.model(
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
+          com.android.tools.idea.common.fixtures.ComponentDescriptor(
+            SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
+          ),
         )
         .build()
     }
-    surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
+    surface =
+      com.android.tools.idea.uibuilder.surface.NlDesignSurface.builder(
+          projectRule.project,
+          parentDisposable,
+        )
+        .build()
     surface.addModelWithoutRender(model)
   }
 
@@ -73,19 +77,19 @@ class PlaybackControlsTest {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
           surface,
           parentDisposable,
         )
       val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
       val ui =
-        FakeUi(toolbar).apply {
+        com.android.tools.adtui.swing.FakeUi(toolbar).apply {
           updateToolbars()
           layout()
         }
       // Uncomment to preview ui.
       // ui.render()
-      assertEquals(5, toolbar.components.size)
+      Assert.assertEquals(5, toolbar.components.size)
       toolbar.components.forEach { TestUtils.assertBigger(minimumSize, it.size) }
     }
 
@@ -95,21 +99,21 @@ class PlaybackControlsTest {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
           surface,
           parentDisposable,
         )
       val toolbar =
         playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
       val ui =
-        FakeUi(toolbar).apply {
+        com.android.tools.adtui.swing.FakeUi(toolbar).apply {
           updateToolbars()
           layout()
         }
       // Uncomment to preview ui.
       // ui.render()
       // Two extra actions and one separator.
-      assertEquals(8, toolbar.components.size)
+      Assert.assertEquals(8, toolbar.components.size)
       toolbar.components.forEachIndexed { index, it ->
         // Don't check Separator size as it is smaller.
         if (index != 5) TestUtils.assertBigger(minimumSize, it.size)
