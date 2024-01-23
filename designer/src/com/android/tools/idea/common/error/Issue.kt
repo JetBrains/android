@@ -85,9 +85,6 @@ interface IssueSource {
       }
 
     @JvmStatic
-    fun fromNlComponent(component: NlComponent): IssueSource = NlComponentIssueSource(component)
-
-    @JvmStatic
     fun fromNlModel(model: NlModel): IssueSource =
       object : IssueSource {
         override val files: Set<VirtualFile> = setOf(model.virtualFile)

@@ -78,7 +78,6 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   fun createIssue(
     result: ValidatorData.Issue,
     component: NlComponent,
-    model: NlModel,
     eventListener: NlAtfIssue.EventListener? = null,
   ) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
@@ -87,7 +86,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
       }
     }
 
-    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), model, eventListener))
+    issues.add(NlAtfIssue(result, NlComponentIssueSource(component), eventListener))
   }
 }
 
@@ -103,7 +102,7 @@ class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
     get() = HighlightSeverity.WARNING
 
   override val source: IssueSource
-    get() = IssueSource.fromNlComponent(include)
+    get() = NlComponentIssueSource(include)
 
   override val category: String
     get() = Category.A11Y.name
@@ -143,8 +142,7 @@ class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
 /** Issue created by [ValidatorData.Issue] */
 open class NlAtfIssue(
   val result: ValidatorData.Issue,
-  issueSource: IssueSource,
-  private val model: NlModel,
+  issueSource: NlComponentIssueSource,
   private val eventListener: EventListener? = null,
 ) : Issue() {
 
@@ -264,12 +262,14 @@ open class NlAtfIssue(
 
   /** For compound fixes, all fixes should be gathered into one single undoable action. */
   private fun applyFixWrapper(fix: ValidatorData.Fix) {
-    val source = source
+    val source = source as NlComponentIssueSource
     if (fix is ValidatorData.SetViewAttributeFix && fix.mSuggestedValue.isEmpty()) {
       // If the suggested value is an empty string, let the user pick a string
       // resource as the suggested value
-      applySetViewAttributeFixWithEmptySuggestedValue(model, fix.mViewAttribute)
-    } else if (source is NlComponentIssueSource) {
+      source.component?.model?.let {
+        applySetViewAttributeFixWithEmptySuggestedValue(it, fix.mViewAttribute)
+      }
+    } else {
       applyFixImpl(fix, source)
     }
   }
@@ -297,22 +297,22 @@ open class NlAtfIssue(
       source.setAttribute(viewAttribute.mNamespaceUri, viewAttribute.mAttributeName, resourceName)
     }
   }
+}
 
-  @VisibleForTesting
-  fun applyFixImpl(fix: ValidatorData.Fix, source: NlAttributesHolder) {
-    when (fix) {
-      is ValidatorData.RemoveViewAttributeFix ->
-        source.removeAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName)
-      is ValidatorData.SetViewAttributeFix ->
-        source.setAttribute(
-          fix.mViewAttribute.mNamespaceUri,
-          fix.mViewAttribute.mAttributeName,
-          fix.mSuggestedValue,
-        )
-      is ValidatorData.CompoundFix -> fix.mFixes.forEach { applyFixImpl(it, source) }
-      else -> {
-        // Do not apply the fix
-      }
+@VisibleForTesting
+fun applyFixImpl(fix: ValidatorData.Fix, source: NlAttributesHolder) {
+  when (fix) {
+    is ValidatorData.RemoveViewAttributeFix ->
+      source.removeAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName)
+    is ValidatorData.SetViewAttributeFix ->
+      source.setAttribute(
+        fix.mViewAttribute.mNamespaceUri,
+        fix.mViewAttribute.mAttributeName,
+        fix.mSuggestedValue,
+      )
+    is ValidatorData.CompoundFix -> fix.mFixes.forEach { applyFixImpl(it, source) }
+    else -> {
+      // Do not apply the fix
     }
   }
 }

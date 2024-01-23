@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -44,20 +45,26 @@ object AtfAnalyzer : VisualLintAnalyzer() {
     return atfIssues.map { createVisualLintIssueContent(it) }.toList()
   }
 
-  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue) =
-    if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
+  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
+    val viewInfo =
+      (issue.source as VisualLintIssueProvider.VisualLintIssueSource)
+        .components
+        .firstOrNull()
+        ?.viewInfo
+    return if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
       VisualLintIssueContent(
-        issue.component.viewInfo,
+        viewInfo,
         COLOR_BLIND_ISSUE_SUMMARY,
         VisualLintErrorType.ATF_COLORBLIND,
       ) { count: Int ->
         colorBLindModeDescriptionProvider(issue, count)
       }
     } else {
-      VisualLintIssueContent(issue.component.viewInfo, issue.summary) { _: Int ->
+      VisualLintIssueContent(viewInfo, issue.summary) { _: Int ->
         HtmlBuilder().addHtml(issue.description)
       }
     }
+  }
 }
 
 class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {

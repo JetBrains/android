@@ -99,9 +99,9 @@ public class IssueTest {
 
   @Test
   public void testHashCode() {
-    int hash1 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR).hashCode();
-    int hash2 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR).hashCode();
-    int hash3 = new TestIssue("a", "e", IssueSource.fromNlComponent(component2), "d", HighlightSeverity.ERROR).hashCode();
+    int hash1 = new TestIssue("a", "b", new NlComponentIssueSource(component1), "d", HighlightSeverity.ERROR).hashCode();
+    int hash2 = new TestIssue("a", "b", new NlComponentIssueSource(component1), "d", HighlightSeverity.ERROR).hashCode();
+    int hash3 = new TestIssue("a", "e", new NlComponentIssueSource(component2), "d", HighlightSeverity.ERROR).hashCode();
     int hash4 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR).hashCode();
     int hash5 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR).hashCode();
     Assert.assertEquals(hash1, hash2);
@@ -113,13 +113,13 @@ public class IssueTest {
 
   @Test
   public void testEqual() {
-    TestIssue er1 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
-    TestIssue er2 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
+    TestIssue er1 = new TestIssue("a", "b", new NlComponentIssueSource(component1), "d", HighlightSeverity.ERROR);
+    TestIssue er2 = new TestIssue("a", "b", new NlComponentIssueSource(component1), "d", HighlightSeverity.ERROR);
     Assert.assertEquals(er1, er2);
     Assert.assertEquals(er1.hashCode(), er2.hashCode());
 
-    TestIssue er3 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
-    TestIssue er4 = new TestIssue("a", "e", IssueSource.fromNlComponent(component2), "d", HighlightSeverity.ERROR);
+    TestIssue er3 = new TestIssue("a", "b", new NlComponentIssueSource(component1), "d", HighlightSeverity.ERROR);
+    TestIssue er4 = new TestIssue("a", "e", new NlComponentIssueSource(component2), "d", HighlightSeverity.ERROR);
     TestIssue er5 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR);
     TestIssue er6 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR);
     Assert.assertNotEquals(er3, er4);

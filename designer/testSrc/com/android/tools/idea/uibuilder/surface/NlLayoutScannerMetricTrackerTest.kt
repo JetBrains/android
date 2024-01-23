@@ -18,8 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.SdkConstants
 import com.android.tools.idea.common.analytics.CommonNopTracker
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.common.error.IssueSource
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -34,7 +33,7 @@ import org.mockito.MockitoAnnotations
 class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
   @Mock lateinit var mockSurface: NlDesignSurface
-  @Mock lateinit var mockModel: NlModel
+  @Mock lateinit var mockSource: NlComponentIssueSource
 
   @Before
   fun setup() {
@@ -85,6 +84,6 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
   private fun createTestNlAtfIssue(): NlAtfIssue {
     val issue: ValidatorData.Issue = ScannerTestHelper.createTestIssueBuilder().build()
-    return NlAtfIssue(issue, IssueSource.NONE, mockModel)
+    return NlAtfIssue(issue, mockSource)
   }
 }

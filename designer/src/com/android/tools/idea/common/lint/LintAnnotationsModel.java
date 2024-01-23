@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.lint;
 
 import com.android.tools.idea.common.error.IssueSource;
+import com.android.tools.idea.common.error.NlComponentIssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.SuppressLintQuickFix;
@@ -151,7 +152,7 @@ public class LintAnnotationsModel {
                       @NotNull SmartPsiElementPointer<PsiElement> endElementPointer,
                       @Nullable LintFix quickfixData) {
       this.component = component;
-      this.issueSource = IssueSource.fromNlComponent(component);
+      this.issueSource = new NlComponentIssueSource(component);
       this.attribute = attribute;
       this.inspection = inspection;
       this.incident = incident;

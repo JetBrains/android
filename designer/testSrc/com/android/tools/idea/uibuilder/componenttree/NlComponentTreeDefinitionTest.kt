@@ -43,7 +43,7 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.DnDTransferComponent
@@ -520,7 +520,7 @@ class NlComponentTreeDefinitionTest {
     val provider =
       object : IssueProvider() {
         override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-          issueListBuilder.add(TestIssue("Problem", source = IssueSource.fromNlComponent(textView)))
+          issueListBuilder.add(TestIssue("Problem", source = NlComponentIssueSource(textView)))
         }
       }
     issues.addIssueProvider(provider)

@@ -265,7 +265,7 @@ class PreprocessNodeComparatorTest {
 }
 
 private class TestAtfIssue(override val summary: String) :
-  NlAtfIssue(createIssueValidatorData(), IssueSource.NONE, mock(), null)
+  NlAtfIssue(createIssueValidatorData(), mock(), null)
 
 fun createIssueValidatorData(): ValidatorData.Issue {
   return ValidatorData.Issue.IssueBuilder()
