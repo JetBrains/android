@@ -24,7 +24,7 @@ import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
@@ -168,7 +168,7 @@ internal class DeviceClient(
       }
       catch (e: Throwable) {
         connectionState.set(null)
-        AdbLibService.getSession(project).throwIfCancellationOrDeviceDisconnected(e)
+        AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
         connection.completeExceptionally(e)
       }
     }
@@ -192,7 +192,7 @@ internal class DeviceClient(
    */
   private suspend fun startAgentAndConnect(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    val adbSession = AdbLibService.getSession(project)
+    val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
       async {

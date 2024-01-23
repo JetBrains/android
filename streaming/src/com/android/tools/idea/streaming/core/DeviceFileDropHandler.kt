@@ -20,7 +20,7 @@ import com.android.adblib.RemoteFileMode
 import com.android.adblib.syncSend
 import com.android.adblib.tools.InstallException
 import com.android.adblib.tools.install
-import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.intellij.ide.dnd.DnDDropHandler
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDSupport
@@ -83,7 +83,7 @@ private class DeviceFileDropHandler(
       return
     }
 
-    val adb = AdbLibService.getSession(project).deviceServices
+    val adb = AdbLibApplicationService.instance.session.deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
 
     if (fileTypes.contains(FileType.APK)) {
