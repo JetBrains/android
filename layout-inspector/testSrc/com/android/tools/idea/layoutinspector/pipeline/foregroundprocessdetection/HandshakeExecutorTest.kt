@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Transport.ExecuteResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlockingStub
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -76,7 +77,7 @@ class HandshakeExecutorTest {
   fun setUp() {
     syncChannel = Channel()
 
-    scope = projectRule.project.coroutineScope
+    scope = (projectRule.project as ComponentManagerEx).getCoroutineScope()
     workDispatcher = AndroidDispatchers.workerThread
     mockClient = mock()
     val mockStub = mock<TransportServiceBlockingStub>()

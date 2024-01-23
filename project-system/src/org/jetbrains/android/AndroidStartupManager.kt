@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android
 
 import com.android.tools.idea.AndroidStartupActivity
@@ -9,6 +9,7 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
@@ -22,7 +23,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
 private class AndroidStartupManager : ProjectActivity {
-  // A project level service to be used as a parent disposable. Future implementation may reduce the life-time of such disposable to the
+  // A project level service to be used as a parent disposable.
+  // Future implementation may reduce the life-time of such a disposable to the
   // moment when the last Android facet is removed (from a non-Gradle project).
   @Service(Service.Level.PROJECT)
   class ProjectDisposableScope : Disposable {
@@ -60,8 +62,7 @@ private class AndroidStartupManager : ProjectActivity {
     connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerListener {
       override fun facetAdded(facet: Facet<*>) {
         if (facet is AndroidFacet) {
-          @Suppress("DEPRECATION")
-          project.coroutineScope.launch {
+          (project as ComponentManagerEx).getCoroutineScope().launch {
             runAndroidStartupActivities()
           }
           connection.disconnect()
@@ -74,8 +75,7 @@ private class AndroidStartupManager : ProjectActivity {
       override fun modulesAdded(project: Project, modules: List<Module>) {
         for (module in modules) {
           if (AndroidFacet.getInstance(module) != null) {
-            @Suppress("DEPRECATION")
-            project.coroutineScope.launch {
+            (project as ComponentManagerEx).getCoroutineScope().launch {
               runAndroidStartupActivities()
             }
             connection.disconnect()

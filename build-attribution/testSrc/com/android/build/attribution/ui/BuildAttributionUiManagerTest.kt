@@ -37,6 +37,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.project.guessProjectDir
@@ -82,7 +83,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
 
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, (project as ComponentManagerEx).getCoroutineScope()), testRootDisposable)
   }
 
   override fun tearDown() {

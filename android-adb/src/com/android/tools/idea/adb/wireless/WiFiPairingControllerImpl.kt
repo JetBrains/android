@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.launch
@@ -40,7 +41,7 @@ class WiFiPairingControllerImpl(private val project: Project,
                                            mdnsService: MdnsService): PairingCodePairingController {
       val model = PairingCodePairingModel(mdnsService)
       val view = PairingCodePairingViewImpl(project, notificationService, model)
-      return PairingCodePairingController(project.coroutineScope, pairingService, view)
+      return PairingCodePairingController((project as ComponentManagerEx).getCoroutineScope(), pairingService, view)
     }
   }
 

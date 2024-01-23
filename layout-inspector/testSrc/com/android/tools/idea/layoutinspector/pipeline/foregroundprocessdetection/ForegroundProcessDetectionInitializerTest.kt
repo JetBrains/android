@@ -34,6 +34,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.SameThreadExecutor
 import kotlinx.coroutines.CoroutineScope
@@ -191,7 +192,7 @@ class ForegroundProcessDetectionInitializerTest {
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
-      coroutineScope = projectRule.project.coroutineScope,
+      coroutineScope = (projectRule.project as ComponentManagerEx).getCoroutineScope(),
       transportClient = transportClient,
       metrics = ForegroundProcessDetectionMetrics,
     )

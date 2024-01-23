@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.exportToFile
 
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase
 import com.intellij.openapi.progress.util.ProgressWindow
@@ -56,7 +57,7 @@ class ExportInProgressViewImpl(
         }
       }
     )
-    project.coroutineScope.launch(taskDispatcher) {
+    (project as ComponentManagerEx).getCoroutineScope().launch(taskDispatcher) {
       try {
         progressWindow.start()
         progressWindow.text =

@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
@@ -111,7 +112,7 @@ class StatefulButton(
       myButton.isEnabled = false
       val loadingIcon = AsyncProcessIcon("Loading")
       buttonPanel.add(loadingIcon)
-      project.coroutineScope.launch {
+      (project as ComponentManagerEx).getCoroutineScope().launch {
         myStateManager.init(project, action)
         withContext(uiThread) {
           myButton.isVisible = false

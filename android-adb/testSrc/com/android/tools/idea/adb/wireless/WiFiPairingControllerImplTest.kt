@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.testing.ThreadingCheckRule
 import com.google.common.truth.Truth
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.util.LineSeparator
@@ -102,7 +103,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val view = MockPairingCodePairingView(project, notificationService, model).also {
       lastPairingCodeView = it
     }
-    return PairingCodePairingController(project.coroutineScope, devicePairingService, view).also {
+    return PairingCodePairingController((project as ComponentManagerEx).getCoroutineScope(), devicePairingService, view).also {
       lastPairingCodeController = it
     }
   }

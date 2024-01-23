@@ -30,6 +30,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -113,7 +114,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
-      project.coroutineScope.launch {
+      (project as ComponentManagerEx).getCoroutineScope().launch {
         testAdapter.forwardResults(testSuiteView)
       }
       toolWindow.activate(null)
