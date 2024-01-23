@@ -17,9 +17,18 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
+import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.InterimStage
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -27,13 +36,35 @@ import org.mockito.Mockito.withSettings
 
 class SingleArtifactTaskHandlerTest {
 
+  private val myTimer = FakeTimer()
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+
+  @get:Rule
+  var myGrpcChannel = FakeGrpcChannel("SingleArtifactTaskHandlerTestChannel", myTransportService, FakeEventService())
+
+  private lateinit var myProfilers: StudioProfilers
+
+  @Before
+  fun setup() {
+    myProfilers = StudioProfilers(
+      ProfilerClient(myGrpcChannel.channel),
+      ideProfilerServices,
+      myTimer
+    )
+  }
+
   /**
    * Constructs and returns a mock {@link SingleArtifactTaskHandler} using a mocked {@link SessionsManager}.
    *
    * Configured to call the real SingleArtifactTaskHandler#enter method if invoked via the mock.
    */
   private fun createMockSingleArtifactTaskHandler(): SingleArtifactTaskHandler<InterimStage> {
-    val mockSessionsManager = MockitoKt.mock<SessionsManager>()
+    val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
+      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
+    }
     val mockSingleArtifactTaskHandler = MockitoKt.mock<SingleArtifactTaskHandler<InterimStage>>(
       withSettings().useConstructor(mockSessionsManager)).apply {
       MockitoKt.whenever(enter(any())).thenCallRealMethod()

@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskEntered
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
@@ -45,6 +46,7 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * successful, it does not tell us if the startTask or loadTask functionality was successful.
    */
   open fun enter(args: TaskArgs) : Boolean {
+    trackTaskEntered(sessionsManager.studioProfilers)
     if (sessionsManager.isSessionAlive) {
       startTask(args)
     }

@@ -26,6 +26,9 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.TaskAttachmentPoint;
+import com.android.tools.profilers.tasks.TaskDataOrigin;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
@@ -561,4 +564,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public PowerProfilerCaptureMetadata getPowerProfilerCaptureMetadata() {
     return myPowerProfilerCaptureMetadata;
   }
+
+  @Override
+  public void trackTaskEntered(@NotNull ProfilerTaskType taskType,
+                               long taskId,
+                               @NotNull TaskDataOrigin taskDataOrigin,
+                               @NotNull TaskAttachmentPoint taskAttachmentPoint,
+                               @NotNull Common.Process.ExposureLevel exposureLevel,
+                               @NotNull List<? extends ProfilingConfiguration> taskConfigs) { }
 }
