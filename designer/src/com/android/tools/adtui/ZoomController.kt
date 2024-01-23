@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.surface
+package com.android.tools.adtui
 
-import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.surface.SurfaceScale
 
 /** Applies zoom changes to a Zoomable surface */
 interface ZoomController : Zoomable {
@@ -29,7 +30,7 @@ interface ZoomController : Zoomable {
    * @param y the vertical coordinate to where to focus the scaling
    * @return True if the scaling was changed, false otherwise.
    */
-  fun setScale(@SurfaceScale scale: Double, x: Int, y: Int): Boolean
+  fun setScale(@SurfaceScale scale: Double, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean
 
   /**
    * Set the scale factor used to multiply the content size.

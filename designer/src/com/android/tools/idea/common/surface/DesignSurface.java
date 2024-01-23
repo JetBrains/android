@@ -23,6 +23,7 @@ import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;

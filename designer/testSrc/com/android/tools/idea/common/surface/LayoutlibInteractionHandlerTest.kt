@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
