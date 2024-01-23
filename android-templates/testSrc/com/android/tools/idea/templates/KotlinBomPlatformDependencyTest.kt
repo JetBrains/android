@@ -17,7 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -27,7 +27,6 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths

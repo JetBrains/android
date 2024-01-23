@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor

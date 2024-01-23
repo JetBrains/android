@@ -17,7 +17,7 @@ package com.android.tools.idea.templates.diff
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder

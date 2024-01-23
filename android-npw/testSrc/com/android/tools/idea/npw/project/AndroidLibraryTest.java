@@ -24,7 +24,6 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;

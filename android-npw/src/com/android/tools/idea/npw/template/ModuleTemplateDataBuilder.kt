@@ -18,12 +18,11 @@ package com.android.tools.idea.npw.template
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.SdkConstants.FD_TEST
 import com.android.SdkConstants.FD_UNIT_TEST
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil

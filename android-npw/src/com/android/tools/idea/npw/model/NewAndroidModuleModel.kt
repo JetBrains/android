@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.model
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil

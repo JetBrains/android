@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.observable.core.BoolValueProperty

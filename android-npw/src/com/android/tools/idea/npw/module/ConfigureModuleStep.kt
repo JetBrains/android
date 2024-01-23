@@ -29,7 +29,7 @@ import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectModelData
@@ -46,7 +46,6 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.expressions.Expression
