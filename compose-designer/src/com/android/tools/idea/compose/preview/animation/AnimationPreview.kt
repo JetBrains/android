@@ -784,7 +784,16 @@ class AnimationPreview(
         selectedPropertiesCallback = { curve.timelineUnits = it }
         curve.timelineUnits = selectedProperties
         curve
-      } else TimelineLine(elementState, currentTransition, minY, positionProxy)
+      } else
+        TimelineLine(
+          elementState,
+          currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
+            ?: (positionProxy.minimumXPosition()),
+          currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
+            ?: positionProxy.minimumXPosition(),
+          minY,
+          positionProxy,
+        )
     }
 
     /**

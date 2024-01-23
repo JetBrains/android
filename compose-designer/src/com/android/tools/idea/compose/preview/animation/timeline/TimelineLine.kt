@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.TimelinePanel
-import com.android.tools.idea.compose.preview.animation.Transition
 import com.android.tools.idea.preview.animation.InspectorColors
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.InspectorLayout.lineHalfHeightScaled
@@ -45,21 +44,6 @@ class TimelineLine(
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2
-
-  constructor(
-    state: ElementState,
-    transition: Transition,
-    maxY: Int,
-    positionProxy: PositionProxy,
-  ) : this(
-    state,
-    transition.startMillis?.let { positionProxy.xPositionForValue(it) }
-      ?: (positionProxy.minimumXPosition()),
-    transition.endMillis?.let { positionProxy.xPositionForValue(it) }
-      ?: positionProxy.minimumXPosition(),
-    maxY,
-    positionProxy,
-  )
 
   private val rectNoOffset =
     Rectangle(
