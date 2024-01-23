@@ -1787,6 +1787,13 @@ public final class StudioFlags {
                     "Enable sending context with chat queries.",
                     "When enabled, chat queries will attach context (e.g. project structure, currently open file) from the project.",
                     ChannelDefault.of(false).withOverride(true, DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_EDITOR_AI_ACTIONS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.actions.enabled",
+                    "Enable AI Actions in the editor.",
+                    "When enabled, shows the 'AI Actions' item in the editor popup menu along with allowing individual actions to be enabled.",
+                    ChannelDefault.of(false).withOverride(true, DEV));
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
