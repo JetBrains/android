@@ -89,7 +89,7 @@ class ApkResourceRepository(
 
   override fun getLeafResourceRepositories(): MutableCollection<SingleNamespaceResourceRepository> = mutableListOf()
 
-  override fun getModificationCount(): Long = 0
+  override val modificationCount: Long = 0
 
   override fun getResourcesInternal(namespace: ResourceNamespace, resourceType: ResourceType): ListMultimap<String, ResourceItem> {
     return resourceMap[resourceType]?.get(namespace) ?: ArrayListMultimap.create()

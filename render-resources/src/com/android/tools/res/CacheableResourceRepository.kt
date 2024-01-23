@@ -16,7 +16,8 @@
 package com.android.tools.res
 
 import com.android.ide.common.resources.ResourceRepository
-import com.intellij.openapi.util.ModificationTracker
 
-/** An extension of [ResourceRepository] with [ModificationTracker] that indicates when cache of this should be invalidated. */
-interface CacheableResourceRepository : ResourceRepository, ModificationTracker
+/** An extension of [ResourceRepository] with [modificationCount] that indicates when cache of this should be invalidated. */
+interface CacheableResourceRepository : ResourceRepository {
+  val modificationCount: Long
+}

@@ -53,6 +53,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
@@ -841,6 +842,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           () -> {
             // Get locales from modules, but not libraries.
             CacheableResourceRepository projectResources = getProjectResources(myFacet);
+            ModificationTracker tracker = projectResources::getModificationCount;
             SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
             ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
             ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
@@ -851,8 +853,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
                 languagesBuilder.add(language);
               }
             }
-            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()),
-                                                     projectResources);
+            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()), tracker);
           });
       }
       return myLocalesAndLanguages.getValue();
