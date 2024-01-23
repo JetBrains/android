@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration.Companion.getInstance
+import com.android.tools.idea.testartifacts.instrumented.testsuite.export.ImportAndroidTestMatrixRunProfile
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
@@ -28,7 +29,11 @@ class GradleAndroidTestRunConfigurationExecutorProvider : AndroidConfigurationEx
   override fun createAndroidConfigurationExecutor(
     env: ExecutionEnvironment,
   ): AndroidConfigurationExecutor? {
-    val configuration = env.runProfile
+    val configuration = if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
+      (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+    } else {
+      env.runProfile
+    }
     if (configuration !is AndroidTestRunConfiguration) return null
 
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)

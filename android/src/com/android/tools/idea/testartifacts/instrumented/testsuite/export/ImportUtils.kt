@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -32,6 +33,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -98,7 +100,7 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
                    ?: return false
     val builder = ExecutionEnvironmentBuilder.create(project, executor, runProfile)
     runProfile.target?.let { builder.target(it) }
-    val runner = ProgramRunner.getRunner(executor.id, runProfile) ?: object : GenericProgramRunner<RunnerSettings>() {
+    val runner = ProgramRunner.getRunner(executor.id, runProfile.initialConfiguration) ?: object : GenericProgramRunner<RunnerSettings>() {
       override fun canRun(executorId: String, profile: RunProfile) = true
       override fun getRunnerId() = "AndroidTestMatrixResultXmlFileRunner"
     }
@@ -127,7 +129,7 @@ fun getTestStartTime(xmlFile: File): Long {
   return firstTestCaseElement.getAttribute("startTimestampMillis")?.value?.toLongOrNull() ?: xmlFile.lastModified()
 }
 
-private class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: VirtualFile, project: Project)
+class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: VirtualFile, project: Project)
   : AbstractImportTestsAction.ImportRunProfile(historyXmlFile, project) {
   override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
     val state = super.getState(executor, environment)
@@ -136,6 +138,10 @@ private class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: Virt
     } else {
       state
     }
+  }
+
+  override fun getInitialConfiguration(): AndroidTestRunConfiguration {
+    return super.getInitialConfiguration() as AndroidTestRunConfiguration
   }
 }
 
@@ -151,7 +157,7 @@ private class ImportAndroidTestMatrixRunProfileState(
       override fun getProcessInput(): OutputStream? = null
     }
     val console = AndroidTestSuiteView(
-      importRunProfile.project, importRunProfile.project, null, executor.toolWindowId)
+      importRunProfile.project, importRunProfile.project, null, executor.toolWindowId, importRunProfile.initialConfiguration, myIsImportedResult = true)
     console.attachToProcess(handler)
     handler.detachProcess()
 

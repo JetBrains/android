@@ -25,6 +25,7 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
+import com.android.tools.idea.testartifacts.instrumented.testsuite.export.ImportAndroidTestMatrixRunProfile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
@@ -34,7 +35,11 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 
 abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnvironment) : AndroidConfigurationExecutor {
-  final override val configuration = env.runProfile as AndroidTestRunConfiguration
+  final override val configuration: AndroidTestRunConfiguration = if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
+    (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+  } else {
+    env.runProfile as AndroidTestRunConfiguration
+  }
   private val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException(
     "Can't get ApplicationIdProvider for AndroidTestRunConfiguration"
   )

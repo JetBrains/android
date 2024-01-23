@@ -142,7 +142,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   module: Module?,
   private val toolWindowId: String? = null,
   private val runConfiguration: RunConfiguration? = null,
-  private val myClock: Clock = Clock.systemDefaultZone()
+  private val myClock: Clock = Clock.systemDefaultZone(),
+  @VisibleForTesting val myIsImportedResult: Boolean = false
 ) : ConsoleView,
     AndroidTestResultListener,
     AndroidTestResultsTableListener,
@@ -203,8 +204,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // A timestamp when the test execution is scheduled.
   private var myTestStartTimeMillis: Long = 0
   private var myTestFinishedTimeMillis: Long = 0
-
-  private val myIsImportedResult: Boolean = runConfiguration == null
 
   // If not null, this value is used as the test execution time instead of a measured
   // duration by myClock.

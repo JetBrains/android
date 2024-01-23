@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.io.Resources
 import com.google.common.truth.Truth.assertThat
@@ -48,7 +49,8 @@ class ImportUtilsTest {
 
   @Test
   fun importTestHistory() {
-    importXmlFile("testHistory")
+    val view = importXmlFile("testHistory")
+    assertThat(view!!.myIsImportedResult).isTrue()
   }
 
   @Test
@@ -88,6 +90,8 @@ class ImportUtilsTest {
     lateinit var testSuiteView: AndroidTestSuiteView
     val succeeded = importAndroidTestMatrixResultXmlFile(projectRule.project, xmlFile) { env ->
       testSuiteView = requireNotNull(env.contentToReuse?.executionConsole as? AndroidTestSuiteView)
+      val runProfile = requireNotNull(env.runProfile as? ImportAndroidTestMatrixRunProfile)
+      assert(runProfile.initialConfiguration is AndroidTestRunConfiguration)
     }
     return if (expectedToSuccess) {
       assertThat(succeeded).isTrue()
