@@ -22,6 +22,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -104,6 +105,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean())).thenCallRealMethod();
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean(), anyBoolean())).thenCallRealMethod();
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), any(Function.class))).thenCallRealMethod();
+    doCallRealMethod().when(myActionManager).performWithActionCallbacks(any(AnAction.class), any(AnActionEvent.class), any(Runnable.class));
     when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();

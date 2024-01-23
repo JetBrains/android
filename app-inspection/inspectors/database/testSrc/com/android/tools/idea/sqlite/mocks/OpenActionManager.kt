@@ -115,6 +115,12 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   override fun getActionOrStub(id: String): AnAction? = wrapped.getActionOrStub(id)
   override fun addTimerListener(listener: TimerListener) = wrapped.addTimerListener(listener)
   override fun removeTimerListener(listener: TimerListener) = wrapped.removeTimerListener(listener)
+  override fun performWithActionCallbacks(action: AnAction,
+                                          event: AnActionEvent,
+                                          runnable: Runnable) {
+    wrapped.performWithActionCallbacks(action, event, runnable)
+  }
+
   override fun tryToExecute(
     action: AnAction,
     inputEvent: InputEvent?,
