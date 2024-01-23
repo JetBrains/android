@@ -35,7 +35,7 @@ fun previewAnnotationToPreviewElement(
   parameterizedElementConstructor: (SingleComposePreviewElementInstance, Collection<PreviewParameter>) -> ComposePreviewElement,
   overrideGroupName: String? = null,
   parentAnnotationInfo: String? = null
-): ComposePreviewElement? {
+): ComposePreviewElement {
   fun getPreviewName(nameParameter: String?) =
     when {
       nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
