@@ -19,7 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationCard
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
+import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
@@ -43,7 +43,7 @@ class ColorPickerStateTest {
   @Test
   fun statesAreCorrect() {
     val state =
-      ColorPickerState(NoopAnimationTracker) {}
+      ColorPickerState(NoopComposeAnimationTracker) {}
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
         }
@@ -55,7 +55,7 @@ class ColorPickerStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      ColorPickerState(NoopAnimationTracker) { callbacks++ }
+      ColorPickerState(NoopComposeAnimationTracker) { callbacks++ }
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
           callbackEnabled = true
@@ -66,7 +66,7 @@ class ColorPickerStateTest {
           Mockito.mock(DesignSurface::class.java),
           ElementState("Title"),
           state.extraActions,
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertiesModel
 import com.intellij.icons.AllIcons
@@ -38,7 +38,7 @@ import javax.swing.JComponent
  *
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
-class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () -> Unit) :
+class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onClick: () -> Unit) :
   CustomComponentAction, AnAction() {
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()

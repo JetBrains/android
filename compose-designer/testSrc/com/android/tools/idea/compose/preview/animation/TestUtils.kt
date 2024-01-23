@@ -37,7 +37,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Assert.assertTrue
 
-val NoopAnimationTracker = AnimationTracker(AnimationToolingUsageTracker.getInstance(null))
+val NoopComposeAnimationTracker =
+  ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
   private const val TEST_ELEMENT_WIDTH = 100
@@ -78,7 +79,7 @@ object TestUtils {
       TimelinePanel(
         Tooltip(root, TooltipLayeredPane(root)),
         testPreviewState(),
-        NoopAnimationTracker,
+        NoopComposeAnimationTracker,
       )
     slider.maximum = 100
     root.apply {

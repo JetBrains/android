@@ -83,7 +83,7 @@ private const val DEFAULT_CURVE_POINTS_NUMBER = 200
  */
 class AnimationPreview(
   project: Project,
-  val tracker: AnimationTracker,
+  val tracker: ComposeAnimationTracker,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,

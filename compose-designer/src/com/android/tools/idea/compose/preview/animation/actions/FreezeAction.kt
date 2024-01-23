@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.idea.compose.preview.animation.AnimationPreviewState
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,7 +29,7 @@ import java.util.function.Supplier
 class FreezeAction(
   private val previewState: AnimationPreviewState,
   val state: ElementState,
-  val tracker: AnimationTracker,
+  val tracker: ComposeAnimationTracker,
 ) :
   ToggleAction(
     Supplier { message("animation.inspector.action.freeze") },

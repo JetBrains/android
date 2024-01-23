@@ -73,7 +73,7 @@ class PlaybackControlsTest {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
           surface,
           parentDisposable,
         )
@@ -95,7 +95,7 @@ class PlaybackControlsTest {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
           surface,
           parentDisposable,
         )

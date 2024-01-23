@@ -194,7 +194,7 @@ class BottomPanelTest(
           override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
         },
         surface,
-        NoopAnimationTracker,
+        NoopComposeAnimationTracker,
       )
     JPanel(BorderLayout()).apply {
       setSize(300, 500)

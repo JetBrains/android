@@ -41,7 +41,7 @@ class AnimationCard(
   rootComponent: JComponent,
   override val state: ElementState,
   extraActions: List<AnAction> = emptyList(),
-  private val tracker: AnimationTracker,
+  private val tracker: ComposeAnimationTracker,
 ) : JPanel(TabularLayout("*", "30px,40px")), Card {
 
   // Collapsed view:

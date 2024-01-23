@@ -88,7 +88,7 @@ class AllTabPanelTest {
           surface,
           ElementState("One"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
@@ -97,7 +97,7 @@ class AllTabPanelTest {
           surface,
           ElementState("Two"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
@@ -106,7 +106,7 @@ class AllTabPanelTest {
           surface,
           ElementState("Three"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
 
@@ -188,7 +188,7 @@ class AllTabPanelTest {
           surface,
           ElementState("One"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
@@ -197,7 +197,7 @@ class AllTabPanelTest {
           surface,
           ElementState("Two"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
@@ -206,7 +206,7 @@ class AllTabPanelTest {
           surface,
           ElementState("Three"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
 
@@ -237,7 +237,7 @@ class AllTabPanelTest {
           surface,
           ElementState("AnimationCard One"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
@@ -246,7 +246,7 @@ class AllTabPanelTest {
           surface,
           ElementState("AnimationCard Two"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
@@ -255,7 +255,7 @@ class AllTabPanelTest {
           surface,
           ElementState("AnimationCard Three"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
     val labelCardOne = LabelCard(ElementState("LabelCard One"))
@@ -299,7 +299,7 @@ class AllTabPanelTest {
             surface,
             ElementState("card $i"),
             emptyList(),
-            NoopAnimationTracker,
+            NoopComposeAnimationTracker,
           )
           .apply { setDuration(i * 10) }
       )
@@ -338,7 +338,7 @@ class AllTabPanelTest {
             surface,
             ElementState("card $i"),
             emptyList(),
-            NoopAnimationTracker,
+            NoopComposeAnimationTracker,
           )
           .apply { setDuration(i * 10) }
       )

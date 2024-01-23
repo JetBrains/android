@@ -77,7 +77,7 @@ object ComposePreviewAnimationManager {
       val animationInspectorPanel =
         AnimationPreview(
           surface.project,
-          AnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
+          ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
           { surface.sceneManager },
           surface,
           psiFilePointer,

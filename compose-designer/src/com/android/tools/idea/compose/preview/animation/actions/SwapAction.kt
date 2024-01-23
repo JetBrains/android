@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -23,7 +23,7 @@ import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 /** A button to swap current animation states. */
-class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
+class SwapAction(val tracker: ComposeAnimationTracker, val swapStates: () -> Unit) :
   AnActionButton(
     message("animation.inspector.action.swap.states"),
     StudioIcons.LayoutEditor.Motion.PLAY_YOYO,

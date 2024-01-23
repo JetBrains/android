@@ -17,41 +17,45 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
+import com.android.tools.idea.preview.animation.AnimationTracker
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
 
-class AnimationTracker(private val eventLogger: AnimationToolingUsageTracker) {
+class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTracker) :
+  AnimationTracker {
 
   private fun logEvent(type: ComposeAnimationToolingEventType) {
     eventLogger.logEvent(AnimationToolingEvent(type))
   }
 
-  fun openAnimationInspector() = logEvent(ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR)
+  override fun openAnimationInspector() =
+    logEvent(ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR)
 
-  fun closeAnimationInspector() =
+  override fun closeAnimationInspector() =
     logEvent(ComposeAnimationToolingEventType.CLOSE_ANIMATION_INSPECTOR)
 
-  fun animationInspectorAvailable() =
+  override fun animationInspectorAvailable() =
     logEvent(ComposeAnimationToolingEventType.ANIMATION_INSPECTOR_AVAILABLE)
 
-  fun triggerPlayAction() = logEvent(ComposeAnimationToolingEventType.TRIGGER_PLAY_ACTION)
+  override fun triggerPlayAction() = logEvent(ComposeAnimationToolingEventType.TRIGGER_PLAY_ACTION)
 
-  fun triggerPauseAction() = logEvent(ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
+  override fun triggerPauseAction() =
+    logEvent(ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
 
-  fun enableLoopAction() = logEvent(ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION)
+  override fun enableLoopAction() = logEvent(ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION)
 
-  fun disableLoopAction() = logEvent(ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION)
+  override fun disableLoopAction() = logEvent(ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION)
 
-  fun changeAnimationSpeed(speedMultiplier: Float) {
+  override fun changeAnimationSpeed(speedMultiplier: Float) {
     val event =
       AnimationToolingEvent(ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED)
         .withAnimationMultiplier(speedMultiplier)
     eventLogger.logEvent(event)
   }
 
-  fun triggerJumpToStartAction() =
+  override fun triggerJumpToStartAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_START_ACTION)
 
-  fun triggerJumpToEndAction() =
+  override fun triggerJumpToEndAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
 
   fun changeStartState() = logEvent(ComposeAnimationToolingEventType.CHANGE_START_STATE)
@@ -61,27 +65,30 @@ class AnimationTracker(private val eventLogger: AnimationToolingUsageTracker) {
   fun triggerSwapStatesAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
 
-  fun clickAnimationInspectorTimeline() =
+  override fun clickAnimationInspectorTimeline() =
     logEvent(ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE)
 
-  fun dragAnimationInspectorTimeline() =
+  override fun dragAnimationInspectorTimeline() =
     logEvent(ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE)
 
-  fun expandAnimationCard() = logEvent(ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
+  override fun expandAnimationCard() =
+    logEvent(ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
 
-  fun collapseAnimationCard() = logEvent(ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD)
+  override fun collapseAnimationCard() =
+    logEvent(ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD)
 
-  fun openAnimationInTab() = logEvent(ComposeAnimationToolingEventType.OPEN_ANIMATION_IN_TAB)
+  override fun openAnimationInTab() =
+    logEvent(ComposeAnimationToolingEventType.OPEN_ANIMATION_IN_TAB)
 
-  fun closeAnimationTab() = logEvent(ComposeAnimationToolingEventType.CLOSE_ANIMATION_TAB)
+  override fun closeAnimationTab() = logEvent(ComposeAnimationToolingEventType.CLOSE_ANIMATION_TAB)
 
   fun lockAnimation() = logEvent(ComposeAnimationToolingEventType.LOCK_ANIMATION)
 
   fun unlockAnimation() = logEvent(ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
 
-  fun resetTimeline() = logEvent(ComposeAnimationToolingEventType.RESET_TIMELINE)
+  override fun resetTimeline() = logEvent(ComposeAnimationToolingEventType.RESET_TIMELINE)
 
-  fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
+  override fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
 
   fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
 }

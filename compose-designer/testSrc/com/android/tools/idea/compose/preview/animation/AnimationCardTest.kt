@@ -47,7 +47,7 @@ class AnimationCardTest {
           Mockito.mock(DesignSurface::class.java),
           ElementState("Title"),
           emptyList(),
-          NoopAnimationTracker,
+          NoopComposeAnimationTracker,
         )
         .apply { setDuration(111) }
     card.setSize(300, 300)
@@ -125,7 +125,7 @@ class AnimationCardTest {
             Mockito.mock(DesignSurface::class.java),
             ElementState("Title"),
             emptyList(),
-            NoopAnimationTracker,
+            NoopComposeAnimationTracker,
           )
           .apply {
             setDuration(111)

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorButtonOffset
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
@@ -38,7 +38,7 @@ private val DEFAULT_COLOR: Color = JBColor.WHITE
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
 class ColorStateAction(
   defaultState: ComposeUnit.Color = ComposeUnit.Color.create(DEFAULT_COLOR),
-  val tracker: AnimationTracker,
+  val tracker: ComposeAnimationTracker,
   private val onPropertiesUpdated: () -> Unit,
 ) : CustomComponentAction, AnAction() {
 

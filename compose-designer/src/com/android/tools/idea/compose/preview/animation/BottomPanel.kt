@@ -40,7 +40,7 @@ import javax.swing.border.MatteBorder
 class BottomPanel(
   val previewState: AnimationPreviewState,
   rootComponent: JComponent,
-  private val tracker: AnimationTracker,
+  private val tracker: ComposeAnimationTracker,
 ) : JPanel(BorderLayout()) {
 
   var clockTimeMs = 0

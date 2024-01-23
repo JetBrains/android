@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.animation.AnimationTracker
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
