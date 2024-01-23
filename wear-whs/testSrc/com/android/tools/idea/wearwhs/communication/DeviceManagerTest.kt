@@ -33,7 +33,7 @@ import org.junit.Test
 class DeviceManagerTest {
   private val adbCommandEnableSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:b:true"
   private val adbCommandEnableDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:b:true"
-  private val adbCommandEnableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind TOTAL_CALORIES:b:true"
+  private val adbCommandEnableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:b:true"
   private val adbCommandEnableFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:b:true"
   private val adbCommandEnableElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:b:true"
   private val adbCommandEnableElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:b:true"
@@ -45,7 +45,7 @@ class DeviceManagerTest {
   private val adbCommandEnableStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:b:true"
   private val adbCommandDisableSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:b:false"
   private val adbCommandDisableDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:b:false"
-  private val adbCommandDisableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind TOTAL_CALORIES:b:false"
+  private val adbCommandDisableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:b:false"
   private val adbCommandDisableFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:b:false"
   private val adbCommandDisableElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:b:false"
   private val adbCommandDisableElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:b:false"
@@ -57,7 +57,7 @@ class DeviceManagerTest {
   private val adbCommandDisableStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:b:false"
   private val adbCommandSetStepsTo55 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:i:55"
   private val adbCommandSetDistanceTo10 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:10.0"
-  private val adbCommandSetTotalCaloriesTo100 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind TOTAL_CALORIES:f:100.0"
+  private val adbCommandSetTotalCaloriesTo100 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:f:100.0"
   private val adbCommandSetFloorsTo5 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:f:5.0"
   private val adbCommandSetElevationGainTo50 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:f:50.0"
   private val adbCommandSetElevationLossTo20 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:20.0"
@@ -68,7 +68,7 @@ class DeviceManagerTest {
   private val adbCommandSetStepsPerMinuteTo25 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:f:25.0"
   private val adbCommandClearSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:s:\"\""
   private val adbCommandClearDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:s:\"\""
-  private val adbCommandClearTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind TOTAL_CALORIES:s:\"\""
+  private val adbCommandClearTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:s:\"\""
   private val adbCommandClearFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:s:\"\""
   private val adbCommandClearElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:s:\"\""
   private val adbCommandClearElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:s:\"\""
@@ -78,8 +78,8 @@ class DeviceManagerTest {
   private val adbCommandClearPace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:s:\"\""
   private val adbCommandClearStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:s:\"\""
   private val adbCommandDeleteEntries = "content delete --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
-  private val adbCommandSetMultipleCapabilities = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false --bind TOTAL_CALORIES:b:false"
-  private val adbCommandMultipleFloatOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0 --bind TOTAL_CALORIES:f:123.0"
+  private val adbCommandSetMultipleCapabilities = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false --bind CALORIES:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false"
+  private val adbCommandMultipleFloatOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:f:123.0 --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0"
   private val adbCommandFloatIntOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55"
   private val adbCommandFloatIntNullOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55"
   private val adbCommandCheckWhsVersionCode = "dumpsys package com.google.android.wearable.healthservices | grep versionCode | head -n1"
@@ -100,8 +100,8 @@ class DeviceManagerTest {
       isOverrideable = true,
       isStandardCapability = true,
     ),
-    WhsDataType.TOTAL_CALORIES to WhsCapability(
-      WhsDataType.TOTAL_CALORIES,
+    WhsDataType.CALORIES to WhsCapability(
+      WhsDataType.CALORIES,
       "wear.whs.capability.total.calories.label",
       "wear.whs.capability.total.calories.unit",
       isOverrideable = true,
@@ -248,8 +248,8 @@ class DeviceManagerTest {
 
   @Test
   fun `Enable and disable total calories`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.TOTAL_CALORIES, adbCommandEnableTotalCalories)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.TOTAL_CALORIES, adbCommandDisableTotalCalories)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, adbCommandEnableTotalCalories)
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, adbCommandDisableTotalCalories)
   }
 
   @Test
@@ -334,8 +334,8 @@ class DeviceManagerTest {
 
   @Test
   fun `Override total calories`() {
-    assertOverrideSendsAdbCommand(WhsDataType.TOTAL_CALORIES, 100, adbCommandSetTotalCaloriesTo100)
-    assertOverrideSendsAdbCommand(WhsDataType.TOTAL_CALORIES, null, adbCommandClearTotalCalories)
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, 100, adbCommandSetTotalCaloriesTo100)
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, null, adbCommandClearTotalCalories)
   }
 
   @Test
@@ -430,7 +430,7 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(
       WhsDataType.STEPS to true,
       WhsDataType.DISTANCE to false,
-      WhsDataType.TOTAL_CALORIES to false,
+      WhsDataType.CALORIES to false,
       WhsDataType.FLOORS to false,
       WhsDataType.ELEVATION_GAIN to true,
       WhsDataType.ELEVATION_LOSS to false,
@@ -457,7 +457,7 @@ class DeviceManagerTest {
   fun `Setting multiple float override values triggers expected adb command with keys in alphabetical order`() {
     assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
       WhsDataType.DISTANCE to 12.0,
-      WhsDataType.TOTAL_CALORIES to 123.0,
+      WhsDataType.CALORIES to 123.0,
       WhsDataType.FLOORS to 5.0,
     )) }, adbCommandMultipleFloatOverrides)
   }
@@ -592,7 +592,7 @@ class DeviceManagerTest {
                                                        "Row: 4 data_type=ELEVATION_LOSS, is_enabled=false, override_value=0.0\n" +
                                                        "Row: 5 data_type=DISTANCE, is_enabled=true, override_value=0.0\n" +
                                                        "Row: 6 data_type=ELEVATION_GAIN, is_enabled=false, override_value=0.0\n" +
-                                                       "Row: 7 data_type=TOTAL_CALORIES, is_enabled=false, override_value=0.0\n" +
+                                                       "Row: 7 data_type=CALORIES, is_enabled=false, override_value=0.0\n" +
                                                        "Row: 8 data_type=PACE, is_enabled=false, override_value=0.0\n" +
                                                        "Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0\n" +
                                                        "Row: 10 data_type=STEPS, is_enabled=true, override_value=0", mapOf(
@@ -603,7 +603,7 @@ class DeviceManagerTest {
                                                         WhsDataType.ELEVATION_LOSS to CapabilityStatus(false, null),
                                                         WhsDataType.DISTANCE to CapabilityStatus(true, null),
                                                         WhsDataType.ELEVATION_GAIN to CapabilityStatus(false, null),
-                                                        WhsDataType.TOTAL_CALORIES to CapabilityStatus(false, null),
+                                                        WhsDataType.CALORIES to CapabilityStatus(false, null),
                                                         WhsDataType.PACE to CapabilityStatus(false, null),
                                                         WhsDataType.HEART_RATE_BPM to CapabilityStatus(true, null),
                                                         WhsDataType.STEPS to CapabilityStatus(true, null),

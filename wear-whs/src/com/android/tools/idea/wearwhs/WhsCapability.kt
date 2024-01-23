@@ -21,7 +21,7 @@ enum class WhsDataType() {
   DATA_TYPE_UNKNOWN,
   STEPS,
   DISTANCE,
-  TOTAL_CALORIES,
+  CALORIES,
   FLOORS,
   ELEVATION_GAIN,
   ELEVATION_LOSS,
@@ -99,7 +99,7 @@ val WHS_CAPABILITIES = listOf(
     isStandardCapability = false,
   ),
   WhsCapability(
-    WhsDataType.TOTAL_CALORIES,
+    WhsDataType.CALORIES,
     "wear.whs.capability.total.calories.label",
     "wear.whs.capability.total.calories.unit",
     isOverrideable = true,
