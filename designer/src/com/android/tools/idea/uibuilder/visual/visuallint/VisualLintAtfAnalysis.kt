@@ -29,11 +29,9 @@ import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
 import com.android.tools.rendering.RenderResult
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import java.util.EnumSet
 
-class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
+class VisualLintAtfAnalysis(private val model: NlModel) {
 
   /**
    * Parses the layout and stores all metadata required for linking issues to source [NlComponent]
@@ -44,8 +42,6 @@ class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
   var renderMetric = RenderResultMetricData()
 
   init {
-    Disposer.register(model, this)
-
     // Enable retrieving text character locations from TextView to improve the
     // accuracy of TextContrastCheck in ATF.
     LayoutValidator.setObtainCharacterLocations(true)
@@ -130,10 +126,6 @@ class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
       layoutParser.clear()
     }
     return issues
-  }
-
-  override fun dispose() {
-    layoutParser.clear()
   }
 }
 
