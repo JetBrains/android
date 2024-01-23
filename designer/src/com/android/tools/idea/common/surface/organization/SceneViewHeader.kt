@@ -20,8 +20,10 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Insets
 import javax.swing.JPanel
 
@@ -29,13 +31,17 @@ import javax.swing.JPanel
 class SceneViewHeader(organizationGroup: String?, displayName: String?) :
   JPanel(BorderLayout()), PositionablePanel {
 
-  val headerSize = JBDimension(200, 25)
+  val headerSize = JBDimension(200, 26)
 
   init {
     preferredSize = headerSize
     isOpaque = false
     size = headerSize
-    displayName?.let { add(JBLabel(it), BorderLayout.CENTER) }
+    displayName?.let {
+      val label = JBLabel(it)
+      label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL).deriveFont(Font.BOLD)
+      add(label, BorderLayout.CENTER)
+    }
   }
 
   override val positionableAdapter =
