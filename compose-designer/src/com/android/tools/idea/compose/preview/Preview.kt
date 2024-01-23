@@ -640,25 +640,31 @@ class ComposePreviewRepresentation(
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
     val uiCheckIssuePanel = UiCheckPanelProvider(instance, psiFilePointer).getPanel()
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
+    uiCheckIssuePanel.issueProvider.activate()
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)
-    surface.visualLintIssueProvider.uiCheckInstanceId = instance.instanceId
+    (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStart(
+      instance.instanceId
+    )
   }
 
   private suspend fun onUiCheckPreviewStop() {
     qualityManager.resume()
     postIssueUpdateListenerForUiCheck.deactivate()
-    uiCheckFilterFlow.value.basePreviewInstance?.let {
-      val panel =
-        ProblemsViewToolWindowUtils.getTabById(project, it.instanceId) as? DesignerCommonIssuePanel
-      panel?.removeIssueSelectionListener(surface.issueListener)
-      panel?.issueProvider?.removeUpdateListener(postIssueUpdateListenerForUiCheck)
-      surface.visualLintIssueProvider.uiCheckInstanceId = null
-    }
+    uiCheckFilterFlow.value.basePreviewInstance?.let { uiCheckPanelCleanup(it.instanceId) }
+    (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStop()
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
     withContext(uiThread) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }
     }
+  }
+
+  private fun uiCheckPanelCleanup(instanceId: String) {
+    val panel =
+      ProblemsViewToolWindowUtils.getTabById(project, instanceId) as? DesignerCommonIssuePanel
+    panel?.removeIssueSelectionListener(surface.issueListener)
+    panel?.issueProvider?.removeUpdateListener(postIssueUpdateListenerForUiCheck)
+    panel?.issueProvider?.deactivate()
   }
 
   private fun onInteractivePreviewStop() {
@@ -950,6 +956,8 @@ class ComposePreviewRepresentation(
     isDisposed.set(true)
     if (mode.value is PreviewMode.Interactive) {
       interactiveManager.stop()
+    } else if (mode.value is PreviewMode.UiCheck) {
+      uiCheckFilterFlow.value.basePreviewInstance?.let { uiCheckPanelCleanup(it.instanceId) }
     }
   }
 

@@ -64,6 +64,10 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
 
   override fun update() = Unit
 
+  override fun activate() = Unit
+
+  override fun deactivate() = Unit
+
   override fun dispose() = Unit
 }
 
@@ -90,7 +94,6 @@ fun createTestVisualLintRenderIssue(
     .summary(summary)
     .severity(HighlightSeverity.WARNING)
     .contentDescriptionProvider { HtmlBuilder() }
-    .model(components.first().model)
     .components(components.toMutableList())
     .type(type)
     .build()

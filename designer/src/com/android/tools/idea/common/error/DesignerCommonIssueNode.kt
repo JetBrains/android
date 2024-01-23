@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
-import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
@@ -448,9 +447,7 @@ class VisualLintIssueNode(
     if (project == null) {
       return null
     }
-    val navigatable =
-      (visualLintIssue.components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
-        as? OpenFileDescriptor)
+    val navigatable = visualLintIssue.navigatable as? OpenFileDescriptor
     if (navigatable != null) {
       return MyOpenFileDescriptor(navigatable)
     }

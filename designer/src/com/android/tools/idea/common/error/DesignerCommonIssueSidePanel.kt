@@ -19,8 +19,6 @@ import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.designer.model.EmptyXmlTag
-import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -212,21 +210,11 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     }
 
   private fun VisualLintRenderIssue.getAffectedFiles(): List<VirtualFile> {
-    val modelFiles =
-      models
-        .filter { model -> this.shouldHighlight(model) }
-        .map {
-          @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-        }
-        .distinct()
-    val navigatableFile =
-      (components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
-          as? OpenFileDescriptor)
-        ?.file
-    return if (navigatableFile == null || modelFiles.contains(navigatableFile)) {
-      modelFiles
+    val navigatableFile = (navigatable as? OpenFileDescriptor)?.file
+    return if (navigatableFile == null || affectedFiles.contains(navigatableFile)) {
+      affectedFiles
     } else {
-      modelFiles.toMutableList().apply { add(navigatableFile) }
+      affectedFiles.toMutableList().apply { add(navigatableFile) }
     }
   }
 

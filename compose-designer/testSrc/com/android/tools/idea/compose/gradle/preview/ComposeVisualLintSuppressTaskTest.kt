@@ -128,12 +128,23 @@ class ComposeVisualLintSuppressTaskTest {
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(2, issueProvider.getUnsuppressedIssues().size)
 
-    ComposeVisualLintSuppressTask(nlModel, previewElement, VisualLintErrorType.BUTTON_SIZE).run()
+    ComposeVisualLintSuppressTask(
+        facet,
+        projectRule.project,
+        previewElement,
+        VisualLintErrorType.BUTTON_SIZE,
+      )
+      .run()
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(1, issueProvider.getUnsuppressedIssues().size)
     assertEquals(VisualLintErrorType.TEXT_FIELD_SIZE, issueProvider.getUnsuppressedIssues()[0].type)
 
-    ComposeVisualLintSuppressTask(nlModel, previewElement, VisualLintErrorType.TEXT_FIELD_SIZE)
+    ComposeVisualLintSuppressTask(
+        facet,
+        projectRule.project,
+        previewElement,
+        VisualLintErrorType.TEXT_FIELD_SIZE,
+      )
       .run()
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(0, issueProvider.getUnsuppressedIssues().size)
