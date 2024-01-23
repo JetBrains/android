@@ -23,6 +23,7 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
@@ -32,6 +33,7 @@ import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.JBColor
@@ -108,9 +110,9 @@ class NavDesignSurfaceZoomControlsTest {
       """.trimIndent()
     )
 
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      NavigationSchema.createIfNecessary(androidProjectRule.module)
-    })
+    executeOnPooledThread {
+      runReadAction { NavigationSchema.createIfNecessary(androidProjectRule.module) }
+    }.get()
   }
 
   private fun getGoldenImagePath(testName: String) =

@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTargetUtil
@@ -69,15 +71,19 @@ class GradleUsageTypeProviderTest: AndroidTestCase() {
   }
 
   private fun getUsageType(element: PsiElement) : UsageType? {
-    for (provider in UsageTypeProvider.EP_NAME.extensionList) {
-      return if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
-        provider.getUsageType(element, targets) ?: continue
+    return executeOnPooledThread {
+      runReadAction {
+        UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
+          when (it) {
+            is UsageTypeProviderEx ->
+              it.getUsageType(
+                element,
+                UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
+              )
+            else -> it.getUsageType(element)
+          }
+        }
       }
-      else {
-        provider.getUsageType(element) ?: continue
-      }
-    }
-    return null
+    }.get()
   }
 }
