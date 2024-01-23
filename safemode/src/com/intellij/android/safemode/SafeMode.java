@@ -18,6 +18,7 @@ package com.intellij.android.safemode;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class SafeMode implements ApplicationLoadListener {
   private static final Logger LOG = Logger.getInstance(SafeMode.class);
-  private static final String CRASH_DETECTION_FILE = "android.studio.safe.mode.sentinel";
 
   @Override
   public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path path) {
@@ -42,7 +42,7 @@ public class SafeMode implements ApplicationLoadListener {
       return;
     }
 
-    File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), CRASH_DETECTION_FILE);
+    File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), getCrashDetectionFile());
 
     if (System.getProperty("studio.safe.mode") != null) {
       // If we entered safe mode, register a cleanup handler and return.
@@ -56,7 +56,7 @@ public class SafeMode implements ApplicationLoadListener {
       // Create crash files to detect if we've crashed for next time.
       try {
         //noinspection ResultOfMethodCallIgnored
-        File.createTempFile(CRASH_DETECTION_FILE, "");
+        File.createTempFile(getCrashDetectionFile(), "");
       } catch (Exception e) {
         LOG.error("Unexpected error while creating safe mode crash detection file ", e);
       }
@@ -116,8 +116,15 @@ public class SafeMode implements ApplicationLoadListener {
     return files == null ? new File[0] : files;
   }
 
+  private static String getCrashDetectionFile() {
+    return "android.studio.safe.mode." + ApplicationInfo.getInstance().getBuild() + ".sentinel";
+  }
+
   private static boolean safeModeDisabled() {
     if (System.getProperty("disable.safe.mode") != null) {
+      return true;
+    }
+    if (System.getenv("DISABLE_SAFE_MODE") != null) {
       return true;
     }
     File[] files = getFiles(PathManager.getBinPath(), "disable_safe_mode");
@@ -129,7 +136,7 @@ public class SafeMode implements ApplicationLoadListener {
       @Override
       public void appWillBeClosed(boolean isRestart) {
         //  SafeMode crash detection clean up
-        File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), CRASH_DETECTION_FILE);
+        File[] studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), getCrashDetectionFile());
 
         for (File f : studioCrashFiles) {
           //noinspection ResultOfMethodCallIgnored
