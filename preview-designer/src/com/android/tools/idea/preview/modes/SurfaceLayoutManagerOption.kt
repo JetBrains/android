@@ -40,34 +40,29 @@ data class SurfaceLayoutManagerOption(
 )
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
-  val min = 5
-  val max = 20
-
-  when {
-    scale <= 0.2 -> min
-    scale >= 1.0 -> max
-    else ->
-      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
-  }.toInt()
+  dynamicPadding(scale, 5, 20)
 }
 
 /**
- * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
- * of the current [PositionableContent].
+ * Provider of the paddings for preview with organization. The input value is the scale value of the
+ * current [PositionableContent].
  */
 private val ORGANIZATION_PREVIEW_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  // Minimum 5 at 20% and maximum 15 at 100%, responsive.
-  val min = 5
-  val max = 15
+  dynamicPadding(scale, 5, 15)
+}
 
+/**
+ * Provider of the padding for preview. The input value is the scale value of the current
+ * [PositionableContent]. Minimum padding is min at 20% and maximum padding is max at 100%,
+ * responsive.
+ */
+private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
   when {
     scale <= 0.2 -> min
     scale >= 1.0 -> max
     else ->
       min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
   }.toInt()
-}
 
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
   // FIXME(b/258718991): we decide not group the previews for now.
