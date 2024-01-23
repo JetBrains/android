@@ -7,9 +7,17 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
-    tags = ["no_test_windows"],
+    split_test_targets = {
+        "WindowsNameDemanglerTest": {
+            "test_filter": "com.android.tools.idea.profilers.perfetto.traceprocessor.WindowsNameDemanglerTest",
+        },
+        "other": {
+            "tags": ["no_test_windows"],
+        },
+    },
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//prebuilts/tools:lldb",
         "//prebuilts/tools/common/trace-processor-daemon",
         "//tools/adt/idea/profilers:test_data",
     ],

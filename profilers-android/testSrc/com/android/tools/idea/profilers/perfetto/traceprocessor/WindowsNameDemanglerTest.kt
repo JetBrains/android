@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
+import com.android.testutils.AssumeUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.SystemInfo
-import org.junit.Assume.assumeFalse
-import org.junit.Assume.assumeTrue
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class WindowsNameDemanglerTest {
+
+@RunWith(JUnit4::class)
+class WindowsNameDemanglerTest : BasePlatformTestCase() {
+
   @Test
   fun demangleStringWindows() {
-    assumeTrue(SystemInfo.isWindows)
+    AssumeUtil.assumeWindows()
     val demangler = WindowsNameDemangler()
     val stackFrame = StackFrameInfo("_ZN7android6Parcel13continueWriteEm")
     demangler.demangleInplace(mutableListOf(stackFrame))
@@ -33,7 +37,7 @@ class WindowsNameDemanglerTest {
 
   @Test
   fun demangleStringOther() {
-    assumeFalse(SystemInfo.isWindows)
+    AssumeUtil.assumeNotWindows()
     val demangler = WindowsNameDemangler()
     val stackFrame = StackFrameInfo("_ZN7android6Parcel13continueWriteEm")
     demangler.demangleInplace(mutableListOf(stackFrame))
