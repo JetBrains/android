@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.TooltipInfo
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor

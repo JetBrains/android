@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
-import com.android.tools.idea.compose.preview.animation.TooltipInfo
+import com.android.tools.idea.preview.animation.TooltipInfo
 import com.android.tools.idea.res.clamp
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI

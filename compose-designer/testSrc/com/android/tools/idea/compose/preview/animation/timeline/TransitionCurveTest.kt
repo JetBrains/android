@@ -21,8 +21,8 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
-import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.preview.animation.TooltipInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert.assertTrue

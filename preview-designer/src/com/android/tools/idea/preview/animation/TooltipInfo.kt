@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 /** Tooltip info for timeline elements. */
 data class TooltipInfo(val header: String, val description: String)

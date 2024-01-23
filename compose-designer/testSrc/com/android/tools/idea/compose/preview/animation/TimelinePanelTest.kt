@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.ParentTimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.animation.TooltipInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import javax.swing.JLabel
