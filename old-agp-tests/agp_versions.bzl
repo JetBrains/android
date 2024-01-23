@@ -158,6 +158,8 @@ def _local_old_agp_test_update_kwargs(
         jdk_data.append("//prebuilts/studio/jdk:jdk_1_8")
     if "11" in additional_jdks:
         jdk_data.append("//prebuilts/studio/jdk/jdk11")
+    if "17" in additional_jdks:
+        jdk_data.append("//prebuilts/studio/jdk:jdk17")
 
     kwargs.update(
         agp_version = agp_version,
