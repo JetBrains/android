@@ -86,7 +86,7 @@ public class CpuProfilerTestUtils {
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, TraceType profilerType) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "");
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "", x -> {});
   }
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile,
@@ -94,7 +94,7 @@ public class CpuProfilerTestUtils {
                                                                int processIdHint,
                                                                String processNameHint) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint, x -> {});
   }
 
   public static CpuCapture getCapture(File traceFile, TraceType profilerType) throws ExecutionException, InterruptedException {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS;
 
@@ -22,6 +23,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -31,6 +33,7 @@ import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
+import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,6 +50,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -186,7 +190,12 @@ public class CpuCaptureParser {
   @NotNull
   public CompletableFuture<CpuCapture> parse(
     // Consider passing a CompletableFuture<File> instead of a File here, so we can chain all of them properly.
-    @NotNull File traceFile, long traceId, @NotNull TraceType preferredProfilerType, int processIdHint, String processNameHint) {
+    @NotNull File traceFile,
+    long traceId,
+    @NotNull TraceType preferredProfilerType,
+    int processIdHint,
+    String processNameHint,
+    @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
     if (myCaptures.containsKey(traceId)) {
       return myCaptures.get(traceId);
     }
@@ -200,7 +209,7 @@ public class CpuCaptureParser {
         .thenApplyAsync(
           new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
           myServices.getPoolExecutor())
-        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace), myServices.getMainExecutor());
+        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, trackTaskFinished), myServices.getMainExecutor());
     myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
   }
@@ -448,11 +457,16 @@ public class CpuCaptureParser {
     private final File traceFile;
     private final long traceId;
     private final boolean isImportedTrace;
+    private final Consumer<TaskFinishedState> trackTaskFinished;
 
-    private TraceResultHandler(@NotNull File traceFile, long traceId, boolean isImportedTrace) {
+    private TraceResultHandler(@NotNull File traceFile,
+                               long traceId,
+                               boolean isImportedTrace,
+                               @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
       this.traceFile = traceFile;
       this.traceId = traceId;
       this.isImportedTrace = isImportedTrace;
+      this.trackTaskFinished = trackTaskFinished;
     }
 
     @Override
@@ -477,6 +491,8 @@ public class CpuCaptureParser {
         if (throwable.getCause() instanceof CancellationException) {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
           myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
+          // Track that the task has finished with user cancellation.
+          trackTaskFinished.accept(TaskFinishedState.USER_CANCELLED);
         }
         else if (throwable.getCause() instanceof PreProcessorFailureException) {
           myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);

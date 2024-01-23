@@ -18,7 +18,11 @@ package com.android.tools.profilers.memory
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
+import com.android.tools.profilers.tasks.TaskFinishedState
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -86,6 +90,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
 
     updateCaptureOnSelection = true
 
+    val isSessionAlive = studioProfilers.sessionsManager.isSessionAlive
     val queryRange = timeline.selectionRange
     val load = Runnable {
       // This might be scheduled to run later when this stage has been exited, so need to check
@@ -98,6 +103,13 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
             val loadedCaptureObject = future.get()
             if (captureSelection.finishSelectingCaptureObject(loadedCaptureObject)) {
               captureSelection.selectHeapSet((loadedCaptureObject.heapSets).getDefault())
+              // Track that the task has completed by successfully processing and displaying the capture. The non-legacy (O+) Java/Kotlin
+              // allocations tracks completion within the AllocationStage class itself instead of here.
+              val isJavaKotlinAllocationsTask = studioProfilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS
+              val isLegacy = !MemoryDataProvider.getIsLiveAllocationTrackingSupported(studioProfilers)
+              if (!isJavaKotlinAllocationsTask || isLegacy) {
+                trackTaskFinished(studioProfilers, isSessionAlive, TaskFinishedState.COMPLETED)
+              }
             }
             else {
               // Capture loading failed.

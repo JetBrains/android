@@ -54,6 +54,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskAttachmentPoint;
 import com.android.tools.profilers.tasks.TaskDataOrigin;
+import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AdtUiBoxSelectionMetadata;
 import com.google.wireless.android.sdk.stats.AdtUiTrackGroupMetadata;
@@ -77,6 +78,7 @@ import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TaskEnteredMetadata;
+import com.google.wireless.android.sdk.stats.TaskFinishedMetadata;
 import com.google.wireless.android.sdk.stats.TaskMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonManagerStats;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
@@ -248,6 +250,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
       TaskAttachmentPoint.UNSPECIFIED, TaskMetadata.TaskAttachmentPoint.TASK_ATTACHMENT_POINT_UNSPECIFIED,
       TaskAttachmentPoint.NEW_PROCESS, TaskMetadata.TaskAttachmentPoint.NEW_PROCESS,
       TaskAttachmentPoint.EXISTING_PROCESS, TaskMetadata.TaskAttachmentPoint.EXISTING_PROCESS
+    );
+
+  private final ImmutableMap<TaskFinishedState, TaskFinishedMetadata.TaskFinishedState> TASK_FINISHED_STATE_MAP =
+    ImmutableMap.of(
+      TaskFinishedState.UNSPECIFIED, TaskFinishedMetadata.TaskFinishedState.TASK_FINISHED_STATE_UNSPECIFIED,
+      TaskFinishedState.COMPLETED, TaskFinishedMetadata.TaskFinishedState.COMPLETED,
+      TaskFinishedState.USER_CANCELLED, TaskFinishedMetadata.TaskFinishedState.USER_CANCELLED
     );
 
   @NotNull
@@ -782,27 +791,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
         .findFirst()
         .ifPresent(config -> taskConfigBuilder.setNativeAllocationsTaskConfig(
           TaskMetadata.NativeAllocationsTaskConfig.newBuilder().setSampleIntervalBytes(config.getMemorySamplingIntervalBytes()).build()));
+      // Return null to indicate that there was no found task configuration.
+      default -> { return null; }
     }
 
     return taskConfigBuilder.build();
   }
 
-  private TaskMetadata buildTaskMetadata(ProfilerTaskType taskType,
-                                         long taskId,
-                                         TaskDataOrigin taskDataOrigin,
-                                         TaskAttachmentPoint taskAttachmentPoint,
-                                         Common.Process.ExposureLevel exposureLevel,
-                                         List<? extends ProfilingConfiguration> taskConfigs) {
-    TaskMetadata.Builder taskMetadataBuilder = TaskMetadata.newBuilder()
-      .setTaskType(PROFILER_TASK_TYPE_MAP.getOrDefault(taskType, TaskMetadata.ProfilerTaskType.PROFILER_TASK_TYPE_UNSPECIFIED)).setTaskId(taskId)
-      .setExposureLevel(PROCESS_EXPOSURE_LEVEL_MAP.getOrDefault(exposureLevel, TaskMetadata.ExposureLevel.UNKNOWN))
-      .setTaskDataOrigin(TASK_DATA_ORIGIN_MAP.getOrDefault(taskDataOrigin, TaskMetadata.TaskDataOrigin.TASK_DATA_ORIGIN_UNSPECIFIED))
-      .setTaskAttachmentPoint(
-        TASK_ATTACHMENT_POINT_MAP.getOrDefault(taskAttachmentPoint, TaskMetadata.TaskAttachmentPoint.TASK_ATTACHMENT_POINT_UNSPECIFIED));
+  private TaskMetadata buildStatsTaskMetadata(com.android.tools.profilers.tasks.TaskMetadata taskMetadata) {
+    TaskMetadata.Builder taskMetadataBuilder = TaskMetadata.newBuilder().setTaskType(
+        PROFILER_TASK_TYPE_MAP.getOrDefault(taskMetadata.getTaskType(), TaskMetadata.ProfilerTaskType.PROFILER_TASK_TYPE_UNSPECIFIED))
+      .setTaskId(taskMetadata.getTaskId())
+      .setExposureLevel(PROCESS_EXPOSURE_LEVEL_MAP.getOrDefault(taskMetadata.getExposureLevel(), TaskMetadata.ExposureLevel.UNKNOWN))
+      .setTaskDataOrigin(
+        TASK_DATA_ORIGIN_MAP.getOrDefault(taskMetadata.getTaskDataOrigin(), TaskMetadata.TaskDataOrigin.TASK_DATA_ORIGIN_UNSPECIFIED))
+      .setTaskAttachmentPoint(TASK_ATTACHMENT_POINT_MAP.getOrDefault(taskMetadata.getTaskAttachmentPoint(),
+                                                                     TaskMetadata.TaskAttachmentPoint.TASK_ATTACHMENT_POINT_UNSPECIFIED));
 
     // Only set/include the task configurations if the task was newly created/recorded.
-    if (taskDataOrigin.equals(TaskDataOrigin.NEW)) {
-      TaskMetadata.TaskConfig taskConfig = buildCustomTaskConfig(taskType, (List<ProfilingConfiguration>)taskConfigs);
+    if (taskMetadata.getTaskDataOrigin().equals(TaskDataOrigin.NEW)) {
+      TaskMetadata.TaskConfig taskConfig = buildCustomTaskConfig(taskMetadata.getTaskType(), taskMetadata.getTaskConfigs());
       if (taskConfig != null) {
         taskMetadataBuilder.setTaskConfig(taskConfig);
       }
@@ -812,15 +820,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTaskEntered(ProfilerTaskType taskType,
-                               long taskId,
-                               TaskDataOrigin taskDataOrigin,
-                               TaskAttachmentPoint taskAttachmentPoint,
-                               Common.Process.ExposureLevel exposureLevel,
-                               List<? extends ProfilingConfiguration> taskConfigs
-  ) {
+  public void trackTaskEntered(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata) {
     newTracker(AndroidProfilerEvent.Type.TASK_ENTERED).setTaskEnteredMetadata(TaskEnteredMetadata.newBuilder().setTaskData(
-      buildTaskMetadata(taskType, taskId, taskDataOrigin, taskAttachmentPoint, exposureLevel, taskConfigs)).build()).track();
+      buildStatsTaskMetadata(taskMetadata)).build()).track();
+  }
+
+  @Override
+  public void trackTaskFinished(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+                                @NotNull TaskFinishedState taskFinishedState) {
+    newTracker(AndroidProfilerEvent.Type.TASK_FINISHED).setTaskFinishedMetadata(
+      TaskFinishedMetadata.newBuilder().setTaskData(buildStatsTaskMetadata(taskMetadata)).setTaskFinishedState(
+          TASK_FINISHED_STATE_MAP.getOrDefault(taskFinishedState, TaskFinishedMetadata.TaskFinishedState.TASK_FINISHED_STATE_UNSPECIFIED))
+        .build()).track();
   }
 
   /**
@@ -866,9 +877,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
     @Nullable private RunWithProfilingMetadata myRunWithProfilingMetadata;
 
+    private boolean isTaskSettingsChanged;
+
     @Nullable private TaskEnteredMetadata myTaskEnteredMetadata;
 
-    private boolean isTaskSettingsChanged;
+    @Nullable private TaskFinishedMetadata myTaskFinishedMetadata;
+
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull Project trackingProject,
@@ -1006,14 +1020,20 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
+    private Tracker setIsTaskSettingsChanged(boolean taskSettingsChanged) {
+      isTaskSettingsChanged = taskSettingsChanged;
+      return this;
+    }
+
+    @NotNull
     private Tracker setTaskEnteredMetadata(TaskEnteredMetadata taskEnteredMetadata) {
       myTaskEnteredMetadata = taskEnteredMetadata;
       return this;
     }
 
     @NotNull
-    private Tracker setIsTaskSettingsChanged(boolean taskSettingsChanged) {
-      isTaskSettingsChanged = taskSettingsChanged;
+    private Tracker setTaskFinishedMetadata(TaskFinishedMetadata taskFinishedMetadata) {
+      myTaskFinishedMetadata = taskFinishedMetadata;
       return this;
     }
 
@@ -1094,6 +1114,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case TASK_ENTERED:
           profilerEvent.setTaskEnteredMetadata(myTaskEnteredMetadata);
+          break;
+        case TASK_FINISHED:
+          profilerEvent.setTaskFinishedMetadata(myTaskFinishedMetadata);
           break;
         default:
           break;

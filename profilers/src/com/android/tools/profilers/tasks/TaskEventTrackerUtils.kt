@@ -16,6 +16,7 @@
 package com.android.tools.profilers.tasks
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
@@ -32,14 +33,17 @@ object TaskEventTrackerUtils {
     return taskConfigs
   }
 
-  @JvmStatic
-  fun trackTaskEntered(profilers: StudioProfilers) {
+  private fun buildTaskMetadata(profilers: StudioProfilers): TaskMetadata {
+    return buildTaskMetadata(profilers, profilers.sessionsManager.isSessionAlive)
+  }
+
+  private fun buildTaskMetadata(profilers: StudioProfilers, isNewlyRecordedTask: Boolean): TaskMetadata {
     val sessionsManager = profilers.sessionsManager
 
     val taskType = sessionsManager.currentTaskType
     val taskId = sessionsManager.selectedSession.sessionId
 
-    val taskDataOrigin = if (sessionsManager.isSessionAlive) {
+    val taskDataOrigin = if (isNewlyRecordedTask) {
       TaskDataOrigin.NEW
     }
     else if (sessionsManager.selectedSessionMetaData.type == Common.SessionMetaData.SessionType.FULL) {
@@ -53,7 +57,7 @@ object TaskEventTrackerUtils {
       TaskDataOrigin.UNSPECIFIED
     }
 
-    val taskAttachmentPoint = if (!sessionsManager.isSessionAlive) {
+    val taskAttachmentPoint = if (!isNewlyRecordedTask) {
       TaskAttachmentPoint.UNSPECIFIED
     }
     else if (sessionsManager.isCurrentTaskStartup) {
@@ -63,18 +67,43 @@ object TaskEventTrackerUtils {
       TaskAttachmentPoint.EXISTING_PROCESS
     }
 
-    val exposureLevel = if (sessionsManager.isSessionAlive && profilers.process != null) {
+    val exposureLevel = if (isNewlyRecordedTask && profilers.process != null) {
       profilers.process!!.exposureLevel
     }
     else {
-      Common.Process.ExposureLevel.UNKNOWN
+      ExposureLevel.UNKNOWN
     }
 
     val taskConfigs = getCustomTaskConfigs(profilers)
 
-    profilers.ideServices.featureTracker.trackTaskEntered(taskType, taskId, taskDataOrigin, taskAttachmentPoint, exposureLevel, taskConfigs)
+    return TaskMetadata(taskType, taskId, taskDataOrigin, taskAttachmentPoint, exposureLevel, taskConfigs)
+  }
+
+  @JvmStatic
+  fun trackTaskEntered(profilers: StudioProfilers) {
+    profilers.ideServices.featureTracker.trackTaskEntered(buildTaskMetadata(profilers))
+  }
+
+  /**
+   * Overload of trackTaskEnter to take in whether the session is alive or not. This is useful for when trackTaskFinished is called in
+   * a future callback. The value of isSessionsAlive at the time of callback registration is what is wanted, not by the time it is called.
+   * As, by the time the callback is called, SessionsManager.isSessionAlive might return a different value.
+   */
+  @JvmStatic
+  fun trackTaskFinished(profilers: StudioProfilers, isNewlyRecordedTask: Boolean, taskFinishedState: TaskFinishedState) {
+    val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
+    profilers.ideServices.featureTracker.trackTaskFinished(taskMetadata, taskFinishedState)
   }
 }
+
+data class TaskMetadata(
+  val taskType: ProfilerTaskType,
+  val taskId: Long,
+  val taskDataOrigin: TaskDataOrigin,
+  val taskAttachmentPoint: TaskAttachmentPoint,
+  val exposureLevel: ExposureLevel,
+  val taskConfigs: List<ProfilingConfiguration>
+)
 
 enum class TaskDataOrigin {
   UNSPECIFIED,
@@ -87,4 +116,10 @@ enum class TaskAttachmentPoint {
   UNSPECIFIED,
   NEW_PROCESS,
   EXISTING_PROCESS
+}
+
+enum class TaskFinishedState {
+  UNSPECIFIED,
+  COMPLETED,
+  USER_CANCELLED
 }

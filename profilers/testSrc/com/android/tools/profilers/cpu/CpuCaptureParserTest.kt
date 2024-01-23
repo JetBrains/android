@@ -884,6 +884,6 @@ class CpuCaptureParserTest {
                                             type: TraceType = TraceType.UNSPECIFIED,
                                             idHint: Int = 0,
                                             nameHint: String = ""): CompletableFuture<CpuCapture> {
-    return this.parse(traceFile, traceId, type, idHint, nameHint)
+    return this.parse(traceFile, traceId, type, idHint, nameHint) {}
   }
 }

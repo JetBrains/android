@@ -31,11 +31,11 @@ class CpuCaptureHandlerTest {
     assertThat(model.range.isEmpty).isTrue()
     model.update(1234L)
     assertThat(model.range.isEmpty).isTrue()
-    model.parse {
-      assertThat(it).isNotNull()
-      assertThat(model.range.min).isEqualTo(0.0)
-      assertThat(model.range.max).isEqualTo(0.0)
-    }
+    model.parse({
+                  assertThat(it).isNotNull()
+                  assertThat(model.range.min).isEqualTo(0.0)
+                  assertThat(model.range.max).isEqualTo(0.0)
+                }) {}
   }
 
   @Test
@@ -44,12 +44,12 @@ class CpuCaptureHandlerTest {
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
-    model.parse {
-      assertThat(it).isNull()
-      assertThat(services.notification).isNotNull()
-      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
-        CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
-    }
+    model.parse({
+                  assertThat(it).isNull()
+                  assertThat(services.notification).isNotNull()
+                  assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
+                    CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
+                }) {}
   }
 
   @Test
@@ -58,9 +58,9 @@ class CpuCaptureHandlerTest {
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
-    model.parse {
-      assertThat(it).isNotNull()
-      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
-    }
+    model.parse({
+                  assertThat(it).isNotNull()
+                  assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
+                }) {}
   }
 }

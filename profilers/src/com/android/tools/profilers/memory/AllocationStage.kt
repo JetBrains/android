@@ -7,6 +7,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
+import com.android.tools.profilers.tasks.TaskFinishedState
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
@@ -90,6 +92,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     if (isStatic) {
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       timeline.selectionRange.set(minTrackingTimeUs, maxTrackingTimeUs)
+      // Entering a static allocation stage indicates the opening of a task recorded in the past.
+      trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
     } else {
       // Start tracking when allocation ready
       aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) {
@@ -136,6 +140,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       aspect.removeDependencies(this)
       timeline.dataRange.removeDependencies(this)
       maxTrackingTimeUs = timeline.dataRange.max
+      // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
+      trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
     }
     MemoryProfiler.trackAllocations(studioProfilers, sessionData, false, true, null);
   }

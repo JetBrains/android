@@ -41,6 +41,8 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
 import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
+import com.android.tools.profilers.tasks.TaskFinishedState
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.IOException

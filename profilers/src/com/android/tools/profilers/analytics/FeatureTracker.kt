@@ -29,6 +29,8 @@ import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSourc
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskAttachmentPoint
 import com.android.tools.profilers.tasks.TaskDataOrigin
+import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.TaskMetadata
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
@@ -486,12 +488,9 @@ interface FeatureTracker {
 
   fun trackTaskSettingsOpened(isSettingsChanged: Boolean)
 
-  fun trackTaskEntered(taskType: ProfilerTaskType,
-                       taskId: Long,
-                       taskDataOrigin: TaskDataOrigin,
-                       taskAttachmentPoint: TaskAttachmentPoint,
-                       exposureLevel: Common.Process.ExposureLevel,
-                       taskConfigs: List<ProfilingConfiguration>)
+  fun trackTaskEntered(taskMetadata: TaskMetadata)
+
+  fun trackTaskFinished(taskMetadata: TaskMetadata, taskFinishedState: TaskFinishedState)
 }
 
 /**
