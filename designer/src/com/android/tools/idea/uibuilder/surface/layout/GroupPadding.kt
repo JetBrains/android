@@ -25,8 +25,18 @@ import com.android.tools.adtui.common.SwingCoordinate
  * @param previewPaddingProvider is to provide the horizontal and vertical paddings of every. The
  *   input value is the scale value of the current [PositionableContent].
  */
-class GroupPadding(
+open class GroupPadding(
   @SwingCoordinate val canvasTopPadding: Int,
   @SwingCoordinate val canvasLeftPadding: Int,
   @SwingCoordinate val previewPaddingProvider: (scale: Double) -> Int,
 )
+
+/** Paddings for layouts with organization. */
+class OrganizationPadding(
+  @SwingCoordinate canvasTopPadding: Int,
+  @SwingCoordinate canvasLeftPadding: Int,
+  @SwingCoordinate val groupLeftPadding: Int,
+  @SwingCoordinate previewPaddingProvider: (scale: Double) -> Int,
+  @SwingCoordinate val previewRightPadding: (scale: Double, content: PositionableContent) -> Int,
+  @SwingCoordinate val previewBottomPadding: (scale: Double, content: PositionableContent) -> Int,
+) : GroupPadding(canvasTopPadding, canvasLeftPadding, previewPaddingProvider)

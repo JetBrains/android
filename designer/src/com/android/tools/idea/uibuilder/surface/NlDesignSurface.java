@@ -70,9 +70,11 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
+import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
@@ -929,7 +931,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
         .getLayoutManager();
 
-      if (layoutManager instanceof GroupedListSurfaceLayoutManager) { // new list mode
+      // If layout is a vertical list layout
+      boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;
+      // If layout is grouped grid layout.
+      boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
+
+      if (isGroupedListLayout) { // new list mode
         if(x < 0 || y < 0) {
           // zoom with top-center of the visible area as anchor
           myViewportScroller = new TopBoundCenterScroller(
@@ -944,7 +951,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                                                                                      getPositionableContent(),
                                                                                      getExtentSize()));
         }
-      } else if(layoutManager instanceof GroupedGridSurfaceLayoutManager) { // new grid mode
+      } else if(isGroupedGridLayout) { // new grid mode
         // zoom with top-left corner of the visible area as anchor
         myViewportScroller = new TopLeftCornerScroller(
           new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());

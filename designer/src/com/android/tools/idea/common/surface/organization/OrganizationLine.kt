@@ -34,7 +34,7 @@ fun Collection<Collection<JComponent>>.paintLines(g2d: Graphics2D) {
 
 /** Properties of the line on the left side of the organization group. */
 object OrganizationLine {
-  const val LINE_X = 12
+  const val LINE_X = 18
   const val LINE_WIDTH = 1f
   val COLOR = JBColor(JBColor.border(), UIUtil.getLabelDisabledForeground())
 }
