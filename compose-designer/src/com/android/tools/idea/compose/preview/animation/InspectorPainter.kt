@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
+import com.android.tools.idea.preview.animation.InspectorColors
+import com.android.tools.idea.preview.animation.InspectorLayout
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.JBColor

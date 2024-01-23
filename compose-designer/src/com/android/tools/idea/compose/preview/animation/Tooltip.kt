@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipComponent
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.idea.preview.animation.InspectorColors
 import com.android.tools.idea.preview.animation.TooltipInfo
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBFont

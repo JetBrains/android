@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.animation.actions
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorButtonOffset
+import com.android.tools.idea.preview.animation.InspectorLayout.colorButtonOffset
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar

@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.AnimatedProperty
-import com.android.tools.idea.compose.preview.animation.InspectorColors
-import com.android.tools.idea.compose.preview.animation.InspectorColors.GRAPH_COLORS
-import com.android.tools.idea.compose.preview.animation.InspectorColors.GRAPH_COLORS_WITH_ALPHA
-import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.InspectorPainter.Diamond
+import com.android.tools.idea.preview.animation.InspectorColors
+import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS
+import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS_WITH_ALPHA
+import com.android.tools.idea.preview.animation.InspectorLayout
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Graphics2D
 import java.awt.Point

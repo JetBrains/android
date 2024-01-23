@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.DispatchToTargetAdapter
-import com.android.tools.idea.compose.preview.animation.InspectorColors
-import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TimelinePanel
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.animation.InspectorColors
+import com.android.tools.idea.preview.animation.InspectorLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale

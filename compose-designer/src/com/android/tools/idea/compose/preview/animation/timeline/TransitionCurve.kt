@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.preview.animation.InspectorLayout
 
 /** Curves for all properties of [Transition]. */
 class TransitionCurve

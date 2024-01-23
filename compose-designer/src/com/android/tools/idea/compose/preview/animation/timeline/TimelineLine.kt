@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
-import com.android.tools.idea.compose.preview.animation.InspectorColors
-import com.android.tools.idea.compose.preview.animation.InspectorLayout
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.lineHalfHeightScaled
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.lineHeightScaled
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.outlinePaddingScaled
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.timelineLineRowHeightScaled
 import com.android.tools.idea.compose.preview.animation.TimelinePanel
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.preview.animation.InspectorColors
+import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.InspectorLayout.lineHalfHeightScaled
+import com.android.tools.idea.preview.animation.InspectorLayout.lineHeightScaled
+import com.android.tools.idea.preview.animation.InspectorLayout.outlinePaddingScaled
+import com.android.tools.idea.preview.animation.InspectorLayout.timelineLineRowHeightScaled
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.RenderingHints

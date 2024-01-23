@@ -32,6 +32,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
+import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager

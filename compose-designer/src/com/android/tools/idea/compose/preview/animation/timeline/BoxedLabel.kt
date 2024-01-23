@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.InspectorColors
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.BOXED_LABEL_COLOR_OUTLINE_OFFSET
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLabelColorBoxArc
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLabelColorBoxSize
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.boxedLabelOffset
+import com.android.tools.idea.preview.animation.InspectorColors
+import com.android.tools.idea.preview.animation.InspectorLayout.BOXED_LABEL_COLOR_OUTLINE_OFFSET
+import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelColorBoxArc
+import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelColorBoxSize
+import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelOffset
 import com.android.tools.idea.preview.animation.TooltipInfo
 import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.JBFont
