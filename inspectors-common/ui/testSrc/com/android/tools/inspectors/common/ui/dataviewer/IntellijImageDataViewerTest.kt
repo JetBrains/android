@@ -15,23 +15,41 @@
  */
 package com.android.tools.inspectors.common.ui.dataviewer
 
+import com.android.testutils.waitForCondition
+import com.android.tools.adtui.stdui.ResizableImage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightPlatformTestCase
+import kotlin.time.Duration.Companion.seconds
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import javax.swing.JLabel
 
+private val TIMEOUT = 5.seconds
+
+@RunWith(JUnit4::class)
 class IntellijImageDataViewerTest : LightPlatformTestCase() {
-  fun testCanCreateImageViewer() {
-    val viewer = IntellijImageDataViewer.createImageViewer(
-      IntellijImageDataViewerTest::class.java.getResource("/image.png").readBytes())!!
+  @get:Rule val disposableRule = DisposableRule()
 
-    assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
-    assertThat(viewer.image.width).isGreaterThan(0)
-    assertThat(viewer.image.height).isGreaterThan(0)
-    assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
+  @Test
+  fun testCanCreateImageViewer() {
+    val viewer =
+      IntellijImageDataViewer(
+        IntellijImageDataViewerTest::class.java.getResource("/image.png")!!.readBytes(),
+        disposableRule.disposable
+      )
+
+    waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
+    assertThat(viewer.component.components.map { it::class.java }).containsExactly(ResizableImage::class.java)
   }
 
-  fun testInvalidImageViewerReturnsNull() {
-    val invalidViewer = IntellijImageDataViewer.createImageViewer("invalid".toByteArray())
+  @Test
+  fun testInvalidImageViewerReturnsInvalid() {
+    val viewer =  IntellijImageDataViewer("invalid".toByteArray(), disposableRule.disposable)
 
-    assertThat(invalidViewer).isNull()
+    waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
+    assertThat(viewer.component.components.map { it::class.java }).containsExactly(JLabel::class.java)
   }
 }

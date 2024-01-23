@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
@@ -25,8 +26,11 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import javax.swing.JLabel
 import kotlin.io.path.readBytes
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
+
+private val TIMEOUT = 5.seconds
 
 @RunsInEdt
 class UiComponentsProviderTest {
@@ -60,8 +64,10 @@ class UiComponentsProviderTest {
       )
     // Invalid image bytes in the creation of a regular data viewer with text saying preview is not
     // available.
-    assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
-    assertThat((viewer.component as JLabel).text).isEqualTo("No preview available")
+    assertThat(viewer).isInstanceOf(IntellijImageDataViewer::class.java)
+    waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
+    assertThat((viewer.component.components.first() as JLabel).text)
+      .isEqualTo("No preview available")
   }
 
   @Test

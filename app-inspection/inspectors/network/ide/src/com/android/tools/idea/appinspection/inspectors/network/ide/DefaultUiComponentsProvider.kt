@@ -37,7 +37,7 @@ class DefaultUiComponentsProvider(
   ): DataViewer {
     return when {
       contentType.isSupportedImageType -> {
-        IntellijImageDataViewer.createImageViewer(bytes) ?: IntellijDataViewer.createInvalidViewer()
+        IntellijImageDataViewer(bytes, parentDisposable)
       }
       styleHint == DataViewer.Style.RAW -> {
         if (contentType.isSupportedTextType) IntellijDataViewer.createRawTextViewer(bytes)
