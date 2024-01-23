@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
-import com.android.tools.idea.res.ResourceIdManagerImpl
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.facet.ProjectFacetManager
@@ -139,7 +139,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
 
       ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).forEach { facet ->
         StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
-        ResourceIdManagerImpl.get(facet.module).resetDynamicIds()
+        StudioResourceIdManager.get(facet.module).resetDynamicIds()
         ResourceClassRegistry.get(project).clearCache()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }

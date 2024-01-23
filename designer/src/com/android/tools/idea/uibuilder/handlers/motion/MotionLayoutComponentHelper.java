@@ -24,7 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.res.ResourceIdManagerImpl;
+import com.android.tools.idea.res.StudioResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.rendering.RenderService;
@@ -733,7 +733,7 @@ public class MotionLayoutComponentHelper {
    * Make sure we have usable Ids, even if only temporary
    */
   private void updateIds(@NotNull NlComponent component) {
-    ResourceIdManager manager = ResourceIdManagerImpl.get(component.getModel().getModule());
+    ResourceIdManager manager = StudioResourceIdManager.get(component.getModel().getModule());
     updateId(manager, component);
     if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_MOTION_LAYOUT)) {
       for (NlComponent child : component.getChildren()) {
@@ -766,7 +766,7 @@ public class MotionLayoutComponentHelper {
   public void updateLiveAttributes(ComponentModification modification, String state) {
     final Configuration configuration = modification.getComponent().getModel().getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
-    ResourceIdManager manager = ResourceIdManagerImpl.get(modification.getComponent().getModel().getModule());
+    ResourceIdManager manager = StudioResourceIdManager.get(modification.getComponent().getModel().getModule());
     ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
 
     if (info == null || info.getViewObject() == null) {

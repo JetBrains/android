@@ -25,7 +25,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
-import com.android.tools.idea.res.ResourceIdManagerImpl
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -130,7 +130,7 @@ class NonTransitiveResourcesLoaderTest() {
     val facet = app.androidFacet ?: fail(":app does not have an android facet")
     val viewLoader = ViewLoader(layoutlib, AndroidFacetRenderModelModule(facet), IRenderLogger.NULL_LOGGER, null, delegateClassLoader)
     viewLoader.loadAndParseRClassSilently()
-    val idManager = ResourceIdManagerImpl.get(app)
+    val idManager = StudioResourceIdManager.get(app)
     assertThat(idManager).isNotNull()
 
     assertThat(idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "app_name")))

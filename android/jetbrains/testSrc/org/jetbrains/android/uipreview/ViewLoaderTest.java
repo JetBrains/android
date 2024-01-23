@@ -25,7 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
-import com.android.tools.idea.res.ResourceIdManagerImpl;
+import com.android.tools.idea.res.StudioResourceIdManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
@@ -112,7 +112,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = new RenderLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
-    ResourceIdManager idManager = ResourceIdManagerImpl.get(myModule);
+    ResourceIdManager idManager = StudioResourceIdManager.get(myModule);
     assertNotNull(idManager);
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.

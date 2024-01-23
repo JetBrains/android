@@ -81,7 +81,7 @@ private constructor(
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     val module = facet.module
-    ResourceIdManagerImpl.get(module).resetDynamicIds()
+    StudioResourceIdManager.get(module).resetDynamicIds()
     ResourceClassRegistry.get(module.project).clearCache()
     ModuleClassLoaderManager.get().clearCache(module)
   }
