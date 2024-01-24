@@ -51,6 +51,7 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
@@ -428,6 +429,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
         previewModeManager.mode.collect {
           lastMode?.let { last -> onExit(last) }
+          // The layout update needs to happen before onEnter, so that any zooming performed
+          // in onEnter uses the correct preview layout when measuring scale.
+          updateLayoutManager(it)
           onEnter(it)
           lastMode = it
         }
@@ -504,5 +508,15 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     singleElementFlow.value = null
     interactiveManager.stop()
     createRefreshJob(invalidate = true)?.join()
+  }
+
+  private suspend fun updateLayoutManager(mode: PreviewMode) {
+    withContext(uiThread) {
+      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+      layoutManager.setLayoutManager(
+        mode.layoutOption.layoutManager,
+        mode.layoutOption.sceneViewAlignment,
+      )
+    }
   }
 }
