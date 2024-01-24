@@ -69,17 +69,21 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
 
   private fun recordHistogramValues(projectName: String) {
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "histogram" }.asIterable()) {
-        val lines = metricFilePath.readLines()
-        // Files less than three lines are likely not heap snapshots
-        if (lines.size < 3) continue
-        val bytes = lines
-          .last()
-          .trim()
-          .split("\\s+".toRegex())[2]
-          .toLong()
-        recordMemoryMeasurement("${projectName}_${metricFilePath.toMetricName()}", TimestampedMeasurement(
-          metricFilePath.toTimestamp(),
-          bytes
+      val lines = metricFilePath.readLines()
+      // Files less than three lines are likely not heap snapshots
+      if (lines.size < 3) continue
+      val totalBytes = lines
+        .last()
+        .trim()
+        .split("\\s+".toRegex())[2]
+        .toLong()
+      val totalMegabytes = totalBytes shr 20
+      val metricName = metricFilePath.toMetricName()
+      val timestamp = metricFilePath.toTimestamp()
+      println("Recording ${projectName}_$metricName -> $totalBytes bytes ($totalMegabytes MBs)")
+      recordMemoryMeasurement("${projectName}_$metricName", TimestampedMeasurement(
+        timestamp,
+        totalBytes
         ))
         Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
@@ -88,7 +92,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
     }
   }
 
-  internal fun recordMemoryMeasurement(
+  private fun recordMemoryMeasurement(
     metricName: String,
     measurement: TimestampedMeasurement,
     enableAnalyzer: Boolean = true) {
