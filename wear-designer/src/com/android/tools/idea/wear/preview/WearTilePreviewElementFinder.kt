@@ -26,11 +26,13 @@ import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewDisplaySettings
+import com.intellij.codeInspection.findAnnotations
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
+import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
 
@@ -70,48 +72,52 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
   }
 
   private fun getTilePreviewNodes(methods: List<UMethod>) =
-    methods.mapNotNull {
+    methods.flatMap {
       ProgressManager.checkCanceled()
-      getTilePreviewNode(it)
+      getTilePreviewNodes(it)
     }
 
-  private fun getTilePreviewNode(uMethod: UMethod) = runReadAction {
-    if (!uMethod.isTilePreview()) return@runReadAction null
+  private fun getTilePreviewNodes(uMethod: UMethod): List<WearTilePreviewElement> = runReadAction {
+    if (!uMethod.isTilePreview()) return@runReadAction emptyList()
 
-    val rootAnnotation =
-      uMethod.findAnnotation(TILE_PREVIEW_ANNOTATION_FQ_NAME) ?: return@runReadAction null
-
-    val defaultValues = rootAnnotation.findPreviewDefaultValues()
-
-    val device = rootAnnotation.findAttributeValue("device")?.evaluateString()?.nullize() ?: defaultValues["device"]
-    val locale = (rootAnnotation.findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
-    val fontScale = rootAnnotation.findAttributeValue("fontScale")?.evaluate() as? Float ?: defaultValues["fontScale"]?.toFloatOrNull()
-    val name = rootAnnotation.findAttributeValue("name")?.evaluateString()?.nullize()
-    val group = rootAnnotation.findAttributeValue("group")?.evaluateString()?.nullize()
-
-    val previewName = name?.let { "${uMethod.name} - $name" } ?: uMethod.name
-
-    val displaySettings =
-      PreviewDisplaySettings(
-        name = previewName,
-        group = group,
-        showDecoration = false,
-        showBackground = true,
-        backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND
-      )
-
-    WearTilePreviewElement(
-      displaySettings = displaySettings,
-      previewElementDefinitionPsi = rootAnnotation.toSmartPsiPointer(),
-      previewBodyPsi = uMethod.uastBody.toSmartPsiPointer(),
-      methodFqn = uMethod.qualifiedName,
-      configuration = WearTilePreviewConfiguration.forValues(
-        device = device,
-        locale = locale?.let { Locale.create(it) },
-        fontScale = fontScale
-      )
-    )
+    uMethod.findAnnotations(TILE_PREVIEW_ANNOTATION_FQ_NAME).mapNotNull {
+      it.getTilePreviewNode(uMethod)
+    }
   }
+}
+
+private fun UAnnotation.getTilePreviewNode(uMethod: UMethod): WearTilePreviewElement? {
+  if (qualifiedName != TILE_PREVIEW_ANNOTATION_FQ_NAME) return null
+  val defaultValues = findPreviewDefaultValues()
+
+  val device = findAttributeValue("device")?.evaluateString()?.nullize() ?: defaultValues["device"]
+  val locale = (findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
+  val fontScale = findAttributeValue("fontScale")?.evaluate() as? Float ?: defaultValues["fontScale"]?.toFloatOrNull()
+  val name = findAttributeValue("name")?.evaluateString()?.nullize()
+  val group = findAttributeValue("group")?.evaluateString()?.nullize()
+
+  val previewName = name?.let { "${uMethod.name} - $name" } ?: uMethod.name
+
+  val displaySettings =
+    PreviewDisplaySettings(
+      name = previewName,
+      group = group,
+      showDecoration = false,
+      showBackground = true,
+      backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND
+    )
+
+  return WearTilePreviewElement(
+    displaySettings = displaySettings,
+    previewElementDefinitionPsi = this.toSmartPsiPointer(),
+    previewBodyPsi = uMethod.uastBody.toSmartPsiPointer(),
+    methodFqn = uMethod.qualifiedName,
+    configuration = WearTilePreviewConfiguration.forValues(
+      device = device,
+      locale = locale?.let { Locale.create(it) },
+      fontScale = fontScale
+    )
+  )
 }
 
 private fun UMethod?.isTilePreview(): Boolean {
