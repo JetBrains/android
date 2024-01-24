@@ -29,6 +29,9 @@ import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -60,8 +63,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.SlowOperations
-import com.intellij.util.ThrowableRunnable
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
@@ -69,6 +70,8 @@ import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
@@ -256,6 +259,8 @@ internal class ComposePreviewViewImpl(
 
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
+  private val scope = AndroidCoroutineScope(parentDisposable)
+
   override val mainSurface =
     mainDesignSurfaceBuilder
       .setDelegateDataProvider { key ->
@@ -329,12 +334,16 @@ internal class ComposePreviewViewImpl(
       val actionDataText =
         "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
-        SlowOperations.allowSlowOperations(ThrowableRunnable {
-          psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
-          // Repaint the workbench, otherwise the text and link will keep displaying if  the mouse
-          // is hovering the link
-          workbench.repaint()
-        })}
+        val virtualFile = psiFilePointer.element?.virtualFile
+        scope.launch(workerThread) {
+          if (virtualFile != null) project.requestBuild(virtualFile)
+          withContext(uiThread) {
+            // Repaint the workbench, otherwise the text and link will keep displaying if the mouse
+            // is hovering the link
+            workbench.repaint()
+          }
+        }
+      }
     }
 
   private val actionsToolbar: ActionsToolbar
