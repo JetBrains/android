@@ -25,8 +25,6 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
 import com.android.Version;
-import com.android.ide.common.repository.AgpVersion;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -128,14 +126,8 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     String specifiedVersion = "7.2.0-alpha03";
     StudioFlags.AGP_VERSION_TO_USE.override(specifiedVersion);
 
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      assertEquals(specifiedVersion, AgpVersions.getNewProject().toString());
-      assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
-    } else {
-      // In IDEA we always use the latest stable AGP
-      assertEquals(AgpVersion.parseStable(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION).toString(), AgpVersions.getNewProject().toString());
-      assertEquals("8.2", GradleWrapper.getGradleVersionToUse().getVersion());
-    }
+    assertEquals(specifiedVersion, AgpVersions.getNewProject().toString());
+    assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
 
     // Check that "stable" alias has the same effect as explicitly setting LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION.
     StudioFlags.AGP_VERSION_TO_USE.override("stable");
