@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="asm-tools">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/9.3/asm-analysis-9.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-commons/9.3/asm-commons-9.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/9.3/asm-tree-9.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm/9.3/asm-9.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-util/9.3/asm-util-9.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-analysis/9.6/asm-analysis-9.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-commons/9.6/asm-commons-9.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm/9.6/asm-9.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/ow2/asm/asm-util/9.6/asm-util-9.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -52,10 +52,11 @@ class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
     return mv
   }
 
-  class NoOpMethodVisitor(val delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, null) {
+  // naming it myDelegate to avoid colliding overrides in ASM 9.6 getDelegate in JVM
+  class NoOpMethodVisitor(val myDelegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, null) {
     override fun visitCode() {
-      delegate.visitInsn(Opcodes.RETURN)
-      delegate.visitEnd()
+      myDelegate.visitInsn(Opcodes.RETURN)
+      myDelegate.visitEnd()
     }
   }
 }

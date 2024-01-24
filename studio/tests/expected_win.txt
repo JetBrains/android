@@ -1296,11 +1296,11 @@ android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/animation-core-desktop-1.5.11.jar
 android-studio/plugins/android/lib/animation-desktop-1.5.11.jar
 android-studio/plugins/android/lib/artwork.jar
-android-studio/plugins/android/lib/asm-9.3.jar
-android-studio/plugins/android/lib/asm-analysis-9.3.jar
-android-studio/plugins/android/lib/asm-commons-9.3.jar
-android-studio/plugins/android/lib/asm-tree-9.3.jar
-android-studio/plugins/android/lib/asm-util-9.3.jar
+android-studio/plugins/android/lib/asm-9.6.jar
+android-studio/plugins/android/lib/asm-analysis-9.6.jar
+android-studio/plugins/android/lib/asm-commons-9.6.jar
+android-studio/plugins/android/lib/asm-tree-9.6.jar
+android-studio/plugins/android/lib/asm-util-9.6.jar
 android-studio/plugins/android/lib/auto-common-0.10.jar
 android-studio/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 android-studio/plugins/android/lib/build-analysis-results-proto.jar
