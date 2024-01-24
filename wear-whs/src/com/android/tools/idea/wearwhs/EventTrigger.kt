@@ -17,6 +17,11 @@ package com.android.tools.idea.wearwhs
 
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 
+private val METADATA_SHOT_SWING_TYPE_KEY = "golf_shot_swing_type"
+private val METADATA_SHOT_SWING_TYPE_VALUE_PUTT = "putt"
+private val METADATA_SHOT_SWING_TYPE_VALUE_PARTIAL = "partial"
+private val METADATA_SHOT_SWING_TYPE_VALUE_FULL = "full"
+
 /**
  * Data class representing WHS event triggers such as User Asleep or exercise paused. [eventKey] is the
  * key for this data type in WHS, [eventLabel] is the user displayed label of the trigger.
@@ -24,6 +29,7 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 data class EventTrigger(
   val eventKey: String,
   val eventLabel: String,
+  val eventMetadata: Map<String, String> = emptyMap()
 )
 
 /**
@@ -61,6 +67,36 @@ val EVENT_TRIGGER_GROUPS = listOf(
       EventTrigger(
         eventKey = "whs.STOP_SLEEPING",
         eventLabel = message("wear.whs.event.trigger.awake")
+      ),
+    )
+  ),
+  EventTriggerGroup(
+    eventGroupLabel = message("wear.whs.event.trigger.golf.shots.group"),
+    eventTriggers = listOf(
+      EventTrigger(
+        eventKey = "whs.GOLF_SHOT",
+        eventLabel = message("wear.whs.event.trigger.golf.shot.unclassified"),
+      ),
+      EventTrigger(
+        eventKey = "whs.GOLF_SHOT",
+        eventLabel = message("wear.whs.event.trigger.golf.shot.putt"),
+        eventMetadata = mapOf(
+          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PUTT
+        )
+      ),
+      EventTrigger(
+        eventKey = "whs.GOLF_SHOT",
+        eventLabel = message("wear.whs.event.trigger.golf.shot.partial"),
+        eventMetadata = mapOf(
+          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PARTIAL
+        )
+      ),
+      EventTrigger(
+        eventKey = "whs.GOLF_SHOT",
+        eventLabel = message("wear.whs.event.trigger.golf.shot.full"),
+        eventMetadata = mapOf(
+          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_FULL
+        )
       ),
     )
   )

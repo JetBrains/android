@@ -127,6 +127,7 @@ class WearHealthServicesToolWindowTest {
     assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
     assertThat(dropDownButton.action.childrenActions[0].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
     assertThat(dropDownButton.action.childrenActions[1].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
+    assertThat(dropDownButton.action.childrenActions[2].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[2].eventTriggers.size)
   }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {

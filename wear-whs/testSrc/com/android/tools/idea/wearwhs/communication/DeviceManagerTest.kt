@@ -19,7 +19,6 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
-import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -140,11 +139,13 @@ class DeviceManagerTest {
   }
 
   private fun assertEnablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to true)) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to true)) },
+                                               expectedAdbCommand)
   }
 
   private fun assertDisablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to false)) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(dataType to false)) },
+                                               expectedAdbCommand)
   }
 
   @Test
@@ -230,7 +231,8 @@ class DeviceManagerTest {
   }
 
   private fun assertOverrideSendsAdbCommand(dataType: WhsDataType, overrideValue: Number?, expectedAdbCommand: String) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(dataType to overrideValue)) }, expectedAdbCommand)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(dataType to overrideValue)) },
+                                               expectedAdbCommand)
   }
 
   @Test
@@ -314,6 +316,19 @@ class DeviceManagerTest {
   }
 
   @Test
+  fun `trigger full swing golf shot event`() = runBlocking {
+    assertDeviceManagerFunctionSendsAdbCommand(
+      { deviceManager ->
+        deviceManager.triggerEvent(
+          EventTrigger(
+            "whs.GOLF_SHOT",
+            "label",
+            mapOf("golf_shot_swing_type" to "full")))
+      },
+      "am broadcast -a \"whs.GOLF_SHOT\" --es golf_shot_swing_type \"full\" com.google.android.wearable.healthservices")
+  }
+
+  @Test
   fun `clear content provider without setting serial number does not result in crash`() = runTest {
     val deviceManager = ContentProviderDeviceManager(adbSession)
 
@@ -394,12 +409,14 @@ class DeviceManagerTest {
 
   @Test
   fun `setting location override value is ignored`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
-      WhsDataType.STEPS to 55,
-      WhsDataType.ELEVATION_LOSS to 5.0,
-      WhsDataType.PACE to null,
-      WhsDataType.LOCATION to null,
-    )) }, adbCommandFloatIntNullOverrides)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager ->
+                                                 deviceManager.overrideValues(mapOf(
+                                                   WhsDataType.STEPS to 55,
+                                                   WhsDataType.ELEVATION_LOSS to 5.0,
+                                                   WhsDataType.PACE to null,
+                                                   WhsDataType.LOCATION to null,
+                                                 ))
+                                               }, adbCommandFloatIntNullOverrides)
   }
 
   @Test
@@ -503,7 +520,8 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String,
+                                                                 expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandQueryContentProvider, response)
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
@@ -568,13 +586,13 @@ class DeviceManagerTest {
   @Test
   fun `unknown data type capabilities are ignored`() {
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
-                                                       """
+      """
                                                        Row: 0 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
                                                        Row: 1 data_type=STEPS, is_enabled=true, override_value=0
                                                        Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
                                                        """.trimIndent(),
-                                                       mapOf(
-                                                        WhsDataType.STEPS to CapabilityStatus(true, null),
-                                                      ))
+      mapOf(
+        WhsDataType.STEPS to CapabilityStatus(true, null),
+      ))
   }
 }

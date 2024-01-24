@@ -166,8 +166,14 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession,
     adbSession.deviceServices.shellAsText(device, triggerEventCommand(eventTrigger))
   }
 
-  private fun triggerEventCommand(eventTrigger: EventTrigger) =
-    "am broadcast -a \"${eventTrigger.eventKey}\" $whsPackage"
+  private fun triggerEventCommand(eventTrigger: EventTrigger): String {
+    val commandStringBuilder = StringBuilder("am broadcast -a \"${eventTrigger.eventKey}\"")
+    for ((key, value) in eventTrigger.eventMetadata) {
+      commandStringBuilder.append(" --es $key \"$value\"")
+    }
+    commandStringBuilder.append(" $whsPackage")
+    return commandStringBuilder.toString()
+  }
 
   override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) {
     if (serialNumber == null) {
