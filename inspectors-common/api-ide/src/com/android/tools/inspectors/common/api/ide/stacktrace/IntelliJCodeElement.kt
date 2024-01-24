@@ -13,115 +13,91 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api.ide.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.codenavigation.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
-import com.google.common.base.Strings;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement.NO_PACKAGE
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement.UNKONWN_CLASS
+import com.google.common.base.Strings
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 
-public final class IntelliJCodeElement implements CodeElement {
-  private static final VirtualFile UNRESOLVED_CLASS_FILE = new StubVirtualFile();
+private val UNRESOLVED_CLASS_FILE: VirtualFile = StubVirtualFile()
 
-  @NotNull private final Project myProject;
-  @NotNull private final CodeLocation myCodeLocation;
-  @NotNull private String myPackageName;
-  @NotNull private String mySimpleClassName;
+class IntelliJCodeElement(private val project: Project, private val codeLocation: CodeLocation) : CodeElement {
+  private val packageName: String
+  private val simpleClassName: String
 
-  @Nullable private VirtualFile myCachedClassFile = UNRESOLVED_CLASS_FILE;
+  private var cachedClassFile: VirtualFile? = UNRESOLVED_CLASS_FILE
 
-  public IntelliJCodeElement(@NotNull Project project, @NotNull CodeLocation codeLocation) {
-    myProject = project;
-    myCodeLocation = codeLocation;
-
-    String className = myCodeLocation.getClassName();
+  init {
+    val className = codeLocation.className
     if (className == null) {
-      myPackageName = UNKNOWN_PACKAGE;
-      mySimpleClassName = UNKONWN_CLASS;
+      packageName = CodeElement.UNKNOWN_PACKAGE
+      simpleClassName = UNKONWN_CLASS
+    } else {
+      val dot = className.lastIndexOf('.')
+      packageName = if (dot <= 0) NO_PACKAGE else className.substring(0, dot)
+      simpleClassName = if (dot + 1 < className.length) className.substring(dot + 1) else UNKONWN_CLASS
     }
-    else {
-      int dot = className.lastIndexOf('.');
-      myPackageName = dot <= 0 ? NO_PACKAGE : className.substring(0, dot);
-      mySimpleClassName = dot + 1 < className.length() ? className.substring(dot + 1) : UNKONWN_CLASS;
-    }
   }
 
-  @Override
-  @NotNull
-  public CodeLocation getCodeLocation() {
-    return myCodeLocation;
+  override fun getCodeLocation() = codeLocation
+
+  override fun getPackageName() = packageName
+
+  override fun getSimpleClassName() = simpleClassName
+
+  override fun getMethodName(): String {
+    return codeLocation.methodName ?: CodeElement.UNKNOWN_METHOD
   }
 
-  @Override
-  @NotNull
-  public String getPackageName() {
-    return myPackageName;
-  }
-
-  @Override
-  @NotNull
-  public String getSimpleClassName() {
-    return mySimpleClassName;
-  }
-
-  @Override
-  @NotNull
-  public String getMethodName() {
-    return myCodeLocation.getMethodName() == null ? UNKNOWN_METHOD : myCodeLocation.getMethodName();
-  }
-
-  @Override
-  public boolean isInUserCode() {
+  override fun isInUserCode(): Boolean {
     if (IdeInfo.isGameTool()) {
       // For standalone game tools, source code navigation is not supported at this moment.
-      return false;
+      return false
     }
 
-    VirtualFile sourceFile = myCodeLocation.isNativeCode() ? findSourceFile() : findClassFile();
-    return sourceFile != null && ProjectFileIndex.getInstance(myProject).isInSource(sourceFile);
+    val sourceFile = if (codeLocation.isNativeCode) findSourceFile() else findClassFile()
+    return sourceFile != null && ProjectFileIndex.getInstance(project).isInSource(sourceFile)
   }
 
-  @Nullable
-  private VirtualFile findSourceFile() {
-    String sourceFileName = myCodeLocation.getFileName();
+  private fun findSourceFile(): VirtualFile? {
+    val sourceFileName = codeLocation.fileName
     if (Strings.isNullOrEmpty(sourceFileName)) {
-      return null;
+      return null
     }
-    return LocalFileSystem.getInstance().findFileByPath(sourceFileName);
+    return LocalFileSystem.getInstance().findFileByPath(sourceFileName!!)
   }
 
-  @Nullable
-  private VirtualFile findClassFile() {
-    //noinspection UseVirtualFileEquals
-    if (myCachedClassFile != UNRESOLVED_CLASS_FILE) {
-      return myCachedClassFile;
+  private fun findClassFile(): VirtualFile? {
+    @Suppress("UseVirtualFileEquals")
+    if (cachedClassFile !== UNRESOLVED_CLASS_FILE) {
+      return cachedClassFile
     }
 
-    String className = myCodeLocation.getClassName();
+    var className = codeLocation.className
     if (className == null) {
-      myCachedClassFile = null;
-      return null;
+      cachedClassFile = null
+      return null
     }
 
     // JavaPsiFacade can't deal with inner classes, so we'll need to strip the class name down to just the outer class name.
-    className = myCodeLocation.getOuterClass();
+    className = codeLocation.outerClass
 
-    PsiClass psiClass = JavaPsiFacade.getInstance(myProject).findClass(className, GlobalSearchScope.allScope(myProject));
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
     if (psiClass == null) {
-      myCachedClassFile = null;
-      return null;
+      cachedClassFile = null
+      return null
     }
-    myCachedClassFile = psiClass.getContainingFile().getVirtualFile();
-    return myCachedClassFile;
+    cachedClassFile = psiClass.containingFile.virtualFile
+    return cachedClassFile
   }
 }

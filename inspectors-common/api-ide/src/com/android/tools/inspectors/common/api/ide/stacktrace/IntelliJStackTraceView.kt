@@ -13,353 +13,329 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api.ide.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace
 
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.stdui.ContextMenuItem;
-import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.idea.codenavigation.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
-import com.android.tools.inspectors.common.api.stacktrace.StackElement;
-import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
-import com.android.tools.inspectors.common.api.stacktrace.ThreadElement;
-import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
-import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
-import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.CopyProvider;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.IconManager;
-import com.intellij.ui.PlatformIcons;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBUI;
-import java.awt.Insets;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ListSelectionListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.adtui.stdui.ContextMenuItem
+import com.android.tools.adtui.stdui.StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement
+import com.android.tools.inspectors.common.api.stacktrace.StackElement
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel.Aspect.SELECTED_LOCATION
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel.Aspect.STACK_FRAMES
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel.Type.INVALID
+import com.android.tools.inspectors.common.api.stacktrace.ThreadElement
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId.INVALID_THREAD_ID
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
+import com.intellij.ide.CopyProvider
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
+import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.project.Project
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
+import com.intellij.ui.components.JBList
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.JBUI
+import java.awt.Insets
+import java.awt.datatransfer.StringSelection
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.nio.file.Paths
+import javax.swing.DefaultListModel
+import javax.swing.JList
+import javax.swing.ListSelectionModel.SINGLE_SELECTION
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+import javax.swing.SwingUtilities
+import javax.swing.event.ListSelectionListener
 
-public class IntelliJStackTraceView extends AspectObserver implements StackTraceView, DataProvider, CopyProvider {
-  private static final Insets LIST_ROW_INSETS = JBUI.insets(2, 10, 0, 0);
+private val LIST_ROW_INSETS: Insets = JBUI.insets(2, 10, 0, 0)
 
-  @NotNull
-  private final Project myProject;
+class IntelliJStackTraceView
+@VisibleForTesting
+internal constructor(
+  private val project: Project,
+  private val model: StackTraceModel,
+  private val generator: (Project, CodeLocation) -> CodeElement,
+) : AspectObserver(), StackTraceView, DataProvider, CopyProvider {
 
-  @NotNull
-  private final StackTraceModel myModel;
+  private val copyPasteManager = CopyPasteManager.getInstance()
+  private val scrollPane: JBScrollPane
+  private val listModel = DefaultListModel<StackElement>()
+  @get:VisibleForTesting val listView = JBList(listModel)
+  private val renderer: StackElementRenderer
 
-  @NotNull
-  private final BiFunction<Project, CodeLocation, CodeElement> myGenerator;
+  constructor(
+    project: Project,
+    model: StackTraceModel
+  ) : this(project, model, { p: Project, l: CodeLocation -> IntelliJCodeElement(p, l) })
 
-  @NotNull
-  private final JBScrollPane myScrollPane;
+  init {
+    listView.selectionMode = SINGLE_SELECTION
+    listView.background = DEFAULT_CONTENT_BACKGROUND_COLOR
+    renderer = StackElementRenderer()
+    listView.setCellRenderer(renderer)
+    scrollPane = JBScrollPane(listView)
+    scrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
+    scrollPane.verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
 
-  @NotNull
-  private final DefaultListModel<StackElement> myListModel;
+    DataManager.registerDataProvider(listView, this)
 
-  @NotNull
-  private final JBList myListView;
-
-  @NotNull
-  private final StackElementRenderer myRenderer;
-
-  public IntelliJStackTraceView(@NotNull Project project,
-                                @NotNull StackTraceModel model) {
-    this(project, model, IntelliJCodeElement::new);
-  }
-
-  @VisibleForTesting
-  IntelliJStackTraceView(@NotNull Project project,
-                         @NotNull StackTraceModel model,
-                         @NotNull BiFunction<Project, CodeLocation, CodeElement> stackNavigationGenerator) {
-    myProject = project;
-    myModel = model;
-    myGenerator = stackNavigationGenerator;
-    myListModel = new DefaultListModel<>();
-    myListView = new JBList(myListModel);
-    myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myListView.setBackground(StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR);
-    myRenderer = new StackElementRenderer();
-    myListView.setCellRenderer(myRenderer);
-    myScrollPane = new JBScrollPane(myListView);
-    myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-
-    DataManager.registerDataProvider(myListView, this);
-
-    myListView.addListSelectionListener(e -> {
-      if (myListView.getSelectedValue() == null) {
-        myModel.clearSelection();
+    listView.addListSelectionListener {
+      if (listView.selectedValue == null) {
+        model.clearSelection()
       }
-    });
+    }
 
-    Supplier<Boolean> navigationHandler = () -> {
-      int index = myListView.getSelectedIndex();
-      if (index >= 0 && index < myListView.getItemsCount()) {
-        myModel.setSelectedIndex(index);
-        return true;
+    val navigationHandler: () -> Boolean = {
+      val index = listView.selectedIndex
+      if (index >= 0 && index < listView.itemsCount) {
+        model.selectedIndex = index
+        true
+      } else {
+        false
       }
-      else {
-        return false;
-      }
-    };
+    }
 
-    myListView.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead we get the code from the char
-        // we are given.
-        int keyCode = KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar());
-        if (keyCode == KeyEvent.VK_ENTER) {
-          if (navigationHandler.get()) {
-            e.consume();
+    listView.addKeyListener(
+      object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead, we
+          // get the code from the char
+          // we are given.
+          val keyCode = KeyEvent.getExtendedKeyCodeForChar(e.keyChar.code)
+          if (keyCode == KeyEvent.VK_ENTER) {
+            if (navigationHandler()) {
+              e.consume()
+            }
           }
         }
       }
-    });
+    )
 
-    new DoubleClickListener() {
-      @Override
-      protected boolean onDoubleClick(MouseEvent event) {
-        return navigationHandler.get();
+    object : DoubleClickListener() {
+        override fun onDoubleClick(event: MouseEvent): Boolean {
+          return navigationHandler()
+        }
       }
-    }.installOn(myListView);
+      .installOn(listView)
 
-    myListView.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isRightMouseButton(e)) {
-          int row = myListView.locationToIndex(e.getPoint());
-          if (row != -1) {
-            myListView.setSelectedIndex(row);
+    listView.addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+          if (SwingUtilities.isRightMouseButton(e)) {
+            val row = listView.locationToIndex(e.point)
+            if (row != -1) {
+              listView.selectedIndex = row
+            }
           }
         }
       }
-    });
+    )
 
-    myModel.addDependency(this).
-      onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> {
-        List<CodeLocation> stackFrames = myModel.getCodeLocations();
-        myListModel.removeAllElements();
-        myListView.clearSelection();
-        stackFrames.forEach(stackFrame -> myListModel.addElement(myGenerator.apply(myProject, stackFrame)));
+    model
+      .addDependency(this)
+      .onChange(STACK_FRAMES) {
+        val stackFrames = model.codeLocations
+        listModel.removeAllElements()
+        listView.clearSelection()
+        stackFrames.forEach { listModel.addElement(generator(project, it)) }
 
-        ThreadId threadId = myModel.getThreadId();
-        if (!threadId.equals(ThreadId.INVALID_THREAD_ID)) {
-          myListModel.addElement(new ThreadElement(threadId));
+        val threadId = model.threadId
+        if (threadId != INVALID_THREAD_ID) {
+          listModel.addElement(ThreadElement(threadId))
         }
-      })
-      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
-        int index = myModel.getSelectedIndex();
-        if (myModel.getSelectedType() == StackTraceModel.Type.INVALID) {
-          if (myListView.getSelectedIndex() != -1) {
-            myListView.clearSelection();
-          }
-        }
-        else if (index >= 0 && index < myListView.getItemsCount()) {
-          if (myListView.getSelectedIndex() != index) {
-            myListView.setSelectedIndex(index);
-          }
-        }
-        else {
-          throw new IndexOutOfBoundsException(
-            "View has " + myListView.getItemsCount() + " elements while aspect is changing to index " + index);
-        }
-      });
-  }
-
-  public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
-    contextMenuInstaller.installNavigationContextMenu(myListView, myModel.getCodeNavigator(), () -> {
-      int index = myListView.getSelectedIndex();
-      if (index >= 0 && index < myListView.getItemsCount()) {
-        return myModel.getCodeLocations().get(index);
       }
-      return null;
-    });
+      .onChange(SELECTED_LOCATION) {
+        val index = model.selectedIndex
+        if (model.selectedType == INVALID) {
+          if (listView.selectedIndex != -1) {
+            listView.clearSelection()
+          }
+        } else if (index >= 0 && index < listView.itemsCount) {
+          if (listView.selectedIndex != index) {
+            listView.selectedIndex = index
+          }
+        } else {
+          throw IndexOutOfBoundsException(
+            "View has " +
+              listView.itemsCount +
+              " elements while aspect is changing to index " +
+              index
+          )
+        }
+      }
   }
 
-  public void installGenericContextMenu(@NotNull ContextMenuInstaller installer, @NotNull ContextMenuItem contextMenuItem) {
-    installer.installGenericContextMenu(myListView, contextMenuItem);
-  }
-
-  @NotNull
-  @Override
-  public StackTraceModel getModel() {
-    return myModel;
-  }
-
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    return myScrollPane;
-  }
-
-  public void addListSelectionListener(@NotNull ListSelectionListener listener) {
-    myListView.addListSelectionListener(listener);
-  }
-
-  public void clearSelection() {
-    myListView.clearSelection();
-  }
-
-  @NotNull
-  @Override
-  public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
-  @Override
-  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  @Override
-  public boolean isCopyVisible(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  /**
-   * Copies the selected list item to the clipboard. The copied text rendering is the same as the list rendering.
-   */
-  @Override
-  public void performCopy(@NotNull DataContext dataContext) {
-    int selectedIndex = myListView.getSelectedIndex();
-    if (selectedIndex >= 0 && selectedIndex < myListView.getItemsCount()) {
-      myRenderer.getListCellRendererComponent(myListView, myListModel.getElementAt(selectedIndex), selectedIndex, true, false);
-      String data = String.valueOf(myRenderer.getCharSequence(false));
-      CopyPasteManager.getInstance().setContents(new StringSelection(data));
+  fun installNavigationContextMenu(contextMenuInstaller: ContextMenuInstaller) {
+    contextMenuInstaller.installNavigationContextMenu(listView, model.codeNavigator) lambda@{
+      val index = listView.selectedIndex
+      if (index >= 0 && index < listView.itemsCount) {
+        return@lambda model.codeLocations[index]
+      }
+      null
     }
   }
 
-  @Nullable
-  @Override
-  public Object getData(String dataId) {
-    if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
-      return this;
-    }
-    return null;
+  fun installGenericContextMenu(installer: ContextMenuInstaller, contextMenuItem: ContextMenuItem) {
+    installer.installGenericContextMenu(listView, contextMenuItem)
   }
 
-  public int getSelectedIndex() {
-    return myListView.getSelectedIndex();
+  override fun getModel() = model
+
+  override fun getComponent() = scrollPane
+
+  fun addListSelectionListener(listener: ListSelectionListener) {
+    listView.addListSelectionListener(listener)
   }
 
-  @VisibleForTesting
-  @NotNull
-  public JBList getListView() {
-    return myListView;
+  fun clearSelection() {
+    listView.clearSelection()
   }
+
+  override fun getActionUpdateThread() = BGT
+
+  override fun isCopyEnabled(dataContext: DataContext) = true
+
+  override fun isCopyVisible(dataContext: DataContext) = true
 
   /**
-   * Renderer for a JList of {@link StackElement} instances.
+   * Copies the selected list item to the clipboard. The copied text rendering is the same as the
+   * list rendering.
    */
-  private static final class StackElementRenderer extends ColoredListCellRenderer<StackElement> {
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list,
-                                         StackElement value,
-                                         int index,
-                                         boolean selected,
-                                         boolean hasFocus) {
+  override fun performCopy(dataContext: DataContext) {
+    val selectedIndex = listView.selectedIndex
+    if (selectedIndex >= 0 && selectedIndex < listView.itemsCount) {
+      renderer.getListCellRendererComponent(
+        listView,
+        listModel.getElementAt(selectedIndex),
+        selectedIndex,
+        true,
+        false
+      )
+      val data = renderer.getCharSequence(false).toString()
+      copyPasteManager.setContents(StringSelection(data))
+    }
+  }
+
+  override fun getData(dataId: String): Any? {
+    return when (dataId) {
+      COPY_PROVIDER.name -> this
+      else -> null
+    }
+  }
+
+  /** Renderer for a JList of [StackElement] instances. */
+  private class StackElementRenderer : ColoredListCellRenderer<StackElement>() {
+    private val iconManager = IconManager.getInstance()
+
+    override fun customizeCellRenderer(
+      list: JList<out StackElement>,
+      value: StackElement?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean
+    ) {
       if (value == null) {
-        return;
+        return
       }
 
-      setIpad(LIST_ROW_INSETS);
-      if (value instanceof CodeElement) {
-        CodeElement element = (CodeElement)value;
-        if (element.getCodeLocation().isNativeCode()) {
-          renderNativeStackFrame(element, selected);
-        }
-        else {
-          renderJavaStackFrame(element, selected);
-        }
-      }
-      else if (value instanceof ThreadElement) {
-        renderThreadElement((ThreadElement)value, selected);
-      }
-      else {
-        append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+      ipad = LIST_ROW_INSETS
+      when (value) {
+        is ThreadElement -> renderThreadElement(value, selected)
+        is CodeElement -> renderCodeElement(value, selected)
+        else -> append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES)
       }
     }
 
-    private void renderJavaStackFrame(@NotNull CodeElement codeElement, boolean selected) {
-      setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
-      SimpleTextAttributes textAttribute =
-        selected || codeElement.isInUserCode() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-      CodeLocation location = codeElement.getCodeLocation();
-      StringBuilder methodBuilder = new StringBuilder(codeElement.getMethodName());
-      if (location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
-        methodBuilder.append(":");
-        methodBuilder.append(location.getLineNumber() + 1);
+    private fun renderCodeElement(element: CodeElement, selected: Boolean) {
+      when (element.codeLocation.isNativeCode) {
+        true -> renderNativeStackFrame(element, selected)
+        false -> renderJavaStackFrame(element, selected)
       }
-      methodBuilder.append(", ");
-      methodBuilder.append(codeElement.getSimpleClassName());
-      String methodName = methodBuilder.toString();
-      append(methodName, textAttribute, methodName);
-      String packageName = " (" + codeElement.getPackageName() + ")";
-      append(packageName, selected ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES,
-             packageName);
     }
 
-    private void renderNativeStackFrame(@NotNull CodeElement codeElement, boolean selected) {
-      setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
-      CodeLocation location = codeElement.getCodeLocation();
-
-      StringBuilder methodBuilder = new StringBuilder();
-      if (!Strings.isNullOrEmpty(location.getClassName())) {
-        methodBuilder.append(location.getClassName());
-        methodBuilder.append("::");
+    private fun renderJavaStackFrame(codeElement: CodeElement, selected: Boolean) {
+      @Suppress("UnstableApiUsage")
+      icon = iconManager.getPlatformIcon(PlatformIcons.Method)
+      val textAttribute =
+        if (selected || codeElement.isInUserCode) REGULAR_ATTRIBUTES else GRAY_ATTRIBUTES
+      val location = codeElement.codeLocation
+      val methodBuilder = StringBuilder(codeElement.methodName)
+      if (location.lineNumber != INVALID_LINE_NUMBER) {
+        methodBuilder.append(":")
+        methodBuilder.append(location.lineNumber + 1)
       }
+      methodBuilder.append(", ")
+      methodBuilder.append(codeElement.simpleClassName)
+      val methodName = methodBuilder.toString()
+      append(methodName, textAttribute, methodName)
+      val packageName = " (" + codeElement.packageName + ")"
+      append(
+        packageName,
+        if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES,
+        packageName
+      )
+    }
 
-      methodBuilder.append(location.getMethodName());
-      methodBuilder.append("(" + String.join(",", location.getMethodParameters()) + ") ");
-      String methodName = methodBuilder.toString();
-      append(methodName, SimpleTextAttributes.REGULAR_ATTRIBUTES, methodName);
+    private fun renderNativeStackFrame(codeElement: CodeElement, selected: Boolean) {
+      @Suppress("UnstableApiUsage")
+      icon = iconManager.getPlatformIcon(PlatformIcons.Method)
+      val location = codeElement.codeLocation
 
-      if (!Strings.isNullOrEmpty(location.getFileName())) {
-        String sourceLocation = Paths.get(location.getFileName()).getFileName().toString();
-        if (location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
-          sourceLocation += ":" + String.valueOf(location.getLineNumber() + 1);
+      val methodName = buildString {
+        if (!location.className.isNullOrEmpty()) {
+          append(location.className)
+          append("::")
         }
+        append(location.methodName)
+        val params = location.methodParameters?.joinToString(",") { it } ?: ""
+        append("($params) ")
+      }
+      append(methodName, REGULAR_ATTRIBUTES, methodName)
 
-        append(sourceLocation, SimpleTextAttributes.REGULAR_ATTRIBUTES, sourceLocation);
+      val fileName = location.fileName ?: ""
+      if (fileName.isNotEmpty()) {
+        val sourceLocation = buildString {
+          append(Paths.get(fileName).fileName.toString())
+          if (location.lineNumber != INVALID_LINE_NUMBER) {
+            append(":${(location.lineNumber + 1)}")
+          }
+        }
+        append(sourceLocation, REGULAR_ATTRIBUTES, sourceLocation)
       }
 
-      String moduleName = " " + Paths.get(location.getNativeModuleName()).getFileName().toString();
-      append(moduleName, selected ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES,
-             moduleName);
+      val nativeModuleName = location.nativeModuleName ?: "unknown"
+      val moduleName = " " + Paths.get(nativeModuleName).fileName.toString()
+      append(
+        moduleName,
+        if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES,
+        moduleName
+      )
     }
 
-    private void renderThreadElement(@NotNull ThreadElement threadElement, boolean selected) {
-      setIcon(AllIcons.Debugger.ThreadSuspended);
-      String text = threadElement.getThreadId().toString();
-      append(text, selected ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES, text);
+    private fun renderThreadElement(threadElement: ThreadElement, selected: Boolean) {
+      icon = AllIcons.Debugger.ThreadSuspended
+      val text = threadElement.threadId.toString()
+      append(text, if (selected) REGULAR_ATTRIBUTES else GRAY_ATTRIBUTES, text)
     }
   }
 }
