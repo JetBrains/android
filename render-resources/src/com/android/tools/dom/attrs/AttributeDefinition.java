@@ -18,7 +18,7 @@ package com.android.tools.dom.attrs;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.environment.Logger;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

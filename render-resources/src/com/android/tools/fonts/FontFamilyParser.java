@@ -17,7 +17,7 @@ package com.android.tools.fonts;
 
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.environment.Logger;
 import java.io.InputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
