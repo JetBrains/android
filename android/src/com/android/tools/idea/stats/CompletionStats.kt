@@ -23,12 +23,12 @@ import com.android.tools.idea.stats.CompletionStats.reportCompletionStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorCompletionStats
 import com.google.wireless.android.sdk.stats.EditorFileType
-import com.intellij.application.subscribe
 import com.intellij.codeInsight.completion.CompletionPhaseListener
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -115,10 +115,10 @@ object CompletionStats {
   }
 
   /** Registers lookup listeners. */
-  class MyStartupActivity : StartupActivity, DumbAware {
-
+  internal class MyStartupActivity : StartupActivity, DumbAware {
     override fun runActivity(project: Project) {
-      CompletionPhaseListener.TOPIC.subscribe(project, MyCompletionPhaseListener())
+      ApplicationManager.getApplication().messageBus.connect(project)
+        .subscribe(CompletionPhaseListener.TOPIC, MyCompletionPhaseListener())
 
       // For each new lookup window we get the current file type and register our LookupListener.
       LookupManager.getInstance(project).addPropertyChangeListener { e ->
