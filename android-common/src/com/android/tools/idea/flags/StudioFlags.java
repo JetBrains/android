@@ -417,13 +417,6 @@ public final class StudioFlags {
     "Enables and shows the ADB connection status widget in the status bar",
     false);
 
-  public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
-    RUNDEBUG,
-    "adb.server.management.mode.settings.visible",
-    "Show ADB server management mode settings",
-    "To allow toggling between automatic or user managed ADB server mode.",
-    false);
-
   public static final Flag<Boolean> DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION = Flag.create(
     RUNDEBUG,
     "deployment.target.deviceprovisioner",

@@ -80,12 +80,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myAdbServerUsbBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#backends");
     myAdbServerUsbBackendLabel.setIcon(null);
 
-    if (!hasAdbServerLifecycleManagementComponents()) {
-      myPanel.remove(myExistingAdbServerPortSpinner);
-      myPanel.remove(myAutomaticallyStartAndManageServerRadioButton);
-      myPanel.remove(myUseExistingManuallyManagedServerRadioButton);
-    }
-
     return myPanel;
   }
 
@@ -127,9 +121,5 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   AdbServerUsbBackend getAdbServerUsbBackend() {
     return AdbServerUsbBackend.fromDisplayText(myAdbServerUsbBackend.getSelectedItem().toString());
-  }
-
-  private static boolean hasAdbServerLifecycleManagementComponents() {
-    return StudioFlags.ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE.get();
   }
 }
