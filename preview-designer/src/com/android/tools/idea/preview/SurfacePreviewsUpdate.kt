@@ -41,9 +41,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
-import com.intellij.util.SlowOperations
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -192,13 +190,14 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder: PreviewRefreshEventBuilder? = null,
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
-  val facet =
-    SlowOperations.allowSlowOperations(ThrowableComputable { AndroidFacet.getInstance(psiFile) })
-      ?: return emptyList()
-  val configurationManager =
+
+  val (facet, configurationManager) =
     withContext(AndroidDispatchers.workerThread) {
-      ConfigurationManager.getOrCreateInstance(facet.module)
+      AndroidFacet.getInstance(psiFile)?.let { facet ->
+        return@withContext facet to ConfigurationManager.getOrCreateInstance(facet.module)
+      } ?: (null to null)
     }
+  if (facet == null || configurationManager == null) return emptyList()
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.
   val existingModels = models.toMutableList()
