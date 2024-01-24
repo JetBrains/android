@@ -19,7 +19,6 @@ import com.android.SdkConstants.ATTR_IGNORE
 import com.android.SdkConstants.ATTR_IGNORE_A11Y_LINTS
 import com.android.SdkConstants.TOOLS_URI
 import com.android.resources.ResourceType
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
@@ -30,9 +29,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
-import com.android.tools.idea.uibuilder.handlers.IncludeHandler
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
-import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
@@ -88,55 +85,6 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
     issues.add(NlAtfIssue(result, NlComponentIssueSource(component), eventListener))
   }
-}
-
-/** Issue created for <include> */
-class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
-  override val summary: String
-    get() = "Included layout may contain accessibility issues."
-
-  override val description: String
-    get() = "We found some potential accessibility issues that may have came from included layout."
-
-  override val severity: HighlightSeverity
-    get() = HighlightSeverity.WARNING
-
-  override val source: IssueSource
-    get() = NlComponentIssueSource(include)
-
-  override val category: String
-    get() = Category.A11Y.name
-
-  override val fixes: Stream<Fix>
-    get() {
-      val goto =
-        Fix("Open the layout", "Open the include layout.") {
-          include
-            .getViewHandler {}
-            ?.let { handler ->
-              if (handler is IncludeHandler) {
-                IncludeHandler.openIncludedLayout(include)
-              }
-            }
-        }
-      return Stream.of(goto)
-    }
-
-  override val suppresses: Stream<Suppress>
-    get() {
-      val ignore =
-        Suppress("Suppress", "Suppress this check if it is false positive.") {
-          val attr =
-            include.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
-              if (it.isNullOrEmpty()) ATTR_IGNORE_A11Y_LINTS else "$it,$ATTR_IGNORE_A11Y_LINTS"
-            }
-          NlWriteCommandActionUtil.run(include, "Suppress A11Y lints") {
-            // Set attr automatically refreshes the surface.
-            include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
-          }
-        }
-      return Stream.of(ignore)
-    }
 }
 
 /** Issue created by [ValidatorData.Issue] */
