@@ -68,19 +68,22 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   true, true), Disposable {
   private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
   private val workerScope: CoroutineScope = AndroidCoroutineScope(this, workerThread)
+  private var isErrorState = false
 
   fun setSerialNumber(serialNumber: String) {
-    if (serialNumber != stateManager.serialNumber) {
+    if (serialNumber != stateManager.serialNumber || isErrorState) {
       stateManager.serialNumber = serialNumber
       workerScope.launch {
         if (stateManager.isWhsVersionSupported()) {
           withContext(uiThread) {
+            isErrorState = false
             removeAll()
             add(createContentPanel())
           }
         }
         else {
           withContext(uiThread) {
+            isErrorState = true
             removeAll()
             add(createWhsVersionNotSupportedPanel())
           }
