@@ -56,6 +56,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1255,6 +1256,9 @@ class LightBindingClassTest {
   }
 
   @Test
+  @Ignore(
+    "b/322209412: bindingLayoutGroups should no longer be called in dumb mode, so this test doesn't apply."
+  )
   fun bindingCacheRecoversAfterExitingDumbMode() {
     // language=XML
     val sampleXml =

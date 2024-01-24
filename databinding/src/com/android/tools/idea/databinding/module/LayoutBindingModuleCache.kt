@@ -39,7 +39,7 @@ import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
@@ -190,10 +190,10 @@ class LayoutBindingModuleCache(private val module: Module) : Disposable {
       // fail with an exception. To prevent this, we abort early with what we have.
       val project = module.project
       if (DumbService.isDumb(project)) {
-        Logger.getInstance(LayoutBindingModuleCache::class.java)
-          .info(
-            "Binding classes may be temporarily stale due to indices not being accessible right now."
-          )
+        // TODO(b/322209412): Remove this error and instead throw an exception, after it's verified
+        // that end users are no longer running into this log line.
+        thisLogger()
+          .error("LayoutBindingModuleCache.bindingLayoutGroups cannot be used in dumb mode.")
         return _bindingLayoutGroups
       }
 

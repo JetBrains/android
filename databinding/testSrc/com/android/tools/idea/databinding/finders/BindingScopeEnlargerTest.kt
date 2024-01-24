@@ -75,10 +75,8 @@ class BindingScopeEnlargerTest {
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
     assertThat(DumbService.isDumb(project)).isFalse()
 
-    // In dumb mode, add a resource and then request the current scope. In the past, this would
-    // cause
-    // the scope enlarger to internally cache stale values (because the service that the enlarger
-    // queries into aborts early in dumb mode).
+    // In dumb mode, add a resource and then request the current scope. The enlarger will return a
+    // stale value while in dumb mode, but should return an updated value after dumb mode completes.
     val (activityClass, dumbScope) =
       DumbModeTestUtils.computeInDumbModeSynchronously(project) {
         fixture.addFileToProject(
