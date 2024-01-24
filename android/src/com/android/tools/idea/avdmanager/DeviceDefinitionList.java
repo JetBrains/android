@@ -19,9 +19,9 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.SortedSetMultimap;
 import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.ULocale;
 import com.intellij.icons.AllIcons;
@@ -41,7 +41,6 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.HierarchyEvent;
 import java.text.DecimalFormat;
@@ -52,7 +51,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
@@ -82,7 +80,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String SEARCH_RESULTS = "Search Results";
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
 
-  private Multimap<Category, Device> myCategoryToDefinitionMultimap;
+  private SortedSetMultimap<Category, Device> myCategoryToDefinitionMultimap;
   private ListTableModel<Device> myModel;
   private TableView<Device> myTable;
 
@@ -158,37 +156,33 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   @NotNull
   private Device getDefaultDefinition(@NotNull Category category) {
-    var logger = Logger.getInstance(DeviceDefinitionList.class);
-
-    logger.info("currentThread = " + Thread.currentThread());
-    logger.info("dispatchThread = " + EventQueue.isDispatchThread());
-
     var id = category.getDefaultDefinitionId();
 
     return myCategoryToDefinitionMultimap.get(category).stream()
       .filter(definition -> definition.getId().equals(id))
       .findFirst()
-      .orElseThrow(() -> new NoSuchElementException(getMessage(category)));
+      .orElseGet(() -> first(category));
   }
 
-  private @NotNull String getMessage(@NotNull Category category) {
-    var builder = new StringBuilder();
-    var separator = System.lineSeparator();
+  private @NotNull Device first(@NotNull Category category) {
+    // This should not happen and, yet, here we are
 
-    builder.append(separator);
-    builder.append(toString(category)).append(separator);
+    Logger.getInstance(DeviceDefinitionList.class).warn(
+      "Did not find default " + category.getDefaultDefinitionId() + ' ' + toString(category) + " in " + mapDefinitionsToIds(category));
 
-    Arrays.asList(Category.values())
-      .forEach(c -> builder.append(toString(c)).append(" = ").append(mapDefinitionsToIds((c))).append(separator));
-
-    var length = builder.length();
-    builder.delete(length - separator.length(), length);
-
-    return builder.toString();
+    return myCategoryToDefinitionMultimap.get(category).first();
   }
 
   private static @NotNull String toString(@NotNull Category category) {
-    return category + "[" + category.getDefaultDefinitionId() + "]";
+    return switch (category) {
+      case PHONE -> "phone";
+      case TABLET -> "tablet";
+      case WEAR_OS -> "Wear OS device";
+      case DESKTOP -> "desktop device";
+      case TV -> "TV";
+      case AUTOMOTIVE -> "automotive device";
+      case LEGACY -> "legacy device";
+    };
   }
 
   private @NotNull Object mapDefinitionsToIds(@NotNull Category category) {
