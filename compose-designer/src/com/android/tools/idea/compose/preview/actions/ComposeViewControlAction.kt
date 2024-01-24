@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -26,30 +25,23 @@ import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.icons.copyIcon
 
-// When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
-// multi-choice group, even
-// Presentation.setMultiChoice() sets to false. (See
-// [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
-//
-// We clone the icon here so we can control the multi-choice state of this action ourselves.
 class ComposeViewControlAction(
   layoutManagers: List<SurfaceLayoutManagerOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
   updateMode: (SurfaceLayoutManagerOption, PreviewModeManager) -> Unit,
   additionalActionProvider: AnAction? = null,
 ) :
-  DropDownAction(
-    message("action.scene.view.control.title"),
-    message("action.scene.view.control.description"),
-    copyIcon(AllIcons.Debugger.RestoreLayout, null, true),
+  ViewControlAction(
+    isEnabled = { !isPreviewRefreshing(it.dataContext) },
+    isEssentialsModeEnabled = { ComposePreviewEssentialsModeManager.isEssentialsModeEnabled },
+    essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
   ) {
   init {
     if (
@@ -88,16 +80,8 @@ class ComposeViewControlAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
-    e.presentation.description =
-      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
-        message("action.scene.view.control.essentials.mode.description")
-      else message("action.scene.view.control.description")
   }
-
-  // Actions calling isAnyPreviewRefreshing in the update method, must run in BGT
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We
