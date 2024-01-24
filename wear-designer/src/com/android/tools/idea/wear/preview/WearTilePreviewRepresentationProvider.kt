@@ -25,11 +25,14 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
+import com.android.tools.idea.wear.preview.actions.WearTileViewControlAction
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -50,6 +53,12 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
     return DefaultActionGroup(
       StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
       StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+      WearTileViewControlAction(
+        layoutOptions = listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS),
+        updateMode = { selectedOption, manager ->
+          manager.setMode(manager.mode.value.deriveWithLayout(selectedOption))
+        }
+      ),
     )
   }
 

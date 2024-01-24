@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.wear.preview.actions
+
+import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.preview.actions.ViewControlAction
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
+
+class WearTileViewControlAction(
+  layoutOptions: List<SurfaceLayoutManagerOption>,
+  updateMode: (SurfaceLayoutManagerOption, PreviewModeManager) -> Unit,
+) : ViewControlAction(
+  isEnabled = { !isPreviewRefreshing(it.dataContext) },
+  isEssentialsModeEnabled = EssentialsMode::isEnabled
+) {
+
+  init {
+    add(
+      SwitchSurfaceLayoutManagerAction(layoutOptions, isActionEnabled = {
+        !isPreviewRefreshing(it.dataContext) &&
+        // If Essentials Mode is enabled, it should not be possible to switch layout.
+        !EssentialsMode.isEnabled()
+      }) {
+        selectedOption,
+        previewManager ->
+        PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
+        updateMode(selectedOption, previewManager)
+      }
+        .apply {
+          isPopup = false
+          templatePresentation.isMultiChoice = false
+        }
+    )
+  }
+}
