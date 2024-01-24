@@ -35,8 +35,6 @@ import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
-import com.android.utils.TraceUtils;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.intellij.ide.highlighter.JavaFileType;
@@ -424,33 +422,6 @@ public class LightBindingClass extends AndroidLightClassBase {
       }
     }
     return true;
-  }
-
-  @Override
-  @NotNull
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-      .add("qualified name", getQualifiedName())
-      .add("object id", TraceUtils.getSimpleId(this))
-      .toString();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (!(obj instanceof LightBindingClass other)) {
-      return false;
-    }
-
-    return myConfig.equals(other.myConfig);
-  }
-
-  @Override
-  public int hashCode() {
-    return myConfig.hashCode();
   }
 
   @NotNull
