@@ -83,6 +83,9 @@ internal class FakeDeviceManager(
   override fun setSerialNumber(serialNumber: String) {}
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) {
+    if (failState) {
+      throw ConnectionLostException("Failed to trigger event")
+    }
     triggeredEvents.add(eventTrigger)
   }
 }

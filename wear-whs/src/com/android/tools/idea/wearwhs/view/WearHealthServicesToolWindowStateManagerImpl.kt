@@ -77,8 +77,13 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override fun getCapabilitiesList(): StateFlow<List<WhsCapability>> = capabilitiesList.asStateFlow()
 
-  // TODO(b/309609475): Check the actual WHS version using the device manager
-  override suspend fun triggerEvent(eventTrigger: EventTrigger) {}
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) {
+    try {
+      deviceManager.triggerEvent(eventTrigger)
+    } catch (exception: ConnectionLostException) {
+      progress.emit(WhsStateManagerStatus.ConnectionLost)
+    }
+  }
 
   override fun getPreset(): StateFlow<Preset> = currentPreset.asStateFlow()
 

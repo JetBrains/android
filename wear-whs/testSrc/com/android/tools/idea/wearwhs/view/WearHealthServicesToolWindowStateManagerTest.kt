@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
@@ -222,5 +223,22 @@ class WearHealthServicesToolWindowStateManagerTest {
     val isSupported = stateManager.isWhsVersionSupported()
 
     assertFalse(isSupported)
+  }
+
+  @Test
+  fun `test triggered events are forwarded to device manager`(): Unit = runBlocking {
+    stateManager.triggerEvent(EventTrigger("key", "label"))
+
+    assertThat(deviceManager.triggeredEvents).hasSize(1)
+    assertThat(deviceManager.triggeredEvents[0].eventKey).isEqualTo("key")
+  }
+
+  @Test
+  fun `test triggered event failures are reflected in state manager`(): Unit = runBlocking {
+    deviceManager.failState = true
+
+    stateManager.triggerEvent(EventTrigger("key", "label"))
+
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.ConnectionLost)
   }
 }
