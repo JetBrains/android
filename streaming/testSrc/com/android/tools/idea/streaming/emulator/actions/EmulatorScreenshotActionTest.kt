@@ -107,7 +107,7 @@ class EmulatorScreenshotActionTest {
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
-
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Display Shape")
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "FoldableOpen")
   }
 
@@ -126,7 +126,7 @@ class EmulatorScreenshotActionTest {
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
-
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Display Shape")
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "FoldableClosed")
   }
 
@@ -168,7 +168,9 @@ private fun ScreenshotViewer.waitForUpdateAndGetImage(): BufferedImage {
   EDT.dispatchAllInvocationEvents()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   val fileEditor = fileEditor()
-  waitForCondition(2.seconds) { fileEditor.imageEditor.document.value?.isSame(fileEditor.file.readImage()) == true }
+  waitForCondition(2.seconds) {
+    fileEditor.imageEditor.document.value?.let { it.isCornerTransparent() && it.isSame(fileEditor.file.readImage()) } ?: false
+  }
   return fileEditor.imageEditor.document.value
 }
 
@@ -188,6 +190,9 @@ private fun BufferedImage.isSame(other: BufferedImage?): Boolean {
   }
   return true
 }
+
+private fun BufferedImage.isCornerTransparent(): Boolean =
+    getRGB(0, 0) == 0
 
 private fun ScreenshotViewer.fileEditor(): ImageFileEditor =
     PlatformCoreDataKeys.FILE_EDITOR.getData(this) as ImageFileEditor
