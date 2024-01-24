@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,9 @@ public final class AndroidPlugin {
   static final class AndroidPluginAppInitializer extends ApplicationInitializedListenerJavaShim {
     @Override
     public void componentsInitialized() {
+      // alternative to preload
+      ApplicationManager.getApplication().getService(AndroidPlugin.class);
+
       if (!IdeInfo.getInstance().isAndroidStudio()) {
         initializeForNonStudio();
       }
