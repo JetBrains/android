@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.intellij.icons.AllIcons
@@ -35,7 +34,7 @@ import com.intellij.util.ui.JBUI
 class SwitchSurfaceLayoutManagerAction(
   layoutManagers: List<SurfaceLayoutManagerOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
-  private val updateMode: (SurfaceLayoutManagerOption, ComposePreviewManager) -> Unit,
+  private val updateMode: (SurfaceLayoutManagerOption, PreviewModeManager) -> Unit,
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
   /**
@@ -54,7 +53,7 @@ class SwitchSurfaceLayoutManagerAction(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
-        val previewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
+        val previewManager = e.getData(PreviewModeManager.KEY) ?: return
         updateMode(option, previewManager)
       }
     }

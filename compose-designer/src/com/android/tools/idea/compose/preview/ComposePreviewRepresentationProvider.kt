@@ -106,7 +106,11 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
                 // TODO (b/292057010) If group filtering is enabled - first element in this group
                 // should be selected.
                 val element =
-                  manager.allPreviewElementsInFileFlow.value.asCollection().firstOrNull()
+                  (manager as? ComposePreviewManager)
+                    ?.allPreviewElementsInFileFlow
+                    ?.value
+                    ?.asCollection()
+                    ?.firstOrNull()
                 manager.setMode(PreviewMode.Gallery(element))
               } else if (manager.mode.value is PreviewMode.Gallery) {
                 // When switching from Gallery mode to Default layout mode - need to set back

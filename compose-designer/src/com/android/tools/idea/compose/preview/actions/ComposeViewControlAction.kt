@@ -19,13 +19,14 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -42,7 +43,7 @@ import com.intellij.ui.icons.copyIcon
 class ComposeViewControlAction(
   layoutManagers: List<SurfaceLayoutManagerOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  updateMode: (SurfaceLayoutManagerOption, ComposePreviewManager) -> Unit,
+  updateMode: (SurfaceLayoutManagerOption, PreviewModeManager) -> Unit,
   additionalActionProvider: AnAction? = null,
 ) :
   DropDownAction(
