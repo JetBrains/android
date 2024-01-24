@@ -112,13 +112,21 @@ class SafeModeTests(unittest.TestCase):
             continue
           mac_jvm_args.add(arg)
 
-    self.assertEqual(mac_jvm_args, mac_safe_jvm_args)
-    self.assertEqual(lin_jvm_args, lin_safe_jvm_args)
-    self.assertEqual(win_jvm_args, win_safe_jvm_args)
-    self.assertEqual(mac_jars, mac_safe_jars)
-    self.assertEqual(linux_jars, linux_safe_jars)
-    self.assertEqual(win_jars, win_safe_jars)
+    try:
+      self.assertEqual(mac_jvm_args, mac_safe_jvm_args)
+      self.assertEqual(lin_jvm_args, lin_safe_jvm_args)
+      self.assertEqual(win_jvm_args, win_safe_jvm_args)
+      self.assertEqual(mac_jars, mac_safe_jars)
+      self.assertEqual(linux_jars, linux_safe_jars)
+      self.assertEqual(win_jars, win_safe_jars)
+    except AssertionError as e:
+      print("""
+        There is a mismatch in the safe mode scripts. To regenerate the content of the scripts,
+        run the following script manually:
 
+        //tools/adt/idea/safemode/script-generation/generate_safe_mode_scripts.py
+      """)
+      raise e
 
 if __name__ == "__main__":
   unittest.main()
