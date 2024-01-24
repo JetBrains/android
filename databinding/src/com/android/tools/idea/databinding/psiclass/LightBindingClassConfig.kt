@@ -106,8 +106,10 @@ private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData,
  * A "Binding" class should always be created. "BindingImpl"s should only be created if there are
  * multiple layout configurations.
  */
-class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) :
-  LightBindingClassConfig {
+data class BindingClassConfig(
+  override val facet: AndroidFacet,
+  private val group: BindingLayoutGroup,
+) : LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.mainLayout
 
@@ -165,7 +167,7 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
  * This config should only be used when there are alternate layouts defined in addition to the main
  * one; otherwise, just use [BindingClassConfig].
  */
-class BindingImplClassConfig(
+data class BindingImplClassConfig(
   override val facet: AndroidFacet,
   private val group: BindingLayoutGroup,
   private val layoutIndex: Int,

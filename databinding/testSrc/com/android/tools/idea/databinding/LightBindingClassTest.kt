@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.findClass
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.NullableNotNullManager
@@ -384,8 +385,8 @@ class LightBindingClassTest {
 
     val outerValueTypeV2 =
       mainLayoutV2.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
-    assertThat(outerValueTypeV2.reference.resolve()).isEqualTo(includedLayoutV2)
-    assertThat(outerValueTypeV2.reference.resolve()).isNotEqualTo(includedLayoutV1)
+    assertThat(outerValueTypeV2.reference.resolve()).isSameAs(includedLayoutV2)
+    assertThat(outerValueTypeV2.reference.resolve()).isNotSameAs(includedLayoutV1)
   }
 
   @Test
@@ -1358,6 +1359,54 @@ class LightBindingClassTest {
     // It's ugly, but this is what the variable looks like after stripping é and í before
     // capitalizing parts
     assertThat(mainLayout.fields.first().name).isEqualTo("tStD")
+  }
+
+  @Test
+  fun testEquality() {
+    val layoutBindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """
+        .trimIndent(),
+    )
+
+    // Group should exist right away without waiting for resource updates since (in the test
+    // environment) the resource repositories will be initialized due to this call, and will
+    // therefore be up to date immediately.
+    assertThat(layoutBindingModuleCache.bindingLayoutGroups).hasSize(1)
+
+    val group1 = layoutBindingModuleCache.bindingLayoutGroups.single()
+    val lightBindingClass1 = layoutBindingModuleCache.getLightBindingClasses(group1).single()
+    assertThat(lightBindingClass1).isInstanceOf(LightBindingClass::class.java)
+
+    fixture.addFileToProject(
+      "res/layout/activity_other.xml",
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """
+        .trimIndent(),
+    )
+
+    // Layout groups won't update now until the resource repositories have a chance to update.
+    assertThat(layoutBindingModuleCache.bindingLayoutGroups).hasSize(1)
+    waitForResourceRepositoryUpdates(facet)
+    assertThat(layoutBindingModuleCache.bindingLayoutGroups).hasSize(2)
+
+    val group2 = layoutBindingModuleCache.bindingLayoutGroups.single { g -> g == group1 }
+    val lightBindingClass2 = layoutBindingModuleCache.getLightBindingClasses(group2).single()
+    assertThat(lightBindingClass2).isInstanceOf(LightBindingClass::class.java)
+
+    assertThat(lightBindingClass1).isNotSameAs(lightBindingClass2)
+    assertThat(lightBindingClass1).isEqualTo(lightBindingClass2)
   }
 }
 
