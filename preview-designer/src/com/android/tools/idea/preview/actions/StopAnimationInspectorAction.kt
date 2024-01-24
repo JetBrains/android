@@ -50,7 +50,9 @@ class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) ->
     navigateBack(e)
   }
 
-  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
-  // VirtualFile
+  /**
+   * BGT is needed when calling [findPreviewModeManagersForContext] because it accesses the
+   * VirtualFile
+   */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
