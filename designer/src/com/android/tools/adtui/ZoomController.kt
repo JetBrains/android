@@ -18,22 +18,26 @@ package com.android.tools.adtui
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
 
-/** Applies zoom changes to a Zoomable surface */
+/** Applies zoom changes to a Zoomable surface. */
 interface ZoomController : Zoomable {
 
   /**
    * Sets the scale factor used to multiply content size.
    *
    * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
-   *   below 0 means zoom to fit)
-   * @param x the horizontal coordinate to where to focus the scaling
-   * @param y the vertical coordinate to where to focus the scaling
+   *   below 0 means zoom to fit).
+   * @param x the horizontal coordinate to where to focus the scaling.
+   * @param y the vertical coordinate to where to focus the scaling.
    * @return True if the scaling was changed, false otherwise.
    */
-  fun setScale(@SurfaceScale scale: Double, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean
+  fun setScale(
+    @SurfaceScale scale: Double,
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+  ): Boolean
 
   /**
-   * Set the scale factor used to multiply the content size.
+   * Sets the scale factor used to multiply the content size.
    *
    * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
    *   below 0 means zoom to fit)
@@ -43,6 +47,10 @@ interface ZoomController : Zoomable {
     return setScale(scale, -1, -1)
   }
 
-  /** Returns true if zoom to fit is applied */
+  /**
+   * Applies zoom to fit.
+   *
+   * @return true if it is successfully applied, false otherwise.
+   */
   fun zoomToFit(): Boolean
 }
