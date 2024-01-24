@@ -75,7 +75,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                 )
               )
             }
-            AppInsightsModel.Uninitialized -> {}
+            else -> {}
           }
         }
       }

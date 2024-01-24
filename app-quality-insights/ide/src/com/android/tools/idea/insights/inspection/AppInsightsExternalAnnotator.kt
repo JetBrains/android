@@ -160,18 +160,25 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
               logger.debug("Found ${it.size} ${controller.key} insights for ${file.name}")
             }
           }
-          is AppInsightsModel.Unauthenticated -> {
+          AppInsightsModel.Unauthenticated -> {
             logger.debug(
               "Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated."
             )
             emptyList()
           }
-          is AppInsightsModel.Uninitialized -> {
+          AppInsightsModel.Uninitialized -> {
             // This should only happen at project startup, when things are initializing.
             // Skip collection until the insights model is authenticated, after which the
             // framework will call to collect again and get the correct annotations.
             logger.debug(
               "Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized."
+            )
+            emptyList()
+          }
+          AppInsightsModel.InitialSyncFailed -> {
+            // This only happens at project startup and sync failure.
+            logger.debug(
+              "Skip annotation collection for ${tabProvider.displayName} because it initial sync failed."
             )
             emptyList()
           }
