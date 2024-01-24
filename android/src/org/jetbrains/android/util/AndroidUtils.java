@@ -302,18 +302,6 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @Nullable
-  public static VirtualFile findFileByAbsoluteOrRelativePath(@Nullable VirtualFile baseDir, @NotNull String path) {
-    VirtualFile libDir = LocalFileSystem.getInstance().findFileByPath(path);
-    if (libDir != null) {
-      return libDir;
-    }
-    else if (baseDir != null) {
-      return LocalFileSystem.getInstance().findFileByPath(baseDir.getPath() + '/' + path);
-    }
-    return null;
-  }
-
-  @Nullable
   public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Module module,
                                                                   @NotNull ConfigurationType type,
                                                                   @NonNls ConfigurationType alternativeType) {
