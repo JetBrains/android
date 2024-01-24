@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.isPreviewRefreshing
@@ -26,6 +25,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
+import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.intellij.openapi.actionSystem.ActionUpdateThread
