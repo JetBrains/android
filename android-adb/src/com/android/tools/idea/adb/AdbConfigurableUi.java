@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.adb;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -28,22 +26,23 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JPanel myPanel;
   private JBLabel myExistingAdbServerPortLabel;
-  private JBCheckBox myEnableAdbMdnsCheckBox;
   private JBIntSpinner myExistingAdbServerPortSpinner;
   private JRadioButton myAutomaticallyStartAndManageServerRadioButton;
   private JRadioButton myUseExistingManuallyManagedServerRadioButton;
   private JComboBox<String> myAdbServerUsbBackend;
   private HyperlinkLabel myAdbServerUsbBackendLabel;
+  private JComboBox myAdbServerMdnsBackend;
+  private HyperlinkLabel myAdbServerMdnsBackendLabel;
+  private HyperlinkLabel myAdbServerLifecycleLabel;
 
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
     return getAdbServerUsbBackend() != settings.getAdbServerUsbBackend()
-           || myEnableAdbMdnsCheckBox.isSelected() != settings.shouldUseMdnsOpenScreen()
+           || getAdbServerMdnsBackend() != settings.getAdbServerMdnsBackend()
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
            || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort();
   }
@@ -57,7 +56,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     else {
       myAutomaticallyStartAndManageServerRadioButton.setSelected(true);
     }
-    myEnableAdbMdnsCheckBox.setSelected(settings.shouldUseMdnsOpenScreen());
+    setAdbServerMdnsBackend(settings.getAdbServerMdnsBackend());
     myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
   }
@@ -67,7 +66,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     settings.getOptionsUpdater()
       .setAdbServerUsbBackend(getAdbServerUsbBackend())
       .setUseUserManagedAdb(myUseExistingManuallyManagedServerRadioButton.isSelected())
-      .setUseMdnsOpenScreen(myEnableAdbMdnsCheckBox.isSelected())
+      .setAdbServerMdnsBackend(getAdbServerMdnsBackend())
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
       .commit();
   }
@@ -79,6 +78,11 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myAdbServerUsbBackendLabel.setHyperlinkText("ADB server USB backend (", "See support list", ")");
     myAdbServerUsbBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#backends");
     myAdbServerUsbBackendLabel.setIcon(null);
+
+    myAdbServerMdnsBackend.setModel(new DefaultComboBoxModel(AdbServerMdnsBackend.values()));
+    myAdbServerMdnsBackendLabel.setHyperlinkText("ADB server mDNS backend (", "See support list", ")");
+    myAdbServerMdnsBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#mdnsBackends");
+    myAdbServerMdnsBackendLabel.setIcon(null);
 
     return myPanel;
   }
@@ -93,6 +97,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myUseExistingManuallyManagedServerRadioButton = new JRadioButton();
     myUseExistingManuallyManagedServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(true));
     myAdbServerUsbBackend = new com.intellij.openapi.ui.ComboBox<>();
+    myAdbServerMdnsBackend = new com.intellij.openapi.ui.ComboBox<>();
   }
 
   private void setPortNumberUiEnabled(boolean enabled) {
@@ -105,14 +110,12 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   }
 
 
-  @TestOnly
-  void setAdbMdnsEnabled(boolean value) {
-    myEnableAdbMdnsCheckBox.setSelected(value);
+  void setAdbServerMdnsBackend(AdbServerMdnsBackend backend) {
+    myAdbServerMdnsBackend.setSelectedItem(backend);
   }
 
-  @TestOnly
-  boolean isAdbMdnsEnabled() {
-    return myEnableAdbMdnsCheckBox.isSelected();
+  AdbServerMdnsBackend getAdbServerMdnsBackend() {
+    return AdbServerMdnsBackend.fromDisplayText(myAdbServerMdnsBackend.getSelectedItem().toString());
   }
 
   void setAdbServerUsbBackend(AdbServerUsbBackend backend) {

@@ -39,11 +39,9 @@ public final class AdbOptionsService {
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
 
   private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
-
-  private static final String USE_MDNS_OPENSCREEN = "adb.use.mdns.openscreen";
+  private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
-  private static final boolean USE_MDNS_OPENSCREEN_DEFAULT = true;
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
 
   private final Object LOCK = new Object();
@@ -69,8 +67,14 @@ public final class AdbOptionsService {
     }
   }
 
-  public boolean shouldUseMdnsOpenScreen() {
-    return PropertiesComponent.getInstance().getBoolean(USE_MDNS_OPENSCREEN, USE_MDNS_OPENSCREEN_DEFAULT);
+  @NotNull
+  public AdbServerMdnsBackend getAdbServerMdnsBackend() {
+    String value = PropertiesComponent.getInstance().getValue(MDNS_BACKEND_NAME, AdbServerMdnsBackend.DEFAULT.name());
+    try {
+      return AdbServerMdnsBackend.valueOf(value);
+    } catch(IllegalArgumentException e) {
+      return AdbServerMdnsBackend.DEFAULT;
+    }
   }
 
   boolean shouldUseUserManagedAdb() {
@@ -89,7 +93,7 @@ public final class AdbOptionsService {
   private void commitOptions(@NotNull AdbOptionsUpdater options) {
     PropertiesComponent props = PropertiesComponent.getInstance();
     props.setValue(USB_BACKEND_NAME, options.getAdbServerUsbBackend().name());
-    props.setValue(USE_MDNS_OPENSCREEN, options.useMdnsOpenScreen(), USE_MDNS_OPENSCREEN_DEFAULT);
+    props.setValue(MDNS_BACKEND_NAME, options.getAdbServerMdnsBackend().name());
     props.setValue(USE_USER_MANAGED_ADB, options.useUserManagedAdb());
     props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
     updateListeners();
@@ -121,14 +125,14 @@ public final class AdbOptionsService {
   public static class AdbOptionsUpdater {
     @NotNull private final AdbOptionsService myService;
     private AdbServerUsbBackend myServerBackend;
-    private boolean myUseMdnsOpenScreen;
+    private AdbServerMdnsBackend myServerMdnsBackend;
     private boolean myUseUserManagedAdb;
     private int myUserManagedAdbPort;
 
     private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
       myService = service;
       myServerBackend = service.getAdbServerUsbBackend();
-      myUseMdnsOpenScreen = service.shouldUseMdnsOpenScreen();
+      myServerMdnsBackend = service.getAdbServerMdnsBackend();
       myUseUserManagedAdb = service.shouldUseUserManagedAdb();
       myUserManagedAdbPort = service.getUserManagedAdbPort();
     }
@@ -142,12 +146,12 @@ public final class AdbOptionsService {
       return this;
     }
 
-    public boolean useMdnsOpenScreen() {
-      return myUseMdnsOpenScreen;
+    public AdbServerMdnsBackend getAdbServerMdnsBackend() {
+      return myServerMdnsBackend;
     }
-
-    public AdbOptionsUpdater setUseMdnsOpenScreen(boolean useMdnsOpenScreen) {
-      myUseMdnsOpenScreen = useMdnsOpenScreen;
+    
+    public AdbOptionsUpdater setAdbServerMdnsBackend(AdbServerMdnsBackend serverBackend) {
+      myServerMdnsBackend = serverBackend;
       return this;
     }
 

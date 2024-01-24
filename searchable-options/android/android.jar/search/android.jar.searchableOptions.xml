@@ -1036,10 +1036,6 @@
     <option name="existing" hit=" Existing ADB server port:" />
     <option name="port" hit=" Existing ADB server port:" />
     <option name="server" hit=" Existing ADB server port:" />
-    <option name="adb" hit="ADB server lifecycle management" />
-    <option name="lifecycle" hit="ADB server lifecycle management" />
-    <option name="management" hit="ADB server lifecycle management" />
-    <option name="server" hit="ADB server lifecycle management" />
     <option name="adb" hit="Android Debug Bridge (adb)" />
     <option name="android" hit="Android Debug Bridge (adb)" />
     <option name="bridge" hit="Android Debug Bridge (adb)" />
@@ -1049,20 +1045,16 @@
     <option name="manage" hit="Automatically start and manage server" />
     <option name="server" hit="Automatically start and manage server" />
     <option name="start" hit="Automatically start and manage server" />
-    <option name="adb" hit="Enable adb mDNS for wireless debugging" />
-    <option name="debugging" hit="Enable adb mDNS for wireless debugging" />
-    <option name="enable" hit="Enable adb mDNS for wireless debugging" />
-    <option name="for" hit="Enable adb mDNS for wireless debugging" />
-    <option name="mdns" hit="Enable adb mDNS for wireless debugging" />
-    <option name="wireless" hit="Enable adb mDNS for wireless debugging" />
     <option name="existing" hit="Use existing manually managed server" />
     <option name="managed" hit="Use existing manually managed server" />
     <option name="manually" hit="Use existing manually managed server" />
     <option name="server" hit="Use existing manually managed server" />
     <option name="use" hit="Use existing manually managed server" />
+    <option name="bonjour" hit="bonjour" />
     <option name="default" hit="default" />
     <option name="libusb" hit="libusb" />
     <option name="native" hit="native" />
+    <option name="openscreen" hit="openscreen" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />

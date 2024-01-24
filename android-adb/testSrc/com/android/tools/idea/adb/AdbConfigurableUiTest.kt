@@ -46,37 +46,37 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testApply() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setUseMdnsOpenScreen(false).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
-    myConfigurable.setAdbMdnsEnabled(true)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.apply(myAdbOptionsService)
 
     assertThat(myAdbOptionsService.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.LIBUSB)
-    assertThat(myAdbOptionsService.shouldUseMdnsOpenScreen()).isTrue()
+    assertThat(myAdbOptionsService.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.OPENSCREEN)
   }
 
   @Test
   fun testReset() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setUseMdnsOpenScreen(true).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
-    myConfigurable.setAdbMdnsEnabled(false)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.reset(myAdbOptionsService)
 
-    assertThat(myConfigurable.getAdbServerUsbBackend()).isEqualTo(AdbServerUsbBackend.DEFAULT)
-    assertThat(myConfigurable.isAdbMdnsEnabled()).isTrue()
+    assertThat(myConfigurable.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.DEFAULT)
+    assertThat(myConfigurable.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.DEFAULT)
   }
 
   @Test
   fun testIsModified() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setUseMdnsOpenScreen(false).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
 
-    myConfigurable.setAdbMdnsEnabled(true)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
 
     myConfigurable.reset(myAdbOptionsService)

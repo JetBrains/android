@@ -189,7 +189,7 @@ public final class AdbService implements Disposable,
     // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
     // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
     if (!SystemInfo.isWindows ||
-        !AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ||
+        !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
         !(exception instanceof IOException) ||
         !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
       return;
@@ -446,8 +446,14 @@ public final class AdbService implements Disposable,
     if (getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
-      options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");
+      switch (AdbOptionsService.getInstance().getAdbServerMdnsBackend()) {
+        case OPENSCREEN -> options.withEnv("ADB_MDNS_OPENSCREEN", "1");
+        case BONJOUR -> options.withEnv("ADB_MDNS_OPENSCREEN", "0");
+        case DEFAULT -> {
+        }
+      }
     }
+
     getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
       // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
