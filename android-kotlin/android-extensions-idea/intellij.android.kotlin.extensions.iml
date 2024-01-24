@@ -44,5 +44,6 @@
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.psi" />
+    <orderEntry type="module" module-name="kotlin.refactorings.common" scope="TEST" />
   </component>
 </module>
