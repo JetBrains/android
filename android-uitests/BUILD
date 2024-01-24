@@ -2983,6 +2983,7 @@ java_test(
 
 java_test(
     name = "LintCheckWithKotlinTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([

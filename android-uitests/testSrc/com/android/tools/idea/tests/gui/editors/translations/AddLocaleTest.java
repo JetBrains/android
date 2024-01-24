@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -59,6 +60,7 @@ public class AddLocaleTest {
   @RunIn(TestGroup.FAT_BAZEL)
   public void addNewLocale() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
 
     // Open Translations Editor window.
     EditorFixture editor = ideFrame.getEditor();
