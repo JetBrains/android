@@ -47,7 +47,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@Ignore("TODO: http://b/315835415 AGP 8.4 is not supported")
 @RunWith(Parameterized::class)
 class AddBaselineProfilesModuleTest(
   private val useGradleKtsParam: Boolean,
