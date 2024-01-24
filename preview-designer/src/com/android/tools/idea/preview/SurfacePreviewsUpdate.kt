@@ -41,7 +41,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
+import com.intellij.util.SlowOperations
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -190,7 +192,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder: PreviewRefreshEventBuilder? = null,
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
-  val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
+  val facet =
+    SlowOperations.allowSlowOperations(ThrowableComputable { AndroidFacet.getInstance(psiFile) })
+      ?: return emptyList()
   val configurationManager =
     withContext(AndroidDispatchers.workerThread) {
       ConfigurationManager.getOrCreateInstance(facet.module)
