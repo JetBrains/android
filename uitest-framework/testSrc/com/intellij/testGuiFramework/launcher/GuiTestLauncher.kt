@@ -153,6 +153,7 @@ object GuiTestLauncher {
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port",
+      "-Dide.slow.operations.assertion=false",
     )
     /* b/246634435 */
     if (System.getProperty("embedded.jdk.path") != null) {
