@@ -21,5 +21,5 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @SuppressWarnings("NewClassNamingConvention") // Not a test.
-public class KotlinIntegrationTestSuite extends IdeaTestSuiteBase {
+public class IntellijIntegrationTestSuite extends IdeaTestSuiteBase {
 }
