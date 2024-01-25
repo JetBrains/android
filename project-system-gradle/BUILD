@@ -39,7 +39,6 @@ iml_module(
         "//tools/vendor/google/ml/sml-android:ml.sml-android",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
-        "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
         "//tools/adt/idea/designer:intellij.android.designer",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",

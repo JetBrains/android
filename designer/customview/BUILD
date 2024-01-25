@@ -15,7 +15,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
