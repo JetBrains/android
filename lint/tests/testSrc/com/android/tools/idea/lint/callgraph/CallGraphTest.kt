@@ -29,8 +29,9 @@ import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.LightProjectDescriptor
 import junit.framework.TestCase
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
@@ -54,11 +55,22 @@ fun buildInterproceduralAnalysesForTest(
   return Triple(cha, receiverEval, graph)
 }
 
-class CallGraphTest : AndroidTestCase() {
+class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
+
+  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
 
   override fun setUp() {
-    myProjectDescriptor = AdtTestProjectDescriptors.kotlin()
     super.setUp()
+    // Stub java.util.function.Consumer so it can be used in the test data.
+    myFixture.addClass(
+      """
+      package java.util.function;
+      @FunctionalInterface
+      public interface Consumer<T> {
+          void accept(T t);
+      }
+      """.trimIndent()
+    )
   }
 
   fun testJavaCallGraph() = doTest(".java")

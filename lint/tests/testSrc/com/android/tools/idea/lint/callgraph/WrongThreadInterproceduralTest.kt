@@ -18,10 +18,14 @@ package com.android.tools.idea.lint.callgraph
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.lint.checks.searchForInterproceduralThreadAnnotationViolations
 import com.android.tools.lint.detector.api.interprocedural.shortName
+import com.android.tools.tests.AdtTestProjectDescriptors
+import com.intellij.testFramework.LightProjectDescriptor
 import junit.framework.TestCase
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class WrongThreadInterproceduralTest : AndroidTestCase() {
+class WrongThreadInterproceduralTest : LightJavaCodeInsightFixtureAdtTestCase() {
+
+  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
 
   fun testJavaThreadAnnotations() = doTest(".java")
 
