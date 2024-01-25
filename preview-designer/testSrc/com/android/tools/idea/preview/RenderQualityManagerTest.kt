@@ -181,6 +181,21 @@ class RenderQualityManagerTest {
   }
 
   @Test
+  fun testCancelledExceptionTriggersQualityChange_EvenForSameQuality() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.5f
+    val renderCancelledResult = mock<RenderResult>()
+    val mockResult = mock<Result>()
+    whenever(mockResult.isSuccess).thenReturn(false)
+    whenever(mockResult.exception).thenReturn(CancellationException())
+    whenever(renderCancelledResult.renderResult).thenReturn(mockResult)
+    whenever(sceneManagerMock.renderResult).thenReturn(renderCancelledResult)
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  @Test
   fun testErrorDoesNotTriggerQualityChange() = runBlocking {
     tool.errorMargin = 0.2f
     tool.currentQuality = 0.5f
