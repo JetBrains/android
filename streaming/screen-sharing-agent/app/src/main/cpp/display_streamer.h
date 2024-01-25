@@ -112,7 +112,7 @@ private:
   int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
 
-  std::mutex mutex_;
+  std::recursive_mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
   int32_t video_orientation_;  // GUARDED_BY(mutex_)

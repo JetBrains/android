@@ -59,7 +59,7 @@ private:
   int64_t last_presentation_timestamp_us_ = 0;
   int32_t num_frames_in_last_sample_ = 0;
 
-  std::mutex mutex_;
+  std::recursive_mutex mutex_;
   AMediaCodec* codec_ = nullptr;  // GUARDED_BY(mutex_)
   AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
   bool codec_stop_pending_ = false;  // GUARDED_BY(mutex_)
