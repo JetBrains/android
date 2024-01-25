@@ -160,13 +160,13 @@ class DefaultRenderQualityManager(
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
     !isPaused &&
       sceneManager.let {
-        (!it.renderResult.isErrorResult() || it.renderResult.isCancellationException()) &&
-          abs(
-            it.lastRenderQuality -
-              getTargetQuality(
-                it,
-              ),
-          ) > myPolicy.acceptedErrorMargin
+        // Refreshes are skipped in any of the following scenarios:
+        // - Last render failed and not due to a cancellation exception
+        // - The current target quality is substantially different to the one used in the last
+        //   successful render or the last render was cancelled.
+        it.renderResult.isCancellationException() ||
+          (!it.renderResult.isErrorResult() &&
+            abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
       }
 
   override fun pause() {
