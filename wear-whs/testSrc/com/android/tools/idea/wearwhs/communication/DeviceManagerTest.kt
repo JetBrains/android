@@ -616,10 +616,13 @@ class DeviceManagerTest {
 
   @Test
   fun `enabled state of capabilities are parsed, override values are ignored`() {
+    // Content provider does not return rows for dataTypes which are enabled but override values are not set
+    // Content provider returns override value of 0 if dataType is disabled but override value has not been set
+    // In all other cases enabled state and override values should be parsed as seen in table
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly("""
                                                        Row: 0 data_type=STEPS_PER_MINUTE, is_enabled=false, override_value=0.0
                                                        Row: 1 data_type=SPEED, is_enabled=true, override_value=0.0
-                                                       Row: 2 data_type=FLOORS, is_enabled=false, override_value=0.0
+                                                       Row: 2 data_type=FLOORS, is_enabled=false, override_value=5.0
                                                        Row: 3 data_type=ABSOLUTE_ELEVATION, is_enabled=false, override_value=0.0
                                                        Row: 4 data_type=ELEVATION_LOSS, is_enabled=false, override_value=0.0
                                                        Row: 5 data_type=DISTANCE, is_enabled=true, override_value=0.0
@@ -627,20 +630,20 @@ class DeviceManagerTest {
                                                        Row: 7 data_type=CALORIES, is_enabled=false, override_value=0.0
                                                        Row: 8 data_type=PACE, is_enabled=false, override_value=0.0
                                                        Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0
-                                                       Row: 10 data_type=STEPS, is_enabled=true, override_value=0
+                                                       Row: 10 data_type=STEPS, is_enabled=true, override_value=42
                                                        """.trimIndent(),
                                                        mapOf(
                                                         WhsDataType.STEPS_PER_MINUTE to CapabilityState(false, null),
-                                                        WhsDataType.SPEED to CapabilityState(true, null),
-                                                        WhsDataType.FLOORS to CapabilityState(false, null),
+                                                        WhsDataType.SPEED to CapabilityState(true, 0f),
+                                                        WhsDataType.FLOORS to CapabilityState(false, 5f),
                                                         WhsDataType.ABSOLUTE_ELEVATION to CapabilityState(false, null),
                                                         WhsDataType.ELEVATION_LOSS to CapabilityState(false, null),
-                                                        WhsDataType.DISTANCE to CapabilityState(true, null),
+                                                        WhsDataType.DISTANCE to CapabilityState(true, 0f),
                                                         WhsDataType.ELEVATION_GAIN to CapabilityState(false, null),
                                                         WhsDataType.CALORIES to CapabilityState(false, null),
                                                         WhsDataType.PACE to CapabilityState(false, null),
-                                                        WhsDataType.HEART_RATE_BPM to CapabilityState(true, null),
-                                                        WhsDataType.STEPS to CapabilityState(true, null),
+                                                        WhsDataType.HEART_RATE_BPM to CapabilityState(true, 55f),
+                                                        WhsDataType.STEPS to CapabilityState(true, 42f),
                                                        ))
   }
 
@@ -653,7 +656,7 @@ class DeviceManagerTest {
                                                        Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
                                                        """.trimIndent(),
                                                        mapOf(
-                                                        WhsDataType.STEPS to CapabilityState(true, null),
+                                                        WhsDataType.STEPS to CapabilityState(true, 0f),
                                                       ))
   }
 }

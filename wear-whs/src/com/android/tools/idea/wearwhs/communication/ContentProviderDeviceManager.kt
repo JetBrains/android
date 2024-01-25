@@ -66,8 +66,13 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession,
           continue
         }
         val isEnabled = match.groupValues[2].toBoolean()
+        var overrideValue: Float? = match.groupValues[3].toFloat()
+        if (!isEnabled && overrideValue == 0f) {
+          // If data type is disabled and override has not been set content provider returns override as 0, so ignore this value
+          overrideValue = null
+        }
 
-        capabilities[dataType] = CapabilityState(isEnabled, null)
+        capabilities[dataType] = CapabilityState(isEnabled, overrideValue)
       }
 
       return capabilities
