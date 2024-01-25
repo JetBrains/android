@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /**
  * Simulates pressing the Volume Down button on an Android virtual device.
  */
-class EmulatorVolumeDownButtonAction : EmulatorPushButtonAction("AudioVolumeDown", configFilter = { !it.isWearOs })
+class EmulatorVolumeDownButtonAction : EmulatorPushButtonAction("AudioVolumeDown", configFilter = { it.deviceType != DeviceType.WEAR })

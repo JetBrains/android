@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION

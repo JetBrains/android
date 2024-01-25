@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /**
  * Simulates pressing the Power and the Volume Up buttons together on an Android virtual device.
  * This button combination invokes Android Power Menu on devices with API >= 31.
  */
 internal class EmulatorPowerAndVolumeUpButtonAction :
-  EmulatorPushButtonAction("Power", modifierKeyName = "VolumeUp", configFilter = { !it.isWearOs && it.api >= 31 })
+  EmulatorPushButtonAction("Power", modifierKeyName = "VolumeUp", configFilter = { it.deviceType != DeviceType.WEAR && it.api >= 31 })

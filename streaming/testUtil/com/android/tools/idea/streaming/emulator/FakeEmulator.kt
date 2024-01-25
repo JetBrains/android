@@ -1544,6 +1544,99 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
+    /**
+     * Creates a fake Automotive AVD.
+     */
+    @JvmStatic
+    fun createAutomotiveAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 32): Path {
+      val avdId = "Automotive_1024p_landscape_API_$api"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-automotive-playstore/x86_64/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86_64
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=6442450944
+          hw.accelerometer=no
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=no
+          hw.camera.back=None
+          hw.camera.front=None
+          hw.cpu.arch=x86_64
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.manufacturer = Google
+          hw.device.name=automotive_1024p_landscape
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.lcd.density = 160
+          hw.lcd.height = 768
+          hw.lcd.width = 1024
+          hw.mainKeys=no
+          hw.ramSize=2048
+          hw.sdCard=yes
+          hw.sensors.orientation=no
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.path=_no_skin
+          tag.display = Automotive with Play Store
+          tag.id = android-automotive-playstore
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86_64
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.density = 160
+          hw.lcd.width = 1024
+          hw.lcd.height = 768
+          hw.ramSize = 2048
+          hw.multi_display_window = false
+          hw.hotplug_multi_display = false
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = false
+          hw.accelerometer = false
+          hw.sensors.gyroscope_uncalibrated = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """.trimIndent()
+
+      val sourceProperties = """
+          Pkg.Desc=System Image x86_64 with Google Play Store.
+          AndroidVersion.ApiLevel=$api
+          SystemImage.Abi=x86_64
+          SystemImage.TagId=android-automotive-playstore
+          SystemImage.TagDisplay=Automotive with Play Store
+          SystemImage.GpuSupport=true
+          Addon.VendorId=google
+          Addon.VendorDisplay=Google Inc.
+          """.trimIndent()
+
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
     private fun createSystemImage(systemImageFolder: Path, api: Int, sourceProperties: String) {
       if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
         return

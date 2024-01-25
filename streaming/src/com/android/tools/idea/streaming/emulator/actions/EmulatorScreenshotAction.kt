@@ -23,7 +23,6 @@ import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FutureStreamObserver
-import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
@@ -85,7 +84,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         }
 
         val emulatorController = emulatorView.emulator
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
         val screenshotFramer = MyScreenshotPostprocessor(emulatorView)
         val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
@@ -131,7 +130,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       try {
         val screenshot = receiver.futureResult.get()
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
       }
       catch (e: InterruptedException) {
         throw ProcessCanceledException()
@@ -196,9 +195,3 @@ private val avdFrame = object : FramingOption {
 }
 
 private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()
-
-private fun deviceType(emulatorController: EmulatorController): DeviceType =
-  when {
-    emulatorController.emulatorConfig.isWearOs -> DeviceType.WEAR
-    else -> DeviceType.PHONE
-  }

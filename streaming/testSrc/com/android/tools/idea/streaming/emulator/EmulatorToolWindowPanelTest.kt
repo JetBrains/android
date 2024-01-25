@@ -321,7 +321,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
   }
-
   @Test
   fun testWearToolbarActionsApi28() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 28)
@@ -385,6 +384,42 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
 
     val streamScreenshotCall = emulator.getNextGrpcCall(2.seconds)
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testAutomotiveToolbarActions() {
+    val avdFolder = FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, api = 32)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(400, 300)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 271")
+    assertAppearance(ui, "AutomotiveToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    // Check that the buttons not applicable to Automotive devices are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Back" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)

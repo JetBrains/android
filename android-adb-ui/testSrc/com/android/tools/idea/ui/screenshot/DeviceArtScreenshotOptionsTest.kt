@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.awt.Color
@@ -32,7 +33,7 @@ class DeviceArtScreenshotOptionsTest {
   fun testCreateScreenshotImage() {
     val image = createImage(1080, 2400, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2400, ..., density 560, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.HANDHELD)
     Truth.assertThat(screenshotImage.image.width).isEqualTo(1080)
     Truth.assertThat(screenshotImage.image.height).isEqualTo(2400)
     Truth.assertThat(screenshotImage.displaySize).isEqualTo(Dimension(1080, 2400))
@@ -71,7 +72,7 @@ class DeviceArtScreenshotOptionsTest {
   fun testGetFramingOptionsPhone() {
     val image = createImage(1080, 2340, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2340, ..., density 420, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.HANDHELD)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     Truth.assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone", "Generic Tablet")
   }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /**
  * Simulates pressing the Power button on an Android virtual device.
  */
-class EmulatorPowerButtonAction : EmulatorPushButtonAction("Power", configFilter = { !it.isWearOs || it.api < 28 })
+class EmulatorPowerButtonAction : EmulatorPushButtonAction("Power", configFilter = { it.deviceType != DeviceType.WEAR || it.api < 28 })

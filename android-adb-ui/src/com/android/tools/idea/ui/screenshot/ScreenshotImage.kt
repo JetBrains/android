@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.image.BufferedImage

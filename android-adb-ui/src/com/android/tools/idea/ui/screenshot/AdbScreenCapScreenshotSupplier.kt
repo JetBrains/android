@@ -22,6 +22,7 @@ import com.android.adblib.shellAsText
 import com.android.adblib.shellCommand
 import com.android.adblib.utils.ByteArrayShellCollector
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
@@ -85,7 +86,7 @@ class AdbScreenCapScreenshotSupplier(
     when {
       pmOutput.contains("feature:android.software.leanback") -> DeviceType.TV
       pmOutput.contains("feature:android.hardware.type.watch") -> DeviceType.WEAR
-      else -> DeviceType.PHONE
+      else -> DeviceType.HANDHELD
     }
 
   /**

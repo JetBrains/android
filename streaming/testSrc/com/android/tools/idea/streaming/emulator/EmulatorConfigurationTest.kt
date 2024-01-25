@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.jimfs.Jimfs
@@ -53,7 +54,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/'))
         .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -78,7 +79,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(320)
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
     assertThat(config?.displayModes).isEmpty()
@@ -103,7 +104,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(240)
     assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("wearos_small_round").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isTrue()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.WEAR)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -128,7 +129,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("pixel_fold").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -156,7 +157,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -184,7 +185,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).containsExactly(

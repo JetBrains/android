@@ -595,8 +595,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private @NotNull DeviceScreenshotEvent.DeviceType getUsageDeviceType() {
     return switch (mySourceImageRef.get().getDeviceType()) {
       case WEAR -> DeviceScreenshotEvent.DeviceType.WEAR;
-      case PHONE -> DeviceScreenshotEvent.DeviceType.PHONE;
+      case HANDHELD -> DeviceScreenshotEvent.DeviceType.PHONE;
       case TV -> DeviceScreenshotEvent.DeviceType.TV;
+      case AUTOMOTIVE -> DeviceScreenshotEvent.DeviceType.UNKNOWN_DEVICE_TYPE;
     };
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -28,7 +29,7 @@ import java.awt.EventQueue
  */
 sealed class EmulatorRotateAction(
   private val rotationQuadrants: Int,
-) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && !it.isWearOs }) {
+) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && it.deviceType != DeviceType.WEAR }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return

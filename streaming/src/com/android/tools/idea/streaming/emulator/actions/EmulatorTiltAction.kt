@@ -18,13 +18,14 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType.WRIST_TILT
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
  * Triggers the tilt sensor on an Android Wear virtual device.
  */
-internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.isWearOs && it.api >= 28 }) {
+internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 28 }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return

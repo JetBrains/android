@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.streaming.device.screenshot
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
-import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import org.junit.Before
 import org.junit.Test
@@ -43,7 +43,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testSkinFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.PHONE, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
     val skinFolder = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath().resolve("pixel_6")
     val framedImage = postprocessor.addFrame(screenshotImage, DeviceFramingOption("Pixel 6", skinFolder), null)
     assertImageSimilar("SkinFrame", framedImage)
@@ -51,7 +51,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testDeviceArtFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.PHONE, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
     val artDescriptor = DeviceArtDescriptor.getDescriptors(null).find { it.id == "phone" }!!
     val framedImage = postprocessor.addFrame(screenshotImage, DeviceFramingOption(artDescriptor), null)
     assertImageSimilar("DeviceArtFrame", framedImage)

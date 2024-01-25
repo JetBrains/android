@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.io.writeImage
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread

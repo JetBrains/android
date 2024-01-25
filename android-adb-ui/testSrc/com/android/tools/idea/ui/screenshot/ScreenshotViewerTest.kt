@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
@@ -123,7 +124,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -138,7 +139,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -295,7 +296,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -305,7 +306,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testScreenshotUsageIsTracked_OkAction_Phone() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     overrideSaveFileDialog()
 
@@ -323,7 +324,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
     val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }

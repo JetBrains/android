@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device.screenshot
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager.DeviceFilter
 import com.android.sdklib.devices.Screen
@@ -27,7 +28,6 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceView
-import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotImage

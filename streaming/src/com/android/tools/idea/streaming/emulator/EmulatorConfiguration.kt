@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.google.common.base.Splitter
@@ -37,7 +38,7 @@ class EmulatorConfiguration private constructor(
   val displaySize: Dimension,
   val density: Int,
   val skinFolder: Path?,
-  val isWearOs: Boolean,
+  val deviceType: DeviceType,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
   val initialOrientation: SkinRotation,
@@ -82,7 +83,13 @@ class EmulatorConfiguration private constructor(
         else -> SkinRotation.PORTRAIT
       }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
-      val isWearOs = configIni["tag.id"]?.equals("android-wear", ignoreCase = true) ?: false
+      val tagId = configIni["tag.id"]
+      val deviceType = when {
+        tagId?.startsWith("android-automotive") == true -> DeviceType.AUTOMOTIVE
+        tagId == "google-tv" -> DeviceType.TV
+        tagId == "android-wear" -> DeviceType.WEAR
+        else -> DeviceType.HANDHELD
+      }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       val postureMode = if (StudioFlags.EMBEDDED_EMULATOR_RESIZABLE_FOLDING.get())
           parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1) else -1
@@ -137,7 +144,7 @@ class EmulatorConfiguration private constructor(
                                    displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
                                    skinFolder = skinPath,
-                                   isWearOs = isWearOs,
+                                   deviceType = deviceType,
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
                                    initialOrientation = initialOrientation,
