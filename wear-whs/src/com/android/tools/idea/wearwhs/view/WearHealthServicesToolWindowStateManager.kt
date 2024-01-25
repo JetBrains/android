@@ -19,6 +19,7 @@ import com.android.tools.idea.wearwhs.BUNDLE_NAME
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.view.Preset.ALL
 import com.android.tools.idea.wearwhs.view.Preset.CUSTOM
 import com.android.tools.idea.wearwhs.view.Preset.STANDARD
@@ -55,7 +56,7 @@ internal interface WearHealthServicesToolWindowStateManager {
    */
   suspend  fun setOverrideValue(capability: WhsCapability, value: Float?)
 
-  fun getState(capability: WhsCapability): StateFlow<CapabilityState>
+  fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 
     /**
    * Applies the changes on current device.
@@ -126,8 +127,7 @@ internal sealed class WhsStateManagerStatus {
 /**
  * Data class representing current state of a WHS capability.
  */
-internal data class CapabilityState(
-  val enabled: Boolean = false,
-  val overrideValue: Float? = null,
+internal data class CapabilityUIState(
   val synced: Boolean = false,
+  val capabilityState: CapabilityState = CapabilityState(false, null)
 )

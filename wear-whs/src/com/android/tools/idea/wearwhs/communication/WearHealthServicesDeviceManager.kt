@@ -48,6 +48,11 @@ internal interface WearHealthServicesDeviceManager {
   suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>)
 
   /**
+   * Loads the current state from WHS to compare with the current UI.
+   */
+  suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityState>
+
+  /**
    * Deletes all data from the WHS content provider
    */
   suspend fun clearContentProvider()
@@ -56,11 +61,6 @@ internal interface WearHealthServicesDeviceManager {
    * Returns if the WHS version is supported.
    */
   suspend fun isWhsVersionSupported(): Boolean
-
-  /**
-   * Loads the current status from WHS to compare with the current UI.
-   */
-  suspend fun loadCurrentCapabilityStatus(): Map<WhsDataType, CapabilityStatus>
 
   /**
    * Sets the serial number of the emulator to connect.
@@ -73,9 +73,9 @@ internal interface WearHealthServicesDeviceManager {
   suspend fun triggerEvent(eventTrigger: EventTrigger)
 }
 
-internal data class CapabilityStatus(
-  var enabled: Boolean,
-  var overrideValue: Float?,
+internal data class CapabilityState(
+  val enabled: Boolean,
+  val overrideValue: Float?,
 )
 
 internal class ConnectionLostException(message: String) : Exception(message)

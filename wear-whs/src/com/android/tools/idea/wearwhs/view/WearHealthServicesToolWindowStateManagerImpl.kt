@@ -20,6 +20,7 @@ import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
@@ -48,7 +49,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   private val currentPreset = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
-  private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
+  private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityUIState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
   private val workerScope = AndroidCoroutineScope(this)
 
@@ -81,15 +82,14 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
     try {
       ongoingExercise.emit(deviceManager.loadActiveExercise())
-      val currentStates = deviceManager.loadCurrentCapabilityStatus()
-      currentStates.forEach { (dataType, status) ->
+      val currentStates = deviceManager.loadCurrentCapabilityStates()
+      currentStates.forEach { (dataType, state) ->
         // Update values only if they're synced through and got changed in the background
         capabilityToState[dataType.toCapability()]?.let { stateFlow ->
           if (stateFlow.value.synced) {
             stateFlow.emit(
               stateFlow.value.copy(
-                enabled = status.enabled,
-                overrideValue = status.overrideValue,
+                capabilityState = CapabilityState(state.enabled, state.overrideValue),
                 synced = true
               )
             )
@@ -104,7 +104,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   private suspend fun setCapabilities(whsCapabilities: List<WhsCapability>) {
     capabilityToState.clear()
-    capabilityToState.putAll(whsCapabilities.associateWith { MutableStateFlow(CapabilityState()) })
+    capabilityToState.putAll(whsCapabilities.associateWith { MutableStateFlow(CapabilityUIState()) })
     setPreset(currentPreset.value)
     capabilitiesList.emit(whsCapabilities)
   }
@@ -150,25 +150,25 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     currentPreset.emit(preset)
   }
 
-  override fun getState(capability: WhsCapability): StateFlow<CapabilityState> =
+  override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
 
   override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean) {
     val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-    val newState = stateFlow.value.copy(enabled = enabled, synced = false)
+    val newState = stateFlow.value.copy(capabilityState = CapabilityState(enabled, stateFlow.value.capabilityState.overrideValue), synced = false)
     stateFlow.emit(newState)
   }
 
   override suspend fun setOverrideValue(capability: WhsCapability, value: Float?) {
     val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-    val newState = stateFlow.value.copy(overrideValue = value, synced = false)
+    val newState = stateFlow.value.copy(capabilityState = CapabilityState(stateFlow.value.capabilityState.enabled, value), synced = false)
     stateFlow.emit(newState)
   }
 
   override suspend fun applyChanges() {
     progress.emit(WhsStateManagerStatus.Syncing)
-    val capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.enabled }
-    val overrideUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.overrideValue }
+    val capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.enabled }
+    val overrideUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.overrideValue }
     try {
       deviceManager.setCapabilities(capabilityUpdates)
       deviceManager.overrideValues(overrideUpdates)

@@ -485,7 +485,7 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityState>) = runTest {
     val queryContentProviderCommand = "content query --uri $WHS_CONTENT_PROVIDER_URI"
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryContentProviderCommand, response)
 
@@ -494,9 +494,9 @@ class DeviceManagerTest {
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-    var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to CapabilityStatus(false, null) }
+    var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to CapabilityState(false, null) }
     val job = launch {
-      parsedCapabilities = deviceManager.loadCurrentCapabilityStatus()
+      parsedCapabilities = deviceManager.loadCurrentCapabilityStates()
     }
     job.join()
 
@@ -534,17 +534,17 @@ class DeviceManagerTest {
                                                        Row: 10 data_type=STEPS, is_enabled=true, override_value=0
                                                        """.trimIndent(),
                                                        mapOf(
-                                                        WhsDataType.STEPS_PER_MINUTE to CapabilityStatus(false, null),
-                                                        WhsDataType.SPEED to CapabilityStatus(true, null),
-                                                        WhsDataType.FLOORS to CapabilityStatus(false, null),
-                                                        WhsDataType.ABSOLUTE_ELEVATION to CapabilityStatus(false, null),
-                                                        WhsDataType.ELEVATION_LOSS to CapabilityStatus(false, null),
-                                                        WhsDataType.DISTANCE to CapabilityStatus(true, null),
-                                                        WhsDataType.ELEVATION_GAIN to CapabilityStatus(false, null),
-                                                        WhsDataType.CALORIES to CapabilityStatus(false, null),
-                                                        WhsDataType.PACE to CapabilityStatus(false, null),
-                                                        WhsDataType.HEART_RATE_BPM to CapabilityStatus(true, null),
-                                                        WhsDataType.STEPS to CapabilityStatus(true, null),
+                                                        WhsDataType.STEPS_PER_MINUTE to CapabilityState(false, null),
+                                                        WhsDataType.SPEED to CapabilityState(true, null),
+                                                        WhsDataType.FLOORS to CapabilityState(false, null),
+                                                        WhsDataType.ABSOLUTE_ELEVATION to CapabilityState(false, null),
+                                                        WhsDataType.ELEVATION_LOSS to CapabilityState(false, null),
+                                                        WhsDataType.DISTANCE to CapabilityState(true, null),
+                                                        WhsDataType.ELEVATION_GAIN to CapabilityState(false, null),
+                                                        WhsDataType.CALORIES to CapabilityState(false, null),
+                                                        WhsDataType.PACE to CapabilityState(false, null),
+                                                        WhsDataType.HEART_RATE_BPM to CapabilityState(true, null),
+                                                        WhsDataType.STEPS to CapabilityState(true, null),
                                                        ))
   }
 
@@ -556,8 +556,8 @@ class DeviceManagerTest {
                                                        Row: 1 data_type=STEPS, is_enabled=true, override_value=0
                                                        Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
                                                        """.trimIndent(),
-      mapOf(
-        WhsDataType.STEPS to CapabilityStatus(true, null),
-      ))
+                                                       mapOf(
+                                                        WhsDataType.STEPS to CapabilityState(true, null),
+                                                      ))
   }
 }

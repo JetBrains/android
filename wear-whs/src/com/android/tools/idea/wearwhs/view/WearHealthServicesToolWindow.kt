@@ -259,7 +259,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           val checkBox = JCheckBox(message(capability.label)).also { checkBox ->
             val plainFont = checkBox.font.deriveFont(Font.PLAIN)
             val italicFont = checkBox.font.deriveFont(Font.ITALIC)
-            stateManager.getState(capability).map { it.enabled }.onEach { enabled ->
+            stateManager.getState(capability).map { it.capabilityState.enabled }.onEach { enabled ->
               checkBox.isSelected = enabled
             }.launchIn(uiScope)
             stateManager.getState(capability).map { it.synced }.onEach { synced ->
@@ -326,7 +326,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
                   }
                 }
               })
-              stateManager.getState(capability).map { it.overrideValue }.onEach {
+              stateManager.getState(capability).map { it.capabilityState.overrideValue }.onEach {
                 if (!textField.isFocusOwner) {
                   textField.text = it?.toString() ?: ""
                 }

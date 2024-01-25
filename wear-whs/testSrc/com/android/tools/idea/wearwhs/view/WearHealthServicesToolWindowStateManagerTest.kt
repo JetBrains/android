@@ -19,7 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
-import com.android.tools.idea.wearwhs.communication.CapabilityStatus
+import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.google.common.truth.Truth.assertThat
@@ -89,9 +89,9 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setPreset(Preset.STANDARD)
 
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
   }
 
   @Test
@@ -100,9 +100,9 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setPreset(Preset.ALL)
 
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
   }
 
   @Test
@@ -110,7 +110,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getCapabilitiesList().waitForValue(capabilities)
 
     stateManager.setCapabilityEnabled(capabilities[0], false)
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
   }
 
   @Test
@@ -119,7 +119,7 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setOverrideValue(capabilities[1], 3f)
 
-    stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(3f)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(3f)
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(false)
   }
 
@@ -136,8 +136,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.reset()
 
     stateManager.getPreset().waitForValue(Preset.ALL)
-    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(null)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
     stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
 
     assertEquals(1, deviceManager.clearContentProviderInvocations)
@@ -164,10 +164,10 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
     stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
-    assertThat(deviceManager.loadCurrentCapabilityStatus()).containsExactly(
-      capabilities[0].dataType, CapabilityStatus(false, null),
-      capabilities[1].dataType, CapabilityStatus(true, 3f),
-      capabilities[2].dataType, CapabilityStatus(true, null)
+    assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
+      capabilities[0].dataType, CapabilityState(false, null),
+      capabilities[1].dataType, CapabilityState(true, 3f),
+      capabilities[2].dataType, CapabilityState(true, null)
     )
 
     assertThat(loggedEvents).hasSize(2)
@@ -224,7 +224,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.setCapabilities(mapOf(capabilities[0].dataType to false))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false, 5000)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false, 5000)
   }
 
   @Test
@@ -240,8 +240,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.overrideValues(mapOf(capabilities[0].dataType to 10f))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true, 5000)
-    stateManager.getState(capabilities[0]).map { it.overrideValue }.waitForValue(10f, 5000)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true, 5000)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(10f, 5000)
   }
 
   @Test
