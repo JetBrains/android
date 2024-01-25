@@ -307,12 +307,8 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testNewBasicActivityMaterial3() {
-    val withMaterial3: ProjectStateCustomizer =
-      { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
-        moduleData.isMaterial3 = true
-      }
-    checkCreateTemplate("Basic Views Activity", withKotlin(), withMaterial3)
+  fun testNewBasicViewsActivityWithKotlin() {
+    checkCreateTemplate("Basic Views Activity", withKotlin())
   }
 
   @Test
