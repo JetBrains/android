@@ -63,11 +63,10 @@ class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsMana
   }
 
   override fun createStartTaskArgs(isStartupTask: Boolean): TaskArgs {
-    val isLegacy = MemoryDataProvider.getIsLiveAllocationTrackingSupported(profilers)
-    return if (isLegacy) {
-      LegacyJavaKotlinAllocationsTaskArgs(false, null)
-    } else {
+    return if (MemoryDataProvider.getIsLiveAllocationTrackingSupported(profilers)) {
       JavaKotlinAllocationsTaskArgs(false, null)
+    } else {
+      LegacyJavaKotlinAllocationsTaskArgs(false, null)
     }
   }
 

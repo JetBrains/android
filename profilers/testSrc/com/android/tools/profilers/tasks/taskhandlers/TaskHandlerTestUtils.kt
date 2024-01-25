@@ -31,11 +31,20 @@ object TaskHandlerTestUtils {
                    transportService: FakeTransportService,
                    timer: FakeTimer,
                    taskType: Common.ProfilerTaskType) {
+   startSession(exposureLevel, AndroidVersion.VersionCodes.Q, profilers, transportService, timer, taskType)
+  }
+
+  fun startSession(exposureLevel: Common.Process.ExposureLevel,
+                   deviceFeatureLevel: Int,
+                   profilers: StudioProfilers,
+                   transportService: FakeTransportService,
+                   timer: FakeTimer,
+                   taskType: Common.ProfilerTaskType) {
     // The following creates and starts a fake debuggable session so that features that requires a debuggable process are supported such as
     // heap dump and java/kotlin allocations.
     profilers.setPreferredProcess(null, FakeTransportService.FAKE_PROCESS.name, null)
     // To support the Native Allocation tracing feature, the feature level of the device must be >= Q.
-    val device = FakeTransportService.FAKE_DEVICE.toBuilder().setFeatureLevel(AndroidVersion.VersionCodes.Q).build()
+    val device = FakeTransportService.FAKE_DEVICE.toBuilder().setApiLevel(deviceFeatureLevel).setFeatureLevel(deviceFeatureLevel).build()
     transportService.addDevice(device)
     val debuggableEvent = FakeTransportService.FAKE_PROCESS.toBuilder()
       .setStartTimestampNs(5)

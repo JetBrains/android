@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -31,7 +32,6 @@ import com.android.tools.profilers.SessionArtifactUtils.createAllocationSessionA
 import com.android.tools.profilers.SessionArtifactUtils.createLegacyAllocationsSessionArtifact
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
@@ -41,6 +41,7 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -327,6 +328,30 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThrows(IllegalStateException::class.java) {
       myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     }
+  }
+
+  @Test
+  fun testCreateStartTaskArgsNonLegacy() {
+    // The non-legacy Java/Kotlin allocations task is used when the device feature level >= O.
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.O, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val sessionsManager = myProfilers.sessionsManager
+    val legacyArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems,
+                                                                   sessionsManager.selectedSession)
+    assertThat(legacyArgs).isInstanceOf(JavaKotlinAllocationsTaskArgs::class.java);
+  }
+
+  @Test
+  fun testCreateStartTaskArgsLegacy() {
+    // The legacy Java/Kotlin allocations task is used when the device feature level < O.
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.N, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val sessionsManager = myProfilers.sessionsManager
+    val legacyArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems,
+                                                                   sessionsManager.selectedSession)
+    assertThat(legacyArgs).isInstanceOf(LegacyJavaKotlinAllocationsTaskArgs::class.java);
   }
 
   @Test
