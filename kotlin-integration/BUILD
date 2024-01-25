@@ -17,7 +17,6 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/adt/idea/kotlin-integration/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",

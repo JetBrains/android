@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.callgraph
+package com.android.tools.idea.lint.callgraph
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.lint.checks.searchForInterproceduralThreadAnnotationViolations
@@ -30,7 +30,7 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
   private fun addFile(file: String) = myFixture.copyFileToProject("callgraph/$file", "src/$file")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/kotlin-integration/testData").toString()
+    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
 
     // Most of the test uses the new AndroidX annotations, but we make sure that the old annotations work too.
     addFile("AndroidxAnnotations$ext")

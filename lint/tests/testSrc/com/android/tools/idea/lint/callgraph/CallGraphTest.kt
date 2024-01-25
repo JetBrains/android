@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.callgraph
+package com.android.tools.idea.lint.callgraph
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.lint.detector.api.interprocedural.CallGraph
@@ -66,7 +66,7 @@ class CallGraphTest : AndroidTestCase() {
   fun testKotlinCallGraph() = doTest(".kt")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/kotlin-integration/testData").toString()
+    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
     val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph$ext", "src/CallGraph$ext")
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val contextualGraph = graph.buildContextualCallGraph(receiverEval)
