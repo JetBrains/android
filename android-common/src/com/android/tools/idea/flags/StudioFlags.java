@@ -1601,7 +1601,7 @@ public final class StudioFlags {
       "crashlytics.2023h2.ui",
       "Crashlytics UI changes for J",
       "Enabled Logs & Keys, Multi-event",
-      false
+      true
     );
 
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
