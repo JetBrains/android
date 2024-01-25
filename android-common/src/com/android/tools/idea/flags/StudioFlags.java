@@ -339,6 +339,13 @@ public final class StudioFlags {
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
 
+  public static final Flag<Boolean> INSTALL_WITH_ADBLIB = Flag.create(
+    RUNDEBUG,
+    "installwithadblib",
+    "Install apks with adblib instead of ddmlib",
+    "Studio can communicate with adb server via two backend, ddmlib and adblib. This option decides which backend to use.",
+    true);
+
   public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_SWAP = Flag.create(
     RUNDEBUG,
     "applychanges.optimisticswap",

@@ -26,5 +26,7 @@ iml_module(
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
     ],
 )
