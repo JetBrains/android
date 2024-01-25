@@ -213,10 +213,6 @@ public final class PsiResourceItem implements ResourceItem {
     mySourceFile = sourceFile;
   }
 
-  /**
-   * GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
-   * so that if the value changes we will get a resource changed event fire.
-   */
   @Override
   @Nullable
   public ResourceValue getResourceValue() {
