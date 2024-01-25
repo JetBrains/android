@@ -297,13 +297,16 @@ android {
 
     targetProjectPath = ":app"
 
+    // This code creates the gradle managed device used to generate baseline profiles.
+    // To use GMD please invoke generation through the command line:
+    // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-    create<ManagedVirtualDevice>("pixel6Api34") {
-        device = "Pixel 6"
-        apiLevel = 34
-        systemImageSource = "google"
+        create<ManagedVirtualDevice>("pixel6Api34") {
+            device = "Pixel 6"
+            apiLevel = 34
+            systemImageSource = "google"
+        }
     }
-}
 }
 
 // This is the configuration block for the Baseline Profile plugin.
@@ -707,13 +710,16 @@ android {
 
     targetProjectPath = ":app"
 
+    // This code creates the gradle managed device used to generate baseline profiles.
+    // To use GMD please invoke generation through the command line:
+    // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-    create<ManagedVirtualDevice>("pixel6Api34") {
-        device = "Pixel 6"
-        apiLevel = 34
-        systemImageSource = "google"
+        create<ManagedVirtualDevice>("pixel6Api34") {
+            device = "Pixel 6"
+            apiLevel = 34
+            systemImageSource = "google"
+        }
     }
-}
 }
 
 // This is the configuration block for the Baseline Profile plugin.
