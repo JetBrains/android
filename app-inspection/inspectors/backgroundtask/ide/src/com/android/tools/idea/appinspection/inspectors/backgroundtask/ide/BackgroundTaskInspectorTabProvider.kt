@@ -101,7 +101,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
         BackgroundTaskInspectorTab(
             client,
             ideServices,
-            IntellijUiComponentsProvider(project),
+            IntellijUiComponentsProvider(project, parentDisposable),
             scope,
             AndroidDispatchers.uiThread,
           )

@@ -18,6 +18,7 @@ package com.android.tools.inspectors.common.api.ide.stacktrace;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ProjectRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,11 +38,14 @@ public class IntelliJStackTraceGroupTest {
   @Rule
   public final ProjectRule myProjectRule = new ProjectRule();
 
+  @Rule
+  public final DisposableRule myDisposableRule = new DisposableRule();
+
   @Test
   public void canOnlySelectOneStackTraceViewAtATime() {
     IntelliJStackTraceGroup group = new IntelliJStackTraceGroup(
       myProjectRule.getProject(),
-      (IntelliJStackTraceViewTest::createStackTraceView));
+      (project, model) -> IntelliJStackTraceViewTest.createStackTraceView(project, model, myDisposableRule.getDisposable()));
 
     StackTraceModel model1 = IntelliJStackTraceViewTest.createStackTraceModel();
     StackTraceModel model2 = IntelliJStackTraceViewTest.createStackTraceModel();

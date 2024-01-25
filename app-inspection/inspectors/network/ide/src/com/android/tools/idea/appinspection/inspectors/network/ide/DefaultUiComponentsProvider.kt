@@ -60,6 +60,6 @@ class DefaultUiComponentsProvider(
   }
 
   override fun createStackGroup(): StackTraceGroup {
-    return IntelliJStackTraceGroup(project)
+    return IntelliJStackTraceGroup(project, parentDisposable)
   }
 }

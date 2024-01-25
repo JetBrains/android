@@ -101,7 +101,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
     }
 
-    ideProfilerComponents = IntellijProfilerComponents(project, ideProfilerServices.featureTracker)
+    ideProfilerComponents = IntellijProfilerComponents(project, this, ideProfilerServices.featureTracker)
 
     // Create and store the task handlers in a map.
     initializeTaskHandlers()

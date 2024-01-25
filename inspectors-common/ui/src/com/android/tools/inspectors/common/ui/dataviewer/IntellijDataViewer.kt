@@ -54,6 +54,7 @@ import kotlin.math.min
 private const val RAW_VIEWER_MAX_STRING_LENGTH = 500
 private const val MAX_SIZE_TO_FORMAT = 100_000
 private val logger = Logger.getInstance(IntellijDataViewer::class.java)
+private val application = ApplicationManager.getApplication()
 
 class IntellijDataViewer private constructor(private val component: JComponent, private val style: Style) : DataViewer {
   override fun getComponent(): JComponent {
@@ -111,7 +112,8 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
 
         val textEditor = PsiAwareTextEditorProvider().createEditor(project, virtualFile) as TextEditor
         configureEditor(textEditor.editor as EditorEx)
-        CodeFoldingManager.getInstance(project).updateFoldRegions(textEditor.editor)
+        val codeFoldingManager = CodeFoldingManager.getInstance(project)
+        application.runWriteAction { codeFoldingManager.updateFoldRegions(textEditor.editor) }
         Disposer.register(parentDisposable, textEditor)
 
         val component = if (showNotification) getComponentWithNotification(textEditor.editor) else textEditor.editor.component

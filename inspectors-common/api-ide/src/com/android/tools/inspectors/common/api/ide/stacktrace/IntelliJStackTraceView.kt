@@ -20,6 +20,9 @@ import com.android.tools.adtui.stdui.ContextMenuItem
 import com.android.tools.adtui.stdui.StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement
 import com.android.tools.inspectors.common.api.stacktrace.StackElement
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
@@ -31,9 +34,11 @@ import com.android.tools.inspectors.common.api.stacktrace.ThreadId.INVALID_THREA
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -52,6 +57,7 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.asCoroutineDispatcher
 import java.awt.Insets
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
@@ -66,6 +72,9 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionListener
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val LIST_ROW_INSETS: Insets = JBUI.insets(2, 10, 0, 0)
 
@@ -74,6 +83,7 @@ class IntelliJStackTraceView
 internal constructor(
   private val project: Project,
   private val model: StackTraceModel,
+  parentDisposable: Disposable,
   private val generator: (Project, CodeLocation) -> CodeElement,
 ) : AspectObserver(), StackTraceView, DataProvider, CopyProvider {
 
@@ -85,8 +95,14 @@ internal constructor(
 
   constructor(
     project: Project,
-    model: StackTraceModel
-  ) : this(project, model, { p: Project, l: CodeLocation -> IntelliJCodeElement(p, l) })
+    model: StackTraceModel,
+    parentDisposable: Disposable,
+  ) : this(
+    project,
+    model,
+    parentDisposable,
+    { p: Project, l: CodeLocation -> IntelliJCodeElement(p, l) }
+  )
 
   init {
     listView.selectionMode = SINGLE_SELECTION
@@ -151,17 +167,23 @@ internal constructor(
       }
     )
 
+    // A scope that we will be using to load the list model in the background
+    val scope = AndroidCoroutineScope(parentDisposable)
+    val dispatcher = MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor).asCoroutineDispatcher()
     model
       .addDependency(this)
       .onChange(STACK_FRAMES) {
-        val stackFrames = model.codeLocations
-        listModel.removeAllElements()
-        listView.clearSelection()
-        stackFrames.forEach { listModel.addElement(generator(project, it)) }
-
-        val threadId = model.threadId
-        if (threadId != INVALID_THREAD_ID) {
-          listModel.addElement(ThreadElement(threadId))
+        scope.launch(dispatcher) {
+          val elements = model.codeLocations.map { generator(project, it) }
+          withContext(uiThread) {
+            listModel.removeAllElements()
+            listView.clearSelection()
+            listModel.addAll(elements)
+            val threadId = model.threadId
+            if (threadId != INVALID_THREAD_ID) {
+              listModel.addElement(ThreadElement(threadId))
+            }
+          }
         }
       }
       .onChange(SELECTED_LOCATION) {

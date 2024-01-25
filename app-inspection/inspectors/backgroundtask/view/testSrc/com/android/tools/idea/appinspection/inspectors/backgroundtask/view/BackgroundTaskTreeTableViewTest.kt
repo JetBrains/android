@@ -50,6 +50,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.util.concurrency.EdtExecutorService
 import javax.swing.JScrollPane
 import javax.swing.JTree
@@ -67,7 +69,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class BackgroundTaskTreeTableViewTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   private lateinit var scope: CoroutineScope
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
@@ -96,7 +100,7 @@ class BackgroundTaskTreeTableViewTest {
         BackgroundTaskInspectorTab(
           client,
           AppInspectionIdeServicesAdapter(),
-          IntellijUiComponentsProvider(projectRule.project),
+          IntellijUiComponentsProvider(projectRule.project, disposableRule.disposable),
           scope,
           uiDispatcher,
         )

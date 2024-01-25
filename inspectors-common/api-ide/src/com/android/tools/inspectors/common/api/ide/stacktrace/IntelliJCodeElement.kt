@@ -20,22 +20,19 @@ import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement.NO_PACKAGE
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement.UNKONWN_CLASS
-import com.google.common.base.Strings
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 
-private val UNRESOLVED_CLASS_FILE: VirtualFile = StubVirtualFile()
-
-class IntelliJCodeElement(private val project: Project, private val codeLocation: CodeLocation) : CodeElement {
+class IntelliJCodeElement(private val project: Project, private val codeLocation: CodeLocation) :
+  CodeElement {
   private val packageName: String
   private val simpleClassName: String
-
-  private var cachedClassFile: VirtualFile? = UNRESOLVED_CLASS_FILE
+  private val isInUserCode: Boolean
 
   init {
     val className = codeLocation.className
@@ -45,8 +42,16 @@ class IntelliJCodeElement(private val project: Project, private val codeLocation
     } else {
       val dot = className.lastIndexOf('.')
       packageName = if (dot <= 0) NO_PACKAGE else className.substring(0, dot)
-      simpleClassName = if (dot + 1 < className.length) className.substring(dot + 1) else UNKONWN_CLASS
+      simpleClassName =
+        if (dot + 1 < className.length) className.substring(dot + 1) else UNKONWN_CLASS
     }
+
+    isInUserCode =
+      when {
+        IdeInfo.isGameTool() -> false
+        codeLocation.isNativeCode -> isInNativeSources()
+        else -> isInSources()
+      }
   }
 
   override fun getCodeLocation() = codeLocation
@@ -59,45 +64,37 @@ class IntelliJCodeElement(private val project: Project, private val codeLocation
     return codeLocation.methodName ?: CodeElement.UNKNOWN_METHOD
   }
 
-  override fun isInUserCode(): Boolean {
-    if (IdeInfo.isGameTool()) {
-      // For standalone game tools, source code navigation is not supported at this moment.
+  override fun isInUserCode() = isInUserCode
+
+  private fun isInNativeSources(): Boolean {
+    val sourceFileName = codeLocation.fileName ?: return false
+    if (sourceFileName.isEmpty()) {
+      return false
+    }
+    val file = LocalFileSystem.getInstance().findFileByPath(sourceFileName) ?: return false
+    val application = ApplicationManager.getApplication()
+    return application.runReadAction(
+      Computable { ProjectFileIndex.getInstance(project).isInSource(file) }
+    )
+  }
+
+  private fun isInSources(): Boolean {
+    if (codeLocation.className == null) {
       return false
     }
 
-    val sourceFile = if (codeLocation.isNativeCode) findSourceFile() else findClassFile()
-    return sourceFile != null && ProjectFileIndex.getInstance(project).isInSource(sourceFile)
-  }
+    // JavaPsiFacade can't deal with inner classes, so we'll need to strip the class name down to
+    // just the outer class name.
+    val className = codeLocation.outerClass
 
-  private fun findSourceFile(): VirtualFile? {
-    val sourceFileName = codeLocation.fileName
-    if (Strings.isNullOrEmpty(sourceFileName)) {
-      return null
-    }
-    return LocalFileSystem.getInstance().findFileByPath(sourceFileName!!)
-  }
-
-  private fun findClassFile(): VirtualFile? {
-    @Suppress("UseVirtualFileEquals")
-    if (cachedClassFile !== UNRESOLVED_CLASS_FILE) {
-      return cachedClassFile
-    }
-
-    var className = codeLocation.className
-    if (className == null) {
-      cachedClassFile = null
-      return null
-    }
-
-    // JavaPsiFacade can't deal with inner classes, so we'll need to strip the class name down to just the outer class name.
-    className = codeLocation.outerClass
-
-    val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
-    if (psiClass == null) {
-      cachedClassFile = null
-      return null
-    }
-    cachedClassFile = psiClass.containingFile.virtualFile
-    return cachedClassFile
+    val psiFacade = JavaPsiFacade.getInstance(project)
+    val application = ApplicationManager.getApplication()
+    return application.runReadAction(
+      Computable {
+        val psiClass = psiFacade.findClass(className, GlobalSearchScope.allScope(project))
+        val file = psiClass?.containingFile?.virtualFile ?: return@Computable false
+        ProjectFileIndex.getInstance(project).isInSource(file)
+      }
+    )
   }
 }

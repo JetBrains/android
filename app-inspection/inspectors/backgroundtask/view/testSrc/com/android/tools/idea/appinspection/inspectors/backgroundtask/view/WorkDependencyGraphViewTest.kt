@@ -26,6 +26,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiM
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.event.ActionEvent
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +44,9 @@ import org.junit.Test
 import org.mockito.Mockito
 
 class WorkDependencyGraphViewTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   private lateinit var scope: CoroutineScope
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
@@ -72,7 +76,7 @@ class WorkDependencyGraphViewTest {
         BackgroundTaskInspectorTab(
           client,
           AppInspectionIdeServicesAdapter(),
-          IntellijUiComponentsProvider(projectRule.project),
+          IntellijUiComponentsProvider(projectRule.project, disposableRule.disposable),
           scope,
           uiDispatcher,
         )

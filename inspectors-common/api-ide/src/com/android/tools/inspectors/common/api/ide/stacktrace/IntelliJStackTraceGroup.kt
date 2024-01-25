@@ -22,6 +22,7 @@ import com.android.tools.inspectors.common.ui.ContextMenuInstaller
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import javax.swing.JList
 import javax.swing.event.ListSelectionListener
@@ -35,11 +36,12 @@ internal constructor(
   private val stackTraceViews: MutableList<IntelliJStackTraceView> = ArrayList()
 
   constructor(
-    project: Project
+    project: Project,
+    parentDisposable: Disposable,
   ) : this(
     project,
     { p: Project, m: StackTraceModel ->
-      val view = IntelliJStackTraceView(p, m)
+      val view = IntelliJStackTraceView(p, m, parentDisposable)
       val installer: ContextMenuInstaller = IntellijContextMenuInstaller()
       view.installNavigationContextMenu(installer)
       view.installGenericContextMenu(installer, ContextMenuItem.SEPARATOR)
