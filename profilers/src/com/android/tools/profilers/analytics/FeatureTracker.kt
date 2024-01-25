@@ -484,6 +484,8 @@ interface FeatureTracker {
    */
   fun trackPowerProfilerCapture(powerRailCount: Int, batteryCounterCount: Int)
 
+  fun trackTaskSettingsOpened(isSettingsChanged: Boolean)
+
   fun trackTaskEntered(taskType: ProfilerTaskType,
                        taskId: Long,
                        taskDataOrigin: TaskDataOrigin,

@@ -113,6 +113,8 @@ public final class FakeFeatureTracker implements FeatureTracker {
    */
   private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
 
+  private boolean isTaskSettingChanged;
+
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
 
@@ -563,6 +565,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public PowerProfilerCaptureMetadata getPowerProfilerCaptureMetadata() {
     return myPowerProfilerCaptureMetadata;
+  }
+
+  @Override
+  public void trackTaskSettingsOpened(boolean isSettingsChanged) {
+    isTaskSettingChanged = isSettingsChanged;
   }
 
   @Override

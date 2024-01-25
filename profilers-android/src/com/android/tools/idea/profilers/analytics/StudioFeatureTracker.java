@@ -746,6 +746,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .track();
   }
 
+  @Override
+  public void trackTaskSettingsOpened(boolean isTaskSettingsChanged) {
+    newTracker(AndroidProfilerEvent.Type.TASK_SETTINGS_OPENED).setIsTaskSettingsChanged(isTaskSettingsChanged).track();
+  }
+
   private TaskMetadata.TaskConfig buildCustomTaskConfig(ProfilerTaskType taskType, @NotNull List<ProfilingConfiguration> taskConfigs) {
     TaskMetadata.TaskConfig.Builder taskConfigBuilder = TaskMetadata.TaskConfig.newBuilder();
 
@@ -863,6 +868,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
     @Nullable private TaskEnteredMetadata myTaskEnteredMetadata;
 
+    private boolean isTaskSettingsChanged;
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull Project trackingProject,
@@ -1005,6 +1011,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setIsTaskSettingsChanged(boolean taskSettingsChanged) {
+      isTaskSettingsChanged = taskSettingsChanged;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setType(myEventType);
 
@@ -1076,6 +1088,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case POWER_PROFILER_DATA_CAPTURED:
           profilerEvent.setPowerProfilerCaptureMetadata(myPowerProfilerCaptureMetadata);
+          break;
+        case TASK_SETTINGS_OPENED:
+          profilerEvent.setIsTaskSettingsChanged(isTaskSettingsChanged);
           break;
         case TASK_ENTERED:
           profilerEvent.setTaskEnteredMetadata(myTaskEnteredMetadata);

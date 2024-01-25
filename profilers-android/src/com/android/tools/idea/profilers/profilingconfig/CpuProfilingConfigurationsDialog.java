@@ -62,10 +62,12 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.Action;
+import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -138,6 +140,20 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     myOnCloseCallback.accept(selectedConfigSupported ? selectedConfig : null);
   }
 
+  @Override
+  public void doCancelAction() {
+    ProfilingConfigurable configurable = ((ProfilingConfigurable)this.getConfigurable());
+    configurable.trackTaskBasedUxConfigMetric(false);
+    super.doCancelAction();
+  }
+
+  @Override
+  protected void doOKAction() {
+    ProfilingConfigurable configurable = ((ProfilingConfigurable)this.getConfigurable());
+    configurable.trackTaskBasedUxConfigMetric(configurable.isModified());
+    super.doOKAction();
+  }
+
   @VisibleForTesting
   static class ProfilingConfigurable implements Configurable {
 
@@ -192,6 +208,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private boolean isTaskBasedUxEnabled;
 
+    private final IdeProfilerServices myIdeProfilerServices;
+
     public ProfilingConfigurable(Project project,
                                  CpuProfilerConfigModel model,
                                  int deviceLevel,
@@ -204,6 +222,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myProfilersPanel = new OptionsPanel();
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
+      myIdeProfilerServices = ideProfilerServices;
       isTaskBasedUxEnabled = ideProfilerServices.getFeatureConfig().isTaskBasedUxEnabled();
       setUpConfigurationsList();
       selectConfiguration(myProfilerModel.getProfilingConfiguration());
@@ -367,10 +386,42 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
     }
 
+    private boolean isTaskConfigChanged() {
+      // Latest config from dialog
+      List<CpuProfilerConfig> latestConfigs = new ArrayList<>();
+      for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
+        latestConfigs.add(CpuProfilerConfigConverter.fromProfilingConfiguration(myConfigurationsModel.getElementAt(i)));
+      }
+      List<CpuProfilerConfig> existingConfigs = CpuProfilerConfigsState.getInstance(myProject).getTaskConfigs();
+      Map<String, List<CpuProfilerConfig>>
+        existingConfigGrouped = existingConfigs.stream().collect(Collectors.groupingBy(CpuProfilerConfig::getName));
+      Map<String, List<CpuProfilerConfig>>
+        latestConfigGrouped = latestConfigs.stream().collect(Collectors.groupingBy(CpuProfilerConfig::getName));
+      for (String configName : latestConfigGrouped.keySet()) {
+        // Fetch only first element of the list, since for task based no additional configs can be created.
+        CpuProfilerConfig configNow = latestConfigGrouped.get(configName).get(0);
+        CpuProfilerConfig configBefore = existingConfigGrouped.get(configName).get(0);
+        if (!configNow.equals(configBefore)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     @Override
     public boolean isModified() {
+      // Handling for task based UX
+      if (isTaskBasedUxEnabled) {
+        return this.isTaskConfigChanged();
+      }
       // TODO: Handle that properly.
       return true;
+    }
+
+    public void trackTaskBasedUxConfigMetric(boolean isConfigChanged) {
+      if (this.isTaskBasedUxEnabled) {
+        myIdeProfilerServices.getFeatureTracker().trackTaskSettingsOpened(isConfigChanged);
+      }
     }
 
     private static boolean isDefaultConfig(@NotNull ProfilingConfiguration configuration) {
