@@ -52,7 +52,6 @@ iml_module(
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
         "//tools/adt/idea/android-lint:intellij.android.lint",
-        "//tools/adt/idea/device-manager:intellij.android.device-manager",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
         "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
