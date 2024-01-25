@@ -28,62 +28,12 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
+const val WHS_PACKAGE_ID = "com.google.android.wearable.healthservices"
+const val WHS_CONTENT_PROVIDER_URI = "content://$WHS_PACKAGE_ID.dev.synthetic/synthetic_config"
+const val CONTENT_UPDATE_SHELL_COMMAND = "content update --uri $WHS_CONTENT_PROVIDER_URI"
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceManagerTest {
-  private val adbCommandActiveExercise = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
-  private val adbCommandEnableSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:b:true"
-  private val adbCommandEnableDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:b:true"
-  private val adbCommandEnableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:b:true"
-  private val adbCommandEnableFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:b:true"
-  private val adbCommandEnableElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:b:true"
-  private val adbCommandEnableElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:b:true"
-  private val adbCommandEnableAbsoluteElevation = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:true"
-  private val adbCommandEnableLocation = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind LOCATION:b:true"
-  private val adbCommandEnableHeartRateBpm = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind HEART_RATE_BPM:b:true"
-  private val adbCommandEnableSpeed = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:b:true"
-  private val adbCommandEnablePace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:b:true"
-  private val adbCommandEnableStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:b:true"
-  private val adbCommandDisableSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:b:false"
-  private val adbCommandDisableDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:b:false"
-  private val adbCommandDisableTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:b:false"
-  private val adbCommandDisableFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:b:false"
-  private val adbCommandDisableElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:b:false"
-  private val adbCommandDisableElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:b:false"
-  private val adbCommandDisableAbsoluteElevation = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false"
-  private val adbCommandDisableLocation = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind LOCATION:b:false"
-  private val adbCommandDisableHeartRateBpm = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind HEART_RATE_BPM:b:false"
-  private val adbCommandDisableSpeed = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:b:false"
-  private val adbCommandDisablePace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:b:false"
-  private val adbCommandDisableStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:b:false"
-  private val adbCommandSetStepsTo55 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:i:55"
-  private val adbCommandSetDistanceTo10 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:10.0"
-  private val adbCommandSetTotalCaloriesTo100 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:f:100.0"
-  private val adbCommandSetFloorsTo5 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:f:5.0"
-  private val adbCommandSetElevationGainTo50 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:f:50.0"
-  private val adbCommandSetElevationLossTo20 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:20.0"
-  private val adbCommandSetAbsoluteElevationTo120 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:f:120.0"
-  private val adbCommandSetHeartRateBpmTo65 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind HEART_RATE_BPM:f:65.0"
-  private val adbCommandSetSpeedTo30 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:f:30.0"
-  private val adbCommandSetPaceTo20 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:f:20.0"
-  private val adbCommandSetStepsPerMinuteTo25 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:f:25.0"
-  private val adbCommandClearSteps = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:s:\"\""
-  private val adbCommandClearDistance = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:s:\"\""
-  private val adbCommandClearTotalCalories = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:s:\"\""
-  private val adbCommandClearFloors = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:s:\"\""
-  private val adbCommandClearElevationGain = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:s:\"\""
-  private val adbCommandClearElevationLoss = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:s:\"\""
-  private val adbCommandClearAbsoluteElevation = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:s:\"\""
-  private val adbCommandClearHeartRateBpm = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind HEART_RATE_BPM:s:\"\""
-  private val adbCommandClearSpeed = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:s:\"\""
-  private val adbCommandClearPace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:s:\"\""
-  private val adbCommandClearStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:s:\"\""
-  private val adbCommandDeleteEntries = "content delete --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
-  private val adbCommandSetMultipleCapabilities = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false --bind CALORIES:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false"
-  private val adbCommandMultipleFloatOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind CALORIES:f:123.0 --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0"
-  private val adbCommandFloatIntOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55"
-  private val adbCommandFloatIntNullOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55"
-  private val adbCommandCheckWhsVersionCode = "dumpsys package com.google.android.wearable.healthservices | grep versionCode | head -n1"
-  private val adbCommandQueryContentProvider = "content query --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
   private lateinit var adbSession: FakeAdbSession
   private val serialNumber: String = "1234"
@@ -150,74 +100,74 @@ class DeviceManagerTest {
 
   @Test
   fun `enable and disable steps`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS, adbCommandEnableSteps)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS, adbCommandDisableSteps)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:false")
   }
 
   @Test
   fun `enable and disable distance`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, adbCommandEnableDistance)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, adbCommandDisableDistance)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:false")
   }
 
   @Test
-  fun `enable and disable total calories`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, adbCommandEnableTotalCalories)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, adbCommandDisableTotalCalories)
+  fun `enable and disable calories`() {
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:false")
   }
 
   @Test
   fun `enable and disable floors`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, adbCommandEnableFloors)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, adbCommandDisableFloors)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:false")
   }
 
   @Test
   fun `enable and disable elevation gain`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, adbCommandEnableElevationGain)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, adbCommandDisableElevationGain)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:false")
   }
 
   @Test
   fun `enable and disable elevation loss`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, adbCommandEnableElevationLoss)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, adbCommandDisableElevationLoss)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:false")
   }
 
   @Test
   fun `enable and disable absolute elevation`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, adbCommandEnableAbsoluteElevation)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, adbCommandDisableAbsoluteElevation)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:false")
   }
 
   @Test
   fun `enable and disable location`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, adbCommandEnableLocation)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, adbCommandDisableLocation)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:false")
   }
 
   @Test
   fun `enable and disable heart rate bpm`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, adbCommandEnableHeartRateBpm)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, adbCommandDisableHeartRateBpm)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:false")
   }
 
   @Test
   fun `enable and disable speed`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.SPEED, adbCommandEnableSpeed)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.SPEED, adbCommandDisableSpeed)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.SPEED, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.SPEED, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:false")
   }
 
   @Test
   fun `enable and disable pace`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.PACE, adbCommandEnablePace)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.PACE, adbCommandDisablePace)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.PACE, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.PACE, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:false")
   }
 
   @Test
   fun `enable and disable steps per minute`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, adbCommandEnableStepsPerMinute)
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, adbCommandDisableStepsPerMinute)
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:false")
   }
 
   @Test
@@ -237,68 +187,68 @@ class DeviceManagerTest {
 
   @Test
   fun `override steps`() {
-    assertOverrideSendsAdbCommand(WhsDataType.STEPS, 55, adbCommandSetStepsTo55)
-    assertOverrideSendsAdbCommand(WhsDataType.STEPS, null, adbCommandClearSteps)
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS, 55, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:i:55")
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:s:\"\"")
   }
 
   @Test
   fun `override distance`() {
-    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE, 10, adbCommandSetDistanceTo10)
-    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE, null, adbCommandClearDistance)
+    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE, 10, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:f:10.0")
+    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:s:\"\"")
   }
 
   @Test
-  fun `override total calories`() {
-    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, 100, adbCommandSetTotalCaloriesTo100)
-    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, null, adbCommandClearTotalCalories)
+  fun `override calories`() {
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, 100, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:100.0")
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:s:\"\"")
   }
 
   @Test
   fun `override floors`() {
-    assertOverrideSendsAdbCommand(WhsDataType.FLOORS, 5, adbCommandSetFloorsTo5)
-    assertOverrideSendsAdbCommand(WhsDataType.FLOORS, null, adbCommandClearFloors)
+    assertOverrideSendsAdbCommand(WhsDataType.FLOORS, 5, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:f:5.0")
+    assertOverrideSendsAdbCommand(WhsDataType.FLOORS, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:s:\"\"")
   }
 
   @Test
   fun `override elevation gain`() {
-    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN, 50, adbCommandSetElevationGainTo50)
-    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN, null, adbCommandClearElevationGain)
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN, 50, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:f:50.0")
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:s:\"\"")
   }
 
   @Test
   fun `override elevation loss`() {
-    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS, 20, adbCommandSetElevationLossTo20)
-    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS, null, adbCommandClearElevationLoss)
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS, 20, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:20.0")
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:s:\"\"")
   }
 
   @Test
   fun `override absolute elevation`() {
-    assertOverrideSendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, 120, adbCommandSetAbsoluteElevationTo120)
-    assertOverrideSendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, null, adbCommandClearAbsoluteElevation)
+    assertOverrideSendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, 120, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:f:120.0")
+    assertOverrideSendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:s:\"\"")
   }
 
   @Test
   fun `override heart rate bpm`() {
-    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM, 65, adbCommandSetHeartRateBpmTo65)
-    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM, null, adbCommandClearHeartRateBpm)
+    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM, 65, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:f:65.0")
+    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:s:\"\"")
   }
 
   @Test
   fun `override speed`() {
-    assertOverrideSendsAdbCommand(WhsDataType.SPEED, 30, adbCommandSetSpeedTo30)
-    assertOverrideSendsAdbCommand(WhsDataType.SPEED, null, adbCommandClearSpeed)
+    assertOverrideSendsAdbCommand(WhsDataType.SPEED, 30, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:f:30.0")
+    assertOverrideSendsAdbCommand(WhsDataType.SPEED, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:s:\"\"")
   }
 
   @Test
   fun `override pace`() {
-    assertOverrideSendsAdbCommand(WhsDataType.PACE, 20, adbCommandSetPaceTo20)
-    assertOverrideSendsAdbCommand(WhsDataType.PACE, null, adbCommandClearPace)
+    assertOverrideSendsAdbCommand(WhsDataType.PACE, 20, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:f:20.0")
+    assertOverrideSendsAdbCommand(WhsDataType.PACE, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:s:\"\"")
   }
 
   @Test
   fun `override steps per minute`() {
-    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, 25, adbCommandSetStepsPerMinuteTo25)
-    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, null, adbCommandClearStepsPerMinute)
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, 25, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:f:25.0")
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, null, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:s:\"\"")
   }
 
   @Test
@@ -340,7 +290,8 @@ class DeviceManagerTest {
 
   @Test
   fun `clear content provider triggers correct adb command`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.clearContentProvider() }, adbCommandDeleteEntries)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI")
   }
 
   @Test
@@ -355,20 +306,23 @@ class DeviceManagerTest {
 
   @Test
   fun `setting multiple capabilities triggers expected adb command with keys in alphabetical order`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(
-      WhsDataType.STEPS to true,
-      WhsDataType.DISTANCE to false,
-      WhsDataType.CALORIES to false,
-      WhsDataType.FLOORS to false,
-      WhsDataType.ELEVATION_GAIN to true,
-      WhsDataType.ELEVATION_LOSS to false,
-      WhsDataType.ABSOLUTE_ELEVATION to false,
-      WhsDataType.LOCATION to true,
-      WhsDataType.HEART_RATE_BPM to true,
-      WhsDataType.SPEED to false,
-      WhsDataType.PACE to true,
-      WhsDataType.STEPS_PER_MINUTE to false,
-    )) }, adbCommandSetMultipleCapabilities)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager ->
+                                                 deviceManager.setCapabilities(mapOf(
+                                                   WhsDataType.STEPS to true,
+                                                   WhsDataType.DISTANCE to false,
+                                                   WhsDataType.CALORIES to false,
+                                                   WhsDataType.FLOORS to false,
+                                                   WhsDataType.ELEVATION_GAIN to true,
+                                                   WhsDataType.ELEVATION_LOSS to false,
+                                                   WhsDataType.ABSOLUTE_ELEVATION to false,
+                                                   WhsDataType.LOCATION to true,
+                                                   WhsDataType.HEART_RATE_BPM to true,
+                                                   WhsDataType.SPEED to false,
+                                                   WhsDataType.PACE to true,
+                                                   WhsDataType.STEPS_PER_MINUTE to false,
+                                                 ))
+                                               },
+                                               "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:false --bind CALORIES:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false")
   }
 
   @Test
@@ -383,28 +337,36 @@ class DeviceManagerTest {
 
   @Test
   fun `setting multiple float override values triggers expected adb command with keys in alphabetical order`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
-      WhsDataType.DISTANCE to 12.0,
-      WhsDataType.CALORIES to 123.0,
-      WhsDataType.FLOORS to 5.0,
-    )) }, adbCommandMultipleFloatOverrides)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager ->
+                                                 deviceManager.overrideValues(mapOf(
+                                                   WhsDataType.DISTANCE to 12.0,
+                                                   WhsDataType.CALORIES to 123.0,
+                                                   WhsDataType.FLOORS to 5.0,
+                                                 ))
+                                               },
+                                               "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:123.0 --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0")
   }
 
   @Test
   fun `setting float and int override values triggers expected adb command with keys in alphabetical order`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
-      WhsDataType.STEPS to 55,
-      WhsDataType.ELEVATION_LOSS to 5.0,
-    )) }, adbCommandFloatIntOverrides)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager ->
+                                                 deviceManager.overrideValues(mapOf(
+                                                   WhsDataType.STEPS to 55,
+                                                   WhsDataType.ELEVATION_LOSS to 5.0,
+                                                 ))
+                                               }, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55")
   }
 
   @Test
   fun `setting float, int and null override values triggers expected adb command with keys in alphabetical order`() {
-    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
-      WhsDataType.STEPS to 55,
-      WhsDataType.ELEVATION_LOSS to 5.0,
-      WhsDataType.PACE to null,
-    )) }, adbCommandFloatIntNullOverrides)
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager ->
+                                                 deviceManager.overrideValues(mapOf(
+                                                   WhsDataType.STEPS to 55,
+                                                   WhsDataType.ELEVATION_LOSS to 5.0,
+                                                   WhsDataType.PACE to null,
+                                                 ))
+                                               },
+                                               "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55")
   }
 
   @Test
@@ -416,7 +378,8 @@ class DeviceManagerTest {
                                                    WhsDataType.PACE to null,
                                                    WhsDataType.LOCATION to null,
                                                  ))
-                                               }, adbCommandFloatIntNullOverrides)
+                                               },
+                                               "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55")
   }
 
   @Test
@@ -430,7 +393,8 @@ class DeviceManagerTest {
   }
 
   private fun assertWhsVersionCheckAdbResponseIsParsedCorrectly(response: String, expectedIsSupportedBool: Boolean) = runTest {
-    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandCheckWhsVersionCode, response)
+    val checkWhsVersionCommand = "dumpsys package $WHS_PACKAGE_ID | grep versionCode | head -n1"
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), checkWhsVersionCommand, response)
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
@@ -452,13 +416,13 @@ class DeviceManagerTest {
     val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
     assert(shellRequest.deviceSelector.contains(serialNumber))
-
-    assertEquals(adbCommandCheckWhsVersionCode, shellRequest.command)
+    assertEquals(checkWhsVersionCommand, shellRequest.command)
     assertEquals(expectedIsSupportedBool, isSupported)
   }
 
   private fun assertExerciseCommandParsesResultsCorrectly(response: String, expected: Boolean) = runTest {
-    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandActiveExercise,
+    val queryExerciseStateCommand = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryExerciseStateCommand,
                                                     response)
     val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
@@ -479,7 +443,8 @@ class DeviceManagerTest {
     val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
     assert(shellRequest.deviceSelector.contains(serialNumber))
-    assertEquals(adbCommandActiveExercise, shellRequest.command)
+    assertEquals(queryExerciseStateCommand, shellRequest.command)
+
     assertEquals(expected, isSupported)
   }
 
@@ -520,9 +485,9 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String,
-                                                                 expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
-    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandQueryContentProvider, response)
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityStatus>) = runTest {
+    val queryContentProviderCommand = "content query --uri $WHS_CONTENT_PROVIDER_URI"
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryContentProviderCommand, response)
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
@@ -543,7 +508,7 @@ class DeviceManagerTest {
     val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
     assert(shellRequest.deviceSelector.contains(serialNumber))
-    assertEquals(adbCommandQueryContentProvider, shellRequest.command)
+    assertEquals(queryContentProviderCommand, shellRequest.command)
 
     assertEquals(expectedCapabilites, parsedCapabilities)
   }
