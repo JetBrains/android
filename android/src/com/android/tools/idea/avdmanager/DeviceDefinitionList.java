@@ -167,7 +167,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private @NotNull Device first(@NotNull Category category) {
     // This should not happen and, yet, here we are
 
-    Logger.getInstance(DeviceDefinitionList.class).warn(
+    Logger.getInstance(DeviceDefinitionList.class).error(
       "Did not find default " + category.getDefaultDefinitionId() + ' ' + toString(category) + " in " + mapDefinitionsToIds(category));
 
     return myCategoryToDefinitionMultimap.get(category).first();
