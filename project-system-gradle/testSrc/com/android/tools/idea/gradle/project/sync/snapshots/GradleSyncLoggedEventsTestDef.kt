@@ -20,6 +20,7 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.ModelVersion
@@ -161,6 +162,23 @@ data class GradleSyncLoggedEventsTestDef(
           """.trimMargin()
         )
       },
+      GradleSyncLoggedEventsTestDef(
+        namePrefix = "kotlin_versions",
+        testProject = TestProject.KOTLIN_KAPT
+      ) { events ->
+        assertThat(events.dumpKotlinVersions(agpVersion.kotlinVersion)).isEqualTo(
+          """
+            |kotlin version: KOTLIN_VERSION_FOR_TESTS
+            |core-ktx version: 1.0.1
+          """.trimMargin()
+        )
+      },
+      GradleSyncLoggedEventsTestDef(
+        namePrefix = "kotlin_versions",
+        testProject = TestProject.SIMPLE_APPLICATION_VERSION_CATALOG
+      ) { events ->
+        assertThat(events.dumpKotlinVersions(agpVersion.kotlinVersion)).isEqualTo("")
+      }
     )
 
     private fun List<LoggedUsage>.dumpSyncEvents(): String {
@@ -201,6 +219,25 @@ data class GradleSyncLoggedEventsTestDef(
                   TextFormat.printer().print(gradleModule, this)
                 }
               }
+          }.trim()
+        }
+    }
+
+    private fun List<LoggedUsage>.dumpKotlinVersions(expectedKotlinVersion: String?): String {
+      val expectedKotlinVersion = expectedKotlinVersion ?: KOTLIN_VERSION_FOR_TESTS
+      return map { it.studioEvent }
+        .filter { it.hasGradleSyncStats() }
+        .map { it.kotlinSupport }
+        .last()
+        .let {
+          buildString {
+            if (it.hasKotlinSupportVersion()) {
+              val versionForPrint = it.kotlinSupportVersion.takeIf { it != expectedKotlinVersion } ?: "KOTLIN_VERSION_FOR_TESTS"
+              appendLine("kotlin version: $versionForPrint")
+            }
+            if (it.hasAndroidKtxVersion()) {
+              appendLine("core-ktx version: ${it.androidKtxVersion}")
+            }
           }.trim()
         }
     }
