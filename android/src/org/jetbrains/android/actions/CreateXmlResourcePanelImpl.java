@@ -159,12 +159,18 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
 
-    for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
-      Module depModule = depFacet.getModule();
-      AndroidModuleSystem depModuleSystem =
-        ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(depModule);
-      if (depModuleSystem.getSupportsAndroidResources()) {
-        modulesSet.add(depModule);
+    AndroidModuleSystem moduleSystem =
+      ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(module);
+    if (moduleSystem.isRClassTransitive()) {
+      // If the module's R class is transitive, it makes sense that the resource can be created in a dependent module.
+      // If it's not, then the resource must be created only on the module defining the R class.
+      for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
+        Module depModule = depFacet.getModule();
+        AndroidModuleSystem depModuleSystem =
+          ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(depModule);
+        if (depModuleSystem.getSupportsAndroidResources()) {
+          modulesSet.add(depModule);
+        }
       }
     }
 
