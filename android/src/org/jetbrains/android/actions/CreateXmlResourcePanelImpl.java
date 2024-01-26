@@ -22,6 +22,8 @@ import com.android.ide.common.resources.ResourcesUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -158,7 +160,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     modulesSet.add(module);
 
     for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
-      modulesSet.add(depFacet.getModule());
+      Module depModule = depFacet.getModule();
+      AndroidModuleSystem depModuleSystem =
+        ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(depModule);
+      if (depModuleSystem.getSupportsAndroidResources()) {
+        modulesSet.add(depModule);
+      }
     }
 
     assert !modulesSet.isEmpty();
