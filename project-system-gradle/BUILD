@@ -106,7 +106,8 @@ iml_module(
     split_test_targets = {
         "jdk.integration": {
             "data": [
-                "//prebuilts/studio/jdk/jdk11",
+                "//prebuilts/studio/jdk/jdk11:jdk11",
+                "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
