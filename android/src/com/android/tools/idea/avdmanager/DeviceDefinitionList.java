@@ -197,6 +197,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     setSelectedDevice(myDefaultDevice);
   }
 
+  @VisibleForTesting
+  @NotNull Multimap<Category, Device> getCategoryToDefinitionMultimap() {
+    return myCategoryToDefinitionMultimap;
+  }
+
   @Nullable
   @Override
   public Project getProject() {
