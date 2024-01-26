@@ -29,6 +29,8 @@ import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.tools.idea.util.ChangeTracker
+import com.android.tools.idea.util.ChangeTrackerCachedValue
 import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
@@ -50,6 +52,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.annotations.VisibleForTesting
 import org.objectweb.asm.ClassWriter
@@ -339,6 +342,8 @@ internal class ModuleClassLoaderImpl(module: Module,
     overlayManager.modificationStamp == overlayModificationStamp
   }
 
+  private val isUserCodeUpToDateCached: ChangeTrackerCachedValue<Boolean> = ChangeTrackerCachedValue.softReference()
+
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
    */
@@ -351,12 +356,13 @@ internal class ModuleClassLoaderImpl(module: Module,
       val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module).modificationTracker
       // Avoid the cached value holding "this"
       val thisReference = WeakReference(this)
-      CachedValuesManager.getManager(module.project).getCachedValue(holder) {
-        CachedValueProvider.Result.create(
-          thisReference.get()?.isUserCodeUpToDateNonCached() ?: false,
-          PsiModificationTracker.MODIFICATION_COUNT,
-          overlayModificationTracker
-        )
+      runBlocking {
+        ChangeTrackerCachedValue.get(isUserCodeUpToDateCached, {
+          thisReference.get()?.isUserCodeUpToDateNonCached() ?: false
+        }, ChangeTracker(
+          ChangeTracker { PsiModificationTracker.getInstance(module.project).modificationCount },
+          ChangeTracker { overlayModificationTracker.modificationCount }
+        ))
       }
     }
   }
