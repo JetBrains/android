@@ -38,26 +38,24 @@ import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
+import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.FULL
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -66,8 +64,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -231,32 +227,11 @@ internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
 
 /**
- * Returns a [ComposePreviewManager] related to the current context (which is implied to be bound to
- * a particular file), or null if one is not found. The search is done among the open preview parts
- * and `PreviewRepresentation` of the selected file editor.
- *
- * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
- * thread. For actions using it, they should use [ActionUpdateThread.BGT].
- */
-internal fun findComposePreviewManagerForContext(context: DataContext): ComposePreviewManager? {
-  context.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-    // The context is associated to a ComposePreviewManager so return it
-    return it
-  }
-
-  // Fallback to finding the ComposePreviewManager by looking into the selected editor
-  val project = context.getData(CommonDataKeys.PROJECT) ?: return null
-  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
-
-  return FileEditorManager.getInstance(project)?.getSelectedEditor(file)?.getComposePreviewManager()
-}
-
-/**
  * Returns whether the [ComposePreviewManager] corresponding to the given [DataContext] is currently
  * refreshing.
  */
 internal fun isPreviewRefreshing(context: DataContext) =
-  findComposePreviewManagerForContext(context)?.status()?.isRefreshing == true
+  context.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.status()?.isRefreshing == true
 
 /** Returns whether the filter of preview is enabled. */
 internal fun isPreviewFilterEnabled(context: DataContext): Boolean {
@@ -269,13 +244,4 @@ private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
     EditorMode.SPLIT -> SPLIT
     EditorMode.DESIGN -> FULL
     null -> defaultValue
-  }
-
-/** Returns the [ComposePreviewManager] or null if this [FileEditor] is not a Compose preview. */
-fun FileEditor.getComposePreviewManager(): ComposePreviewManager? =
-  when (this) {
-    is MultiRepresentationPreview -> this.currentRepresentation as? ComposePreviewManager
-    is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
-      this.preview.currentRepresentation as? ComposePreviewManager
-    else -> null
   }

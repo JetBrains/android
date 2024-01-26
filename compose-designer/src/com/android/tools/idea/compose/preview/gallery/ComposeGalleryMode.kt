@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
@@ -33,13 +34,14 @@ class ComposeGalleryMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
-    findComposePreviewManagerForContext(dataContext)?.let { previewManager ->
+    dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let { previewManager ->
       previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
     }
   }
 
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
-    findComposePreviewManagerForContext(dataContext)
+    dataContext
+      .findPreviewManager(COMPOSE_PREVIEW_MANAGER)
       ?.allPreviewElementsInFileFlow
       ?.value
       ?.asCollection()
@@ -48,7 +50,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
   }
 
   private val selectedProvider: (DataContext) -> PreviewElementKey? = { dataContext ->
-    findComposePreviewManagerForContext(dataContext)?.let { previewManager ->
+    dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let { previewManager ->
       (previewManager.mode.value as? PreviewMode.Gallery)?.selected?.let { PreviewElementKey(it) }
     }
   }

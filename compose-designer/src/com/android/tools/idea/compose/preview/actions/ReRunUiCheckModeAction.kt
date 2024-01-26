@@ -18,10 +18,11 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.error.DESIGNER_COMMON_ISSUE_PANEL
 import com.android.tools.idea.common.error.DesignToolsIssueProvider
-import com.android.tools.idea.compose.preview.getComposePreviewManager
+import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.uicheck.TAB_VIRTUAL_FILE
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -52,7 +53,7 @@ class ReRunUiCheckModeAction : AnAction() {
     val editors = FileEditorManager.getInstance(project).getAllEditors(file)
     val isUiCheckRunning =
       editors
-        .mapNotNull { it.getComposePreviewManager() }
+        .mapNotNull { it.getPreviewManager<ComposePreviewManager>() }
         .any { it.mode.value is PreviewMode.UiCheck }
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isUiCheckRunning
@@ -72,12 +73,12 @@ class ReRunUiCheckModeAction : AnAction() {
     val editors = FileEditorManager.getInstance(project).openFile(file, true, true)
     val relevantEditor =
       editors.filterIsInstance<SplitEditor<*>>().firstOrNull {
-        it.getComposePreviewManager() != null
+        it.getPreviewManager<ComposePreviewManager>() != null
       } ?: return
     if (relevantEditor.isTextMode()) {
       relevantEditor.selectSplitMode(false)
     }
-    val manager = relevantEditor.getComposePreviewManager() ?: return
+    val manager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
     AndroidCoroutineScope(manager).launch {
       manager.allPreviewElementsInFileFlow.collectLatest { flow ->
         flow

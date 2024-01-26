@@ -35,6 +35,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -880,8 +881,9 @@ class ComposePreviewRepresentationTest {
             FileEditorManager.getInstance(project).openFile(composeTest.virtualFile, true, true)
           (editors[0] as TextEditorWithMultiRepresentationPreview<*>)
         }
-      delayUntilCondition(250) { editor.getComposePreviewManager() != null }
-      val preview = editor.getComposePreviewManager() as ComposePreviewRepresentation
+      delayUntilCondition(250) { editor.getPreviewManager<ComposePreviewManager>() != null }
+      val preview =
+        editor.getPreviewManager<ComposePreviewManager>() as ComposePreviewRepresentation
       val surface = withContext(uiThread) { editor.getDesignSurface()!! }
 
       val modelRenderedLatch = CountDownLatch(2)

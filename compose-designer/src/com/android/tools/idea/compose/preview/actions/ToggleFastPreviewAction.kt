@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
-import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
+import com.android.tools.idea.preview.actions.findPreviewManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,8 +29,7 @@ import com.intellij.ui.EditorNotifications
 
 /** Action that toggles the Fast Preview state. */
 class ToggleFastPreviewAction : AnAction(null, null, null) {
-  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
-  // VirtualFile
+  /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -40,7 +40,7 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
       fastPreviewManager.enable()
 
       // Automatically refresh when re-enabling
-      (findComposePreviewManagerForContext(e.dataContext) as? FastPreviewSurface)
+      (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? FastPreviewSurface)
         ?.requestFastPreviewRefreshAsync()
     } else fastPreviewManager.disable(ManualDisabledReason)
     // We have changed the state of Fast Preview, update notifications

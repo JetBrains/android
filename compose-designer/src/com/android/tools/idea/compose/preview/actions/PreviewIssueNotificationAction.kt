@@ -25,7 +25,6 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -37,6 +36,7 @@ import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ReEnableFastPreview
 import com.android.tools.idea.preview.actions.ShowEventLogAction
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
+import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
@@ -302,7 +302,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
 
     // The ComposePreviewManager will avoid refreshing its corresponding preview if it detects
     // that nothing has changed. But we want to always force a refresh when this button is pressed.
-    findComposePreviewManagerForContext(e.dataContext)?.invalidate()
+    e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.invalidate()
 
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
@@ -314,7 +314,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      findComposePreviewManagerForContext(e.dataContext)?.let {
+      e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let {
         e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
           it.status().isRefreshing
         }

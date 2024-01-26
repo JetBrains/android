@@ -52,15 +52,15 @@ fun navigateBack(e: AnActionEvent) {
 }
 
 /**
- * Returns a preview manager [T] related to the current context (which is implied to be bound to
- * a particular file), or null if one is not found. The search is done among the open preview parts
+ * Returns a preview manager [T] related to the current context (which is implied to be bound to a
+ * particular file), or null if one is not found. The search is done among the open preview parts
  * and [PreviewRepresentation] of the selected file editor.
  *
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
  * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
 @RequiresBackgroundThread
-internal inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
+inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
   getData(key)?.let {
     // The context is associated to a preview manager so return it
     return it
@@ -77,7 +77,7 @@ internal inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>):
  * Returns the preview manager of type [T] or null if this [FileEditor]'s preview representation is
  * not of type [T].
  */
-private inline fun <reified T> FileEditor.getPreviewManager(): T? =
+inline fun <reified T> FileEditor.getPreviewManager(): T? =
   when (this) {
     is MultiRepresentationPreview -> this.currentRepresentation as? T
     is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
