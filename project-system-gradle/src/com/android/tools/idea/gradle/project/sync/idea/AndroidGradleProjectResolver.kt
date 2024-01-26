@@ -66,7 +66,6 @@ import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.*
-import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
 import com.intellij.notification.*
@@ -93,10 +92,7 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
@@ -104,8 +100,6 @@ import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
 import org.jetbrains.plugins.gradle.model.*
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
-import org.jetbrains.plugins.gradle.service.project.ArtifactMappingService
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -304,7 +298,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (androidModels != null) androidModels.kaptGradleModel else resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
     val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
     val gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel::class.java)
-    val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel::class.java)
+    val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, GradleBuildScriptClasspathModel::class.java)
     var androidModel: GradleAndroidModelData? = null
     var ndkModuleModel: NdkModuleModel? = null
     var gradleModel: GradleModuleModel? = null
@@ -789,7 +783,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       moduleName: String,
       gradleModule: IdeaModule,
       modelVersionString: String?,
-      buildScriptClasspathModel: BuildScriptClasspathModel?,
+      buildScriptClasspathModel: GradleBuildScriptClasspathModel?,
       gradlePluginModel: GradlePluginModel?
     ): GradleModuleModel {
       val buildScriptPath = try {
