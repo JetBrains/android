@@ -544,6 +544,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/assignment-compil
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/js.engines.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-compiler.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotations-jvm-sources.jar
@@ -571,6 +572,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk8.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js-sources.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js.klib
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-sources.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-test-js-sources.jar
@@ -591,6 +593,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/noarg-compiler-pl
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/parcelize-compiler.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/parcelize-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/sam-with-receiver-compiler-plugin.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/scripting-compiler.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/trove4j.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/COPYRIGHT.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/COPYRIGHT_HEADER.txt
