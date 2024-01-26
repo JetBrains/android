@@ -18,13 +18,11 @@ package com.android.tools.profilers.taskbased.tabs.home.processlist
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
@@ -38,6 +36,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.selections.deviceprocesses.ProcessListModelTest
 import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
@@ -127,7 +126,7 @@ class ProcessListTest {
     }
 
     // Assert no device selection is registered in the data model.
-    assertThat(processListModel.selectedDevice.value).isEqualTo(Common.Device.getDefaultInstance())
+    assertThat(processListModel.selectedDevice.value).isNull()
 
     // Assert that no processes are present for the selected device in data model or in UI (as there is no device selection yet).
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(0)
@@ -138,40 +137,21 @@ class ProcessListTest {
     ProcessListModelTest.addDeviceWithProcess(device1, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                          device1.deviceId), myTransportService, myTimer)
 
+    // Select the device
+    processListModel.onDeviceSelection(device1)
+    // Assert FakeDevice1 was auto-selected.
+    assertThat(processListModel.selectedDevice.value).isNotNull()
+    assertThat(processListModel.selectedDevice.value!!.device).isEqualTo(device1)
     // Selecting FakeDevice1 should populate the process list with 1 processes both in UI and in data model.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(1)
-
-    // Assert FakeDevice1 was auto-selected.
-    assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
-
-    val device2 = ProcessListModelTest.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
-    ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                          device2.deviceId), myTransportService, myTimer)
-    ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
-                                                                                          device2.deviceId), myTransportService, myTimer)
-
-
-    // Select FakeDevice2. We must use parent as `selectableItem` api does not allow us to append a test tag to the Modifier.
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
-    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().assertExists()
-    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().assertHasClickAction()
-    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().performClick()
-
-    // Selecting FakeDevice2 should populate the process list with 2 processes both in UI and in data model.
-    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
-    assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(2)
-
-    // Make sure device selection is also registered in data model.
-    assertThat(processListModel.selectedDevice.value.model).isEqualTo("FakeDevice2")
   }
 
   @Test
   fun `process selection reflects in data model`() {
+    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
         ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                              device.deviceId), myTransportService, myTimer)
         ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
@@ -180,7 +160,10 @@ class ProcessListTest {
       }
     }
 
-    // Auto-selection of FakeDevice should populate the process list with 2 processes both in UI and in data model.
+    // Select the device
+    processListModel.onDeviceSelection(device)
+
+    // Selection of FakeDevice should populate the process list with 2 processes both in UI and in data model.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
@@ -196,21 +179,33 @@ class ProcessListTest {
   }
 
   @Test
-  fun `default entry shown when no online devices are available`() {
+  fun testNoDevicesTitleAndMessage() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        val emptyDeviceProcessListModel = ProcessListModel(myProfilers, MutableStateFlow(false)) {}
-        ProcessList(emptyDeviceProcessListModel)
+        ProcessList(processListModel)
       }
     }
 
-    // Make sure that the device list is empty.
-    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+    processListModel.setSelectedDevicesCount(0)
+    // Because there is zero selected devices, "No Devices" should be the text set for where the selected device name usually is.
+    // Also, in the area the process table usually is should be a message to the user explaining that zero devices are selected.
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.NO_DEVICE_SELECTED_MESSAGE).assertIsDisplayed()
+  }
 
-    // Make sure that on click of the dropdown, the un-selectable, default device selection dropdown item is shown.
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
-    composeTestRule.onNodeWithTag("DefaultDeviceSelectionDropdownItem").assertExists().assertIsDisplayed().assertHasNoClickAction()
+  @Test
+  fun testMultipleDevicesTitleAndMessage() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        ProcessList(processListModel)
+      }
+    }
+
+    processListModel.setSelectedDevicesCount(6)
+    // Because there is six selected devices, "Multiple Devices (6)" should be the text set for where the selected device name usually is.
+    // Also, in the area the process table usually is should be a message to the user explaining that multiple devices are selected.
+    composeTestRule.onNodeWithText("${TaskBasedUxStrings.MULTIPLE_DEVICES_SELECTED_TITLE} (6)").assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.MULTIPLE_DEVICES_SELECTED_MESSAGE).assertIsDisplayed()
   }
 
   private fun populateVisualTestData() {

@@ -39,6 +39,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -89,7 +90,8 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }
@@ -119,7 +121,8 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = true) {
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }
@@ -147,7 +150,8 @@ class TaskGridTest {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }
@@ -170,8 +174,8 @@ class TaskGridTest {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, Common.Device.getDefaultInstance(), Common.Process.getDefaultInstance(), true, myProfilers.taskHandlers,
-                 myProfilers)
+        TaskGrid(taskGridModel, ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.getDefaultInstance()),
+                 Common.Process.getDefaultInstance(), true, myProfilers.taskHandlers, myProfilers)
       }
     }
 
@@ -192,7 +196,8 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         // Set feature level to 28, which will enable all tasks except Native Allocations.
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(28).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(28).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }
@@ -216,7 +221,8 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         // Set exposure level of process to profileable so only profileable-compatible tasks are enabled.
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }
@@ -240,7 +246,8 @@ class TaskGridTest {
   fun `clicking task registers task type selection in model`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
+        TaskGrid(taskGridModel,
+                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
                  Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
                  myProfilers.taskHandlers, myProfilers)
       }

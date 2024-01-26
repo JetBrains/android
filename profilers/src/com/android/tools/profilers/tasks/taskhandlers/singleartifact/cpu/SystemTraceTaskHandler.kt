@@ -25,7 +25,10 @@ import com.android.tools.profilers.sessions.SessionsManager
 class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(sessionsManager) {
   override fun getCpuRecordingConfig(): ProfilingConfiguration =
     PerfettoSystemTraceConfiguration(getTaskName(), isTraceboxEnabled)
-      .takeIf { isDeviceSupported(sessionsManager.studioProfilers.taskHomeTabModel.selectedDevice, it) }
+      .takeIf {
+        val selectedDevice = sessionsManager.studioProfilers.taskHomeTabModel.selectedDevice
+        selectedDevice != null && isDeviceSupported(selectedDevice.device, it)
+      }
     ?: AtraceConfiguration(getTaskName())
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =

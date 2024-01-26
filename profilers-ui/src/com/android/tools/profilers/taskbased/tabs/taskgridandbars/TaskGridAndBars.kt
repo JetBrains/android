@@ -26,6 +26,7 @@ import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
@@ -51,7 +52,7 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
 
 @Composable
 fun TaskGridAndBars(taskGridModel: TaskGridModel,
-                    selectedDevice: Common.Device,
+                    selectedDevice: ProfilerDeviceSelection?,
                     selectedProcess: Common.Process,
                     isProfilingFromProcessStart: Boolean,
                     taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
@@ -62,8 +63,9 @@ fun TaskGridAndBars(taskGridModel: TaskGridModel,
   val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
   // A device and process do not need to be selected if startup tasks are enabled (isProfilingFromProcessStart = true) to start the task.
   val canStartTask = selectedTaskType != ProfilerTaskType.UNSPECIFIED &&
-                     ((selectedDevice != Common.Device.getDefaultInstance() && selectedProcess != Common.Process.getDefaultInstance()) ||
-                      isProfilingFromProcessStart)
+                     ((selectedDevice != null && selectedDevice.device != Common.Device.getDefaultInstance() &&
+                       selectedProcess != Common.Process.getDefaultInstance())
+                      || isProfilingFromProcessStart)
 
   TaskGridAndBarsContainer(
     taskGrid = {

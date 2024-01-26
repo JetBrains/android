@@ -24,6 +24,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
@@ -64,7 +65,7 @@ class TaskHomeTabModelTest {
   fun `test retrieval of most recent device selection`() {
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     taskHomeTabModel.processListModel.onDeviceSelection(device)
-    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(device)
+    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(ProfilerDeviceSelection(device.model, true, device))
   }
 
   @Test

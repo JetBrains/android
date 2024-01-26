@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
@@ -55,6 +56,8 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection;
 import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
@@ -73,6 +76,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -85,9 +89,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -153,6 +157,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   @NotNull
   private final Runnable myOpenTaskTab;
+
+  @NotNull
+  private final Function0<List<ToolbarDeviceSelection>> myToolbarDeviceSelectionsFetcher;
+
+  @Nullable
+  private ToolbarDeviceSelection myLastToolbarDeviceSelection = null;
 
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
@@ -232,7 +242,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {});
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new);
   }
 
   /**
@@ -246,8 +256,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull IdeProfilerServices ideServices,
                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
-                         @NotNull Runnable openTaskTab) {
-    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab);
+                         @NotNull Runnable openTaskTab,
+                         @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
+         toolbarDeviceSelectionsFetcher);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
@@ -255,7 +267,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull StopwatchTimer timer,
                           @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
-                          @NotNull Runnable openTaskTab) {
+                          @NotNull Runnable openTaskTab,
+                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher)  {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -267,6 +280,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myTaskHandlers = taskHandlers;
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
+    myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -478,6 +492,48 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }).collect(Collectors.toList());
   }
 
+  /**
+   * Reads main toolbar's device dropdown selections and updates the respective device state model with such selection data.
+   */
+  private void readMainToolbarDeviceSelection() {
+    if (IdeInfo.isGameTool()) {
+      return;
+    }
+    List<ToolbarDeviceSelection> toolbarDeviceSelections = myToolbarDeviceSelectionsFetcher.invoke();
+    int toolbarSelectedDevicesCount = toolbarDeviceSelections.size();
+
+    // In the case where only one device is selected, and it is a new selection, the selected device state is updated.
+    if (toolbarSelectedDevicesCount == 1) {
+      ToolbarDeviceSelection toolbarDeviceSelection = toolbarDeviceSelections.get(0);
+
+      ProfilerDeviceSelection currentlySelectedDevice = myTaskHomeTabModel.getSelectedDevice();
+
+      String toolbarSelectionName = toolbarDeviceSelection.getName();
+      String toolbarSelectionSerial = toolbarDeviceSelection.getSerial();
+      // The following cases cover all cases of detecting a new, unique selection made. This is because (1) Studio does not allow
+      // duplicate AVD names, and (2) if there is a device created with the same name a physical device, the serial number is used to
+      // differentiate. To avoid the same device being selected repeatedly, the last toolbar device selection is stored and compared
+      // against the current toolbar selection.
+      if (currentlySelectedDevice == null ||
+          // Use toolbar selection if its name differs from the current selection
+          (!currentlySelectedDevice.getName().equals(toolbarSelectionName) ||
+           // OR if names match but serial numbers differ
+           !currentlySelectedDevice.getDevice().getSerial().equals(toolbarSelectionSerial) ||
+          // OR if the toolbar selection isn't the same as the last stored one to avoid repeated selection of the same device.
+          !Objects.equals(myLastToolbarDeviceSelection, toolbarDeviceSelection))) {
+        myTaskHomeTabModel.getProcessListModel().onDeviceSelection(toolbarDeviceSelection);
+        myLastToolbarDeviceSelection = toolbarDeviceSelection;
+      }
+    }
+    else {
+      // The call to onDeviceSelection made if there is only one device selected will set ProcessListModel.selectedDeviceCount to a value
+      // of 1. Because no ProcessListModel device selection occurs when zero or multiple devices are selected, the number of selected
+      // devices are set here. This data allows the user to be notified when there is zero or multiple devices selected.
+      myTaskHomeTabModel.getProcessListModel().setSelectedDevicesCount(toolbarSelectedDevicesCount);
+      myTaskHomeTabModel.getProcessListModel().resetDeviceSelection();
+    }
+  }
+
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
                                                      Collection<Common.Device> currentDevices) {
     Set<Common.Device> newDevices = Sets.difference(filterOnlineDevices(currentDevices),
@@ -515,6 +571,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myRefreshDevices = 0;
 
     try {
+      readMainToolbarDeviceSelection();
+
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       List<Common.Device> devices = getUpToDateDevices();
       startProfileableDiscoveryIfApplicable(myProcesses.keySet(), devices);

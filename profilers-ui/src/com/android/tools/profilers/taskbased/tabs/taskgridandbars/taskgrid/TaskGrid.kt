@@ -37,6 +37,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
@@ -68,7 +69,7 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
 
 @Composable
 fun TaskGrid(taskGridModel: TaskGridModel,
-             selectedDevice: Common.Device,
+             selectedDevice: ProfilerDeviceSelection?,
              selectedProcess: Common.Process,
              isProfilingFromProcessStart: Boolean,
              taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
@@ -78,7 +79,8 @@ fun TaskGrid(taskGridModel: TaskGridModel,
       items(taskHandlers.entries.toList()) { (taskType, taskHandler) ->
         val isTaskSupportedOnStartup = profilers.ideServices.isTaskSupportedOnStartup(taskType)
         val isStartupTask = isProfilingFromProcessStart && isTaskSupportedOnStartup
-        val isTaskSupported = isStartupTask || taskHandler.supportsDeviceAndProcess(selectedDevice, selectedProcess)
+        val isTaskSupported = isStartupTask || taskHandler.supportsDeviceAndProcess(
+          selectedDevice?.device ?: Common.Device.getDefaultInstance(), selectedProcess)
         // If the task is not supported/enabled, render it for the process-based task selection, but display it as disabled.
         taskType.let { task ->
           TaskGridItem(

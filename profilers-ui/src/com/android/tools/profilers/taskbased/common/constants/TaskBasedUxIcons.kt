@@ -51,14 +51,6 @@ object TaskBasedUxIcons {
     }
   }
 
-  private const val TOOLBAR_ICON_BASE_PATH = "studio/icons/shell/toolbar"
-
-  // Profiler icons for buttons used for rebuilding and relaunching the main process.
-  val PROFILEABLE_PROFILER_ICON = TaskBasedUxIcon("$TOOLBAR_ICON_BASE_PATH/profiler-low-overhead.svg", StudioIcons::class.java,
-                                                  StudioIcons.Shell.Toolbar.PROFILER_LOW_OVERHEAD)
-  val DEBUGGABLE_PROFILER_ICON = TaskBasedUxIcon("$TOOLBAR_ICON_BASE_PATH/profiler-detailed.svg", StudioIcons::class.java,
-                                                 StudioIcons.Shell.Toolbar.PROFILER_DETAILED)
-
   // The settings icon is used as a button to invoke the task configuration dialog.
   val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java, StudioIcons.Common.SETTINGS)
 
@@ -70,8 +62,6 @@ object TaskBasedUxIcons {
                                                    StudioIcons.Profiler.Toolbar.STOP_RECORDING)
 
   /** The following are the AllIcons used in the Task-Based UX Profiler. **/
-  val RESTART_ICON = TaskBasedUxIcon("actions/restart.svg", AllIcons::class.java, AllIcons.Actions.Restart)
-
   val IMPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/import.svg", AllIcons::class.java,
                                               AllIcons.ToolbarDecorator.Import)
   val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java,

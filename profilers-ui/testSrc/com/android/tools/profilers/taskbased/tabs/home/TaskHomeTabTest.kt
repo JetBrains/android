@@ -29,6 +29,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.on
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -125,23 +126,29 @@ class TaskHomeTabTest {
       }
     }
 
-    // If startup tasks are enabled, the system trace task would be enabled already. Here we make sure it is not enabled when startup tasks
-    // is disabled.
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsNotEnabled()
-
-    // Populate the device and process selections. Device will be auto-selected as it is the first and only online device available.
+    // Populate the device.
     val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 28)
+    // Populate the processes for the selected device.
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Select the device
+    taskHomeTabModel.processListModel.onDeviceSelection(device)
+
+    // If startup tasks are enabled, the system trace task would be enabled already. Here we make sure it is not enabled when startup tasks
+    // is disabled.
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsNotEnabled()
+
 
     // Auto-selection of the FakeDevice should populate the process list with 2 processes.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(taskHomeTabModel.processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
+    assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model.
-    assertThat(taskHomeTabModel.selectedDevice.model).isEqualTo("FakeDevice")
+    assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
     // Select a process.
     composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertHasClickAction()

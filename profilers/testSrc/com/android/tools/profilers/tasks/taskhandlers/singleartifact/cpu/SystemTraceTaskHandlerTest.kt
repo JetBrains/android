@@ -36,14 +36,13 @@ import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
-import com.jetbrains.rd.generator.nova.PredefinedType
 import io.ktor.util.reflect.instanceOf
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -380,7 +379,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     assertThat(mySystemTraceTaskHandler.getTaskName()).isEqualTo("System Trace")
   }
 
-  fun mockDeviceInSystemTraceTaskHandler(device: Common.Device?, taskBasedUxEnabled: Boolean): SystemTraceTaskHandler {
+  private fun mockDeviceInSystemTraceTaskHandler(device: Common.Device?, taskBasedUxEnabled: Boolean): SystemTraceTaskHandler {
     val profilersNow = spy(StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -390,7 +389,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     MockitoKt.whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
     val sessionManagerNow = spy(profilersNow.sessionsManager)
     MockitoKt.whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
-    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(device)
+    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(device?.let { ProfilerDeviceSelection(device.model, true, device) })
     return SystemTraceTaskHandler(sessionManagerNow, taskBasedUxEnabled);
   }
 

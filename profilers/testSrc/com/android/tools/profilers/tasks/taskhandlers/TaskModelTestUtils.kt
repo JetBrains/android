@@ -26,8 +26,10 @@ object TaskModelTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
-  fun createDevice(deviceName: String, deviceState: Common.Device.State) = Common.Device.newBuilder().setDeviceId(
-    deviceName.hashCode().toLong()).setSerial(deviceName).setState(deviceState).build()
+  fun createDevice(deviceName: String, deviceState: Common.Device.State) = createDevice(deviceName, deviceName, deviceState)
+
+  fun createDevice(deviceName: String, serial: String, deviceState: Common.Device.State) = Common.Device.newBuilder().setDeviceId(
+    deviceName.hashCode().toLong()).setSerial(serial).setState(deviceState).build()
 
   fun createProcess(pid: Int,
                             processName: String,

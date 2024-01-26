@@ -31,8 +31,16 @@ object TaskBasedUxStrings {
   const val TOP_BAR_TITLE = "Tasks"
 
   // Device dropdown strings
-  const val NO_SUPPORTED_DEVICES = "No supported devices"
-  const val DEVICE_SELECTION_PROMPT = "Please select a device"
+  const val NO_SUPPORTED_DEVICES_TITLE = "No supported devices"
+  const val NO_DEVICE_SELECTED_TITLE = "No Devices"
+  const val MULTIPLE_DEVICES_SELECTED_TITLE = "Multiple Devices"
+  const val LOADING_SELECTED_DEVICE_INFO = "Loading"
+  const val SELECTED_DEVICE_OFFLINE = "Not running"
+
+  // Process list message strings
+  const val NO_DEVICE_SELECTED_MESSAGE = "No device selected. You can select a device via the Devices dropdown at the main window toolbar."
+  const val MULTIPLE_DEVICES_SELECTED_MESSAGE = "Multiple device selected. Profilers does not support multiple device selection. Please " +
+                                                "select a single device via the Devices dropdown at the main window toolbar."
 
   // Export and import strings
   const val IMPORT_RECORDING_DESC = "Import recording"

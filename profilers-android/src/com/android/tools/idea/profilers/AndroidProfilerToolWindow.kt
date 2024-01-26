@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy.Companion.getDeviceManufacturer
 import com.android.tools.idea.transport.TransportServiceProxy.Companion.getDeviceModel
@@ -31,6 +32,7 @@ import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
@@ -81,7 +83,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
-                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) })
+                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
+                                { getToolbarDeviceSelections(project) })
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -126,6 +129,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
     // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
     initializeProfilerTab()
+  }
+
+  private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
+    val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
+    try {
+      val selections = devices.map {
+        ToolbarDeviceSelection(it.name, it.isRunning, if (it.isRunning) it.launchedDevice.get().serialNumber else "")
+      }
+      return selections
+    }
+    catch (e: Exception) {
+      return listOf()
+    }
   }
 
   private fun initializeTaskHandlers() {

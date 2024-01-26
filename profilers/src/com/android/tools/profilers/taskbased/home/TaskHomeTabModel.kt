@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
@@ -36,7 +37,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
   var selectionStateOnTaskEnter = SelectionStateOnTaskEnter(false, ProfilerTaskType.UNSPECIFIED)
 
-  @VisibleForTesting
   val processListModel = ProcessListModel(profilers, isProfilingFromProcessStart, taskGridModel::resetTaskSelection)
 
   fun setIsProfilingFromProcessStart(isProfilingFromProcessStart: Boolean) {
@@ -54,8 +54,12 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_isProfilingFromProcessStart.value, selectedTaskType)
   }
 
+  private val isDeviceAndProcessSelected get() = selectedDevice != null &&
+                                                 selectedDevice!!.device != Common.Device.getDefaultInstance() &&
+                                                 selectedProcess != Common.Process.getDefaultInstance()
+
   @VisibleForTesting
-  val selectedDevice: Common.Device get() = processListModel.selectedDevice.value
+  val selectedDevice: ProfilerDeviceSelection? get() = processListModel.selectedDevice.value
   @VisibleForTesting
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
@@ -68,10 +72,13 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
       val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
       profilers.ideServices.buildAndLaunchAction(prefersProfileable)
     }
-    else {
+    else if (isDeviceAndProcessSelected) {
       // If the user clicks to enter the task with startup profiling disabled, startup config selections should be reset.
       profilers.ideServices.disableStartupTasks()
-      profilers.setProcess(selectedDevice, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
+      profilers.setProcess(selectedDevice!!.device, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
+    }
+    else {
+      throw IllegalStateException("Non-startup tasks require a device selection. No device is currently selected.")
     }
   }
 }

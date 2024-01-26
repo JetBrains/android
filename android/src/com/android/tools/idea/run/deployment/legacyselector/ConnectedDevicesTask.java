@@ -90,6 +90,9 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
   private ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
     var androidDevice = myNewConnectedAndroidDevice.apply(device);
 
+    // Cache the device manufacturer and device model so that calls to getName() from EDT are allowed.
+    androidDevice.getName();
+
     var keyFuture = getKeyAsync(device);
     var iconFuture = myHelper.getIcon(device);
     var compatibilityFuture = getLaunchCompatibilityAsync(androidDevice);
