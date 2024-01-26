@@ -16,19 +16,22 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
-internal class GroupSwitchAction :
-  DropDownAction(null, message("action.group.switch.title"), null) {
-  // Actions calling findComposePreviewManagersForContext in the update method, must run in BGT
+internal class GroupSwitchAction(
+  private val isEnabled: (e: AnActionEvent) -> Boolean = { true },
+  private val isVisible: (e: AnActionEvent) -> Boolean = { true },
+) : DropDownAction(null, message("action.group.switch.title"), null) {
+
+  /** Actions calling [findPreviewManager] in the update method, must run in BGT */
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /** [ToggleAction] that sets the given [group] as filter. */
@@ -40,7 +43,7 @@ internal class GroupSwitchAction :
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
-        e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.groupFilter = group
+        e.dataContext.findPreviewManager(PreviewGroupManager.KEY)?.groupFilter = group
       }
     }
   }
@@ -51,12 +54,11 @@ internal class GroupSwitchAction :
     super.update(e)
 
     val presentation = e.presentation
-    val previewManager = e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)
+    val previewManager = e.dataContext.findPreviewManager(PreviewGroupManager.KEY)
     val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
-    presentation.isVisible = availableGroups.isNotEmpty() && previewManager?.isFilterEnabled != true
+    presentation.isVisible = availableGroups.isNotEmpty() && isVisible(e)
+    presentation.isEnabled = availableGroups.isNotEmpty() && isEnabled(e)
 
-    presentation.isEnabled =
-      availableGroups.isNotEmpty() && previewManager?.status()?.isRefreshing != true
     if (presentation.isVisible) {
       presentation.text = previewManager?.groupFilter?.displayName
     }
@@ -64,7 +66,7 @@ internal class GroupSwitchAction :
 
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    val previewManager = context.findPreviewManager(COMPOSE_PREVIEW_MANAGER)
+    val previewManager = context.findPreviewManager(PreviewGroupManager.KEY)
     val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
     if (availableGroups.isEmpty()) return true
 

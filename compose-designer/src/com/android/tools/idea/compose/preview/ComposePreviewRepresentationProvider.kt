@@ -88,7 +88,13 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           ComposeFilterTextAction(ComposeViewSingleWordFilter())
         },
         // TODO(b/292057010) Enable group filtering for Gallery mode.
-        GroupSwitchAction().visibleOnlyInComposeDefaultPreview(),
+        GroupSwitchAction(
+            isEnabled = { !isPreviewRefreshing(it.dataContext) },
+            isVisible = {
+              it.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.isFilterEnabled != true
+            },
+          )
+          .visibleOnlyInComposeDefaultPreview(),
         ComposeViewControlAction(
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {

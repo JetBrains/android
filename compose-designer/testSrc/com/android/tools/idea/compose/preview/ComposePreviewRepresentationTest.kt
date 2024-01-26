@@ -36,6 +36,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -809,6 +810,69 @@ class ComposePreviewRepresentationTest {
       }
 
       assertEquals(preview, dataProvider.getData(PreviewModeManager.KEY.name))
+    }
+
+  @Test
+  fun testPreviewGroupManagerShouldBeRegisteredInDataProvider() =
+    runBlocking(workerThread) {
+      val composeTest = runWriteActionAndWait {
+        fixture.addFileToProjectAndInvalidate(
+          "Test.kt",
+          // language=kotlin
+          """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun Preview() {
+        }
+      """
+            .trimIndent(),
+        )
+      }
+
+      val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
+      val modelRenderedLatch = CountDownLatch(2)
+
+      mainSurface.addListener(
+        object : DesignSurfaceListener {
+          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+            val id = UUID.randomUUID().toString().substring(0, 5)
+            logger.info("modelChanged ($id)")
+            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+              logger.info("renderListener ($id)")
+              modelRenderedLatch.countDown()
+            }
+          }
+        }
+      )
+
+      val composeView = TestComposePreviewView(mainSurface)
+      lateinit var dataProvider: DataProvider
+      val preview =
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) {
+          _,
+          _,
+          _,
+          provider,
+          _,
+          _ ->
+          dataProvider = provider
+          composeView
+        }
+      Disposer.register(fixture.testRootDisposable, preview)
+      withContext(Dispatchers.IO) {
+        logger.info("compile")
+        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+        logger.info("activate")
+        preview.onActivate()
+
+        modelRenderedLatch.await()
+        delayWhileRefreshingOrDumb(preview)
+      }
+
+      assertEquals(preview, dataProvider.getData(PreviewGroupManager.KEY.name))
     }
 
   @Test

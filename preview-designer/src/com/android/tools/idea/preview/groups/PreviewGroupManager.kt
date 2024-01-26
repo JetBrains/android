@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.groups
 
 import com.android.tools.preview.PreviewElement
+import com.intellij.openapi.actionSystem.DataKey
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -34,4 +35,8 @@ interface PreviewGroupManager {
    * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
    */
   var groupFilter: PreviewGroup
+
+  companion object {
+    val KEY = DataKey.create<PreviewGroupManager>("PreviewGroupManager")
+  }
 }

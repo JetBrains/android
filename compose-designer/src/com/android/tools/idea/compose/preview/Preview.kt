@@ -63,6 +63,7 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
@@ -181,7 +182,8 @@ private class PreviewElementDataContext(
   override fun getData(dataId: String): Any? =
     when (dataId) {
       COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name -> composePreviewManager
+      PreviewModeManager.KEY.name,
+      PreviewGroupManager.KEY.name -> composePreviewManager
       COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
@@ -701,7 +703,8 @@ class ComposePreviewRepresentation(
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
+      PreviewModeManager.KEY.name,
+      PreviewGroupManager.KEY.name -> this@ComposePreviewRepresentation
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.name -> project
       else -> null
