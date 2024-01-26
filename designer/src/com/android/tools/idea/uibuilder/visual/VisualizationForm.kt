@@ -363,7 +363,7 @@ class VisualizationForm(
       return
     }
     val file = PsiManager.getInstance(project).findFile(myFile!!)
-    val facet = (if (file != null) AndroidFacet.getInstance(file) else null) ?: return
+    var facet: AndroidFacet? = null
     updateActionToolbar(myActionToolbarPanel)
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore.
@@ -374,8 +374,11 @@ class VisualizationForm(
     // Asynchronously load the model and refresh the preview once it's ready
     CompletableFuture.supplyAsync(
         {
+          facet =
+            (if (file != null) AndroidFacet.getInstance(file) else null)
+              ?: return@supplyAsync emptyList()
           // Hide the content while adding the models.
-          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet)
+          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet!!)
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")
             return@supplyAsync null
@@ -419,7 +422,7 @@ class VisualizationForm(
               ApplicationManager.getApplication().invokeLater {
                 surface.unregisterIndicator(myProgressIndicator)
               }
-              if (!isRequestCancelled.get() && !facet.isDisposed) {
+              if (!isRequestCancelled.get() && facet?.isDisposed == false) {
                 activateEditor(models.isNotEmpty())
               } else {
                 removeAndDisposeModels(models)
