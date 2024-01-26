@@ -1,9 +1,6 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="" path="ActionManager" hit="" />
-    <option name="ask" path="ActionManager" hit="Ask Studio Bot" />
-    <option name="bot" path="ActionManager" hit="Ask Studio Bot" />
-    <option name="studio" path="ActionManager" hit="Ask Studio Bot" />
     <option name="code" path="ActionManager" hit="Comment Code" />
     <option name="comment" path="ActionManager" hit="Comment Code" />
     <option name="code" path="ActionManager" hit="Document Code" />
@@ -12,6 +9,8 @@
     <option name="explain" path="ActionManager" hit="Explain Code" />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
+    <option name="bot" path="ActionManager" hit="Studio Bot" />
+    <option name="studio" path="ActionManager" hit="Studio Bot" />
     <option name="transform" path="ActionManager" hit="Transform..." />
   </configurable>
   <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
