@@ -21,11 +21,11 @@ import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.preview.ComposePreviewElementInstance

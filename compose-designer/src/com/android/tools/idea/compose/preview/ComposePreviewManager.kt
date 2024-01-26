@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.ComposePreviewElementInstance

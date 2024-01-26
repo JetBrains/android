@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose
 
-import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.filter
 import com.android.tools.idea.concurrency.flatMap
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
 import kotlinx.coroutines.flow.Flow

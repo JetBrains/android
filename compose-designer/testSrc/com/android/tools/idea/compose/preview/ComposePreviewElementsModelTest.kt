@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
-import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.groups.PreviewGroup.Companion.namedGroup
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance

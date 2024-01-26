@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.UiCheckModeFilter
-import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -33,6 +32,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
