@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -35,23 +36,15 @@ class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) ->
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    e.presentation.isEnabled =
-      findPreviewModeManagersForContext(e.dataContext).any {
-        it.mode.value is PreviewMode.Interactive
-      } && !isDisabled(e)
-    e.presentation.isVisible =
-      findPreviewModeManagersForContext(e.dataContext).any {
-        it.mode.value is PreviewMode.Interactive
-      }
+    val previewMode = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value
+    e.presentation.isEnabled = previewMode is PreviewMode.Interactive && !isDisabled(e)
+    e.presentation.isVisible = previewMode is PreviewMode.Interactive
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     navigateBack(e)
   }
 
-  /**
-   * BGT is needed when calling [findPreviewModeManagersForContext] because it accesses the
-   * VirtualFile
-   */
+  /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

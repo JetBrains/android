@@ -33,11 +33,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
 /**
  * Helper method that navigates back to the previous [PreviewMode] for all [PreviewModeManager]s in
@@ -46,41 +48,40 @@ import com.intellij.openapi.fileEditor.FileEditorManager
  * @param e the [AnActionEvent] holding the context of the action
  */
 fun navigateBack(e: AnActionEvent) {
-  findPreviewModeManagersForContext(e.dataContext).forEach { it.restorePrevious() }
+  e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.restorePrevious()
 }
 
 /**
- * Returns a list of all [PreviewModeManager]s related to the current context (which is implied to
- * be bound to a particular file). The search is done among the open preview parts and
- * [PreviewRepresentation]s (if any) of open file editors.
+ * Returns a preview manager [T] related to the current context (which is implied to be bound to
+ * a particular file), or null if one is not found. The search is done among the open preview parts
+ * and [PreviewRepresentation] of the selected file editor.
  *
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
  * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
-internal fun findPreviewModeManagersForContext(context: DataContext): List<PreviewModeManager> {
-  context.getData(PreviewModeManager.KEY)?.let {
-    // The context is associated to a PreviewModeManager so return it
-    return listOf(it)
+@RequiresBackgroundThread
+internal inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
+  getData(key)?.let {
+    // The context is associated to a preview manager so return it
+    return it
   }
 
-  // Fallback to finding the PreviewModeManager by looking into all the editors
-  val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
-  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
+  // Fallback to finding the preview manager by looking into all the editors
+  val project = getData(CommonDataKeys.PROJECT) ?: return null
+  val file = getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
 
-  return FileEditorManager.getInstance(project)?.getAllEditors(file)?.mapNotNull {
-    it.getPreviewModeManager()
-  } ?: emptyList()
+  return FileEditorManager.getInstance(project)?.getSelectedEditor(file)?.getPreviewManager<T>()
 }
 
 /**
- * Returns the [PreviewModeManager] or null if this [FileEditor]'s preview representation is not a
- * [PreviewModeManager].
+ * Returns the preview manager of type [T] or null if this [FileEditor]'s preview representation is
+ * not of type [T].
  */
-private fun FileEditor.getPreviewModeManager(): PreviewModeManager? =
+private inline fun <reified T> FileEditor.getPreviewManager(): T? =
   when (this) {
-    is MultiRepresentationPreview -> this.currentRepresentation as? PreviewModeManager
+    is MultiRepresentationPreview -> this.currentRepresentation as? T
     is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
-      this.preview.currentRepresentation as? PreviewModeManager
+      this.preview.currentRepresentation as? T
     else -> null
   }
 
