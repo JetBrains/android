@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.screenshot;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
+import static org.jetbrains.android.util.DisposableUtils.runOnDisposalOfAnyOf;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
@@ -30,6 +31,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -191,6 +193,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
     else {
       myRefreshButton.setIcon(AllIcons.Actions.Refresh);
+      runOnDisposalOfAnyOf(new Disposable[] { screenshotSupplier, getDisposable() }, () -> myRefreshButton.setEnabled(false));
     }
 
     myEditorProvider = getImageFileEditorProvider();

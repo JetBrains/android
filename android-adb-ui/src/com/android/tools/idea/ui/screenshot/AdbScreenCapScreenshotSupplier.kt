@@ -27,7 +27,6 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.idea.ui.screenshot.ScreenshotAction.ScreenshotOptions
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -43,7 +42,7 @@ class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
-) : ScreenshotSupplier, Disposable {
+) : ScreenshotSupplier {
   private val coroutineScope = AndroidCoroutineScope(this)
   private val adbLibService = AdbLibService.getInstance(project)
   private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.*)")

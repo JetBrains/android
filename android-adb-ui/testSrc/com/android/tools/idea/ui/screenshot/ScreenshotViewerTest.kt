@@ -38,6 +38,7 @@ import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -152,6 +153,30 @@ class ScreenshotViewerTest {
     viewer.updateEditorImage()
     ui.layoutAndDispatchEvents()
     assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
+  }
+
+  @Test
+  fun testRecapture() {
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val screenshotSupplier = object : ScreenshotSupplier {
+      var captured = false
+
+      override fun captureScreenshot(): ScreenshotImage {
+        captured = true
+        return screenshotImage
+      }
+
+      override fun dispose() {
+      }
+    }
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator(), screenshotSupplier)
+    val ui = FakeUi(viewer.rootPane)
+
+    val recaptureButton = ui.getComponent<JButton> { it.text == "Recapture" }
+    ui.clickOn(recaptureButton)
+    assertThat(screenshotSupplier.captured).isTrue()
+    Disposer.dispose(screenshotSupplier)
+    assertThat(recaptureButton.isEnabled).isFalse()
   }
 
   @Test
@@ -366,7 +391,6 @@ class ScreenshotViewerTest {
     )
   }
 
-
   @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Wear() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
@@ -408,10 +432,11 @@ class ScreenshotViewerTest {
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
                                      screenshotDecorator: ScreenshotDecorator,
+                                     screenshotSupplier: ScreenshotSupplier? = null,
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
-    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, null, screenshotDecorator,
+    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotSupplier, screenshotDecorator,
                                   framingOptions, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer

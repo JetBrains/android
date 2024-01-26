@@ -39,6 +39,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -123,6 +124,10 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   private class MyScreenshotSupplier(val emulatorController: EmulatorController) : ScreenshotSupplier {
 
+    init {
+      Disposer.register(emulatorController, this)
+    }
+
     override fun captureScreenshot(): ScreenshotImage {
       val receiver = FutureStreamObserver<Image>()
       emulatorController.getScreenshot(pngFormat(), receiver)
@@ -146,6 +151,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         Throwables.throwIfUnchecked(e.cause!!)
         throw e
       }
+    }
+
+    override fun dispose() {
     }
   }
 
