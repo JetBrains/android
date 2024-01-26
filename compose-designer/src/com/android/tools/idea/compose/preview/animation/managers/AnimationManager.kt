@@ -19,12 +19,10 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.AnimationPreview
 import com.android.tools.idea.compose.preview.animation.Card
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.Transition
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import javax.swing.JComponent
-import kotlin.math.max
 
 /**
  * [AnimationManager] is handling the state of one subscribed [animation]. Each [animation] is
@@ -37,17 +35,6 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
 
   /** [Card] for the current animation in the coordination panel. */
   abstract val card: Card
-
-  /** Callback when [currentTransition] has been changed. */
-  var currentTransitionCallback: (Transition) -> Unit = {}
-  /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
-  var currentTransition = Transition()
-    protected set(value) {
-      field = value
-      // If transition has changed, reset it offset.
-      elementState.valueOffset = 0
-      currentTransitionCallback(value)
-    }
 
   /** Callback when [selectedProperties] has been changed. */
   var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
@@ -75,6 +62,5 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
   abstract fun setup(callback: () -> Unit)
 
   /** Maximum ms for [currentTransition] required in the timeline. */
-  val timelineMaximumMs: Int?
-    get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) }
+  abstract val timelineMaximumMs: Int
 }

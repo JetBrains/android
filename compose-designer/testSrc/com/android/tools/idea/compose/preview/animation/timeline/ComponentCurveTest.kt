@@ -50,7 +50,7 @@ class ComponentCurveTest {
           positionProxy = slider.sliderUI.positionProxy,
           colorIndex = 0,
         )
-      slider.sliderUI.elements.add(componentCurve)
+      slider.sliderUI.elements = listOf(componentCurve)
       val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
 
       // No tooltips.

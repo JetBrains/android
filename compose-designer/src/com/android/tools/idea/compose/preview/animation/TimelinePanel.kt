@@ -187,7 +187,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   val panelThumbRect: () -> Rectangle = { thumbRect }
 
   /** List of elements to display. */
-  var elements: MutableList<TimelineElement> = mutableListOf()
+  var elements: List<TimelineElement> = listOf()
 
   /** Element currently hovered or dragged. */
   var activeElement: TimelineElement? = null

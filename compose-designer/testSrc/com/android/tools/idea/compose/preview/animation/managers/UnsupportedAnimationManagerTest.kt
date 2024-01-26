@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabe
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class UnsupportedAnimationManagerTest {
@@ -34,7 +33,7 @@ class UnsupportedAnimationManagerTest {
     assertNotNull(manager.elementState)
     assertNotNull(manager.card)
     assertInstanceOf<LabelCard>(manager.card)
-    assertNull(manager.timelineMaximumMs)
+    assertEquals(manager.timelineMaximumMs, 0)
     manager.loadProperties()
   }
 

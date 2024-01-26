@@ -41,6 +41,8 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
     callback.invoke()
   }
 
+  override val timelineMaximumMs = 0
+
   override fun createTimelineElement(
     parent: JComponent,
     minY: Int,

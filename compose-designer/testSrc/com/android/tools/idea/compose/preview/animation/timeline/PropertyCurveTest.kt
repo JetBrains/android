@@ -61,8 +61,7 @@ class PropertyCurveTest {
           slider.sliderUI.positionProxy,
         )
 
-      slider.sliderUI.elements.add(propertyCurveOne)
-      slider.sliderUI.elements.add(propertyCurveTwo)
+      slider.sliderUI.elements = listOf(propertyCurveOne, propertyCurveTwo)
 
       // Component has tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.

@@ -70,8 +70,7 @@ class TransitionCurveTest {
           ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)),
         )
 
-      slider.sliderUI.elements.add(transitionCurveOne)
-      slider.sliderUI.elements.add(transitionCurveTwo)
+      slider.sliderUI.elements = listOf(transitionCurveOne, transitionCurveTwo)
 
       // Timeline has tooltips
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.
@@ -104,7 +103,7 @@ class TransitionCurveTest {
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
         )
-      slider.sliderUI.elements.add(transitionCurve)
+      slider.sliderUI.elements = listOf(transitionCurve)
       // No tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.
       assertEquals(0, slider.scanForTooltips().size)
@@ -128,7 +127,7 @@ class TransitionCurveTest {
         )
       transitionCurve.timelineUnits =
         listOf(null, null, ComposeUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
-      slider.sliderUI.elements.add(transitionCurve)
+      slider.sliderUI.elements = listOf(transitionCurve)
       // Timeline has tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.
       val tooltips = slider.scanForTooltips()
@@ -158,7 +157,7 @@ class TransitionCurveTest {
         )
       transitionCurve.timelineUnits =
         listOf(ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
-      slider.sliderUI.elements.add(transitionCurve)
+      slider.sliderUI.elements = listOf(transitionCurve)
       // Timeline has tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.
       val tooltips = slider.scanForTooltips()
@@ -192,8 +191,7 @@ class TransitionCurveTest {
           ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(0, 0)),
           ComposeUnit.TimelineUnit("Property Three", ComposeUnit.IntSize(5, 5)),
         )
-      slider.sliderUI.elements.add(transitionCurve)
-      slider.sliderUI.elements.add(transitionCurve)
+      slider.sliderUI.elements = listOf(transitionCurve, transitionCurve)
       // Timeline has tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.
       val tooltips = slider.scanForTooltips()
@@ -224,7 +222,7 @@ class TransitionCurveTest {
           positionProxy = slider.sliderUI.positionProxy,
         )
 
-      slider.sliderUI.elements.add(transitionCurve)
+      slider.sliderUI.elements = listOf(transitionCurve)
 
       // There are no tooltips.
       ui.render() // paint() method within render() should be called to update BoxedLabel positions.

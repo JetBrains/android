@@ -79,11 +79,11 @@ class UnsupportedLabelTest {
 
       var height = 25
       for (i in 0..4) {
-        slider.sliderUI.elements.add(
-          UnsupportedLabel(slider, ElementState(""), height, slider.sliderUI.positionProxy).apply {
-            height += this.height
-          }
-        )
+        slider.sliderUI.elements =
+          listOf(
+            UnsupportedLabel(slider, ElementState(""), height, slider.sliderUI.positionProxy)
+              .apply { height += this.height }
+          )
       }
 
       // Call layoutAndDispatchEvents() so all JComponents are updated and visible.

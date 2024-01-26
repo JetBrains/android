@@ -61,6 +61,7 @@ import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
 import kotlin.math.max
+import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 private val LOG = Logger.getInstance(AnimationPreview::class.java)
 
@@ -118,28 +119,24 @@ class AnimationPreview(
 
   private inner class TabChangeListener : TabsListener {
     override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+      if (newSelection == oldSelection) return
+
       val component = tabbedPane.selectedInfo?.component ?: return
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
-      animations
-        .find { it is SupportedAnimationManager && it.tabComponent == component }
-        ?.let { tab ->
-          if (tab !is SupportedAnimationManager) return@let
-          if (newSelection == oldSelection) return
-          // Swing components cannot be placed into different containers, so we add the shared
-          // timeline to the active tab on tab change.
-          tab.addTimeline()
-          selectedAnimation = tab
-          tab.loadProperties()
-          createTimelineElements(listOf(tab))
-          return@selectionChanged
-        }
-      // If coordination tab is selected.
-      if (component is AllTabPanel) {
+      val selectedSupportedAnimation =
+        animations.findIsInstanceAnd<SupportedAnimationManager> { it.tabComponent == component }
+      if (selectedSupportedAnimation != null) {
+        // Swing components cannot be placed into different containers, so we add the shared
+        // timeline to the active tab on tab change.
+        selectedSupportedAnimation.addTimeline()
+        selectedAnimation = selectedSupportedAnimation
+        selectedSupportedAnimation.loadProperties()
+      } else if (component is AllTabPanel) { // If coordination tab is selected.
+        selectedAnimation = null
         coordinationTab.addTimeline(timeline)
-        createTimelineElements(animations)
       }
-      selectedAnimation = null
+      updateTimelineElements()
     }
   }
 
@@ -222,10 +219,7 @@ class AnimationPreview(
     }
 
   /** Create list of [TimelineElement] for selected [SupportedAnimationManager]s. */
-  private fun createTimelineElements(
-    tabs: Collection<AnimationManager>,
-    elementsCreated: () -> Unit = {},
-  ) {
+  private fun updateTimelineElements(elementsCreated: () -> Unit = {}) {
     executeOnRenderThread(false) {
       var minY = InspectorLayout.timelineHeaderHeightScaled()
       // Call once to update all sizes as all curves / lines required it.
@@ -234,39 +228,35 @@ class AnimationPreview(
         timeline.repaint()
         timeline.sliderUI.elements.forEach { it.dispose() }
         timeline.sliderUI.elements =
-          if (tabs.size == 1 && selectedAnimation != null) {
+          if (selectedAnimation != null) {
             // Paint single selected animation.
+            val selected = selectedAnimation!!
             val curve =
               TransitionCurve.create(
-                tabs.first().elementState,
-                tabs.first().currentTransition,
+                selected.elementState,
+                selected.currentTransition,
                 minY,
                 timeline.sliderUI.positionProxy,
               )
-            tabs.first().selectedPropertiesCallback = { curve.timelineUnits = it }
-            curve.timelineUnits = tabs.first().selectedProperties
-            mutableListOf(curve)
+            selected.selectedPropertiesCallback = { curve.timelineUnits = it }
+            curve.timelineUnits = selected.selectedProperties
+            listOf(curve)
           } else
-            tabs
-              .map { tab ->
+            animations.map { tab ->
+              if (tab is SupportedAnimationManager) {
                 tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-                val line =
-                  tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy)
-                minY += line.heightScaled()
                 tab.card.setDuration(tab.currentTransition.duration)
-                line
               }
-              .toMutableList()
+
+              tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
+                minY += heightScaled()
+              }
+            }
         elementsCreated()
       }
       timeline.revalidate()
       coordinationTab.revalidate()
     }
-  }
-
-  /** Update currently displayed [TimelineElement]s. */
-  private fun updateTimelineElements(elementsCreated: () -> Unit = {}) {
-    createTimelineElements(selectedAnimation?.let { listOf(it) } ?: animations, elementsCreated)
   }
 
   /**
@@ -318,11 +308,7 @@ class AnimationPreview(
 
   private fun updateTimelineMaximum() {
     val timelineMax =
-      animations
-        .mapNotNull { it.timelineMaximumMs }
-        .maxOrNull()
-        ?.toLong()
-        ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
+      max(animations.maxOf { it.timelineMaximumMs }.toLong(), maxDurationPerIteration)
     clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
     updateTimelineElements()
   }
@@ -519,6 +505,18 @@ class AnimationPreview(
   private open inner class SupportedAnimationManager(animation: ComposeAnimation) :
     AnimationManager(animation, tabNames.createName(animation)) {
 
+    /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
+    var currentTransition = Transition()
+      protected set(value) {
+        field = value
+        // If transition has changed, reset it offset.
+        elementState.valueOffset = 0
+        updateTimelineElements { invokeLater { coordinationTab.updateCardSize(card) } }
+      }
+
+    override val timelineMaximumMs: Int
+      get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) } ?: 0
+
     val stateComboBox = animation.createState(tracker, animation.findCallback())
 
     /** State of animation, shared between single animation tab and coordination panel. */
@@ -585,12 +583,6 @@ class AnimationPreview(
       }
 
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
-
-    init {
-      currentTransitionCallback = {
-        updateTimelineElements { invokeLater { coordinationTab.updateCardSize(card) } }
-      }
-    }
 
     /**
      * Updates the `initial` and `target` state combo boxes to display the states of the given
