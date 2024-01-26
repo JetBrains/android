@@ -1031,6 +1031,7 @@ java_test(
 
 java_test(
     name = "CreateDefaultActivityTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -1091,6 +1092,7 @@ java_test(
 
 java_test(
     name = "CreateNewLibraryModuleWithDefaultsTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),

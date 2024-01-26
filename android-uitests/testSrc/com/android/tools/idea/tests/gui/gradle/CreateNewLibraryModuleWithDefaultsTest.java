@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertAbout;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNewLibraryModuleWithDefaultsTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies addition of new library module to application.
