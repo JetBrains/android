@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
-interface ComposePreviewManager : Disposable, PreviewModeManager {
+interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewGroupManager {
 
   /**
    * Status of the preview.
@@ -55,19 +56,8 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   fun status(): Status
 
-  /**
-   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
-   * and only one will be displayed at a given time.
-   */
-  val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>>
-
   /** [StateFlow] of available elements in this preview with no filters applied. */
   val allPreviewElementsInFileFlow: StateFlow<FlowableCollection<ComposePreviewElementInstance>>
-
-  /**
-   * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
-   */
-  var groupFilter: PreviewGroup
 
   /**
    * The [PsiFile] that this preview is representing, if any. For cases where the preview is
