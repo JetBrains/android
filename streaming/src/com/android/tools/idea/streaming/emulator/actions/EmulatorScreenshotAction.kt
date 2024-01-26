@@ -18,14 +18,15 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.SdkConstants
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
+import com.android.io.writeImage
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FutureStreamObserver
 import com.android.tools.idea.ui.screenshot.FramingOption
+import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
-import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
 import com.android.tools.idea.ui.screenshot.ScreenshotSupplier
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
@@ -40,13 +41,12 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.ExecutionException
 import javax.imageio.IIOException
@@ -78,33 +78,33 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val imageBytes = screenshot.image
         val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
 
-        val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
-        Files.newOutputStream(backingFile).use {
-          imageBytes.writeTo(it)
-        }
-
+        val screenshotDecorator = MyScreenshotDecorator(emulatorView)
         val emulatorController = emulatorView.emulator
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
-        val screenshotSupplier = MyScreenshotSupplier(emulatorController)
-        val screenshotFramer = MyScreenshotPostprocessor(emulatorView)
         val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
+        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull(), project)
+        val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
+        val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+        processedImage.writeImage("PNG", file)
+        val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
+        val screenshotSupplier = MyScreenshotSupplier(emulatorController)
 
         ApplicationManager.getApplication().invokeLater {
-          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer, framingOptions)
+          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator, framingOptions)
         }
       }
       catch (e: Exception) {
-        thisLogger().error("Error while displaying screenshot viewer: ", e)
+        thisLogger().error("Error while displaying screenshot viewer", e)
       }
     }
 
     private fun showScreenshotViewer(project: Project,
                                      screenshotImage: ScreenshotImage,
-                                     backingFile: Path,
+                                     backingFile: VirtualFile,
                                      screenshotSupplier: ScreenshotSupplier,
-                                     screenshotPostprocessor: ScreenshotPostprocessor,
+                                     screenshotDecorator: ScreenshotDecorator,
                                      framingOptions: List<FramingOption>) {
-      val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotPostprocessor,
+      val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator,
                                              framingOptions, 0, EnumSet.noneOf(Option::class.java)) {
         override fun doOKAction() {
           super.doOKAction()
@@ -149,9 +149,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class MyScreenshotPostprocessor(val emulatorView: EmulatorView) : ScreenshotPostprocessor {
+  private class MyScreenshotDecorator(val emulatorView: EmulatorView) : ScreenshotDecorator {
 
-    override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
+    override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height

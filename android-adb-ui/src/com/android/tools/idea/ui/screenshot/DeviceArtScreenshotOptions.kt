@@ -34,7 +34,7 @@ class DeviceArtScreenshotOptions(
 
   override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.of(ALLOW_IMAGE_ROTATION)
 
-  override val screenshotPostprocessor: ScreenshotPostprocessor = DeviceArtScreenshotPostprocessor()
+  override val screenshotDecorator: ScreenshotDecorator = DeviceArtScreenshotDecorator()
 
   override fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
     return ScreenshotImage(image, 0, deviceType, displayInfo)

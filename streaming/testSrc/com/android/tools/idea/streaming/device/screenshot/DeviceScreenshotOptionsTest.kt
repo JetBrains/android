@@ -54,8 +54,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testScreenshotPostprocessorProperty() {
-    assertThat(DeviceScreenshotOptions(serialNumber, emptyDeviceConfiguration, deviceView).screenshotPostprocessor)
-        .isInstanceOf(DeviceScreenshotPostprocessor::class.java)
+    assertThat(DeviceScreenshotOptions(serialNumber, emptyDeviceConfiguration, deviceView).screenshotDecorator)
+        .isInstanceOf(DeviceScreenshotDecorator::class.java)
   }
 
   @Test

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ui.screenshot
 
 import com.android.tools.idea.ui.AndroidAdbUiBundle
@@ -33,7 +32,7 @@ open class ScreenshotTask(
   var screenshot: ScreenshotImage? = null
     private set
   var error: String? = null
-    private set
+    protected set
 
   override fun run(indicator: ProgressIndicator) {
     indicator.isIndeterminate = true
@@ -45,13 +44,7 @@ open class ScreenshotTask(
       if (indicator.isCanceled) {
         return
       }
-      val message = ExceptionUtil.getMessage(e)
-      if (message == null) {
-        AndroidAdbUiBundle.message("screenshot.error.generic", e.javaClass.name)
-      }
-      else {
-        error = message
-      }
+      error = ExceptionUtil.getMessage(e) ?: AndroidAdbUiBundle.message("screenshot.error.generic", e.javaClass.name)
     }
   }
 }

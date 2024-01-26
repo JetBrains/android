@@ -22,7 +22,6 @@ import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FIL
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
-import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent;
@@ -56,7 +55,6 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
@@ -111,7 +109,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private final @NotNull Project myProject;
   private final @Nullable ScreenshotSupplier myScreenshotSupplier;
-  private final @NotNull ScreenshotPostprocessor myScreenshotPostprocessor;
+  private final @NotNull ScreenshotDecorator myScreenshotDecorator;
 
   private final @NotNull VirtualFile myBackingFile;
   private final @NotNull ImageFileEditor myImageFileEditor;
@@ -124,53 +122,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private @NotNull JButton myRotateRightButton;
   private @NotNull JButton myRotateLeftButton;
   private @NotNull JPanel myContentPane;
-  private @NotNull JComboBox<DecorationOption> myDecorationComboBox;
+  private @NotNull JComboBox<ScreenshotDecorationOption> myDecorationComboBox;
   private @NotNull JButton myCopyButton;
-
-  private static final class DecorationOption {
-    private static final DecorationOption RECTANGULAR =
-      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.rectangular"));
-    private static final DecorationOption DISPLAY_SHAPE_CLIP =
-      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.display.shape"));
-    private static final DecorationOption PLAY_COMPATIBLE =
-      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.display.play-compatible"));
-
-    private final @Nullable String myClipAction;
-    private final @Nullable FramingOption myFramingOption;
-
-    public DecorationOption(@NotNull FramingOption framingOption) {
-      myClipAction = null;
-      myFramingOption = framingOption;
-    }
-
-    private DecorationOption(@NotNull String clipAction) {
-      myClipAction = clipAction;
-      myFramingOption = null;
-    }
-
-    public @Nullable FramingOption getFramingOption() {
-      return myFramingOption;
-    }
-
-    @Override
-    public @NotNull String toString() {
-      //noinspection ConstantConditions - Either myFramingOption or myClipAction must be not null
-      return myFramingOption != null ? myFramingOption.getDisplayName() : myClipAction;
-    }
-
-    @Override
-    public int hashCode() {
-      return HashCodes.mix(Objects.hashCode(myClipAction), Objects.hashCode(myFramingOption));
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      if (this == obj) return true;
-      if (obj == null || getClass() != obj.getClass()) return false;
-      DecorationOption other = (DecorationOption)obj;
-      return Objects.equals(myClipAction, other.myClipAction) && Objects.equals(myFramingOption, other.myFramingOption);
-    }
-  }
 
   /**
    * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3.
@@ -201,7 +154,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
    *                                the viewer is closed
    * @param screenshotSupplier      an optional supplier of additional screenshots. The <i>Recapture</i>
    *                                button is hidden if not provided
-   * @param screenshotPostprocessor an optional postprocessor used for framing and clipping.
+   * @param screenshotDecorator an optional postprocessor used for framing and clipping.
    *                                The <i>Frame screenshot</i> checkbox and the framing options are hidden if not provided
    * @param framingOptions          available choices of frames.  Ignored if {@code screenshotPostprocessor}
    *                                is null. The pull-down list of framing options is shown only when
@@ -212,9 +165,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
    */
   public ScreenshotViewer(@NotNull Project project,
                           @NotNull ScreenshotImage screenshotImage,
-                          @NotNull Path backingFile,
+                          @NotNull VirtualFile backingFile,
                           @Nullable ScreenshotSupplier screenshotSupplier,
-                          @NotNull ScreenshotPostprocessor screenshotPostprocessor,
+                          @NotNull ScreenshotDecorator screenshotDecorator,
                           @NotNull List<? extends FramingOption> framingOptions,
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
@@ -227,14 +180,11 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myProject = project;
     myScreenshotSupplier = screenshotSupplier;
-    myScreenshotPostprocessor = screenshotPostprocessor;
+    myScreenshotDecorator = screenshotDecorator;
     mySourceImageRef.set(screenshotImage);
     myRotationQuadrants = screenshotImage.getScreenshotRotationQuadrants();
-    myDisplayedImageRef.set(screenshotImage.getImage());
 
-    VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile);
-    assert virtualFile != null;
-    myBackingFile = virtualFile;
+    myBackingFile = backingFile;
 
     if (screenshotSupplier == null) {
       hideComponent(myRefreshButton);
@@ -250,43 +200,40 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myPersistentStorage = PersistentState.getInstance(myProject);
 
-    DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
-    decorationOptions.addElement(DecorationOption.RECTANGULAR);
+    DefaultComboBoxModel<ScreenshotDecorationOption> decorationOptions = new DefaultComboBoxModel<>();
+    decorationOptions.addElement(ScreenshotDecorationOption.RECTANGULAR);
     // Clipping is available when the postprocessor supports it and for round devices.
-    boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
+    boolean canClipDeviceMask = screenshotDecorator.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
     if (canClipDeviceMask) {
-      decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+      decorationOptions.addElement(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP);
     }
-    int width = screenshotImage.getWidth();
-    int height = screenshotImage.getHeight();
-    boolean isOneToOneRatio = width == height;
     // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
-    // The image ratio is enforced, however.
-    boolean isPlayCompatibleWearScreenshot = screenshotImage.isWear() && isOneToOneRatio;
+    // The 1:1 image aspect ratio is enforced, however.
+    boolean isPlayCompatibleWearScreenshot = screenshotImage.isWear() && screenshotImage.getWidth() == screenshotImage.getHeight();
     if (isPlayCompatibleWearScreenshot) {
-      decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
+      decorationOptions.addElement(ScreenshotDecorationOption.PLAY_COMPATIBLE);
     }
     int frameOptionStartIndex = decorationOptions.getSize();
     for (FramingOption framingOption : framingOptions) {
-      decorationOptions.addElement(new DecorationOption(framingOption));
+      decorationOptions.addElement(new ScreenshotDecorationOption(framingOption));
     }
     myDecorationComboBox.setModel(decorationOptions);
 
     if (myPersistentStorage.frameScreenshot && myDecorationComboBox.getItemCount() > defaultFramingOption + frameOptionStartIndex) {
       myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
     }
+    else if (canClipDeviceMask) {
+      myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP);
+    }
+    else if (isPlayCompatibleWearScreenshot) {
+      myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE);
+    }
     else {
-      if (canClipDeviceMask) {
-        myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
-      } else if (isPlayCompatibleWearScreenshot) {
-        myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
-      } else {
-        myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
-      }
+      myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.RECTANGULAR);
     }
 
     ActionListener decorationListener = event -> {
-      myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
+      myPersistentStorage.frameScreenshot = ((ScreenshotDecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
       updateImageFrame();
     };
     myDecorationComboBox.addActionListener(decorationListener);
@@ -313,11 +260,30 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       logScreenshotUsage();
     });
 
-    updateEditorImage();
-
     init();
 
     updateImageFrame();
+  }
+
+  public static @NotNull ScreenshotDecorationOption getDefaultDecoration(
+      @NotNull ScreenshotImage screenshotImage, @NotNull ScreenshotDecorator screenshotDecorator,
+      @Nullable FramingOption defaultFramingOption, @NotNull Project project) {
+    // Clipping is available when either the postprocessor supports it or for round devices.
+    boolean canClipDeviceMask = screenshotDecorator.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
+    // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
+    // The 1:1 image aspect ratio is enforced, however.
+    boolean isPlayCompatibleWearScreenshot = screenshotImage.isWear() && screenshotImage.getWidth() == screenshotImage.getHeight();
+
+    if (PersistentState.getInstance(project).frameScreenshot && defaultFramingOption != null) {
+      return new ScreenshotDecorationOption(defaultFramingOption);
+    }
+    else if (canClipDeviceMask) {
+      return ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP;
+    }
+    else if (isPlayCompatibleWearScreenshot) {
+      return ScreenshotDecorationOption.PLAY_COMPATIBLE;
+    }
+    return ScreenshotDecorationOption.RECTANGULAR;
   }
 
   private void hideComponent(@NotNull Component component) {
@@ -398,16 +364,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     updateEditorImage();
   }
 
-  private BufferedImage processImage(ScreenshotImage sourceImage) {
-    DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
-    FramingOption framingOption = selectedDecoration.getFramingOption();
-    Color backgroundColor = null;
-    if (selectedDecoration.equals(DecorationOption.RECTANGULAR) ||
-        selectedDecoration.equals(DecorationOption.PLAY_COMPATIBLE)) {
-      //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
-      backgroundColor = Color.BLACK;
-    }
-    return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
+  private @NotNull BufferedImage processImage(@NotNull ScreenshotImage sourceImage) {
+    ScreenshotDecorationOption decoration = (ScreenshotDecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
+    return myScreenshotDecorator.decorate(sourceImage, decoration);
   }
 
   @VisibleForTesting
@@ -602,14 +561,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private @NotNull DeviceScreenshotEvent.DecorationOption getUsageDecorationOption() {
-    DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
-    if (DecorationOption.RECTANGULAR.equals(selectedDecoration)) {
+    ScreenshotDecorationOption selectedDecoration = (ScreenshotDecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
+    if (ScreenshotDecorationOption.RECTANGULAR.equals(selectedDecoration)) {
       return DeviceScreenshotEvent.DecorationOption.RECTANGULAR;
     }
-    if (DecorationOption.DISPLAY_SHAPE_CLIP.equals(selectedDecoration)) {
+    if (ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.equals(selectedDecoration)) {
       return DeviceScreenshotEvent.DecorationOption.DISPLAY_SHAPE_CLIP;
     }
-    if (DecorationOption.PLAY_COMPATIBLE.equals(selectedDecoration)) {
+    if (ScreenshotDecorationOption.PLAY_COMPATIBLE.equals(selectedDecoration)) {
       return DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE;
     }
     return DeviceScreenshotEvent.DecorationOption.FRAMED;

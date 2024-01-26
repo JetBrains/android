@@ -28,11 +28,11 @@ import java.awt.image.BufferedImage
 import kotlin.math.max
 
 /**
- * A [ScreenshotPostprocessor] using [DeviceArtPainter].
+ * A [ScreenshotDecorator] using [DeviceArtPainter].
  */
-internal class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
+internal class DeviceArtScreenshotDecorator : ScreenshotDecorator {
   @Slow
-  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
+  override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {
       return if (screenshotImage.isRoundDisplay) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }

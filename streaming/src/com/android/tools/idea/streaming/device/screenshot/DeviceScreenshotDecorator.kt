@@ -22,8 +22,8 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.device.DeviceArtPainter
 import com.android.tools.idea.streaming.emulator.SkinDefinitionCache
 import com.android.tools.idea.ui.screenshot.FramingOption
+import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
-import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -32,9 +32,9 @@ import java.nio.file.Path
 /**
  * Screenshot framer accepting a [DeviceFramingOption].
  */
-internal class DeviceScreenshotPostprocessor : ScreenshotPostprocessor {
+internal class DeviceScreenshotDecorator : ScreenshotDecorator {
   @Slow
-  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
+  override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {
       return if (screenshotImage.isRoundDisplay) ellipticalClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
