@@ -1231,6 +1231,9 @@ public final class StudioProfilersTest {
     myIdeProfilerServices.enableTaskBasedUx(true);
     myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
 
+    // Auto profiling is disabled in the Task-Based UX, and thus prevents the loading state from occurring on preferred process change.
+    assertThat(myProfilers.getAutoProfilingEnabled()).isFalse();
+
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);
 
@@ -1260,6 +1263,9 @@ public final class StudioProfilersTest {
   public void testSessionDoesAutoStartOnProcessChangeWithTaskBasedUxDisabled() {
     myIdeProfilerServices.enableTaskBasedUx(false);
     myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    // Auto profiling is enabled on call to set the preferred process.
+    assertThat(myProfilers.getAutoProfilingEnabled()).isTrue();
 
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);

@@ -251,6 +251,21 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
   }
 
   @Test
+  fun testLoadingPanelDoesNotShowWhileWaitingForPreferredProcessInTaskBasedUX() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
+    Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
+
+    // Sets a preferred process, the UI should NOT wait and show the loading panel.
+    endSession()
+    updatePreferredProcess(FakeTransportService.FAKE_DEVICE_NAME)
+    // Auto profiling is disabled in the Task-Based UX, and thus prevents the loading state from occurring on preferred process change.
+    Truth.assertThat(studioProfilers.autoProfilingEnabled).isFalse()
+    Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
+    Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
+  }
+
+  @Test
   fun testLoadingPanelWhileWaitingForAgentAttach() {
     Assume.assumeFalse(isTestingProfileable) // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
@@ -271,6 +286,27 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     updateAgentStatus(NEW_PROCESS_ID, ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE)
 
     // Attach status is detected, loading should stop.
+    Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
+    Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
+  }
+
+  @Test
+  fun testLoadingPanelDoesNotShowWhileWaitingForAgentAttachInTaskBasedUX() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    Assume.assumeFalse(isTestingProfileable) // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
+    Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
+    Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
+    val process = Common.Process.newBuilder()
+      .setPid(NEW_PROCESS_ID)
+      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build()
+    startSession(FakeTransportService.FAKE_DEVICE, process)
+    updateAgentStatus(NEW_PROCESS_ID, ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE)
+
+    // Agent is detached, the UI should NOT wait and NOT show the loading panel.
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
   }

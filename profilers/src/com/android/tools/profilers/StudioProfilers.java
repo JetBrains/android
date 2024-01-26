@@ -399,7 +399,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcess(@Nullable String deviceName,
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
-    myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
 
     myPreference = new Preference(
       deviceName,
@@ -408,7 +407,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     );
 
     // Checks whether we can switch immediately if the device is already there.
-    setAutoProfilingEnabled(true);
+    if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
+      setAutoProfilingEnabled(true);
+    }
 
     changed(ProfilerAspect.PREFERRED_PROCESS);
   }
@@ -432,6 +434,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
+
+    if (enabled && getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      getLogger().warn("Auto profiling should not be enabled or used when the Task-Based UX is enabled.");
+    }
     // Do nothing. Let update() take care of which process should be selected.
     // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
     // For example, if the user ends a session (which will set myProcess null), then click the Run button.
@@ -440,7 +446,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
   }
 
-  @TestOnly
   public boolean getAutoProfilingEnabled() {
     return myAutoProfilingEnabled;
   }
@@ -602,7 +607,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     Set<Common.Device> onlineDevices = filterOnlineDevices(devices);
 
     // We have a preferred device, try not to select anything else.
-    if (myAutoProfilingEnabled && myPreference.deviceName != null) {
+    if ((getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() || myAutoProfilingEnabled) && myPreference.deviceName != null) {
       for (Common.Device device : onlineDevices) {
         if (myPreference.deviceName.equals(buildDeviceName(device))) {
           return device;
@@ -824,7 +829,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // Prefer the project's app if available.
-    if (myAutoProfilingEnabled && myPreference.processName != null) {
+    if ((getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() || myAutoProfilingEnabled) && myPreference.processName != null) {
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreference.processName) &&
             process.getState() == Common.Process.State.ALIVE &&
