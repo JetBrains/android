@@ -29,8 +29,10 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.actions.RenameElementAction
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
@@ -92,10 +94,15 @@ open class NlIdPropertyItem(
     get() = ""
 
   private fun readIdFromPsi(): String? {
-    val tag = firstTag ?: return null
-    return if (AndroidPsiUtils.isValid(tag))
-      AndroidPsiUtils.getAttributeSafely(tag, ANDROID_URI, ATTR_ID)
-    else null
+    return SlowOperations.allowSlowOperations(
+      ThrowableComputable {
+        firstTag?.let {
+          if (AndroidPsiUtils.isValid(it))
+            AndroidPsiUtils.getAttributeSafely(it, ANDROID_URI, ATTR_ID)
+          else null
+        }
+      }
+    )
   }
 
   private fun toValue(id: String): String? {
