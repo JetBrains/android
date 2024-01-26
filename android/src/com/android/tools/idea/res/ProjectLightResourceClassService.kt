@@ -254,6 +254,8 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
       val module = facet.module
       val moduleSystem = module.getModuleSystem()
+      if (!moduleSystem.supportsAndroidResources) return@getAndUnwrap ResourceClasses.Empty
+
       val transitivity =
         if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE
         else Transitivity.NON_TRANSITIVE
