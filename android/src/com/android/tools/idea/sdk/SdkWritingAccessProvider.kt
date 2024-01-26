@@ -16,18 +16,25 @@
 package com.android.tools.idea.sdk
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.WritingAccessProvider
+import com.intellij.util.SlowOperations
 
 /** Marks Android SDK sources as read-only to prevent accidental edits. */
 class SdkWritingAccessProvider(private val project: Project) : WritingAccessProvider() {
 
   override fun requestWriting(files: Collection<VirtualFile>): Collection<VirtualFile> {
-    return files.filter { file -> AndroidSdks.getInstance().isInAndroidSdk(project, file) }
+    return files.filter(::isInAndroidSdk)
   }
 
   override fun isPotentiallyWritable(file: VirtualFile): Boolean {
-    return !AndroidSdks.getInstance().isInAndroidSdk(project, file)
+    return !isInAndroidSdk(file)
+  }
+
+  private fun isInAndroidSdk(file: VirtualFile): Boolean {
+    return SlowOperations.allowSlowOperations(ThrowableComputable {
+      AndroidSdks.getInstance().isInAndroidSdk(project, file)
+    })
   }
 }
-
