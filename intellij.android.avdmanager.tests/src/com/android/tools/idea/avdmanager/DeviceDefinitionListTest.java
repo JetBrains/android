@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,5 +42,33 @@ public final class DeviceDefinitionListTest {
 
     // Act
     new DeviceDefinitionList(supplier);
+  }
+
+  @Test
+  public void deviceDefinitionListIdsAreDifferent() {
+    // Arrange
+    // system-images;android-21;android-tv;x86
+    var tv1 = Definitions.mockDefinition("android-tv", Definitions.mockHardware(0), "Android TV (1080p)", "Android TV (1080p)");
+
+    // tv.xml at Commit df3a41ec30df6edc79a4e3823698640f114b05a4
+    var tv2 = Definitions.mockDefinition("android-tv", Definitions.mockHardware(0), "Android TV (1080p)", "tv_1080p");
+
+    var definitions = List.of(Definitions.mockPhone(),
+                              Definitions.mockTablet(),
+                              Definitions.mockWearOsDefinition(),
+                              Definitions.mockDesktop(),
+                              tv1,
+                              tv2,
+                              Definitions.mockAutomotiveDefinition(),
+                              Definitions.mockLegacyDefinition());
+
+    var supplier = Mockito.mock(DeviceSupplier.class);
+    Mockito.when(supplier.get()).thenReturn(definitions);
+
+    // Act
+    var list = new DeviceDefinitionList(supplier);
+
+    // Assert
+    assertEquals(Set.of(tv1, tv2), list.getCategoryToDefinitionMultimap().get(Category.TV));
   }
 }
