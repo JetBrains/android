@@ -32,5 +32,10 @@
                     serviceImplementation="com.android.tools.compose.ComposeKDocLinkResolutionService"
                     overrides="true"
     />
+
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeCreatePreviewActionK1</className>
+      <category>Compose Android</category>
+    </intentionAction>
   </extensions>
 </idea-plugin>

@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
  * Adds a @Preview annotation when a full @Composable is selected or cursor at @Composable
  * annotation.
  */
-class ComposeCreatePreviewAction : IntentionAction {
+class ComposeCreatePreviewActionK1 : IntentionAction {
   override fun startInWriteAction() = true
 
   override fun getText() = ComposeBundle.message("create.preview")
