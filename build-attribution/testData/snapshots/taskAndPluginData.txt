@@ -109,6 +109,11 @@ Task                          : :app:mergeDebugShaders
     PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugStartupProfile
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeStartupProfileTask
+    PrimaryTaskCategory           : ART_PROFILE
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:minifyDebugWithR8
     TaskType                      : com.android.build.gradle.internal.tasks.R8Task
     PrimaryTaskCategory           : OPTIMIZATION
