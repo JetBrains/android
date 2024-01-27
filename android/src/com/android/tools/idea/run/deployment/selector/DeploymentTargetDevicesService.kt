@@ -18,9 +18,8 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
-import com.android.sdklib.deviceprovisioner.SetChange
-import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.run.DeviceHandleAndroidDevice
@@ -100,24 +99,23 @@ constructor(
 
   override fun dispose() {}
 
-  private val connectionTimes = ConcurrentHashMap<DeviceId, Instant>()
+  /** The flattened state of a DeviceHandle that is needed to create a DeploymentTargetDevice. */
+  private data class DeviceHandleState(
+    val handle: DeviceHandle,
+    val state: DeviceState,
+    val connectionTime: Instant?,
+  )
 
-  private fun deviceHandleFlow(
-    ddmlibDeviceLookup: DdmlibDeviceLookup,
-    launchCompatibilityChecker: LaunchCompatibilityChecker,
-  ): Flow<List<DeploymentTargetDevice>> = channelFlow {
-    val handles = ConcurrentHashMap<DeviceHandle, Optional<DeploymentTargetDevice>>()
-    // Immediately send empty list, since if the actual list is empty, there will be no Add,
-    // and we don't want to be stuck in the Loading state.
-    send(emptyList())
-    devicesFlow
-      .map { it.toSet() }
-      .trackSetChanges()
-      .collect {
-        when (it) {
-          is SetChange.Add -> {
-            val handle = it.value
-            // Create a slot for the handle, to be filled in by a coroutine tracking the handle
+  /** A StateFlow that tracks DeviceHandles to build [DeviceHandleState]s. */
+  private val deviceStateFlow: StateFlow<List<DeviceHandleState>> =
+    channelFlow {
+        val connectionTimes = ConcurrentHashMap<DeviceId, Instant>()
+        val handles = ConcurrentHashMap<DeviceHandle, Optional<DeviceHandleState>>()
+        devicesFlow.collect { newHandles ->
+          val removed = handles.keys - newHandles
+          val added = newHandles - handles.keys
+          for (handle in added) {
+            // Create a slot for the handle, to be filled in by the coroutine tracking the handle
             handles[handle] = Optional.empty()
             handle.scope.launch {
               handle.stateFlow.collect { state ->
@@ -128,29 +126,43 @@ constructor(
                     connectionTimes.remove(handle.id)
                     null
                   }
-                // Don't update the handle if it has already been removed. (We can reach this point
-                // after processing SetChange.Remove, and must not undo the remove.)
+                // Don't update the handle if it has already been removed. (We can reach this
+                // point after the removal, and must not undo the remove.)
                 if (handles.containsKey(handle)) {
-                  val targetDevice =
-                    DeploymentTargetDevice.create(
-                      DeviceHandleAndroidDevice(ddmlibDeviceLookup, handle, state),
-                      connectionTime,
-                      launchCompatibilityChecker,
-                    )
-                  handles.computeIfPresent(handle) { _, _ -> Optional.of(targetDevice) }
+                  handles.computeIfPresent(handle) { _, _ ->
+                    Optional.of(DeviceHandleState(handle, state, connectionTime))
+                  }
+                  send(handles.values.mapNotNull { it.orNull() })
                 }
-                send(handles.values.mapNotNull { it.orNull() })
               }
             }
           }
-          is SetChange.Remove -> {
-            handles.remove(it.value)
-            connectionTimes.remove(it.value.id)
-            send(handles.values.mapNotNull { it.orNull() })
+          for (handle in removed) {
+            handles.remove(handle)
+            connectionTimes.remove(handle.id)
           }
+          send(handles.values.mapNotNull { it.orNull() })
         }
       }
-  }
+      .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
+
+  /**
+   * Provides a flow of DeploymentTargetDevice based on DeviceHandles, by combining the
+   * deviceStateFlow with the current ADB and LaunchCompatibilityChecker.
+   */
+  private fun deviceHandleFlow(
+    ddmlibDeviceLookup: DdmlibDeviceLookup,
+    launchCompatibilityChecker: LaunchCompatibilityChecker,
+  ): Flow<List<DeploymentTargetDevice>> =
+    deviceStateFlow.map {
+      it.map {
+        DeploymentTargetDevice.create(
+          DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state),
+          it.connectionTime,
+          launchCompatibilityChecker,
+        )
+      }
+    }
 
   private fun deviceTemplateFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
