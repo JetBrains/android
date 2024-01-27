@@ -22,4 +22,12 @@
     <!--suppress PluginXmlValidity -->
     <supportsKotlinK2Mode/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <intentionAction>
+      <language>kotlin</language>
+      <className>com.android.tools.compose.intentions.ComposeCreatePreviewActionK2</className>
+      <category>Compose Android</category>
+    </intentionAction>
+  </extensions>
 </idea-plugin>
