@@ -243,27 +243,27 @@ public final class StudioFlags {
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
 
-  public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
+  public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = new BooleanFlag(
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
+  public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = new BooleanFlag(
     NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
+  public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = new BooleanFlag(
     NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
     "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
     true);
 
-  public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(
+  public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = new BooleanFlag(
     NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
     "Include resource directories from AARs found through project system.",
     false);
 
-  public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = Flag.create(
+  public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = new BooleanFlag(
     NELE, "atf.for.compose", "Enable ATF checks for Compose",
     "Allow running accessibility checks for Compose using ATF.",
     true);
@@ -278,17 +278,17 @@ public final class StudioFlags {
     "Enable colorblind Check mode in UI Check Mode for Compose preview",
     ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
-  public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = Flag.create(
+  public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
     NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",
     "Enable so that visual lint runs on previews in the Compose Preview.",
     true);
 
-  public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = Flag.create(
+  public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = new BooleanFlag(
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress",
     false);
 
-  public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
+  public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = new BooleanFlag(
     NELE, "use.component.tree.builder", "Use the Component Tree builder",
     "If enabled, use the Component Tree builder for the Nele component tree",
     true);
