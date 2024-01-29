@@ -1203,26 +1203,26 @@ public final class StudioFlags {
     "If enabled, Compose Preview Essentials Mode will be enabled.",
     ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = new BooleanFlag(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",
     "If enabled, advanced Live Edit settings menu will be visible",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.differ",
     "LiveEdit: Resolve changed classes and group IDs with the class differ.",
     "If enabled, the class differ will be used inside of the LE compiler",
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.confined.analysis",
     "LiveEdit: Limit compilation error analysis to only the current file",
     "If enabled, Live Edit will aggressively live update even if there are analysis errors " +
@@ -1230,7 +1230,7 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.desugar.r8",
     "LiveEdit: Desugar kotlinc outputs with R8",
     "If enabled, the outputs of kotlinc are desugared before being sent to LiveEdit engine. This improves " +
@@ -1238,121 +1238,121 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK = new BooleanFlag(
     COMPOSE, "deploy.live.edit.allow.multiple.min.api.dex.markers.in.apk",
     "LiveEdit: Allow multiple min api dex markers in apk",
     "If enabled, apk may contain multiple min api dex markers and LiveEdit picks the lowest among them",
    false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING = new BooleanFlag(
     COMPOSE, "deploy.live.edit.build.system.min.sdk.version.for.dexing",
     "LiveEdit: Use Min SDK for Dexing from the build system",
     "If enabled, Live Edit uses the Min SDK information from the build system. Otherwise, use the information from the DEX marker",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
+  public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = new BooleanFlag(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
     "If enabled, the user can enable/disable the painting of debug bounds",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = new BooleanFlag(
     COMPOSE, "preview.element.picker.enable",
     "Enable @Preview picker",
     "If enabled, the picker for @Preview elements will be available",
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_SPRING_PICKER = Flag.create(
+  public static final Flag<Boolean> COMPOSE_SPRING_PICKER = new BooleanFlag(
     COMPOSE, "preview.spring.picker",
     "Enable the SpringSpec picker",
     "If enabled, a picker will be available in SpringSpec calls on the Editor gutter",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = Flag.create(
+  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",
     "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = Flag.create(
+  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
     COMPOSE, "view.filter",
     "Support filter the previews in Compose",
     "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_ZOOM_CONTROLS_DROPDOWN = Flag.create(
+  public static final Flag<Boolean> COMPOSE_ZOOM_CONTROLS_DROPDOWN = new BooleanFlag(
     COMPOSE, "preview.zoom.controls.dropdown",
     "Include Zoom Controls in the Compose Preview dropdown action",
     "If enabled, the zoom controls will also be displayed in the Compose Preview dropdown action, located on the top-left corner",
     false
   );
 
-  public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = Flag.create(
+  public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = new IntFlag(
     COMPOSE, "preview.interactive.fps.limit",
     "Interactive Preview FPS limit",
     "Controls the maximum number of frames per second in Compose Interactive Preview",
     30
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = Flag.create(
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = new BooleanFlag(
     COMPOSE, "preview.animation.coordination.drag",
     "Enable animation dragging in timeline for Animation Inspector",
     "If enabled, animation dragging will be available in Animation Inspector timeline.",
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_DAEMON_DEBUG = Flag.create(
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_DAEMON_DEBUG = new BooleanFlag(
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
     COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
     "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
     "enabling or disabling (File -> Invalidate Caches...)", false);
 
-  public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
     false);
 
-  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = Flag.create(
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = new BooleanFlag(
     COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
     "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
     false);
 
-  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = Flag.create(
+  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = new BooleanFlag(
     COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
     "If enabled, limits the number of allocations that user code can do in a single render action",
     true);
-  public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = new BooleanFlag(
     COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
     "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
     true);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY = new BooleanFlag(
     COMPOSE, "compose.preview.render.quality", "Enable the usage of a render quality management mechanism for Compose Preview",
     "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
     true);
 
-  public static final Flag<Long> COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = Flag.create(
+  public static final Flag<Long> COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = new LongFlag(
     COMPOSE, "compose.preview.render.quality.debounce.time", "Render quality debounce time",
     "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
     100L);
 
-  public static final Flag<Integer> COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD = Flag.create(
+  public static final Flag<Integer> COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD = new IntFlag(
     COMPOSE, "compose.preview.render.quality.visibility.threshold", "Render quality zoom visibility threshold",
     "When the zoom level is lower than this value, all previews will be rendered at low quality",
     20);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = Flag.create(
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = new BooleanFlag(
     COMPOSE, "compose.preview.render.quality.notify.time", "Notify refresh time for render quality refreshes",
     "If enabled, the time taken in render quality refreshes will be notified each time",
     false);
