@@ -25,6 +25,7 @@ import com.android.flags.FlagGroup;
 import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
+import com.android.flags.LongFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
@@ -221,7 +222,7 @@ public final class StudioFlags {
   //region Design Tools
   private static final FlagGroup DESIGN_TOOLS = new FlagGroup(FLAGS, "design.tools", "Design Tools");
 
-  public static final Flag<Long> PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT = Flag.create(
+  public static final Flag<Long> PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT = new LongFlag(
     DESIGN_TOOLS,
     "project.system.class.loader.cache.max.size",
     "Configure the max size of the cache used by ProjectSystemClassLoader",
@@ -230,7 +231,7 @@ public final class StudioFlags {
     20_000_000L
   );
 
-  public static final Flag<Long> GRADLE_CLASS_FINDER_CACHE_LIMIT = Flag.create(
+  public static final Flag<Long> GRADLE_CLASS_FINDER_CACHE_LIMIT = new LongFlag(
     DESIGN_TOOLS,
     "gradle.class.finder.cache.max.size",
     "Configure the max size of the cache used by GradleClassFileFinder",
