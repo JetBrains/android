@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.InspectionWidgetActionProvider
@@ -24,10 +24,9 @@ import com.intellij.openapi.project.Project
 
 class LiveEditActionProvider : InspectionWidgetActionProvider {
   override fun createAction(editor: Editor): AnAction? {
-    if (!IdeSdks.getInstance().hasConfiguredAndroidSdk()) return null
-
-    val project: Project? = editor.project
+    val project: Project = editor.project ?: return null
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) return null
     val file = FileDocumentManager.getInstance().getFile(editor.document)
-    return if (project == null || project.isDefault || file == null || !file.exists()) null else LiveEditNotificationGroup()
+    return if (project.isDefault || file == null || !file.exists()) null else LiveEditNotificationGroup()
   }
 }
