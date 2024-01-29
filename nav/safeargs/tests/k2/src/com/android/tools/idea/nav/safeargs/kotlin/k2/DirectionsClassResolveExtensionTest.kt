@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKind
 import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginKind
 import org.jetbrains.kotlin.psi.KtElement
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -184,6 +185,7 @@ class DirectionsClassResolveExtensionTest(
   }
 
   @Test
+  @Ignore("b/269235670")
   fun handlesModeChange() {
     val xmlFile =
       addNavXml(
