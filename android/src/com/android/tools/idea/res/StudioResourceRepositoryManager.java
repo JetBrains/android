@@ -45,7 +45,6 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -686,7 +685,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       return ResourceNamespace.RES_AUTO;
     }
 
-    String packageName = ReadAction.compute(() -> ProjectSystemUtil.getModuleSystem(myFacet).getPackageName());
+    String packageName = ProjectSystemUtil.getModuleSystem(myFacet).getPackageName();
     if (packageName == null) {
       return ResourceNamespace.RES_AUTO;
     }
