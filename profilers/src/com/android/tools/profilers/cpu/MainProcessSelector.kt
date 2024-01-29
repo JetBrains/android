@@ -46,7 +46,7 @@ class MainProcessSelector(
       val selection = profilerServices.openListBoxChooserDialog("Select a process",
                                                 "Select the process you want to analyze.",
                                                 processList,
-                                                Function { t: ProcessModel -> t.getSafeProcessName() })
+                                                Function { t: ProcessModel -> "${t.getSafeProcessName()} (pid: ${t.id})" })
       if (selection != null) {
         return selection.id
       } else {
