@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
@@ -54,6 +55,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
     return DefaultActionGroup(
       StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
       StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+      GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }).visibleOnlyInStaticPreview(),
       WearTileViewControlAction(
         layoutOptions = listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS),
         updateMode = { selectedOption, manager ->
