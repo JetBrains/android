@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -152,10 +153,9 @@ public class LinkProjectWithKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
-    KotlinVersion kotlinVersion = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion().getKotlinVersion();
     String newBuildGradleContents = buildGradleContents.replaceAll(
         "kotlin_version.*=.*",
-        "kotlin_version = '" + kotlinVersion + '\'')
+        "kotlin_version = '" + TestUtils.KOTLIN_VERSION_FOR_TESTS + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
