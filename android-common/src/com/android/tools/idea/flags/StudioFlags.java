@@ -837,44 +837,44 @@ public final class StudioFlags {
 
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.auto.connect.foreground", "Enable automatically connecting to foreground process",
     "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
     true);
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.running.devices", "Enable Layout Inspector in Running Devices",
     "When this flag is enabled, LayoutInspector be integrated in the Running Devices tool window, instead of in its own tool window.",
     true);
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
     "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
     StudioPathManager.isRunningFromSources());
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
     "When this flag is enabled, LayoutInspector will disregard all recomposition counts for framework composables, " +
     "such that the user can concentrate on their own code.",
     true);
 
-  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER = Flag.create(
+  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER = new StringFlag(
     LAYOUT_INSPECTOR, "dev.jar.location", "Location of prebuilt compose app inspection jar for development",
     "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in development.",
     "prebuilts/tools/common/app-inspection/androidx/compose/ui/"
   );
 
-  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER = Flag.create(
+  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER = new StringFlag(
     LAYOUT_INSPECTOR, "rel.jar.location", "Location of prebuilt compose app inspection jar for releases",
     "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in releases.",
     ""
   );
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EXTRA_LOGGING = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EXTRA_LOGGING = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.extra.logging", "Add extra logging for problem detection",
     "When this flag is enabled, LayoutInspector will add extra logging for detection of various problems.",
     false);
