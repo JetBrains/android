@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.util.SimpleModificationTracker
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
@@ -79,5 +82,44 @@ class PreviewElementProviderTest {
     Assert.assertEquals(3, memoized.previewElements().count())
     modificationTracker.incModificationCount()
     Assert.assertEquals(1, memoized.previewElements().count())
+  }
+
+  @Test
+  fun testGroupFilter() = runBlocking {
+    val previewElement1 = TestPreviewElement("PreviewElement1 - group 1", groupName = "group 1")
+    val previewElement2 = TestPreviewElement("PreviewElement2 - group 1", groupName = "group 1")
+    val previewElement3 = TestPreviewElement("PreviewElement3 - group 2", groupName = "group 2")
+    val staticPreviewProvider =
+      StaticPreviewProvider(
+        listOf(
+          previewElement1,
+          previewElement2,
+          previewElement3,
+          TestPreviewElement("PreviewMethod4 - no group"),
+        )
+      )
+
+    val previewGroupManager =
+      object : PreviewGroupManager {
+        override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(emptySet())
+        override var groupFilter: PreviewGroup = PreviewGroup.All
+      }
+
+    val filteredProvider =
+      GroupFilteredPreviewElementProvider(previewGroupManager, staticPreviewProvider)
+
+    Assert.assertEquals(4, filteredProvider.previewElements().count())
+
+    previewGroupManager.groupFilter = PreviewGroup.namedGroup("group 1")
+    Assert.assertEquals(
+      listOf(previewElement1, previewElement2),
+      filteredProvider.previewElements().toList(),
+    )
+
+    previewGroupManager.groupFilter = PreviewGroup.namedGroup("group 2")
+    Assert.assertEquals(listOf(previewElement3), filteredProvider.previewElements().toList())
+
+    previewGroupManager.groupFilter = PreviewGroup.All
+    Assert.assertEquals(4, filteredProvider.previewElements().count())
   }
 }

@@ -17,6 +17,8 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
@@ -89,3 +91,20 @@ class MemoizedPreviewElementProvider<P : PreviewElement>(
     }
   }
 }
+
+/**
+ * A [PreviewElementProvider] that filters preview elements based on which preview group is selected
+ * in the provided [PreviewGroupManager]. If the selected preview group is [PreviewGroup.All] then
+ * no filter is applied.
+ */
+class GroupFilteredPreviewElementProvider<P : PreviewElement>(
+  private val previewGroupManager: PreviewGroupManager,
+  private val delegate: PreviewElementProvider<P>,
+) :
+  PreviewElementProvider<P> by FilteredPreviewElementProvider(
+    delegate = delegate,
+    filter = {
+      previewGroupManager.groupFilter == PreviewGroup.All ||
+        it.displaySettings.group == previewGroupManager.groupFilter.name
+    },
+  )
