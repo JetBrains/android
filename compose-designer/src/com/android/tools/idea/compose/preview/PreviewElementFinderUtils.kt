@@ -33,7 +33,9 @@ import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiClass
+import com.intellij.util.SlowOperations
 import com.intellij.util.containers.sequenceOfNotNull
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -73,7 +75,9 @@ internal fun UAnnotation.isPreviewAnnotation() =
  * indirect annotations with MultiPreview when the flag is enabled
  */
 internal fun UMethod?.hasPreviewElements() =
-  this?.let { getPreviewElements(it).firstOrNull() } != null
+  SlowOperations.allowSlowOperations(
+    ThrowableComputable { this?.let { getPreviewElements(it).firstOrNull() } != null }
+  )
 
 /**
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
@@ -88,7 +92,7 @@ fun UAnnotation?.isMultiPreviewAnnotation() =
  * Given a Composable method, return a sequence of [ComposePreviewElement] corresponding to its
  * Preview annotations
  */
-internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
+private fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
   getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement }
 
 /**
