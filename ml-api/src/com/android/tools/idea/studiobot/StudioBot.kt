@@ -69,6 +69,7 @@ interface StudioBot {
   enum class RequestSource {
     SYNC,
     BUILD,
+    DESIGN_TOOLS,
     EDITOR,
     PLAY_VITALS,
     CRASHLYTICS,
