@@ -1,7 +1,7 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,11 +38,12 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementProcessor {
   @Override
   public boolean canProcessElement(@NotNull PsiElement element) {
+    Project project = element.getProject();
     if (element instanceof PsiPackage) {
       // possibly renaming application package
-      return ProjectFacetManager.getInstance(element.getProject()).hasFacets(AndroidFacet.ID);
+      return CommonAndroidUtil.getInstance().isAndroidProject(project);
     }
-    return isPackageAttributeInManifest(element.getProject(), element);
+    return isPackageAttributeInManifest(project, element);
   }
 
   private static boolean isPackageAttributeInManifest(@NotNull Project project, @Nullable PsiElement element) {

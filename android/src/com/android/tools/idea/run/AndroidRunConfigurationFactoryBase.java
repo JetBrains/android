@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationSingletonPolicy;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidRunConfigurationFactoryBase extends ConfigurationFactory {
@@ -46,7 +45,7 @@ public abstract class AndroidRunConfigurationFactoryBase extends ConfigurationFa
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+    return CommonAndroidUtil.getInstance().isAndroidProject(project);
   }
 
   @Override

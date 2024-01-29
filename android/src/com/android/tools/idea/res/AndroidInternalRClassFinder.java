@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import static com.intellij.reference.SoftReference.dereference;
 
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.sdk.AndroidPlatform;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.augment.AndroidInternalRClass;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +102,7 @@ public class AndroidInternalRClassFinder extends PsiElementFinder {
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     Project project = scope.getProject();
-    if (project == null || !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       return PsiClass.EMPTY_ARRAY;
     }
 

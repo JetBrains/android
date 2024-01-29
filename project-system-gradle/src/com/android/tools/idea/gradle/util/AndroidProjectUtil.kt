@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.util
 
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
-internal val Project.isAndroidProject: Boolean get() = ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID)
+internal val Project.isAndroidProject: Boolean get() = CommonAndroidUtil.getInstance().isAndroidProject(this)

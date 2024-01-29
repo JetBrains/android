@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
@@ -30,7 +30,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
 class ShowLayoutInspectorAction :
@@ -42,7 +41,7 @@ class ShowLayoutInspectorAction :
   override fun update(e: AnActionEvent) {
     val project = e.project
     e.presentation.isEnabled =
-      project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+      project != null && CommonAndroidUtil.getInstance().isAndroidProject(project)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

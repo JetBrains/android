@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -28,7 +28,6 @@ import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.augment.ManifestInnerClass;
 import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +62,7 @@ public class AndroidInnerClassFinder extends PsiElementFinder {
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     Project project = scope.getProject();
-    if (project == null || !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       return PsiClass.EMPTY_ARRAY;
     }
 

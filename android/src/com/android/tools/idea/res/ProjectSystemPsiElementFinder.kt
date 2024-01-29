@@ -16,7 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
@@ -24,7 +24,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project
@@ -85,7 +84,7 @@ class ProjectSystemPsiPackageFinder(private val project: Project) :
     PsiClass.EMPTY_ARRAY
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) return null
 
     for (delegate in finders) {
       return delegate.findPackage(qualifiedName) ?: continue

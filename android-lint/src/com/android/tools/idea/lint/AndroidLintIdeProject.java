@@ -35,6 +35,7 @@ import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
@@ -421,7 +422,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+    return CommonAndroidUtil.getInstance().isAndroidProject(project);
   }
 
   @Nullable
