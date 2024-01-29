@@ -791,7 +791,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
      * Otherwise, mLastProgress will be mapped to value in the range between myStartDegree and myEndDegree
      */
     float rotationDegree = myStartDegree + mLastProgress * (myEndDegree - myStartDegree);
-    myDesignSurface.setRotateSufaceDegree(rotationDegree);
+    myDesignSurface.setRotateSurfaceDegree(rotationDegree);
   }
 
   /**
@@ -800,6 +800,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private void stopScreenRotating() {
     myStartDegree = Float.NaN;
     myEndDegree = Float.NaN;
-    myDesignSurface.setRotateSufaceDegree(Float.NaN);
+    myDesignSurface.setRotateSurfaceDegree(Float.NaN);
   }
 }

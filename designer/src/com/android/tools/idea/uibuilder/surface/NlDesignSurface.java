@@ -1102,7 +1102,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * Set the rotation degree of the surface to simulate the phone rotation.
    * @param value angle of the rotation.
    */
-  public void setRotateSufaceDegree(float value) {
+  public void setRotateSurfaceDegree(float value) {
     myRotateSurfaceDegree = value;
   }
 
