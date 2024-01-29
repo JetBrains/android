@@ -262,15 +262,6 @@ class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
   }
 }
 
-class OpenSettingsQuickFix(@NlsContexts.ConfigurableName val settingsName: String) : BuildIssueQuickFix {
-  override val id: String = "open.enable.sync.with.future.agp.settings"
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val result = ShowSettingsUtil.getInstance().showSettingsDialog(project, settingsName)
-    return CompletableFuture.completedFuture(result)
-  }
-}
-
 class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
   override val id = "open.plugin.build.file"
 

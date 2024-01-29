@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
@@ -54,12 +53,6 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     GradleExperimentalSettings.getInstance().USE_MULTI_VARIANT_EXTRA_ARTIFACTS &&
     StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
 
-  // This will be true only in Android projects openned in IntelliJ IDEA,
-  // because in Android Studio sync with future AGP versions is prohibited.
-  val ideaFlagSupportFutureAgpVersions = AndroidGradleBuildConfiguration
-    .getInstance(project)
-    .isSyncWithFutureAgpVersionEnabled
-
   val studioFlags = GradleSyncStudioFlags(
     studioFlagParallelSyncEnabled = parallelSync,
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
@@ -76,7 +69,6 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
     studioFlagUseNewDependencyGraphModel = StudioFlags.USE_NEW_DEPENDENCY_GRAPH_MODEL.get(),
     studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get(),
-    ideaFlagSupportFutureAgpVersions = ideaFlagSupportFutureAgpVersions,
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONTINUE_BUILD_OPTION;
 
-import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public String COMMAND_LINE_OPTIONS = "";
   public boolean CONTINUE_FAILED_BUILD = true;
-  // Note: This property is only used in IntelliJ Idea. Please do not use it or modify it from a
-  public boolean ENABLE_SYNC_WITH_FUTURE_AGP_VERSION = false;
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
     return project.getService(AndroidGradleBuildConfiguration.class);
@@ -64,25 +61,5 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
       options.add(CONTINUE_BUILD_OPTION);
     }
     return ArrayUtilRt.toStringArray(options);
-  }
-
-  /**
-   * Determines whether to enable sync of projects with newer Android Gradle Plugin (AGP) version
-   * than currently supported AGP version in Android plugin.
-   * <p>
-   * This setting is intended for use in Intellij IDEA only. For Android Studio, synchronization with
-   * future AGP versions is always disabled. For Intellij IDEA, the behavior depends on the value of
-   * ENABLE_SYNC_WITH_FUTURE_AGP_VERSION.
-   *
-   * @return {@code true} if synchronization with future AGP versions is enabled, {@code false} otherwise.
-   */
-  public boolean isSyncWithFutureAgpVersionEnabled() {
-    if (IdeInfo.getInstance().isAndroidStudio()) return false;
-
-    return ENABLE_SYNC_WITH_FUTURE_AGP_VERSION;
-  }
-
-  public void setSyncWithFutureAgpVersionIsEnabled(boolean isEnabled) {
-    this.ENABLE_SYNC_WITH_FUTURE_AGP_VERSION = isEnabled;
   }
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.sync.MINIMUM_SUPPORTED_AGP_VERSION
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -129,30 +128,3 @@ fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: Ag
       else -> compatibleOrDeprecated
     }
   }
-
-/**
- * Highly Experimental feature.
- *
- * Should be used only in IDEA after the [computeAndroidGradlePluginCompatibility] function returns [DIFFERENT_PREVIEW] or [AFTER_MAXIMUM].
- * This method is invoked under the [AndroidGradleBuildConfiguration#ENABLE_SYNC_WITH_FUTURE_AGP_VERSION] feature flag.
- *
- * In case flag is enabled we want to allow Android project sync for projects that have same AGP major version as current supported
- * AGP version, and have AGP minor version less or equal to current AGP minor version plus one.
- * We don't take into account if it is SNAPSHOT or PREVIEW AGP release.
- *
- * Example:
- *  Returns [true] when:
- *    currentAGP = 8.2.0; latestSupportedAGP = 8.1.0
- *    currentAGP = 8.1.0-dev; latestSupportedAGP = 8.1.0
- *  Returns [false] when:
- *    currentAGP = 8.2.0; latestSupportedAGP = 8.0.0
- *    currentAGP = 8.2.0-dev; latestSupportedAGP = 8.1.0
- */
-fun checkAgpCompatibilityForIdeaAndroidProject(projectAGPVersion: AgpVersion, ideAgpVersion: AgpVersion): Boolean {
-  if (projectAGPVersion < MINIMUM_SUPPORTED_AGP_VERSION) return false
-  if (projectAGPVersion.major > ideAgpVersion.major) return false
-  // We only want to support next minor AGP version regardless if it is PREVIEW(canary, alpha, beta) or SNAPSHOT(dev)
-  if (projectAGPVersion.minor <= ideAgpVersion.minor + 1) return true
-
-  return false
-}

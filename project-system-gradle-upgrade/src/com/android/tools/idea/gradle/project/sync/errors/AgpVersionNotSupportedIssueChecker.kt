@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.AndroidGradleBundle
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
@@ -28,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssu
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenSettingsQuickFix
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
@@ -83,13 +80,6 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
           "See Android Studio & AGP compatibility options.",
           OpenLinkQuickFix(url)
         )
-        if (!IdeInfo.getInstance().isAndroidStudio) {
-          addQuickFix(
-            "[Experimental] Enable sync with future AGP version.",
-            OpenSettingsQuickFix(AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName"))
-          )
-        }
-
       }.composeBuildIssue()
     }
 
@@ -105,12 +95,6 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
         "See Android Studio & AGP compatibility options.",
         OpenLinkQuickFix(url)
       )
-      if (!IdeInfo.getInstance().isAndroidStudio && matcher == incompatiblePreviewMatcher) {
-        addQuickFix(
-          "[Experimental] Enable sync with future AGP version.",
-          OpenSettingsQuickFix(AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName"))
-        )
-      }
     }.composeBuildIssue()
   }
 
