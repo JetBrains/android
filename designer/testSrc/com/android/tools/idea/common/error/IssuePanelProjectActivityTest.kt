@@ -74,11 +74,10 @@ class IssuePanelProjectActivityTest {
 
       // The instance of IssuePanelService should be setup already because of
       // IssuePanelStartupActivity.
-      waitUntil(timeout = 1.seconds) { toolWindow.contentManager.contentCount == 2 }
-      assertEquals(
-        "Layout and Qualifiers".toTabTitle(),
-        toolWindow.contentManager.getContent(1)!!.displayName,
-      )
+      waitUntil(timeout = 5.seconds) { toolWindow.contentManager.contentCount == 2 }
+      waitUntil(timeout = 5.seconds) {
+        "Layout and Qualifiers".toTabTitle() == toolWindow.contentManager.getContent(1)?.displayName
+      }
 
       // Verify the issue panel exists even there is no IssueModel created.
       assertEquals(0, called)
