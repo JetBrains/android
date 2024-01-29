@@ -41,6 +41,7 @@
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.streaming" />
 </module>

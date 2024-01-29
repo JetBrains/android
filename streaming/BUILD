@@ -103,6 +103,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
 

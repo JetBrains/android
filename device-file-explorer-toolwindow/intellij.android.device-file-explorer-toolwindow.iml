@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

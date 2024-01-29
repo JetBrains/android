@@ -22,6 +22,7 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
@@ -57,5 +58,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
