@@ -3,6 +3,7 @@ package com.android.tools.idea.run.configuration
 import ai.grazie.utils.capitalize
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
@@ -125,10 +126,13 @@ class AndroidBaselineProfileTestOptions : TestRunConfigurationOptions() {
 }
 
 class AndroidBaselineProfileRunConfiguration(project: Project, factory: ConfigurationFactory, name: String? = factory.name) :
-  AndroidRunConfigurationBase(project, factory, name, true), RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, WithoutOwnBeforeRunSteps {
+  AndroidRunConfigurationBase(project, factory, name, true), WithoutOwnBeforeRunSteps {
 
   @JvmField
   var generateAllVariants: Boolean = false
+
+  override val testCompileMode: TestCompileType
+    get() = TestCompileType.ANDROID_TESTS
 
   override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
     // Do not allow build, as the gradle task will do it for us.
