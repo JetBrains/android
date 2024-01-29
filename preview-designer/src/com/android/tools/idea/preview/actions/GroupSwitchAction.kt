@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -26,7 +25,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
-internal class GroupSwitchAction(
+class GroupSwitchAction(
   private val isEnabled: (e: AnActionEvent) -> Boolean = { true },
   private val isVisible: (e: AnActionEvent) -> Boolean = { true },
 ) : DropDownAction(null, message("action.group.switch.title"), null) {

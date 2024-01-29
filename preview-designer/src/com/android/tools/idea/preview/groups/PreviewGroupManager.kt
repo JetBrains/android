@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.groups
 
+import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataKey
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
  * Interface used for Preview Representations that support [PreviewGroup]s. It allows filtering
  * [PreviewElement]s based on a list of available [PreviewGroup]s or [PreviewGroup.All] when no
  * filtering should be applied.
+ *
+ * @see [GroupSwitchAction]
  */
 interface PreviewGroupManager {
   /**
