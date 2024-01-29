@@ -52,7 +52,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -68,6 +67,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -76,8 +76,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
-import com.intellij.util.indexing.IndexingFlag;
-import com.intellij.util.indexing.UnindexedFilesScanner;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -303,16 +301,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
 
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        // TODO: [VD] a dirty hack to reindex created android project
-        IndexingFlag.cleanupProcessedFlag("com.android.tools.idea.testing.AndroidGradleTestCase.prepareProjectForTest");
-        DumbService dumbService = DumbService.getInstance(project);
-        new UnindexedFilesScanner(project).queue();
-        dumbService.completeJustSubmittedTasks();
-      }
-    });
+    IndexingTestUtil.waitUntilIndexesAreReady(project);
 
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(project, modules, chosenModuleName);
   }
