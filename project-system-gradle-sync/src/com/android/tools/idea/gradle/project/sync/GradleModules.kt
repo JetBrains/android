@@ -93,7 +93,7 @@ class JavaModule(
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 sealed class AndroidModule constructor(
-  val agpVersion: AgpVersion?,
+  val modelVersions: ModelVersions,
   val buildPathMap: Map<String, BuildId>,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProjectImpl,
@@ -142,7 +142,7 @@ sealed class AndroidModule constructor(
   }
 
   class V1(
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
@@ -156,7 +156,7 @@ sealed class AndroidModule constructor(
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
-    agpVersion = agpVersion,
+    modelVersions = modelVersions,
     buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,
@@ -189,7 +189,7 @@ sealed class AndroidModule constructor(
   }
 
   class V2(
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
@@ -200,7 +200,7 @@ sealed class AndroidModule constructor(
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
-    agpVersion = agpVersion,
+    modelVersions = modelVersions,
     buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,

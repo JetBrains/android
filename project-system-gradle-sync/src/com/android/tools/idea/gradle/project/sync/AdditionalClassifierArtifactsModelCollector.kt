@@ -35,11 +35,11 @@ internal fun getAdditionalClassifierArtifactsModel(
   actionRunner.runActions(
     inputModules.map { module ->
       ActionToRun(fun(controller: BuildController) {
-        if (module.agpVersion?.isAtLeast(3, 5, 0) != true) return
+        if (!module.modelVersions.agp.isAtLeast(3, 5, 0)) return
         // In later versions of AGP the information contained within the AdditionalClassifierArtifactsModel has been moved
         // to the individual libraries.
         val agp810a08 = AgpVersion.parse("8.1.0-alpha08")
-        if (module.agpVersion >= agp810a08 && useMultiVariantAdditionalArtifactSupport) return
+        if (module.modelVersions.agp >= agp810a08 && useMultiVariantAdditionalArtifactSupport) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
         val identifiers = module.getLibraryDependencies(libraryResolver).filter {

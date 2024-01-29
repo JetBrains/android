@@ -47,7 +47,6 @@ import com.android.builder.model.v2.ide.ViewBindingOptions
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
-import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -129,11 +128,11 @@ import java.io.File
 //       cannot validate the structure at compile time.
 internal fun modelCacheV2Impl(
   internedModels: InternedModels,
-  agpVersion: AgpVersion,
+  modelVersions: ModelVersions,
   syncTestMode: SyncTestMode,
   multiVariantAdditionalArtifactSupport: Boolean,
 ): ModelCache.V2 {
-  val modelFactory = IdeModelFactoryV2(agpVersion, multiVariantAdditionalArtifactSupport)
+  val modelFactory = IdeModelFactoryV2(modelVersions, multiVariantAdditionalArtifactSupport)
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
@@ -167,7 +166,7 @@ internal fun modelCacheV2Impl(
       myCustomSourceDirectories = provider.customDirectories?.map {
         IdeCustomSourceDirectoryImpl(it.sourceTypeName, folder, it.directory.makeRelativeAndDeduplicate())
       } ?: emptyList(),
-      myBaselineProfileDirectories = if (agpVersion.isAtLeast(8, 0, 0, "beta", 1, false))
+      myBaselineProfileDirectories = if (modelVersions.agp.isAtLeast(8, 0, 0, "beta", 1, false))
         provider.baselineProfileDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
       else
         mutableListOf()
@@ -719,7 +718,7 @@ internal fun modelCacheV2Impl(
    fall back to that value.
   */
   fun getDesugaredMethodsList(artifact: AndroidArtifact, fallback: Collection<File>): Collection<File> {
-    return if (agpVersion.isAtLeast(8, 0, 0, "alpha", 2, false))
+    return if (modelVersions.agp.isAtLeast(8, 0, 0, "alpha", 2, false))
       artifact.desugaredMethodsFiles
     else
       fallback
@@ -735,7 +734,7 @@ internal fun modelCacheV2Impl(
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
 
-    val applicationId: String? = getApplicationIdFromArtifact(agpVersion, artifact, name, legacyAndroidGradlePluginProperties, mainVariantName)
+    val applicationId: String? = getApplicationIdFromArtifact(modelVersions, artifact, name, legacyAndroidGradlePluginProperties, mainVariantName)
 
     return IdeAndroidArtifactCoreImpl(
       name = name,
@@ -759,16 +758,16 @@ internal fun modelCacheV2Impl(
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
-      privacySandboxSdkInfo = if (agpVersion.isAtLeast(8, 3, 0, "alpha", 14, false))
+      privacySandboxSdkInfo = if (modelVersions.agp.isAtLeast(8, 3, 0, "alpha", 14, false))
         artifact.privacySandboxSdkInfo?.let {
           IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.additionalApkSplitTask, it.additionalApkSplitFile, it.taskLegacy, it.outputListingLegacyFile)
         }
       else
         null,
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
-      generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
+      generatedClassPaths = if (modelVersions.agp.isAtLeast(8, 2, 0, "alpha", 7, false))
         artifact.generatedClassPaths else emptyMap(),
-      bytecodeTransforms = if (agpVersion.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
+      bytecodeTransforms = if (modelVersions.agp.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
     )
   }
 
@@ -841,9 +840,9 @@ internal fun modelCacheV2Impl(
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = artifact.mockablePlatformJar,
       isTestArtifact = name == IdeArtifactName.UNIT_TEST,
-      generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
+      generatedClassPaths = if (modelVersions.agp.isAtLeast(8, 2, 0, "alpha", 7, false))
         artifact.generatedClassPaths else emptyMap(),
-      bytecodeTransforms = if (agpVersion.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
+      bytecodeTransforms = if (modelVersions.agp.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
     )
   }
 
@@ -935,7 +934,7 @@ internal fun modelCacheV2Impl(
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
     val variantName = variant.name.deduplicate()
-    val fallbackDesugaredMethodsFiles = if (agpVersion.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
+    val fallbackDesugaredMethodsFiles = if (modelVersions.agp.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
 
     return ModelResult.create {
       IdeVariantCoreImpl(
@@ -975,7 +974,7 @@ internal fun modelCacheV2Impl(
         testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
         testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
         testedTargetVariants = getTestedTargetVariants(variant),
-        runTestInSeparateProcess = agpVersion.isAtLeast(8, 3, 0, "alpha", 11, true)
+        runTestInSeparateProcess = modelVersions.agp.isAtLeast(8, 3, 0, "alpha", 11, true)
                                 && variant.runTestInSeparateProcess,
         resValues = merge({ resValues }, { resValues }, ::combineMaps),
         proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
@@ -1228,7 +1227,7 @@ internal fun modelCacheV2Impl(
     buildId: BuildId,
     basicProject: BasicAndroidProject,
     project: AndroidProject,
-    modelsVersions: Versions,
+    modelVersions: ModelVersions,
     androidDsl: AndroidDsl,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     gradlePropertiesModel: GradlePropertiesModel,
@@ -1253,9 +1252,9 @@ internal fun modelCacheV2Impl(
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map {
       IdeBasicVariantImpl(
         name = it.name,
-        applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyAndroidGradlePluginProperties, it.name),
+        applicationId = getApplicationIdFromArtifact(modelVersions, it.mainArtifact, IdeArtifactName.MAIN, legacyAndroidGradlePluginProperties, it.name),
         testApplicationId = it.androidTestArtifact?.let { androidTestArtifact ->
-          getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, it.name)
+          getApplicationIdFromArtifact(modelVersions, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, it.name)
         }
       )
     }
@@ -1274,13 +1273,13 @@ internal fun modelCacheV2Impl(
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel)
-    val desugarLibConfig = project.takeIf { agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false) }?.desugarLibConfig.orEmpty()
-    val lintJar = project.takeIf { agpVersion.isAtLeast(8, 4, 0, "alpha", 6, false) }?.lintJar?.deduplicateFile()
+    val desugarLibConfig = project.takeIf { modelVersions.agp.isAtLeast(8, 1, 0, "alpha", 5, false) }?.desugarLibConfig.orEmpty()
+    val lintJar = project.takeIf { modelVersions.agp.isAtLeast(8, 4, 0, "alpha", 6, false) }?.lintJar?.deduplicateFile()
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
       IdeAndroidProjectImpl(
-        agpVersion = modelsVersions.agp,
+        agpVersion = modelVersions.agp.toString(),
         projectPath = IdeProjectPathImpl(
           rootBuildId = rootBuildId.asFile,
           buildId = buildId.asFile,
@@ -1358,7 +1357,7 @@ internal fun modelCacheV2Impl(
       buildId: BuildId,
       basicProject: BasicAndroidProject,
       project: AndroidProject,
-      androidVersion: Versions,
+      androidVersion: ModelVersions,
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
@@ -1381,12 +1380,12 @@ internal fun modelCacheV2Impl(
 }
 
 private fun getApplicationIdFromArtifact(
-  agpVersion: AgpVersion,
+  modelVersions: ModelVersions,
   artifact: AndroidArtifact,
   name: IdeArtifactName,
   legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   mainVariantName: String
-) = if (agpVersion.agpModelIncludesApplicationId) {
+) = if (modelVersions.agpModelIncludesApplicationId) {
   artifact.applicationId
 } else {
   when (name) {

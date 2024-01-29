@@ -19,7 +19,6 @@ import com.android.builder.model.v2.ide.Library
 import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -31,7 +30,7 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 
 class IdeModelFactoryV2(
-  agpVersion: AgpVersion,
+  modelVersions: ModelVersions,
   multiVariantAdditionalArtifactSupport: Boolean,
 ) {
 
@@ -39,9 +38,9 @@ class IdeModelFactoryV2(
    * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
    * Any attempt to read these values from a version prior to this will result in an exception.
    */
-  val isAGPVersion8dot1dot0alpha8orLater = agpVersion.isAtLeast(8, 1, 0, "alpha", 8, false)
+  val isAGPVersion8dot1dot0alpha8orLater = modelVersions.agp.isAtLeast(8, 1, 0, "alpha", 8, false)
   val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
-  val supportsAbsoluteGradleBuildPaths = agpVersion.isAtLeast(8, 2, 0, "alpha", 13, false)
+  val supportsAbsoluteGradleBuildPaths = modelVersions.agp.isAtLeast(8, 2, 0, "alpha", 13, false)
 
   fun androidLibraryFrom(androidLibrary: Library, deduplicate: String.() -> String) : IdeAndroidLibraryImpl {
     fun File.deduplicateFile(): File = File(path.deduplicate())

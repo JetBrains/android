@@ -802,7 +802,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun androidArtifactFrom(
     artifact: AndroidArtifact,
     bootClasspath: Collection<String>,
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     variantName: String?,
     variantNameForDependencies: String?,
     androidModuleId: ModuleId?,
@@ -928,7 +928,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     androidProject: IdeAndroidProjectImpl,
     variant: Variant,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-    modelVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     androidModuleId: ModuleId
   ): ModelResult<IdeVariantWithPostProcessor> {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
@@ -948,7 +948,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidArtifactFrom(
         artifact = it,
         bootClasspath = androidProject.bootClasspath,
-        agpVersion = modelVersion,
+        modelVersions = modelVersions,
         variantName = variant.name,
         // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
         // we only have one main artifact that is a test artifact, so we need to handle this as a special case.
@@ -974,7 +974,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidArtifactFrom(
         artifact = it,
         bootClasspath = androidProject.bootClasspath,
-        agpVersion = modelVersion,
+        modelVersions = modelVersions,
         variantName = variant.name,
         variantNameForDependencies = variant.name,
         androidModuleId = androidModuleId,
@@ -999,9 +999,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       versionCode = mergedFlavor.versionCode,
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
-      instantAppCompatible = (modelVersion != null &&
-        modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&
-        variant.isInstantAppCompatible),
+      instantAppCompatible = (modelVersions.agp.isAtLeast(3, 3, 0, "alpha", 10, true) && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations,
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
@@ -1386,10 +1384,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      modelVersion: AgpVersion?,
+      modelVersions: ModelVersions,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor> =
-      variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersion, androidModuleId)
+      variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersions, androidModuleId)
 
     override fun androidProjectFrom(
       rootBuildId: BuildId,

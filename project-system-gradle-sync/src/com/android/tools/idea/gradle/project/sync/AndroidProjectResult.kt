@@ -21,7 +21,6 @@ import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.ide.Variant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
-import com.android.builder.model.v2.models.Versions
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
@@ -34,7 +33,6 @@ sealed class AndroidProjectResult {
   class V1Project(
     val modelCache: ModelCache.V1,
     override val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-    override val agpVersion: String,
     override val ideAndroidProject: IdeAndroidProjectImpl,
     override val allVariantNames: Set<String>,
     override val defaultVariantName: String?,
@@ -47,7 +45,7 @@ sealed class AndroidProjectResult {
   class V2Project(
     val modelCache: ModelCache.V2,
     override val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-    override val agpVersion: String,
+    private val modelVersions: ModelVersions,
     override val ideAndroidProject: IdeAndroidProjectImpl,
     private val basicVariants: List<BasicVariant>,
     private val v2Variants: List<IdeVariantCoreImpl>,
@@ -70,7 +68,6 @@ sealed class AndroidProjectResult {
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<V1Project> {
-      val agpVersion: String = safeGet(androidProject::getModelVersion, "")
       val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
       val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
           ?: allVariantNames.getDefaultOrFirstItem("debug")
@@ -90,7 +87,6 @@ sealed class AndroidProjectResult {
         V1Project(
           modelCache = modelCache,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-          agpVersion = agpVersion,
           ideAndroidProject = ideAndroidProject,
           allVariantNames = allVariantNames,
           defaultVariantName = defaultVariantName,
@@ -106,14 +102,13 @@ sealed class AndroidProjectResult {
       buildId: BuildId,
       basicAndroidProject: BasicAndroidProject,
       androidProject: com.android.builder.model.v2.models.AndroidProject,
-      modelVersions: Versions,
+      modelVersions: ModelVersions,
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
       skipRuntimeClasspathForLibraries: Boolean,
       useNewDependencyGraphModel: Boolean,
     ): ModelResult<V2Project> {
-      val agpVersion: String = modelVersions.agp
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
           // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
@@ -154,7 +149,7 @@ sealed class AndroidProjectResult {
         V2Project(
           modelCache = modelCache,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-          agpVersion = agpVersion,
+          modelVersions = modelVersions,
           ideAndroidProject = ideAndroidProject,
           basicVariants = basicVariants,
           v2Variants = v2Variants,
@@ -168,7 +163,6 @@ sealed class AndroidProjectResult {
     }
   }
 
-  abstract val agpVersion: String
   abstract val ideAndroidProject: IdeAndroidProjectImpl
   abstract val allVariantNames: Set<String>
   abstract val defaultVariantName: String?
@@ -200,7 +194,7 @@ private fun v1VariantFetcher(modelCache: ModelCache.V1, legacyAndroidGradlePlugi
     val androidModuleId = module.gradleProject.toModuleId()
     val adjustedVariantName = module.adjustForTestFixturesSuffix(configuration.variant)
     val variant = controller.findVariantModel(module, adjustedVariantName) ?: return ModelResult.create { null }
-    return modelCache.variantFrom(module.androidProject, variant, legacyAndroidGradlePluginProperties, module.agpVersion, androidModuleId)
+    return modelCache.variantFrom(module.androidProject, variant, legacyAndroidGradlePluginProperties, module.modelVersions, androidModuleId)
   }
 }
 

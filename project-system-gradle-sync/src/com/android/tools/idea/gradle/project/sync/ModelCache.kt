@@ -67,7 +67,7 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      modelVersion: AgpVersion?,
+      modelVersions: ModelVersions,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor>
 
@@ -117,7 +117,7 @@ interface ModelCache {
       buildId: BuildId,
       basicProject: BasicAndroidProject,
       project: com.android.builder.model.v2.models.AndroidProject,
-      androidVersion: Versions,
+      androidVersion: ModelVersions,
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
@@ -137,7 +137,7 @@ interface ModelCache {
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
-          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+          ModelVersions(agp = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION), minimumModelConsumer = null),
           syncTestMode = SyncTestMode.PRODUCTION,
           false,
         )
@@ -203,8 +203,8 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal val AgpVersion.agpModelIncludesApplicationId: Boolean
-   get() = isAtLeast(7, 4, 0, "alpha", 4, false)
+internal val ModelVersions.agpModelIncludesApplicationId: Boolean
+   get() = agp.isAtLeast(7, 4, 0, "alpha", 4, false)
 
 internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   ARTIFACT_NAME_MAIN -> IdeArtifactName.MAIN

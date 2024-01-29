@@ -80,14 +80,14 @@ internal class AndroidExtraModelProviderWorker(
             val v2AndroidGradleModules = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>()
 
             modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach {
-              checkAgpVersionCompatibility(it.minimumModelConsumerVersion, it.agpVersion, syncOptions)
+              checkAgpVersionCompatibility(it.modelVersions, syncOptions)
             }
             verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules)
 
             val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
             val v2ModelBuildersSupportParallelSync =
               v2AndroidGradleModules
-                .all { canUseParallelSync(AgpVersion.tryParse(it.versions.agp), gradleVersion) }
+                .all { canUseParallelSync(it.modelVersions, gradleVersion) }
 
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(
               v2ModelBuildersSupportParallelSync,
@@ -152,8 +152,8 @@ internal class AndroidExtraModelProviderWorker(
             // Request V2 models if flag is enabled.
             if (syncOptions.flags.studioFlagUseV2BuilderModels) {
               // First request the Versions model to make sure we can fetch V2 models.
-              val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
-              if (versions != null && canFetchV2Models(AgpVersion.tryParse(versions.agp))) {
+              val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)?.convert()
+              if (versions != null && canFetchV2Models(versions)) {
                 // This means we can request V2.
                 return BasicV2AndroidModuleGradleProject(gradleProject, buildPath, versions, syncOptions)
               }
@@ -166,7 +166,7 @@ internal class AndroidExtraModelProviderWorker(
               return BasicV1AndroidModuleGradleProject(
                 gradleProject,
                 buildPath,
-                legacyV1AgpVersionModel
+                ModelVersions(agp = AgpVersion.parse(legacyV1AgpVersionModel.agp), minimumModelConsumer = null)
               )
 
             return BasicNonAndroidIncompleteGradleModule(gradleProject, buildPath) // Check here tha Version does not return anything.
@@ -182,14 +182,27 @@ internal class AndroidExtraModelProviderWorker(
 private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<BasicIncompleteGradleModule>) {
   val agpVersionsAndGradleBuilds = modules
     .filterIsInstance<BasicIncompleteAndroidModule>()
-    .map { it.agpVersion to it.buildPath }
+    .map { it.modelVersions.agp to it.buildPath }
   // Fail Sync if we do not use the same AGP version across all the android projects.
   if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
     throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
 }
 
-private fun canFetchV2Models(gradlePluginVersion: AgpVersion?): Boolean {
-  return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 2, 0, "alpha", 1, true)
+private val MINIMUM_AGP_FOR_VERSIONS_MAP = AgpVersion.parse("7.3.0")
+
+private fun Versions.convert(): ModelVersions {
+  val agpVersion = AgpVersion.parse(agp)
+  return ModelVersions(
+    agp = agpVersion,
+    minimumModelConsumer = if (agpVersion < MINIMUM_AGP_FOR_VERSIONS_MAP) null else versions[Versions.MINIMUM_MODEL_CONSUMER]?.let { version ->
+      // Human-readable field was added before MINIMUM_MODEL_CONSUMER was reported, and is required for MINIMUM_MODEL_CONSUMER.
+      ModelConsumerVersion(version.major, version.minor, version.humanReadable ?: error("AGP that reports a MINIMUM_MODEL_CONSUMER version must have a human readable version"))
+    },
+  )
+}
+
+private fun canFetchV2Models(versions: ModelVersions): Boolean {
+  return versions.agp.isAtLeast(7, 2, 0, "alpha", 1, true)
 }
 
 /**
@@ -201,9 +214,8 @@ private fun canFetchV2Models(gradlePluginVersion: AgpVersion?): Boolean {
  * - using at least AGP 7.3.0-alpha-04.
  *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
  */
-private fun canUseParallelSync(agpVersion: AgpVersion?, gradleVersion: String): Boolean {
+private fun canUseParallelSync(modelVersions: ModelVersions, gradleVersion: String): Boolean {
   return GradleVersion.version(gradleVersion) >= GradleVersion.version("7.4.2") &&
-         agpVersion != null &&
-         ((agpVersion >= AgpVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
-          agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
+         ((modelVersions.agp >= AgpVersion(7, 2, 0) && modelVersions.agp < "7.3.0-alpha01") ||
+          modelVersions.agp.isAtLeast(7, 3, 0, "alpha", 4, true))
 }
