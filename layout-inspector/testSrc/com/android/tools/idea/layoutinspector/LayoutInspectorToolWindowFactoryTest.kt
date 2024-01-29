@@ -34,7 +34,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
-import com.android.tools.idea.sdk.AndroidFacetChecker
+import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
@@ -247,7 +247,7 @@ class LayoutInspectorToolWindowFactoryTest {
         it.id == "Layout Inspector"
       } ?: fail("Tool window not found")
 
-    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidFacetChecker::class.qualifiedName)
+    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidProjectChecker::class.qualifiedName)
   }
 }
 

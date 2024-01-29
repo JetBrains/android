@@ -1,6 +1,6 @@
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.sdk.AndroidFacetChecker
+import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
@@ -22,6 +22,6 @@ class ResourceExplorerToolFactoryTest {
       ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass)
-      .isEqualTo(AndroidFacetChecker::class.qualifiedName)
+      .isEqualTo(AndroidProjectChecker::class.qualifiedName)
   }
 }

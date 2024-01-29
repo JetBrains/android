@@ -19,7 +19,7 @@
     <library.toolWindow id="Android Profiler"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidFacetChecker"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidProjectChecker"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>

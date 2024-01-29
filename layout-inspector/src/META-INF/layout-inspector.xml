@@ -45,7 +45,7 @@
                       anchor="bottom"
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidFacetChecker"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidProjectChecker"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>

@@ -14,9 +14,9 @@ import org.junit.Test
 import org.mockito.Mockito
 
 /**
- * Tests for [AndroidFacetChecker]
+ * Tests for [AndroidProjectChecker]
  */
-class AndroidFacetCheckerTest {
+class AndroidProjectCheckerTest {
   private val projectRule = ProjectRule()
   private val project get() = projectRule.project
   private val disposableRule = DisposableRule()
@@ -35,13 +35,13 @@ class AndroidFacetCheckerTest {
   fun isLibraryExists() {
     whenever(mockProjectFacetManager.hasFacets(AndroidFacet.ID)).thenReturn(true)
 
-    assertThat(AndroidFacetChecker().isLibraryExists(project)).isTrue()
+    assertThat(AndroidProjectChecker().isLibraryExists(project)).isTrue()
   }
 
   @Test
   fun isLibraryExists_withoutAndroidFacet() {
     whenever(mockProjectFacetManager.hasFacets(AndroidFacet.ID)).thenReturn(false)
 
-    assertThat(AndroidFacetChecker().isLibraryExists(project)).isFalse()
+    assertThat(AndroidProjectChecker().isLibraryExists(project)).isFalse()
   }
 }
