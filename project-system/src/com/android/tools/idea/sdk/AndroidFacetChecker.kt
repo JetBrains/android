@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk
 
-import com.android.tools.idea.hasAndroidFacet
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -26,7 +26,7 @@ import com.intellij.openapi.wm.ext.LibrarySearchHelper
  */
 class AndroidFacetChecker : LibrarySearchHelper {
   override fun isLibraryExists(project: Project): Boolean {
-    val value = project.hasAndroidFacet()
+    val value = CommonAndroidUtil.getInstance().isAndroidProject(project)
     thisLogger().debug { "isLibraryExists -> $value" }
     return value
   }
