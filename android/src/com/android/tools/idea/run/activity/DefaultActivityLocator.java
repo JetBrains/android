@@ -89,6 +89,7 @@ public class DefaultActivityLocator extends ActivityLocator {
    * Retrieves the list of activities from the merged manifest of the Android module
    * corresponding to the given facet.
    */
+  @WorkerThread
   @VisibleForTesting
   public static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
     return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));

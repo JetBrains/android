@@ -53,6 +53,7 @@ import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.ModuleDependencies
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
@@ -277,12 +278,12 @@ class DefaultModuleSystem(override val module: Module) :
   override val isDebuggable: Boolean
     get() {
       try {
-        return DumbService.getInstance(module.project)
-          .runReadActionInSmartMode<Boolean?> {
-            val queryIndex =
-              ThrowableComputable<Boolean?, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
-            SlowOperations.allowSlowOperations(queryIndex)
-          } ?: false
+        return uiSafeRunReadActionInSmartMode(module.project
+        ) {
+          val queryIndex =
+            ThrowableComputable<Boolean?, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
+          SlowOperations.allowSlowOperations(queryIndex)
+        } ?: false
       } catch (e: IndexNotReadyException) {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
@@ -329,8 +330,8 @@ fun getPackageName(module: Module): String? {
   // Reading from indexes may be slow and in non-blocking read actions we prefer to give priority to
   // write actions.
   ProgressManager.checkCanceled()
-  return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-    ?: getPackageNameByParsingPrimaryManifest(facet)
+  return uiSafeRunReadActionInSmartMode(module.project) { getPackageNameFromIndex(facet) }
+         ?: getPackageNameByParsingPrimaryManifest(facet)
 }
 
 private fun getPackageNameFromIndex(facet: AndroidFacet): String? {

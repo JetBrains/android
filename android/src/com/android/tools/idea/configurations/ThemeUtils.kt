@@ -36,6 +36,7 @@ import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.model.queryIsMainManifestIndexReady
 import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.AndroidModuleInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
@@ -69,7 +70,7 @@ fun Module.getAppThemeName(): String? {
   try {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
-      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+      return uiSafeRunReadActionInSmartMode(this.project, Computable {
         SlowOperations.allowSlowOperations(ThrowableComputable {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           facet.queryApplicationThemeFromManifestIndex()
@@ -135,7 +136,7 @@ fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -
   try {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
-      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+      return uiSafeRunReadActionInSmartMode(this.project, Computable {
         SlowOperations.allowSlowOperations(ThrowableComputable {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           manifestIndexQueryAction.invoke(facet)

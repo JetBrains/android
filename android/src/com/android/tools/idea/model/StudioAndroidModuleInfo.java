@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
+import static com.android.tools.idea.util.DumbServiceUtilKt.uiSafeRunReadActionInSmartMode;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -157,8 +158,8 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     }
 
     try {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+      return uiSafeRunReadActionInSmartMode(facet.getModule().getProject(),
+                                            () -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
     }
     catch (IndexNotReadyException e) {
       // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
@@ -185,8 +186,8 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     }
 
     try {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
+      return uiSafeRunReadActionInSmartMode(facet.getModule().getProject(),
+                                            () -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
     }
     catch (IndexNotReadyException e) {
       // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
