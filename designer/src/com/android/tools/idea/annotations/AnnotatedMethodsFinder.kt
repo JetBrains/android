@@ -146,7 +146,7 @@ fun <T> CachedValuesManager.getCachedValue(
   dataHolder: UserDataHolder,
   key: Key<CachedValue<T>>,
   provider: CachedValueProvider<T>,
-): T = runReadAction { this.getCachedValue(dataHolder, key, provider, false) }
+): T = this.getCachedValue(dataHolder, key, provider, false)
 
 /**
  * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
@@ -193,16 +193,14 @@ fun findAnnotations(
     psiFile,
     CacheKeysManager.getInstance(project).getKey(shortAnnotationName),
   ) {
-    val scope = GlobalSearchScope.fileScope(project, vFile)
+    val scope = runReadAction { GlobalSearchScope.fileScope(project, vFile) }
     val annotations =
       if (psiFile.language == KotlinLanguage.INSTANCE) {
-        ReadAction.compute<Sequence<PsiElement>, Throwable> {
-            KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence()
-          }
-          .filterIsInstance<KtAnnotationEntry>()
+        runReadAction { KotlinAnnotationsIndex[shortAnnotationName, project, scope] }
+          .asSequence()
           .map { it.psiOrParent }
       } else {
-        ReadAction.compute<Sequence<PsiElement>, Throwable> {
+        runReadAction {
           JavaAnnotationIndex.getInstance()
             .getAnnotations(shortAnnotationName, project, scope)
             .asSequence()
@@ -210,7 +208,10 @@ fun findAnnotations(
       }
 
     CachedValueProvider.Result.create(
-      annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(),
+      annotations
+        .toList()
+        .mapNotNull { runReadAction { it.toUElementOfType<UAnnotation>() } }
+        .distinct(),
       psiFile,
     )
   }
@@ -321,7 +322,7 @@ suspend fun <T> findAnnotatedMethodsValues(
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   return withContext(AndroidDispatchers.workerThread) {
-    val promiseResult = runReadAction {
+    val promiseResult =
       CachedValuesManager.getManager(project)
         .getCachedValue(
           psiFile,
@@ -338,7 +339,6 @@ suspend fun <T> findAnnotatedMethodsValues(
             toValues,
           ),
         )
-    }
     try {
       return@withContext promiseResult.await()
     } catch (_: Throwable) {
