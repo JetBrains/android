@@ -34,7 +34,6 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import java.io.File
 import java.io.IOException
 
@@ -79,8 +78,8 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 /** Find the most appropriate Kotlin plugin version for the specified project. */
 @Slow
 fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
-  // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
-  val defaultKotlinVersion = KotlinPluginLayout.standaloneCompilerVersion.artifactVersion
+  // TODO(b/322863175): Establish process/tests to ensure the default version gets updated.
+  val defaultKotlinVersion = "1.9.0"
   if (isNewProject) return defaultKotlinVersion
 
   val versionInUse = project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) }
