@@ -31,7 +31,7 @@ internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<WearTilePreviewElement>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<WearTilePreviewElement, NlModel>,
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<WearTilePreviewElement, NlModel>
 ) :
   CommonPreviewRepresentation<WearTilePreviewElement>(
     adapterViewFqcn,

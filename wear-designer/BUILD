@@ -47,5 +47,9 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )

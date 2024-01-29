@@ -161,11 +161,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
 
-  private val navigationHandler =
+  @VisibleForTesting
+  val navigationHandler =
     DefaultNavigationHandler { _, _, _, _, _ -> null }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
-  private val previewView = invokeAndWaitIfNeeded {
+  @VisibleForTesting
+  val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
       project,
       NlDesignSurface.builder(project, this)
