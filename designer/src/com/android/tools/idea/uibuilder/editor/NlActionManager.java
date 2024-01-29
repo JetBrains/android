@@ -24,8 +24,10 @@ import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
+import com.android.tools.idea.uibuilder.actions.ConvertToComposeAction;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.actions.DisableToolsVisibilityAndPositionInPreviewAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
@@ -242,6 +244,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.add(createRefactoringMenu());
 
     group.addSeparator();
+    if (StudioFlags.NELE_XML_TO_COMPOSE.get()) {
+      group.add(new ConvertToComposeAction(leafComponent));
+      group.addSeparator();
+    }
   }
 
   @Nullable
