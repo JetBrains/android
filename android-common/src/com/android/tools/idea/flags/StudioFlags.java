@@ -292,6 +292,11 @@ public final class StudioFlags {
     NELE, "use.component.tree.builder", "Use the Component Tree builder",
     "If enabled, use the Component Tree builder for the Nele component tree",
     true);
+
+  public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
+    NELE, "xml.to.compose", "Enable XML to Compose conversion",
+    "Enable an action that converts XML layouts to Compose using the Studio Bot backend",
+    false);
   //endregion
 
   //region Resource Repository
