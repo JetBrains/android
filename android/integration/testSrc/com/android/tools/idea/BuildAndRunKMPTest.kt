@@ -69,7 +69,7 @@ class BuildAndRunKMPTest {
           studio.executeAction("Run")
 
           system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.google\\.samples\\.apps\\.kmp",
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.google\\.samples\\.apps\\.kmp",
             60, TimeUnit.SECONDS)
           emulator.logCat.waitForMatchingLine(".*Hello World!.*", 30, TimeUnit.SECONDS)
           benchmark.log("test_end", System.currentTimeMillis())

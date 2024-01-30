@@ -64,7 +64,7 @@ class BuildAndRunTest {
 
           studio.executeAction("Run")
           system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.minapp",
             60, TimeUnit.SECONDS)
           adb.runCommand("logcat") {
             waitForLog(".*Hello Minimal World!.*", 30.seconds);

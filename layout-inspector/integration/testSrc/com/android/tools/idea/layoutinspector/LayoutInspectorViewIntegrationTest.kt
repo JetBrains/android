@@ -66,7 +66,7 @@ class LayoutInspectorViewIntegrationTest {
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
           ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for " +
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for " +
               "launched app: com\\.example\\.emptyapplication",
             300,
             TimeUnit.SECONDS,

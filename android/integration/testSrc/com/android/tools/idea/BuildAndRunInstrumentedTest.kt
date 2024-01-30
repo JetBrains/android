@@ -54,7 +54,7 @@ class BuildAndRunInstrumentedTest {
           studio.waitForIndex()
           studio.executeAction("Run")
           system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.instrumentedtestapp",
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.instrumentedtestapp",
             5, TimeUnit.MINUTES)
           adb.runCommand("logcat").waitForLog(".*Instrumented Test Success!!.*", 5.minutes)
         }

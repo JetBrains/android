@@ -113,6 +113,7 @@ public class Emulator implements AutoCloseable {
     procArgs.addAll(extraEmulatorFlags);
 
     ProcessBuilder pb = new ProcessBuilder(procArgs.toArray(new String[0]));
+    pb.environment().put("HOME", fileSystem.getHome().toString());
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
     pb.environment().put("ANDROID_SDK_ROOT", sdk.getSourceDir().toString());

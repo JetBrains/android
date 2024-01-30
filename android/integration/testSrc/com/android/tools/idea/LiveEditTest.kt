@@ -92,7 +92,7 @@ class LiveEditTest {
           studio.executeAction("Run")
 
           system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.liveedittest",
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.liveedittest",
             60, TimeUnit.SECONDS)
           adb.runCommand("logcat", emulator = emulator) {
             waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);

@@ -71,7 +71,7 @@ class ApplyChangesTest {
           studio.executeAction("Run")
 
           system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.applychanges",
+            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.applychanges",
             60, TimeUnit.SECONDS)
 
           adb.runCommand("logcat") {
