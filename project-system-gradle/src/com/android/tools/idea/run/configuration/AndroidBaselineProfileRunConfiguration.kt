@@ -3,7 +3,6 @@ package com.android.tools.idea.run.configuration
 import ai.grazie.utils.capitalize
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
@@ -12,7 +11,6 @@ import com.android.tools.idea.projectsystem.gradle.resolve
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.anyTopLevelJavaRule
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.anyTopLevelKtRule
@@ -29,10 +27,8 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
 import com.intellij.execution.configurations.WithoutOwnBeforeRunSteps
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.SettingsEditor
@@ -130,9 +126,6 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
 
   @JvmField
   var generateAllVariants: Boolean = false
-
-  override val testCompileMode: TestCompileType
-    get() = TestCompileType.ANDROID_TESTS
 
   override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
     // Do not allow build, as the gradle task will do it for us.

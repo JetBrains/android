@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectIm
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
@@ -102,7 +101,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     myRunConfiguration = RunConfigurationGradleContext(
       androidFacet = project.gradleModule(modules.first().first)?.androidFacet!!,
       isTestConfiguration = false,
-      testCompileType = TestCompileType.NONE,
       isAdvancedProfilingEnabled = false,
       profilerProperties = null,
       alwaysDeployApkFromBundle = false,

@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.execution.common.stats.RunStats
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ValidationError
@@ -65,9 +64,6 @@ open class ComposePreviewRunConfiguration(
    * configuration wouldn't be able to be executed in library projects.
    */
   override fun isTestConfiguration() = true
-
-  override val testCompileMode: TestCompileType
-    get() = TestCompileType.ANDROID_TESTS
 
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()

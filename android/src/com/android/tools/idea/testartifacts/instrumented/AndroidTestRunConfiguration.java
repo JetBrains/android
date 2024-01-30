@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
@@ -249,12 +248,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   public boolean isTestConfiguration() {
     return true;
-  }
-
-  @NotNull
-  @Override
-  public TestCompileType getTestCompileMode() {
-    return TestCompileType.ANDROID_TESTS;
   }
 
   private List<ValidationError> checkTestMethod() {

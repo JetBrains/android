@@ -485,16 +485,15 @@ private fun build(
 
     return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
   }
-  val testCompileType = configuration?.testCompileType ?: TestCompileType.NONE
+  val testCompileType = if (configuration?.isTestConfiguration == true) TestCompileType.ANDROID_TESTS else TestCompileType.NONE
   return when {
-    testCompileType === TestCompileType.UNIT_TESTS ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.UNIT_TESTS).asMap(), BuildMode.COMPILE_JAVA)
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
     // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
     // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
     //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
+    // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
       doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType).asMap(), BuildMode.APK_FROM_BUNDLE)
     else ->
