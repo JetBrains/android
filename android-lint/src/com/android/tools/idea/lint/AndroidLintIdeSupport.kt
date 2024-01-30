@@ -117,9 +117,10 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun canAnnotate(file: PsiFile, module: Module): Boolean {
-    // Limit checks to Android modules
+    // Limit checks to Android modules and modules within Android projects.
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null && !AndroidLintIdeProject.hasAndroidModule(module.project)) return false
+    if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
+      return false
 
     return when (file.fileType) {
       JavaFileType.INSTANCE,

@@ -35,7 +35,6 @@ import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
-import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
@@ -419,10 +418,6 @@ public class AndroidLintIdeProject extends LintIdeProject {
       dir = VfsUtilCore.virtualToIoFile(roots[0]);
     }
     return dir;
-  }
-
-  public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
-    return CommonAndroidUtil.getInstance().isAndroidProject(project);
   }
 
   @Nullable
