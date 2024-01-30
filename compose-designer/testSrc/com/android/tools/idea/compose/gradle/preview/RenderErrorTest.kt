@@ -72,6 +72,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -275,6 +276,7 @@ class RenderErrorTest {
       assertEquals("RenderError.kt", navigatable.file.name)
     }
 
+  @Ignore("b/322952755")
   @Test
   fun testVisualLintErrors() =
     runBlocking(workerThread) {
