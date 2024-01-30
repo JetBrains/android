@@ -42,7 +42,6 @@ class AnalyticsSettingsUiTest {
 
   @Test
   fun testSettingsUi() {
-    AndroidStudioAnalytics.initialize(AndroidStudioAnalyticsImpl())
     AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
       optedIn = false
     })
