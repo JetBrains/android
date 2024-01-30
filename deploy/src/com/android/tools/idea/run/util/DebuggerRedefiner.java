@@ -289,7 +289,6 @@ public class DebuggerRedefiner implements ClassRedefiner {
     ApplicationManager.getApplication().invokeLater(() -> {
       try {
         if (!project.isDisposed()) {
-          breakpointManager.reloadBreakpoints();
           debugProcess.getRequestsManager().clearWarnings();
           debuggerSession.refresh(false);
 
