@@ -283,8 +283,6 @@ public class DebuggerRedefiner implements ClassRedefiner {
       }
     }
 
-    breakpointManager.reloadBreakpoints();
-
     final Semaphore waitSemaphore = new Semaphore();
     waitSemaphore.down();
     //noinspection SSBasedInspection
