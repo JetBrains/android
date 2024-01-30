@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -85,6 +86,8 @@ private fun FileEditor.getPreviewModeManager(): PreviewModeManager? =
 
 private class PreviewNonInteractiveActionWrapper(actions: List<AnAction>) :
   DefaultActionGroup(actions) {
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
 
@@ -100,12 +103,12 @@ fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
   PreviewNonInteractiveActionWrapper(this)
 
 /**
- * Makes the given action only visible when the Compose preview is not in interactive or animation
- * modes. Returns an [ActionGroup] that handles the visibility.
+ * Makes the given action only visible when the preview is not in interactive or animation modes.
+ * Returns an [ActionGroup] that handles the visibility.
  */
 fun AnAction.visibleOnlyInStaticPreview(): ActionGroup = listOf(this).visibleOnlyInStaticPreview()
 
-/** Hide the given actions if the [sceneView] contains render errors. */
+/** Hide the given actions if the [SceneView] contains render errors. */
 fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
   ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) }
 }
