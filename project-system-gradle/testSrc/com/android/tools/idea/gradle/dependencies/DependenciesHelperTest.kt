@@ -32,6 +32,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import org.apache.commons.lang3.StringUtils.countMatches
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -633,6 +634,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
                      assert: () -> Unit) {
     prepareProjectForImport(projectPath)
     updateFiles()
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true));
     importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
