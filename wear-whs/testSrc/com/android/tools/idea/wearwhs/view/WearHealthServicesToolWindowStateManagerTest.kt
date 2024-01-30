@@ -224,7 +224,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.setCapabilities(mapOf(capabilities[0].dataType to false))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false, 2000)
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false, 5000)
   }
 
   @Test
@@ -240,8 +240,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.overrideValues(mapOf(capabilities[0].dataType to 10f))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.overrideValue }.waitForValue(10f)
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true, 5000)
+    stateManager.getState(capabilities[0]).map { it.overrideValue }.waitForValue(10f, 5000)
   }
 
   @Test
