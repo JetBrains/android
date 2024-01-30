@@ -25,6 +25,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
@@ -58,7 +59,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
         updateMode = { selectedOption, manager ->
           manager.setMode(manager.mode.value.deriveWithLayout(selectedOption))
         }
-      ),
+      ).visibleOnlyInStaticPreview(),
     )
   }
 
