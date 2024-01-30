@@ -13,75 +13,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.startup;
+package com.android.tools.idea.startup
 
-import com.android.prefs.AndroidLocationsSingleton;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.analytics.IdeBrandProviderKt;
-import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
-import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
-import com.android.tools.idea.res.StudioCodeVersionAdapter;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
-import com.android.tools.idea.stats.ConsentDialog;
-import com.intellij.analytics.AndroidStudioAnalytics;
-import com.intellij.concurrency.JobScheduler;
-import com.intellij.ide.ApplicationInitializedListenerJavaShim;
-import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.analytics.SystemInfoStatsMonitor
+import com.android.tools.idea.analytics.currentIdeBrand
+import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.android.tools.idea.res.StudioCodeVersionAdapter
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.ConsentDialog
+import com.intellij.analytics.AndroidStudioAnalytics
+import com.intellij.concurrency.JobScheduler
+import com.intellij.ide.ApplicationInitializedListener
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ApplicationManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
- * <p>
- * <strong>Note:</strong> Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use
- * {@link GradleSpecificInitializer} instead.
- * </p>
+ *
+ * **Note:** Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use
+ * GradleSpecificInitializer instead.
  */
-public class AndroidStudioInitializer extends ApplicationInitializedListenerJavaShim {
+class AndroidStudioInitializer : ApplicationInitializedListener {
 
-  @Override
-  public void componentsInitialized() {
-    setupAnalytics();
+  override suspend fun execute(asyncScope: CoroutineScope) {
+    setupAnalytics()
 
     // Initialize System Health Monitor after Analytics.
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      AndroidStudioSystemHealthMonitor.getInstance().start();
-    });
+    asyncScope.launch {
+      AndroidStudioSystemHealthMonitor.getInstance().start()
+    }
 
     // TODO: Remove this once the issue has been properly fixed in the IntelliJ platform
     //  see https://youtrack.jetbrains.com/issue/IDEA-316037
     // Automatic registration of WebP support through the WebP plugin can fail
     // because of a race condition in the creation of IIORegistry.
     // Trying again here ensures that the WebP support is correctly registered.
-    WebpMetadata.ensureWebpRegistered();
+    WebpMetadata.ensureWebpRegistered()
 
-    if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
-      AndroidSdkHandler handler =
-        AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, IdeSdks.getInstance().getAndroidSdkPath().toPath());
+    if (IdeSdks.getInstance().androidSdkPath != null) {
+      val handler =
+        AndroidSdkHandler.getInstance(AndroidLocationsSingleton, IdeSdks.getInstance().androidSdkPath!!.toPath())
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data
       // SystemInfoStatsMonitor collects
-      new SystemInfoStatsMonitor().start();
+      SystemInfoStatsMonitor().start()
     }
 
-    StudioCodeVersionAdapter.initialize();
+    StudioCodeVersionAdapter.initialize()
   }
 
-  /** Sets up collection of Android Studio specific analytics. */
-  private static void setupAnalytics() {
-    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+  /** Sets up collection of Android Studio specific analytics.  */
+  private fun setupAnalytics() {
+    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
 
-    ConsentDialog.showConsentDialogIfNeeded();
+    ConsentDialog.showConsentDialogIfNeeded()
 
-    ApplicationInfo application = ApplicationInfo.getInstance();
-    UsageTracker.setVersion(application.getStrictVersion());
-    UsageTracker.setIdeBrand(IdeBrandProviderKt.currentIdeBrand());
-    if (ApplicationManager.getApplication().isInternal()) {
-      UsageTracker.setIdeaIsInternal(true);
+    UsageTracker.version = ApplicationInfo.getInstance().strictVersion
+    UsageTracker.ideBrand = currentIdeBrand()
+    if (ApplicationManager.getApplication().isInternal) {
+      UsageTracker.ideaIsInternal = true
     }
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
   }
 }
