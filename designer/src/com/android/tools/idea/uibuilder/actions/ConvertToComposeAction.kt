@@ -39,7 +39,9 @@ import kotlinx.coroutines.withContext
 private const val PROMPT_PREFIX =
   "What's the Jetpack Compose equivalent of the following Android XML layout?\n\n"
 
-class ConvertToComposeAction(private val root: NlComponent) : AnAction("Convert to Compose") {
+private const val ACTION_TITLE = "I am feeling Compose"
+
+class ConvertToComposeAction(private val root: NlComponent) : AnAction(ACTION_TITLE) {
 
   private val logger = Logger.getInstance(ConvertToComposeAction::class.java)
 
