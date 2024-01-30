@@ -46,6 +46,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
  */
 class AndroidStudioInitializer : ApplicationInitializedListener {
 
+  // Note: this code runs quite early during IDE startup and directly impacts startup time. If possible,
+  // prefer to initialize later (e.g. during first project open) or lazily (upon first access to your service).
   override suspend fun execute(asyncScope: CoroutineScope) {
     setupAnalytics()
 
