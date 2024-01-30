@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
+import com.android.annotations.concurrency.Slow
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.Detect
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_USED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.OLD_GRADLE
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.UNAVAILABLE
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleSettingsFile
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -34,6 +36,7 @@ import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.EXPLICIT
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.IMPLICIT
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.NONE
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNKNOWN_GRADLE_VERSION_CATALOG_DETECTOR_STATE
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -48,11 +51,9 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import com.intellij.util.SlowOperations
 import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
@@ -146,10 +147,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if (project.isDisposed) throw ProcessCanceledException()
         val baseDir = project.baseDir ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
         val settingsFile = findGradleSettingsFile(baseDir) ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-        val settingsVisitorResults = when (
-          val settingsPsiFile =
-            SlowOperations.allowSlowOperations(ThrowableComputable { PsiManager.getInstance(project).findFile(settingsFile) })
-        ) {
+        val settingsVisitorResults = when (val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
           is GroovyFile -> visitGroovySettings(settingsPsiFile)
           is KtFile -> visitKtSettings(settingsPsiFile)
           else -> EMPTY_SETTINGS
@@ -160,22 +158,31 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  val versionCatalogDetectorResult: DetectorResult
-    get() {
-      val gradleVersion = gradleVersion
-      if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
-      val settingsVisitorResults = settingsVisitorResults
-      val needEnableFeaturePreview = gradleVersion < STABLE_GRADLE_VERSION
-      if (needEnableFeaturePreview && !settingsVisitorResults.enableFeaturePreview) return NOT_ENABLED
-      if (settingsVisitorResults.versionCatalogsCall) return EXPLICIT_CALL
-      return when(project.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")) {
-        null -> NOT_USED
-        else -> IMPLICIT_LIBS_VERSIONS
-      }
+  private inline fun GradleVersionCatalogDetector.computeDetectorResult(
+    gradleVersionGetter: GradleVersionCatalogDetector.() -> GradleVersion?,
+    settingsVisitorResultsGetter: GradleVersionCatalogDetector.() -> SettingsVisitorResults?
+  ): DetectorResult {
+    val gradleVersion = gradleVersionGetter() ?: return UNAVAILABLE
+    if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
+    val settingsVisitorResults = settingsVisitorResultsGetter() ?: return UNAVAILABLE
+    val needEnableFeaturePreview = gradleVersion < STABLE_GRADLE_VERSION
+    if (needEnableFeaturePreview && !settingsVisitorResults.enableFeaturePreview) return NOT_ENABLED
+    if (settingsVisitorResults.versionCatalogsCall) return EXPLICIT_CALL
+    return when(project.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")) {
+      null -> NOT_USED
+      else -> IMPLICIT_LIBS_VERSIONS
     }
+  }
+
+  @get:Slow
+  val versionCatalogDetectorResult: DetectorResult
+    get() = computeDetectorResult({ gradleVersion }, { settingsVisitorResults })
+  val versionCatalogDetectorResultIfAvailable: DetectorResult
+    get() = computeDetectorResult({ _gradleVersion }, { _settingsVisitorResults })
 
   private var shouldSendTrackerEvent = true
 
+  @get:Slow
   val isVersionCatalogProject: Boolean
     get() = versionCatalogDetectorResult.run {
       if (shouldSendTrackerEvent) {
@@ -202,6 +209,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     val catalogEntry: Boolean
   }
 
+  @get:Slow
   @get:VisibleForTesting
   val isSettingsCatalogEntry: Boolean
     get() = isVersionCatalogProject && settingsVisitorResults.catalogEntry
@@ -217,9 +225,15 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   fun maybeSuggestToml(project: Project) {
     val notificationsManager = NotificationsManager.getNotificationsManager()
     val existing = notificationsManager.getNotificationsOfType(VersionCatalogTomlSuggestion::class.java, project)
-    if (isSettingsCatalogEntry) {
-      if (existing.isEmpty()) {
-        VersionCatalogTomlSuggestion().notify(project)
+    if (existing.isEmpty()) {
+      executeOnPooledThread {
+        if (isSettingsCatalogEntry) {
+          // re-check because we might be executing this arbitrarily later than the initial check.  (The NotificationsManager
+          // checks for project disposal, though there's still presumably a small TOCTTOU window there.)
+          if (notificationsManager.getNotificationsOfType(VersionCatalogTomlSuggestion::class.java, project).isEmpty()) {
+            VersionCatalogTomlSuggestion().notify(project)
+          }
+        }
       }
     }
     else {
@@ -233,6 +247,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     EXPLICIT_CALL(true, EXPLICIT), // Found an explicit call to versionCatalogs in settings.
     IMPLICIT_LIBS_VERSIONS(true, IMPLICIT), // No explicit call, but implicit use through libs.versions.toml.
     NOT_USED(false, NONE), // No use of Version Catalogs found in this project.
+    UNAVAILABLE(false, UNKNOWN_GRADLE_VERSION_CATALOG_DETECTOR_STATE), // Not computed and not computable at this time.
   }
 
   private fun visitGroovySettings(settingsPsiFile: GroovyFile): SettingsVisitorResults {
