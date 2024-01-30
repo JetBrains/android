@@ -71,11 +71,6 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
     getApplication().registerService(ExceptionDataCollection.class, exceptionDataCollectionMock);
     when(notificationGroupManagerMock.getNotificationGroup(any(String.class))).thenReturn(notificationGroupMock);
     androidStudioSystemHealthMonitor = spy(new AndroidStudioSystemHealthMonitor(studioReportDatabaseMock));
-
-    // When this method is invoked more than once (side-effect of running androidStudioSystemHealthMonitor.start())
-    // across different tests, we see the initial listener that is registered being preserved. This causes an exception
-    // to be thrown.
-    doNothing().when(androidStudioSystemHealthMonitor).registerPlatformEventsListener();
   }
 
   @Test

@@ -460,7 +460,6 @@ public final class AndroidStudioSystemHealthMonitor {
   public void startInternal() {
     assert myGroup != null;
     Application application = ApplicationManager.getApplication();
-    registerPlatformEventsListener();
 
     application.executeOnPooledThread(this::checkRuntime);
 
@@ -635,20 +634,16 @@ public final class AndroidStudioSystemHealthMonitor {
     }
   }
 
-  protected void registerPlatformEventsListener() {
-    AndroidStudioSystemHealthMonitorAdapter.EventsListener listener = new AndroidStudioSystemHealthMonitorAdapter.EventsListener() {
+  public static class MyEventsListener implements AndroidStudioSystemHealthMonitorAdapter.EventsListener {
+    @Override
+    public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
+      AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
+    }
 
-      @Override
-      public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
-        AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
-      }
-
-      @Override
-      public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
-        return AndroidStudioSystemHealthMonitor.this.handleExceptionEvent(event, memoryKind);
-      }
-    };
-    AndroidStudioSystemHealthMonitorAdapter.registerEventsListener(listener);
+    @Override
+    public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
+      return AndroidStudioSystemHealthMonitor.getInstance().handleExceptionEvent(event, memoryKind);
+    }
   }
 
   private AtomicBoolean ourOomOccurred = new AtomicBoolean(false);
