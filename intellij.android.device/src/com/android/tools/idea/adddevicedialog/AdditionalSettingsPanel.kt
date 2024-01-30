@@ -27,7 +27,6 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.ui.component.CheckboxRow
@@ -36,6 +35,7 @@ import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import kotlin.math.max
 
 @Composable
 internal fun AdditionalSettingsPanel(
@@ -141,33 +141,12 @@ private fun StorageGroup(
   Row {
     Text("Internal storage")
 
-    TextField(
-      state.internalStorageTextFieldValue,
-      onValueChange = {
-        try {
-          val value = if (it.isEmpty()) 0 else it.toLong()
-          val newStorage = StorageCapacity(value, device.internalStorage.unit)
-          onDeviceChange(device.copy(internalStorage = newStorage))
-
-          state.internalStorageTextFieldValue = it
-        } catch (exception: NumberFormatException) {
-          // Use the old storage
-        }
-      },
-    )
-
-    Dropdown(
-      device.internalStorage.unit,
-      UNITS,
-      onSelectedItemChange = {
-        val newStorage = StorageCapacity(device.internalStorage.value, it)
-        onDeviceChange(device.copy(internalStorage = newStorage))
-      },
-    )
+    StorageCapacityField(state.internalStorage, onValueChange = {
+      state.internalStorage = it
+      onDeviceChange(device.copy(internalStorage = it))
+    })
   }
 }
-
-private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
 
 @Composable
 private fun EmulatedPerformanceGroup(
@@ -222,9 +201,24 @@ private val GRAPHIC_ACCELERATION_ITEMS =
   GpuMode.values().filterNot { it == GpuMode.OFF }.toImmutableList()
 
 internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
-  internal var internalStorageTextFieldValue by
-    mutableStateOf(device.internalStorage.value.toString())
+  internal var internalStorage by mutableStateOf(device.internalStorage)
 }
+
+@Composable
+private fun StorageCapacityField(value: StorageCapacity, onValueChange: (StorageCapacity) -> Unit) {
+  TextField(value.value.toString(), onValueChange = {
+    try {
+      onValueChange(StorageCapacity(if (it.isEmpty()) 0 else it.toLong(), value.unit))
+    }
+    catch (exception: NumberFormatException) {
+      // Use the old storage
+    }
+  })
+
+  Dropdown(value.unit, UNITS, onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) })
+}
+
+private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
 
 @Composable
 private fun <I> Dropdown(
