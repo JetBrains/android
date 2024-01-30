@@ -45,6 +45,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -66,12 +67,17 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class StudioResourceRepositoryManager implements Disposable, ResourceRepositoryManager {
   private static final Key<StudioResourceRepositoryManager> KEY = Key.create(StudioResourceRepositoryManager.class.getName());
@@ -588,22 +594,25 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       }
     }
 
-    for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
-      // Reset is done separately from disposal, since reset isn't needed in all disposal scenarios. Specifically,
-      // there are ways these repositories can be disposed:
-      //  1. This reset method.
-      //  2. When the owning facet is disposed.
-      // In the second case, a "roots updated" notification will be sent to any dependent modules, which will cause
-      // them to recalculate their children and remove any outdated references. So only the first case (this reset
-      // method) requires explicitly notifying those same parent repositories that their children are out of date and
-      // need to be refreshed.
-      if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
-        // Notifying parents is flagged in case this new change has any unexpected side effects.
-        repository.notifyParentsOfReset();
+    // Reset is done separately from disposal, since reset isn't needed in all disposal scenarios. Specifically,
+    // there are ways these repositories can be disposed:
+    //  1. This reset method.
+    //  2. When the owning facet is disposed.
+    // In the second case, a "roots updated" notification will be sent to any dependent modules, which will cause
+    // them to recalculate their children and remove any outdated references. So only the first case (this reset
+    // method) requires explicitly notifying those same parent repositories that their children are out of date and
+    // need to be refreshed.
+    if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
+      // Notifying parents is flagged in case this new change has any unexpected side effects.
+      DisposeAndRefreshService disposeAndRefreshService = DisposeAndRefreshService.getInstance();
+      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+        disposeAndRefreshService.disposeAndNotifyParents(repository);
       }
-
-      if (repository instanceof Disposable disposable) {
-        Disposer.dispose(disposable);
+    } else {
+      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+        if (repository instanceof Disposable disposable) {
+          Disposer.dispose(disposable);
+        }
       }
     }
   }
@@ -851,5 +860,55 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   private record LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
+  }
+
+  /**
+   * Service responsible for disposing repositories that have been reset and notifying their parents, so that the
+   * parents can refresh themselves.
+   * <p>
+   * Disposal and notification is done on a single background thread to ensure that various repositories aren't
+   * resetting concurrently, which may lead to deadlock. The service is APP-level rather than SERVICE-level since many
+   * of the locks involved are static objects, and thus application-wide.
+   */
+  @Service
+  @VisibleForTesting
+  final static class DisposeAndRefreshService implements Disposable {
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    @Override
+    public void dispose() {
+      executor.shutdown();
+    }
+
+    public void disposeAndNotifyParents(LocalResourceRepository<VirtualFile> repository) {
+      if (repository instanceof Disposable disposable) {
+        // Take over ownership of the disposable.
+        Disposer.register(this, disposable);
+      }
+
+      // Store the repository and schedule cleanup.
+      executor.submit(() -> doDisposeAndNotify(repository));
+    }
+
+    private void doDisposeAndNotify(LocalResourceRepository<VirtualFile> repository) {
+      if (repository instanceof Disposable disposable) {
+        Disposer.dispose(disposable);
+      }
+
+      repository.notifyParentsOfReset();
+    }
+
+    @TestOnly
+    public boolean waitForRunningTasks(long timeout, TimeUnit unit) throws InterruptedException {
+      Semaphore semaphore = new Semaphore(0);
+      executor.submit((Runnable)semaphore::release);
+
+      return semaphore.tryAcquire(timeout, unit);
+    }
+
+    public static DisposeAndRefreshService getInstance() {
+      return ApplicationManager.getApplication().getService(DisposeAndRefreshService.class);
+    }
   }
 }

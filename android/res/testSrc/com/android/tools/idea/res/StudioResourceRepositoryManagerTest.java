@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +120,7 @@ public class StudioResourceRepositoryManagerTest extends AndroidTestCase {
       addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
     }
 
-    public void testDependentModuleReset() {
+    public void testDependentModuleReset() throws Exception {
       // Regression test for b/313309846
       // StudioResourceRepositoryManager.resetResources() causes the contained repositories to be disposed.
       // Any other modules' StudioResourceRepositoryManagers that reference those disposed repositories need to
@@ -143,8 +144,19 @@ public class StudioResourceRepositoryManagerTest extends AndroidTestCase {
       assertChildrenNotDisposed(mainModuleTestResources);
       assertChildrenNotDisposed(mainModuleModuleResources);
 
+      // Get one of the library facet's repositories, so we can ensure it's been reset and disposed.
+      LocalResourceRepository<VirtualFile> libraryModuleAppResources = libraryFacetManager.getAppResources();
+
       // Resetting the resources will cause the library's repositories to become disposed.
       libraryFacetManager.resetResources();
+      assertThat(
+        StudioResourceRepositoryManager.DisposeAndRefreshService.getInstance()
+          .waitForRunningTasks(10000, TimeUnit.MILLISECONDS)).isTrue();
+
+      // Verify that the library module's repositories have been updated, and the old ones disposed.
+      LocalResourceRepository<VirtualFile> libraryModuleAppResourcesAfterReset = libraryFacetManager.getAppResources();
+      assertThat(libraryModuleAppResourcesAfterReset).isNotSameAs(libraryModuleAppResources);
+      assertThat(Disposer.isDisposed((Disposable)libraryModuleAppResources)).isTrue();
 
       // The main module's repositories should still be the same objects; but their children (including the
       // library module's repositories) should have changed and should not be disposed.
