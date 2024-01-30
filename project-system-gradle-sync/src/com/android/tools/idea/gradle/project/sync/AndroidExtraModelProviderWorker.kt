@@ -166,7 +166,7 @@ internal class AndroidExtraModelProviderWorker(
               return BasicV1AndroidModuleGradleProject(
                 gradleProject,
                 buildPath,
-                ModelVersions(agp = AgpVersion.parse(legacyV1AgpVersionModel.agp), minimumModelConsumer = null)
+                legacyV1AgpVersionModel.convert()
               )
 
             return BasicNonAndroidIncompleteGradleModule(gradleProject, buildPath) // Check here tha Version does not return anything.
@@ -192,12 +192,30 @@ private val MINIMUM_AGP_FOR_VERSIONS_MAP = AgpVersion.parse("7.3.0")
 
 private fun Versions.convert(): ModelVersions {
   val agpVersion = AgpVersion.parse(agp)
+  val versions: Map<String, Versions.Version> = if(agpVersion >= MINIMUM_AGP_FOR_VERSIONS_MAP) versions else emptyMap()
+  val minimumModelConsumer = versions[Versions.MINIMUM_MODEL_CONSUMER]?.let { version ->
+    // Human-readable field was added before MINIMUM_MODEL_CONSUMER was reported, and is required for MINIMUM_MODEL_CONSUMER.
+    ModelConsumerVersion(version.major, version.minor, version.humanReadable ?: error(
+      "AGP that reports a MINIMUM_MODEL_CONSUMER version must have a human readable version"))
+  }
+  val modelVersion = versions[Versions.MODEL_PRODUCER]?.let { version ->
+    ModelVersion(version.major, version.major, version.humanReadable ?: error(
+      "AGP that reports a MODEL_PRODUCER version must have a human readable version"))
+  } ?: ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, agpVersion.toString())
+
   return ModelVersions(
     agp = agpVersion,
-    minimumModelConsumer = if (agpVersion < MINIMUM_AGP_FOR_VERSIONS_MAP) null else versions[Versions.MINIMUM_MODEL_CONSUMER]?.let { version ->
-      // Human-readable field was added before MINIMUM_MODEL_CONSUMER was reported, and is required for MINIMUM_MODEL_CONSUMER.
-      ModelConsumerVersion(version.major, version.minor, version.humanReadable ?: error("AGP that reports a MINIMUM_MODEL_CONSUMER version must have a human readable version"))
-    },
+    modelVersion = modelVersion,
+    minimumModelConsumer = minimumModelConsumer,
+  )
+}
+
+private fun LegacyV1AgpVersionModel.convert(): ModelVersions {
+  val agpVersion = AgpVersion.parse(agp)
+  return ModelVersions(
+    agp = agpVersion,
+    modelVersion = ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, agpVersion.toString()),
+    minimumModelConsumer = null,
   )
 }
 

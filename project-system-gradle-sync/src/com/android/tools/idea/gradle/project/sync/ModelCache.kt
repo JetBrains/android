@@ -137,7 +137,11 @@ interface ModelCache {
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
-          ModelVersions(agp = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION), minimumModelConsumer = null),
+          ModelVersions(
+            agp = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+            modelVersion = ModelVersion(Int.MAX_VALUE, Int.MAX_VALUE, "Fake model for tests"),
+            minimumModelConsumer = null,
+            ),
           syncTestMode = SyncTestMode.PRODUCTION,
           false,
         )

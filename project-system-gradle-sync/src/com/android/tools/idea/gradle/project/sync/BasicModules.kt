@@ -57,8 +57,15 @@ data class ModelConsumerVersion(val major: Int, val minor: Int, val description:
   }
 }
 
+data class ModelVersion(val major: Int, val minor: Int, val description: String) : Comparable<ModelVersion> {
+  override fun compareTo(other: ModelVersion): Int {
+    return if (this.major != other.major) this.major.compareTo(other.major) else this.minor.compareTo(other.minor)
+  }
+}
+
 data class ModelVersions(
   val agp: AgpVersion,
+  val modelVersion: ModelVersion,
   val minimumModelConsumer: ModelConsumerVersion?
 )
 
