@@ -19,15 +19,16 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.studiobot.StudioBot
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBTextArea
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import javax.swing.JPanel
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,33 +55,41 @@ class ConvertToComposeAction(private val root: NlComponent) : AnAction(ACTION_TI
     try {
       val validatedQueryRequest =
         studioBot.aiExcludeService().validateQuery(project, query, listOf()).getOrThrow()
-      // TODO(b/322759144): Don't use the project as the scope disposable
-      // Note: you must complete the Studio Bot onboarding and enable context sharing, otherwise
-      // the following call will fail.
-      AndroidCoroutineScope(project).launch(workerThread) {
-        val response =
-          StudioBot.getInstance()
-            .model()
-            .sendQuery(validatedQueryRequest, StudioBot.RequestSource.DESIGN_TOOLS)
-            .toList()
+      ComposeCodeDialog(project).run {
+        show()
+        AndroidCoroutineScope(disposable).launch(workerThread) {
+          // TODO(b/322759144): play with n-shot prompting instead of sending only the prefix prompt
+          // Note: you must complete the Studio Bot onboarding and enable context sharing, otherwise
+          // the following call will fail.
+          val response =
+            StudioBot.getInstance()
+              .model()
+              .sendQuery(validatedQueryRequest, StudioBot.RequestSource.DESIGN_TOOLS)
+              .toList()
 
-        copyResponseToClipboard(project, response.joinToString("\n"))
+          withContext(uiThread) { updateContent(response.joinToString("\n")) }
+        }
       }
     } catch (t: Throwable) {
       logger.error("Error while trying to send query", t)
     }
   }
 
-  private suspend fun copyResponseToClipboard(project: Project, response: String) {
-    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-    clipboard.setContents(StringSelection(response), null)
-    withContext(uiThread) {
-      AndroidNotification.getInstance(project)
-        .showBalloon(
-          "Response copied to the clipboard",
-          "The Compose code corresponding to the layout was copied to the clipboard.",
-          NotificationType.INFORMATION,
-        )
+  private class ComposeCodeDialog(project: Project) : DialogWrapper(project) {
+
+    private val textArea =
+      JBTextArea("Sending query to Studio Bot...").apply { preferredSize = JBUI.size(600, 1000) }
+
+    init {
+      isModal = false
+      super.init()
+    }
+
+    override fun createCenterPanel() =
+      JPanel(BorderLayout()).apply { add(textArea, BorderLayout.CENTER) }
+
+    fun updateContent(content: String) {
+      textArea.text = content
     }
   }
 }
