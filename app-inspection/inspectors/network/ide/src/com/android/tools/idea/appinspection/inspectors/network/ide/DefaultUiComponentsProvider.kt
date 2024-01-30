@@ -36,14 +36,10 @@ class DefaultUiComponentsProvider(
     formatted: Boolean,
   ): DataViewer {
     return when {
-      contentType.isSupportedImageType -> {
-        IntellijImageDataViewer(bytes, parentDisposable)
-      }
-      styleHint == DataViewer.Style.RAW -> {
-        if (contentType.isSupportedTextType) IntellijDataViewer.createRawTextViewer(bytes)
-        else IntellijDataViewer.createInvalidViewer()
-      }
-      styleHint == DataViewer.Style.PRETTY -> {
+      contentType.isSupportedImageType -> IntellijImageDataViewer(bytes, parentDisposable)
+      !contentType.isSupportedTextType -> IntellijDataViewer.createInvalidViewer()
+      styleHint == DataViewer.Style.RAW -> IntellijDataViewer.createRawTextViewer(bytes)
+      styleHint == DataViewer.Style.PRETTY ->
         IntellijDataViewer.createPrettyViewerIfPossible(
           project,
           bytes,
@@ -51,11 +47,7 @@ class DefaultUiComponentsProvider(
           formatted,
           parentDisposable,
         )
-      }
-      else -> {
-        // This shouldn't ever happen.
-        throw RuntimeException("DataViewer style is invalid.")
-      }
+      else -> throw RuntimeException("DataViewer style is invalid.")
     }
   }
 

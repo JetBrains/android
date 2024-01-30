@@ -87,6 +87,38 @@ class UiComponentsProviderTest {
   }
 
   @Test
+  fun createInvalidRawDataViewer() {
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+
+    val viewer =
+      componentsProvider.createDataViewer(
+        "csv,file".toByteArray(),
+        ContentType.DEFAULT,
+        DataViewer.Style.RAW,
+        false,
+      )
+    assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
+    assertThat(viewer.style).isEqualTo(DataViewer.Style.INVALID)
+  }
+
+  @Test
+  fun createInvalidPrettyDataViewer() {
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+
+    val viewer =
+      componentsProvider.createDataViewer(
+        "csv,file".toByteArray(),
+        ContentType.DEFAULT,
+        DataViewer.Style.PRETTY,
+        false,
+      )
+    assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
+    assertThat(viewer.style).isEqualTo(DataViewer.Style.INVALID)
+  }
+
+  @Test
   fun createPrettyDataViewer() {
     val componentsProvider =
       DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
