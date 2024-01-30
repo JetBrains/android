@@ -35,8 +35,10 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Attribute
 import org.jdom.Element
@@ -85,7 +87,10 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       log.debug("createEditor file=${file.path}")
     }
 
-    val psiFile = PsiManager.getInstance(project).findFile(file)!!
+    val psiFile =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { PsiManager.getInstance(project).findFile(file)!! }
+      )
 
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
     val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
