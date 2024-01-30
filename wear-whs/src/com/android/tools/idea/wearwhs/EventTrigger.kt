@@ -75,10 +75,6 @@ val EVENT_TRIGGER_GROUPS = listOf(
     eventTriggers = listOf(
       EventTrigger(
         eventKey = "whs.GOLF_SHOT",
-        eventLabel = message("wear.whs.event.trigger.golf.shot.unclassified"),
-      ),
-      EventTrigger(
-        eventKey = "whs.GOLF_SHOT",
         eventLabel = message("wear.whs.event.trigger.golf.shot.putt"),
         eventMetadata = mapOf(
           METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PUTT
