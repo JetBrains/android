@@ -17,14 +17,9 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.updater.Updater
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
-import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
-import studio.network.inspection.NetworkInspectorProtocol
-import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 interface NetworkInspectorServices {
   val navigationProvider: CodeNavigationProvider
@@ -33,6 +28,7 @@ interface NetworkInspectorServices {
   val workerDispatcher: CoroutineDispatcher
   val uiDispatcher: CoroutineDispatcher
   val usageTracker: NetworkInspectorTracker
+  val ideServices: AppInspectionIdeServices
 }
 
 /**
@@ -45,25 +41,7 @@ class NetworkInspectorServicesImpl(
   override val workerDispatcher: CoroutineDispatcher,
   override val uiDispatcher: CoroutineDispatcher,
   override val usageTracker: NetworkInspectorTracker,
+  override val ideServices: AppInspectionIdeServices,
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
-}
-
-/** For tests only. */
-class TestNetworkInspectorServices(
-  override val navigationProvider: CodeNavigationProvider,
-  timer: StopwatchTimer,
-  override val client: NetworkInspectorClient =
-    object : NetworkInspectorClient {
-      override suspend fun startInspection(): StartInspectionResponse =
-        StartInspectionResponse.getDefaultInstance()
-
-      override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
-        Unit
-    },
-  override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker(),
-) : NetworkInspectorServices {
-  override val updater = Updater(timer)
-  override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
-  override val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 }

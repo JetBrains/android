@@ -85,6 +85,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           AndroidDispatchers.workerThread,
           AndroidDispatchers.uiThread,
           usageTracker,
+          ideServices,
         )
       private val networkInspectorTab =
         NetworkInspectorTab(

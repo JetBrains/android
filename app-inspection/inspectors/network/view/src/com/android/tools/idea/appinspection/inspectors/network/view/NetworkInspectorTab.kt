@@ -25,12 +25,14 @@ import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.adtui.stdui.DefaultContextMenuItem
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4_FONT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -55,6 +57,7 @@ import javax.swing.SwingConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val ZOOM_IN = "Zoom in"
@@ -113,6 +116,15 @@ class NetworkInspectorTab(
         } else {
           val startTimeStampNs = response.timestamp
           (model.timeline as StreamingTimeline).reset(startTimeStampNs, startTimeStampNs)
+        }
+        withContext(AndroidDispatchers.uiThread) {
+          if (!response.speedCollectionStarted) {
+            services.ideServices.showNotification(
+              "Failed to collect speed data. See device Logcat for more information",
+              "Network Inspector",
+              Severity.ERROR,
+            )
+          }
         }
       }
 
