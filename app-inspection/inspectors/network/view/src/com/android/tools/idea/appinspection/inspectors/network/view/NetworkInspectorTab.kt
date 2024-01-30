@@ -36,6 +36,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
@@ -49,6 +51,7 @@ import java.awt.GridBagLayout
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.KeyEvent
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.KeyStroke
@@ -65,16 +68,17 @@ private const val ZOOM_OUT = "Zoom out"
 private const val RESET_ZOOM = "Reset zoom"
 private const val ZOOM_TO_SELECTION = "Zoom to selection"
 private const val CLEAR_DATA = "Clear data"
+private const val EXPORT_CONNECTIONS = "Export connections"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
 private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
 
 class NetworkInspectorTab(
-  project: Project,
+  private val project: Project,
   componentsProvider: UiComponentsProvider,
   dataSource: NetworkInspectorDataSource,
   private val services: NetworkInspectorServices,
-  scope: CoroutineScope,
+  private val scope: CoroutineScope,
   parentDisposable: Disposable,
 ) : AspectObserver(), Disposable {
 
@@ -90,7 +94,7 @@ class NetworkInspectorTab(
     Disposer.register(parentDisposable, this)
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
-    val splitter = ThreeComponentsSplitter(parentDisposable)
+    val splitter = ThreeComponentsSplitter()
     splitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     splitter.dividerWidth = 0
     splitter.setDividerMouseZoneSize(-1)
@@ -143,6 +147,18 @@ class NetworkInspectorTab(
     actionsToolBar = JPanel(GridBagLayout())
     toolbar.add(actionsToolBar, BorderLayout.EAST)
     actionsToolBar.border = JBUI.Borders.emptyRight(2)
+
+    val exportConnectionsButton = CommonButton(StudioIcons.Common.EXPORT)
+    exportConnectionsButton.name = EXPORT_CONNECTIONS
+    exportConnectionsButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.EXPORT)
+    exportConnectionsButton.addActionListener { exportConnections() }
+    val exportConnectionsAction =
+      DefaultContextMenuItem.Builder(EXPORT_CONNECTIONS)
+        .setContainerComponent(splitter)
+        .setActionRunnable { exportConnectionsButton.doClick(0) }
+        .build()
+    exportConnectionsButton.toolTipText = exportConnectionsAction.defaultToolTipText
+    actionsToolBar.add(exportConnectionsButton)
 
     val clearDataButton = CommonButton(StudioIcons.Common.DELETE)
     clearDataButton.name = CLEAR_DATA
@@ -283,6 +299,17 @@ class NetworkInspectorTab(
 
   private fun clearData() {
     model.reset()
+  }
+
+  private fun exportConnections() {
+    val descriptor = FileSaverDescriptor("Export Connections", "", "json")
+    val dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+    val baseDir = Path.of(System.getProperty("user.home"), "Downloads")
+    val fileWrapper = dialog.save(baseDir, "connections.json") ?: return
+    scope.launch {
+      val path = fileWrapper.file.toPath()
+      view.connectionsView.exportConnections(path)
+    }
   }
 
   fun stopInspection() {

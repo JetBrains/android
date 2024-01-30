@@ -21,7 +21,7 @@ import javax.swing.table.AbstractTableModel
 
 internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
   AbstractTableModel() {
-  private lateinit var dataList: List<ConnectionData>
+  private var dataList: List<ConnectionData> = emptyList()
 
   init {
     selectionRangeDataFetcher.addOnChangedListener { list ->
@@ -41,5 +41,7 @@ internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDa
 
   override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
 
-  fun getConnectionData(rowIndex: Int) = dataList[rowIndex]
+  fun getConnectionData(rowIndex: Int): ConnectionData = dataList[rowIndex]
+
+  fun getConnectionDataList() = dataList
 }
