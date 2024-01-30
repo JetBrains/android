@@ -160,7 +160,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
           override fun afterLibraryRenamed(library: Library, oldName: String?) =
             dropAarClassesCache()
 
-          override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
+          override fun beforeLibraryRemoved(library: Library) = dropAarClassesCache()
 
           private fun dropAarClassesCache() {
             aarClassesCache.invalidateAll()
