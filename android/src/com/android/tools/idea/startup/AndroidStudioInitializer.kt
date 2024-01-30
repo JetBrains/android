@@ -22,6 +22,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.StudioCodeVersionAdapter
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
@@ -31,8 +32,11 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -68,6 +72,8 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
     }
 
     StudioCodeVersionAdapter.initialize()
+
+    setupAndroidSdkForTests()
   }
 
   /** Sets up collection of Android Studio specific analytics.  */
@@ -82,5 +88,17 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
       UsageTracker.ideaIsInternal = true
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
+  }
+
+  private fun setupAndroidSdkForTests() {
+    val androidPlatformToCreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get()
+    if (androidPlatformToCreate == 0) return
+
+    val androidSdkPath = IdeSdks.getInstance().androidSdkPath ?: return
+
+    thisLogger().info("Automatically creating an Android platform using SDK path $androidSdkPath and SDK version $androidPlatformToCreate")
+    invokeLater {
+      AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
+    }
   }
 }

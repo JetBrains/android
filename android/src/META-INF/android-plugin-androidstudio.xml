@@ -20,7 +20,6 @@
     <registryKey key="ide.slow.operations.assertion.generic" defaultValue="false" description="Flag for generic activities and code in `SlowOperations#allowSlowOperations`"/>
     <applicationInitializedListener id="Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <actionConfigurationCustomizer id="Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.AndroidStudioActionCustomizer"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.startup.AndroidSdkInitializer" order="last"/>
     <applicationInitializedListener implementation="com.android.tools.idea.instrumentation.threading.ThreadingChecker" />
     <applicationService serviceInterface="com.intellij.platform.ide.customization.ExternalProductResourceUrls"
                         serviceImplementation="com.android.tools.idea.AndroidStudioResourceUrls"
