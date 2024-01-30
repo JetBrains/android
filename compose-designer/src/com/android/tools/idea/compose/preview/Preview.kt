@@ -1471,7 +1471,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun requestFastPreviewRefreshAndTrack(): CompilationResult {
     val previewFile =
-      psiFilePointer.element
+      readAction { psiFilePointer.element }
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File is no valid")
         )
