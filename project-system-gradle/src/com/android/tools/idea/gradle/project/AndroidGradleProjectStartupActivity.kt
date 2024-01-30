@@ -89,8 +89,6 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettingsListener
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.util.SlowOperations
 
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
@@ -395,10 +393,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   additionalProjectSetup(project)
 
-  // TODO b/320711808
-  SlowOperations.allowSlowOperations(ThrowableComputable {
-    GradleSyncStateHolder.getInstance(project).syncSkipped(null)
-  })
+  GradleSyncStateHolder.getInstance(project).syncSkipped(null)
 }
 
 private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =
