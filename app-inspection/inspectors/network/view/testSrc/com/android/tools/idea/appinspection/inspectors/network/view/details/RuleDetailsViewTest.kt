@@ -67,6 +67,7 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 @RunsInEdt
 class RuleDetailsViewTest {
@@ -75,7 +76,8 @@ class RuleDetailsViewTest {
     private var latestRegularCommand = InterceptCommand.getDefaultInstance()
     private var latestReorderCommand = InterceptCommand.getDefaultInstance()
 
-    override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun startInspection(): StartInspectionResponse =
+      StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: InterceptCommand) {
       if (command.hasReorderInterceptRules()) {

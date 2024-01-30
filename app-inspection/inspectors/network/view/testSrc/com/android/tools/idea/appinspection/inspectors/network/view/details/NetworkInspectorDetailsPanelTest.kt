@@ -46,12 +46,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 @RunsInEdt
 class NetworkInspectorDetailsPanelTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun startInspection(): StartInspectionResponse =
+      StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: InterceptCommand) = Unit
   }

@@ -24,6 +24,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 interface NetworkInspectorServices {
   val navigationProvider: CodeNavigationProvider
@@ -54,7 +55,8 @@ class TestNetworkInspectorServices(
   timer: StopwatchTimer,
   override val client: NetworkInspectorClient =
     object : NetworkInspectorClient {
-      override suspend fun getStartTimeStampNs() = 0L
+      override suspend fun startInspection(): StartInspectionResponse =
+        StartInspectionResponse.getDefaultInstance()
 
       override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
         Unit

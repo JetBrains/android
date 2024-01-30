@@ -66,6 +66,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private val FAKE_RESPONSE_HEADERS =
@@ -111,15 +112,12 @@ private fun <T : TabContent?> ConnectionDataDetailsView.findTab(tabClass: Class<
   return tabs.filterIsInstance(tabClass).firstOrNull()
 }
 
-private fun <C : Component> allDescendantsWithType(root: Component, type: Class<C>): List<C> {
-  return TreeWalker(root).descendants().filterIsInstance(type)
-}
-
 @RunsInEdt
 class ConnectionDataDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun startInspection(): StartInspectionResponse =
+      StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
       Unit
@@ -336,10 +334,6 @@ class ConnectionDataDetailsViewTest {
         "",
       )
       .inOrder()
-  }
-
-  private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {
-    assert(uiText == "$label $value")
   }
 
   @Test

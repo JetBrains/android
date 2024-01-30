@@ -106,12 +106,12 @@ class NetworkInspectorTab(
     model = NetworkInspectorModel(services, dataSource, scope)
     launchJob =
       scope.launch(services.workerDispatcher) {
+        val response = services.client.startInspection()
         if (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
-          val startTimeStampUs =
-            TimeUnit.NANOSECONDS.toMicros(services.client.getStartTimeStampNs()).toDouble()
+          val startTimeStampUs = TimeUnit.NANOSECONDS.toMicros(response.timestamp).toDouble()
           model.timeline.dataRange.set(startTimeStampUs, startTimeStampUs)
         } else {
-          val startTimeStampNs = services.client.getStartTimeStampNs()
+          val startTimeStampNs = response.timestamp
           (model.timeline as StreamingTimeline).reset(startTimeStampNs, startTimeStampNs)
         }
       }
