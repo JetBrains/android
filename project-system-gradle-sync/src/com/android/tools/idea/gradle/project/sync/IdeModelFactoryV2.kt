@@ -30,7 +30,7 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 
 class IdeModelFactoryV2(
-  modelVersions: ModelVersions,
+  private val modelVersions: ModelVersions,
   multiVariantAdditionalArtifactSupport: Boolean,
 ) {
 
@@ -38,9 +38,8 @@ class IdeModelFactoryV2(
    * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
    * Any attempt to read these values from a version prior to this will result in an exception.
    */
-  val isAGPVersion8dot1dot0alpha8orLater = modelVersions.agp.isAtLeast(8, 1, 0, "alpha", 8, false)
-  val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
-  val supportsAbsoluteGradleBuildPaths = modelVersions.agp.isAtLeast(8, 2, 0, "alpha", 13, false)
+  private val useAdditionalArtifactsFromLibraries =
+    modelVersions[ModelFeature.HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES] && multiVariantAdditionalArtifactSupport
 
   fun androidLibraryFrom(androidLibrary: Library, deduplicate: String.() -> String) : IdeAndroidLibraryImpl {
     fun File.deduplicateFile(): File = File(path.deduplicate())
@@ -111,7 +110,7 @@ class IdeModelFactoryV2(
         val variantName = androidModule.resolveVariantName(projectInfo, buildId)
         AndroidArtifactRef(variantName, projectInfo.isTestFixtures, androidModule.androidProject.lintJar)
       } else {
-        library.artifact?.let {NonAndroidAndroidArtifactRef(it)} ?: error(
+        library.artifact?.let { NonAndroidAndroidArtifactRef(it) } ?: error(
           "Unresolved module dependency ${projectInfo.displayName} in " +
           "$projectPath ($buildId). Neither the source set nor the artifact property was populated" +
           " by the Android Gradle plugin."
@@ -147,7 +146,7 @@ class IdeModelFactoryV2(
 
   private fun Map<String, BuildId>.buildPathToBuildId(projectInfo: ProjectInfo): BuildId {
     val buildTreePath = projectInfo.buildTreePath
-    val buildId = if (supportsAbsoluteGradleBuildPaths) {
+    val buildId = if (modelVersions[ModelFeature.USES_ABSOLUTE_GRADLE_BUILD_PATHS_IN_DEPENDENCY_MODEL]) {
       this[projectInfo.buildTreePath]
     } else {
       // If there is no full support for Gradle build paths, we are looking only to match the last segment.

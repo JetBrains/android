@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.AgpVersion
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-
 
 class ModelVersionsTest {
 
@@ -58,4 +58,29 @@ class ModelVersionsTest {
       .containsExactlyElementsIn(ordered)
       .inOrder()
   }
+
+  @Test
+  fun checkSupportsParallelSync() {
+    fun supportsParallelSync(agpVersion: String) = ModelVersions(
+      agp = AgpVersion.parse(agpVersion),
+      modelVersion = ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, ""),
+      minimumModelConsumer = null)[ModelFeature.SUPPORTS_PARALLEL_SYNC]
+
+    fun assertSupportsParallelSync(agpVersion: String) {
+      return assertThat(supportsParallelSync(agpVersion)).named("AGP %s supports parallel sync", agpVersion).isTrue()
+    }
+    fun assertDoesNotSupportParallelSync(agpVersion: String) {
+      return assertThat(supportsParallelSync(agpVersion)).named("AGP %s supports parallel sync", agpVersion).isFalse()
+    }
+    assertDoesNotSupportParallelSync(agpVersion = "7.2.0-rc01")
+    assertSupportsParallelSync(agpVersion = "7.2.0")
+    assertSupportsParallelSync(agpVersion = "7.2.1")
+    assertSupportsParallelSync(agpVersion = "7.2.2")
+    assertDoesNotSupportParallelSync(agpVersion = "7.3.0-alpha01")
+    assertDoesNotSupportParallelSync(agpVersion = "7.3.0-alpha02")
+    assertDoesNotSupportParallelSync(agpVersion = "7.3.0-alpha03")
+    assertSupportsParallelSync(agpVersion = "7.3.0-alpha04")
+    assertSupportsParallelSync(agpVersion = "7.3.0")
+  }
+
 }

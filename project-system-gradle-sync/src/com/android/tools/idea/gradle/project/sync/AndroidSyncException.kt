@@ -97,9 +97,9 @@ class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(AGP_
   }
 }
 
-class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : AndroidSyncException(AGP_VERSIONS_MISMATCH, generateMessage(agpVersions)) {
+class AgpVersionsMismatch(agpVersions: List<Pair<String, String>>) : AndroidSyncException(AGP_VERSIONS_MISMATCH, generateMessage(agpVersions)) {
   companion object {
-    private fun generateMessage(agpVersions: List<Pair<AgpVersion, String>>): String {
+    private fun generateMessage(agpVersions: List<Pair<String, String>>): String {
       return "$MESSAGE_START ${agpVersions.map { it.first }.distinct()}" +
              " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
     }

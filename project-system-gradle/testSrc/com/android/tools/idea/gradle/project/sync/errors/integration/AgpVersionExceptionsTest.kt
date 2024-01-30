@@ -38,8 +38,8 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val originalException = AgpVersionsMismatch(
       listOf(
-        Pair(AgpVersion.parse("7.2.1"), "mainProj"),
-        Pair(AgpVersion.parse("7.4.0"), "included")
+        Pair("7.2.1", "mainProj"),
+        Pair("7.4.0", "included")
       )
     )
 

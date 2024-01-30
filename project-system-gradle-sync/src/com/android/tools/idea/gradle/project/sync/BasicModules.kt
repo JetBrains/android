@@ -26,10 +26,13 @@ import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelParameters
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
+import com.google.common.collect.ImmutableRangeSet
+import com.google.common.collect.Range
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+
 
 /**
  * The container class of modules we couldn't fetch using parallel Gradle TAPI API.
@@ -57,18 +60,90 @@ data class ModelConsumerVersion(val major: Int, val minor: Int, val description:
   }
 }
 
-data class ModelVersion(val major: Int, val minor: Int, val description: String) : Comparable<ModelVersion> {
+data class ModelVersion(val major: Int, val minor: Int = 0, val description: String = "") : Comparable<ModelVersion> {
   override fun compareTo(other: ModelVersion): Int {
     return if (this.major != other.major) this.major.compareTo(other.major) else this.minor.compareTo(other.minor)
   }
 }
 
-data class ModelVersions(
-  val agp: AgpVersion,
-  val modelVersion: ModelVersion,
-  val minimumModelConsumer: ModelConsumerVersion?
-)
+enum class ModelFeature(
+  private val enabledForModelVersions: ImmutableRangeSet<ModelVersion>,
+  private val alsoEnabledForAgpVersions: ImmutableRangeSet<AgpVersion> = ImmutableRangeSet.of(),
+  private val disabledForAgpVersions: ImmutableRangeSet<AgpVersion> = ImmutableRangeSet.of(),
+) {
+  SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL(AgpVersion.parse("3.5.0")),
+  HAS_INSTANT_APP_COMPATIBLE_IN_V1_MODELS(AgpVersion.parse("3.3.0-alpha10")),
+  HAS_V2_MODELS(AgpVersion.parse("7.2.0-alpha01")),
+  HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES(AgpVersion.parse("8.1.0-alpha08")),
+  SUPPORTS_PARALLEL_SYNC(
+    enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(ModelVersion(8, 0))),
+    alsoEnabledForAgpVersions = ImmutableRangeSet.builder<AgpVersion>().add(Range.atLeast(AgpVersion.parse("7.3.0-alpha04"))).add(
+      Range.closedOpen(AgpVersion.parse("7.2.0"), AgpVersion.parse("7.3.0-alpha01"))).build()),
+  HAS_NAMESPACE(AgpVersion.parse("7.0.0")),
+  HAS_APPLICATION_ID(AgpVersion.parse("7.4.0-alpha04")),
+  HAS_PRIVACY_SANDBOX_SDK_INFO(AgpVersion.parse("8.3.0-alpha14")),
+  HAS_GENERATED_CLASSPATHS(AgpVersion.parse("8.2.0-alpha07")),
+  HAS_BYTECODE_TRANSFORMS(AgpVersion.parse("8.3.0-alpha14")),
+  HAS_DESUGARED_METHOD_FILES_PROJECT_GLOBAL(AgpVersion.parse("7.3.0-alpha06")),
+  HAS_DESUGARED_METHOD_FILES_PER_ARTIFACT(AgpVersion.parse("8.0.0-alpha02")),
+  HAS_DESUGAR_LIB_CONFIG(AgpVersion.parse("8.1.0-alpha05")),
+  HAS_LINT_JAR_IN_ANDROID_PROJECT(AgpVersion.parse("8.4.0-alpha06")),
+  HAS_BASELINE_PROFILE_DIRECTORIES(AgpVersion.parse("8.0.0-beta01")),
+  HAS_RUN_TEST_IN_SEPARATE_PROCESS(AgpVersion.parse("8.3.0-alpha11")),
+  USES_ABSOLUTE_GRADLE_BUILD_PATHS_IN_DEPENDENCY_MODEL(AgpVersion.parse("8.2.0-alpha13")),
+  HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH(AgpVersion.parse("8.2.0-alpha03")),
+  ;
 
+  init {
+    check(!enabledForModelVersions.isEmpty) { "All features should be enabled for some model versions" }
+    check(alsoEnabledForAgpVersions.intersection(disabledForAgpVersions).isEmpty) { """
+      AGP based enable and disable flags must be distinct for $name.
+           alsoEnabledForAgpVersions = $alsoEnabledForAgpVersions
+           disabledForAgpVersions = $disabledForAgpVersions
+           overlap:  ${alsoEnabledForAgpVersions.intersection(disabledForAgpVersions)}
+      """.trimIndent()
+    }
+  }
+
+  constructor(minimumModelVersion: ModelVersion): this(enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(minimumModelVersion)))
+
+  @Deprecated("All new features should be gated on Model version, not AGP version")
+  constructor(legacyMinimumAgpVersion: AgpVersion) : this(
+    enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(ModelVersion(8, 9))), // Implicitly all new checks should use model version
+    alsoEnabledForAgpVersions = ImmutableRangeSet.of(Range.atLeast(legacyMinimumAgpVersion)))
+
+  internal fun appliesTo(modelVersion: ModelVersion, agpVersion: AgpVersion): Boolean {
+    return (enabledForModelVersions.contains(modelVersion) && !disabledForAgpVersions.contains(agpVersion)) || alsoEnabledForAgpVersions.contains(agpVersion)
+  }
+
+}
+
+data class ModelVersions(
+  private val agp: AgpVersion,
+  private val modelVersion: ModelVersion,
+  private val minimumModelConsumer: ModelConsumerVersion?
+) {
+
+  private val features: BooleanArray = ModelFeature.values().map { it.appliesTo(modelVersion, agp) }.toBooleanArray()
+  operator fun get(feature: ModelFeature): Boolean = features[feature.ordinal]
+
+  fun checkAgpVersionCompatibility(syncFlags: GradleSyncStudioFlags) {
+    checkAgpVersionCompatibility(minimumModelConsumer, agp, syncFlags)
+  }
+
+  val agpVersionAsString: String = agp.toString()
+}
+
+private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
+                                                   gradleProject: BasicGradleProject,
+                                                   modelVersions: ModelVersions): LegacyAndroidGradlePluginProperties? {
+  if (modelVersions[ModelFeature.HAS_APPLICATION_ID] && modelVersions[ModelFeature.HAS_NAMESPACE]) return null // Only fetch the model if it is needed.
+  return controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java,
+                              LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
+    it.componentToApplicationIdMap = !modelVersions[ModelFeature.HAS_APPLICATION_ID]
+    it.namespace = !modelVersions[ModelFeature.HAS_NAMESPACE]
+  }
+}
 /**
  * The container class of Android modules.
  */
@@ -99,10 +174,7 @@ internal class BasicV1AndroidModuleGradleProject(
           shouldBuildVariant = false
         ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
 
-        val legacyAndroidGradlePluginProperties = controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
-          it.componentToApplicationIdMap = true
-          it.namespace = modelVersions.agp.major < 7
-        }
+        val legacyAndroidGradlePluginProperties = getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
@@ -178,15 +250,7 @@ internal class BasicV2AndroidModuleGradleProject(
           ?: error("Cannot get V2AndroidProject model for $gradleProject")
         val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
           ?: error("Cannot get AndroidDsl model for $gradleProject")
-        val modelIncludesApplicationId = modelVersions.agpModelIncludesApplicationId
-        val legacyAndroidGradlePluginProperties = if (!modelIncludesApplicationId) {
-          controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
-            it.componentToApplicationIdMap = !modelIncludesApplicationId
-            it.namespace = false // Always present in Model V2
-          }
-        } else {
-          null
-        }
+        val legacyAndroidGradlePluginProperties = getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
@@ -206,7 +270,7 @@ internal class BasicV2AndroidModuleGradleProject(
             gradlePropertiesModel = gradlePropertiesModel,
             skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
             useNewDependencyGraphModel = syncActionOptions.flags.studioFlagUseNewDependencyGraphModel
-                                         && modelVersions.agp.isAtLeast(8,2,0, "alpha", 3, false)
+                                         && modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

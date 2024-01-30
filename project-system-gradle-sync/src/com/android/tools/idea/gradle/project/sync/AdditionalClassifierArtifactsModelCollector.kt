@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
@@ -35,11 +34,10 @@ internal fun getAdditionalClassifierArtifactsModel(
   actionRunner.runActions(
     inputModules.map { module ->
       ActionToRun(fun(controller: BuildController) {
-        if (!module.modelVersions.agp.isAtLeast(3, 5, 0)) return
+        if (!module.modelVersions[ModelFeature.SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL]) return
         // In later versions of AGP the information contained within the AdditionalClassifierArtifactsModel has been moved
         // to the individual libraries.
-        val agp810a08 = AgpVersion.parse("8.1.0-alpha08")
-        if (module.modelVersions.agp >= agp810a08 && useMultiVariantAdditionalArtifactSupport) return
+        if (module.modelVersions[ModelFeature.HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES] && useMultiVariantAdditionalArtifactSupport) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
         val identifiers = module.getLibraryDependencies(libraryResolver).filter {

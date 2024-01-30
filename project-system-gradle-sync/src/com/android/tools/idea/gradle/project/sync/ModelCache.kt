@@ -207,9 +207,6 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal val ModelVersions.agpModelIncludesApplicationId: Boolean
-   get() = agp.isAtLeast(7, 4, 0, "alpha", 4, false)
-
 internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   ARTIFACT_NAME_MAIN -> IdeArtifactName.MAIN
   ARTIFACT_NAME_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST

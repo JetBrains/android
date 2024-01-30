@@ -999,7 +999,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       versionCode = mergedFlavor.versionCode,
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
-      instantAppCompatible = (modelVersions.agp.isAtLeast(3, 3, 0, "alpha", 10, true) && variant.isInstantAppCompatible),
+      instantAppCompatible = (modelVersions[ModelFeature.HAS_INSTANT_APP_COMPATIBLE_IN_V1_MODELS] && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations,
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
