@@ -61,15 +61,11 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
     // Trying again here ensures that the WebP support is correctly registered.
     WebpMetadata.ensureWebpRegistered()
 
-    if (IdeSdks.getInstance().androidSdkPath != null) {
-      val handler =
-        AndroidSdkHandler.getInstance(AndroidLocationsSingleton, IdeSdks.getInstance().androidSdkPath!!.toPath())
-      // We need to start the system info monitoring even in case when user never
-      // runs a single emulator instance: e.g., incompatible hypervisor might be
-      // the reason why emulator is never run, and that's exactly the data
-      // SystemInfoStatsMonitor collects
-      SystemInfoStatsMonitor().start()
-    }
+    // We need to start the system info monitoring even in case when user never
+    // runs a single emulator instance: e.g., incompatible hypervisor might be
+    // the reason why emulator is never run, and that's exactly the data
+    // SystemInfoStatsMonitor collects
+    SystemInfoStatsMonitor().start()
 
     StudioCodeVersionAdapter.initialize()
 
