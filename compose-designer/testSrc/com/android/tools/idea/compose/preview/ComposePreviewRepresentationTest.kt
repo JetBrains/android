@@ -204,7 +204,8 @@ class ComposePreviewRepresentationTest {
         assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
       }
 
-      assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
+      assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
+        .containsExactly("groupA")
 
       val status = preview.status()
       val debugStatus = preview.debugStatusForTesting()
@@ -288,7 +289,7 @@ class ComposePreviewRepresentationTest {
       }
 
       assertTrue(preview.atfChecksEnabled)
-      assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+      assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
@@ -574,7 +575,7 @@ class ComposePreviewRepresentationTest {
       assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
       assertTrue(preview.atfChecksEnabled)
-      assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+      assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
@@ -809,7 +810,7 @@ class ComposePreviewRepresentationTest {
         delayWhileRefreshingOrDumb(preview)
       }
 
-      assertEquals(preview, dataProvider.getData(PreviewModeManager.KEY.name))
+      assertTrue(dataProvider.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
     }
 
   @Test
@@ -872,7 +873,7 @@ class ComposePreviewRepresentationTest {
         delayWhileRefreshingOrDumb(preview)
       }
 
-      assertEquals(preview, dataProvider.getData(PreviewGroupManager.KEY.name))
+      assertTrue(dataProvider.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
     }
 
   @Test

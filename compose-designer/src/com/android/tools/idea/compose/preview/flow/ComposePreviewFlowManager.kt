@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -67,7 +68,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
  * the render process and setting the current mode.
  */
-internal class ComposePreviewFlowManager {
+internal class ComposePreviewFlowManager : PreviewGroupManager {
 
   private val log = Logger.getInstance(ComposePreviewFlowManager::class.java)
 
@@ -79,11 +80,25 @@ internal class ComposePreviewFlowManager {
     MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>> =
     MutableStateFlow(FlowableCollection.Uninitialized)
 
-  /**
-   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
-   * and only one will be displayed at a given time.
-   */
-  val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> = MutableStateFlow(emptySet())
+  override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
+    MutableStateFlow(emptySet())
+
+  override var groupFilter: PreviewGroup
+    get() = getCurrentFilterAsGroup()?.filterGroup ?: PreviewGroup.All
+    set(group) {
+      val currentFilter = filterFlow.value
+      // We can only apply a group filter if no filter existed before or if the current one is
+      // already a group filter.
+      val canApplyGroupFilter =
+        currentFilter == ComposePreviewElementsModel.Filter.Disabled ||
+          currentFilter is ComposePreviewElementsModel.Filter.Group
+      filterFlow.value =
+        if (group is PreviewGroup.Named && canApplyGroupFilter) {
+          ComposePreviewElementsModel.Filter.Group(group)
+        } else {
+          ComposePreviewElementsModel.Filter.Disabled
+        }
+    }
 
   /**
    * Flow containing all the [ComposePreviewElementInstance]s available in the current file to be
@@ -127,26 +142,6 @@ internal class ComposePreviewFlowManager {
    */
   private val refreshNotificationsAndVisibilityFlow: MutableSharedFlow<Unit> =
     MutableSharedFlow(replay = 1)
-
-  /**
-   * Sets the [filterFlow] value to a [ComposePreviewElementsModel.Filter.Group] if possible,
-   * otherwise set it to [ComposePreviewElementsModel.Filter.Disabled].
-   */
-  fun setGroupFilter(group: PreviewGroup, forceApply: Boolean = false) {
-    val currentFilter = filterFlow.value
-    // We can only apply a group filter if no filter existed before or if the current one is
-    // already a group filter.
-    val canApplyGroupFilter =
-      forceApply ||
-        currentFilter == ComposePreviewElementsModel.Filter.Disabled ||
-        currentFilter is ComposePreviewElementsModel.Filter.Group
-    filterFlow.value =
-      if (group is PreviewGroup.Named && canApplyGroupFilter) {
-        ComposePreviewElementsModel.Filter.Group(group)
-      } else {
-        ComposePreviewElementsModel.Filter.Disabled
-      }
-  }
 
   /**
    * Filter that can be applied to select a single instance. Setting this filter will trigger a

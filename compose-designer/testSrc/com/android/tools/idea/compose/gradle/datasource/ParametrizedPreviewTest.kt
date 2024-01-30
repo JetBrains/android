@@ -299,7 +299,7 @@ class ParametrizedPreviewTest {
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
-    assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+    assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(

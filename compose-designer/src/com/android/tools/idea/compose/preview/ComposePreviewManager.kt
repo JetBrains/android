@@ -16,8 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.FlowableCollection
-import com.android.tools.idea.preview.groups.PreviewGroup
-import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -29,7 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
-interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewGroupManager {
+interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   /**
    * Status of the preview.
@@ -99,12 +97,9 @@ class NopComposePreviewManager : ComposePreviewManager {
       isRefreshing = false,
     )
 
-  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
-    MutableStateFlow(emptySet())
   override val allPreviewElementsInFileFlow:
     StateFlow<FlowableCollection<ComposePreviewElementInstance>> =
     MutableStateFlow(FlowableCollection.Uninitialized)
-  override var groupFilter: PreviewGroup = PreviewGroup.All
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false

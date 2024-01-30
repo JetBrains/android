@@ -63,7 +63,6 @@ import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.getDefaultPreviewQuality
-import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
@@ -141,7 +140,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
@@ -179,13 +177,14 @@ private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = Accessi
 private class PreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
+  private val previewGroupManager: PreviewGroupManager,
   private val previewElement: ComposePreviewElementInstance,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
       COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name,
-      PreviewGroupManager.KEY.name -> composePreviewManager
+      PreviewModeManager.KEY.name -> composePreviewManager
+      PreviewGroupManager.KEY.name -> previewGroupManager
       COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
@@ -359,7 +358,7 @@ class ComposePreviewRepresentation(
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
-  private val composePreviewFlowManager: ComposePreviewFlowManager
+  @VisibleForTesting internal val composePreviewFlowManager: ComposePreviewFlowManager
 
   init {
     val project = psiFile.project
@@ -455,16 +454,6 @@ class ComposePreviewRepresentation(
    */
   val uiCheckFilterFlow
     @VisibleForTesting get() = composePreviewFlowManager.uiCheckFilterFlow
-
-  override var groupFilter: PreviewGroup
-    get() = (composePreviewFlowManager.getCurrentFilterAsGroup())?.filterGroup ?: PreviewGroup.All
-    set(value) {
-      composePreviewFlowManager.setGroupFilter(value)
-    }
-
-  // TODO(b/305011776): remove it to use the one defined in ComposePreviewFlowManager
-  override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>>
-    get() = composePreviewFlowManager.availableGroupsFlow
 
   @VisibleForTesting
   val navigationHandler =
@@ -573,7 +562,12 @@ class ComposePreviewRepresentation(
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
       override fun createDataContext(previewElement: ComposePreviewElementInstance) =
-        PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
+        PreviewElementDataContext(
+          project,
+          this@ComposePreviewRepresentation,
+          composePreviewFlowManager,
+          previewElement,
+        )
 
       override fun toXml(previewElement: ComposePreviewElementInstance) =
         previewElement
@@ -705,8 +699,8 @@ class ComposePreviewRepresentation(
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name,
-      PreviewGroupManager.KEY.name -> this@ComposePreviewRepresentation
+      PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
+      PreviewGroupManager.KEY.name -> composePreviewFlowManager
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.name -> project
       else -> null
@@ -1401,9 +1395,9 @@ class ComposePreviewRepresentation(
     val previewLayoutName = state[LAYOUT_KEY]
     onRestoreState = {
       if (!selectedGroupName.isNullOrEmpty()) {
-        availableGroupsFlow.value
+        composePreviewFlowManager.availableGroupsFlow.value
           .find { it.name == selectedGroupName }
-          ?.let { composePreviewFlowManager.setGroupFilter(it, true) }
+          ?.let { composePreviewFlowManager.groupFilter = it }
       }
 
       PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }
