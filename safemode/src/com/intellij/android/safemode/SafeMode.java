@@ -127,6 +127,9 @@ public class SafeMode implements ApplicationLoadListener {
     if (System.getenv("DISABLE_SAFE_MODE") != null) {
       return true;
     }
+    if (ApplicationManager.getApplication().isInternal()) {
+      return true;
+    }
     File[] files = getFiles(PathManager.getBinPath(), "disable_safe_mode");
     return files.length > 0;
   }
