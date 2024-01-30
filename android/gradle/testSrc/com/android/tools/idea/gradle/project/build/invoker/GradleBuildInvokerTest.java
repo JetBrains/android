@@ -52,7 +52,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

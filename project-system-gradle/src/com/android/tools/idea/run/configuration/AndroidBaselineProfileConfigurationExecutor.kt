@@ -108,7 +108,7 @@ class AndroidBaselineProfileConfigurationExecutor(
   private suspend fun runGradleTask(indicator: ProgressIndicator, devices: List<IDevice>): RunContentDescriptor {
     val console = createConsole()
     val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
-    console.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
+    console.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}'.")
     indicator.text = "Start baseline profile gradle task"
 
     val externalTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)

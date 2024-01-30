@@ -1,6 +1,5 @@
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -13,13 +12,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.messages.Topic
 import java.util.concurrent.atomic.AtomicInteger
 
 private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {

@@ -1239,7 +1239,7 @@ fun AndroidProjectStubBuilder.buildDependenciesStub(
 ): IdeDependenciesCoreImpl = IdeDependenciesCoreDirect(dependencies)
 
 /**
- * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
  */
 fun setupTestProjectFromAndroidModel(
   project: Project,
