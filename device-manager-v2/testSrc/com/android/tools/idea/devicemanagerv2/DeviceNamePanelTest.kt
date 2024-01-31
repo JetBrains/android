@@ -70,7 +70,7 @@ class DeviceNamePanelTest {
           )
           .line2Text(ZoneId.of("UTC"))
       )
-      .isEqualTo("Connected; device will expire at 7:15 PM")
+      .isAnyOf("Connected; device will expire at 7:15 PM","Connected; device will expire at 7:15\u202FPM")
 
     assertThat(
         Reservation(
@@ -82,7 +82,7 @@ class DeviceNamePanelTest {
           )
           .line2Text(ZoneId.of("UTC"))
       )
-      .isEqualTo("Device will expire at 7:15 PM")
+      .isAnyOf("Device will expire at 7:15 PM","Device will expire at 7:15\u202FPM")
 
     assertThat(
         Reservation(ReservationState.PENDING, "Connection pending", null, null, null)
