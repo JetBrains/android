@@ -38,6 +38,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 private val capabilities = listOf(WhsCapability(
   WhsDataType.HEART_RATE_BPM,
@@ -60,6 +61,11 @@ private val capabilities = listOf(WhsCapability(
 ))
 
 class WearHealthServicesToolWindowStateManagerTest {
+  companion object {
+    const val TEST_MAX_WAIT_TIME_SECONDS = 5L
+    const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
+  }
+
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
@@ -67,7 +73,7 @@ class WearHealthServicesToolWindowStateManagerTest {
   private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
   private val deviceManager by lazy { FakeDeviceManager(capabilities) }
   private val stateManager by lazy {
-    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, 1L).also {
+    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
       it.serialNumber = "test"
     }
   }
@@ -253,10 +259,10 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getOngoingExercise().waitForValue(true)
   }
 
-  private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 5000) {
+  private suspend fun <T> Flow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {
     val received = mutableListOf<T>()
     try {
-      withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
+      withTimeout(timeoutSeconds.seconds) { takeWhile { it != value }.collect { received.add(it) } }
     }
     catch (ex: TimeoutCancellationException) {
       Assert.fail("Timed out waiting for value $value. Received values so far $received")

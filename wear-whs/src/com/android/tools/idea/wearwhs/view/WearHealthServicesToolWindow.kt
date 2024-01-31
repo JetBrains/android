@@ -227,10 +227,15 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   }
 
   private fun createCenterPanel(capabilities: List<WhsCapability>): JPanel {
-    // List of elements that should be hidden if there's an active exercise
-    val overrideElementsList = mutableListOf<JComponent>()
+    // List of elements that should be disabled if there's an active exercise
+    val elementsToDisableDuringExercise = mutableListOf<JComponent>()
+    // List of elements that should be visible only if there's an active exercise
+    val elementsToDisplayDuringExercise = mutableListOf<JComponent>()
     stateManager.getOngoingExercise().onEach {
-      overrideElementsList.forEach { element ->
+      elementsToDisableDuringExercise.forEach { element ->
+        element.isEnabled = !it
+      }
+      elementsToDisplayDuringExercise.forEach { element ->
         element.isVisible = it
       }
     }.launchIn(uiScope)
@@ -242,7 +247,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         }, BorderLayout.CENTER)
         add(JPanel(FlowLayout()).apply {
           add(JLabel(message("wear.whs.panel.override")).apply {
-            overrideElementsList.add(this)
+            elementsToDisplayDuringExercise.add(this)
             font = font.deriveFont(Font.BOLD)
           })
         }, BorderLayout.EAST)
@@ -251,6 +256,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         add(JPanel(BorderLayout()).apply {
           preferredSize = Dimension(0, 35)
           val checkBox = JCheckBox(message(capability.label)).also { checkBox ->
+            elementsToDisableDuringExercise.add(checkBox)
             val plainFont = checkBox.font.deriveFont(Font.PLAIN)
             val italicFont = checkBox.font.deriveFont(Font.ITALIC)
             stateManager.getState(capability).map { it.capabilityState.enabled }.onEach { enabled ->
@@ -275,7 +281,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           }
           add(checkBox, BorderLayout.CENTER)
           add(JPanel(FlowLayout()).apply {
-            overrideElementsList.add(this)
+            elementsToDisplayDuringExercise.add(this)
             add(JTextField().also { textField ->
               (textField.document as AbstractDocument).documentFilter = object : DocumentFilter() {
                 fun validate(string: String): Boolean {

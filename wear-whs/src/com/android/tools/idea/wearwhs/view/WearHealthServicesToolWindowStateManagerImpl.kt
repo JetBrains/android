@@ -32,19 +32,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.annotations.TestOnly
-import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.annotations.VisibleForTesting
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Default polling interval for updating the state manager with values from [WearHealthServicesDeviceManager].
  */
-private const val POLLING_INTERVAL_SECONDS: Long = 10L
+private const val POLLING_INTERVAL_MILLISECONDS: Long = 10000
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val logger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
-  @VisibleForTesting private val pollingIntervalSeconds: Long = POLLING_INTERVAL_SECONDS)
+  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS)
   : WearHealthServicesToolWindowStateManager, Disposable {
 
   private val currentPreset = MutableStateFlow(Preset.ALL)
@@ -70,7 +70,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       setCapabilities(deviceManager.loadCapabilities())
       while (true) {
         updateState()
-        delay(pollingIntervalSeconds.seconds)
+        delay(pollingIntervalMillis.milliseconds)
       }
     }
   }
