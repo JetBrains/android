@@ -271,10 +271,10 @@ class ProjectDumper(
       ?: this
   }
 
-  private val javaVersionRegex = Regex("(jbr|corretto)-(17|11|1\\.8)")
+  private val javaVersionRegex = Regex("(jbr|corretto)-(21|17|11|1\\.8)")
   fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
 
-  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17])\\.0\\.[0-9]+")
+  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+")
   fun String.replaceJdkVersion(): String {
     return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION")
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")

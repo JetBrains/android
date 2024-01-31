@@ -18,8 +18,8 @@ package com.android.tools.idea.sdk;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_21;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJre;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
@@ -117,7 +117,7 @@ import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
  */
 public class IdeSdks {
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
-  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_17;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_21;
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = MAX_JDK_VERSION;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
