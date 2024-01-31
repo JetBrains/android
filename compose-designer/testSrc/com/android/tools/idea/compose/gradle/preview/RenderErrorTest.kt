@@ -72,7 +72,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -276,7 +275,6 @@ class RenderErrorTest {
       assertEquals("RenderError.kt", navigatable.file.name)
     }
 
-  @Ignore("b/322952755")
   @Test
   fun testVisualLintErrors() =
     runBlocking(workerThread) {
@@ -288,23 +286,24 @@ class RenderErrorTest {
         )
         .forEach { modelWithIssues ->
           launch {
-            startUiCheckForModel(modelWithIssues)
+              startUiCheckForModel(modelWithIssues)
 
-            val issues = visualLintRenderIssues()
-            // 1-2% of the time we get two issues instead of one. Only one of the issues has a
-            // component
-            // field that is populated. We attempt to retrieve it here.
-            val issue = runInEdtAndGet {
-              issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+              val issues = visualLintRenderIssues()
+              // 1-2% of the time we get two issues instead of one. Only one of the issues has a
+              // component
+              // field that is populated. We attempt to retrieve it here.
+              val issue = runInEdtAndGet {
+                issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+              }
+
+              assertEquals("Visual Lint Issue", issue.category)
+              val navigatable = issue.components[0].navigatable
+              assertTrue(navigatable is OpenFileDescriptor)
+              assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
+
+              stopUiCheck()
             }
-
-            assertEquals("Visual Lint Issue", issue.category)
-            val navigatable = issue.components[0].navigatable
-            assertTrue(navigatable is OpenFileDescriptor)
-            assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
-
-            stopUiCheck()
-          }
+            .join()
         }
     }
 
@@ -379,7 +378,7 @@ class RenderErrorTest {
     var issues = emptyList<VisualLintRenderIssue>()
     delayUntilCondition(delayPerIterationMs = 300, timeout = 1.minutes) {
       issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
-      issues.isNotEmpty()
+      issues.any { it.components.isNotEmpty() }
     }
     return issues
   }
