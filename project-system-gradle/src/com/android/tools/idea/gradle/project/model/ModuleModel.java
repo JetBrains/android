@@ -18,6 +18,12 @@ package com.android.tools.idea.gradle.project.model;
 import org.jetbrains.annotations.NotNull;
 
 public interface ModuleModel {
+  /**
+   * This is potentially used as a key to look up data nodes for modules in DataService import, and occasionally elsewhere
+   * to provide a name for a module with specific kinds of content to be displayed in UI.
+   *
+   * @return the name of the module according to this model as a String.
+   */
   @NotNull
   String getModuleName();
 }
