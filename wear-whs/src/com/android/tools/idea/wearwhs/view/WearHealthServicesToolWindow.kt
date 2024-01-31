@@ -331,7 +331,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
                   textField.text = it?.toString() ?: ""
                 }
               }.launchIn(uiScope)
-              textField.preferredSize = Dimension(JBUI.scale(50), JBUI.scale(25))
+              textField.preferredSize = JBUI.size(75, 25)
               textField.isEnabled = checkBox.isSelected
               checkBox.selected.addListener {
                 textField.isEnabled = it
@@ -340,7 +340,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             })
             add(JLabel(message(capability.unit)).also { label ->
               label.isVisible = capability.isOverrideable
-              label.preferredSize = Dimension(JBUI.scale(50), JBUI.scale(25))
+              label.preferredSize = JBUI.size(75, 25)
             })
           }, BorderLayout.EAST)
         })
