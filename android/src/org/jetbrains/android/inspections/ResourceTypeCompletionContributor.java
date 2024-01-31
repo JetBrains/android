@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.inspections;
 
 import static com.android.SdkConstants.TYPE_DEF_FLAG_ATTRIBUTE;
@@ -9,7 +9,6 @@ import static com.android.tools.lint.detector.api.ResourceEvaluator.DIMENSION_AN
 import static com.android.tools.lint.detector.api.ResourceEvaluator.DIMENSION_MARKER_TYPE;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.PX_ANNOTATION;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
-import static org.jetbrains.kotlin.asJava.LightClassUtilsKt.toLightClass;
 
 import com.android.AndroidXConstants;
 import com.android.resources.ResourceType;
@@ -42,7 +41,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiEllipsisType;
 import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiManager;
@@ -58,8 +56,8 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.util.TypeConversionUtil;
-import gnu.trove.THashSet;
-import gnu.trove.TObjectHashingStrategy;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,7 +69,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
-import org.jetbrains.kotlin.psi.KtClass;
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression;
 import org.jetbrains.kotlin.psi.KtElement;
 
@@ -115,9 +112,9 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     Constraints allowedValues = getAllowedValues(pos);
     if (allowedValues == null) return;
 
-    final Set<PsiElement> allowed = new THashSet<>(new TObjectHashingStrategy<>() {
+    Set<PsiElement> allowed = new ObjectOpenCustomHashSet<>(new Hash.Strategy<PsiElement>() {
       @Override
-      public int computeHashCode(PsiElement object) {
+      public int hashCode(PsiElement object) {
         return 0;
       }
 

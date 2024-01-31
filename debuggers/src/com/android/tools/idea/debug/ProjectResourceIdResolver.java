@@ -29,7 +29,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
-import gnu.trove.TIntObjectHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.IOException;
@@ -96,11 +95,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
         try {
           MyPublicResourceIdMapBuilder builder = new MyPublicResourceIdMapBuilder();
           NanoXmlUtil.parse(publicXml.getInputStream(), builder);
-
-          builder.getIdMap().forEachEntry((key, value) -> {
-            resourceIdMap.put(key, value);
-            return true;
-          });
+          resourceIdMap.putAll(builder.getIdMap());
         }
         catch (IOException e) {
           LOG.error(e);
@@ -142,7 +137,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
 
   @VisibleForTesting
   static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
-    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
+    private final Int2ObjectMap<String> myIdMap = new Int2ObjectOpenHashMap<>(3000);
 
     private String myName;
     private String myType;
@@ -205,7 +200,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
       }
     }
 
-    public TIntObjectHashMap<String> getIdMap() {
+    public Int2ObjectMap<String> getIdMap() {
       return myIdMap;
     }
   }
