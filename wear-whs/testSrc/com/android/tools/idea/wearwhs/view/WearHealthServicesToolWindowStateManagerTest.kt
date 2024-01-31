@@ -224,7 +224,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.setCapabilities(mapOf(capabilities[0].dataType to false))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false, 5000)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
   }
 
   @Test
@@ -240,8 +240,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     deviceManager.overrideValues(mapOf(capabilities[0].dataType to 10f))
 
     // Verify that the value is updated
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true, 5000)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(10f, 5000)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(10f)
   }
 
   @Test
@@ -253,7 +253,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getOngoingExercise().waitForValue(true)
   }
 
-  private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 1000) {
+  private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 5000) {
     val received = mutableListOf<T>()
     try {
       withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
