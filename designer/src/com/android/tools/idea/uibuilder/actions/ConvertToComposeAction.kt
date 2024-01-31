@@ -25,9 +25,11 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -88,16 +90,17 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
   private class ComposeCodeDialog(project: Project) : DialogWrapper(project) {
 
-    private val textArea =
-      JBTextArea("Sending query to Studio Bot...").apply { preferredSize = JBUI.size(600, 1000) }
+    private val textArea = JBTextArea("Sending query to Studio Bot...")
 
     init {
       isModal = false
       super.init()
     }
 
-    override fun createCenterPanel() =
-      JPanel(BorderLayout()).apply { add(textArea, BorderLayout.CENTER) }
+    override fun createCenterPanel(): JComponent {
+      val scrollPane = JBScrollPane(textArea).apply { preferredSize = JBUI.size(600, 1000) }
+      return JPanel(BorderLayout()).apply { add(scrollPane, BorderLayout.CENTER) }
+    }
 
     fun updateContent(content: String) {
       textArea.text = content
