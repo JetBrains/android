@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -42,12 +42,12 @@ private const val PROMPT_PREFIX =
 
 private const val ACTION_TITLE = "I am feeling Compose"
 
-class ConvertToComposeAction(private val root: NlComponent) : AnAction(ACTION_TITLE) {
+class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
   private val logger = Logger.getInstance(ConvertToComposeAction::class.java)
 
   override fun actionPerformed(e: AnActionEvent) {
-    val xmlFile = root.backend.tag?.containingFile?.virtualFile?.contentsToByteArray() ?: return
+    val xmlFile = e.getData(VIRTUAL_FILE)?.contentsToByteArray() ?: return
     val project = e.project ?: return
 
     val query = "${PROMPT_PREFIX}${String(xmlFile)}"

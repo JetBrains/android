@@ -245,7 +245,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     group.addSeparator();
     if (StudioFlags.NELE_XML_TO_COMPOSE.get()) {
-      group.add(new ConvertToComposeAction(leafComponent));
+      group.add(new ConvertToComposeAction());
       group.addSeparator();
     }
   }
