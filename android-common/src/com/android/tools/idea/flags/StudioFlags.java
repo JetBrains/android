@@ -428,7 +428,7 @@ public final class StudioFlags {
     "deployment.target.deviceprovisioner",
     "Use Device Provisioner to provide deployment targets",
     "Uses the Device Provisioner to get the list of potential devices to deploy to.",
-    false);
+    true);
 
   public static final Flag<Boolean> DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER = Flag.create(
     RUNDEBUG,
