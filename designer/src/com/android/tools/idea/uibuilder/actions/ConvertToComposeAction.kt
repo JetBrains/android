@@ -54,6 +54,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
       "Include imports in your answer.",
       "Add a @Preview function.",
       "Don't use ConstraintLayout.",
+      "Use material3, not material.",
     )
 
   private val logger = Logger.getInstance(ConvertToComposeAction::class.java)
