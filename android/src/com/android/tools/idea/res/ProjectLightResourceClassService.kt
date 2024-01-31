@@ -40,14 +40,17 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
+import com.intellij.platform.backend.workspace.WorkspaceModelTopics
+import com.intellij.platform.workspace.storage.VersionedStorageChange
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
@@ -148,26 +151,34 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
         )
 
     // Light classes for AARs store a reference to the Library in UserData. These Library instances
-    // can become stale during sync, which
-    // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache
-    // when the library table changes.
-    LibraryTablesRegistrar.getInstance()
-      .getLibraryTable(project)
-      .addListener(
-        object : LibraryTable.Listener {
-          override fun afterLibraryAdded(newLibrary: Library) = dropAarClassesCache()
+    // can become stale during sync, which confuses Kotlin (consumer of the information in
+    // UserData). Invalidate the AAR R classes cache when the library table changes.
+    connection.subscribe(
+      WorkspaceModelTopics.CHANGED,
+      object : WorkspaceModelChangeListener {
+        var invalidationScheduled = false
 
-          override fun afterLibraryRenamed(library: Library, oldName: String?) =
-            dropAarClassesCache()
-
-          override fun beforeLibraryRemoved(library: Library) = dropAarClassesCache()
-
-          private fun dropAarClassesCache() {
+        override fun beforeChanged(event: VersionedStorageChange) {
+          // There are already plenty of cache invalidation handlers listening on workspace model
+          // change events even in base IntelliJ, and they have ordering interdependencies, so
+          // don't try to dropPsiCaches until the state has settled. Otherwise, invalidating
+          // some cache could make it access another cache that has already been invalidated
+          // by the event that we're handling right now.
+          if (invalidationScheduled) return
+          invalidationScheduled = true // should already be on the EDT, no atomics required
+          ApplicationManager.getApplication().invokeLater {
+            invalidationScheduled = false
+            if (project.isDisposed) return@invokeLater
+            // TODO? can actually extract affected libraries from the event for more granularity.
+            //   It's easier to do by listening on `LibraryInfoListener.TOPIC` instead, which is
+            //   emitted when LibraryInfoCache is partially invalidated, and contains a list of
+            //   invalidated `LibraryInfo`s - just have to reverse `findIdeaLibrary` on them.
             aarClassesCache.invalidateAll()
             PsiManager.getInstance(project).dropPsiCaches()
           }
         }
-      )
+      },
+    )
   }
 
   override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope): List<PsiClass> {
