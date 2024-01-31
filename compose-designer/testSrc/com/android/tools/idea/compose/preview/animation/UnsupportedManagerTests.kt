@@ -19,9 +19,10 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.ui.UIUtil
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import java.awt.Dimension
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -46,7 +47,7 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
   }
 
   @Test
-  fun unsupportedAnimationInspector() {
+  fun unsupportedAnimationInspector() = runBlocking {
     val inspector = createAndOpenInspector()
 
     val animation =
@@ -58,10 +59,9 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
 
     val clock = TestClockWithCoordination()
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
 
-    ApplicationManager.getApplication().invokeAndWait {
+    withContext(uiThread) {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()

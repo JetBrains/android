@@ -18,9 +18,10 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timeline
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
@@ -32,6 +33,8 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
@@ -40,9 +43,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.rd.util.launchChildOnUi
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.JBColor
@@ -61,6 +64,10 @@ import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
 import kotlin.math.max
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 private val LOG = Logger.getInstance(AnimationPreview::class.java)
@@ -93,6 +100,8 @@ class AnimationPreview(
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) : Disposable {
 
+  @VisibleForTesting val scope = AndroidCoroutineScope(this)
+
   private val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
 
@@ -115,7 +124,8 @@ class AnimationPreview(
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
 
   /** Selected single animation. */
-  private var selectedAnimation: SupportedAnimationManager? = null
+  private var selectedAnimation: MutableStateFlow<SupportedAnimationManager?> =
+    MutableStateFlow(null)
 
   private inner class TabChangeListener : TabsListener {
     override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
@@ -124,29 +134,15 @@ class AnimationPreview(
       val component = tabbedPane.selectedInfo?.component ?: return
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
-      val selectedSupportedAnimation =
+      selectedAnimation.value =
         animations.findIsInstanceAnd<SupportedAnimationManager> { it.tabComponent == component }
-      if (selectedSupportedAnimation != null) {
-        // Swing components cannot be placed into different containers, so we add the shared
-        // timeline to the active tab on tab change.
-        selectedSupportedAnimation.addTimeline()
-        selectedAnimation = selectedSupportedAnimation
-        selectedSupportedAnimation.loadProperties()
-      } else if (component is AllTabPanel) { // If coordination tab is selected.
-        selectedAnimation = null
+      if (component is AllTabPanel) { // If coordination tab is selected.
         coordinationTab.addTimeline(timeline)
       }
-      updateTimelineElements()
     }
   }
 
-  /** Maps animation objects to the [SupportedAnimationManager] that represents them. */
-  private val animationsMap = HashMap<ComposeAnimation, AnimationManager>()
-
-  /**
-   * List of [SupportedAnimationManager], same as in [animationsMap] but in order as they appear in
-   * the list.
-   */
+  /** List of [AnimationManager], so all animation cards that are displayed in inspector. */
   @VisibleForTesting val animations = mutableListOf<AnimationManager>()
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
@@ -164,21 +160,7 @@ class AnimationPreview(
    * are removed. If [loadingPanelVisible] is false - [noAnimationsPanel] is removed from layout and
    * animation tabs are added.
    */
-  private var loadingPanelVisible: Boolean = false
-    set(value) {
-      field = value
-      if (value) {
-        noAnimationsPanel.startLoading()
-        animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(0, 0))
-        animationPreviewPanel.remove(tabbedPane.component)
-        animationPreviewPanel.remove(bottomPanel)
-      } else {
-        noAnimationsPanel.stopLoading()
-        animationPreviewPanel.remove(noAnimationsPanel)
-        animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
-        animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
-      }
-    }
+  private val loadingPanelVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
   private val timeline = Timeline()
 
@@ -188,13 +170,13 @@ class AnimationPreview(
 
   private val bottomPanel =
     BottomPanel(previewState, rootComponent, tracker).apply {
-      timeline.addChangeListener { clockTimeMs = timeline.value }
+      timeline.addChangeListener { scope.launchChildOnUi { clockTimeMs = timeline.value } }
       addResetListener {
         timeline.sliderUI.elements.forEach { it.reset() }
         if (previewState.isCoordinationPanelOpened()) {
           animations.forEach { it.elementState.valueOffset = 0 }
         } else {
-          selectedAnimation?.elementState?.valueOffset = 0
+          selectedAnimation.value?.elementState?.valueOffset = 0
         }
         updateTimelineMaximum()
         timeline.repaint()
@@ -203,8 +185,6 @@ class AnimationPreview(
 
   @VisibleForTesting
   val coordinationTab = AllTabPanel().apply { addPlayback(playbackControls.createToolbar()) }
-
-  fun animationsCount(): Int = animations.size
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
@@ -218,45 +198,44 @@ class AnimationPreview(
       updateTimelineMaximum()
     }
 
-  /** Create list of [TimelineElement] for selected [SupportedAnimationManager]s. */
-  private fun updateTimelineElements(elementsCreated: () -> Unit = {}) {
-    executeOnRenderThread(false) {
-      var minY = InspectorLayout.timelineHeaderHeightScaled()
-      // Call once to update all sizes as all curves / lines required it.
-      timeline.revalidate()
-      invokeLater {
-        timeline.repaint()
-        timeline.sliderUI.elements.forEach { it.dispose() }
-        timeline.sliderUI.elements =
-          if (selectedAnimation != null) {
-            // Paint single selected animation.
-            val selected = selectedAnimation!!
-            val curve =
-              TransitionCurve.create(
-                selected.elementState,
-                selected.currentTransition,
-                minY,
-                timeline.sliderUI.positionProxy,
-              )
-            selected.selectedPropertiesCallback = { curve.timelineUnits = it }
-            curve.timelineUnits = selected.selectedProperties
-            listOf(curve)
-          } else
-            animations.map { tab ->
-              if (tab is SupportedAnimationManager) {
-                tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-                tab.card.setDuration(tab.currentTransition.duration)
-              }
-
-              tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
-                minY += heightScaled()
-              }
+  /** Update list of [TimelineElement] for selected [SupportedAnimationManager]s. */
+  private suspend fun updateTimelineElements() {
+    var minY = InspectorLayout.timelineHeaderHeightScaled()
+    // Call once to update all sizes as all curves / lines required it.
+    withContext(uiThread) {
+      timeline.repaint()
+      timeline.sliderUI.elements.forEach { it.dispose() }
+      timeline.sliderUI.elements = run {
+        val selected = selectedAnimation.value
+        if (selected != null) {
+          // Paint single selected animation.
+          val curve =
+            TransitionCurve.create(
+              selected.elementState,
+              selected.currentTransition,
+              minY,
+              timeline.sliderUI.positionProxy,
+            )
+          selected.selectedPropertiesCallback = { curve.timelineUnits = it }
+          curve.timelineUnits = selected.selectedProperties
+          listOf(curve)
+        } else
+          animations.toList().map { tab ->
+            if (tab is SupportedAnimationManager) {
+              tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
+              tab.card.setDuration(tab.currentTransition.duration)
             }
-        elementsCreated()
+
+            tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
+              minY += heightScaled()
+            }
+          }
       }
-      timeline.revalidate()
-      coordinationTab.revalidate()
     }
+    timeline.repaint()
+    sceneManagerProvider()?.render()
+    timeline.revalidate()
+    coordinationTab.revalidate()
   }
 
   /**
@@ -273,9 +252,11 @@ class AnimationPreview(
         !executeOnRenderThread(longTimeout) {
           if (coordinationIsSupported())
             setClockTimes(
-              animationsMap.mapValues {
-                (if (it.value.elementState.frozen) it.value.elementState.frozenValue.toLong()
-                else clockTimeMs) - it.value.elementState.valueOffset
+              animations.associate {
+                val newTime =
+                  (if (it.elementState.frozen) it.elementState.frozenValue.toLong()
+                  else clockTimeMs) - it.elementState.valueOffset
+                it.animation to newTime
               }
             )
           // Fall back to `setClockTime` if coordination is nor available.
@@ -290,10 +271,19 @@ class AnimationPreview(
     }
   }
 
-  /** Do an initial setup before adding animation to the panel. */
-  fun setupAnimation(animation: ComposeAnimation, callback: () -> Unit) {
-    animationsMap[animation]?.setup(callback)
-  }
+  /**
+   * Creates and adss[AnimationManager] for given [ComposeAnimation] to the panel.
+   *
+   * If this animation was already added, removes old [AnimationManager] first. Repaints panel.
+   */
+  fun addAnimation(animation: ComposeAnimation) =
+    scope.launch {
+      removeAnimation(animation).join()
+      val tab = withContext(uiThread) { createTab(animation) }
+      tab.setup()
+      withContext(uiThread) { addTab(tab) }
+      updateTimelineElements()
+    }
 
   private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
     // Set the timeline to 0
@@ -309,8 +299,12 @@ class AnimationPreview(
   private fun updateTimelineMaximum() {
     val timelineMax =
       max(animations.maxOf { it.timelineMaximumMs }.toLong(), maxDurationPerIteration)
-    clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
-    updateTimelineElements()
+    scope.launch {
+      withContext(uiThread) {
+        clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
+      }
+      updateTimelineElements()
+    }
   }
 
   /**
@@ -333,7 +327,7 @@ class AnimationPreview(
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
   private fun showNoAnimationsPanel() {
-    loadingPanelVisible = true
+    loadingPanelVisible.value = true
     // Reset tab names, so when new tabs are added they start as #1
     tabNames.clear()
     // Reset the timeline cached value, so when new tabs are added, any new value will trigger an
@@ -353,31 +347,26 @@ class AnimationPreview(
    * [animations] map. Note: this method does not add the tab to [tabbedPane]. For that, [addTab]
    * should be used.
    */
-  fun createTab(animation: ComposeAnimation) {
-    animationsMap[animation] =
-      when (animation.type) {
-        ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
-        ComposeAnimationType.TRANSITION_ANIMATION,
-        ComposeAnimationType.ANIMATE_X_AS_STATE,
-        ComposeAnimationType.ANIMATED_CONTENT,
-        ComposeAnimationType.INFINITE_TRANSITION -> SupportedAnimationManager(animation)
-        ComposeAnimationType.ANIMATED_VALUE,
-        ComposeAnimationType.ANIMATABLE,
-        ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-        ComposeAnimationType.DECAY_ANIMATION,
-        ComposeAnimationType.TARGET_BASED_ANIMATION,
-        ComposeAnimationType.UNSUPPORTED ->
-          UnsupportedAnimationManager(animation, tabNames.createName(animation))
-      }
-  }
+  @UiThread
+  private fun createTab(animation: ComposeAnimation): AnimationManager =
+    when (animation.type) {
+      ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
+      ComposeAnimationType.TRANSITION_ANIMATION,
+      ComposeAnimationType.ANIMATE_X_AS_STATE,
+      ComposeAnimationType.ANIMATED_CONTENT,
+      ComposeAnimationType.INFINITE_TRANSITION -> SupportedAnimationManager(animation)
+      ComposeAnimationType.ANIMATED_VALUE,
+      ComposeAnimationType.ANIMATABLE,
+      ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+      ComposeAnimationType.DECAY_ANIMATION,
+      ComposeAnimationType.TARGET_BASED_ANIMATION,
+      ComposeAnimationType.UNSUPPORTED ->
+        UnsupportedAnimationManager(animation, tabNames.createName(animation))
+    }
 
-  /**
-   * Adds an [SupportedAnimationManager] card corresponding to the given [animation] to
-   * [coordinationTab].
-   */
-  fun addTab(animation: ComposeAnimation) {
-    val animationTab = animationsMap[animation] ?: return
-
+  /** Adds an [AnimationManager] card to [coordinationTab]. */
+  @UiThread
+  private fun addTab(animationTab: AnimationManager) {
     val isAddingFirstTab = tabbedPane.tabCount == 0
     coordinationTab.addCard(animationTab.card)
     animations.add(animationTab)
@@ -385,7 +374,7 @@ class AnimationPreview(
     if (isAddingFirstTab) {
       // There are no tabs, and we're about to add one. Replace the placeholder panel with the
       // TabbedPane.
-      loadingPanelVisible = false
+      loadingPanelVisible.value = false
       tabbedPane.addTab(
         TabInfo(coordinationTab).apply {
           text = "${message("animation.inspector.tab.all.title")}  "
@@ -397,52 +386,86 @@ class AnimationPreview(
   }
 
   /**
-   * Removes the [SupportedAnimationManager] card and tab corresponding to the given [animation]
-   * from [tabbedPane].
+   * Removes the [AnimationManager] card and tab corresponding to the given [animation] from
+   * [tabbedPane].
    */
-  fun removeTab(animation: ComposeAnimation) {
-    animationsMap[animation]?.let { tab ->
-      coordinationTab.removeCard(tab.card)
-      if (tab is SupportedAnimationManager)
-        tabbedPane.tabs.find { it.component == tab.tabComponent }?.let { tabbedPane.removeTab(it) }
-      animations.remove(tab)
-    }
-    animationsMap.remove(animation)
+  fun removeAnimation(animation: ComposeAnimation) =
+    scope.launch {
+      withContext(uiThread) {
+        animations
+          .find { it.animation == animation }
+          ?.let { tab ->
+            coordinationTab.removeCard(tab.card)
+            if (tab is SupportedAnimationManager)
+              tabbedPane.tabs
+                .find { it.component == tab.tabComponent }
+                ?.let { tabbedPane.removeTab(it) }
+            animations.remove(tab)
 
-    if (animations.size == 0) {
-      tabbedPane.removeAllTabs()
-      // There are no more tabs. Replace the TabbedPane with the placeholder panel.
-      showNoAnimationsPanel()
-    } else if (tabbedPane.tabCount != 0) {
-      tabbedPane.select(tabbedPane.getTabAt(0), true)
+            if (animations.size == 0) {
+              tabbedPane.removeAllTabs()
+              // There are no more tabs. Replace the TabbedPane with the placeholder panel.
+              showNoAnimationsPanel()
+            } else if (tabbedPane.tabCount != 0) {
+              tabbedPane.select(tabbedPane.getTabAt(0), true)
+            }
+          }
+      }
+      updateTimelineElements()
     }
-  }
 
   /**
    * Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached
    * animations.
    */
-  fun invalidatePanel() {
-    val allAnimations = animations.map { it.animation }
-    // Calling removeTab for all animations will properly remove the cards from AllTabPanel,
-    // animations from the animations list and
-    // animationsMap, and tabs from tabbedPane. It will also show the noAnimationsPanel when
-    // removing all tabs.
-    allAnimations.forEach { removeTab(it) }
-    tabNames.clear()
-  }
+  fun invalidatePanel() =
+    scope.launch {
+      val allAnimations = animations.map { it.animation }
+      /**
+       * Calling [removeAnimation] for all animations will properly remove the cards from
+       * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
+       * noAnimationsPanel when removing all tabs.
+       */
+      allAnimations.forEach { removeAnimation(it).join() }
+      tabNames.clear()
+    }
 
   override fun dispose() {
-    animationsMap.clear()
+    scope.cancel()
     animations.clear()
     tabNames.clear()
   }
 
   init {
-    loadingPanelVisible = true
+    scope.launch(uiThread) {
+      loadingPanelVisible.collect {
+        if (it) {
+          noAnimationsPanel.startLoading()
+          animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(0, 0))
+          animationPreviewPanel.remove(tabbedPane.component)
+          animationPreviewPanel.remove(bottomPanel)
+        } else {
+          noAnimationsPanel.stopLoading()
+          animationPreviewPanel.remove(noAnimationsPanel)
+          animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
+          animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
+        }
+      }
+    }
+    scope.launch {
+      selectedAnimation.collect {
+        if (it != null) {
+          // Swing components cannot be placed into different containers, so we add the shared
+          // timeline to the active tab on tab change.
+          withContext(uiThread) { it.addTimeline() }
+          it.loadProperties()
+        }
+        updateTimelineElements()
+      }
+    }
   }
 
-  fun ComposeAnimation.getCurrentState(): Any? {
+  private fun ComposeAnimation.getCurrentState(): Any? {
     return when (type) {
       ComposeAnimationType.TRANSITION_ANIMATION ->
         animationObject::class
@@ -462,9 +485,9 @@ class AnimationPreview(
 
     /**
      * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation,
-     * and resets the timeline. Invokes a given callback once the combo box is populated.
+     * and resets the timeline
      */
-    override fun setup(callback: () -> Unit) {
+    override fun setup() {
       stateComboBox.updateStates(animation.states)
       updateAnimationStatesExecutor.execute {
         // Update the animated visibility combo box with the correct initial state, obtained from
@@ -497,7 +520,6 @@ class AnimationPreview(
         // Set up the combo box listener so further changes to the selected state will trigger a
         // call to updateAnimatedVisibility.
         stateComboBox.callbackEnabled = true
-        callback.invoke()
       }
     }
   }
@@ -511,7 +533,10 @@ class AnimationPreview(
         field = value
         // If transition has changed, reset it offset.
         elementState.valueOffset = 0
-        updateTimelineElements { invokeLater { coordinationTab.updateCardSize(card) } }
+        scope.launch {
+          updateTimelineElements()
+          withContext(uiThread) { coordinationTab.updateCardSize(card) }
+        }
       }
 
     override val timelineMaximumMs: Int
@@ -522,7 +547,7 @@ class AnimationPreview(
     /** State of animation, shared between single animation tab and coordination panel. */
     final override val elementState =
       ElementState(tabTitle).apply {
-        addExpandedListener { updateTimelineElements() }
+        addExpandedListener { scope.launch { updateTimelineElements() } }
         addFreezeListener {
           timeline.repaint()
           if (!this.frozen) {
@@ -586,9 +611,9 @@ class AnimationPreview(
 
     /**
      * Updates the `initial` and `target` state combo boxes to display the states of the given
-     * animation, and resets the timeline. Invokes a given callback once everything is populated.
+     * animation, and resets the timeline.
      */
-    override fun setup(callback: () -> Unit) {
+    override fun setup() {
       val states: Set<Any> = handleKnownStateTypes(animation.states)
       val currentState = animation.getCurrentState()
       stateComboBox.updateStates(states)
@@ -609,7 +634,6 @@ class AnimationPreview(
         // Set up the state listeners so further changes to the selected state will trigger a
         // call to updateAnimationStartAndEndStates.
         stateComboBox.callbackEnabled = true
-        callback.invoke()
       }
     }
 
@@ -793,6 +817,7 @@ class AnimationPreview(
      * component can't be added as a child of multiple components simultaneously. Therefore, this
      * method needs to be called everytime we change tabs.
      */
+    @UiThread
     fun addTimeline() {
       tabTimelineParent.add(timeline, BorderLayout.CENTER)
       timeline.revalidate()
@@ -817,7 +842,9 @@ class AnimationPreview(
       }
       addComponentListener(
         object : ComponentAdapter() {
-          override fun componentResized(e: ComponentEvent?) = updateTimelineElements()
+          override fun componentResized(e: ComponentEvent?) {
+            scope.launch { updateTimelineElements() }
+          }
         }
       )
       dragEndListeners.add { updateTimelineMaximum() }

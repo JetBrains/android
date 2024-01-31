@@ -83,7 +83,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   }
 
   @Test
-  fun subscribeAndUnsubscribe() {
+  fun subscribeAndUnsubscribe() = runBlocking {
     createAndOpenInspector()
 
     val animation = createComposeAnimation()
@@ -93,10 +93,10 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     val otherAnimation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(otherAnimation)
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(otherAnimation).join()
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
   }
 
@@ -112,7 +112,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   }
 
   @Test
-  fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
+  fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() = runBlocking {
     val inspector = createAndOpenInspector()
     UIUtil.pump() // Wait for UI to dispatch all events
     // When first opening the inspector, we show the panel informing there are no supported
@@ -123,85 +123,76 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After subscribing an animation, we should display the tabbedPane
     val anotherAnimation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), anotherAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), anotherAnimation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After unsubscribing from one animation, animation panel still shown.
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
-    UIUtil.pump() // Wait for the tab to be removed on the UI thread
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no
     // animations panel
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(anotherAnimation)
-    UIUtil.pump() // Wait for the tab to be removed on the UI thread
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(anotherAnimation).join()
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     // After subscribing again to the animation, we should display the tabbedPane
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
   }
 
   @Test
-  fun oneTabPerSubscribedAnimation() {
+  fun oneTabPerSubscribedAnimation() = runBlocking {
     val inspector = createAndOpenInspector()
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     val animation1 = createComposeAnimation()
     val clock = getClock()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1).join()
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val animation2 = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation2)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation2).join()
     assertEquals(2, inspector.tabCount())
 
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation1)
-    UIUtil.pump() // Wait for the tab to be removed on the UI thread
+    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation1).join()
     assertEquals(1, inspector.tabCount())
   }
 
   @Test
-  fun subscriptionNewClockClearsPreviousClockAnimations() {
+  fun subscriptionNewClockClearsPreviousClockAnimations() = runBlocking {
     val inspector = createAndOpenInspector()
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     val clock = getClock()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation()).join()
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val anotherClock = getClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      .join()
     assertEquals(1, inspector.tabCount())
 
     ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      .join()
     assertEquals(2, inspector.tabCount())
   }
 
@@ -241,21 +232,22 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         override val states = animationStates
       }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-        // Freeze, swap, from state, label, to state components.
-        assertEquals(5, it.componentCount)
-        assertEquals("State1", it.components[2].findComboBox().text)
-        assertEquals("State2", it.components[4].findComboBox().text)
-        // Swap
-        ui.clickOn(it.components[1])
-        assertEquals("State2", it.components[2].findComboBox().text)
-        assertEquals("State1", it.components[4].findComboBox().text)
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
+        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+          // Freeze, swap, from state, label, to state components.
+          assertEquals(5, it.componentCount)
+          assertEquals("State1", it.components[2].findComboBox().text)
+          assertEquals("State2", it.components[4].findComboBox().text)
+          // Swap
+          ui.clickOn(it.components[1])
+          assertEquals("State2", it.components[2].findComboBox().text)
+          assertEquals("State1", it.components[4].findComboBox().text)
+        }
       }
     }
   }
@@ -271,19 +263,20 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         override val states = setOf("Enter", "Exit")
       }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
-
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-        // Freeze, swap, state components.
-        assertEquals(3, it.componentCount)
-        assertEquals("Enter", it.components[2].findComboBox().text)
-        ui.clickOn(it.components[1])
-        assertEquals("Exit", it.components[2].findComboBox().text)
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
+        .join()
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
+        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+          // Freeze, swap, state components.
+          assertEquals(3, it.componentCount)
+          assertEquals("Enter", it.components[2].findComboBox().text)
+          ui.clickOn(it.components[1])
+          assertEquals("Exit", it.components[2].findComboBox().text)
+        }
       }
     }
   }
@@ -304,25 +297,25 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
-      // thread
-      // We can get any of the combo boxes, since "from" and "to" states should be the same.
-      val sliders =
-        TreeWalker(inspector.component)
-          .descendantStream()
-          .filter { it is JSlider }
-          .collect(Collectors.toList())
-      assertEquals(1, sliders.size) //
-      val timelineSlider = sliders[0] as JSlider
-      timelineSlider.value = 100
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      timelineSlider.value = 200
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+
+      withContext(uiThread) {
+        // We can get any of the combo boxes, since "from" and "to" states should be the same.
+        val sliders =
+          TreeWalker(inspector.component)
+            .descendantStream()
+            .filter { it is JSlider }
+            .collect(Collectors.toList())
+        assertEquals(1, sliders.size) //
+        val timelineSlider = sliders[0] as JSlider
+        timelineSlider.value = 100
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        timelineSlider.value = 200
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      }
     }
   }
 
@@ -343,49 +336,48 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
-      // thread
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
 
-      val toolbars =
-        TreeWalker(inspector.component)
-          .descendantStream()
-          .filter { it is ActionToolbarImpl }
-          .collect(Collectors.toList())
-          .map { it as ActionToolbarImpl }
-      val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
-      assertNotNull(playbackControls)
-      assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
-      val actionEvent = Mockito.mock(AnActionEvent::class.java)
-      // Press loop
-      val loopAction = playbackControls.actions[0] as ToggleAction
-      loopAction.setSelected(actionEvent, true)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      // Play and pause
-      val playAction = playbackControls.actions[2]
-      playAction.actionPerformed(actionEvent)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      playAction.actionPerformed(actionEvent)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      // Go to start.
-      val goToStart = playbackControls.actions[1]
-      goToStart.actionPerformed(actionEvent)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      // Go to end.
-      val toToEnd = playbackControls.actions[3]
-      toToEnd.actionPerformed(actionEvent)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      // Un-press loop
-      loopAction.setSelected(actionEvent, false)
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      withContext(uiThread) {
+        val toolbars =
+          TreeWalker(inspector.component)
+            .descendantStream()
+            .filter { it is ActionToolbarImpl }
+            .collect(Collectors.toList())
+            .map { it as ActionToolbarImpl }
+        val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+        assertNotNull(playbackControls)
+        assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
+        val actionEvent = Mockito.mock(AnActionEvent::class.java)
+        // Press loop
+        val loopAction = playbackControls.actions[0] as ToggleAction
+        loopAction.setSelected(actionEvent, true)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        // Play and pause
+        val playAction = playbackControls.actions[2]
+        playAction.actionPerformed(actionEvent)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        playAction.actionPerformed(actionEvent)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        // Go to start.
+        val goToStart = playbackControls.actions[1]
+        goToStart.actionPerformed(actionEvent)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        // Go to end.
+        val toToEnd = playbackControls.actions[3]
+        toToEnd.actionPerformed(actionEvent)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+        // Un-press loop
+        loopAction.setSelected(actionEvent, false)
+        PlatformTestUtil
+          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      }
     }
   }
 
@@ -405,14 +397,13 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
-
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+    }
     inspector.component.setSize(
       inspector.component.size.width * 2,
       inspector.component.size.height * 2,
     )
-    UIUtil.pump() // Wait for all changes in UI thread
   }
 
   @Test
@@ -425,23 +416,25 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         override val states = setOf(true) // Note that `false` is not provided
       }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
 
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-        // Freeze, swap, from state, label, to state components.
-        assertEquals(5, it.componentCount)
-        assertEquals("true", it.components[2].findComboBox().text)
-        assertEquals("false", it.components[4].findComboBox().text)
-        // false inferred because the animation states received had a boolean
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
+        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+          // Freeze, swap, from state, label, to state components.
+          assertEquals(5, it.componentCount)
+          assertEquals("true", it.components[2].findComboBox().text)
+          assertEquals("false", it.components[4].findComboBox().text)
+          // false inferred because the animation states received had a boolean
 
-        // Swap
-        ui.clickOn(it.components[1])
-        assertEquals("false", it.components[2].findComboBox().text)
-        assertEquals("true", it.components[4].findComboBox().text)
+          // Swap
+          ui.clickOn(it.components[1])
+          assertEquals("false", it.components[2].findComboBox().text)
+          assertEquals("true", it.components[4].findComboBox().text)
+        }
       }
     }
   }
@@ -451,32 +444,30 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     val inspector = createAndOpenInspector()
     val clock = getClock()
 
-    val animation1 = createComposeAnimation("repeatedLabel")
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    runBlocking {
+      val animation1 = createComposeAnimation("repeatedLabel")
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1).join()
 
-    val animationWithSameLabel = createComposeAnimation("repeatedLabel")
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithSameLabel)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      val animationWithSameLabel = createComposeAnimation("repeatedLabel")
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithSameLabel).join()
 
-    val animatedValueWithNullLabel =
-      createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedValueWithNullLabel)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      val animatedValueWithNullLabel =
+        createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedValueWithNullLabel).join()
 
-    val transitionAnimationWithNullLabel =
-      createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      val transitionAnimationWithNullLabel =
+        createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
+        .join()
 
-    val animatedVisibilityWithNullLabel =
-      createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+      val animatedVisibilityWithNullLabel =
+        createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
+        .join()
 
-    assertEquals(5, inspector.tabCount())
-
-    ApplicationManager.getApplication().invokeAndWait {
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
+        .join()
+      assertEquals(5, inspector.tabCount())
       assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
       assertEquals(
         "repeatedLabel (1)",
@@ -501,28 +492,30 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   fun `cards and timeline elements are added to coordination panel`() {
     val inspector = createAndOpenInspector()
     val clock = getClock()
-    animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-      val cards = TestUtils.findAllCards(inspector.component)
-      val timeline = TestUtils.findTimeline(inspector.component)
-      // 11 cards and 11 TimelineElements are added to coordination panel.
-      assertEquals(11, cards.size)
-      assertInstanceOf<AnimationCard>(cards[0])
-      assertInstanceOf<LabelCard>(cards[1])
-      assertInstanceOf<AnimationCard>(cards[2])
-      assertInstanceOf<LabelCard>(cards[3])
-      assertInstanceOf<LabelCard>(cards[4])
-      assertInstanceOf<AnimationCard>(cards[5])
-      assertInstanceOf<AnimationCard>(cards[6])
-      assertInstanceOf<LabelCard>(cards[7])
-      assertInstanceOf<AnimationCard>(cards[8])
-      assertInstanceOf<LabelCard>(cards[9])
-      assertInstanceOf<LabelCard>(cards[10])
-      assertEquals(11, timeline.sliderUI.elements.size)
-      // Only coordination tab is opened.
-      assertEquals(1, inspector.tabbedPane.tabCount)
+    runBlocking {
+      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+
+      withContext(uiThread) {
+        val cards = TestUtils.findAllCards(inspector.component)
+        val timeline = TestUtils.findTimeline(inspector.component)
+        // 11 cards and 11 TimelineElements are added to coordination panel.
+        assertEquals(11, cards.size)
+        assertInstanceOf<AnimationCard>(cards[0])
+        assertInstanceOf<LabelCard>(cards[1])
+        assertInstanceOf<AnimationCard>(cards[2])
+        assertInstanceOf<LabelCard>(cards[3])
+        assertInstanceOf<LabelCard>(cards[4])
+        assertInstanceOf<AnimationCard>(cards[5])
+        assertInstanceOf<AnimationCard>(cards[6])
+        assertInstanceOf<LabelCard>(cards[7])
+        assertInstanceOf<AnimationCard>(cards[8])
+        assertInstanceOf<LabelCard>(cards[9])
+        assertInstanceOf<LabelCard>(cards[10])
+        assertEquals(11, timeline.sliderUI.elements.size)
+        // Only coordination tab is opened.
+        assertEquals(1, inspector.tabbedPane.tabCount)
+      }
     }
   }
 
@@ -530,8 +523,10 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   fun `managers are created for each animation`() {
     val inspector = createAndOpenInspector()
     val clock = getClock()
-    animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
-    UIUtil.pump() // Wait for cards to be added on the UI thread
+    runBlocking {
+      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+    }
+
     assertEquals(11, inspector.animations.size)
     assertInstanceOf<AnimationManager>(inspector.animations[0])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
@@ -550,15 +545,15 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   fun `preview inspector`() {
     val inspector = createAndOpenInspector()
     val clock = getClock()
-    animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
-    UIUtil.pump() // Wait for cards to be added on the UI thread
-
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      // Uncomment to preview.
-      // ui.render()
+    runBlocking {
+      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
+        ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
+        // Uncomment to preview.
+        // ui.render()
+      }
     }
   }
 
@@ -598,42 +593,43 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     ) {}
 
     val clock = getClock()
-    animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
+    runBlocking {
+      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
 
-    UIUtil.pump() // Wait for the UI to be updated.
-    assertNotNull(ComposePreviewAnimationManager.currentInspector)
-    assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-    assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      assertNotNull(ComposePreviewAnimationManager.currentInspector)
+      assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+      assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
 
-    ComposePreviewAnimationManager.invalidate(anotherPsiPointer)
-    UIUtil.pump() // Wait for the UI to be updated.
-    assertNotNull(ComposePreviewAnimationManager.currentInspector)
-    assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-    assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      ComposePreviewAnimationManager.invalidate(anotherPsiPointer).join()
+      assertNotNull(ComposePreviewAnimationManager.currentInspector)
+      assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+      assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
 
-    ComposePreviewAnimationManager.invalidate(psiPointerTwo)
-    UIUtil.pump() // Wait for the UI to be updated.
-    assertNotNull(ComposePreviewAnimationManager.currentInspector)
-    assertEquals(0, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-    assertNotNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      ComposePreviewAnimationManager.invalidate(psiPointerTwo).join()
+      assertNotNull(ComposePreviewAnimationManager.currentInspector)
+      assertEquals(0, ComposePreviewAnimationManager.currentInspector!!.tabCount())
+      assertNotNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+    }
   }
 
   @Test
   fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
     val inspector = createAndOpenInspector()
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
-    UIUtil.pump() // Wait for the tab to be added on the UI
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
-    assertNull(inspector.noAnimationsPanel())
-    assertEquals(1, inspector.animationPreviewCardsCount())
+    runBlocking {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
+        .join()
 
-    ComposePreviewAnimationManager.invalidate(psiFilePointer)
-    UIUtil.pump() // Wait for the tab to be added on the UI
-    assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
-    assertEquals(0, inspector.animationPreviewCardsCount())
+      assertNotNull(inspector.tabbedPane.parent)
+      assertEquals(1, inspector.tabCount())
+      assertNull(inspector.noAnimationsPanel())
+      assertEquals(1, inspector.animationPreviewCardsCount())
+
+      ComposePreviewAnimationManager.invalidate(psiFilePointer).join()
+      assertNotNull(inspector.noAnimationsPanel())
+      assertNull(inspector.tabbedPane.parent)
+      assertEquals(0, inspector.tabCount())
+      assertEquals(0, inspector.animationPreviewCardsCount())
+    }
   }
 
   @Test
@@ -703,7 +699,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   }
 
   private fun AnimationPreview.tabCount(): Int = runBlocking {
-    withContext(uiThread) { animationsCount() }
+    withContext(uiThread) { animations.size }
   }
 
   private fun AnimationPreview.getAnimationTitleAt(index: Int): String =

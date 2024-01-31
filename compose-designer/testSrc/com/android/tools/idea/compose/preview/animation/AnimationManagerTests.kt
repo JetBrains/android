@@ -23,14 +23,14 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.ui.UIUtil
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JSlider
-import org.junit.Assert
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,10 +54,10 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun intTransitionStates() {
     setupAndCheckToolbar(animationType, setOf(10)) { toolbar, ui ->
       // Freeze, swap, picker state.
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("10 to 10", (toolbar.components[2] as JButton).text)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("10 to 10", (toolbar.components[2] as JButton).text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("10 to 10", (toolbar.components[2] as JButton).text)
+      assertEquals("10 to 10", (toolbar.components[2] as JButton).text)
     }
   }
 
@@ -65,12 +65,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun booleanTransitionStates() {
     setupAndCheckToolbar(animationType, setOf(true)) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
-      Assert.assertEquals(5, toolbar.componentCount)
-      Assert.assertEquals("true", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("false", toolbar.components[4].findComboBox().text)
+      assertEquals(5, toolbar.componentCount)
+      assertEquals("true", toolbar.components[2].findComboBox().text)
+      assertEquals("false", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("false", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("true", toolbar.components[4].findComboBox().text)
+      assertEquals("false", toolbar.components[2].findComboBox().text)
+      assertEquals("true", toolbar.components[4].findComboBox().text)
     }
   }
 
@@ -81,12 +81,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3),
     ) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
-      Assert.assertEquals(5, toolbar.componentCount)
-      Assert.assertEquals("State1", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("State2", toolbar.components[4].findComboBox().text)
+      assertEquals(5, toolbar.componentCount)
+      assertEquals("State1", toolbar.components[2].findComboBox().text)
+      assertEquals("State2", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("State2", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("State1", toolbar.components[4].findComboBox().text)
+      assertEquals("State2", toolbar.components[2].findComboBox().text)
+      assertEquals("State1", toolbar.components[4].findComboBox().text)
     }
   }
 
@@ -94,10 +94,10 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun stringTransitionStates() {
     setupAndCheckToolbar(animationType, setOf("a")) { toolbar, ui ->
       // Freeze, swap, picker state.
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("a to a", (toolbar.components[2] as JButton).text)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("a to a", (toolbar.components[2] as JButton).text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("a to a", (toolbar.components[2] as JButton).text)
+      assertEquals("a to a", (toolbar.components[2] as JButton).text)
     }
   }
 
@@ -105,12 +105,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun pairTransitionStates() {
     setupAndCheckToolbar(animationType, setOf(Pair(1, 1), Pair(2, 3), Pair(3, 4))) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
-      Assert.assertEquals(5, toolbar.componentCount)
-      Assert.assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("(2, 3)", toolbar.components[4].findComboBox().text)
+      assertEquals(5, toolbar.componentCount)
+      assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
+      assertEquals("(2, 3)", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("(2, 3)", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("(1, 1)", toolbar.components[4].findComboBox().text)
+      assertEquals("(2, 3)", toolbar.components[2].findComboBox().text)
+      assertEquals("(1, 1)", toolbar.components[4].findComboBox().text)
     }
   }
 
@@ -118,12 +118,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   fun booleanAnimateXStates() {
     setupAndCheckToolbar(animationType, setOf(false, true)) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
-      Assert.assertEquals(5, toolbar.componentCount)
-      Assert.assertEquals("false", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("true", toolbar.components[4].findComboBox().text)
+      assertEquals(5, toolbar.componentCount)
+      assertEquals("false", toolbar.components[2].findComboBox().text)
+      assertEquals("true", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      Assert.assertEquals("true", toolbar.components[2].findComboBox().text)
-      Assert.assertEquals("false", toolbar.components[4].findComboBox().text)
+      assertEquals("true", toolbar.components[2].findComboBox().text)
+      assertEquals("false", toolbar.components[4].findComboBox().text)
     }
   }
 
@@ -189,7 +189,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       assertEquals(1, numberOfCalls)
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
-      Assert.assertEquals(1, sliders.size)
+      assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
       assertEquals(2, numberOfCalls)
@@ -201,8 +201,8 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
   private fun setupAndCheckToolbar(
     type: ComposeAnimationType,
     states: Set<Any>,
-    clock: TestClock? = null,
-    checkToolbar: (JComponent, FakeUi) -> Unit,
+    clock: TestClock = TestClockWithCoordination(),
+    checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
     val inspector = createAndOpenInspector()
 
@@ -213,19 +213,18 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
         override val states = states
       }
 
-    val clock = clock ?: TestClockWithCoordination()
-
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
-
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      val cards = findAllCards(inspector.component)
-      Assert.assertEquals(1, cards.size)
-      val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
-      checkToolbar(toolbar, ui)
+    val job = ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
+    val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+    runBlocking {
+      job.join()
+      withContext(uiThread) {
+        ui.updateToolbars()
+        ui.layout()
+        val cards = findAllCards(inspector.component)
+        assertEquals(1, cards.size)
+        val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
+        checkToolbar(toolbar, ui)
+      }
     }
   }
 }

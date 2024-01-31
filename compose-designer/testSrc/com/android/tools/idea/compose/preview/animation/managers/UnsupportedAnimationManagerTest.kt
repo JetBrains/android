@@ -38,14 +38,6 @@ class UnsupportedAnimationManagerTest {
   }
 
   @Test
-  fun `setup callback is called`() {
-    val manager = UnsupportedAnimationManager(animation, "Label")
-    var callback = 0
-    manager.setup { callback++ }
-    assertEquals(1, callback)
-  }
-
-  @Test
   fun `create timeline element`() {
     val manager = UnsupportedAnimationManager(animation, "Label")
     val slider = TestUtils.createTestSlider()

@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.annotations.concurrency.GuardedBy
-import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
@@ -27,14 +27,14 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
@@ -65,7 +65,7 @@ object ComposePreviewAnimationManager {
         1,
       )
 
-  @Slow
+  @UiThread
   fun createAnimationInspectorPanel(
     surface: DesignSurface<LayoutlibSceneManager>,
     parent: Disposable,
@@ -73,20 +73,18 @@ object ComposePreviewAnimationManager {
     onNewInspectorOpen: () -> Unit,
   ): AnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
-    return invokeAndWaitIfNeeded {
-      val animationInspectorPanel =
-        AnimationPreview(
-          surface.project,
-          ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
-          { surface.sceneManager },
-          surface,
-          psiFilePointer,
-        )
-      animationInspectorPanel.tracker.openAnimationInspector()
-      Disposer.register(parent, animationInspectorPanel)
-      currentInspector = animationInspectorPanel
-      animationInspectorPanel
-    }
+    val animationInspectorPanel =
+      AnimationPreview(
+        surface.project,
+        ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
+        { surface.sceneManager },
+        surface,
+        psiFilePointer,
+      )
+    animationInspectorPanel.tracker.openAnimationInspector()
+    Disposer.register(parent, animationInspectorPanel)
+    currentInspector = animationInspectorPanel
+    return animationInspectorPanel
   }
 
   fun closeCurrentInspector() {
@@ -112,9 +110,9 @@ object ComposePreviewAnimationManager {
    * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
    * tab in the [AnimationPreview].
    */
-  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
-    if (clock == null) return
-    val inspector = currentInspector ?: return
+  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation): Job {
+    if (clock == null) return CompletableDeferred(Unit)
+    val inspector = currentInspector ?: return CompletableDeferred(Unit)
     if (inspector.animationClock == null) {
       inspector.animationClock = AnimationClock(clock)
     }
@@ -135,24 +133,20 @@ object ComposePreviewAnimationManager {
     }
 
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
-      UIUtil.invokeLaterIfNeeded {
-        // Create the tab corresponding to the animation
-        inspector.createTab(animation)
-        inspector.setupAnimation(animation) {
-          UIUtil.invokeLaterIfNeeded { inspector.addTab(animation) }
-        }
-      }
+      return inspector.addAnimation(animation)
     }
+    return CompletableDeferred(Unit)
   }
 
   /**
    * Removes the animation from the subscribed list and removes the corresponding tab in the
    * [AnimationPreview].
    */
-  fun onAnimationUnsubscribed(animation: ComposeAnimation) {
+  fun onAnimationUnsubscribed(animation: ComposeAnimation): Job {
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
-      UIUtil.invokeLaterIfNeeded { currentInspector?.removeTab(animation) }
+      return currentInspector?.removeAnimation(animation) ?: CompletableDeferred(Unit)
     }
+    return CompletableDeferred(Unit)
   }
 
   /** Whether the animation inspector is open. */
@@ -163,15 +157,16 @@ object ComposePreviewAnimationManager {
    * invalidate for the same [psiFilePointer] as [invalidate] could be called from [Preview] without
    * [AnimationPreview].
    */
-  fun invalidate(psiFilePointer: SmartPsiElementPointer<PsiFile>) {
+  fun invalidate(psiFilePointer: SmartPsiElementPointer<PsiFile>): Job {
     currentInspector?.let {
       if (
         PsiManager.getInstance(it.psiFilePointer.project)
           .areElementsEquivalent(psiFilePointer.element, it.psiFilePointer.element)
       ) {
-        UIUtil.invokeLaterIfNeeded { it.invalidatePanel() }
+        return it.invalidatePanel()
       }
     }
+    return CompletableDeferred(Unit)
   }
 }
 

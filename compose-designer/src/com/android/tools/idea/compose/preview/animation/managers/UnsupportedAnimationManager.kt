@@ -36,10 +36,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
 
   override fun loadProperties() {}
 
-  override fun setup(callback: () -> Unit) {
-    // UnsupportedManager doesn't require any additional setup, just call callback.
-    callback.invoke()
-  }
+  override fun setup() {}
 
   override val timelineMaximumMs = 0
 
