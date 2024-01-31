@@ -38,11 +38,21 @@ import kotlinx.coroutines.withContext
  * train the model.
  */
 private const val PROMPT_PREFIX =
-  "What's the Jetpack Compose equivalent of the following Android XML layout?\n\n"
+  "What's the Jetpack Compose equivalent of the following Android XML layout?"
 
 private const val ACTION_TITLE = "I am feeling Compose"
 
 class ConvertToComposeAction : AnAction(ACTION_TITLE) {
+  /**
+   * Prompts to be appended after [PROMPT_PREFIX] to improve the quality of the Studio Bot
+   * responses.
+   */
+  private val nShotPrompts =
+    listOf(
+      "Include imports in your answer.",
+      "Add a @Preview function.",
+      "Don't use ConstraintLayout.",
+    )
 
   private val logger = Logger.getInstance(ConvertToComposeAction::class.java)
 
@@ -50,7 +60,9 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     val xmlFile = e.getData(VIRTUAL_FILE)?.contentsToByteArray() ?: return
     val project = e.project ?: return
 
-    val query = "${PROMPT_PREFIX}${String(xmlFile)}"
+    val nShot = nShotPrompts.joinToString(" ")
+    val query = "$PROMPT_PREFIX ${nShot}\n\n${String(xmlFile)}"
+
     val studioBot = StudioBot.getInstance()
     try {
       val validatedQueryRequest =
@@ -58,7 +70,6 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
       ComposeCodeDialog(project).run {
         show()
         AndroidCoroutineScope(disposable).launch(workerThread) {
-          // TODO(b/322759144): play with n-shot prompting instead of sending only the prefix prompt
           // Note: you must complete the Studio Bot onboarding and enable context sharing, otherwise
           // the following call will fail.
           val response =
@@ -67,7 +78,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
               .sendQuery(validatedQueryRequest, StudioBot.RequestSource.DESIGN_TOOLS)
               .toList()
 
-          withContext(uiThread) { updateContent(response.joinToString("\n")) }
+          withContext(uiThread) { updateContent(response.parseCode()) }
         }
       }
     } catch (t: Throwable) {
@@ -92,4 +103,20 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
       textArea.text = content
     }
   }
+}
+
+/**
+ * Takes a list of strings returned by Studio Bot and returns the first Kotlin code found, stripping
+ * the formatting.
+ *
+ * See `LlmService#sendQuery` documentation for details about StudioBot's response formatting.
+ */
+private fun List<String>.parseCode(): String {
+  val kotlinPattern = "```kotlin\n"
+  forEach { chunk ->
+    if (chunk.startsWith(kotlinPattern)) {
+      return chunk.substringAfter(kotlinPattern).trimEnd('`')
+    }
+  }
+  return ""
 }
