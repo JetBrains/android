@@ -185,7 +185,6 @@ internal data class MotionEventMessage(
   }
 
   data class Pointer(val x: Int, val y: Int, val pointerId: Int, val axisValues: Int2FloatOpenHashMap? = null) {
-
     fun serialize(stream: Base128OutputStream) {
       stream.writeInt(x)
       stream.writeInt(y)

@@ -435,8 +435,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       toVisit = toVisit2
       toVisit2 = tmp
 
-      // If there are no more object to visit at this phase, transition to the next one
-      while (toVisit.isEmpty && phase != WalkGraphPhase.Finished) {
+      // If there are no more objects to visit at this phase, transition to the next one
+      while (toVisit.isEmpty() && phase != WalkGraphPhase.Finished) {
         // Next state
         phase = WalkGraphPhase.values()[phase.ordinal + 1]
 
@@ -503,7 +503,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     }
 
     // Assert that any postponed objects have been handled
-    assert(cleanerObjects.isEmpty)
+    assert(cleanerObjects.isEmpty())
     assert(softReferenceIdToParentMap.isEmpty())
     assert(weakReferenceIdToParentMap.isEmpty())
 
@@ -634,8 +634,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
           nav.copyReferencesTo(refList)
           var refsAdded = 0
           for (i in 0 until refList.count()) {
-            if (refList[i] != 0L) {
-              childrenStack[csEntries++] = refList[i].toInt()
+            if (refList.getLong(i) != 0L) {
+              childrenStack[csEntries++] = refList.getLong(i).toInt()
               refsAdded++
               poEdgeCount++
             }
@@ -701,8 +701,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       }
       outgoingCardListOffsets[i] = ncardrefs
       for (j in 0 until references.count()) {
-        if (references[j] != 0L) {
-          val target = postorderNumbers[references[j].toInt()]
+        if (references.getLong(j) != 0L) {
+          val target = postorderNumbers[references.getLong(j).toInt()]
           edgeListOffsets[target]++
           outgoingCardRefs[ncardrefs++] = target shr cardBits
         }
@@ -752,8 +752,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         addEdge(i, rootPonum)
       }
       for (j in 0 until references.count()) {
-        if (references[j] != 0L) {
-          val target = postorderNumbers[references[j].toInt()]
+        if (references.getLong(j) != 0L) {
+          val target = postorderNumbers[references.getLong(j).toInt()]
           addEdge(target, i)
         }
       }
@@ -1040,7 +1040,9 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.ONLY_STRONG_REFERENCES)
       nav.copyReferencesTo(refList)
       for (i in 0 until refList.count()) {
-        if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
+        if (refList.getLong(i) != 0L && !visited.contains(refList.getLong(i).toInt())) {
+          pushToVisit(refList.getLong(i).toInt())
+        }
       }
     }
 
@@ -1055,7 +1057,9 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.STRONG_EXCLUDING_INNER_CLASS)
       nav.copyReferencesTo(refList)
       for (i in 0 until refList.count()) {
-        if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
+        if (refList.getLong(i) != 0L && !visited.contains(refList.getLong(i).toInt())) {
+          pushToVisit(refList.getLong(i).toInt())
+        }
       }
     }
 
@@ -1066,7 +1070,9 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       retainedObjects.add(index)
       index = marks.nextSetBit(index+1)
     }
-    if (retainedObjects.isEmpty) return ""
+    if (retainedObjects.isEmpty()) {
+      return ""
+    }
 
     // The "culprit" for an object 'id' that is in the set R of objects retained by references from inner
     // classes to their enclosing instances is the nearest ancestor that is an inner class, is not in R,
@@ -1091,14 +1097,14 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     val culpritsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
     val objectsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
     for (i in 0 until retainedObjects.count()) {
-      nav.goTo(retainedObjects[i].toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
+      nav.goTo(retainedObjects.getInt(i).toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
       val size = nav.getObjectSize()
       val klass = nav.getClass()
       objectsHistogramEntries.getOrPut(klass) {
         HistogramVisitor.InternalHistogramEntry(klass)
       }.addInstance(size.toLong())
 
-      val culprit = findCulprit(retainedObjects[i])
+      val culprit = findCulprit(retainedObjects.getInt(i))
       if (culprit != 0) {
         nav.goTo(culprit.toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
         val culpritClass = nav.getClass()
