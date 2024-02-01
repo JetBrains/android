@@ -159,7 +159,6 @@ internal data class MotionEventMessage(
   }
 
   data class Pointer(val x: Int, val y: Int, val pointerId: Int, val axisValues: Int2FloatOpenHashMap? = null) {
-
     fun serialize(stream: Base128OutputStream) {
       stream.writeInt(x)
       stream.writeInt(y)
@@ -365,7 +364,7 @@ internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(T
   companion object : Deserializer {
     const val TYPE = 10
 
-    const val PHYSICAL_STATE = -1;
+    const val PHYSICAL_STATE = -1
 
     override fun deserialize(stream: Base128InputStream): RequestDeviceStateMessage {
       val state = stream.readInt() - 1 // Subtracting 1 to account for shifted encoding.
