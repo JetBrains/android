@@ -32,6 +32,7 @@ import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
+import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -64,6 +65,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -93,11 +95,29 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
                                           @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
                                           @NotNull FeatureTracker featureTracker,
                                           @NotNull IdeProfilerServices ideProfilerServices) {
-    super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker, ideProfilerServices), IdeModalityType.IDE);
+    this(project, deviceLevel, model, onCloseCallback,
+         new ProfilingConfigurable(project, model, deviceLevel, featureTracker, ideProfilerServices),
+         // For task Based UX, don't have the apply button in the EditConfig Dialog.
+         !ideProfilerServices.getFeatureConfig().isTaskBasedUxEnabled());
+  }
+
+  public CpuProfilingConfigurationsDialog(@NotNull final Project project,
+                                          int deviceLevel,
+                                          @NotNull CpuProfilerConfigModel model,
+                                          @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
+                                          @NotNull ProfilingConfigurable profilingConfigurable,
+                                          boolean showApplyButton ) {
+    super(project, profilingConfigurable, ShowSettingsUtilImpl.createDimensionKey(profilingConfigurable), showApplyButton, IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
     myDeviceLevel = deviceLevel;
     setHorizontalStretch(1.3F);
+  }
+
+  @Override
+  @VisibleForTesting
+  protected Action @NotNull [] createActions() {
+    return super.createActions();
   }
 
   @Nullable
