@@ -153,6 +153,7 @@ class DeviceMenuActionTest {
               Auto
               Automotive (1024p landscape) (1024 × 768 dp, mdpi)
               Automotive (1080p landscape) (1440 × 800 dp, ldpi)
+              Automotive Portrait (1067 × 1707 dp, ldpi)
               ------------------------------------------------------
               Custom
               ------------------------------------------------------
