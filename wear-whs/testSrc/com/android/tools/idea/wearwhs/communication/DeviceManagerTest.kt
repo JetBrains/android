@@ -25,6 +25,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 
@@ -41,6 +42,91 @@ class DeviceManagerTest {
   @Before
   fun setUp() {
     adbSession = FakeAdbSession()
+    adbSession.throwIfClosed()
+  }
+
+  @Test
+  fun `test setCapabilities throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true))
+      }
+    }
+  }
+
+  @Test
+  fun `test overrideValues throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 50))
+      }
+    }
+  }
+
+  @Test
+  fun `test loadActiveExercise throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.loadActiveExercise()
+      }
+    }
+  }
+
+  @Test
+  fun `test triggerEvent throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.triggerEvent(EventTrigger("whs.TEST", "test"))
+      }
+    }
+  }
+
+  @Test
+  fun `test loadCurrentCapabilityStates throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.loadCurrentCapabilityStates()
+      }
+    }
+  }
+
+  @Test
+  fun `test isWhsVersionSupported throws connection lost exception when adb session is closed`() {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.isWhsVersionSupported()
+      }
+    }
   }
 
   @Test

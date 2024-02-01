@@ -78,4 +78,4 @@ internal data class CapabilityState(
   val overrideValue: Float?,
 )
 
-internal class ConnectionLostException(message: String) : Exception(message)
+internal class ConnectionLostException(message: String, cause: Throwable? = null) : Exception(message, cause)
