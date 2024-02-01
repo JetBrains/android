@@ -72,6 +72,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
@@ -1067,7 +1068,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private inner class NewTabAction : DumbAwareAction("Add Device", "Show a new device", AllIcons.General.Add), DumbAware {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val component = event.inputEvent?.component
+      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
       val actionComponent = if (component is ActionButtonComponent) component else event.findComponentForAction(this)
       val dataContext = event.dataContext
 
