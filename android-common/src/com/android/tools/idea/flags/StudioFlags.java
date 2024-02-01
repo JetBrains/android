@@ -276,7 +276,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
     NELE, "compose.ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
     "Enable colorblind Check mode in UI Check Mode for Compose preview",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    true);
 
   public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
     NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",
