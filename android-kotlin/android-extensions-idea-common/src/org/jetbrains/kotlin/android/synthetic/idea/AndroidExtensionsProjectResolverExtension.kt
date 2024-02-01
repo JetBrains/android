@@ -28,18 +28,19 @@ import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Compan
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ENABLED_OPTION
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.EXPERIMENTAL_OPTION
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
+import org.jetbrains.plugins.gradle.tooling.Message
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.Serializable
 
 class AndroidExtensionProperties {
-  var hasAndroidExtensionsPlugin: Boolean = false
-  var isExperimental: Boolean = false
-  var defaultCacheImplementation: String = ""
+    var hasAndroidExtensionsPlugin: Boolean = false
+    var isExperimental: Boolean = false
+    var defaultCacheImplementation: String = ""
 }
 
 val ANDROID_EXTENSION_PROPERTIES = Key.create(AndroidExtensionProperties::class.java, 1)
@@ -53,9 +54,9 @@ interface AndroidExtensionsGradleModel : Serializable {
 }
 
 class AndroidExtensionsGradleModelImpl(
-        override val hasAndroidExtensionsPlugin: Boolean,
-        override val isExperimental: Boolean,
-        override val defaultCacheImplementation: String
+  override val hasAndroidExtensionsPlugin: Boolean,
+  override val isExperimental: Boolean,
+  override val defaultCacheImplementation: String
 ) : AndroidExtensionsGradleModel
 
 @Suppress("unused")
@@ -77,10 +78,16 @@ class AndroidExtensionsProjectResolverExtension : AbstractProjectResolverExtensi
 }
 
 class AndroidExtensionsModelBuilderService : ModelBuilderService {
-    override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
-        return ErrorMessageBuilder.create(project, e, "Gradle import errors")
-                .withDescription("Unable to build Android Extensions plugin configuration")
+    override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
+        context.messageReporter.createMessage()
+          .withGroup(this)
+          .withKind(Message.Kind.WARNING)
+          .withTitle("Gradle import errors")
+          .withText("Unable to build Android Extensions plugin configuration")
+          .withException(exception)
+          .reportMessage(project)
     }
+
 
     override fun canBuild(modelName: String?): Boolean = modelName == AndroidExtensionsGradleModel::class.java.name
 
@@ -91,8 +98,8 @@ class AndroidExtensionsModelBuilderService : ModelBuilderService {
 
         val isExperimental = androidExtensionsExtension?.let { ext ->
             val isExperimentalMethod = ext::class.java.methods
-                    .firstOrNull { it.name == "isExperimental" && it.parameterCount == 0 }
-                    ?: return@let false
+                                         .firstOrNull { it.name == "isExperimental" && it.parameterCount == 0 }
+                                       ?: return@let false
 
             isExperimentalMethod.invoke(ext) as? Boolean
         } ?: false
@@ -128,7 +135,7 @@ class AndroidExtensionsGradleImportHandler : GradleProjectImportHandler {
         fun makePluginOption(key: String, value: String) = "plugin:$ANDROID_COMPILER_PLUGIN_ID:$key=$value"
 
         val newPluginOptions = (commonArguments.pluginOptions ?: emptyArray())
-                .filterTo(mutableListOf()) { !it.startsWith("plugin:$ANDROID_COMPILER_PLUGIN_ID:") } // Filter out old options
+          .filterTo(mutableListOf()) { !it.startsWith("plugin:$ANDROID_COMPILER_PLUGIN_ID:") } // Filter out old options
 
         val propertiesNode = ExternalSystemApiUtil.find(moduleNode, ANDROID_EXTENSION_PROPERTIES)
         val propertiesData = propertiesNode?.data

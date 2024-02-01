@@ -20,7 +20,7 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
-import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
+import org.jetbrains.plugins.gradle.tooling.Message
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.Serializable
@@ -99,10 +99,13 @@ class TestModelBuilderService : ModelBuilderService {
     }
   }
 
-  override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
-    return ErrorMessageBuilder
-      .create(project, e, "Gradle import errors")
-      .withDescription(e.message.orEmpty() + "\n" + e.stackTraceToString())
+  override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
+    context.messageReporter.createMessage()
+      .withGroup(this)
+      .withKind(Message.Kind.WARNING)
+      .withTitle("Gradle import errors")
+      .withException(exception)
+      .reportMessage(project)
   }
 }
 
@@ -124,9 +127,12 @@ class TestParameterizedModelBuilderService : ModelBuilderService.ParameterizedMo
     return TestParameterizedGradleModelImpl("Hello, ${project?.buildDir}")
   }
 
-  override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
-    return ErrorMessageBuilder
-      .create(project, e, "Gradle import errors")
-      .withDescription(e.message.orEmpty() + "\n" + e.stackTraceToString())
+  override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
+    context.messageReporter.createMessage()
+      .withGroup(this)
+      .withKind(Message.Kind.WARNING)
+      .withTitle("Gradle import errors")
+      .withException(exception)
+      .reportMessage(project)
   }
 }
