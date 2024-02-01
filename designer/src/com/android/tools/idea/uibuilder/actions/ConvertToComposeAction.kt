@@ -59,6 +59,12 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
   private val logger = Logger.getInstance(ConvertToComposeAction::class.java)
 
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    // Only enable the action if user has opted-in to share context.
+    e.presentation.isEnabled = StudioBot.getInstance().isContextAllowed()
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val xmlFile = e.getData(VIRTUAL_FILE)?.contentsToByteArray() ?: return
     val project = e.project ?: return
