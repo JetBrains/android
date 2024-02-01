@@ -57,6 +57,19 @@ public class UpdateTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
+  private String configFileContents = "<application>\n" +
+                                      "  <component name=\"UISettings\">\n" +
+                                      "    <option name=\"compactTreeIndents\" value=\"true\" />\n" +
+                                      "    <option name=\"showTreeIndentGuides\" value=\"true\" />\n" +
+                                      "  </component>\n" +
+                                      "</application>";
+
+  private String themeFileContents = "<application>\n" +
+                                     "  <component name=\"LafManager\" autodetect=\"false\">\n" +
+                                     "    <laf class-name=\"com.intellij.ide.ui.laf.IntelliJLaf\" themeId=\"JetBrainsLightTheme\" />\n" +
+                                     "  </component>\n" +
+                                     "</application>";
+
   /**
    * Our hermetic test environment will not be able to resolve internet URLs, so we have to route
    * those requests to our own {@code FileServer}. This skips downloading anything from https://plugins.jetbrains.com/.
@@ -92,6 +105,21 @@ public class UpdateTest {
     // to get requests like "/addons_list-5.xml" and "/repository2-2.xml".
     env.put("SDK_TEST_BASE_URL", endsInSlash);
     return env;
+  }
+
+  private void addConfigFile(Path tempDir) throws IOException{
+    Path configFileXml = tempDir.resolve("options/ui.lnf.xml");
+    if(!Files.exists(configFileXml)){
+      Files.createDirectories(configFileXml.getParent());
+    }
+    Files.writeString(configFileXml, configFileContents, StandardCharsets.UTF_8);
+    System.out.println("Created " + configFileXml);
+  }
+
+  private Boolean verifyConfigXml(Path tempDir) throws IOException{
+    Path configFileXml = tempDir.resolve("options/ui.lnf.xml");
+    String contents = Files.readString(configFileXml, StandardCharsets.UTF_8);
+    return contents.equals(configFileContents);
   }
 
   /**
@@ -310,6 +338,8 @@ public class UpdateTest {
       AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
       sdk.install(env);
 
+      addConfigFile(fileSystem.getRoot());
+
       try (AndroidStudio studio = install.run(display, env)) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_CURRENT_BUILD_NUMBER));
@@ -349,6 +379,7 @@ public class UpdateTest {
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_UPDATED_BUILD_NUMBER));
+        assertTrue(verifyConfigXml(fileSystem.getRoot()));
       }
     }
   }
