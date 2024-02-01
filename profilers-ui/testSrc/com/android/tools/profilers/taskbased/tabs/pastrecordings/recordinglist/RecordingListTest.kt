@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,9 @@ class RecordingListTest {
 
     // Invoke delete button is enabled as a selection of a deletable recording is made.
     composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled().assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeleteRecordingButton").performClick()
+    // Because there is a confirmation dialog when invoking the deletion button, we will simulate the user confirming the deletion
+    // by performing the recording deletion explicitly.
+    recordingListModel.doDeleteSelectedRecording()
 
     // Assert both the data model and the UI reflect the deletion of Recording 1.
     assertThat(recordingListModel.recordingList.value).hasSize(0)
