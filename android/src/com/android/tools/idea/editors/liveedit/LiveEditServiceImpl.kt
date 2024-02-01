@@ -25,6 +25,7 @@ import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -108,15 +109,20 @@ class LiveEditServiceImpl(val project: Project,
     val listener = PsiListener(this::onPsiChanged)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
 
-    deployMonitor = LiveEditProjectMonitor(this, project)
+    deployMonitor = LiveEditProjectMonitor(this, project, DefaultApkClassProvider());
+
+    // When we change editor, grab a snapshot of the current PSI. We cannot do this in the beforeDocumentChanged
+    // callback, as certain editor actions modify the PSI *before* the document callbacks occur. This causes us to
+    // obtain an incorrect (too recent) snapshot in those cases, and makes the PSI validation diff incorrect.
+    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        val file = event.newFile ?: return
+        file.letIfLiveEditable { deployMonitor.fileEditorOpened(it) }
+      }
+    })
 
     // Listen to changes in Kotlin files. The class-differ equivalent of listening to the PSI.
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
-      override fun beforeDocumentChange(event: DocumentEvent) {
-        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
-        file.letIfLiveEditable { deployMonitor.beforeFileChanged(it) }
-      }
-
       override fun documentChanged(event: DocumentEvent) {
         val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
         file.letIfLiveEditable { deployMonitor.fileChanged(it) }
@@ -197,7 +203,16 @@ class LiveEditServiceImpl(val project: Project,
                                packageName: String,
                                device: IDevice,
                                app: LiveEditApp): Boolean {
-    return deployMonitor.notifyAppDeploy(packageName, device, app) { isLiveEditable(runProfile, executor) }
+    // Obtain the list of Kotlin files open and focused in the editor. This will be a single file unless the user has a split view.
+    // When Live Edit is active, the first time a file is focused in the editor, we take a snapshot of the PSI. We pass the list of
+    // currently focused files when a deployment occurs to ensure that we also take a PSI snapshot of them.
+    val openKtFiles = mutableListOf<KtFile>()
+    for(file in FileEditorManager.getInstance(project).selectedFiles) {
+      file.letIfLiveEditable {
+        (it as? KtFile)?.let(openKtFiles::add)
+      }
+    }
+    return deployMonitor.notifyAppDeploy(packageName, device, app, openKtFiles) { isLiveEditable(runProfile, executor) }
   }
 
   override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {

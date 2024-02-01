@@ -74,8 +74,7 @@ class LiveEditCompiler(val project: Project,
   @Trace
   fun compile(inputs: List<LiveEditCompilerInput>,
               giveWritePriority: Boolean = true,
-              apiVersions: Set<MinApiLevel> = emptySet(),
-              psiValidator: PsiValidator? = null): Optional<LiveEditDesugarResponse> {
+              apiVersions: Set<MinApiLevel> = emptySet()): Optional<LiveEditDesugarResponse> {
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
     val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
@@ -96,9 +95,9 @@ class LiveEditCompiler(val project: Project,
         try {
           // Compiler pass
           if (isK2Plugin()) {
-            LiveEditCompilerForK2(inlineCandidateCache, irClassCache, psiValidator, this.outputBuilder).compile(file, input, outputBuilder)
+            LiveEditCompilerForK2(inlineCandidateCache, irClassCache, this.outputBuilder).compile(file, input, outputBuilder)
           } else {
-            compileKtFile(file, input, psiValidator, outputBuilder)
+            compileKtFile(file, input, outputBuilder)
           }
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
@@ -149,7 +148,6 @@ class LiveEditCompiler(val project: Project,
 
   private fun compileKtFile(file: KtFile,
                             inputs: Collection<LiveEditCompilerInput>,
-                            psiValidator: PsiValidator?,
                             output: LiveEditCompilerOutput.Builder) {
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
@@ -208,10 +206,8 @@ class LiveEditCompiler(val project: Project,
       if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
         // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
         // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-        val errors = psiValidator?.validatePsiChanges(file)
-        if (!errors.isNullOrEmpty()) {
-          throw errors[0]
-        }
+        validatePsiDiff(inputs, file)
+
         outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache, output)
         return@runWithCompileLock
       }

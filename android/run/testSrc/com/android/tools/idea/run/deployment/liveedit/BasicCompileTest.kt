@@ -156,7 +156,8 @@ class BasicCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
+    val state = getPsiValidationState(file)
+    val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
@@ -189,7 +190,8 @@ class BasicCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    compile(listOf(LiveEditCompilerInput(fileCallA, fileCallA)), compiler)
+    val state = getPsiValidationState(fileCallA)
+    compile(listOf(LiveEditCompilerInput(fileCallA, state)), compiler)
   }
 
   @Test
@@ -271,6 +273,34 @@ class BasicCompileTest {
     } catch (e: LiveEditUpdateException) {
       assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
       assertContains(e.details, "MyClass")
+    }
+  }
+
+  @Test
+  fun modifyFieldValue() {
+    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+      class MyClass() {
+        val a = 100
+        val b = 200
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      class MyClass() {
+        val a = 999
+        val b = 200
+      }
+    """)
+
+    try {
+      compile(file, cache)
+      fail("Expected exception due to modified field")
+    }
+    catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertContains(e.details, "MyClass")
+      println(e.details)
     }
   }
 

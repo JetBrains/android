@@ -64,7 +64,7 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    var output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
+    var output = compile(listOf(LiveEditCompilerInput(file, getPsiValidationState(file))), compiler)
     var clazz = loadClass(output)
     Assert.assertTrue(clazz.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
   }
@@ -82,7 +82,8 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    val output = compile(listOf(LiveEditCompilerInput(file1, file1), LiveEditCompilerInput(file2, file2)), compiler)
+    val output = compile(listOf(LiveEditCompilerInput(file1, getPsiValidationState(file1)),
+                                LiveEditCompilerInput(file2, getPsiValidationState(file2))), compiler)
 
     var clazzA = loadClass(output, "A")
     Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})

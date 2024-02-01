@@ -39,6 +39,14 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
+internal fun validatePsiDiff(inputs: Collection<LiveEditCompilerInput>, file: KtFile) {
+  val oldState = inputs.first().oldState // All these should be the same; they all refer to the same file. This will get refactored.
+  val newState = getPsiValidationState(file)
+  val errors = validatePsiChanges(oldState, newState)
+  if (errors.isNotEmpty()) {
+    throw errors[0]
+  }
+}
 
 // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
 // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package

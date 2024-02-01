@@ -80,7 +80,7 @@ class LiveEditOutputBuilderTest {
       expresion.updateText("I am not foo")
     }
 
-    var leOutput = compile(files["A.kt"], "foo", irClassCache)
+    var leOutput = compile(files["A.kt"]!!, irClassCache)
     Assert.assertTrue(leOutput.resetState)
   }
 }

@@ -20,6 +20,7 @@ import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.err
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeRetrievalErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
+import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getPsiValidationState;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
@@ -31,6 +32,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiDocumentManager;
@@ -58,6 +60,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.concurrency.annotations.RequiresReadLock;
 import java.io.IOException;
 import com.intellij.psi.PsiFile;
 import java.nio.file.Path;
@@ -70,6 +73,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -188,8 +192,6 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final LiveEditCompiler compiler;
 
-  private final PsiValidator psiValidator;
-
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
 
@@ -204,13 +206,20 @@ public class LiveEditProjectMonitor implements Disposable {
   // Care should be given when modifying this field to preserve atomicity.
   private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
 
+  private final ConcurrentHashMap<PsiFile, PsiState> psiSnapshots = new ConcurrentHashMap<>();
+
   private final MutableIrClassCache irClassCache = new MutableIrClassCache();
 
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
+    this(liveEditService, project, new DefaultApkClassProvider());
+  }
+
+  public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService,
+                                @NotNull Project project,
+                                @NotNull ApkClassProvider apkClassProvider) {
     this.project = project;
-    this.compiler = new LiveEditCompiler(project, irClassCache, new DefaultApkClassProvider());
+    this.compiler = new LiveEditCompiler(project, irClassCache, apkClassProvider);
     this.adbEventsListener = liveEditService.getAdbEventsListener();
-    this.psiValidator = new PsiValidator();
 
     Disposer.register(liveEditService, this);
     project.getMessageBus().connect(this)
@@ -343,7 +352,11 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-  public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app, @NotNull Supplier<Boolean> isLiveEditable) throws ExecutionException, InterruptedException {
+  public boolean notifyAppDeploy(String applicationId,
+                                 IDevice device,
+                                 @NotNull LiveEditApp app,
+                                 List<KtFile> openKtFiles,
+                                 @NotNull Supplier<Boolean> isLiveEditable) throws ExecutionException, InterruptedException {
     if (!isLiveEditable.get()) {
       LOGGER.info("Can not live edit the app due to either non-debuggability or does not use Compose");
       liveEditDevices.clear(device);
@@ -383,16 +396,18 @@ public class LiveEditProjectMonitor implements Disposable {
       }
       deviceWatcher.setApplicationId(applicationId);
 
+      ReadAction.run(() -> openKtFiles.forEach(this::fileEditorOpened));
       irClassCache.clear();
     }).get();
 
     return true;
   }
 
-  // Called before an edit to a file is made. Only called on the class-differ code path.
-  public void beforeFileChanged(PsiFile psiFile) {
-    if (shouldLiveEdit()) {
-      psiValidator.beforeChanges(psiFile);
+  // Called when a new file is open in the editor. Only called on the class-differ code path.
+  @RequiresReadLock
+  public void fileEditorOpened(PsiFile psiFile) {
+    if (shouldLiveEdit() && !psiSnapshots.containsKey(psiFile)) {
+      psiSnapshots.put(psiFile, getPsiValidationState(psiFile));
     }
   }
 
@@ -489,21 +504,19 @@ public class LiveEditProjectMonitor implements Disposable {
     try {
       PrebuildChecks(project, changes);
 
-      // The PSI might not update immediately after a file is edited. Interrupt until all changes are committed to the PSI.
+      List<LiveEditCompilerInput> inputs = new ArrayList<>();
       for (EditEvent change : changes) {
+        // The PSI might not update immediately after a file is edited. Interrupt until all changes are committed to the PSI.
         Document doc = psiManager.getDocument(change.getFile());
         if (doc != null && psiManager.isUncommited(doc)) {
           return false;
         }
+
+        PsiState state = psiSnapshots.get(change.getFile());
+        inputs.add(new LiveEditCompilerInput(change.getFile(), state, null, null));
       }
 
-      List<LiveEditCompilerInput> inputs = changes.stream().map(
-        change ->
-          new LiveEditCompilerInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
-        .collect(Collectors.toList());
-
-      Set<Integer> minApis = getDevicesApiLevels();
-      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis, psiValidator);
+      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), getDevicesApiLevels());
       if (compiled.isEmpty()) {
         return false;
       }
@@ -512,9 +525,6 @@ public class LiveEditProjectMonitor implements Disposable {
       for (EditEvent change : changes) {
         filesWithCompilationErrors.remove(change.getFile().getName());
       }
-
-      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
-      changes.stream().filter(e -> e.getFile() instanceof KtFile).map(e -> (KtFile) e.getFile()).forEach(psiValidator::validationFinished);
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
 
@@ -539,8 +549,6 @@ public class LiveEditProjectMonitor implements Disposable {
         logLiveEditEvent(event);
       }
 
-      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
-      changes.stream().filter(v -> v.getFile() instanceof KtFile).map(v -> (KtFile) v.getFile()).forEach(psiValidator::validationFinished);
       return true;
     }
 

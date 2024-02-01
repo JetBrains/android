@@ -23,7 +23,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
-import com.android.tools.idea.run.deployment.liveedit.PsiValidator
 import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
@@ -31,8 +30,11 @@ import com.android.tools.idea.run.deployment.liveedit.getCompiledClasses
 import com.android.tools.idea.run.deployment.liveedit.getGroupKey
 import com.android.tools.idea.run.deployment.liveedit.getInternalClassName
 import com.android.tools.idea.run.deployment.liveedit.getNamedFunctionParent
+import com.android.tools.idea.run.deployment.liveedit.getPsiValidationState
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.setOptions
+import com.android.tools.idea.run.deployment.liveedit.validatePsiChanges
+import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiFile
@@ -96,7 +98,6 @@ private class InternalClassNamesToSealedClasses {
 internal class LiveEditCompilerForK2(
   private val inlineCandidateCache: SourceInlineCandidateCache,
   private val irClassCache: IrClassCache,
-  private val psiValidator: PsiValidator?,
   private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module? = null,
 ) {
@@ -109,19 +110,13 @@ internal class LiveEditCompilerForK2(
       if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
         // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
         // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-        validatePsi(file)
+        validatePsiDiff(inputs, file)
+
         outputBuilder.getGeneratedCode(file, compilerOutput, irClassCache, inlineCandidateCache, output)
         return@runWithCompileLock
       }
 
       getGeneratedCode(inputs, compilerOutput, output)
-    }
-  }
-
-  private fun validatePsi(file: KtFile) {
-    val errors = psiValidator?.validatePsiChanges(file)
-    if (!errors.isNullOrEmpty()) {
-      throw errors[0]
     }
   }
 

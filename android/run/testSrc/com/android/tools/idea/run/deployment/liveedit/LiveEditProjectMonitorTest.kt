@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
@@ -28,7 +29,9 @@ import com.android.tools.deployer.Installer
 import com.android.tools.deployer.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
@@ -80,7 +83,13 @@ class LiveEditProjectMonitorTest {
   fun manualModeCompileError() {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
+    val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
+
+    val device: IDevice = MockitoKt.mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.isEmulator).thenReturn(false)
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+
     var foo = findFunction(file, "foo")
     monitor.handleChangedMethods(myProject, listOf(EditEvent(file, foo)))
     monitor.doOnManualLETrigger()
@@ -93,18 +102,17 @@ class LiveEditProjectMonitorTest {
       LiveEditService.getInstance(myProject), myProject);
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
 
-    // Push A.class into the class cache and pretend we already modified it once already.
-    monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
-    val foo = findFunction(file, "foo")
-
     // Fake a UpToDate Physical Device
     val device1: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device1.isEmulator).thenReturn(false)
-    monitor.liveEditDevices.addDevice(device1, LiveEditStatus.UpToDate)
+    monitor.notifyAppDeploy("app", device1, LiveEditApp(emptySet(), 32), listOf(file)) { true }
 
-    monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file, foo))
+    // Push A.class into the class cache and pretend we already modified it once already.
+    monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
+    monitor.liveEditDevices.update(device1, LiveEditStatus.UpToDate)
+
+    monitor.processChanges(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(0, monitor.numFilesWithCompilationErrors())
 
     val hasPhysicalDevice = usageTracker.usages.any() {
@@ -118,10 +126,14 @@ class LiveEditProjectMonitorTest {
   fun autoModeCompileError() {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
-    var foo = findFunction(file, "foo")
-    monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file, foo))
+    val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
+
+    val device: IDevice = MockitoKt.mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.isEmulator).thenReturn(false)
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+
+    monitor.processChanges(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
@@ -129,12 +141,19 @@ class LiveEditProjectMonitorTest {
   fun autoModeCompileErrorInOtherFile() {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
+    val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
+
+    val device: IDevice = MockitoKt.mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.isEmulator).thenReturn(false)
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+
     var foo = findFunction(file, "foo")
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file, foo))
 
     var file2 = projectRule.fixture.configureByText("B.kt", "fun foo2() {}")
+    ReadAction.run<Throwable>{ monitor.fileEditorOpened(file2) }
     var foo2 = findFunction(file2, "foo2")
     monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file2, foo2))
@@ -208,7 +227,7 @@ class LiveEditProjectMonitorTest {
     }
 
     // Fake Deployment
-    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), { true })
+    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
     monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
     monitor.scheduleErrorPolling(deployer, installer, adb, "some.app")
     taskFinished.await()
@@ -222,30 +241,38 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun nonKotlinClassDiffer() {
+    LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+    val appId = "com.test.app"
     val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.fixture.configureByText("A.java", "class A() { }")
-    val device: IDevice = MockitoKt.mock()
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
-    var latch = CountDownLatch(3)
+    val device: IDevice = MockitoKt.mock()
+    val client: Client = MockitoKt.mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.getClient(appId)).thenReturn(client)
+
+    val ready = CountDownLatch(2)
+    val needUpdate = CountDownLatch(4)
+    val done = CountDownLatch(6)
     val statuses = mutableListOf<LiveEditStatus>()
     monitor.liveEditDevices.addListener {
       statuses.add(it[device]!!)
-      latch.countDown()
+      ready.countDown()
+      needUpdate.countDown()
+      done.countDown()
     }
-    monitor.notifyAppDeploy("com.test.app", device, LiveEditApp(emptySet(), 30)) { true }
+
+    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 30), listOf()) { true }
+    assertTrue(ready.await(5000, TimeUnit.MILLISECONDS))
 
     ReadAction.run<Throwable> {
-      monitor.beforeFileChanged(file)
       monitor.fileChanged(file)
     }
 
-    // Because LE has no protection against a race condition here, we need to ensure the changes are actually queued.
-    assertTrue(latch.await(5000, TimeUnit.MILLISECONDS))
+    assertTrue(needUpdate.await(5000, TimeUnit.MILLISECONDS))
 
-    latch = CountDownLatch(2)
     monitor.onManualLETrigger()
-    assertTrue(latch.await(5000, TimeUnit.MILLISECONDS))
+    assertTrue(done.await(5000, TimeUnit.MILLISECONDS))
     assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN.message))
   }
 }

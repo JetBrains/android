@@ -16,7 +16,15 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.intellij.psi.PsiFile
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 
-data class LiveEditCompilerInput(val file: PsiFile, var element: KtElement?, var parentGroups: List<KtFunction>? = null)
+data class LiveEditCompilerInput(val file: PsiFile,
+                                 val oldState: PsiState,
+                                 var element: KtElement? = null,
+                                 var parentGroups: List<KtFunction>? = null) {
+
+  @VisibleForTesting
+  constructor(file: PsiFile, element: KtElement? = null): this(file, PsiState(file), element)
+}
