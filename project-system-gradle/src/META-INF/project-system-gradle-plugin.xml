@@ -179,6 +179,8 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.GradleManifestEditorProvider"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.actions">
     <exportProjectZipExcludesContributor implementation="com.android.tools.idea.actions.ExportProjectZipExcludesGradleContributor"/>
