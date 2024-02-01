@@ -122,12 +122,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
@@ -290,6 +292,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
     myPreferredAbi.setModel(new DefaultComboBoxModel<>(new String[]{null}));
+    myPreferredAbi.setRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        if (value == null) {
+          setText("Optimal");
+        }
+        return c;
+      }
+    });
     mySelectedSnapshotFileName = getModel().chosenSnapshotFile().get();
     populateSnapshotList();
     refreshSnapshotPullDown();
