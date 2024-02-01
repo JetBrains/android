@@ -618,7 +618,7 @@ internal class DeviceView(
         return
       }
       val c = event.keyChar
-      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+      if (c == CHAR_UNDEFINED || c.isISOControl()) {
         return
       }
       val message = TextInputMessage(c.toString())

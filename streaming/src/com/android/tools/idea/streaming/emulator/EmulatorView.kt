@@ -821,7 +821,7 @@ class EmulatorView(
       }
 
       val c = event.keyChar
-      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+      if (c == CHAR_UNDEFINED || c.isISOControl()) {
         return
       }
 
