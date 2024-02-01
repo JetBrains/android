@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="studio-grpc" level="project" />
   </component>
 </module>

@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
     ],
 )
 
@@ -52,5 +53,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )

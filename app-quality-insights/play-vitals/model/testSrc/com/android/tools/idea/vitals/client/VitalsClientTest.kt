@@ -112,7 +112,7 @@ class VitalsClientTest {
   fun `client returns top cached issues when offline`() = runTest {
     val cache = AppInsightsCacheImpl()
     val grpcClient = TestVitalsGrpcClient() // return empty result for every API call.
-    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
 
     cache.populateIssues(TEST_CONNECTION_1, listOf(TEST_ISSUE1))
 
@@ -175,7 +175,7 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -234,7 +234,7 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -262,6 +262,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
+          ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
 
@@ -311,6 +312,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
+          ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
       val result = client.getIssueDetails(TEST_ISSUE1.id, createIssueRequest(clock = clock))
@@ -342,6 +344,7 @@ class VitalsClientTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
+          ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
         )
       val result = client.listConnections()
@@ -393,7 +396,7 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
 
     // Verify list connections returns expected result
     val result = client.listConnections()

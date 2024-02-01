@@ -24,7 +24,9 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
-import com.google.gct.login.GoogleLogin
+import com.android.tools.idea.vitals.VitalsLoginFeature
+import com.google.gct.login2.GoogleLoginService
+import com.google.gct.login2.LoginFeature
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
@@ -126,10 +128,17 @@ class VitalsTabProvider : AppInsightsTabProvider {
             SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
             null,
           )
-          appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            GoogleLogin.instance.logIn(null, null)
+          if (GoogleLoginService.instance.isLoggedIn()) {
+            appendLine("Authorize", SimpleTextAttributes.LINK_ATTRIBUTES) {
+              LoginFeature.feature<VitalsLoginFeature>().logInAsync()
+            }
+            appendText(" Android Studio to connect to your Play Console account.")
+          } else {
+            appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
+              LoginFeature.feature<VitalsLoginFeature>().logInAsync()
+            }
+            appendText(" to Android Studio to connect to your Play Console account.")
           }
-          appendText(" to Android Studio to connect to your Play Console account.")
           appendLine("")
           appendLine(
             AllIcons.General.ContextHelp,

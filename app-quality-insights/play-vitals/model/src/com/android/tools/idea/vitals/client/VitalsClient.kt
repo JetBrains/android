@@ -44,6 +44,7 @@ import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.runGrpcCatching
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
+import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
 import com.android.tools.idea.vitals.datamodel.DimensionType
@@ -67,7 +68,9 @@ private const val MAX_CONCURRENT_CALLS = 10
 class VitalsClient(
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
-  private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable),
+  private val interceptor: ClientInterceptor,
+  private val grpcClient: VitalsGrpcClient =
+    VitalsGrpcClientImpl.create(parentDisposable, interceptor),
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 

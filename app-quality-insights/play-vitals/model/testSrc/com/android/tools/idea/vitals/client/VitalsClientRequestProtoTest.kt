@@ -66,6 +66,7 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
+          ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 
@@ -134,6 +135,7 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
+          ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 

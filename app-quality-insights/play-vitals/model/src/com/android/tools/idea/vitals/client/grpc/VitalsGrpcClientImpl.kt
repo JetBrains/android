@@ -39,7 +39,6 @@ import com.android.tools.idea.vitals.datamodel.extract
 import com.android.tools.idea.vitals.datamodel.toIssueDetails
 import com.android.tools.idea.vitals.datamodel.toProto
 import com.android.tools.idea.vitals.datamodel.toSampleEvent
-import com.google.gct.login.GoogleLogin
 import com.google.play.developer.reporting.AggregationPeriod
 import com.google.play.developer.reporting.FetchReleaseFilterOptionsRequest
 import com.google.play.developer.reporting.GetErrorCountMetricSetRequest
@@ -243,7 +242,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   companion object {
     private val LOG = Logger.getInstance(VitalsGrpcClientImpl::class.java)
 
-    fun create(parentDisposable: Disposable): VitalsGrpcClientImpl {
+    fun create(parentDisposable: Disposable, interceptor: ClientInterceptor): VitalsGrpcClientImpl {
       application.assertIsNonDispatchThread()
       val address = StudioFlags.PLAY_VITALS_GRPC_SERVER.get()
       LOG.info("Play Vitals gRpc server connected at $address")
@@ -265,7 +264,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 it.shutdownNow()
               }
             },
-        authTokenInterceptor = GoogleLogin.instance.getActiveUserAuthInterceptor(),
+        authTokenInterceptor = interceptor,
       )
     }
   }
