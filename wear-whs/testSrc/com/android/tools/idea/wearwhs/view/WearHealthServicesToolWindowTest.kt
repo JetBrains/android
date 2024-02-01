@@ -30,6 +30,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
@@ -41,7 +42,9 @@ import org.junit.Test
 import java.awt.Dimension
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JTextField
 
 @RunsInEdt
 class WearHealthServicesToolWindowTest {
@@ -117,6 +120,42 @@ class WearHealthServicesToolWindowTest {
       fileNameBase = "screens/whs-panel-state-manager-modified",
       actual = fakeUi.render(),
       maxPercentDifferent = 4.0)
+  }
+
+  @Test
+  fun `test override value doesn't get reformatted from int to float`() = runBlocking {
+    val fakeUi = FakeUi(toolWindow)
+
+    deviceManager.activeExercise = true
+
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    textField.text = "50"
+
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+
+    delay(200) // TODO: Change to 2 times polling interval
+
+    assertThat(textField.text).isNotEqualTo("50.0")
+    assertThat(textField.text).isEqualTo("50")
+  }
+
+  @Test
+  fun `test override value doesn't get reformatted to float if it has f in it`() = runBlocking {
+    val fakeUi = FakeUi(toolWindow)
+
+    deviceManager.activeExercise = true
+
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    textField.text = "50f"
+
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+
+    delay(200) // TODO: Change to 2 times polling interval
+
+    assertThat(textField.text).isNotEqualTo("50.0")
+    assertThat(textField.text).isEqualTo("50f")
   }
 
   @Test

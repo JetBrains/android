@@ -327,7 +327,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
                 }
               })
               stateManager.getState(capability).map { it.capabilityState.overrideValue }.onEach {
-                if (!textField.isFocusOwner) {
+                if (!textField.isFocusOwner && textField.text.toFloatOrNull() != it) {
                   textField.text = it?.toString() ?: ""
                 }
               }.launchIn(uiScope)
