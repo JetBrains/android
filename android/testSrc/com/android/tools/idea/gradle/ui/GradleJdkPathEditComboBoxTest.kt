@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.ui
 
 import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.intellij.icons.AllIcons
@@ -114,7 +113,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
     jdkExtendableText.extensions.first().run {
       val captor: ArgumentCaptor<Consumer<String>> = argumentCaptor()
       mockStatic<SdkConfigurationUtil>().use {
-        getActionOnClick(mock()).run()
+        getActionOnClick().run()
 
         it.verify { SdkConfigurationUtil.selectSdkHome(eq(JavaSdk.getInstance()), captor.capture()) }
         captor.value.consume("/selected/jdk/path")

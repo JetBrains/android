@@ -43,14 +43,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.Dimension
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Dimension
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 
 class GotoDeclarationActionTest {
 
@@ -186,7 +186,7 @@ class GotoDeclarationActionTest {
     val dataContext: DataContext = mock()
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()
-    val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<InputEvent>()
+    val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<MouseEvent>()
     return AnActionEvent(
       inputEvent,
       dataContext,
