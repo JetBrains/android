@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -279,11 +280,19 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public Adb runAdb() throws IOException {
-    return Adb.start(sdk, fileSystem.getHome());
+    return Adb.start(sdk, getAdbEnv());
   }
 
   public Adb runAdb(boolean startServer, String... args) throws IOException {
-    return Adb.start(sdk, fileSystem.getHome(), startServer, args);
+    return Adb.start(sdk, getAdbEnv(), startServer, args);
+  }
+
+  private Map<String, String> getAdbEnv() throws IOException {
+    Map<String, String> env = new HashMap<>();
+    env.put("HOME", fileSystem.getHome().toString());
+    env.put("TMPDIR", Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_server_session_output").toString());
+    env.put("ADB_TRACE", "1");
+    return env;
   }
 
   public void runAdb(Consumer<Adb> callback) throws IOException {
