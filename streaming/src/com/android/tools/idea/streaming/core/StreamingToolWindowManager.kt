@@ -93,6 +93,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.impl.InternalDecorator
+import com.intellij.ui.ComponentUtil
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
@@ -121,6 +123,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
+import java.lang.ref.WeakReference
 import java.text.Collator
 import java.time.Duration
 import java.util.Arrays
@@ -177,8 +180,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val recentAttentionRequests =
       Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
   /** Requested activation levels of AVDs keyed by their IDs. */
-  private val recentEmulatorLaunches =
+  private val recentAvdLaunches =
       Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
+  /** Links pending AVD starts to the content managers that requested them. Keyed by AVD IDs. */
+  private val recentAvdStartRequesters =
+      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, WeakReference<ContentManager>>()
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   @Suppress("UnstableApiUsage")
@@ -371,8 +377,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val content = findContentByAvdId(avdId)
     if (content == null) {
       RunningEmulatorCatalog.getInstance().updateNow()
-      recentEmulatorLaunches.put(avdId, activation)
-      alarm.addRequest(recentEmulatorLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+      recentAvdLaunches.put(avdId, activation)
+      alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
     }
     else {
       content.select()
@@ -476,7 +482,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
     emulators.clear()
     recentAttentionRequests.invalidateAll()
-    recentEmulatorLaunches.invalidateAll()
+    recentAvdLaunches.invalidateAll()
 
     for (contentManager in contentManagers) {
       val panel = contentManager.selectedContent?.component as? StreamingDevicePanel ?: continue
@@ -497,11 +503,21 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
-    addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator))
+    val avdId = emulator.emulatorId.avdFolder.toString()
+    val contentManagerRef = recentAvdStartRequesters.getIfPresent(avdId)
+    if (contentManagerRef != null) {
+      recentAvdStartRequesters.invalidate(avdId)
+    }
+    addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManagerRef?.get())
   }
 
-  private fun addPanel(panel: StreamingDevicePanel) {
-    val contentManager = toolWindow.contentManager
+  /**
+   * Adds a device tab by adding [panel] to [targetContentManager] or to the main tool window
+   * content manager if [targetContentManager] is null. Returns the added [Content] object or null
+   * in case of an error.
+   */
+  private fun addPanel(panel: StreamingDevicePanel, targetContentManager: ContentManager? = null): Content? {
+    val contentManager = targetContentManager ?: toolWindow.contentManager
     val placeholderContent = contentManager.placeholderContent
 
     val contentFactory = ContentFactory.getInstance()
@@ -520,7 +536,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
       if (findContentByDeviceId(panel.id) != null) {
         reportDuplicatePanel(content)
-        return
+        return null
       }
 
       // Add panel to the end.
@@ -532,7 +548,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         index = index.inv()
         if (panel.id == ID_KEY.get(contentManager.contents[index])) {
           reportDuplicatePanel(content)
-          return
+          return null
         }
       }
 
@@ -547,8 +563,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val deviceId = panel.id
       if (deviceId is DeviceId.EmulatorDeviceId) {
         val avdId = deviceId.emulatorId.avdId
-        if (recentEmulatorLaunches.getIfPresent(avdId) != null) {
-          recentEmulatorLaunches.invalidate(avdId)
+        if (recentAvdLaunches.getIfPresent(avdId) != null) {
+          recentAvdLaunches.invalidate(avdId)
           content.select()
         }
       }
@@ -558,6 +574,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       showLiveIndicator()
       placeholderContent.removeAndDispose() // Remove the placeholder panel if it was present.
     }
+
+    return content
   }
 
   private fun reportDuplicatePanel(content: Content) {
@@ -741,10 +759,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun activateMirroring(deviceDescription: DeviceDescription) {
+  private fun activateMirroring(deviceDescription: DeviceDescription, contentManager: ContentManager? = null) {
     val serialNumber = deviceDescription.serialNumber
     if (serialNumber !in deviceClients) {
-      startMirroringIfConfirmed(serialNumber, deviceDescription.handle, deviceDescription.config, ActivationLevel.ACTIVATE_TAB)
+      startMirroringIfConfirmed(
+          serialNumber, deviceDescription.handle, deviceDescription.config, ActivationLevel.ACTIVATE_TAB, contentManager)
     }
   }
 
@@ -764,11 +783,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun startMirroringIfConfirmed(
-      serialNumber: String, handle: DeviceHandle, config: DeviceConfiguration, activation: ActivationLevel) {
+  private fun startMirroringIfConfirmed(serialNumber: String, handle: DeviceHandle, config: DeviceConfiguration,
+                                        activation: ActivationLevel, contentManager: ContentManager? = null) {
     // Reservable devices are assumed to be privacy protected.
     if (deviceMirroringSettings.confirmationDialogShown || handle.reservationAction != null) {
-      startMirroring(serialNumber, handle, config, activation)
+      startMirroring(serialNumber, handle, config, activation, contentManager)
     }
     else if (!mirroringConfirmationDialogShowing) { // Ignore a recursive call inside the dialog's event loop.
       mirroringConfirmationDialogShowing = true
@@ -777,26 +796,28 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       mirroringConfirmationDialogShowing = false
       if (exitCode == MirroringConfirmationDialog.ACCEPT_EXIT_CODE) {
         deviceMirroringSettings.confirmationDialogShown = true
-        startMirroring(serialNumber, handle, config, activation)
+        startMirroring(serialNumber, handle, config, activation, contentManager)
       }
     }
   }
 
-  private fun startMirroring(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration, activation: ActivationLevel) {
+  private fun startMirroring(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration, activation: ActivationLevel,
+                             contentManager: ContentManager? = null) {
     val deviceClient = getOrCreateDeviceClient(serialNumber, deviceHandle, config)
-    startMirroring(serialNumber, deviceClient, deviceHandle, activation)
+    startMirroring(serialNumber, deviceClient, deviceHandle, activation, contentManager)
   }
 
-  private fun startMirroring(serialNumber: String, deviceClient: DeviceClient, deviceHandle: DeviceHandle, activation: ActivationLevel) {
+  private fun startMirroring(serialNumber: String, deviceClient: DeviceClient, deviceHandle: DeviceHandle, activation: ActivationLevel,
+                             contentManager: ContentManager? = null) {
     if (serialNumber in onlineDevices) {
       showLiveIndicator()
       if (contentShown) {
         updateMirroringHandlesFlow()
         deviceClient.establishAgentConnectionWithoutVideoStreamAsync(project) // Start the agent and connect to it proactively.
         val panel = DeviceToolWindowPanel(toolWindow.disposable, project, deviceHandle, deviceClient)
-        addPanel(panel)
-        if (activation >= ActivationLevel.SELECT_TAB) {
-          selectContent(panel, requestFocus = activation >= ActivationLevel.ACTIVATE_TAB)
+        val content = addPanel(panel, contentManager)
+        if (activation >= ActivationLevel.SELECT_TAB && content != null) {
+          content.manager?.setSelectedContent(content, activation >= ActivationLevel.ACTIVATE_TAB)
         }
       }
       else if (activation >= ActivationLevel.SHOW_TOOL_WINDOW) {
@@ -804,12 +825,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         toolWindow.activate(activation)
       }
     }
-  }
-
-  private fun selectContent(panel: DeviceToolWindowPanel, requestFocus: Boolean) {
-    val contentManager = toolWindow.contentManager
-    val content = contentManager.getContent(panel) ?: return
-    contentManager.setSelectedContent(content, requestFocus)
   }
 
   private fun updateMirroringHandlesFlow() {
@@ -1085,7 +1100,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-      activateMirroring(device)
+      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
+      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+      activateMirroring(device, contentManager)
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -1108,6 +1125,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(avd.displayName, null, avd.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
+      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
+      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+      if (contentManager != null) {
+        recentAvdStartRequesters.put(avd.id, WeakReference(contentManager))
+        alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+      }
       toolWindowScope.launch(Dispatchers.IO) {
         val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
         try {
