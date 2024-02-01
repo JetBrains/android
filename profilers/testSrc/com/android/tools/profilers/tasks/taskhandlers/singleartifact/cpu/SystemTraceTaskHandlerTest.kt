@@ -16,6 +16,7 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -30,23 +31,31 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.config.AtraceConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
+import com.jetbrains.rd.generator.nova.PredefinedType
+import io.ktor.util.reflect.instanceOf
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import perfetto.protos.PerfettoConfig
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
 class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
@@ -76,6 +85,54 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
+  }
+
+  @Test
+  fun testGetCpuRecordingConfigDeviceNotSetInProfilers() {
+    // If device is not set in profilers, getCpuRecordingConfig will return AtraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(null, false)
+    mySystemTraceTaskHandlerMock.setupStage()
+    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
+  }
+
+  @Test
+  fun testGetCpuRecordingConfigAtraceLessThanP() {
+    // (withTraceBoxDisabled) If device is set and device level is less than 28, return AtraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
+      createFakeDevice(AndroidVersion.VersionCodes.N), false)
+    mySystemTraceTaskHandlerMock.setupStage()
+    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
+  }
+
+  @Test
+  fun testGetCpuRecordingConfigPerfettoAtleastP() {
+    // (withTraceBoxDisabled) If device is set and device level is greater than 28, return PerfettoSystemTraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
+      createFakeDevice(AndroidVersion.VersionCodes.R), false)
+    mySystemTraceTaskHandlerMock.setupStage()
+    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
+  }
+
+  @Test
+  fun testGetCpuRecordingConfigAtraceLessThanM() {
+    // (withTraceBoxEnabled) If the device is set and device level is less than 23, return AtraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(createFakeDevice(20), true)
+    mySystemTraceTaskHandlerMock.setupStage()
+    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
+  }
+
+  @Test
+  fun testGetCpuRecordingConfigPerfettoWithM() {
+    // (withTraceBoxEnabled) If device is set and device level is greater than 22, return PerfettoSystemTraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
+      createFakeDevice(AndroidVersion.VersionCodes.M), true)
+    mySystemTraceTaskHandlerMock.setupStage()
+    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
   }
 
   @Test
@@ -281,32 +338,41 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
 
   @Test
   fun testSupportsDeviceAndProcessWithTraceboxDisabled() {
-    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager, false)
     val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
-    // System Trace requires device with AndroidVersion P or above if tracebox is disabled.
+    // System Trace requires device with AndroidVersion N or above if tracebox is disabled.
     val mDevice = createDevice(AndroidVersion.VersionCodes.M)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isFalse()
+    var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, false)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(mDevice, process)).isFalse()
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isFalse()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(nDevice, false)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(nDevice, process)).isTrue()
     val oDevice = createDevice(AndroidVersion.VersionCodes.O)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isFalse()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(oDevice, false)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(oDevice, process)).isTrue()
     val pDevice = createDevice(AndroidVersion.VersionCodes.P)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(pDevice, process)).isTrue()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(pDevice, false)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(pDevice, process)).isTrue()
     val qDevice = createDevice(AndroidVersion.VersionCodes.Q)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(qDevice, process)).isTrue()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(qDevice, false)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(qDevice, process)).isTrue()
   }
 
   @Test
   fun testSupportsDeviceAndProcessWithTraceboxEnabled() {
-    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager, true)
     val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
-    // System Trace requires device with AndroidVersion P or above if tracebox is enabled.
+    // System Trace requires device with AndroidVersion M or above if tracebox is enabled.
     val lDevice = createDevice(AndroidVersion.VersionCodes.LOLLIPOP)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(lDevice, process)).isFalse()
+    var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(lDevice, true)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(lDevice, process)).isFalse()
     val mDevice = createDevice(AndroidVersion.VersionCodes.M)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isTrue()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, true)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(mDevice, process)).isTrue()
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, true)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    val rDevice = createDevice(AndroidVersion.VersionCodes.R)
+    mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(rDevice, true)
+    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(rDevice, process)).isTrue()
   }
 
   @Test
@@ -314,8 +380,31 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     assertThat(mySystemTraceTaskHandler.getTaskName()).isEqualTo("System Trace")
   }
 
+  fun mockDeviceInSystemTraceTaskHandler(device: Common.Device?, taskBasedUxEnabled: Boolean): SystemTraceTaskHandler {
+    val profilersNow = spy(StudioProfilers(
+      ProfilerClient(myGrpcChannel.channel),
+      ideProfilerServices,
+      myTimer
+    ))
+    val taskHomeTabModel = spy(profilersNow.taskHomeTabModel)
+    MockitoKt.whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
+    val sessionManagerNow = spy(profilersNow.sessionsManager)
+    MockitoKt.whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
+    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(device)
+    return SystemTraceTaskHandler(sessionManagerNow, taskBasedUxEnabled);
+  }
+
   private fun createDefaultPerfettoTraceConfiguration() = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(
     PerfettoConfig.TraceConfig.getDefaultInstance()).build()
+
+  private fun createFakeDevice(level: Int): Common.Device? {
+    val deviceName = "FakeUnitTestDevice";
+    return Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong())
+      .setSerial(deviceName)
+      .setState(Common.Device.State.ONLINE)
+      .setFeatureLevel(level) // 28 is needed for perfetto
+      .build()
+  }
 
   companion object {
     @JvmStatic

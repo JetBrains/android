@@ -62,7 +62,10 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = CpuTaskArgs(false, artifact as CpuCaptureSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    device.featureLevel >= getCpuRecordingConfig().requiredDeviceLevel
+    this.isDeviceSupported(device, getCpuRecordingConfig())
+
+  protected fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration) =
+     device?.run { featureLevel >= config.requiredDeviceLevel } ?: false
 
   protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration
 }
