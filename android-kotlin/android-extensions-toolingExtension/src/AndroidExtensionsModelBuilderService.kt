@@ -2,7 +2,8 @@
 package org.jetbrains.kotlin.android.synthetic.idea
 
 import org.gradle.api.Project
-import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
+import org.jetbrains.plugins.gradle.tooling.Message
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.Serializable
 
@@ -21,9 +22,15 @@ class AndroidExtensionsGradleModelImpl(
 ) : AndroidExtensionsGradleModel
 
 class AndroidExtensionsModelBuilderService : ModelBuilderService {
-    override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
-        return ErrorMessageBuilder.create(project, e, "Gradle import errors")
-                .withDescription("Unable to build Android Extensions plugin configuration")
+
+    override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
+        context.messageReporter.createMessage()
+          .withGroup(this)
+          .withKind(Message.Kind.WARNING)
+          .withTitle("Gradle import errors")
+          .withText("Unable to build Android Extensions plugin configuration")
+          .withException(exception)
+          .reportMessage(project)
     }
 
     override fun canBuild(modelName: String?): Boolean = modelName == AndroidExtensionsGradleModel::class.java.name
