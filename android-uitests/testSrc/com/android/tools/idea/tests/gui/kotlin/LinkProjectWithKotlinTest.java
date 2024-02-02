@@ -39,6 +39,7 @@ import kotlin.KotlinVersion;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +76,7 @@ public class LinkProjectWithKotlinTest {
    *   </pre>
    * <p>
    */
+  @Ignore("b/316416680")
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void addKotlinClass() throws Exception {

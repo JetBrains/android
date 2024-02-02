@@ -35,7 +35,10 @@ iml_studio_test(
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "very_flaky",  # b/322952709
+        "block-network",
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",

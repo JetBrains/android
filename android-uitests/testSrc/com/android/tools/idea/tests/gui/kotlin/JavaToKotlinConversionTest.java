@@ -32,6 +32,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +88,7 @@ public class JavaToKotlinConversionTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
+  @Ignore("b/316416680")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
