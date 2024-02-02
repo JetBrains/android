@@ -22,12 +22,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An X server potentially backed by Xvfb.
  */
 public class XvfbServer implements Display {
-  private static final String DEFAULT_RESOLUTION = "2560x1600x24";
+  private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
   private static final String XVFB_LAUNCHER = "tools/vendor/google/testing/display/launch_xvfb.sh";
   private static final String FFMPEG = "tools/vendor/google/testing/display/ffmpeg";
@@ -41,8 +42,15 @@ public class XvfbServer implements Display {
 
   private Process recorder;
 
+  private final @NotNull String resolution;
+
   public XvfbServer() throws IOException {
+    this(DEFAULT_RESOLUTION);
+  }
+
+  public XvfbServer(@NotNull String resolution) throws IOException {
     String display = System.getenv("DISPLAY");
+    this.resolution = resolution;
     if (display == null || display.isEmpty()) {
       // If a display is provided use that, otherwise create one.
       this.display = launchUnusedDisplay();
@@ -126,7 +134,7 @@ public class XvfbServer implements Display {
         launcher.toString(),
         display,
         TestUtils.getWorkspaceRoot().toString(),
-        DEFAULT_RESOLUTION
+        resolution
       ).start();
     }
     catch (IOException e) {

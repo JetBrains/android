@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor;
 import com.android.tools.perflogger.Benchmark;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
@@ -98,13 +99,28 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return sdk;
   }
 
+  public static AndroidSystem testDebugStandard(Display display, AndroidStudioFlavor androidStudioFlavor) {
+    try {
+      AndroidSystem system = basic(display, Files.createTempDirectory("root"));
+
+      system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
+      system.install.createFirstRunXml();
+      system.install.createGeneralPropertiesXml();
+
+      return system;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   /**
    * Creates a standard system with a default temp folder
    * that contains a preinstalled version of android studio
    * from the distribution zips. The SDK is set up pointing
    * to the standard prebuilts one.
    */
-  public static AndroidSystem standard(AndroidStudioInstallation.AndroidStudioFlavor androidStudioFlavor) {
+  public static AndroidSystem standard(AndroidStudioFlavor androidStudioFlavor) {
     try {
       AndroidSystem system = basic(Files.createTempDirectory("root"));
 
@@ -120,7 +136,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public static AndroidSystem standard() {
-    return standard(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+    return standard(AndroidStudioFlavor.FOR_EXTERNAL_USERS);
   }
 
   /**
@@ -140,10 +156,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * Creates a system that contains only the sdk installed.
    */
   public static AndroidSystem basic(Path root) throws IOException {
+    return basic(Display.createDefault(), root);
+  }
+
+  public static AndroidSystem basic(Display display, Path root) throws IOException {
     TestFileSystem fileSystem = new TestFileSystem(root);
     AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
 
-    AndroidSystem system = new AndroidSystem(fileSystem, Display.createDefault(), sdk);
+    AndroidSystem system = new AndroidSystem(fileSystem, display, sdk);
 
     sdk.install(system.env);
 
