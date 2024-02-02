@@ -107,7 +107,7 @@ object AgpVersions {
    */
   @Slow
   fun getNewProjectWizardVersions(): Set<AgpVersion> {
-    return getNewProjectWizardVersions(latestKnown = this.latestKnown, availableVersions = getAvailableVersions())
+    return getNewProjectWizardVersions(latestKnown = latestKnown, availableVersions = getAvailableVersions())
   }
 
   @VisibleForTesting
