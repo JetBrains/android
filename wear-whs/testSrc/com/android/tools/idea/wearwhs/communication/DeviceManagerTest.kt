@@ -506,6 +506,31 @@ class DeviceManagerTest {
     assertEquals(expectedIsSupportedBool, isSupported)
   }
 
+  @Test
+  fun `unexpected ADB response results in WHS version being reported as unsupported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("Unexpected response", false)
+  }
+
+  @Test
+  fun `dev whs version code is supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1 minSdk=30 targetSdk=33", true)
+  }
+
+  @Test
+  fun `minimum whs version code is supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1447606 minSdk=30 targetSdk=33", true)
+  }
+
+  @Test
+  fun `whs version codes higher than minimum are supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1448000 minSdk=30 targetSdk=33", true)
+  }
+
+  @Test
+  fun `whs version codes lower than minimum are not supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1417661 minSdk=30 targetSdk=33", false)
+  }
+
   private fun assertExerciseCommandParsesResultsCorrectly(response: String, expected: Boolean) = runTest {
     val queryExerciseStateCommand = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryExerciseStateCommand,
@@ -545,21 +570,6 @@ class DeviceManagerTest {
   @Test
   fun `load active exercise returns false when response is unexpected`() = assertExerciseCommandParsesResultsCorrectly(
     "This is not supposed to happen", false)
-
-  @Test
-  fun `unexpected ADB response results in WHS version being reported as unsupported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly("Unexpected response", false)
-  }
-
-  @Test
-  fun `dev WHS version codes are supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1 minSdk=30 targetSdk=33", true)
-  }
-
-  @Test
-  fun `non dev WHS version codes are not supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1417661 minSdk=30 targetSdk=33", false)
-  }
 
   @Test
   fun `loading capabilities without setting serial number does not result in crash`() = runTest {

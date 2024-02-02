@@ -28,6 +28,7 @@ const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
 const val whsActiveExerciseUri: String = "content://$whsPackage.dev.exerciseinfo"
 const val whsDevVersionCode = 1
+const val whsMinimumVersionCode = 1447606
 val capabilityStatePattern = Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*)")
 val versionCodePattern = Regex("versionCode=(\\d+)")
 val activeExerciseRegex = Regex("active_exercise=(true|false)")
@@ -101,7 +102,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession,
 
       val versionCode: Int? = versionCodePattern.find(output.stdout)?.groupValues?.get(1)?.toInt()
 
-      return versionCode != null && versionCode == whsDevVersionCode
+      return versionCode != null && (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't determine if WHS version is supported", e)
     }
