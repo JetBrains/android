@@ -9,7 +9,6 @@ import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunPr
 
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -55,16 +54,7 @@ class GradleAndroidTestRunConfigurationExecutorProviderTest {
     }
     config.setModule(projectRule.module)
     val env = ExecutionEnvironmentBuilder.create(DefaultRunExecutor.getRunExecutorInstance(), config).build()
-    val originalValue = AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = true
     val runProfileState = config.getState(DefaultRunExecutor.getRunExecutorInstance(), env) as AndroidConfigurationExecutorRunProfileState
     assertThat(runProfileState.executor).isInstanceOf(GradleAndroidTestRunConfigurationExecutor::class.java)
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = false
-    val runProfileState2 = config.getState(DefaultRunExecutor.getRunExecutorInstance(), env) as AndroidConfigurationExecutorRunProfileState
-    assertThat(runProfileState2.executor).isInstanceOf(AndroidTestRunConfigurationExecutor::class.java)
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = originalValue
   }
 }

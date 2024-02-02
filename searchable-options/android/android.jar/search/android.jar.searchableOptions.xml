@@ -1125,15 +1125,6 @@
     <option name="you" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
     <option name="your" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
   </configurable>
-  <configurable id="testing.instrumented.configuration" configurable_name="Testing">
-    <option name="android" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="run" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="tests" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="using" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="testing" hit="Testing" />
-  </configurable>
   <configurable id="live.edit.configurable" configurable_name="Live Edit">
     <option name="" hit="(deprecated) Live Edit of literals" />
     <option name="deprecated" hit="(deprecated) Live Edit of literals" />

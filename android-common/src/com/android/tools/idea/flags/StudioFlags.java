@@ -1158,12 +1158,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> UTP_INSTRUMENTATION_TESTING = Flag.create(
-    TESTING, "utp.instrumentation.testing", "Run instrumentation tests via UTP",
-    "If enabled, a checkbox to opt-in to running instrumentation tests via UTP feature is displayed in the settings.",
-    true
-  );
-
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = Flag.create(
     TESTING, "screenshot.testing", "Run screenshot tests",
     "If enabled, a screenshotTest source set will be added for running screenshot tests",
