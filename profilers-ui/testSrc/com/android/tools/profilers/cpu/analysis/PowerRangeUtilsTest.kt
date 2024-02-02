@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.cpu.analysis
+package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData

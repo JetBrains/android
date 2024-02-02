@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
+package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
@@ -36,7 +36,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItemWithSystemTraceArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
-import com.android.tools.profilers.com.android.tools.profilers.JewelThemedComposableWrapper
+import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel

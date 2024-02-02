@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers
+package com.android.tools.profilers
 
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TooltipView
