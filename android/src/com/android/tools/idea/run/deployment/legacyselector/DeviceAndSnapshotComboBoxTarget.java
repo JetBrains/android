@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.legacyselector;
 
+import static java.util.stream.Collectors.toList;
+
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.DeployTarget;
@@ -72,6 +74,15 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
     return newDeviceFutures(selectedDevices);
   }
 
+  @Override
+  public @NotNull List<AndroidDevice> getAndroidDevices(@NotNull Project project) {
+    List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
+    Set<Target> selectedTargets = myGetSelectedTargets.get(project, devices);
+    Collection<Device> selectedDevices = Target.filterDevices(selectedTargets, devices);
+
+    return selectedDevices.stream().map(Device::androidDevice).collect(toList());
+  }
+
   private static void bootAvailableDevices(@NotNull Collection<Target> selectedTargets,
                                            @NotNull Collection<Device> selectedDevices,
                                            @NotNull Project project) {
@@ -86,7 +97,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<Device> selectedDevices) {
     List<AndroidDevice> devices = selectedDevices.stream()
       .map(Device::getAndroidDevice)
-      .collect(Collectors.toList());
+      .collect(toList());
 
     return new DeviceFutures(devices);
   }

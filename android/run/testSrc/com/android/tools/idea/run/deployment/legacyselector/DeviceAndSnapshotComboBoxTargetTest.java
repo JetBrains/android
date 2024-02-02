@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.run.deployment.legacyselector;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
@@ -23,22 +29,22 @@ import com.android.tools.idea.run.editor.DeployTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceAndSnapshotComboBoxTargetTest {
   @Test
   public void getDevices() {
     // Arrange
-    Target target = Mockito.mock(Target.class);
-    Mockito.when(target.getDeviceKey()).thenReturn(Keys.PIXEL_4_API_30);
+    Target target = mock(Target.class);
+    when(target.getDeviceKey()).thenReturn(Keys.PIXEL_4_API_30);
 
-    Project project = Mockito.mock(Project.class);
-    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    Project project = mock(Project.class);
+    AndroidDevice androidDevice = mock(AndroidDevice.class);
 
     VirtualDevice device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
@@ -46,19 +52,50 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
       .setAndroidDevice(androidDevice)
       .build();
 
-    DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-    Mockito.when(action.getDevices(project)).thenReturn(Optional.of(Collections.singletonList(device)));
+    DeviceAndSnapshotComboBoxAction action = mock(DeviceAndSnapshotComboBoxAction.class);
+    when(action.getDevices(project)).thenReturn(Optional.of(Collections.singletonList(device)));
 
     DeployTarget deployTarget = new DeviceAndSnapshotComboBoxTarget((p, d) -> Collections.singleton(target), () -> action);
 
-    Module module = Mockito.mock(Module.class);
-    Mockito.when(module.getProject()).thenReturn(project);
+    Module module = mock(Module.class);
+    when(module.getProject()).thenReturn(project);
 
     // Act
     Object futures = deployTarget.getDevices(module.getProject());
 
     // Assert
-    Mockito.verify(target).boot(device, project);
+    verify(target).boot(device, project);
     assertEquals(new DeviceFutures(Collections.singletonList(androidDevice)), futures);
+  }
+
+  @Test
+  public void getAndroidDevices() {
+    // Arrange
+    Target target = mock(Target.class);
+    when(target.getDeviceKey()).thenReturn(Keys.PIXEL_4_API_30);
+
+    Project project = mock(Project.class);
+    AndroidDevice androidDevice = mock(AndroidDevice.class);
+
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(Keys.PIXEL_4_API_30)
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    DeviceAndSnapshotComboBoxAction action = mock(DeviceAndSnapshotComboBoxAction.class);
+    when(action.getDevices(project)).thenReturn(Optional.of(Collections.singletonList(device)));
+
+    DeployTarget deployTarget = new DeviceAndSnapshotComboBoxTarget((p, d) -> Collections.singleton(target), () -> action);
+
+    Module module = mock(Module.class);
+    when(module.getProject()).thenReturn(project);
+
+    // Act
+    List<AndroidDevice> devices = deployTarget.getAndroidDevices(module.getProject());
+
+    // Assert
+    verify(target, never()).boot(any(), any());
+    assertThat(devices).containsExactly(androidDevice);
   }
 }

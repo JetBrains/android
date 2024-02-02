@@ -6,6 +6,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
+import com.android.tools.idea.run.AndroidDevice
 
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
@@ -49,6 +50,8 @@ class GradleAndroidTestRunConfigurationExecutorProviderTest {
           override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState) = null
 
           override fun getDevices(project: Project) = DeviceFutures.forDevices(listOf(mock<IDevice>()))
+
+          override fun getAndroidDevices(project: Project): List<AndroidDevice> = throw UnsupportedOperationException()
         }
       }
     }
