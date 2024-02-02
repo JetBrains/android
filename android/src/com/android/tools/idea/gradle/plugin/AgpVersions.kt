@@ -138,10 +138,4 @@ object AgpVersions {
       .flatMap { MavenRepositories.getAllVersions(it.toPath(), AGP_APP_PLUGIN_MARKER.module) }
       .mapNotNullTo(mutableListOf()) { AgpVersion.tryParse(it.toString()) }
   }
-
-  @Slow
-  fun onlyAvailableInDevelopmentOfflineRepo(version: AgpVersion): Boolean {
-    return getDevelopmentLocalRepoVersions().contains(version) && !IdeGoogleMavenRepository.getAgpVersions().contains(version)
-  }
-
 }

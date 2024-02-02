@@ -20,9 +20,11 @@ import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.gradle.Module;
 import com.android.ide.common.repository.AgpVersion;
+import com.android.ide.common.repository.MavenRepositories;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AgpVersions;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -38,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,10 +62,22 @@ public class EmbeddedDistributionPaths {
   public List<File> getNewProjectLocalMavenRepos(AgpVersion agpVersion) {
     // Only include the local repositories if the supplied version is not available in gmaven
     // but is available in the local development repos
-    if (AgpVersions.INSTANCE.onlyAvailableInDevelopmentOfflineRepo(agpVersion)) {
+    if (onlyAvailableInDevelopmentOfflineRepo(agpVersion)) {
       return doFindAndroidStudioLocalMavenRepoPaths();
     }
     return ImmutableList.of();
+  }
+
+  private static final Module AGP_PLUGIN_MARKER_MODULE = new Module("com.android.application", "com.android.application.gradle.plugin");
+  private boolean onlyAvailableInDevelopmentOfflineRepo(AgpVersion agpVersion) {
+    List<File> localMavenRepoPaths = findAndroidStudioLocalMavenRepoPaths();
+    List<AgpVersion> localVersions = localMavenRepoPaths
+      .stream()
+      .flatMap(p -> MavenRepositories.getAllVersions(p.toPath(), AGP_PLUGIN_MARKER_MODULE).stream())
+      .map(v -> AgpVersion.tryParse(v.toString()))
+      .filter(Objects::nonNull)
+      .toList();
+    return localVersions.contains(agpVersion) && !IdeGoogleMavenRepository.INSTANCE.getAgpVersions().contains(agpVersion);
   }
 
   @VisibleForTesting
