@@ -48,7 +48,6 @@
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/network-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>

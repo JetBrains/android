@@ -36,7 +36,6 @@
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.dagger" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.testRetention" scope="RUNTIME" />
     <orderEntry type="module" module-name="app-inspection.inspectors.network.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.debuggers" scope="RUNTIME" />
