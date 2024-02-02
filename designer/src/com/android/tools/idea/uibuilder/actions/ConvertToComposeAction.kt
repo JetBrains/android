@@ -189,19 +189,14 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 }
 
 /**
- * Takes a list of strings returned by Studio Bot and returns the content without metadata or
- * formatting.
+ * Takes a list of strings returned by Studio Bot, filters out chunks of code (in Kotlin or an
+ * unspecified language), and returns the content without metadata or formatting.
  *
  * See `LlmService#sendQuery` documentation for details about StudioBot's response formatting.
  */
 private fun List<String>.parseCode(): String {
   val kotlinPattern = "```kotlin\n"
   val textPattern = "```\n"
-  return joinToString("\n") {
-    if (it.startsWith(kotlinPattern) || it.startsWith(textPattern)) {
-      it.substringAfter("\n").trim('`')
-    } else {
-      ""
-    }
-  }
+  return filter { it.startsWith(kotlinPattern) || it.startsWith(textPattern) }
+    .joinToString("\n") { it.substringAfter("\n").trim('`') }
 }
