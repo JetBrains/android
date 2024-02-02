@@ -19,6 +19,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.idea.kdoc.each
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
@@ -28,6 +29,16 @@ internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableI
   val psiState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(ktFile) }
   return compile(listOf(LiveEditCompilerInput(ktFile, psiState)), irClassCache)
 }
+
+internal fun compile(vararg files: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()) : LiveEditCompilerOutput {
+  return compile( files.map { LiveEditCompilerInput(it as KtFile, it) }, irClassCache)
+}
+
+internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
+  compile(file!!, findFunction(file, functionName), irClassCache)
+
+internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
+  compile(listOf(LiveEditCompilerInput(file, function)), irClassCache)
 
 internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val compiler = LiveEditCompiler(inputs.first().file.project, irClassCache)

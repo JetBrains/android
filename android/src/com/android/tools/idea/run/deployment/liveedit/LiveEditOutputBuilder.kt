@@ -28,7 +28,10 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.charts.enumerator
 import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
+import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
 import org.jetbrains.kotlin.idea.base.psi.getLineEndOffset
 import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
 import org.jetbrains.kotlin.idea.base.util.module
@@ -134,6 +137,13 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       validator.modifiedMethods
     }
 
+    if (classType == LiveEditClassType.SUPPORT_CLASS && isWhenMapping(newClass)) {
+      if (modifiedMethods.any {it.name.equals("<clinit>")}) {
+        throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                      "Changing `when` on enum code path in ${newClass.sourceFile}", sourceFile, null)
+      }
+    }
+
     val modifiedIrMethods = mutableListOf<IrMethod>()
     for (methodDiff in modifiedMethods) {
       // Map each method diff to the IR
@@ -210,7 +220,28 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
   //   - inner classes (class is contained in a class or method)
   //   - that implement a single interface
   //   - that implement exactly one public method
-  return clazz.enclosingMethod != null && clazz.interfaces.size == 1 && clazz.methods.singleOrNull(::isPublicSAMMethod) != null
+  if (clazz.enclosingMethod != null && clazz.interfaces.size == 1 && clazz.methods.singleOrNull(::isPublicSAMMethod) != null) {
+    return true
+  }
+
+  // Check for WhenMapping.
+  if (isWhenMapping(clazz)) {
+    return true
+  }
+
+  return false;
+}
+
+/**
+ * Kotlin compiler generates a synthetic mapping class when the code contains a 'when' on an enum type.
+ *
+ * This class only contain a static int[] that maps the enum's ordinate to an int that represent a control flow branch in the body.
+ * Therefore, when the branching is changed, we need to update that mapping. However, since we can't rerun the <clinit> this is
+ * impossible for now. We can tree WhenMappings just like any helper class and allow adding of new mappings but as long as existing
+ * mapping is changed, we will need to go into unsupported state.
+ */
+private fun isWhenMapping(clazz: IrClass) : Boolean {
+  return clazz.name.endsWith(MAPPINGS_CLASS_NAME_POSTFIX) && clazz.fields.all { it.name.startsWith(MAPPING_ARRAY_FIELD_PREFIX)}
 }
 
 

@@ -99,6 +99,14 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileIr(inputFiles: List<KtF
  */
 fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFile: KtFile) = directApiCompile(listOf(inputFile))
 
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFiles: List<KtFile>): HashMap<String, ByteArray> {
+  val result = HashMap<String, ByteArray>()
+  directApiCompile(inputFiles).forEach {
+    result[IrClass(it).name] = it
+  }
+  return result
+}
+
 /**
  * Compile the given files without calling into [LiveEditCompiler]. Should only be used to set up for tests.
  */

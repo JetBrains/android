@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.diff
-import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit

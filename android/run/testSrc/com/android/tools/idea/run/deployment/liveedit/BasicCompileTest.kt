@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
@@ -321,5 +322,85 @@ class BasicCompileTest {
     }
   }
 
+  @Test
+  fun `Modify when Mapping`() {
+    val enumDef = projectRule.createKtFile("Food.kt", """
+      enum class Food { Pizza, Donuts }
+    """)
+
+    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+      fun getUnits(food: Food) : String {
+        return when (food) {
+          Food.Pizza -> "slices"
+          Food.Donuts -> "dozens"
+        }
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(enumDef, file))
+
+    projectRule.modifyKtFile(file, """
+      fun getUnits(food: Food) : String {
+        return when (food) {
+          Food.Donuts -> "x"
+          Food.Pizza -> "y"
+        }
+      }
+    """)
+
+    try {
+      compile(file, cache)
+      fail("Expected exception due to modified constructor")
+    } catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertContains(e.details, "Changing `when` on enum code path")
+    }
+  }
+
+  @Test
+  fun `Adding new WithMapping`() {
+    val enumDef = projectRule.createKtFile("Food.kt", """
+      enum class Food { Pizza, Donuts }
+    """)
+
+    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+      fun getUnits(food: Food) : String {
+        var suffix = when (food) {
+          Food.Pizza -> "!!"
+          Food.Donuts -> "!!!!!"
+        }
+        return suffix
+      }
+
+       fun getMessage(): String {
+          return getUnits(Food.Pizza)
+       }
+    """)
+    val cache = projectRule.initialCache(listOf(enumDef, file))
+
+    projectRule.modifyKtFile(file, """
+      fun getUnits(food: Food) : String {
+        var suffix = when (food) {
+          Food.Pizza -> "!!"
+          Food.Donuts -> "!!!!!"
+        }
+
+        return when (food) {
+          Food.Pizza -> "slices"
+          Food.Donuts -> "dozens"
+        } + suffix
+      }
+
+       fun getMessage(): String {
+          return getUnits(Food.Pizza)
+       }
+    """)
+
+    val output = compile(file, irClassCache = cache)
+    var apk = projectRule.directApiCompileByteArray(listOf(enumDef, file))
+
+    Assert.assertTrue(output.classesMap["ModifyWhenMappingKt"]!!.isNotEmpty())
+    val returnedValue = invokeStatic("getMessage", loadClass(output, extraClasses = apk))
+    Assert.assertEquals("slices!!", returnedValue)
+  }
 
 }
