@@ -202,6 +202,7 @@
         "wear": {
           "button-1.svg": "studio/icons/emulator/wear/button-1.svg",
           "button-2.svg": "studio/icons/emulator/wear/button-2.svg",
+          "health-services.svg": "studio/icons/emulator/wear/health-services.svg",
           "palm.svg": "studio/icons/emulator/wear/palm.svg",
           "tilt.svg": "studio/icons/emulator/wear/tilt.svg"
         }

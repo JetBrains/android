@@ -279,6 +279,7 @@ public final class StudioIcons {
     public static final class Wear {
       /** 16x16 */ public static final @NotNull Icon BUTTON_1 = load("studio/icons/emulator/wear/button-1.svg", -592773138, 2);
       /** 16x16 */ public static final @NotNull Icon BUTTON_2 = load("studio/icons/emulator/wear/button-2.svg", -1802564626, 2);
+      /** 16x16 */ public static final @NotNull Icon HEALTH_SERVICES = load("studio/icons/emulator/wear/health-services.svg", 386899898, 2);
       /** 16x16 */ public static final @NotNull Icon PALM = load("studio/icons/emulator/wear/palm.svg", -1981716285, 2);
       /** 16x16 */ public static final @NotNull Icon TILT = load("studio/icons/emulator/wear/tilt.svg", -296893865, 2);
     }
