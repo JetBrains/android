@@ -187,6 +187,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       val ndkModel = NdkModuleModel.get(facet.holderModule)
       var buildSystemType = NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE
       var moduleName = ""
+      var ndkVersion = ""
       if (ndkModel != null) {
         shouldReportNative = true
         if (ndkModel.features.isBuildSystemNameSupported) {
@@ -197,10 +198,14 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
           buildSystemType = NativeBuildSystemType.GRADLE_EXPERIMENTAL
         }
         moduleName = AnonymizerUtil.anonymizeUtf8(ndkModel.moduleName)
+        ndkVersion = ndkModel.ndkVersion
       }
       if (shouldReportNative) {
         val nativeModule = GradleNativeAndroidModule.newBuilder()
-        nativeModule.setModuleName(moduleName).buildSystemType = buildSystemType
+        nativeModule
+          .setModuleName(moduleName)
+          .setBuildSystemType(buildSystemType)
+          .setNdkVersion(ndkVersion)
         gradleNativeAndroidModules.add(nativeModule.build())
       }
     }
