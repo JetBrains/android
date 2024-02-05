@@ -47,7 +47,7 @@ public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsag
     if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, caseSensitive)) {
       String name = property.getName();
       return SDK_DIR_PROPERTY.equals(name) || "ndk.dir".equals(name) || "android.dir".equals(name) || "cmake.dir".equals(name)
-             || "cxx.cache.dir".equals(name) || "ndk.symlinkdir".equals(name);
+             || "ndk.symlinkdir".equals(name);
     }
 
     return false;
