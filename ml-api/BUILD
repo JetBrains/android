@@ -7,5 +7,9 @@ iml_module(
     iml_files = ["intellij.android.ml-api.iml"],
     resources = ["src/resources"],
     visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
 )

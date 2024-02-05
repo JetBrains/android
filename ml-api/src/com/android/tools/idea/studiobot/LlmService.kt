@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.intellij.lang.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.jetbrains.annotations.ApiStatus.Experimental
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 interface LlmService {
   /**
@@ -41,16 +43,18 @@ interface LlmService {
    * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
    * generateCode endpoint.
    *
-   * Restrictions that can be relaxed in the future:
-   *    * This must only be called if [StudioBot.isContextAllowed] is true.
-   *    * The generated code will be in kotlin. This can be easily changed if generation in other languages is desired.
-   * Returns a single string, expected to contain the generated code.
+   * Currently, this API must only be called if [StudioBot.isContextAllowed] is true.
+   *
+   * @param prompt The prompt to generate code for.
+   * @param nSamples The number of samples to generate.
+   * @param language The language in which the code should be generated, one of [JavaLanguage.INSTANCE] or [KotlinLanguage.INSTANCE]
+   * @return a list of generated code samples. The list may contain up to [nSamples] elements.
    */
   @Experimental
-  suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, source: StudioBot.RequestSource): String
+  suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, nSamples: Int = 4, language: Language = KotlinLanguage.INSTANCE): List<String>
 
   open class StubLlmService : LlmService {
     override suspend fun sendQuery(request: AiExcludeService.ValidatedQuery, source: StudioBot.RequestSource): Flow<String> = emptyFlow()
-    override suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, source: StudioBot.RequestSource) = ""
+    override suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, nSamples: Int, language: Language) = listOf<String>()
   }
 }
