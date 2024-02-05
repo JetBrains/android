@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.AdaptiveIconShape;
 import com.android.tools.configurations.Configuration;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,11 @@ public class ShapeMenuAction extends DropDownAction {
     Configuration configuration = Iterables.getFirst(configurations, null);
     AdaptiveIconShape shape = configuration != null ? configuration.getAdaptiveShape() : AdaptiveIconShape.getDefaultShape();
     e.getPresentation().setText(shape.getName());
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -34,6 +34,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -173,6 +174,11 @@ public class LocaleMenuAction extends DropDownAction {
     updatePresentation(e);
   }
 
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   private void updatePresentation(@NotNull AnActionEvent e) {
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     if (configurations == null) {
@@ -220,6 +226,11 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       super.actionPerformed(event);
       updateActions(event.getDataContext());
@@ -252,7 +263,7 @@ public class LocaleMenuAction extends DropDownAction {
     }
   }
 
-  private class EditTranslationAction extends AnAction {
+  private static class EditTranslationAction extends AnAction {
 
     public EditTranslationAction() {
       super("Edit Translations...", null, null);

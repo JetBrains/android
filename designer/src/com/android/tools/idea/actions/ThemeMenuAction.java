@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -59,6 +60,11 @@ public class ThemeMenuAction extends DropDownAction {
   @Override
   public boolean displayTextInToolbar() {
     return true;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   private void updatePresentation(@NotNull AnActionEvent e) {
@@ -251,10 +257,15 @@ public class ThemeMenuAction extends DropDownAction {
         ThemeUtils.addRecentlyUsedTheme(project, myTheme);
       }
     }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   @VisibleForTesting
-  public class MoreThemesAction extends DumbAwareAction {
+  public static class MoreThemesAction extends DumbAwareAction {
 
     public MoreThemesAction() {
       super("More Themes...");
@@ -277,6 +288,11 @@ public class ThemeMenuAction extends DropDownAction {
           }
         }
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 }

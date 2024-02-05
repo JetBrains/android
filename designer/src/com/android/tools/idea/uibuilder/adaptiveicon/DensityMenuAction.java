@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,11 @@ public class DensityMenuAction extends DropDownAction {
         break;
       }
     }
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

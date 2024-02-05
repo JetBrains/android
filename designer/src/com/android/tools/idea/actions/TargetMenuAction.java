@@ -27,6 +27,7 @@ import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -82,6 +83,11 @@ public class TargetMenuAction extends DropDownAction {
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
     }
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
@@ -278,6 +284,11 @@ public class TargetMenuAction extends DropDownAction {
       Presentation presentation = event.getPresentation();
       Toggleable.setSelected(presentation, isSelected());
     }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   @VisibleForTesting
@@ -335,6 +346,11 @@ public class TargetMenuAction extends DropDownAction {
       IAndroidTarget current = config.getTarget();
       boolean selected = !myDefaultSelectable && current != null && myTarget.getVersion().equals(current.getVersion());
       Toggleable.setSelected(e.getPresentation(), selected);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override
