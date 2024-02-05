@@ -1798,13 +1798,13 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.enabled",
                     "Enable the custom transform action in the editor.",
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
-                    ChannelDefault.of(false).withOverride(true, CANARY));
+                    ChannelDefault.of(false).withOverride(true, DEV));
 
   public static final Flag<Boolean> STUDIOBOT_USE_FACTS_FOR_CONTEXT =
     new BooleanFlag(STUDIOBOT, "chat.use.facts.for.context",
                     "Use retrieval augmentation facts to attach context to queries.",
                     "When enabled, project context is attached to queries using facts, instead of prepending them directly to the query string.",
-                    ChannelDefault.of(false).withOverride(true, CANARY));
+                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
   // endregion STUDIO_BOT
 
