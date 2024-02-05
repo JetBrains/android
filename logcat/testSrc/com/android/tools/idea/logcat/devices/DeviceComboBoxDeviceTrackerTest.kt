@@ -20,6 +20,7 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
@@ -47,9 +48,12 @@ class DeviceComboBoxDeviceTrackerTest {
   private val deviceProvisioner
     get() = deviceProvisionerRule.deviceProvisioner
 
-  private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1")
-  private val device2 = TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2")
-  private val emulator1 = TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1")
+  private val device1 =
+    TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1", type = DeviceType.HANDHELD)
+  private val device2 =
+    TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2", type = DeviceType.WEAR)
+  private val emulator1 =
+    TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1", type = DeviceType.AUTOMOTIVE)
 
   @Test
   fun initialDevices(): Unit = runBlockingWithTimeout {
