@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.editors;
 
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
 import java.util.Arrays;
@@ -31,6 +34,10 @@ import static com.android.SdkConstants.*;
 public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsageProvider {
   @Override
   public boolean isUsed(Property property) {
+    Project project = property.getProject();
+    if (!(ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem)) {
+      return false;
+    }
     PsiFile file = property.getContainingFile();
     boolean caseSensitive = file.getViewProvider().getVirtualFile().isCaseSensitive();
     if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, caseSensitive)) {
