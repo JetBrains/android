@@ -46,10 +46,10 @@ import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import java.awt.Insets
@@ -59,10 +59,10 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEdit
   val liveEditService = LiveEditService.getInstance(project)
   val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
   if (editor != null) {
-    val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+    val file = FileDocumentManager.getInstance().getFile(editor.document)
     if (!project.isInitialized ||
-        psiFile == null ||
-        !psiFile.virtualFile.isKotlinFileType() ||
+        file == null ||
+        !file.isKotlinFileType() ||
         !editor.document.isWritable) {
       return LiveEditStatus.Disabled
     }
