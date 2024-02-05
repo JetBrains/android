@@ -204,7 +204,7 @@ public final class VirtualDevice implements Device {
   }
 
   @NotNull
-  Optional<VirtualDeviceName> nameKey() {
+  public Optional<VirtualDeviceName> nameKey() {
     return Optional.ofNullable(myNameKey);
   }
 
