@@ -201,13 +201,18 @@ class DeviceHandleAndroidDevice(
     getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
     supportedAbis: MutableSet<Abi>
   ): LaunchCompatibility {
-    deviceHandle.state.error?.let {
-      when (it.severity) {
-        DeviceError.Severity.ERROR ->
-          return LaunchCompatibility(LaunchCompatibility.State.ERROR, it.message)
-        DeviceError.Severity.WARNING ->
-          return LaunchCompatibility(LaunchCompatibility.State.WARNING, it.message)
-        DeviceError.Severity.INFO -> {}
+    // If the device is running, assume that these errors don't matter.
+    if (!isRunning) {
+      deviceHandle.state.error?.let {
+        when (it.severity) {
+          DeviceError.Severity.ERROR ->
+            return LaunchCompatibility(LaunchCompatibility.State.ERROR, it.message)
+
+          DeviceError.Severity.WARNING ->
+            return LaunchCompatibility(LaunchCompatibility.State.WARNING, it.message)
+
+          DeviceError.Severity.INFO -> {}
+        }
       }
     }
     return LaunchCompatibility.canRunOnDevice(
