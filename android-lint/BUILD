@@ -57,6 +57,9 @@ iml_module(
         "AndroidLintGradleTest": {
             "test_filter": "com.android.tools.idea.lint.AndroidLintGradleTest",
         },
+        "AndroidLintIdeProjectGradleIntegrationTest": {
+            "test_filter": "com.android.tools.idea.lint.AndroidLintIdeProjectGradleIntegrationTest",
+        },
         "other": {},
     },
     test_class = "com.android.tools.idea.lint.AndroidLintTestSuite",
