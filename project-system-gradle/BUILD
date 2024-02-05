@@ -204,6 +204,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties[test]",
     ],
 )
 

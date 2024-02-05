@@ -644,10 +644,6 @@
 
   </extensions>
 
-  <extensions defaultExtensionNs="com.intellij.properties">
-    <implicitPropertyUsageProvider implementation="com.android.tools.idea.editors.GradleImplicitPropertyUsageProvider"/>
-  </extensions>
-
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <classImportFilter implementation="com.android.tools.idea.res.NestedResourceClassImportFilter"/>
     <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>

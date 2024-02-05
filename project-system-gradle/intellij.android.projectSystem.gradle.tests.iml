@@ -54,5 +54,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-properties" level="project" />
   </component>
 </module>
