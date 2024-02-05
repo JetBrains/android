@@ -222,13 +222,6 @@ class ProjectDumper(
 
   fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
 
-  fun replaceToolsVersion(id: String, version: String?): String? {
-    if (id.startsWith("com.android.tools")) {
-      return version?.replaceKnownPaths()
-    }
-    return version
-  }
-
   fun appendLine(data: String) {
     output.append(currentNestingPrefix)
     output.appendLine(data.trimEnd())
