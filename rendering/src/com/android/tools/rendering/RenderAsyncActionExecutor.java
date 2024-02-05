@@ -190,6 +190,8 @@ public interface RenderAsyncActionExecutor {
     // Topic used by default when the tool/context doesn't specify one.
     NOT_SPECIFIED("Not specified", 100),
     COMPOSE_PREVIEW("Compose preview", 100),
+    WEAR_TILE_PREVIEW("Wear tile preview", 100),
+    GLANCE_PREVIEW("Glance preview", 100),
     VISUAL_LINT("Visual lint", 1);
 
     private final String myName;

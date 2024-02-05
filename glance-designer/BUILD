@@ -22,6 +22,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -52,5 +53,6 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )

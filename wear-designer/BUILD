@@ -20,6 +20,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 

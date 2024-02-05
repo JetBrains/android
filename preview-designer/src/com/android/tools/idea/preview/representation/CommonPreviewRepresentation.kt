@@ -26,12 +26,14 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
@@ -56,6 +58,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -75,14 +78,17 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PreviewElement>("PreviewElement")
@@ -101,11 +107,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     (
       previewView: PreviewView,
       projectBuildStatusManager: ProjectBuildStatusManager,
+      refreshManager: PreviewRefreshManager,
       project: Project,
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
       hasRenderErrors: () -> Boolean,
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
+  renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
 ) :
   PreviewRepresentation,
@@ -165,6 +173,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
             setUseCustomInflater(useCustomInflater)
             setShrinkRendering(true)
+            setRenderingTopic(renderingTopic)
           }
         }
         .setInteractionHandlerProvider {
@@ -187,8 +196,20 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private val surface: NlDesignSurface
     get() = previewView.surface
 
-  private val previewViewModel: CommonPreviewViewModel =
-    viewModelConstructor(previewView, projectBuildStatusManager, project, psiFilePointer) {
+  /** Whether the preview needs a full refresh or not. */
+  private val invalidated = AtomicBoolean(true)
+
+  private val refreshManager = PreviewRefreshManager.getInstance(renderingTopic)
+
+  @VisibleForTesting
+  val previewViewModel: CommonPreviewViewModel =
+    viewModelConstructor(
+      previewView,
+      projectBuildStatusManager,
+      refreshManager,
+      project,
+      psiFilePointer,
+    ) {
       surface.sceneManagers.any { it.renderResult.isErrorResult(adapterViewFqcn) }
     }
 
@@ -209,14 +230,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     }
   private var renderedElements: List<T> = emptyList()
 
-  // TODO(b/239802877): We need to cover the case where the RefreshRequest with invalidate=true gets
-  // called but also gets cancelled early (because of the next RefreshRequest gets collected) and
-  // the "invalidate" action does not happen. In that case all the next requests should be with
-  // invalidate=true no matter what until any of them succeeds.
-  private class RefreshRequest(val invalidate: Boolean)
-
-  private val refreshFlow: MutableStateFlow<RefreshRequest> = MutableStateFlow(RefreshRequest(true))
-
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
       override fun createDataContext(previewElement: T) =
@@ -231,9 +244,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           }
         }
     }
-
-  private fun requestRefresh(invalidate: Boolean = true) =
-    launch(workerThread) { refreshFlow.emit(RefreshRequest(invalidate)) }
 
   private fun onInit() {
     LOG.debug("onInit")
@@ -296,11 +306,12 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   }
 
   private fun createRefreshJob(
-    invalidate: Boolean,
+    request: CommonPreviewRefreshRequest,
     refreshProgressIndicator: BackgroundableProcessIndicator,
+    invalidateIfCancelled: AtomicBoolean,
   ) =
     launchWithProgress(refreshProgressIndicator, uiThread) {
-      val requestLogger = LoggerWithFixedInfo(LOG, mapOf())
+      val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to request.requestId))
 
       if (DumbService.isDumb(project)) {
         return@launchWithProgress
@@ -325,7 +336,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
           }
 
-        val needsFullRefresh = invalidate || renderedElements != filePreviewElements
+        val needsFullRefresh =
+          invalidated.getAndSet(false) || renderedElements != filePreviewElements
+        invalidateIfCancelled.set(needsFullRefresh)
 
         previewViewModel.setHasPreviews(filePreviewElements.isNotEmpty())
         if (!needsFullRefresh) {
@@ -358,7 +371,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       }
     }
 
-  fun createRefreshJob(invalidate: Boolean): Job? {
+  private fun createRefreshJob(request: CommonPreviewRefreshRequest): Job {
     val startTime = System.nanoTime()
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(
@@ -368,16 +381,50 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         "",
         true,
       )
-    if (!Disposer.tryRegister(this, refreshProgressIndicator)) return null
+    if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
+      refreshProgressIndicator.processFinish()
+      return CompletableDeferred<Unit>().also {
+        it.completeExceptionally(IllegalStateException("Already disposed"))
+      }
+    }
 
-    val refreshJob = createRefreshJob(invalidate, refreshProgressIndicator)
-
+    val invalidateIfCancelled = AtomicBoolean(false)
+    val refreshJob = createRefreshJob(request, refreshProgressIndicator, invalidateIfCancelled)
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
+      if (it is CancellationException && invalidateIfCancelled.get()) {
+        invalidate()
+      }
       Disposer.dispose(refreshProgressIndicator)
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
+  }
+
+  private fun requestRefresh(onRefreshCompleted: CompletableDeferred<Unit>? = null) {
+    if (!lifecycleManager.isActive()) {
+      onRefreshCompleted?.completeExceptionally(IllegalStateException("Not active"))
+      return
+    }
+    val request =
+      CommonPreviewRefreshRequest(
+        clientId = this@CommonPreviewRepresentation.hashCode().toString(),
+        delegateRefresh = { createRefreshJob(it as CommonPreviewRefreshRequest) },
+        onRefreshCompleted = onRefreshCompleted,
+      )
+    refreshManager.requestRefresh(request)
+  }
+
+  private suspend fun invalidateAndRefresh() {
+    CompletableDeferred<Unit>().let {
+      invalidate()
+      requestRefresh(it)
+      it.join()
+    }
+  }
+
+  private fun invalidate() {
+    invalidated.set(true)
   }
 
   override val component: JComponent
@@ -411,12 +458,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private fun CoroutineScope.initializeFlows() {
     with(this@initializeFlows) {
       // Launch all the listeners that are bound to the current activation.
-      launch(workerThread) {
-        // TODO(b/239802877): We can optimize this with collectLatest (cancelling the previous) but
-        // we need to do it carefully.
-        refreshFlow.collect { createRefreshJob(it.invalidate)?.join() }
-      }
-
       launch(workerThread) {
         smartModeFlow(project, this@CommonPreviewRepresentation, LOG).collectLatest {
           onEnterSmartMode()
@@ -484,7 +525,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
       is PreviewMode.Default -> {
-        createRefreshJob(invalidate = true)?.join()
+        invalidateAndRefresh()
         surface.repaint()
       }
       is PreviewMode.Interactive -> {
@@ -498,7 +539,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private suspend fun startInteractivePreview(element: PreviewElement) {
     LOG.debug("Starting interactive preview mode on: $element")
     singleElementFlow.value = element as T
-    createRefreshJob(invalidate = true)?.join()
+    invalidateAndRefresh()
     interactiveManager.start()
     ActivityTracker.getInstance().inc()
   }
@@ -507,7 +548,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     LOG.debug("Stopping interactive preview mode")
     singleElementFlow.value = null
     interactiveManager.stop()
-    createRefreshJob(invalidate = true)?.join()
+    invalidateAndRefresh()
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {

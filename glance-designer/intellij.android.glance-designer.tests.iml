@@ -23,6 +23,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
+    <orderEntry type="library" name="mockito" level="project" scope="TEST"/>
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.glance-designer" />
 </module>
