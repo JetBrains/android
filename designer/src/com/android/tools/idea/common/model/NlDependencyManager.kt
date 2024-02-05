@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.components.Service
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -36,6 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * This class acts as an abstraction layer between Layout Editor component and the build system to
  * manage dependencies required by the provided [NlComponent]
  */
+@Service
 class NlDependencyManager private constructor() {
 
   companion object {

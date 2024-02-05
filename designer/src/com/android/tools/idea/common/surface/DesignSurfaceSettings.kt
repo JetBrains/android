@@ -18,6 +18,8 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
@@ -27,7 +29,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
-@State(name = "DesignSurface", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)])
+@Service(Service.Level.PROJECT)
+@State(
+  name = "DesignSurface",
+  storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE, roamingType = RoamingType.DISABLED)],
+)
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()

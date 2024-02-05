@@ -28,6 +28,7 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.psi.impl.DebugUtil.sleep
 import com.intellij.testFramework.PlatformTestUtil
 
 /**
@@ -147,7 +148,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     component.setPosition(100, 200)
     var algorithm = createAlgorithm(model)
     algorithm.save(component)
-    PlatformTestUtil.saveProject(project)
+    PlatformTestUtil.saveProject(project, true)
 
     assertTrue(
       LocalFileSystem.getInstance().findFileByPath(project.basePath!! + "/.idea/navEditor.xml")!!

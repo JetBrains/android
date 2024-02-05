@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.RoamingType;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Transient;
@@ -27,8 +29,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The settings which are shared by all projects for visualization (a.k.a. Layout Validation) tool.
  */
-@State(name = "VisualizationTool", storages = @Storage("visualizationTool.xml"))
-public class VisualizationToolSettings implements PersistentStateComponent<VisualizationToolSettings.MyState> {
+@Service
+@State(name = "VisualizationTool", storages = @Storage(value = "visualizationTool.xml", roamingType = RoamingType.DISABLED))
+public final class VisualizationToolSettings implements PersistentStateComponent<VisualizationToolSettings.MyState> {
   private GlobalState myGlobalState = new GlobalState();
 
   public static VisualizationToolSettings getInstance() {

@@ -28,7 +28,6 @@ import com.android.tools.idea.naveditor.model.idPath
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
@@ -36,6 +35,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.module.Module
 import com.intellij.psi.SmartPointerManager
@@ -301,7 +302,8 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     }
   }
 
-  @State(name = "navEditor-manualLayoutAlgorithm2", storages = [com.intellij.openapi.components.Storage("navEditor.xml")])
+  @Service(Service.Level.PROJECT)
+  @State(name = "navEditor-manualLayoutAlgorithm2", storages = [com.intellij.openapi.components.Storage("navEditor.xml", roamingType = RoamingType.DISABLED)])
   private class Storage : PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
     @VisibleForTesting
     internal var rootPositions: LayoutPositions? = null

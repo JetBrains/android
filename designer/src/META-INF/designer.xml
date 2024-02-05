@@ -18,7 +18,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
-    <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
     <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
@@ -33,10 +32,6 @@
                     interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
   </extensionPoints>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.configurations.AdditionalDeviceService" />
-  </extensions>
-
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
@@ -47,8 +42,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
                 id="Layout Validation" anchor="right" icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW" canCloseContents="false" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
 
     <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
@@ -70,7 +63,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"
                              bundle="messages.AndroidDesignerActionsBundle"
@@ -81,12 +73,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.common.surface.DesignSurfaceSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolProjectSettings"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

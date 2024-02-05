@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.preview.config.PREDEFINED_WINDOW_SIZES_DEFINITIONS
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.DumbAware
 import kotlin.math.sqrt
 
@@ -33,6 +34,7 @@ import kotlin.math.sqrt
  * Provide the additional [Device]s which exist and be used in Android Studio only.
  * These devices can also be found in the return list of [ConfigurationManager.getDevices].
  */
+@Service
 class AdditionalDeviceService: DumbAware {
 
   private val windowDevices: List<Device> by lazy { createWindowDevices() }

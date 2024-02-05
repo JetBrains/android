@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -55,7 +56,8 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Tracks and provides {@link ViewHandler} instances in this project
  */
-public class ViewHandlerManager implements Disposable {
+@Service(Service.Level.PROJECT)
+public final class ViewHandlerManager implements Disposable {
   @VisibleForTesting
   static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
