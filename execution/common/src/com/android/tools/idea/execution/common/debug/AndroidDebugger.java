@@ -92,7 +92,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   XDebugProcessStarter getDebugProcessStarterForExistingProcess(@NotNull Project project,
                                                                 @NotNull Client client,
-                                                                @NotNull ApplicationProjectContext applicationContext,
+                                                                @Nullable ApplicationProjectContext applicationContext,
                                                                 @Nullable S debugState) throws ExecutionException;
 
   XDebugProcessStarter getDebugProcessStarterForNewProcess(@NotNull Project project,

@@ -192,7 +192,6 @@ object DebugSessionStarter {
   ): XDebugSession {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     val applicationContext = project.getProjectSystem().getApplicationProjectContext(client)
-      ?: throw ExecutionException("Cannot obtain RunningApplicationContext for client: $client")
 
     val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
@@ -200,7 +199,9 @@ object DebugSessionStarter {
       XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
     }
     val debugProcessHandler = session.debugProcess.processHandler
-    AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationContext.applicationId)
+    if (applicationContext != null) {
+      AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationContext.applicationId)
+    }
     return session
   }
 }
