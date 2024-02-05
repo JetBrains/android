@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
+package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -54,7 +53,7 @@ public class SdksCleanupUtil {
   }
 
   @VisibleForTesting
-  static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks, @NotNull IAndroidTarget target) {
+  public static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks, @NotNull IAndroidTarget target) {
     List<OrderRoot> expectedRoots = androidSdks.getLibraryRootsForTarget(target, FilePaths.stringToFile(sdk.getHomePath()), true);
     Map<OrderRootType, Set<String>> urlsByRootType = new HashMap<>();
     for (OrderRoot root : expectedRoots) {
