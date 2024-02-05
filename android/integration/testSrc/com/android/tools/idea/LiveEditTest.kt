@@ -59,7 +59,6 @@ class LiveEditTest {
     Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8)
   }
 
-  @Ignore("b/323239076")
   @Test
   fun liveEditTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
