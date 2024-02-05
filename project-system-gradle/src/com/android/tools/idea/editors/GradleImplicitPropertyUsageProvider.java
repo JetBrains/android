@@ -19,6 +19,8 @@ import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageP
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static com.android.SdkConstants.*;
 
@@ -36,8 +38,8 @@ public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsag
       return true;
     }
 
-    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive) ||
-        Comparing.equal(file.getName(), "resources.properties", caseSensitive)) {
+    if (Comparing.equal(file.getName(), FN_GRADLE_PROPERTIES, caseSensitive) ||
+        Comparing.equal(file.getName(), FN_RESOURCES_PROPERTIES, caseSensitive)) {
       // Ignore all properties in the gradle.properties; we don't have a complete set of what's used
       // and we don't want to suggest to the user that these are unused
       return true;
@@ -46,10 +48,12 @@ public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsag
     // The android gradle plugin reads sdk.dir, ndk.dir and some others from local.properties
     if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, caseSensitive)) {
       String name = property.getName();
-      return SDK_DIR_PROPERTY.equals(name) || "ndk.dir".equals(name) || "android.dir".equals(name) || "cmake.dir".equals(name)
-             || "ndk.symlinkdir".equals(name);
+      return AGP_USED_LOCAL_PROPERTIES.contains(name);
     }
 
     return false;
   }
+
+  private static final Collection<String> AGP_USED_LOCAL_PROPERTIES =
+    Arrays.asList(SDK_DIR_PROPERTY, NDK_DIR_PROPERTY, ANDROID_DIR_PROPERTY, CMAKE_DIR_PROPERTY, NDK_SYMLINK_DIR);
 }
