@@ -147,6 +147,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
     ],
 )
 

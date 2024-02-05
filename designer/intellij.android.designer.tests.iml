@@ -68,6 +68,7 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>
