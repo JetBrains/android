@@ -49,13 +49,15 @@ internal constructor(
         "Pixel 6 API 34",
         AndroidVersion(34, null, 7, true),
         DefaultSkin(Path.of(sdk, "skins", "pixel_6")),
-        AvdCamera.EMULATED,
-        AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
+        frontCamera = AvdCamera.EMULATED,
+        // TODO We're assuming the emulator supports this feature
+        rearCamera = AvdCamera.VIRTUAL_SCENE,
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
         EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         ScreenOrientation.PORTRAIT,
         Boot.QUICK,
-        StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        expandedStorage = StorageCapacity(512, StorageCapacity.Unit.MB),
         EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         GpuMode.AUTO,
       )

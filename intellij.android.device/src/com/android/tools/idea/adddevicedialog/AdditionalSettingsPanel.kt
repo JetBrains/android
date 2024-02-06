@@ -34,6 +34,7 @@ import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
@@ -146,6 +147,16 @@ private fun StorageGroup(
         state.internalStorage = it
         onDeviceChange(device.copy(internalStorage = it))
       },
+    )
+  }
+
+  Row {
+    Text("Expanded storage")
+    RadioButtonRow("Custom", false, onClick = {})
+
+    StorageCapacityField(
+      device.expandedStorage,
+      onValueChange = { onDeviceChange(device.copy(expandedStorage = it)) },
     )
   }
 }

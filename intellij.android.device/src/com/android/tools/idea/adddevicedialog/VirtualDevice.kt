@@ -37,6 +37,7 @@ internal constructor(
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
   internal val internalStorage: StorageCapacity,
+  internal val expandedStorage: StorageCapacity,
   internal val cpuCoreCount: Int?,
   internal val graphicAcceleration: GpuMode,
 )
