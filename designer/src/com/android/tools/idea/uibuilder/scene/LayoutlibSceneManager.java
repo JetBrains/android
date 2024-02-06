@@ -106,7 +106,6 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -114,6 +113,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -1727,6 +1727,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     boolean deactivated = super.deactivate(source);
     if (deactivated) {
       myRenderingQueue.deactivate();
+      clearAndCancelPendingFutures();
       completeRender();
       disposeRenderTask();
     }
@@ -1775,5 +1776,19 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @TestOnly
   public boolean isUseTransparentRendering() {
     return useTransparentRendering;
+  }
+
+  /**
+   * Cancels and clears all futures that were created by {@link #requestRenderAsync()} and stored in {@link #myPendingFutures}
+   * by completing them exceptionally with a {@link CancellationException}.
+   * This method does not interact with {@link #myRenderingQueue} as the pending futures are detached from the renders on the queue.
+   */
+  private void clearAndCancelPendingFutures() {
+    ImmutableList<CompletableFuture<Void>> callbacks;
+    synchronized (myFuturesLock) {
+      callbacks = ImmutableList.copyOf(myPendingFutures);
+      myPendingFutures.clear();
+    }
+    callbacks.forEach(callback -> callback.completeExceptionally(new CancellationException()));
   }
 }
