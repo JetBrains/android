@@ -10,9 +10,10 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         val label = TextView(this)
         label.setText("Hello Minimal World!")
-        Log.i("MainActivity", "Hello Minimal World!")
+        Log.w("MainActivity", "Hello Minimal World!")
         setContentView(label)
-        Log.i("MainActivity", helloFromJni())
+        Log.w("MainActivity", helloFromJni())
+        Log.w("MainActivty", "After breakpoint")
     }
 
     private external fun helloFromJni() : String
