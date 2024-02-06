@@ -17,10 +17,10 @@ package com.android.tools.idea.io;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
-import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
@@ -43,21 +43,19 @@ public final class FilePaths {
    * @param path the given path.
    * @return the created URL.
    */
-  @NotNull
-  public static String pathToIdeaUrl(@NotNull File path) {
+  public static @NotNull String pathToIdeaUrl(@NotNull File path) {
     String name = path.getName();
-    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
+    boolean isJarFile = FileUtil.extensionEquals(name, EXT_JAR) || FileUtil.extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
     String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
-    String url = VirtualFileManager.constructUrl(protocol, toSystemIndependentName(path.getPath()));
+    String url = VirtualFileManager.constructUrl(protocol, FileUtilRt.toSystemIndependentName(path.getPath()));
     if (isJarFile) {
       url += JAR_SEPARATOR;
     }
     return url;
   }
 
-  @Nullable
-  public static Path getJarFromJarUrl(@NotNull String url) {
+  public static @Nullable Path getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
     if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
       return null;
@@ -74,8 +72,7 @@ public final class FilePaths {
    * Converts the given {@code String} path to a system-dependent path (as {@link File}.)
    */
   @Contract("!null -> !null")
-  @Nullable
-  public static Path toSystemDependentPath(@Nullable String path) {
+  public static @Nullable Path toSystemDependentPath(@Nullable String path) {
     return path == null ? null : Paths.get(path);
   }
 
@@ -83,8 +80,7 @@ public final class FilePaths {
    * Converts the given {@code String} path to a system-dependent path (as {@link File}.)
    */
   @Contract("!null -> !null")
-  @Nullable
-  public static File stringToFile(@Nullable String path) {
+  public static @Nullable File stringToFile(@Nullable String path) {
     return path == null ? null : new File(path);
   }
 }
