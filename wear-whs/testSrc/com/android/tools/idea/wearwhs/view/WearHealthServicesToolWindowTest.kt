@@ -45,8 +45,6 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JTextField
-import javax.swing.JComponent
-import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 
 @RunsInEdt
@@ -196,6 +194,34 @@ class WearHealthServicesToolWindowTest {
 
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && !it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && !it.isEnabled }
+  }
+
+  @Test
+  fun `test star is only visible when changes are pending`(): Unit = runBlocking {
+    val fakeUi = FakeUi(toolWindow)
+
+    // TODO: Remove this apply when ag/26161198 is merged
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+
+    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    hrCheckBox.doClick()
+
+    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+
+    applyButton.doClick()
+
+    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+
+    deviceManager.activeExercise = true
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    textField.text = "50"
+
+    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+
+    applyButton.doClick()
+
+    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
   }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {
