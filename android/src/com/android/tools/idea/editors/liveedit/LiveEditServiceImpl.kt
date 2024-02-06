@@ -62,6 +62,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -118,6 +122,14 @@ class LiveEditServiceImpl(val project: Project,
       override fun selectionChanged(event: FileEditorManagerEvent) {
         val file = event.newFile ?: return
         file.letIfLiveEditable { deployMonitor.fileEditorOpened(it) }
+      }
+    })
+
+    project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
+      override fun before(events: MutableList<out VFileEvent>) {
+        for (event in events.filterIsInstance<VFileDeleteEvent>()) {
+          event.file.letIfLiveEditable { deployMonitor.fileChanged(it) }
+        }
       }
     })
 

@@ -19,7 +19,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeRetrievalErrorStatus;
-import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
+import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.prebuildChecks;
 import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getPsiValidationState;
 
 import com.android.annotations.Nullable;
@@ -309,7 +309,7 @@ public class LiveEditProjectMonitor implements Disposable {
   public void dispose() {
     // Don't leak deviceWatcher in our ADB bridge listeners.
     adbEventsListener.removeListener(deviceWatcher);
-
+    changedMethodQueue.clear();
     liveEditDevices.clear();
     deviceWatcher.clearListeners();
     mainThreadExecutor.shutdownNow();
@@ -502,7 +502,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
     PsiDocumentManager psiManager = PsiDocumentManager.getInstance(project);
     try {
-      PrebuildChecks(project, changes);
+      prebuildChecks(project, changes);
 
       List<LiveEditCompilerInput> inputs = new ArrayList<>();
       for (EditEvent change : changes) {

@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.psi.KtFile
 
 private const val kotlinPluginId = "org.jetbrains.kotlin"
 
-internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
+internal fun prebuildChecks(project: Project, changes: List<EditEvent>) {
   // Technically, we don't NEED IWI until we support persisting changes.
   checkIwiAvailable()
 
@@ -60,6 +60,10 @@ internal fun checkIwiAvailable() {
 
 internal fun checkSupportedFiles(file: PsiFile) {
   val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
+  if (!virtualFile.exists()) {
+    throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                  "deleted Kotlin file ${virtualFile.path}", file, null)
+  }
   if (virtualFile.path.contains("buildSrc")) {
     throw unsupportedBuildSrcChange(file.virtualFile.path)
   }
