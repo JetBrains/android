@@ -25,6 +25,7 @@ import org.jetbrains.jewel.ui.component.TextField
 internal fun StorageCapacityField(
   value: StorageCapacity,
   onValueChange: (StorageCapacity) -> Unit,
+  enabled: Boolean = true,
 ) {
   TextField(
     value.value.toString(),
@@ -36,12 +37,14 @@ internal fun StorageCapacityField(
       }
     },
     Modifier.testTag("StorageCapacityFieldTextField"),
+    enabled,
   )
 
   Dropdown(
     value.unit,
     UNITS,
     onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) },
+    enabled,
   )
 }
 

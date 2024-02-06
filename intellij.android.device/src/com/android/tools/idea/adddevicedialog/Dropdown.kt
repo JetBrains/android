@@ -25,15 +25,17 @@ internal fun <I> Dropdown(
   selectedItem: I,
   items: ImmutableCollection<I>,
   onSelectedItemChange: (I) -> Unit,
+  enabled: Boolean = true,
 ) {
   Dropdown(
+    enabled = enabled,
     menuContent = {
       items.forEach {
         selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {
           Text(it.toString())
         }
       }
-    }
+    },
   ) {
     Text(selectedItem.toString())
   }

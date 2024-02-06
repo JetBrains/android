@@ -47,7 +47,7 @@ internal fun AdditionalSettingsPanel(
 ) {
   Row {
     Text("Device skin")
-    Dropdown(device.skin, skins) { onDeviceChange(device.copy(skin = it)) }
+    Dropdown(device.skin, skins, onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) })
     OutlinedButton(onImportButtonClick) { Text("Import") }
   }
 
@@ -64,12 +64,22 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
 
   Row {
     Text("Front")
-    Dropdown(device.frontCamera, FRONT_CAMERAS) { onDeviceChange(device.copy(frontCamera = it)) }
+
+    Dropdown(
+      device.frontCamera,
+      FRONT_CAMERAS,
+      onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
+    )
   }
 
   Row {
     Text("Rear")
-    Dropdown(device.rearCamera, REAR_CAMERAS) { onDeviceChange(device.copy(rearCamera = it)) }
+
+    Dropdown(
+      device.rearCamera,
+      REAR_CAMERAS,
+      onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
+    )
   }
 }
 
@@ -84,12 +94,22 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
 
   Row {
     Text("Speed")
-    Dropdown(device.speed, SPEEDS) { onDeviceChange(device.copy(speed = it)) }
+
+    Dropdown(
+      device.speed,
+      SPEEDS,
+      onSelectedItemChange = { onDeviceChange(device.copy(speed = it)) },
+    )
   }
 
   Row {
     Text("Latency")
-    Dropdown(device.latency, LATENCIES) { onDeviceChange(device.copy(latency = it)) }
+
+    Dropdown(
+      device.latency,
+      LATENCIES,
+      onSelectedItemChange = { onDeviceChange(device.copy(latency = it)) },
+    )
   }
 }
 
@@ -121,7 +141,12 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
 
   Row {
     Text("Default boot")
-    Dropdown(device.defaultBoot, BOOTS) { onDeviceChange(device.copy(defaultBoot = it)) }
+
+    Dropdown(
+      device.defaultBoot,
+      BOOTS,
+      onSelectedItemChange = { onDeviceChange(device.copy(defaultBoot = it)) },
+    )
   }
 }
 
