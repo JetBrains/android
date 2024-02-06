@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
@@ -214,7 +215,7 @@ class PreviewRefreshManagerTest {
         .trimIndent(),
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
-    assertEquals(5, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 5 }
     assertTrue(TestPreviewRefreshTracker.logList.all { it.result == RefreshResult.SUCCESS })
     assertTrue(TestPreviewRefreshTracker.logList.all { it.hasRefreshTimeMillis() })
     assertTrue(TestPreviewRefreshTracker.logList.all { it.hasInQueueTimeMillis() })
@@ -274,7 +275,7 @@ class PreviewRefreshManagerTest {
     assertEquals("start req3-3", lines[8])
     assertEquals("finish req3-3", lines[9])
 
-    assertEquals(7, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 7 }
 
     val skipped = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SKIPPED }
     assertEquals(4, skipped.size)
@@ -325,7 +326,7 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    assertEquals(2, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
 
     val cancelled =
       TestPreviewRefreshTracker.logList.filter {
@@ -380,7 +381,7 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    assertEquals(2, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
 
     val cancelled =
       TestPreviewRefreshTracker.logList.filter {
@@ -435,7 +436,7 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    assertEquals(2, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
 
     val success = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SUCCESS }
     assertEquals(2, success.size)
@@ -587,7 +588,7 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    assertEquals(1, TestPreviewRefreshTracker.logList.size)
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 1 }
 
     val cancelled =
       TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.USER_CANCELLED }
