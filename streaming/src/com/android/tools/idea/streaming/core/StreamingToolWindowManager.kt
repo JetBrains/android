@@ -56,7 +56,7 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.currentStack
 import com.android.utils.TraceUtils.simpleId
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
@@ -175,10 +175,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   /** Requested activation levels of devices that recently requested attention keyed by their serial numbers. */
   private val recentAttentionRequests =
-      CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
+      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
   /** Requested activation levels of AVDs keyed by their IDs. */
   private val recentEmulatorLaunches =
-      CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
+      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   @Suppress("UnstableApiUsage")
