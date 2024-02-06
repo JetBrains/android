@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
@@ -37,7 +38,11 @@ import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import junit.framework.TestCase
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 class DesignSurfaceTest : LayoutTestCase() {
@@ -89,6 +94,35 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.addModelWithoutRender(model)
     // should not add model again and the callback should not be triggered.
     assertEquals(1, surface.models.size)
+  }
+
+  fun testAddDuplicatedModelConcurrently() = runBlocking {
+    val sceneCreationLatch = CountDownLatch(2)
+    val surface =
+      TestDesignSurface(
+        myModule.project,
+        myModule.project,
+        createSceneManager = { model, surface ->
+          runBlocking {
+            sceneCreationLatch.await()
+            TestSceneManager(model, surface)
+          }
+        },
+      )
+    val model = model("model.xml", component(RELATIVE_LAYOUT)).build()
+
+    launch {
+      val manager1Deferred = async(workerThread) { surface.addModelWithoutRender(model) }
+      val manager2Deferred = async(workerThread) { surface.addModelWithoutRender(model) }
+
+      val manager1 = manager1Deferred.await()
+      val manager2 = manager2Deferred.await()
+
+      assertEquals("the same manager should be used for both models", manager1, manager2)
+    }
+
+    sceneCreationLatch.countDown()
+    sceneCreationLatch.countDown()
   }
 
   fun testRemoveIllegalModel() {
@@ -375,10 +409,17 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
   override fun isPastePossible(dataContext: DataContext): Boolean = false
 }
 
-class TestDesignSurface(project: Project, disposible: Disposable) :
+class TestDesignSurface(
+  project: Project,
+  disposable: Disposable,
+  val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
+    { model, surface ->
+      TestSceneManager(model, surface)
+    },
+) :
   DesignSurface<SceneManager>(
     project,
-    disposible,
+    disposable,
     java.util.function.Function { ModelBuilder.TestActionManager(it) },
     java.util.function.Function { TestInteractionHandler(it) },
     java.util.function.Function { TestLayoutManager(it) },
@@ -391,8 +432,9 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
 
   override fun getFitScale(): Double = 1.0
 
-  override fun createSceneManager(model: NlModel) =
-    TestSceneManager(model, this).apply { updateSceneView() }
+  override fun createSceneManager(model: NlModel) = runBlocking {
+    createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
+  }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 

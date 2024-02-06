@@ -582,44 +582,36 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
-   * If it is added before then it just returns the associated {@link SceneManager} which created before. The {@link NlModel} will be moved
-   * to the last position which might affect rendering.
+   * If it is added before then it just returns the associated {@link SceneManager} which was created before. The {@link NlModel} will be
+   * moved to the last position which might affect rendering.
    *
    * @param model the added {@link NlModel}
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
   private T addModel(@NotNull NlModel model) {
-    T manager = getSceneManager(model);
-    if (manager != null) {
-      // No need to add same model twice. We just move it to the bottom of the model list since order is important.
-      myModelToSceneManagersLock.writeLock().lock();
-      try {
+    myModelToSceneManagersLock.writeLock().lock();
+    try {
+      T manager = getSceneManager(model);
+      if (manager != null) {
+        // No need to add same model twice. We just move it to the bottom of the model list since order is important.
         T managerToMove = myModelToSceneManagers.remove(model);
         if (managerToMove != null) {
           myModelToSceneManagers.put(model, managerToMove);
         }
+        return manager;
       }
-      finally {
-        myModelToSceneManagersLock.writeLock().unlock();
+      model.addListener(myModelListener);
+      manager = createSceneManager(model);
+      myModelToSceneManagers.put(model, manager);
+      if (myIsActive) {
+        manager.activate(this);
       }
       return manager;
-    }
-
-    model.addListener(myModelListener);
-    manager = createSceneManager(model);
-    myModelToSceneManagersLock.writeLock().lock();
-    try {
-      myModelToSceneManagers.put(model, manager);
     }
     finally {
       myModelToSceneManagersLock.writeLock().unlock();
     }
-
-    if (myIsActive) {
-      manager.activate(this);
-    }
-    return manager;
   }
 
   /**
