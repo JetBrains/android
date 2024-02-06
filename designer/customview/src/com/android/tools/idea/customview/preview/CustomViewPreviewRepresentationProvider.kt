@@ -54,7 +54,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
   }
 
   /** Creates a [CustomViewPreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): CustomViewPreviewRepresentation {
+  override suspend fun createRepresentation(psiFile: PsiFile): CustomViewPreviewRepresentation {
     return CustomViewPreviewRepresentation(psiFile)
   }
 

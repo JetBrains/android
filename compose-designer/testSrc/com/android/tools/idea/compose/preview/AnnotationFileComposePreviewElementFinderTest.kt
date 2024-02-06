@@ -175,7 +175,9 @@ class AnnotationFileComposePreviewElementFinderTest {
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, otherFile.virtualFile))
     assertTrue(
       computeOnBackground {
-        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        runBlocking {
+          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        }
       }
     )
 
@@ -717,7 +719,9 @@ class AnnotationFileComposePreviewElementFinderTest {
       DumbModeTestUtils.computeInDumbModeSynchronously(project) {
         runInEdtAndWait {
           assertFalse(
-            AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+            runBlocking {
+              AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+            }
           )
         }
         val result =
@@ -732,7 +736,9 @@ class AnnotationFileComposePreviewElementFinderTest {
       }
     runInEdtAndWait {
       assertTrue(
-        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        runBlocking {
+          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        }
       )
     }
     assertEquals(2, result.await().size)
@@ -1029,7 +1035,9 @@ class AnnotationFileComposePreviewElementFinderTest {
     )
     assertTrue(
       computeOnBackground {
-        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        runBlocking {
+          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        }
       }
     )
 

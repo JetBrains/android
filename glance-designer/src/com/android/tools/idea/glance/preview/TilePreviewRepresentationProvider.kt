@@ -81,7 +81,7 @@ class TilePreviewRepresentationProvider(
   }
 
   /** Creates a [TilePreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+  override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     val previewProvider =
       object : PreviewElementProvider<GlancePreviewElement> {
         override suspend fun previewElements(): Sequence<GlancePreviewElement> =

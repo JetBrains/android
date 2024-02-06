@@ -71,5 +71,6 @@ open class TestPreviewRepresentationProvider(
 ) : PreviewRepresentationProvider {
   override suspend fun accept(project: Project, psiFile: PsiFile) = isAccept
 
-  override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
+  override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation =
+    representation
 }

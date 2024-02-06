@@ -40,6 +40,8 @@ import javax.swing.JPanel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -637,15 +639,18 @@ class MultiRepresentationPreviewTest {
 
     val provider =
       object : PreviewRepresentationProvider {
+        private val mutex = Mutex()
+
         override val displayName = "foo"
 
         override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
 
-        @Synchronized
-        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-          val representation = TestPreviewRepresentation()
-          representations.add(representation)
-          return representation
+        override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+          mutex.withLock {
+            val representation = TestPreviewRepresentation()
+            representations.add(representation)
+            return representation
+          }
         }
       }
 
@@ -689,7 +694,7 @@ class MultiRepresentationPreviewTest {
 
         override suspend fun accept(project: Project, psiFile: PsiFile) = true
 
-        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+        override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           createRepresentationLatch.countDown()
           // Only return the representation when the parent is already disposed
           parentDisposedLatch.await()
@@ -736,7 +741,7 @@ class MultiRepresentationPreviewTest {
           return true
         }
 
-        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+        override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           return TestPreviewRepresentation()
         }
       }

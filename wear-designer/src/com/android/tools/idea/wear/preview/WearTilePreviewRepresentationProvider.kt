@@ -96,7 +96,7 @@ class WearTilePreviewRepresentationProvider(
   }
 
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+  override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     val previewProvider =
       object : PreviewElementProvider<WearTilePreviewElement> {
         override suspend fun previewElements(): Sequence<WearTilePreviewElement> =

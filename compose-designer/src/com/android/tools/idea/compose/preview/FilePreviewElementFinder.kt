@@ -31,13 +31,13 @@ interface FilePreviewElementFinder {
    * difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not
    * use any indexes.
    */
-  fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean
+  suspend fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
    * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewMethods] but
    * allows deciding if this file might allow previews to be added.
    */
-  fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
+  suspend fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
    * Returns all the [ComposePreviewElement]s present in the passed Kotlin [VirtualFile].

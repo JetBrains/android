@@ -37,5 +37,5 @@ interface PreviewRepresentationProvider {
    * Creates a corresponding [PreviewRepresentation] for the input file. It is only valid to call
    * this if [accept] is true, undefined behavior otherwise.
    */
-  fun createRepresentation(psiFile: PsiFile): PreviewRepresentation
+  suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation
 }

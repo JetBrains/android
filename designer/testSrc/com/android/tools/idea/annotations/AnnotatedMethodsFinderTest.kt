@@ -44,7 +44,7 @@ class AnnotatedMethodsFinderTest {
     get() = projectRule.fixture
 
   @Test
-  fun `test hasAnnotations`() {
+  fun `test hasAnnotations`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotation.kt",
       // language=kotlin
@@ -105,7 +105,7 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test hasAnnotations dumb mode`() {
+  fun `test hasAnnotations dumb mode`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotation.kt",
       // language=kotlin
@@ -133,12 +133,14 @@ class AnnotatedMethodsFinderTest {
 
     DumbModeTestUtils.runInDumbModeSynchronously(project) {
       assertFalse(
-        hasAnnotation(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotation",
-          "MyAnnotation",
-        )
+        runBlocking {
+          hasAnnotation(
+            project,
+            sourceFile.virtualFile,
+            "com.android.annotations.MyAnnotation",
+            "MyAnnotation",
+          )
+        }
       )
     }
 
@@ -279,7 +281,7 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test hasAppliedAnnotations with filter`() {
+  fun `test hasAppliedAnnotations with filter`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotationA.kt",
       // language=kotlin
@@ -407,7 +409,7 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test hasAnnotations supports java files`() {
+  fun `test hasAnnotations supports java files`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotation.kt",
       // language=kotlin
@@ -439,12 +441,14 @@ class AnnotatedMethodsFinderTest {
 
     DumbModeTestUtils.runInDumbModeSynchronously(project) {
       assertFalse(
-        hasAnnotation(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotation",
-          "MyAnnotation",
-        )
+        runBlocking {
+          hasAnnotation(
+            project,
+            sourceFile.virtualFile,
+            "com.android.annotations.MyAnnotation",
+            "MyAnnotation",
+          )
+        }
       )
     }
 

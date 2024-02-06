@@ -201,7 +201,7 @@ class ComposePreviewRepresentationProvider(
       (readAction { psiFile.getModuleSystem()?.usesCompose ?: false && !psiFile.isInLibrary() })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
+  override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val hasComposableMethods =
       filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
     val hasPreviewMethods =

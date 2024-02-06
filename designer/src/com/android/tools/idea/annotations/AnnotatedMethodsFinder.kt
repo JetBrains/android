@@ -44,9 +44,13 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
@@ -65,16 +69,18 @@ import org.jetbrains.uast.toUElementOfType
  * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
  * [shortAnnotationName] with the properties enforced by the [filter].
  */
+@RequiresReadLock
 private fun hasAnnotationsUncached(
   project: Project,
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
   filter: (UAnnotation) -> Boolean,
-): Boolean = runReadAction {
+): Boolean {
   if (DumbService.isDumb(project)) {
-    return@runReadAction false
+    return false
   }
+
   // This method can not call any methods that require smart mode.
   fun isFullNameAnnotation(annotation: PsiElement) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
@@ -82,7 +88,7 @@ private fun hasAnnotationsUncached(
     // removing it
     annotation.text.removePrefix("@").startsWith(annotationFqn)
 
-  val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return@runReadAction false
+  val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return false
   val isKotlinFile = psiFile.language == KotlinLanguage.INSTANCE
 
   // Look into the imports first to avoid resolving the class name into all methods.
@@ -103,7 +109,7 @@ private fun hasAnnotationsUncached(
       if (isKotlinFile) KtAnnotationEntry::class.java else PsiAnnotation::class.java,
     )
 
-  return@runReadAction annotationPsiElements.any { psiElement ->
+  return annotationPsiElements.any { psiElement ->
     val uAnnotation = psiElement.toUElementOfType<UAnnotation>() ?: return@any false
     val qualifiedName = uAnnotation.qualifiedName ?: return@any false
     val shortName = StringUtilRt.getShortName(qualifiedName)
@@ -153,7 +159,7 @@ fun <T> CachedValuesManager.getCachedValue(
  * [shortAnnotationName]. To benefit from caching make sure the same parameters are passed to the
  * function call as all the parameters constitute the key.
  */
-fun hasAnnotation(
+suspend fun hasAnnotation(
   project: Project,
   vFile: VirtualFile,
   annotationFqn: String,
@@ -161,16 +167,27 @@ fun hasAnnotation(
   filter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
 ): Boolean {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
-  return CachedValuesManager.getManager(project).getCachedValue(
-    psiFile,
-    CacheKeysManager.getInstance(project)
-      .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter)),
-  ) {
-    CachedValueProvider.Result.create(
-      hasAnnotationsUncached(project, vFile, annotationFqn, shortAnnotationName, filter),
-      psiFile,
-      DumbService.getInstance(project).modificationTracker,
-    )
+  if (DumbService.isDumb(project)) {
+    return false
+  }
+
+  return suspendCancellableCoroutine { cont ->
+    ReadAction.nonBlocking<Boolean> {
+        CachedValuesManager.getManager(project).getCachedValue(
+          psiFile,
+          CacheKeysManager.getInstance(project)
+            .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter)),
+        ) {
+          return@getCachedValue CachedValueProvider.Result.create(
+            hasAnnotationsUncached(project, vFile, annotationFqn, shortAnnotationName, filter),
+            psiFile,
+            DumbService.getInstance(project).modificationTracker,
+          )
+        }
+      }
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess { cont.resume(it) }
+      .onError { cont.resumeWithException(it) }
   }
 }
 
@@ -235,6 +252,7 @@ private class PromiseModificationTracker(private val promise: Promise<*>) : Modi
     }
 }
 
+@RequiresReadLock
 fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
   this?.uAnnotations?.any { annotation -> annotationFqn == annotation.qualifiedName } ?: false
 }
@@ -243,6 +261,7 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
  * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method,
  * or if the method is not also annotated with [annotationFqn].
  */
+@RequiresReadLock
 fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? = runReadAction {
   val uMethod =
     getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
@@ -292,9 +311,11 @@ private fun <T> findAnnotatedMethodsCachedValues(
     PsiModificationTracker.getInstance(project).forLanguages { lang ->
       lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
     }
+  val dumbModificationTracker = DumbService.getInstance(project).modificationTracker
   CachedValueProvider.Result.create(
     deferred,
     kotlinJavaModificationTracker,
+    dumbModificationTracker,
     PromiseModificationTracker(promise),
   )
 }

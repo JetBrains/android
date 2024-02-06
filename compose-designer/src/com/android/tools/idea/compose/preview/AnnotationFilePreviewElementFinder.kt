@@ -36,10 +36,10 @@ import org.jetbrains.uast.UMethod
 
 /** [FilePreviewElementFinder] that uses `@Preview` annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  override fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
+  override suspend fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSE_PREVIEW_ANNOTATION_FQN, COMPOSE_PREVIEW_ANNOTATION_NAME)
 
-  override fun hasComposableMethods(project: Project, vFile: VirtualFile) =
+  override suspend fun hasComposableMethods(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
 
   /**
