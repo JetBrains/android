@@ -160,9 +160,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _projectOverlayLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
 
-  private val holder = UserDataHolderBase()
-
-
   /**
    * List of libraries used in this [ModuleClassLoaderImpl].
    */
