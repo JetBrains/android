@@ -30,6 +30,7 @@ import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Survey
+import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
@@ -187,11 +188,6 @@ object AndroidStudioUsageTracker {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
-    connection.subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
-      override fun appWillBeClosed(isRestart: Boolean) {
-        runShutdownReports()
-      }
-    })
     RegistryManager.getInstance().get("ide.highlighting.mode.essential").addListener(object : RegistryValueListener {
       override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
     }, AndroidPluginDisposable.getApplicationInstance())
@@ -486,5 +482,14 @@ object AndroidStudioUsageTracker {
     calendar.time = now
     calendar.add(Calendar.DATE, days)
     return calendar.time
+  }
+
+  class UsageTrackerAppLifecycleListener : AppLifecycleListener {
+    override fun appFrameCreated(commandLineArgs: MutableList<String>) {
+      showConsentDialogIfNeeded()
+    }
+    override fun appWillBeClosed(isRestart: Boolean) {
+      runShutdownReports()
+    }
   }
 }

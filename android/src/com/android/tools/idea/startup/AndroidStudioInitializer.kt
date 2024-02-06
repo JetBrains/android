@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.startup
 
-import com.android.prefs.AndroidLocationsSingleton
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
@@ -26,7 +24,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.StudioCodeVersionAdapter
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.android.tools.idea.stats.ConsentDialog
 import com.intellij.analytics.AndroidStudioAnalytics
 import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
@@ -77,8 +74,6 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
   /** Sets up collection of Android Studio specific analytics.  */
   private fun setupAnalytics() {
     AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
-
-    ConsentDialog.showConsentDialogIfNeeded()
 
     UsageTracker.version = ApplicationInfo.getInstance().strictVersion
     UsageTracker.ideBrand = currentIdeBrand()

@@ -213,6 +213,8 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectCloseListener"/>
+    <listener class="com.android.tools.idea.stats.AndroidStudioUsageTracker$UsageTrackerAppLifecycleListener"
+              topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
   <projectListeners>
     <listener class="com.android.tools.idea.navigator.ProjectViewListener"
