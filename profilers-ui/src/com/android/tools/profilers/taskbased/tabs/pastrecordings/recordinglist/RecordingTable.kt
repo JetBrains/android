@@ -33,12 +33,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.RECORDING_TASKS_COL_WIDTH_DP
@@ -63,7 +63,7 @@ fun RecordingListRow(selectedRecording: SessionItem?,
         if (recording == selectedRecording)
           TABLE_ROW_SELECTION_BACKGROUND_COLOR
         else
-          TABLE_ROW_BACKGROUND_COLOR
+          Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
       .selectable(
@@ -104,7 +104,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
                    createStringOfSupportedTasks: (SessionItem) -> String) {
   val listState = rememberLazyListState()
 
-  Box(modifier = Modifier.fillMaxSize().background(TABLE_ROW_BACKGROUND_COLOR)) {
+  Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
       state = listState
     ) {

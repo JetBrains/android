@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProcessUtils.isProfileable
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
@@ -70,7 +69,7 @@ private fun ProcessListRow(selectedProcess: Common.Process,
         if (process == selectedProcess)
           TABLE_ROW_SELECTION_BACKGROUND_COLOR
         else
-          TABLE_ROW_BACKGROUND_COLOR
+          Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
       .selectable(
@@ -112,7 +111,7 @@ fun ProcessTable(processList: List<Common.Process>,
                  onProcessSelection: (Common.Process) -> Unit) {
   val listState = rememberLazyListState()
 
-  Box(modifier = Modifier.fillMaxSize().background(TABLE_ROW_BACKGROUND_COLOR)) {
+  Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
       state = listState
     ) {
