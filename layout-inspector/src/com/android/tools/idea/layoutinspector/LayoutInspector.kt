@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -47,6 +48,7 @@ import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
@@ -179,19 +181,21 @@ private constructor(
    * This method also resets device-level DebugViewAttributes from the device.
    */
   fun stopInspector() {
-    val selectedDevice = deviceModel?.selectedDevice
-    if (selectedDevice != null) {
-      val debugViewAttributes = DebugViewAttributes.getInstance()
-      if (debugViewAttributes.usePerDeviceSettings()) {
-        debugViewAttributes.clear(inspectorModel.project, selectedDevice)
+    coroutineScope.launch(AndroidDispatchers.workerThread) {
+      val selectedDevice = deviceModel?.selectedDevice
+      if (selectedDevice != null) {
+        val debugViewAttributes = DebugViewAttributes.getInstance()
+        if (debugViewAttributes.usePerDeviceSettings()) {
+          debugViewAttributes.clear(inspectorModel.project, selectedDevice)
+        }
+        foregroundProcessDetection?.stopPollingSelectedDevice()
+      } else {
+        processModel?.stop()
+        processModel?.selectedProcess = null
       }
-      foregroundProcessDetection?.stopPollingSelectedDevice()
-    } else {
-      processModel?.stop()
-      processModel?.selectedProcess = null
-    }
 
-    stopInspectorListeners.forEach { it() }
+      stopInspectorListeners.forEach { it() }
+    }
   }
 
   private fun onClientChanged(client: InspectorClient) {

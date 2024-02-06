@@ -43,6 +43,8 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -94,10 +96,12 @@ class LayoutInspectorTest {
   private lateinit var mockForegroundProcessDetection: ForegroundProcessDetection
   private lateinit var inspectorModel: InspectorModel
   private lateinit var mockRenderModel: RenderModel
+  private lateinit var scope: CoroutineScope
 
   @Before
   fun setUp() {
-    val scope = AndroidCoroutineScope(disposableRule.disposable)
+    scope = AndroidCoroutineScope(disposableRule.disposable)
+
     val (deviceModel, processModel) = createDeviceModel(device1)
     this.deviceModel = deviceModel
     this.processModel = processModel
@@ -130,22 +134,26 @@ class LayoutInspectorTest {
   }
 
   @Test
-  fun testStopInspectorListenersAreCalled() {
+  fun testStopInspectorListenersAreCalled() = runBlocking {
     var called = false
     layoutInspector.stopInspectorListeners.add { called = true }
 
     layoutInspector.stopInspector()
 
+    scope.coroutineContext.job.children.forEach { it.join() }
+
     assertThat(called).isTrue()
   }
 
   @Test
-  fun testStopInspector() {
+  fun testStopInspector() = runBlocking {
     // test has device, no process
     deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
     processModel.selectedProcess = null
 
     layoutInspector.stopInspector()
+
+    scope.coroutineContext.job.children.forEach { it.join() }
 
     verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
     assertThat(processModel.selectedProcess).isNull()
@@ -156,6 +164,8 @@ class LayoutInspectorTest {
 
     layoutInspector.stopInspector()
 
+    scope.coroutineContext.job.children.forEach { it.join() }
+
     verifyNoMoreInteractions(mockForegroundProcessDetection)
     assertThat(processModel.selectedProcess).isNull()
   }
@@ -163,7 +173,6 @@ class LayoutInspectorTest {
   @Test
   fun testStopInspectorResetsDebugViewAttributes() =
     runBlockingWithFlagState(true) {
-      val scope = AndroidCoroutineScope(disposableRule.disposable)
       val (deviceModel, processModel) = createDeviceModel(device1)
       val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
       val mockClientSettings = mock<InspectorClientSettings>()
@@ -198,6 +207,8 @@ class LayoutInspectorTest {
 
       layoutInspector.stopInspector()
 
+      scope.coroutineContext.job.children.forEach { it.join() }
+
       verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
       assertThat(processModel.selectedProcess).isNull()
 
@@ -209,6 +220,8 @@ class LayoutInspectorTest {
       processModel.selectedProcess = fakeProcess
 
       layoutInspector.stopInspector()
+
+      scope.coroutineContext.job.children.forEach { it.join() }
 
       verifyNoMoreInteractions(mockForegroundProcessDetection)
       assertThat(processModel.selectedProcess).isNull()
