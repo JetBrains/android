@@ -424,6 +424,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintActivityIconColor" groupName="Android Lint: Usability" displayName="Ongoing activity icon is not white" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintActivityIconColorInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintSelectedPhotoAccess" groupName="Android Lint: Correctness" displayName="Behavior change when requesting photo library access" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintSelectedPhotoAccessInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWakelock" groupName="Android Lint: Performance" displayName="Incorrect WakeLock usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWakelockInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintUnclosedTrace" groupName="Android Lint: Correctness" displayName="Incorrect trace section usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintUnclosedTraceInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
