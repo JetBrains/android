@@ -31,7 +31,7 @@ import java.util.stream.Collectors
 
 class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfaceActionHandler(surface) {
 
-  override fun getFlavor(): DataFlavor = ItemTransferable.NAV_FLAVOR
+  override val flavor: DataFlavor = ItemTransferable.NAV_FLAVOR
 
   override fun deleteElement(dataContext: DataContext) {
     val superCall = { super.deleteElement(dataContext) }
@@ -68,10 +68,11 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
            !mySurface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
-  override fun getPasteTarget(): NlComponent? {
-    val selection = mySurface.selectionModel.selection
-    return if (selection.size == 1) selection[0] else surface.currentNavigation
-  }
+  override val pasteTarget: NlComponent
+    get() {
+      val selection = mySurface.selectionModel.selection
+      return if (selection.size == 1) selection[0] else surface.currentNavigation
+    }
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean {
     // Actions can be children of anything selectable. Destinations are children of navigations, but won't get pasted into a subnav
