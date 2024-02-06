@@ -46,6 +46,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
     assertEquals("aidl", false, buildFeatures.aidl())
+    assertEquals("shaders", false, buildFeatures.shaders())
   }
 
   @Test
@@ -62,6 +63,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
     assertEquals("aidl", false, buildFeatures.aidl())
+    assertEquals("shaders", false, buildFeatures.shaders())
     buildFeatures.compose().setValue(true)
     buildFeatures.dataBinding().setValue(true)
     buildFeatures.mlModelBinding().setValue(true)
@@ -70,6 +72,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.renderScript().setValue(true)
     buildFeatures.buildConfig().setValue(true)
     buildFeatures.aidl().setValue(true)
+    buildFeatures.shaders().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -81,6 +84,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", true, buildFeatures.renderScript())
     assertEquals("buildConfig", true, buildFeatures.buildConfig())
     assertEquals("aidl", true, buildFeatures.aidl())
+    assertEquals("shaders", true, buildFeatures.shaders())
   }
 
   @Test
@@ -97,6 +101,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
     assertMissingProperty("aidl", buildFeatures.aidl())
+    assertMissingProperty("shaders", buildFeatures.shaders())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
@@ -105,6 +110,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.renderScript().setValue(false)
     buildFeatures.buildConfig().setValue(false)
     buildFeatures.aidl().setValue(false)
+    buildFeatures.shaders().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -116,6 +122,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
     assertEquals("aidl", false, buildFeatures.aidl())
+    assertEquals("shaders", false, buildFeatures.shaders())
   }
 
   @Test
@@ -132,6 +139,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
     assertMissingProperty("aidl", buildFeatures.aidl())
+    assertMissingProperty("shaders", buildFeatures.shaders())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
@@ -140,6 +148,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.renderScript().setValue(false)
     buildFeatures.buildConfig().setValue(false)
     buildFeatures.aidl().setValue(false)
+    buildFeatures.shaders().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -151,6 +160,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
     assertEquals("aidl", false, buildFeatures.aidl())
+    assertEquals("shaders", false, buildFeatures.shaders())
   }
 
   @Test
@@ -168,6 +178,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
     assertEquals("aidl", false, buildFeatures.aidl())
+    assertEquals("shaders", false, buildFeatures.shaders())
     buildFeatures.compose().delete()
     buildFeatures.dataBinding().delete()
     buildFeatures.mlModelBinding().delete()
@@ -176,6 +187,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.renderScript().delete()
     buildFeatures.buildConfig().delete()
     buildFeatures.aidl().delete()
+    buildFeatures.shaders().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
@@ -188,5 +200,6 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
     assertMissingProperty("aidl", buildFeatures.aidl())
+    assertMissingProperty("shaders", buildFeatures.shaders())
   }
 }
