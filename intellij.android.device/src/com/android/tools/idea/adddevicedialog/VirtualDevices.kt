@@ -30,7 +30,7 @@ internal object VirtualDevices {
 
     val definition =
       DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first {
-        it.id == "pixel_7"
+        it.id == "pixel_6"
       }
 
     val image =
@@ -38,7 +38,7 @@ internal object VirtualDevices {
         .tryToChooseSdkHandler()
         .getSystemImageManager(StudioLoggerProgressIndicator(VirtualDevices::class.java))
         .images
-        .first { it.`package`.path == "system-images;android-34;google_apis_playstore;x86_64" }
+        .first { it.`package`.path == "system-images;android-34;google_apis;x86_64" }
 
     val skin = device.skin.path()
 
@@ -55,7 +55,7 @@ internal object VirtualDevices {
         "hw.dPad" to "no",
         "hw.device.hash2" to "MD5:3db3250dab5d0d93b29353040181c7e9",
         "hw.device.manufacturer" to "Google",
-        "hw.device.name" to "pixel_7",
+        "hw.device.name" to "pixel_6",
         "hw.gps" to "yes",
         // TODO This depends on the system image and device.graphicAcceleration. See
         //   ConfigureAvdOptionsStep.java.

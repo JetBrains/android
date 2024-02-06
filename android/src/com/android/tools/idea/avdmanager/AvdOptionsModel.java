@@ -647,7 +647,7 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.RAM_STORAGE_KEY, myAvdDeviceData.ramStorage().get());
     map.put(AvdWizardUtils.IS_IN_EDIT_MODE_KEY, myIsInEditMode.get());
     map.put(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY, myEnableHardwareKeyboard.get());
-    map.put(HardwareProperties.HW_INITIAL_ORIENTATION, mySelectedAvdOrientation.get().getShortDisplayValue());
+    map.put(HardwareProperties.HW_INITIAL_ORIENTATION, mySelectedAvdOrientation.get().getShortDisplayValue().toLowerCase(Locale.ROOT));
     map.put(AvdWizardUtils.USE_HOST_GPU_KEY, myUseHostGpu.get());
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());

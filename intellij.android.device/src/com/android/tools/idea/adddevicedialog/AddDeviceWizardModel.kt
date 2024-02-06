@@ -46,9 +46,9 @@ internal constructor(
 
     return mutableStateOf(
       VirtualDevice(
-        "Pixel 7 API 34",
+        "Pixel 6 API 34",
         AndroidVersion(34, null, 7, true),
-        DefaultSkin(Path.of(sdk, "skins", "pixel_7")),
+        DefaultSkin(Path.of(sdk, "skins", "pixel_6")),
         AvdCamera.EMULATED,
         AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
