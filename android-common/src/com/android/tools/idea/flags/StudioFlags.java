@@ -29,7 +29,6 @@ import com.android.flags.LongFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
-import com.android.tools.idea.IdeChannel;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
@@ -1418,11 +1417,6 @@ public final class StudioFlags {
     "inspectors bundled in local, snapshot builds of Android libraries, as opposed to those released through the normal process on maven.",
     false
   );
-
-  public static final Flag<Boolean> COMPOSE_USE_LOADER_WITH_AFFINITY = Flag.create(
-    COMPOSE, "preview.loader.affinity", "Enable the class loading affinity.",
-    "If enabled, the class loading will cache which class loaders are more likely to have the class.",
-    true);
   // endregion
 
   // region Network Inspector

@@ -18,7 +18,6 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -47,8 +46,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
@@ -298,10 +295,7 @@ internal class ModuleClassLoaderImpl(module: Module,
       projectLoader,
       nonProjectLoader,
       RecyclerViewAdapterLoader())
-    loader = if (StudioFlags.COMPOSE_USE_LOADER_WITH_AFFINITY.get())
-      MultiLoaderWithAffinity(allLoaders)
-    else
-      MultiLoader(allLoaders)
+    loader = MultiLoaderWithAffinity(allLoaders)
   }
 
   private fun recordOverlayLoadedClass(fqcn: String) {
