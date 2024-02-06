@@ -20,6 +20,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.SocketSpec
+import com.android.adblib.isKnownDevice
 import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
@@ -554,7 +555,7 @@ internal class DeviceClient(
   /** Checks if the device is connected. Returns null if it cannot be determined. */
   private suspend fun AdbSession.isDeviceConnected(): Boolean? {
     return try {
-      return hostServices.devices().entries.find { it.serialNumber == deviceSerialNumber } != null
+      return hostServices.isKnownDevice(deviceSerialNumber)
     }
     catch (e: CancellationException) {
       throw e
