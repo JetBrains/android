@@ -226,7 +226,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @GuardedBy("myListenersLock")
   protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
   @GuardedBy("myListenersLock")
-  @NotNull private ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
+  @NotNull private final ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
@@ -705,7 +705,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * Remove an {@link NlModel} from DesignSurface. If it had not been added before then nothing happens.
    *
    * @param model the {@link NlModel} to remove
-   * @returns true if the model existed and was removed
+   * @return true if the model existed and was removed
    */
   private boolean removeModelImpl(@NotNull NlModel model) {
     SceneManager manager;
@@ -729,7 +729,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     model.removeListener(myModelListener);
 
     Disposer.dispose(manager);
-    UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
+    UIUtil.invokeLaterIfNeeded(this::revalidateScrollArea);
     return true;
   }
 
@@ -1155,6 +1155,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @Override
+  @NotNull
   @SwingCoordinate
   public Point getScrollPosition() {
     return getViewport().getViewPosition();
