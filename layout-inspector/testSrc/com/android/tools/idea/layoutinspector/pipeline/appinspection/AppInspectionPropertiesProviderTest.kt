@@ -726,27 +726,27 @@ class AppInspectionPropertiesProviderTest {
     val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
     propertiesModel.layoutInspector = inspectorRule.inspector
 
-    val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2)
-    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
-      modelUpdatedSignal.offer(Unit)
-    }
-
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
-    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
-
     var generatedCount = 0
+    var valuesChanged = 0
     propertiesModel.addListener(
       object : PropertiesModelListener<InspectorPropertyItem> {
         override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
           generatedCount++
         }
+
+        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+          valuesChanged++
+        }
       }
     )
 
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 2 }
+    assertThat(valuesChanged).isEqualTo(0)
+
     val targetNode = inspectorRule.inspectorModel[3]!!
     inspectorRule.inspectorModel.setSelection(targetNode, SelectionOrigin.COMPONENT_TREE)
-    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 1 }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
     assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
     assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
     assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "1.0"))
@@ -757,7 +757,6 @@ class AppInspectionPropertiesProviderTest {
     inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "width")
 
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
       propertiesModel.properties[ANDROID_URI, "text"].value == "secondaryValue"
@@ -767,7 +766,8 @@ class AppInspectionPropertiesProviderTest {
     assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "500px"))
 
     // Verify that we did not fire a properties generated notification after the original
-    assertThat(generatedCount).isEqualTo(1)
+    assertThat(generatedCount).isEqualTo(3)
+    assertThat(valuesChanged).isEqualTo(1)
   }
 
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
