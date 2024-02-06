@@ -261,6 +261,7 @@ public final class StudioIcons {
 
     public static final class Toolbar {
       /** 16x16 */ public static final @NotNull Icon BACK = load("studio/icons/emulator/toolbar/back.svg", -907760027, 2);
+      /** 16x16 */ public static final @NotNull Icon DEVICE_SETTINGS = load("studio/icons/emulator/toolbar/device-settings.svg", 1642204551, 2);
       /** 16x16 */ public static final @NotNull Icon FOLD = load("studio/icons/emulator/toolbar/fold.svg", 1707429587, 2);
       /** 16x16 */ public static final @NotNull Icon HARDWARE_INPUT = load("studio/icons/emulator/toolbar/hardware-input.svg", 1403595921, 2);
       /** 16x16 */ public static final @NotNull Icon HOME = load("studio/icons/emulator/toolbar/home.svg", 1912124078, 2);
