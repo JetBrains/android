@@ -399,6 +399,14 @@ private class LintIdeFixPerformerFix(
   private val edits = LinkedHashMap<PendingEditFile, Pair<SmartPsiFileRange, CharSequence>?>()
 
   init {
+    // Clear out some incident data not needed in the IDE so it's not unnecessarily hanging on
+    // to larger data structures
+    with(incident) {
+      project = null
+      scope = null
+      clientProperties = null
+    }
+
     // Collect edits
     val affectedFiles = performer.registerFixes(incident, listOf(fix))
     val manager = SmartPointerManager.getInstance(project)
