@@ -29,14 +29,13 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
-import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link Interaction} that provides support for scrollable components like ScrollView
  */
-public class ScrollInteraction extends Interaction {
+public class ScrollInteraction implements Interaction {
   // This handles the max scroll speed
   private static final int MAX_SCROLL_MULTIPLIER = 5;
 
@@ -89,11 +88,7 @@ public class ScrollInteraction extends Interaction {
   public void begin(@NotNull InteractionEvent event) {
     assert event instanceof MouseWheelMovedEvent : "The instance of event should be MouseWheelMovedEvent but it is " + event.getClass() +
                                                    "; The Scroll Handler is  component is " + myHandler.getClass() +
-                                                   "; The SceneView is " + mySceneView +
-                                                   ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
-
-    MouseWheelEvent mouseEvent = ((MouseWheelMovedEvent)event).getEventObject();
-    begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+                                                   "; The SceneView is " + mySceneView;
   }
 
   @Override

@@ -35,18 +35,16 @@ import org.intellij.lang.annotations.JdkConstants.InputEventMask
  * number of graphics [Layer]s which are added and cleaned up on behalf of the interaction by the
  * system.
  *
- * Unlike [Interaction], [Interaction2] uses [InteractionEvent] as its event interface so all events
- * can be used to started, updated, ended, or canceled. The implementation of [Interaction2] has to
- * cast the received [InteractionEvent] to its acceptable event type such like [KeyTypedEvent],
- * [MousePressedEvent], [MouseWheelEvent], [DragEnterEvent], [DragOverEvent], or [DropEvent] to
- * perform the [begin], [update], [commit], and [cancel] operations. This makes [Interaction2] can
- * handle more than one kind of event. For example, a drag interaction can also handle the
- * [KeyPressedEvent] during dragging. so it can apply different behavior when the modifiers are
- * pressed or released during interacting.
- *
- * TODO(b/142953949): Replace [Interaction] with this class.
+ * [Interaction] uses [InteractionEvent] as its event interface so all events can be used to start,
+ * update, end, or cancel. The implementation of [Interaction] has to cast the received
+ * [InteractionEvent] to its acceptable event type such like [KeyTypedEvent], [MousePressedEvent],
+ * [MouseWheelEvent], [DragEnterEvent], [DragOverEvent], or [DropEvent] to perform the [begin],
+ * [update], [commit], and [cancel] operations. This makes [Interaction] able to handle more than
+ * one kind of event. For example, a drag interaction can also handle the [KeyPressedEvent] during
+ * dragging. So it can apply different behavior when the modifiers are pressed or released during
+ * interacting.
  */
-interface Interaction2 {
+interface Interaction {
 
   /**
    * Returns a list of overlays, from bottom to top (where the later overlays are painted on top of
