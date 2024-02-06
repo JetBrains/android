@@ -7,8 +7,11 @@
     <option name="text" path="ActionManager" hit="text" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
-    <option name="device" hit="Enable Device Streaming" />
-    <option name="enable" hit="Enable Device Streaming" />
-    <option name="streaming" hit="Enable Device Streaming" />
+    <option name="android" hit="Enable Device Streaming in Android Studio" />
+    <option name="device" hit="Enable Device Streaming in Android Studio" />
+    <option name="enable" hit="Enable Device Streaming in Android Studio" />
+    <option name="in" hit="Enable Device Streaming in Android Studio" />
+    <option name="streaming" hit="Enable Device Streaming in Android Studio" />
+    <option name="studio" hit="Enable Device Streaming in Android Studio" />
   </configurable>
 </options>
