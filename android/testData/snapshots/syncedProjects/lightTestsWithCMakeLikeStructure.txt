@@ -132,14 +132,12 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -230,14 +228,12 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -321,14 +317,12 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

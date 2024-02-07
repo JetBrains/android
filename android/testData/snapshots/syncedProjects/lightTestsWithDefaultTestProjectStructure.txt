@@ -124,7 +124,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -218,7 +217,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -301,7 +299,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

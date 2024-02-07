@@ -123,7 +123,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -217,7 +216,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -303,7 +301,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

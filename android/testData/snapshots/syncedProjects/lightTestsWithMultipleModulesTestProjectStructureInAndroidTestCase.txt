@@ -148,14 +148,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -248,14 +246,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -340,14 +336,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -517,14 +511,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -615,14 +607,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -706,14 +696,12 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
