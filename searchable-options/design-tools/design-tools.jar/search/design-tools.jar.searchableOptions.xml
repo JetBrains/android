@@ -101,18 +101,31 @@
     <option name="layout" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="motion" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="panel" path="ActionManager" hit="Motion Layout Help Panel" />
-    <option name="and" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="clipboard" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="from" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="generate" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="ids" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="new" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="paste" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="views" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
-    <option name="ids" path="ActionManager" hit="Paste with New Ids" />
-    <option name="new" path="ActionManager" hit="Paste with New Ids" />
-    <option name="paste" path="ActionManager" hit="Paste with New Ids" />
-    <option name="with" path="ActionManager" hit="Paste with New Ids" />
+    <option name="ids" path="ActionManager" hit="Paste (with new IDs)" />
+    <option name="new" path="ActionManager" hit="Paste (with new IDs)" />
+    <option name="paste" path="ActionManager" hit="Paste (with new IDs)" />
+    <option name="with" path="ActionManager" hit="Paste (with new IDs)" />
+    <option name="and" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="clipboard" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="from" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="generate" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="ids" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="new" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="paste" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="views" path="ActionManager" hit="Paste Views from Clipboard and generate new IDs" />
+    <option name="and" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="clipboard" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="from" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="ids" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="keep" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="paste" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="the" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="unchanged" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="views" path="ActionManager" hit="Paste Views from Clipboard and keep the IDs unchanged" />
+    <option name="existing" path="ActionManager" hit="Paste with existing IDs" />
+    <option name="ids" path="ActionManager" hit="Paste with existing IDs" />
+    <option name="paste" path="ActionManager" hit="Paste with existing IDs" />
+    <option name="with" path="ActionManager" hit="Paste with existing IDs" />
     <option name="device" path="ActionManager" hit="Preview Next Device" />
     <option name="next" path="ActionManager" hit="Preview Next Device" />
     <option name="preview" path="ActionManager" hit="Preview Next Device" />

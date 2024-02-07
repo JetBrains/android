@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2016 The Android Open Source Project
+  ~ Copyright (C) 2024 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@
 
   <!-- The design tool actions which the shortcuts are configurable. -->
   <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
-  <actions>
+  <actions resource-bundle="messages.AndroidDesignerActionsBundle">
     <!-- Shared actions across all design tools-->
     <group id="Android.Designer.CommonActions"> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -->
       <action id="Android.Designer.ForceRefreshPreview"
@@ -201,7 +201,14 @@
       <synonym key="action.StoreDefaultLayout.synonym" />
     </action>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
-    <action id="PasteWithNewIds" class="com.android.tools.idea.common.actions.PasteWithNewIds"/>
+    <action id="android.designer.paste.with.new.ids" class="com.android.tools.idea.common.actions.PasteWithNewIdsAction"
+            icon="AllIcons.Actions.MenuPaste">
+      <keyboard-shortcut first-keystroke="control V" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="meta V" keymap="Mac OS X"/>
+      <keyboard-shortcut first-keystroke="meta V" keymap="Mac OS X 10.5+"/>
+    </action>
+    <action id="android.designer.paste.with.existing.ids" class="com.android.tools.idea.common.actions.PasteWithExistingIdsAction"
+            icon="AllIcons.Actions.MenuPaste"/>
 
     <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
         <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>

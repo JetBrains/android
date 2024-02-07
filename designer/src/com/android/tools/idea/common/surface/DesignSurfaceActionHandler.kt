@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.tools.idea.common.actions.PasteWithNewIds.Companion.PASTE_WITH_NEW_IDS_KEY
+import com.android.tools.idea.common.actions.PasteWithIdOptionAction.Companion.PASTE_WITH_NEW_IDS_KEY
 import com.android.tools.idea.common.api.DragType
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
@@ -96,8 +95,8 @@ protected constructor(
   abstract fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean
 
   override fun performPaste(dataContext: DataContext) {
-    val generateNewIds = java.lang.Boolean.TRUE == PASTE_WITH_NEW_IDS_KEY.getData(dataContext)
-    pasteOperation(false, /* check and perform the actual paste */ generateNewIds)
+    val generateNewIds = PASTE_WITH_NEW_IDS_KEY.getData(dataContext) ?: true
+    pasteOperation(checkOnly = false, generateNewIds)
   }
 
   /** returns true if the action should be shown. */
@@ -123,7 +122,8 @@ protected constructor(
     val transferItem = clipboardData ?: return false
 
     val dragType = if (transferItem.isCut) DragType.MOVE else DragType.PASTE
-    val insertType = model.treeWriter.determineInsertType(dragType, transferItem, checkOnly, generateNewIds)
+    val insertType =
+      model.treeWriter.determineInsertType(dragType, transferItem, checkOnly, generateNewIds)
 
     val pasted = model.treeWriter.createComponents(transferItem, insertType)
 
@@ -151,7 +151,7 @@ protected constructor(
       insertType,
       mySurface.selectionModel,
     )
-    if (insertType == InsertType.PASTE) {
+    if (insertType.isPasteOperation()) {
       mySurface.selectionModel.setSelection(pasted)
     }
     return true

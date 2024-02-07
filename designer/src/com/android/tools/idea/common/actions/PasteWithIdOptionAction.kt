@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.actions
 
 import com.android.tools.idea.common.model.ItemTransferable
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -26,12 +25,11 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ide.CopyPasteManager
 
-class PasteWithNewIds :
-  AnAction(
-    "Paste with New Ids",
-    "Paste Views from Clipboard and generate new ids",
-    AllIcons.Actions.MenuPaste,
-  ) {
+class PasteWithNewIdsAction : PasteWithIdOptionAction(withNewIds = true)
+
+class PasteWithExistingIdsAction : PasteWithIdOptionAction(withNewIds = false)
+
+abstract class PasteWithIdOptionAction(private val withNewIds: Boolean) : AnAction() {
   companion object {
     @JvmStatic val PASTE_WITH_NEW_IDS_KEY: DataKey<Boolean> = DataKey.create("create_new_ids")
   }
@@ -61,7 +59,7 @@ class PasteWithNewIds :
     val inheritedDataContext = event.dataContext
     val dataContext = DataContext { dataId ->
       when {
-        PASTE_WITH_NEW_IDS_KEY.`is`(dataId) -> true
+        PASTE_WITH_NEW_IDS_KEY.`is`(dataId) -> withNewIds
         else -> inheritedDataContext.getData(dataId)
       }
     }

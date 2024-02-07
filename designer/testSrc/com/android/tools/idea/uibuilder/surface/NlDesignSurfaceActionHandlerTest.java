@@ -25,6 +25,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.actions.PasteWithIdOptionAction;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -41,10 +42,12 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RuleChain;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -52,14 +55,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 
 @RunsInEdt
 public class NlDesignSurfaceActionHandlerTest {
-  private final AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+  private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk();
 
   @Rule
-  public RuleChain chain = RuleChain.outerRule(myProjectRule).around(new EdtRule());
+  public RuleChain chain = new RuleChain(myProjectRule, new EdtRule());
 
   private NlDesignSurface mySurface;
   private Disposable myDisposable;
@@ -183,6 +185,43 @@ public class NlDesignSurfaceActionHandlerTest {
     assertThat(findFirst("ImageView")).isNotNull();
   }
 
+  @Test
+  public void testPasteGenerateNewIdsWithContext() {
+    DataContext newContext = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? true : null;
+      }
+    };
+    copyTextViewAndPaste(newContext);
+    List<NlComponent> textComponents = findAll(TEXT_VIEW);
+    assertThat(textComponents).hasSize(2);
+    assertThat(textComponents.stream().map(NlComponent::getId).toList()).containsExactly("myText", "myText2");
+  }
+
+  @Test
+  public void testPasteUsingOldIdsWithContext() {
+    DataContext newContext = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? false : null;
+      }
+    };
+    copyTextViewAndPaste(newContext);
+    List<NlComponent> textComponents = findAll(TEXT_VIEW);
+    assertThat(textComponents).hasSize(2);
+    assertThat(textComponents.stream().map(NlComponent::getId).toList()).containsExactly("myText", "myText");
+  }
+
+  private void copyTextViewAndPaste(@NotNull DataContext context) {
+    mySurface.getSelectionModel().toggle(myTextView);
+    mySurfaceActionHandler.performCopy(context);
+    mySurface.getSelectionModel().toggle(myTextView);
+    mySurface.getSelectionModel().toggle(findFirst(LINEAR_LAYOUT));
+    mySurfaceActionHandler.performPaste(context);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
   @NotNull
   private SyncNlModel createModel() {
     ModelBuilder builder = NlModelBuilderUtil.model(myProjectRule, "layout", "relative.xml",
@@ -223,22 +262,15 @@ public class NlDesignSurfaceActionHandlerTest {
 
   @NotNull
   private NlComponent findFirst(@NotNull String tagName) {
-    NlComponent component = findFirst(tagName, myModel.getTreeReader().getComponents());
-    assert component != null;
-    return component;
+    Optional<NlComponent> first = findAll(tagName).stream().findFirst();
+    assertThat(first.isPresent()).isTrue();
+    return first.get();
   }
 
-  @Nullable
-  private static NlComponent findFirst(@NotNull String tagName, @NotNull List<NlComponent> components) {
-    for (NlComponent component : components) {
-      if (component.getTagName().equals(tagName)) {
-        return component;
-      }
-      NlComponent child = findFirst(tagName, component.getChildren());
-      if (child != null) {
-        return child;
-      }
-    }
-    return null;
+  private List<NlComponent> findAll(@NotNull String tagName) {
+    return myModel.getTreeReader().getComponents().stream()
+      .flatMap(NlComponent::flatten)
+      .filter(component -> component.getTagName().equals(tagName))
+      .toList();
   }
 }
