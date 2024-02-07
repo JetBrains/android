@@ -19,6 +19,7 @@ import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.google.api.services.testing.model.AndroidDeviceCatalog
 import com.google.gct.testing.launcher.CloudAuthenticator
+import com.intellij.openapi.components.service
 
 /** This class fetches and stores information from FTL android device catalog */
 class FtlDeviceCatalog : GmdDeviceCatalog() {
@@ -29,21 +30,19 @@ class FtlDeviceCatalog : GmdDeviceCatalog() {
   val locale: HashMap<String, LocaleInfo> = HashMap()
 
   // Stores additional information for device locale
-  data class LocaleInfo(
-    val languageName: String = "",
-    val region: String = "",
-  )
+  data class LocaleInfo(val languageName: String = "", val region: String = "")
 
-  override fun checkEmptyFields(): FtlDeviceCatalog{
-    this.isEmptyCatalog = this.devices.isEmpty() &&
-                          this.apiLevels.isEmpty() &&
-                          this.orientation.isEmpty() &&
-                          this.locale.isEmpty()
+  override fun checkEmptyFields(): FtlDeviceCatalog {
+    this.isEmptyCatalog =
+      this.devices.isEmpty() &&
+        this.apiLevels.isEmpty() &&
+        this.orientation.isEmpty() &&
+        this.locale.isEmpty()
     return this
   }
 
   override fun syncDeviceCatalog(): FtlDeviceCatalog {
-    val deviceCatalog = CloudAuthenticator.getInstance()?.androidDeviceCatalog ?: return this
+    val deviceCatalog = service<CloudAuthenticator>().androidDeviceCatalog ?: return this
     parseAndroidDeviceCatalog(deviceCatalog)
     return this
   }
@@ -55,20 +54,24 @@ class FtlDeviceCatalog : GmdDeviceCatalog() {
       val versionIds = androidModel.supportedVersionIds ?: emptyList()
 
       if (versionIds.isNotEmpty() && androidModel.id != null) {
-        this.devices[androidModel.id] = AndroidDeviceInfo(
-          deviceName = androidModel.name ?: "",
-          supportedApis = versionIds.mapNotNull { it.toIntOrNull() },
-          brand = androidModel.brand ?: "",
-          formFactor = androidModel["formFactor"]?.toString() ?: "",
-          deviceForm = androidModel.form ?: "",
-        )
+        this.devices[androidModel.id] =
+          AndroidDeviceInfo(
+            deviceName = androidModel.name ?: "",
+            supportedApis = versionIds.mapNotNull { it.toIntOrNull() },
+            brand = androidModel.brand ?: "",
+            formFactor = androidModel["formFactor"]?.toString() ?: "",
+            deviceForm = androidModel.form ?: "",
+          )
       }
     }
     this.apiLevels.addAll(deviceCatalog.versions?.mapNotNull { it.apiLevel } ?: emptyList())
-    this.orientation.addAll(deviceCatalog.runtimeConfiguration?.orientations?.mapNotNull { it.id } ?: emptyList())
+    this.orientation.addAll(
+      deviceCatalog.runtimeConfiguration?.orientations?.mapNotNull { it.id } ?: emptyList()
+    )
     deviceCatalog.runtimeConfiguration?.locales?.mapNotNull { locale ->
       if (locale.id != null && locale.id != "") {
-        this.locale[locale.id] = LocaleInfo(languageName = locale.name ?: "", region = locale.region ?: "")
+        this.locale[locale.id] =
+          LocaleInfo(languageName = locale.name ?: "", region = locale.region ?: "")
       }
     }
     checkEmptyFields()
