@@ -16,8 +16,10 @@
 package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -115,7 +118,8 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
  * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh])
  * - Delegate prioritization to the requests (see [PreviewRefreshRequest.compareTo])
  */
-class PreviewRefreshManager(private val scope: CoroutineScope) {
+class PreviewRefreshManager
+private constructor(private val scope: CoroutineScope, private val topic: RenderingTopic) {
   private val log = Logger.getInstance(PreviewRefreshManager::class.java)
 
   private val requestsFlow: MutableSharedFlow<Unit> =
@@ -258,5 +262,24 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
       }
     }
     return enqueueingJob
+  }
+
+  companion object {
+    private val coroutineScope =
+      AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+    private val managersByTopicLock = ReentrantLock()
+    @GuardedBy("managersByTopicLock")
+    private val managersByTopic = mutableMapOf<RenderingTopic, PreviewRefreshManager>()
+
+    fun getInstance(topic: RenderingTopic): PreviewRefreshManager {
+      return managersByTopicLock.withLock {
+        managersByTopic.computeIfAbsent(topic) { PreviewRefreshManager(coroutineScope, topic) }
+        managersByTopic.getValue(topic)
+      }
+    }
+
+    @TestOnly
+    fun getInstanceForTest(scope: CoroutineScope, topic: RenderingTopic) =
+      PreviewRefreshManager(scope, topic)
   }
 }

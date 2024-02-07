@@ -19,7 +19,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.gradle.preview.displayName
-import com.android.tools.idea.compose.preview.ComposePreviewRefreshManager
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
@@ -30,9 +29,11 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -87,7 +88,7 @@ class ComposePreviewFakeUiGradleRule(
   lateinit var fakeUi: FakeUi
     private set
 
-  private lateinit var refreshManager: ComposePreviewRefreshManager
+  private lateinit var refreshManager: PreviewRefreshManager
 
   override val delegate: RuleChain =
     super.delegate.around(
@@ -115,7 +116,7 @@ class ComposePreviewFakeUiGradleRule(
     psiMainFile = getPsiFile(project, previewFilePath)
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
-    refreshManager = ComposePreviewRefreshManager.getInstance(project)
+    refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
     withContext(AndroidDispatchers.uiThread) {
       fakeUi =

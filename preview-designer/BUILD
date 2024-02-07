@@ -55,5 +55,6 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering.tests[module, test]",
     ],
 )

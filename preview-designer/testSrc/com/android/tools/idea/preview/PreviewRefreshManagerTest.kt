@@ -22,6 +22,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.android.tools.rendering.getRandomTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.Disposable
@@ -132,12 +134,14 @@ class PreviewRefreshManagerTest {
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
   private lateinit var refreshTracker: TestPreviewRefreshTracker
+  private lateinit var myTopic: RenderingTopic
 
   @Before
   fun setUp() {
     myDisposable = Disposer.newDisposable()
     myScope = AndroidCoroutineScope(myDisposable)
-    refreshManager = PreviewRefreshManager(myScope)
+    myTopic = getRandomTopic()
+    refreshManager = PreviewRefreshManager.getInstanceForTest(myScope, myTopic)
     TestPreviewRefreshRequest.log = StringBuilder()
     refreshTracker = TestPreviewRefreshTracker()
     TestPreviewRefreshTracker.logList = mutableListOf()

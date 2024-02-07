@@ -16,9 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
-import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PreviewRefreshRequest
 import com.android.tools.idea.preview.RefreshResult
 import com.android.tools.idea.preview.RefreshType
@@ -27,15 +25,10 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderService
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.StateFlow
 
 enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
   /** Previews are inflated and rendered. */
@@ -121,32 +114,5 @@ class ComposePreviewRefreshRequest(
         listOfNotNull(replacedBy.completableDeferred, completableDeferred)
       )
     replacedBy.requestSources += requestSources
-  }
-}
-
-/**
- * Service that receives all [ComposePreviewRefreshRequest]s from a project and delegates their
- * coordination and execution to a [PreviewRefreshManager].
- */
-@Service(Service.Level.PROJECT)
-class ComposePreviewRefreshManager private constructor() : Disposable {
-  companion object {
-    fun getInstance(project: Project): ComposePreviewRefreshManager {
-      return project.getService(ComposePreviewRefreshManager::class.java)
-    }
-  }
-
-  private val scope = AndroidCoroutineScope(this)
-
-  private val refreshManager = PreviewRefreshManager(scope)
-
-  val refreshingTypeFlow: StateFlow<RefreshType?> = refreshManager.refreshingTypeFlow
-
-  fun requestRefresh(request: ComposePreviewRefreshRequest) {
-    refreshManager.requestRefresh(request)
-  }
-
-  override fun dispose() {
-    scope.cancel()
   }
 }

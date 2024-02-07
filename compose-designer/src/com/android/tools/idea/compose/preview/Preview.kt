@@ -58,6 +58,7 @@ import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
@@ -88,6 +89,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
@@ -279,7 +281,7 @@ class ComposePreviewRepresentation(
 
   private val previewBuildListenersManager: PreviewBuildListenersManager
 
-  private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
+  private val refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
   private val lifecycleManager =
     PreviewLifecycleManager(
