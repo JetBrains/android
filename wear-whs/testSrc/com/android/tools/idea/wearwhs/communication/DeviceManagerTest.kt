@@ -20,13 +20,13 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertThrows
-import org.junit.Before
 import org.junit.Test
 
 const val WHS_PACKAGE_ID = "com.google.android.wearable.healthservices"
@@ -36,18 +36,13 @@ const val CONTENT_UPDATE_SHELL_COMMAND = "content update --uri $WHS_CONTENT_PROV
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceManagerTest {
 
-  private lateinit var adbSession: FakeAdbSession
+  private var adbSession = FakeAdbSession()
+  private var adbSessionProvider = { adbSession }
   private val serialNumber: String = "1234"
-
-  @Before
-  fun setUp() {
-    adbSession = FakeAdbSession()
-    adbSession.throwIfClosed()
-  }
 
   @Test
   fun `test setCapabilities throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -61,7 +56,7 @@ class DeviceManagerTest {
 
   @Test
   fun `test overrideValues throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -75,7 +70,7 @@ class DeviceManagerTest {
 
   @Test
   fun `test loadActiveExercise throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -89,7 +84,7 @@ class DeviceManagerTest {
 
   @Test
   fun `test triggerEvent throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -103,7 +98,7 @@ class DeviceManagerTest {
 
   @Test
   fun `test loadCurrentCapabilityStates throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -117,7 +112,7 @@ class DeviceManagerTest {
 
   @Test
   fun `test isWhsVersionSupported throws connection lost exception when adb session is closed`() {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     adbSession.close()
@@ -131,7 +126,7 @@ class DeviceManagerTest {
 
   @Test
   fun `enabling capability when serial number is not set does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true))
@@ -141,7 +136,7 @@ class DeviceManagerTest {
 
   @Test
   fun `disabling capability when serial number is not set does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to false))
@@ -150,10 +145,11 @@ class DeviceManagerTest {
   }
 
   private fun assertDeviceManagerFunctionSendsAdbCommand(func: suspend (WearHealthServicesDeviceManager) -> Unit,
-                                                         expectedAdbCommand: String) = runTest {
+                                                         expectedAdbCommand: String,
+                                                         deviceManager: ContentProviderDeviceManager = ContentProviderDeviceManager(adbSessionProvider),
+                                                         adbSession: FakeAdbSession = this.adbSession) = runTest {
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), expectedAdbCommand, "")
 
-    val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
@@ -222,8 +218,10 @@ class DeviceManagerTest {
 
   @Test
   fun `enable and disable absolute elevation`() {
-    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:true")
-    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:false")
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION,
+                                            "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION,
+                                             "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:b:false")
   }
 
   @Test
@@ -258,7 +256,7 @@ class DeviceManagerTest {
 
   @Test
   fun `setting capability override value when serial number is not set does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55))
@@ -366,7 +364,7 @@ class DeviceManagerTest {
 
   @Test
   fun `clear content provider without setting serial number does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.clearContentProvider()
@@ -382,7 +380,7 @@ class DeviceManagerTest {
 
   @Test
   fun `setting multiple capabilities without setting serial number does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true))
@@ -413,7 +411,7 @@ class DeviceManagerTest {
 
   @Test
   fun `setting multiple override values without setting serial number does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55))
@@ -470,7 +468,7 @@ class DeviceManagerTest {
 
   @Test
   fun `checking is WHS version is supported without setting serial number does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.isWhsVersionSupported()
@@ -482,7 +480,7 @@ class DeviceManagerTest {
     val checkWhsVersionCommand = "dumpsys package $WHS_PACKAGE_ID | grep versionCode | head -n1"
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), checkWhsVersionCommand, response)
 
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
@@ -535,7 +533,7 @@ class DeviceManagerTest {
     val queryExerciseStateCommand = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryExerciseStateCommand,
                                                     response)
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
@@ -573,7 +571,7 @@ class DeviceManagerTest {
 
   @Test
   fun `loading capabilities without setting serial number does not result in crash`() = runTest {
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
       deviceManager.loadCapabilities()
@@ -581,11 +579,12 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityState>) = runTest {
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String,
+                                                                 expectedCapabilites: Map<WhsDataType, CapabilityState>) = runTest {
     val queryContentProviderCommand = "content query --uri $WHS_CONTENT_PROVIDER_URI"
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryContentProviderCommand, response)
 
-    val deviceManager = ContentProviderDeviceManager(adbSession)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
@@ -658,5 +657,98 @@ class DeviceManagerTest {
                                                        mapOf(
                                                         WhsDataType.STEPS to CapabilityState(true, 0f),
                                                       ))
+  }
+
+  @Test
+  fun `device manager stores and uses the same adbSession if it's not closed`() = runBlocking<Unit> {
+    var currentAdbSession = adbSession
+    val deviceManager = ContentProviderDeviceManager({ currentAdbSession })
+    deviceManager.setSerialNumber(serialNumber)
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               currentAdbSession)
+
+    val previousAdbSession = currentAdbSession
+
+    // Create and close a new adb session
+    currentAdbSession = FakeAdbSession()
+    currentAdbSession.close()
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               previousAdbSession)
+  }
+
+  @Test
+  fun `device manager throws exception if the adbSession is closed and the new one is closed too`() = runBlocking<Unit> {
+    var currentAdbSession = adbSession
+    val deviceManager = ContentProviderDeviceManager({ currentAdbSession })
+    deviceManager.setSerialNumber(serialNumber)
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               currentAdbSession)
+
+    // Close the current adb session
+    currentAdbSession.close()
+
+    // Create and close a new adb session
+    currentAdbSession = FakeAdbSession()
+    currentAdbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.clearContentProvider()
+      }
+    }
+  }
+
+  @Test
+  fun `device manager throws exception if the adbSession is closed and the new one is not created`() = runBlocking<Unit> {
+    val currentAdbSession = adbSession
+    val deviceManager = ContentProviderDeviceManager({ currentAdbSession })
+    deviceManager.setSerialNumber(serialNumber)
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               currentAdbSession)
+
+    // Close the current adb session
+    currentAdbSession.close()
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.clearContentProvider()
+      }
+    }
+  }
+
+  @Test
+  fun `device manager creates a new adbSession if the current one is closed`() = runBlocking {
+    var currentAdbSession = adbSession
+    val deviceManager = ContentProviderDeviceManager({ currentAdbSession })
+    deviceManager.setSerialNumber(serialNumber)
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               currentAdbSession)
+
+    // Close the current adb session
+    currentAdbSession.close()
+
+    // Create and redirect to the new adb session
+    val newAdbSession = FakeAdbSession()
+    currentAdbSession = newAdbSession
+
+    assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },
+                                               "content delete --uri $WHS_CONTENT_PROVIDER_URI",
+                                               deviceManager,
+                                               newAdbSession)
   }
 }

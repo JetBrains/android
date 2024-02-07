@@ -43,10 +43,11 @@ private const val POLLING_INTERVAL_MILLISECONDS: Long = 10000
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
-  private val logger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
+  private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
   @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS)
   : WearHealthServicesToolWindowStateManager, Disposable {
 
+  private val logger: Logger = Logger.getInstance(WearHealthServicesToolWindowStateManagerImpl::class.java)
   private val currentPreset = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityUIState>>()
@@ -59,7 +60,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     set(value) {
       // Only accept non-null values to avoid tool window unbinding completely
       value?.let {
-        logger.logBindEmulator()
+        eventLogger.logBindEmulator()
         deviceManager.setSerialNumber(it)
         field = value
       }
@@ -98,7 +99,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       }
     }
     catch (e: ConnectionLostException) {
-      Logger.getInstance(WearHealthServicesToolWindowStateManager::class.java).warn(e)
+      logger.warn(e)
     }
   }
 
@@ -117,7 +118,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       deviceManager.isWhsVersionSupported()
     }
     catch (exception: ConnectionLostException) {
-      // TODO(b/320432666): For now catch this error and show whs version not supported UI, eventually show separate could not connect UI
+      logger.warn(exception)
       false
     }
   }
@@ -174,7 +175,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       deviceManager.overrideValues(overrideUpdates)
     }
     catch (exception: ConnectionLostException) {
-      logger.logApplyChangesFailure()
+      logger.warn(exception)
+      eventLogger.logApplyChangesFailure()
       progress.emit(WhsStateManagerStatus.ConnectionLost)
       return
     }
@@ -183,7 +185,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       val state = stateFlow.value
       stateFlow.emit(state.copy(synced = true))
     }
-    logger.logApplyChangesSuccess()
+    eventLogger.logApplyChangesSuccess()
     progress.emit(WhsStateManagerStatus.Idle)
   }
 
@@ -192,7 +194,12 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     for (entry in capabilityToState.keys) {
       setOverrideValue(entry, null)
     }
-    deviceManager.clearContentProvider()
+    try {
+      deviceManager.clearContentProvider()
+    } catch (exception: ConnectionLostException) {
+      logger.warn(exception)
+      progress.emit(WhsStateManagerStatus.ConnectionLost)
+    }
   }
 
   override fun dispose() { // Clear all callbacks to avoid memory leaks

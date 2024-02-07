@@ -54,7 +54,7 @@ class WearHealthServicesToolWindowFactory : DumbAware, ToolWindowFactory {
  */
 private fun ToolWindow.displayWearHealthServices() {
   contentManager.removeAllContents(true)
-  val deviceManager = ContentProviderDeviceManager(AdbLibService.getSession(project))
+  val deviceManager = ContentProviderDeviceManager({ AdbLibService.getSession(project) })
   val stateManager = WearHealthServicesToolWindowStateManagerImpl(deviceManager)
   val view = WearHealthServicesToolWindow(stateManager)
 
