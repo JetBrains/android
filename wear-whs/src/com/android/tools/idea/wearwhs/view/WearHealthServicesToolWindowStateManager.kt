@@ -124,6 +124,6 @@ internal sealed class WhsStateManagerStatus {
  * Data class representing current state of a WHS capability.
  */
 internal data class CapabilityUIState(
-  val synced: Boolean = false,
-  val capabilityState: CapabilityState = CapabilityState(false, null)
+  val synced: Boolean = true,
+  val capabilityState: CapabilityState = CapabilityState(true, null)
 )

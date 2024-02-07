@@ -28,9 +28,7 @@ internal class FakeDeviceManager(
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
-  private val onDeviceStates: MutableMap<WhsDataType, CapabilityState> = capabilities.associate {
-    it.dataType to CapabilityState(false, null)
-  } as MutableMap<WhsDataType, CapabilityState>
+  private val onDeviceStates = capabilities.associate { it.dataType to CapabilityState(true, null) }.toMutableMap()
   internal var activeExercise = false
 
   override fun getCapabilities() = capabilities

@@ -116,6 +116,19 @@ class WearHealthServicesToolWindowStateManagerTest {
   }
 
   @Test
+  fun `test state manager initialises all capabilities to synced, enabled and no override`() = runBlocking {
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(null)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.overrideValue }.waitForValue(null)
+  }
+
+  @Test
   fun `test getCapabilityEnabled has the correct value`() = runBlocking {
     stateManager.setCapabilityEnabled(capabilities[0], false)
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
@@ -139,16 +152,23 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.reset()
 
-    stateManager.preset.value = Preset.ALL
+    stateManager.preset.waitForValue(Preset.ALL)
     stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
     stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
-    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
 
     assertEquals(1, deviceManager.clearContentProviderInvocations)
   }
 
   @Test
   fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
+
     stateManager.setCapabilityEnabled(capabilities[0], false)
     stateManager.setCapabilityEnabled(capabilities[1], true)
     stateManager.setOverrideValue(capabilities[1], 3f)
@@ -156,7 +176,7 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(false)
-    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(false)
+    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
     stateManager.applyChanges()
 
