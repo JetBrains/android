@@ -22,8 +22,6 @@ import com.android.tools.idea.preview.RefreshResult
 import com.android.tools.idea.preview.RefreshType
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
-import com.android.tools.rendering.RenderAsyncActionExecutor
-import com.android.tools.rendering.RenderService
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -95,16 +93,6 @@ class ComposePreviewRefreshRequest(
   override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
     completableDeferred?.let {
       if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
-    }
-
-    if (result == RefreshResult.USER_CANCELLED || result == RefreshResult.AUTOMATICALLY_CANCELLED) {
-      // Force stop any running and pending renders so that everything is ready
-      // for a new refresh that may start right away.
-      RenderService.getRenderAsyncActionExecutor()
-        .cancelActionsByTopic(
-          listOf(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW),
-          true,
-        )
     }
   }
 

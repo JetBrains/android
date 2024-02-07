@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.android.tools.rendering.RenderService
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
@@ -82,8 +83,12 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
   /**
    * Method called when it is time for this request to actually be executed.
    *
-   * Note the [PreviewRefreshManager] will cancel this running refresh when a newer request comes in
-   * with the same client id and with higher than or equal priority to this one.
+   * If the returned [Job] is cancelled, either by the [PreviewRefreshManager] or by the user, then
+   * the [PreviewRefreshManager] will cancel all rendering actions for it's
+   * [PreviewRefreshManager.topic].
+   *
+   * Note the [PreviewRefreshManager] will cancel this running refresh request when a newer request
+   * comes in with the same client id and with higher than or equal priority to this one.
    */
   fun doRefresh(): Job
 
@@ -111,11 +116,14 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
 }
 
 /**
- * A refresh manager that receives [PreviewRefreshRequest]s and coordinates their execution applying
- * the following rules:
+ * A refresh manager that receives [PreviewRefreshRequest]s for a given [RenderingTopic] and
+ * coordinates their execution applying the following rules:
  * - Group the requests by their [PreviewRefreshRequest.clientId], and keep at most 1 request per
  *   client in the queue (see [PreviewRefreshRequest.onSkip]).
- * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh])
+ * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh]). When a request is
+ *   cancelled, either because it is outdated or because the user cancelled the
+ *   [PreviewRefreshRequest.doRefresh] job, all running and pending renders on the manager's
+ *   [RenderingTopic] are cancelled to allow any new refresh request to start straight away.
  * - Delegate prioritization to the requests (see [PreviewRefreshRequest.compareTo])
  */
 class PreviewRefreshManager
@@ -185,6 +193,14 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
               }
             currentRequest.onRefreshCompleted(result, it)
             currentRequest.refreshEventBuilder?.onRefreshCompleted(result)
+            if (
+              result == RefreshResult.USER_CANCELLED ||
+                result == PreviewRefreshEvent.RefreshResult.AUTOMATICALLY_CANCELLED
+            ) {
+              // Force stop any running and pending renders so that everything is ready
+              // for a new refresh that may start right away.
+              RenderService.getRenderAsyncActionExecutor().cancelActionsByTopic(listOf(topic), true)
+            }
             // Log unexpected failures
             if (result == RefreshResult.FAILED) {
               log.warn("Failed refresh request ($currentRequest)", it)

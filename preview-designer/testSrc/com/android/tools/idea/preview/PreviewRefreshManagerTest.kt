@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.getRandomTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
@@ -31,6 +32,7 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.test.assertEquals
@@ -599,6 +601,88 @@ class PreviewRefreshManagerTest {
     assertEquals(1, cancelled.size)
     assertTrue(cancelled.all { it.hasInQueueTimeMillis() })
     assertTrue(cancelled.all { it.hasRefreshTimeMillis() })
+  }
+
+  @Test
+  fun testRenderingTopicIsCancelled_AfterUserCancellation() = runBlocking {
+    val waitingLatch = CountDownLatch(1)
+    val renderTopicCancelledLatch = CountDownLatch(1)
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(myTopic) {
+      try {
+        waitingLatch.await()
+      } catch (e: InterruptedException) {
+        renderTopicCancelledLatch.countDown()
+      }
+    }
+
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    val refreshRequest =
+      TestPreviewRefreshRequest(
+        myScope,
+        "client1",
+        1,
+        "req1",
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
+        doInsideRefreshJob = {
+          while (true) {
+            delay(500)
+          }
+        },
+      )
+    refreshManager.requestRefreshSync(refreshRequest)
+    // wait for refresh to start and then cancel its "internal" job
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    refreshRequest.runningRefreshJob!!.cancel()
+
+    // wait for the cancel to complete
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 1 }
+
+    val renderTopicWasCancelled = renderTopicCancelledLatch.await(5, TimeUnit.SECONDS)
+    assertTrue(renderTopicWasCancelled)
+  }
+
+  @Test
+  fun testRenderingTopicIsCancelled_AfterAutomaticCancellation() = runBlocking {
+    val waitingLatch = CountDownLatch(1)
+    val renderTopicCancelledLatch = CountDownLatch(1)
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(myTopic) {
+      try {
+        waitingLatch.await()
+      } catch (e: InterruptedException) {
+        renderTopicCancelledLatch.countDown()
+      }
+    }
+
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    refreshManager.requestRefreshSync(
+      TestPreviewRefreshRequest(
+        myScope,
+        "client1",
+        1,
+        "req1",
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
+      )
+    )
+    // wait for start of previous request and create a new one with higher priority which will
+    // automatically cancel the previous request
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(3)
+    refreshManager.requestRefreshSync(
+      TestPreviewRefreshRequest(
+        myScope,
+        "client1",
+        2,
+        "req2",
+        PreviewRefreshEventBuilder(testPreviewType, refreshTracker),
+      )
+    )
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
+
+    val renderTopicWasCancelled = renderTopicCancelledLatch.await(5, TimeUnit.SECONDS)
+    assertTrue(renderTopicWasCancelled)
   }
 
   /**
