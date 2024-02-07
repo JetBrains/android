@@ -59,8 +59,8 @@ open class MultiParentDisposable(vararg parents: Disposable) : Disposable {
   private class Cleaner(val disposables: List<Disposable>) : Disposable {
 
     override fun dispose() {
-      while (disposables.isNotEmpty()) {
-        Disposer.dispose(disposables[0])
+      for (disposable in disposables) {
+        Disposer.dispose(disposable)
       }
     }
   }
