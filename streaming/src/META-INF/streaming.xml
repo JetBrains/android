@@ -171,33 +171,39 @@
     </action>
 
     <group id="StreamingToolbarVirtualDevice">
-      <reference ref="android.device.power.button"/>
-      <reference ref="android.device.volume.up.button"/>
-      <reference ref="android.device.volume.down.button"/>
-      <reference ref="android.device.rotate.left"/>
-      <reference ref="android.device.rotate.right"/>
-      <reference ref="android.device.postures"/>
-      <reference ref="android.device.wear1.button"/>
-      <reference ref="android.device.wear2.button"/>
-      <reference ref="android.device.sleep"/>
-      <reference ref="android.emulator.tilt"/>
-      <reference ref="android.device.back.button"/>
-      <reference ref="android.device.home.button"/>
-      <reference ref="android.device.overview.button"/>
-      <reference ref="android.streaming.ui.settings"/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
-              text="Display Mode" description="Select display mode" popup="true">
+             text="Display Mode" description="Select display mode" popup="true">
         <reference ref="android.emulator.display.mode.phone"/>
         <reference ref="android.emulator.display.mode.foldable"/>
         <reference ref="android.emulator.display.mode.tablet"/>
         <separator/>
       </group>
+      <separator/>
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.postures"/>
+      <separator/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.emulator.tilt"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <separator/>
+      <reference ref="android.streaming.ui.settings"/>
+      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module. -->
+      <group id="android.device.wear.whs.placeholder"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.streaming.hardware.input"/>
-      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module -->
-      <group id="android.device.wear.whs.placeholder"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -205,18 +211,23 @@
       <reference ref="android.device.power.button"/>
       <reference ref="android.device.volume.up.button"/>
       <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
       <reference ref="android.device.postures"/>
-      <reference ref="android.device.wear1.button"/>
-      <reference ref="android.device.wear2.button"/>
+      <separator/>
       <reference ref="android.device.sleep"/>
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <separator/>
       <reference ref="android.streaming.ui.settings"/>
+      <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
     </group>
