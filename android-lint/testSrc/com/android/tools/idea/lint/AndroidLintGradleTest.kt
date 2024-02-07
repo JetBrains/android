@@ -18,6 +18,7 @@ package com.android.tools.idea.lint
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
@@ -178,6 +179,38 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     val inspection = AndroidLintUnusedResourcesInspection()
     myFixture.enableInspections(inspection)
     doGlobalInspectionTest(inspection, AnalysisScope(myFixture.project))
+  }
+
+  fun testVersionCatalogNestedProjects() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS)
+    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintUseTomlInsteadInspection(),
+      "com.android.support:appcompat-v|7:28.0.0",
+      """
+        Warning: Use version catalog instead
+            implementation("com.android.support:appcompat-v7:28.0.0")
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Fix: Replace with new library catalog declaration for appcompat-v7
+            Fix: Suppress UseTomlInstead with a comment
+      """
+        .trimIndent(),
+    )
+    val nestedAppBuildFile = myFixture.loadFile("app/nested/build.gradle.kts")
+    myFixture.checkLint(
+      nestedAppBuildFile,
+      AndroidLintUseTomlInsteadInspection(),
+      "com.android.support:appcompat-v|7:28.0.0",
+      """
+        Warning: Use version catalog instead
+            implementation("com.android.support:appcompat-v7:28.0.0")
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Fix: Replace with new library catalog declaration for appcompat-v7
+            Fix: Suppress UseTomlInstead with a comment
+      """
+        .trimIndent(),
+    )
   }
 
   fun doGlobalInspectionTest(

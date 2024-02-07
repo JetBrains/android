@@ -61,6 +61,7 @@ import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -264,6 +265,19 @@ public class AndroidLintIdeClient extends LintIdeClient {
     }
 
     return super.getCacheDir(name, create);
+  }
+
+  @Override
+  public @Nullable File getRootDir() {
+    String pathname = ExternalSystemApiUtil.getExternalRootProjectPath(getModule());
+    if (pathname != null) {
+      File root = new File(pathname);
+      if (root.exists()) {
+        return root;
+      }
+    }
+
+    return super.getRootDir();
   }
 
   private static final String MERGED_MANIFEST_INFO = "lint-merged-manifest-info";
