@@ -39,6 +39,7 @@ import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -53,7 +54,13 @@ class VitalsTabProvider : AppInsightsTabProvider {
       val configManager = project.service<VitalsConfigurationService>().manager
       val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
       withContext(AndroidDispatchers.uiThread) {
-        configManager.configuration.collect { appInsightsModel ->
+        // Combine with active user flow to get the logged out -> logged in + not authorized update
+        val loginService = service<GoogleLoginService>()
+        val flow =
+          if (loginService.useOldVersion) configManager.configuration
+          else
+            configManager.configuration.combine(loginService.activeUserFlow) { config, _ -> config }
+        flow.collect { appInsightsModel ->
           when (appInsightsModel) {
             AppInsightsModel.Unauthenticated -> {
               tracker.logZeroState(
