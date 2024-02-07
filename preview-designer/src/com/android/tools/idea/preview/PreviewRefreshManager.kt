@@ -18,6 +18,7 @@ package com.android.tools.idea.preview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderService
@@ -25,9 +26,11 @@ import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
 import java.util.PriorityQueue
+import java.util.UUID
 import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -113,6 +116,58 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
    * corresponding request.
    */
   fun onSkip(replacedBy: PreviewRefreshRequest)
+}
+
+enum class CommonPreviewRefreshType(override val priority: Int) : RefreshType {
+  /** Previews are inflated and rendered. */
+  NORMAL(0),
+}
+
+/**
+ * A common implementation of [PreviewRefreshRequest].
+ *
+ * @param clientId see [PreviewRefreshRequest.clientId]
+ * @param delegateRefresh method responsible for performing the refresh
+ * @param onRefreshCompleted optional completable that will be completed once the refresh is
+ *   completed. If the request is skipped and replaced with another one, then this completable will
+ *   be completed when the other one is completed. If the refresh gets cancelled, this completable
+ *   will be completed exceptionally.
+ * @param refreshType a [RefreshType] value used for prioritizing the requests and that could
+ *   influence the logic in [delegateRefresh].
+ * @param refreshEventBuilder see [PreviewRefreshRequest.refreshEventBuilder]
+ * @param requestId identifier used for testing and logging/debugging.
+ */
+class CommonPreviewRefreshRequest(
+  override val clientId: String,
+  private val delegateRefresh: (PreviewRefreshRequest) -> Job,
+  private var onRefreshCompleted: CompletableDeferred<Unit>? = null,
+  override val refreshType: RefreshType = CommonPreviewRefreshType.NORMAL,
+  override val refreshEventBuilder: PreviewRefreshEventBuilder? = null,
+  val requestId: String = UUID.randomUUID().toString().substring(0, 5),
+) : PreviewRefreshRequest {
+  override fun doRefresh(): Job {
+    val refreshJob = delegateRefresh(this)
+    // If the deferred is cancelled, cancel the refresh Job too
+    onRefreshCompleted?.invokeOnCompletion {
+      if (it is CancellationException) refreshJob.cancel(it)
+    }
+    return refreshJob
+  }
+
+  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
+    onRefreshCompleted?.let {
+      if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
+    }
+  }
+
+  override fun onSkip(replacedBy: PreviewRefreshRequest) {
+    (replacedBy as? CommonPreviewRefreshRequest)?.let {
+      it.onRefreshCompleted =
+        wrapCompletableDeferredCollection(
+          listOfNotNull(replacedBy.onRefreshCompleted, onRefreshCompleted)
+        )
+    }
+  }
 }
 
 /**

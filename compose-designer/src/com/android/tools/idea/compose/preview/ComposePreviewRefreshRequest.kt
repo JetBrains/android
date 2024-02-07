@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
+import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.PreviewRefreshRequest
 import com.android.tools.idea.preview.RefreshResult
 import com.android.tools.idea.preview.RefreshType
@@ -24,7 +24,6 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import java.util.UUID
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 
@@ -55,7 +54,7 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
  *   application id when tracking refresh metrics.
  * @param clientId see [PreviewRefreshRequest.clientId]
  * @param delegateRefresh method responsible for performing the refresh
- * @param completableDeferred optional completable that will be completed once the refresh is
+ * @param onRefreshCompleted optional completable that will be completed once the refresh is
  *   completed. If the request is skipped and replaced with another one, then this completable will
  *   be completed when the other one is completed. If the refresh gets cancelled, this completable
  *   will be completed exceptionally.
@@ -67,40 +66,37 @@ class ComposePreviewRefreshRequest(
   surface: DesignSurface<*>?,
   override val clientId: String,
   private val delegateRefresh: (ComposePreviewRefreshRequest) -> Job,
-  private var completableDeferred: CompletableDeferred<Unit>?,
+  private var onRefreshCompleted: CompletableDeferred<Unit>?,
   override val refreshType: ComposePreviewRefreshType,
-  val requestId: String = UUID.randomUUID().toString().substring(0, 5),
+  requestId: String = UUID.randomUUID().toString().substring(0, 5),
 ) : PreviewRefreshRequest {
 
-  override val refreshEventBuilder =
-    PreviewRefreshEventBuilder(
-      PreviewRefreshEvent.PreviewType.COMPOSE,
-      PreviewRefreshTracker.getInstance(surface),
+  private val delegate =
+    CommonPreviewRefreshRequest(
+      clientId = clientId,
+      delegateRefresh = { delegateRefresh(this) },
+      onRefreshCompleted = onRefreshCompleted,
+      refreshType = refreshType,
+      refreshEventBuilder =
+        PreviewRefreshEventBuilder(
+          PreviewRefreshEvent.PreviewType.COMPOSE,
+          PreviewRefreshTracker.getInstance(surface),
+        ),
+      requestId = requestId,
     )
+
+  val requestId = delegate.requestId
 
   var requestSources: List<Throwable> = listOf(Throwable())
     private set
 
-  override fun doRefresh(): Job {
-    val refreshJob = delegateRefresh(this)
-    // If the deferred is cancelled, cancel the refresh Job too
-    completableDeferred?.invokeOnCompletion {
-      if (it is CancellationException) refreshJob.cancel(it)
-    }
-    return refreshJob
-  }
+  override fun doRefresh() = delegate.doRefresh()
 
-  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
-    completableDeferred?.let {
-      if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
-    }
-  }
+  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) =
+    delegate.onRefreshCompleted(result, throwable)
 
   override fun onSkip(replacedBy: PreviewRefreshRequest) {
-    (replacedBy as ComposePreviewRefreshRequest).completableDeferred =
-      wrapCompletableDeferredCollection(
-        listOfNotNull(replacedBy.completableDeferred, completableDeferred)
-      )
+    delegate.onSkip((replacedBy as ComposePreviewRefreshRequest).delegate)
     replacedBy.requestSources += requestSources
   }
 }
