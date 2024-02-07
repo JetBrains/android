@@ -49,7 +49,7 @@ abstract class AiExcludeService {
   abstract fun validateQuery(
     project: Project,
     query: String,
-    filesUsedAsContext: List<VirtualFile>): Result<ValidatedQuery>
+    filesUsedAsContext: Collection<VirtualFile>): Result<ValidatedQuery>
 
   /**
    * A query which may depend on some files or other context, and is certified to have
@@ -67,7 +67,7 @@ abstract class AiExcludeService {
 
     class StubValidatedQuery(override val query: String) : ValidatedQuery
 
-    override fun validateQuery(project: Project, query: String, filesUsedAsContext: List<VirtualFile>): Result<StubValidatedQuery> =
+    override fun validateQuery(project: Project, query: String, filesUsedAsContext: Collection<VirtualFile>): Result<StubValidatedQuery> =
       Result.success(StubValidatedQuery(query))
   }
 }
