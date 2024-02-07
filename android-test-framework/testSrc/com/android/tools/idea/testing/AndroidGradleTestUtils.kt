@@ -24,11 +24,10 @@ import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.LibraryFilePaths
-import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
-import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
-import com.android.tools.idea.gradle.util.GradleConfigProperties
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -48,12 +47,14 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformatio
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
-import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
@@ -62,8 +63,6 @@ import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
-import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -107,6 +106,7 @@ import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntrie
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
@@ -376,6 +376,7 @@ interface AndroidProjectStubBuilder {
   val includeBuildConfigSources: Boolean
   val internedModels: InternedModels
   val defaultVariantName: String?
+  val includeShadersSources: Boolean
 }
 
 /**
@@ -442,6 +443,7 @@ data class AndroidProjectBuilder(
   val includeAidlSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val includeBuildConfigSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val defaultVariantName: AndroidProjectStubBuilder.() -> String? = { null },
+  val includeShadersSources: AndroidProjectStubBuilder.() -> Boolean = { false },
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -603,6 +605,7 @@ data class AndroidProjectBuilder(
         override val includeBuildConfigSources: Boolean get() = includeBuildConfigSources()
         override val internedModels: InternedModels get() = internedModels
         override val defaultVariantName: String? get() = defaultVariantName()
+        override val includeShadersSources: Boolean get() = includeShadersSources()
       }
       return AndroidProjectModels(
         androidProject = builder.androidProject,
@@ -649,46 +652,47 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
 }
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_ANDROID_TEST,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
 
 fun AndroidProjectStubBuilder.buildTestFixturesSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_TEST_FIXTURES,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
 
 fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_UNIT_TEST,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
 
 fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
-  sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 private fun sourceProvider(
   name: String,
   rootDir: File,
   includeRenderScriptSources: Boolean = false,
-  includeAidlSources: Boolean = false
+  includeAidlSources: Boolean = false,
+  includeShadersSources: Boolean = false,
 ): IdeSourceProviderImpl {
   return IdeSourceProviderImpl(
     myName = name,
@@ -703,7 +707,7 @@ private fun sourceProvider(
     myAssetsDirectories = listOf("assets"),
     myJniLibsDirectories = listOf("jniLibs"),
     myMlModelsDirectories = listOf(),
-    myShadersDirectories = listOf("shaders"),
+    myShadersDirectories = if (includeShadersSources) listOf("shaders") else listOf(),
     myCustomSourceDirectories = listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/),
     myBaselineProfileDirectories = listOf("baselineProfiles"),
   )

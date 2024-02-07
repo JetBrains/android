@@ -152,7 +152,8 @@ private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
             )
           )
         },
-        namespace = { "com.example.skeleton" }
+        namespace = { "com.example.skeleton" },
+        includeShadersSources = { true }
       ).build(),
     ),
     AndroidModuleModelBuilder(
@@ -163,7 +164,8 @@ private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
       projectBuilder = AndroidProjectBuilder(
         projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
         androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
-        namespace = { "com.example.androidlibrary" }
+        namespace = { "com.example.androidlibrary" },
+        includeShadersSources = { true }
       ).build()
     ),
     JavaModuleModelBuilder(

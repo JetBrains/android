@@ -296,6 +296,7 @@ class AgpUpgradeRefactoringProcessor(
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
+    ShadersDefaultRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
