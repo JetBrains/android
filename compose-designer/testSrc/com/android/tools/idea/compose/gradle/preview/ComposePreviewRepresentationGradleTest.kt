@@ -34,6 +34,7 @@ import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
+import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.testing.deleteLine
@@ -123,21 +124,23 @@ class ComposePreviewRepresentationGradleTest {
             files: Collection<PsiFile>,
           ) {
             logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
-            compileDeferred.complete(result)
+            // We expect a successful compilation, but some cancelled results can be received here
+            // if for some reason a compilation is started while another one was already happening
+            if (result.isSuccess) compileDeferred.complete(result)
           }
         }
-      fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
       waitForSmartMode(project, logger)
       logger.info("runAndWaitForFastRefresh: Waiting for any previous compilations to complete")
       delayUntilCondition(delayPerIterationMs = 500, timeout = 30.seconds) {
         !FastPreviewManager.getInstance(project).isCompiling
       }
+      fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
       logger.info("runAndWaitForFastRefresh: Executing runnable")
       runnable()
       logger.info("runAndWaitForFastRefresh: Runnable executed")
       val result = compileDeferred.await()
       logger.info("runAndWaitForFastRefresh: Compilation finished $result")
-      (result as? CompilationResult.WithThrowable)?.let { logger.error(it.e) }
+      assertTrue(result.isSuccess)
     }
   }
 
