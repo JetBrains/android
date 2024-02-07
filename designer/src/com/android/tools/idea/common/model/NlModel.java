@@ -265,8 +265,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   public void updateTheme() {
-    ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
-    if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
       Disposable computationToken = Disposer.newDisposable();
       Disposer.register(this, computationToken);
       Disposable oldComputation = myThemeUpdateComputation.getAndSet(computationToken);
@@ -274,10 +272,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         Disposer.dispose(oldComputation);
       }
       ReadAction.nonBlocking((Callable<Void>) () -> {
-        updateTheme(themeUrl, computationToken);
+        if (myThemeUpdateComputation.get() != computationToken) {
+          return null; // A new update has already been scheduled.
+        }
+        ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
+        if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
+          updateTheme(themeUrl, computationToken);
+        }
         return null;
       }).expireWith(computationToken).submit(myUpdateExecutor);
-    }
   }
 
   @Slow
