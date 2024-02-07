@@ -553,6 +553,7 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.google.services.firebase",
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
