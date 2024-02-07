@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.testutils.MockitoKt
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -31,17 +30,12 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.event.HyperlinkListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -52,7 +46,8 @@ import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.event.HyperlinkListener
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
@@ -95,14 +90,6 @@ class AppInsightsProjectLevelControllerRule(
     client = Mockito.spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
     tracker = mock(AppInsightsTracker::class.java)
-    ApplicationManager.getApplication()
-      .registerOrReplaceServiceInstance(
-        GoogleLogin::class.java,
-        MockitoKt.mock<GoogleLogin>().apply {
-          `when`(this.getEmail()).thenReturn("testuser@gmail.com")
-        },
-        disposable,
-      )
     controller =
       AppInsightsProjectLevelControllerImpl(
         key,

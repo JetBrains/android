@@ -28,8 +28,9 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.gct.login.GoogleLogin
+import com.google.gct.login2.GoogleLoginService
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.openapi.components.service
 import java.time.Clock
 import java.util.UUID
 
@@ -64,7 +65,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
   }
 
   private fun fetchEmail(): String {
-    return GoogleLogin.instance.getEmail()?.takeUnless { it.isEmpty() } ?: "You (logged out)"
+    return service<GoogleLoginService>().getEmail()?.takeUnless { it.isEmpty() } ?: "You (logged out)"
   }
 }
 
