@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,7 +76,7 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType,
   Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
-      .width(TASK_WIDTH_DP)
+      .fillMaxWidth()
       .clip(shape = RoundedCornerShape(5.dp))
       .background(
         if (isSelectedTask) {
@@ -106,7 +107,7 @@ fun TaskIconAndDescription(task: ProfilerTaskType, isTaskEnabled: Boolean, boxSc
   val taskIcon = if (isTaskEnabled) TaskBasedUxIcons.getTaskIcon(task) else TaskBasedUxIcons.DISABLED_TASK_ICON
   with(boxScope) {
     Column(
-      modifier = Modifier.align(Alignment.Center).padding(20.dp)
+      modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(20.dp)
     ) {
       Icon(
         resource = taskIcon.path,
