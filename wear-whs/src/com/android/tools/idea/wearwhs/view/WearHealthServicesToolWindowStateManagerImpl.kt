@@ -101,7 +101,12 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
     try {
       _ongoingExercise.value = deviceManager.loadActiveExercise()
-      val currentStates = deviceManager.loadCurrentCapabilityStates()
+      val currentStates = deviceManager.loadCurrentCapabilityStates().toMutableMap()
+      val allCapabilities = deviceManager.getCapabilities().map { it.dataType }.toSet()
+      val missingCapabilities = allCapabilities.minus(currentStates.keys.toSet())
+      missingCapabilities.forEach {
+        currentStates[it] = CapabilityState(true, null)
+      }
       currentStates.forEach { (dataType, state) ->
         // Update values only if they're synced through and got changed in the background
         capabilityToState[dataType.toCapability()]?.let { stateFlow ->

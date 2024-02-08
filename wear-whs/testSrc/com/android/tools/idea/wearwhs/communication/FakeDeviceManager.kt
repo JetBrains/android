@@ -67,6 +67,7 @@ internal class FakeDeviceManager(
 
   override suspend fun clearContentProvider() {
     clearContentProviderInvocations++
+    onDeviceStates.clear()
   }
 
   override suspend fun isWhsVersionSupported(): Boolean {

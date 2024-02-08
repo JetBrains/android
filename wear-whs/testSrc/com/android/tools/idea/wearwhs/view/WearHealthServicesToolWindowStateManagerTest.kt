@@ -129,6 +129,24 @@ class WearHealthServicesToolWindowStateManagerTest {
   }
 
   @Test
+  fun `test state manager sets capabilities that are not returned by device manager to default state`() = runBlocking {
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setOverrideValue(capabilities[0], 3f)
+
+    stateManager.applyChanges()
+
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(3f)
+
+    deviceManager.clearContentProvider()
+
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(null)
+  }
+
+  @Test
   fun `test getCapabilityEnabled has the correct value`() = runBlocking {
     stateManager.setCapabilityEnabled(capabilities[0], false)
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
