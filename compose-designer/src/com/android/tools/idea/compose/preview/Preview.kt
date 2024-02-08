@@ -301,6 +301,10 @@ class ComposePreviewRepresentation(
         surface.deactivateIssueModel()
       },
       onDelayedDeactivate = {
+        // Deactivating the surface below will deactivate all SceneManager instances, and that will
+        // dispose all their associated RenderTask instances, meaning that a full refresh will be
+        // needed when reactivating
+        invalidated.set(true)
         // If currently selected mode is not Normal mode, switch for Default normal mode.
         if (!mode.value.isNormal) previewModeManager.setMode(PreviewMode.Default())
         log.debug("Delayed surface deactivation")
