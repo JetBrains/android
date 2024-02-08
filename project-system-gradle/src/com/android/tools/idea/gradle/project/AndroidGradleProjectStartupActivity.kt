@@ -82,6 +82,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -234,7 +235,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     existingGradleModules
       .asSequence()
       .mapNotNull { module ->
-        val externalId = ExternalSystemApiUtil.getExternalProjectId(module) ?: return@mapNotNull null
+        val externalId = CachedModuleDataFinder.getInstance(project).findModuleData(module)?.data?.id ?: return@mapNotNull null
         externalId to module
       }
       .toMap()

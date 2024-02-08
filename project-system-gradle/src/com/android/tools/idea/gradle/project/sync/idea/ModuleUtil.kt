@@ -83,7 +83,14 @@ object ModuleUtil {
       }
     }
     if (mainModule == null) {
-      logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
+      if (ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).isEmpty()) {
+        logger<ModuleUtil>().error("Unexpected - No nested source sets found for (${holderModule.name}).")
+      } else if (unitTestModule == null && androidTestModule == null && testFixturesModule == null) {
+        logger<ModuleUtil>().error("Unexpected - No Android nested sources sets found for (${holderModule.name}).")
+      } else {
+        logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
+      }
+
       return
     }
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
