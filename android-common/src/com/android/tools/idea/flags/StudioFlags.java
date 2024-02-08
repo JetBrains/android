@@ -1515,7 +1515,7 @@ public final class StudioFlags {
       "direct.access",
       "Direct Access",
       "Enable FTL DirectAccess",
-      false);
+      true);
 
   public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
     Flag.create(
