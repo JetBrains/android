@@ -34,7 +34,6 @@ import com.intellij.ui.table.JBTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.BorderLayout
-import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DeviceMonitorViewImpl(
@@ -95,26 +94,26 @@ class DeviceMonitorViewImpl(
     }
 
   override fun refreshNodes() {
-    listeners.forEach(Consumer { it.refreshInvoked() })
+    listeners.forEach { it.refreshInvoked() }
   }
 
   override fun killNodes() {
-    listeners.forEach(Consumer { it.killNodesInvoked(getModelRows(table.selectedRows)) })
+    listeners.forEach { it.killNodesInvoked(getModelRows(table.selectedRows)) }
     table.clearSelection()
   }
 
   override fun forceStopNodes() {
-    listeners.forEach(Consumer { it.forceStopNodesInvoked(getModelRows(table.selectedRows)) })
+    listeners.forEach { it.forceStopNodesInvoked(getModelRows(table.selectedRows)) }
     table.clearSelection()
   }
 
   override fun debugNodes() {
-    listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
+    listeners.forEach{ it.debugNodes(getModelRows(table.selectedRows)) }
     table.clearSelection()
   }
 
   override fun packageFilterToggled(isActive: Boolean) {
-    listeners.forEach(Consumer { it.packageFilterToggled(isActive) })
+    listeners.forEach { it.packageFilterToggled(isActive) }
   }
 
   private fun setUpTable() {

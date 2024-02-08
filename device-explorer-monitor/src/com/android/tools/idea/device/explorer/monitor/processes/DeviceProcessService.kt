@@ -27,6 +27,7 @@ import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugge
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.intellij.execution.RunManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -36,6 +37,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 @UiThread
+@Service(Service.Level.PROJECT)
 class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: RunConfigurationWithDebugger) -> Unit) {
 
   @Suppress("unused")
