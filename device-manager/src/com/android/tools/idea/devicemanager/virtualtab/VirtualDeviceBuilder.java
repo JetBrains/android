@@ -100,10 +100,9 @@ final class VirtualDeviceBuilder {
     else if (tag.equals(SystemImageTags.GOOGLE_TV_TAG)) {
       return DeviceType.TV;
     }
-    else if (tag.equals(SystemImageTags.AUTOMOTIVE_TAG)) {
-      return DeviceType.AUTOMOTIVE;
-    }
-    else if (tag.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG)) {
+    else if (tag.equals(SystemImageTags.AUTOMOTIVE_TAG)
+        || tag.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG)
+        || tag.equals(SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG)) {
       return DeviceType.AUTOMOTIVE;
     }
     else {
