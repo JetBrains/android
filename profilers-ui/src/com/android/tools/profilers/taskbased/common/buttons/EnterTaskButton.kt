@@ -39,6 +39,6 @@ fun OpenTaskButton(isEnabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun EnterTaskButton(text: String, isEnabled: Boolean, onClick: () -> Unit) {
   DefaultButton(onClick = onClick, enabled = isEnabled, modifier = Modifier.testTag("EnterTaskButton")) {
-    Text(text = text, fontSize = 20.sp, lineHeight = 21.sp, modifier = Modifier.padding(vertical = 5.dp))
+    Text(text = text)
   }
 }
