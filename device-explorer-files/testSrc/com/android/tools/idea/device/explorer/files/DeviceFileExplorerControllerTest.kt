@@ -63,7 +63,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.UIBundle
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.ui.tree.TreeModelAdapter
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
@@ -100,6 +99,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
+import kotlin.io.path.invariantSeparatorsPathString
 
 @RunsInEdt
 class DeviceFileExplorerControllerTest {
@@ -359,8 +359,8 @@ class DeviceFileExplorerControllerTest {
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
     var downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
-    assertThat(downloadPath.systemIndependentPath)
-        .endsWith(myDownloadLocation.get().systemIndependentPath + "/TestDevice-1/file1.txt")
+    assertThat(downloadPath.invariantSeparatorsPathString)
+        .endsWith(myDownloadLocation.get().invariantSeparatorsPathString + "/TestDevice-1/file1.txt")
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     val changedPath = FileUtil.createTempDirectory("device-explorer-temp-2", "", true).toPath()
@@ -376,7 +376,7 @@ class DeviceFileExplorerControllerTest {
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
     downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
-    assertThat(downloadPath.systemIndependentPath).endsWith("device-explorer-temp-2/TestDevice-1/file1.txt")
+    assertThat(downloadPath.invariantSeparatorsPathString).endsWith("device-explorer-temp-2/TestDevice-1/file1.txt")
   }
 
   @Test
