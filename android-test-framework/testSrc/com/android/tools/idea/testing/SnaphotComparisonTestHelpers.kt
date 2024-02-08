@@ -26,9 +26,9 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import com.intellij.util.PathUtil.toSystemIndependentName
-import com.intellij.util.io.systemIndependentPath
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
+import kotlin.io.path.invariantSeparatorsPathString
 
 typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -> Unit
 
@@ -59,7 +59,7 @@ private fun getOfflineM2Repositories(): List<File> =
 
 fun normalizeHtmlForTests(project: Project, doc: String): String {
   return doc
-    .replacePath(TestUtils.resolveWorkspacePath("").systemIndependentPath, "{ROOT}")
+    .replacePath(TestUtils.resolveWorkspacePath("").invariantSeparatorsPathString, "{ROOT}")
     .replacePath(project.basePath!!, "{PROJECT}")
     .replacePath(toSystemIndependentName(FileUtil.getTempDirectory()), "{TMP}")
     .replace("<BR/>", "<BR/>\n")
