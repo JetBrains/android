@@ -442,6 +442,14 @@ class AppInspectionInspectorClient(
           StudioDownloader(),
           StudioSettingsController.getInstance(),
         )
+    } else if (systemImageTags.contains(SystemImageTags.PLAY_STORE_TAG)) {
+      // We don't support Play Store images on API 29: b/180622424
+      notificationModel.addNotification(
+        SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+        LayoutInspectorBundle.message("api29.playstore.message"),
+        Status.Warning,
+        listOf(notificationModel.dismissAction),
+      )
     } else {
       notificationModel.addNotification(
         SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,

@@ -1320,8 +1320,15 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
         val notification1 = notificationModel.notifications.single()
-        assertThat(notification1.message)
-          .isEqualTo("Live Inspection not available on this system image revision.")
+        if (tag == PLAY_STORE_TAG) {
+          assertThat(notification1.message)
+            .isEqualTo(
+              "Live Inspection is not available on API 29 Google Play images. Please use a different image."
+            )
+        } else {
+          assertThat(notification1.message)
+            .isEqualTo("Live Inspection not available on this system image revision.")
+        }
       },
     )
     notificationModel.clear()
