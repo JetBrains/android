@@ -1647,10 +1647,6 @@ public final class StudioFlags {
     Flag.create(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
                 "Deep links gRPC server address. Use a non-default value for testing purposes.",
                 "deeplinkassistant-pa.googleapis.com");
-  public static final Flag<String> DEEPLINKS_DAL_VALIDATION_API_KEY =
-    Flag.create(APP_LINKS_ASSISTANT, "deeplinks.dal.validation.api.key", "Deep links DAL validation API key",
-                "API key for deep links JSON validation.",
-                "AIzaSyBRdKst7FwGcmWf6PGL65zRRPLZl2DfSqA");
   public static final Flag<Boolean> CREATE_APP_LINKS_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "create.app.links.v2", "Create App Links V2",
                 "Improvements to the Create App Links functionalities.", false);
