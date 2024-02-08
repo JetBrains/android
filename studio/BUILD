@@ -545,7 +545,6 @@ studio_plugin(
     libs = [
         "//prebuilts/tools/common/m2:JSch",
         "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
-        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     modules = {
         "firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"],
