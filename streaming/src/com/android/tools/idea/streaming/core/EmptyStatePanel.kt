@@ -168,7 +168,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
       else ->
         "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
-        "the&nbsp;<i>Launch in the&nbsp;Running&nbsp;Devices tool window</i> option in&nbsp;the&nbsp;" +
+        "the&nbsp;<b>Launch in the&nbsp;Running&nbsp;Devices tool window</b> option in&nbsp;the&nbsp;" +
         "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font> " +
         "and use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
     }
@@ -178,9 +178,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
       else ->
         "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi, click $plusSign and select the&nbsp;device from " +
-        "the&nbsp;list. You may also select the&nbsp;<i>Activate mirroring when a&nbsp;new physical device is connected</i> " +
-        "option in&nbsp;the&nbsp;" +
-        "<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+        "the&nbsp;list. You may also select the&nbsp;<b>Activate mirroring when a&nbsp;new physical device is connected</b> option " +
+        "in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
     }
     val html =
       """
