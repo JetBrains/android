@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

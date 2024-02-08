@@ -57,7 +57,7 @@ internal constructor(
         ScreenOrientation.PORTRAIT,
         Boot.QUICK,
         internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        expandedStorage = StorageCapacity(512, StorageCapacity.Unit.MB),
+        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         GpuMode.AUTO,
       )

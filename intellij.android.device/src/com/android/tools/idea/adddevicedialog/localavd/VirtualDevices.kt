@@ -94,7 +94,7 @@ internal object VirtualDevices {
       /* systemImageDescription= */ SystemImageDescription(image),
       /* orientation= */ device.orientation,
       /* isCircular= */ false,
-      /* sdCard= */ device.expandedStorage.withMaxUnit().toString(),
+      /* sdCard= */ device.expandedStorage.toString(),
       /* skinFolder= */ skin,
       /* hardwareProperties= */ properties,
       /* userSettings= */ null,

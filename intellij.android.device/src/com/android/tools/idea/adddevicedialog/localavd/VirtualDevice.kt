@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.Path
 
 @Immutable
 internal data class VirtualDevice
@@ -37,7 +38,21 @@ internal constructor(
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
   internal val internalStorage: StorageCapacity,
-  internal val expandedStorage: StorageCapacity,
+  internal val expandedStorage: ExpandedStorage,
   internal val cpuCoreCount: Int?,
   internal val graphicAcceleration: GpuMode,
 )
+
+internal data class Custom internal constructor(internal val value: StorageCapacity) :
+  ExpandedStorage() {
+
+  override fun toString() = value.toString()
+}
+
+internal data class ExistingImage internal constructor(internal val value: Path?) :
+  ExpandedStorage() {
+
+  override fun toString() = value.toString()
+}
+
+internal sealed class ExpandedStorage
