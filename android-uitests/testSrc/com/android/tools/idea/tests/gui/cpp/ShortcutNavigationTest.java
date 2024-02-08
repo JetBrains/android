@@ -56,17 +56,16 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
-    EditorFixture editor = ideFrame.getEditor();
-    editor.open("app/src/main/java/com/example/hellojni/HelloJni.java");
-
-    ideFrame.find(guiTest.robot()).requestFocusIfLost();
-    editor.select(String.format("(.*public native String  stringFromJNI)"))
+    ideFrame.waitUntilProgressBarNotDisplayed();
+    EditorFixture editor = ideFrame.getEditor().open("app/src/main/java/com/example/hellojni/HelloJni.java");
+    editor.waitForFileToActivate();
+    editor.select("String  stringFromJNI()")
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
     Wait.seconds(30).expecting("Native file is opened for navigating to definition")
       .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    String currentLine = ideFrame.getEditor().getCurrentLine();
+    String currentLine = editor.getCurrentLine();
     assertThat(currentLine).isEqualTo("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n");
   }
 }

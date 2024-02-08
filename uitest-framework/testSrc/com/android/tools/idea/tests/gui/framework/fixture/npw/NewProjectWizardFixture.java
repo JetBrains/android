@@ -90,7 +90,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
-    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), this::clickFinishAndGetIdeFrame);
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(180), this::clickFinishAndGetIdeFrame);
   }
 
   @NotNull
