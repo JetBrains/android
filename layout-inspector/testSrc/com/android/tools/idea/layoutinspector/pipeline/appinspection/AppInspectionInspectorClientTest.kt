@@ -1321,7 +1321,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 
         val notification1 = notificationModel.notifications.single()
         assertThat(notification1.message)
-          .isEqualTo(LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY))
+          .isEqualTo("Live Inspection not available on this system image revision.")
       },
     )
     notificationModel.clear()
@@ -1357,7 +1357,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         val notification2 = notificationModel.notifications.single()
         assertThat(notification2.message)
           .isEqualTo(
-            "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
+            "Live Inspection not available on this system image revision. Please update to the latest revision."
           )
         notificationModel.clear()
       },

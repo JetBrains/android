@@ -19,8 +19,10 @@ import com.android.annotations.concurrency.Slow
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -77,9 +79,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
-@com.google.common.annotations.VisibleForTesting const val API_29_BUG_MESSAGE_KEY = "api29.message"
-@com.google.common.annotations.VisibleForTesting
-const val API_29_BUG_UPGRADE_KEY = "api29.upgrade.message"
 @com.google.common.annotations.VisibleForTesting const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
 @com.google.common.annotations.VisibleForTesting const val MIN_API_29_AOSP_SYSIMG_REV = 8
 
@@ -398,69 +397,46 @@ class AppInspectionInspectorClient(
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
+  /**
+   * Some revisions of API 29 have a bug that cause the app to crash. (These images can be found
+   * only on emulators). This function checks if the current system image is one of those. If yes,
+   * it loads the remote repositories and checks if there is a supported revision the user can
+   * update to. If yes, it shows a banner suggesting to update. If not, it shows a banner saying the
+   * system image is not supported.
+   */
   private fun checkApi29Version(
     process: ProcessDescriptor,
     project: Project,
     sdkHandler: AndroidSdkHandler,
   ) {
-    val (success, image) =
-      checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
-    if (success || image == null) {
-      return
-    }
+    val compatibility = checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
 
-    val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
+    val systemImagePackage =
+      when (compatibility) {
+        Compatibility.Compatible -> return
+        is Compatibility.NotCompatible -> compatibility.systemImage
+      }
+
+    val systemImageTags =
+      (systemImagePackage.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: emptyList()
     if (
-      tags.contains(SystemImageTags.GOOGLE_APIS_TAG) || tags.contains(SystemImageTags.DEFAULT_TAG)
+      systemImageTags.contains(SystemImageTags.GOOGLE_APIS_TAG) ||
+        systemImageTags.contains(SystemImageTags.DEFAULT_TAG)
     ) {
-      val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
-      val showBanner =
-        RepoManager.RepoLoadedListener { packages ->
-          val message: String
-          val actions: List<StatusNotificationAction>
-          val remote = packages.consolidatedPkgs[image.path]?.remote
-          if (
-            remote != null &&
-              ((tags.contains(SystemImageTags.GOOGLE_APIS_TAG) &&
-                remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-                (tags.contains(SystemImageTags.DEFAULT_TAG) &&
-                  remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
-          ) {
-            message =
-              "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
-            actions =
-              listOf(
-                StatusNotificationAction("Download Update") {
-                  if (
-                    SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))
-                      ?.showAndGet() == true
-                  ) {
-                    Messages.showInfoMessage(
-                      project,
-                      "Please restart the emulator for update to take effect.",
-                      "Restart Required",
-                    )
-                  }
-                },
-                notificationModel.dismissAction,
-              )
-          } else {
-            message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
-            actions = listOf(notificationModel.dismissAction)
-          }
-          notificationModel.addNotification(
-            SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-            message,
-            Status.Warning,
-            actions,
-          )
+      val repoLoadedListener =
+        RepoManager.RepoLoadedListener { loadedPackages ->
+          // Repo loaded listener, called when the load completes successfully.
+          showBanner(project, loadedPackages, systemImagePackage, systemImageTags)
         }
+
+      // If the system image is GOOGLE_APIS or DEFAULT, load the available system images and suggest
+      // the user updates to a revision we support.
       sdkHandler
-        .getSdkManager(logger)
+        .getSdkManager(StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java))
         .load(
           0,
           null,
-          listOf(showBanner),
+          listOf(repoLoadedListener),
           null,
           StudioProgressRunner(false, false, "Checking available system images", null),
           StudioDownloader(),
@@ -469,7 +445,7 @@ class AppInspectionInspectorClient(
     } else {
       notificationModel.addNotification(
         SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-        LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
+        LayoutInspectorBundle.message("api29.message"),
         Status.Warning,
         listOf(notificationModel.dismissAction),
       )
@@ -479,38 +455,101 @@ class AppInspectionInspectorClient(
       AttachErrorCode.LOW_API_LEVEL,
     )
   }
+
+  /**
+   * Show a banner to the user saying the current system image is not supported. Suggest to update
+   * if a supported revision is available.
+   */
+  private fun showBanner(
+    project: Project,
+    loadedPackages: RepositoryPackages,
+    systemImagePackage: RepoPackage,
+    systemImageTags: List<IdDisplay>,
+  ) {
+    val message: String
+    val actions: List<StatusNotificationAction>
+    val loadedRemotePackage = loadedPackages.consolidatedPkgs[systemImagePackage.path]?.remote
+    if (
+      loadedRemotePackage != null &&
+        ((systemImageTags.contains(SystemImageTags.GOOGLE_APIS_TAG) &&
+          loadedRemotePackage.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+          (systemImageTags.contains(SystemImageTags.DEFAULT_TAG) &&
+            loadedRemotePackage.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
+    ) {
+      // We found a system image we support - show a banner suggesting to update the system image.
+      message =
+        "${LayoutInspectorBundle.message("api29.message")} ${LayoutInspectorBundle.message("api29.upgrade.message")}"
+      actions =
+        listOf(
+          StatusNotificationAction("Download Update") {
+            if (
+              SdkQuickfixUtils.createDialogForPaths(project, listOf(systemImagePackage.path))
+                ?.showAndGet() == true
+            ) {
+              Messages.showInfoMessage(
+                project,
+                "Please restart the emulator for update to take effect.",
+                "Restart Required",
+              )
+            }
+          },
+          notificationModel.dismissAction,
+        )
+    } else {
+      // We didn't find any system image we can support.
+      message = LayoutInspectorBundle.message("api29.message")
+      actions = listOf(notificationModel.dismissAction)
+    }
+
+    notificationModel.addNotification(
+      SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+      message,
+      Status.Warning,
+      actions,
+    )
+  }
 }
 
 /** Check whether the current target's system image is compatible with app inspection. */
-fun checkSystemImageForAppInspectionCompatibility(
+private fun checkSystemImageForAppInspectionCompatibility(
   process: ProcessDescriptor,
   project: Project,
   sdkHandler: AndroidSdkHandler,
-): Pair<Boolean, RepoPackage?> {
-  if (process.device.isEmulator && process.device.apiLevel == 29) {
-    val adb = AdbUtils.getAdbFuture(project).get()
-    val avdName =
-      adb
-        ?.devices
-        ?.find { it.serialNumber == process.device.serial }
-        ?.avdData
-        ?.get(1, TimeUnit.SECONDS)
-        ?.name
-    val avd =
-      avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
-    val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
-    if (imagePackage != null) {
-      if (
-        (SystemImageTags.GOOGLE_APIS_TAG == avd.tag &&
-          imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-          (SystemImageTags.DEFAULT_TAG == avd.tag &&
-            imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
-            // We don't know when the play store images will be updated yet
-            SystemImageTags.PLAY_STORE_TAG == avd.tag)
-      ) {
-        return Pair(false, imagePackage)
-      }
-    }
+): Compatibility {
+  if (!process.device.isEmulator || process.device.apiLevel != 29) {
+    // We are interested in checking only emulators running API 29.
+    return Compatibility.Compatible
   }
-  return Pair(true, null)
+
+  val adb = AdbUtils.getAdbFuture(project).get()
+  val avdName =
+    adb
+      ?.devices
+      ?.find { it.serialNumber == process.device.serial }
+      ?.avdData
+      ?.get(1, TimeUnit.SECONDS)
+      ?.name ?: return Compatibility.Compatible
+
+  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
+  val imagePackage =
+    (avd?.systemImage as? SystemImage)?.`package` ?: return Compatibility.Compatible
+
+  return if (
+    (SystemImageTags.GOOGLE_APIS_TAG == avd.tag &&
+      imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+      (SystemImageTags.DEFAULT_TAG == avd.tag &&
+        imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
+        // We don't know when the play store images will be updated yet
+        SystemImageTags.PLAY_STORE_TAG == avd.tag)
+  ) {
+    Compatibility.NotCompatible(imagePackage)
+  } else {
+    Compatibility.Compatible
+  }
+}
+
+private sealed class Compatibility {
+  object Compatible : Compatibility()
+
+  data class NotCompatible(val systemImage: RepoPackage) : Compatibility()
 }
