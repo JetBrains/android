@@ -483,4 +483,41 @@ class ComposableCompileTest {
     assertNotNull(diff(firstClass, secondClass))
     assertTrue(onlyComposeDebugConstantChanges(firstMethod.instructions, secondMethod.instructions))
   }
+
+  @Test
+  fun mutableState() {
+    val fileName = "Test.kt"
+    val className = "TestKt"
+    val file = projectRule.createKtFile(fileName, """
+        import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.getValue
+        import androidx.compose.runtime.mutableStateOf
+        import androidx.compose.runtime.remember
+        import androidx.compose.runtime.setValue
+        @Composable
+        fun C() { }
+      """)
+    val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+    val apk = projectRule.directApiCompileIr(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+
+    projectRule.modifyKtFile(file, """
+        import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.getValue
+        import androidx.compose.runtime.mutableStateOf
+        import androidx.compose.runtime.remember
+        import androidx.compose.runtime.setValue
+        @Composable
+        fun C() {
+            var c by remember { mutableStateOf(0) }
+        }
+      """)
+
+    val output = compile(listOf(LiveEditCompilerInput(file, fileState)), compiler)
+    Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
+  }
 }
