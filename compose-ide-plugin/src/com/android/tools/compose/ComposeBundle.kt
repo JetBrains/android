@@ -15,30 +15,18 @@
  */
 package com.android.tools.compose
 
-import com.intellij.AbstractBundle
+import com.intellij.DynamicBundle
 import org.jetbrains.annotations.PropertyKey
-import java.lang.ref.Reference
-import java.lang.ref.SoftReference
-import java.util.ResourceBundle
 
 private const val BUNDLE_NAME = "messages.ComposeBundle"
 
 class ComposeBundle private constructor() {
   companion object {
-    private var ourBundle: Reference<ResourceBundle?>? = null
-
-    private fun getBundle(): ResourceBundle {
-      var bundle: ResourceBundle? = com.intellij.reference.SoftReference.dereference(ourBundle)
-      if (bundle == null) {
-        bundle = ResourceBundle.getBundle(BUNDLE_NAME)
-        ourBundle = SoftReference(bundle)
-      }
-      return bundle!!
-    }
+    private val ourBundle = DynamicBundle(ComposeBundle::class.java, BUNDLE_NAME)
 
     @JvmStatic
     fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
-      return AbstractBundle.message(getBundle(), key, *params)
+      return ourBundle.getMessage(key, *params)
     }
   }
 }

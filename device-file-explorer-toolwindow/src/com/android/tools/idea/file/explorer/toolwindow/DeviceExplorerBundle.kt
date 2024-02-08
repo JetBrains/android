@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow
 
-import com.intellij.AbstractBundle
-import com.intellij.openapi.util.NotNullLazyValue
-import org.jetbrains.annotations.PropertyKey
-import java.util.ResourceBundle
-import java.util.function.Supplier
+import com.intellij.DynamicBundle
 
 private const val BUNDLE_NAME = "messages.DeviceFileExplorerToolWindowBundle"
 
 class DeviceExplorerBundle private constructor() {
   companion object {
-    private val bundle: Supplier<ResourceBundle> = NotNullLazyValue.softLazy {
-      ResourceBundle.getBundle(BUNDLE_NAME)
-    }
+    private val bundle = DynamicBundle(DeviceExplorerBundle::class.java, BUNDLE_NAME)
 
     @JvmStatic
-    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
-      return AbstractBundle.message(bundle.get(), key, *params)
+    fun message(key: String, vararg params: Any?): String {
+      return bundle.getMessage(key, *params)
     }
   }
 }

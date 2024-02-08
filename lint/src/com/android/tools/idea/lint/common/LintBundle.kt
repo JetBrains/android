@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.common
 
 import com.intellij.CommonBundle
+import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
@@ -31,10 +32,10 @@ class LintBundle private constructor() {
     private fun getBundle(): ResourceBundle {
       var bundle: ResourceBundle? = com.intellij.reference.SoftReference.dereference(ourBundle)
       if (bundle == null) {
-        bundle = ResourceBundle.getBundle(BUNDLE_NAME)
+        bundle = DynamicBundle.getResourceBundle(LintBundle::class.java.classLoader, BUNDLE_NAME)
         ourBundle = SoftReference(bundle)
       }
-      return bundle!!
+      return bundle
     }
 
     @JvmStatic

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.layoutlib;
 
+import com.intellij.DynamicBundle;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import org.jetbrains.annotations.Nls;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
@@ -37,7 +38,7 @@ public final class LayoutlibBundle {
   private static ResourceBundle getBundle() {
     ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
     if (bundle == null) {
-      bundle = ResourceBundle.getBundle(BUNDLE_NAME);
+      bundle = DynamicBundle.getResourceBundle(LayoutlibBundle.class.getClassLoader(), BUNDLE_NAME);
       ourBundle = new SoftReference<>(bundle);
     }
     return bundle;

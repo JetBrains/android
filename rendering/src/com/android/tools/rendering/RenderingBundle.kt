@@ -15,6 +15,7 @@
  */
 package com.android.tools.rendering
 
+import com.intellij.DynamicBundle
 import com.intellij.reference.SoftReference
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
@@ -30,7 +31,7 @@ object RenderingBundle {
     private get() {
       var bundle = SoftReference.dereference(ourBundle)
       if (bundle == null) {
-        bundle = ResourceBundle.getBundle(BUNDLE_NAME)
+        bundle = DynamicBundle.getResourceBundle(RenderingBundle::class.java.classLoader, BUNDLE_NAME)
         ourBundle = java.lang.ref.SoftReference(bundle)
       }
       return bundle
