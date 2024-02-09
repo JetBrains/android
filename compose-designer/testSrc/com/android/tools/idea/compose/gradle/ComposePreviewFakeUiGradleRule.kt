@@ -49,7 +49,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
@@ -145,13 +144,13 @@ class ComposePreviewFakeUiGradleRule(
       UIUtil.dispatchAllInvocationEvents()
     }
 
-    Assert.assertTrue(previewView.hasRendered)
-    Assert.assertTrue(previewView.hasContent)
-    Assert.assertTrue(!composePreviewRepresentation.status().hasErrors)
-    Assert.assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
-    Assert.assertTrue(!composePreviewRepresentation.status().isOutOfDate)
+    assertTrue(previewView.hasRendered)
+    assertTrue(previewView.hasContent)
+    assertTrue(!composePreviewRepresentation.status().hasErrors)
+    assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
+    assertTrue(!composePreviewRepresentation.status().isOutOfDate)
 
-    withContext(AndroidDispatchers.uiThread) { validate() }
+    validate()
     logger.info("ComposePreviewFakeUiGradleRuleImpl setUp completed")
   }
 
@@ -240,19 +239,19 @@ class ComposePreviewFakeUiGradleRule(
 
   /** Validates the UI to ensure is up to date. */
   suspend fun validate(zoomToFit: Boolean = true) {
-    withContext(AndroidDispatchers.uiThread) {
-      fakeUi.root.validate()
-      if (zoomToFit) {
-        // zoom to fit might (but not always) trigger a render quality change
-        runAndWaitForRefresh(
-          expectedRefreshType = ComposePreviewRefreshType.QUALITY,
-          aRefreshMustStart = false,
-        ) {
+    runAndWaitForRefresh(
+      expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+      aRefreshMustStart = false,
+    ) {
+      withContext(AndroidDispatchers.uiThread) {
+        fakeUi.root.validate()
+        fakeUi.layoutAndDispatchEvents()
+        if (zoomToFit) {
           previewView.mainSurface.zoomToFit()
           fakeUi.root.validate()
+          fakeUi.layoutAndDispatchEvents()
         }
       }
-      fakeUi.layoutAndDispatchEvents()
     }
   }
 

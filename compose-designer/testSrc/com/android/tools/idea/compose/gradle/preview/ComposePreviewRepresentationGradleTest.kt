@@ -280,10 +280,9 @@ class ComposePreviewRepresentationGradleTest {
           FileDocumentManager.getInstance().saveAllDocuments()
         }
       }
-      withContext(uiThread) {
-        fakeUi.layoutAndDispatchEvents()
-        projectRule.validate()
-      }
+
+      projectRule.validate()
+
       assertEquals(
         """
         DefaultPreview - MyAnnotation 1
@@ -312,10 +311,7 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
 
-      withContext(uiThread) {
-        fakeUi.layoutAndDispatchEvents()
-        projectRule.validate()
-      }
+      projectRule.validate()
 
       assertEquals(
         """
