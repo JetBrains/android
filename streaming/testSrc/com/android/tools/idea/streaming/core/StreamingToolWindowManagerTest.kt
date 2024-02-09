@@ -19,10 +19,13 @@ import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
+import com.android.flags.junit.FlagRule
+import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.EditTemplateAction
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
@@ -91,11 +94,14 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.doReturn
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -121,7 +127,7 @@ class StreamingToolWindowManagerTest {
   private val provisionerRule = DeviceProvisionerRule()
   @get:Rule
   val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
-                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
+                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule, FlagRule(StudioFlags.DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS, true))
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: TestToolWindow by lazy { createToolWindow() }
@@ -431,9 +437,56 @@ class StreamingToolWindowManagerTest {
     val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
 
     assertThat(popup.actions.toString()).isEqualTo(
-      "[Separator (Remote Devices), Pixel 9000 (null), Separator (null), " +
+      "[Separator (Reserved Remote Devices), Pixel 9000 (null), Separator (null), " +
         "Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
+  }
+
+  @Test
+  fun testReservableRemoteDevice() {
+    val templateProperties = DeviceProperties.buildForTest {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE
+      model = "Pixel Reservable"
+      isRemote = true
+    }
+    val deviceProperties = DeviceProperties.buildForTest {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR
+      model = "Pixel Reserved"
+    }
+    val template = object : DeviceTemplate {
+      override val id = DeviceId("TEST", true, "")
+      override val properties = templateProperties
+      override val activationAction: TemplateActivationAction = mock<TemplateActivationAction>().apply {
+        val stateFlow = MutableStateFlow(DeviceAction.Presentation("", templateProperties.icon, true)).asStateFlow()
+        whenever(this.presentation).thenReturn(stateFlow)
+      }
+      override val editAction: EditTemplateAction? = null
+    }
+    val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = deviceProperties)
+    device.sourceTemplate = object : DeviceTemplate {
+      override val id = DeviceId("TEST2", true, "")
+      override val properties = deviceProperties
+      override val activationAction: TemplateActivationAction = mock()
+      override val editAction: EditTemplateAction? = null
+    }
+    device.stateFlow.value = DeviceState.Disconnected(
+      deviceProperties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
+    provisionerRule.deviceProvisionerPlugin.addTemplate(template)
+    provisionerRule.deviceProvisionerPlugin.addDevice(device)
+
+    val provisionerService: DeviceProvisionerService = mock()
+    whenever(provisionerService.deviceProvisioner).thenReturn(provisionerRule.deviceProvisioner)
+    project.replaceService(DeviceProvisionerService::class.java, provisionerService, agentRule.disposable)
+
+    toolWindow.show()
+    waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
+    val newTabAction = toolWindow.tabActions[0]
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+
+    assertThat(popup.actions.toString()).isEqualTo("[Separator (Reserved Remote Devices), Pixel Reserved (null), Separator (Remote Devices), Pixel Reservable (null), Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR)
+    assertThat(popup.actions[3].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE)
   }
 
   @Test

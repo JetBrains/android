@@ -22,6 +22,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
@@ -32,7 +33,9 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -923,13 +926,24 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         add(Separator.getInstance())
       }
 
-      val remoteDevices = deviceProvisioner.reservedAndStartableDevices()
-      if (remoteDevices.isNotEmpty()) {
-        add(Separator("Remote Devices"))
-        for (device in remoteDevices) {
+      val reservedRemoteDevices = deviceProvisioner.reservedAndStartableDevices()
+      if (reservedRemoteDevices.isNotEmpty()) {
+        add(Separator("Reserved Remote Devices"))
+        for (device in reservedRemoteDevices) {
           add(StartRemoteDeviceAction(device))
         }
         add(Separator.getInstance())
+      }
+
+      if (StudioFlags.DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS.get()) {
+        val remoteDevices = deviceProvisioner.reservableDevices()
+        if (remoteDevices.isNotEmpty()) {
+          add(Separator("Remote Devices"))
+          for (template in remoteDevices) {
+            add(ReserveRemoteDeviceAction(template))
+          }
+          add(Separator.getInstance())
+        }
       }
 
       val avds = getStartableVirtualDevices().sortedBy { it.displayName }
@@ -1120,6 +1134,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
+  private inner class ReserveRemoteDeviceAction(private val template: DeviceTemplate): DumbAwareAction(template.properties.composeDeviceName(), null, template.properties.icon) {
+    override fun actionPerformed(e: AnActionEvent) {
+      val childScope = toolWindowScope.createChildScope(true)
+      template.launchCatchingDeviceActionException(childScope) { activationAction.activate() }
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  }
+
   private inner class StartAvdAction(
     private val avd: AvdInfo,
     private val project: Project,
@@ -1207,7 +1230,13 @@ private fun DeviceProvisioner.connectedDevices(): Flow<List<ConnectedDevice>> {
 private fun DeviceProvisioner.reservedAndStartableDevices(): List<DeviceHandle> {
   return devices.value.filter {
     it.state.reservation?.state == ReservationState.ACTIVE && it.activationAction?.presentation?.value?.enabled == true
-  }
+  }.sortedBy { it.state.properties.composeDeviceName() }
+}
+
+private fun DeviceProvisioner.reservableDevices(): List<DeviceTemplate> {
+  return templates.value.filter {
+    it.properties.isRemote == true && it.activationAction.presentation.value.enabled
+  }.sortedBy { it.properties.composeDeviceName() }
 }
 
 private suspend fun DeviceState.Connected.isMirrorable(): Boolean {

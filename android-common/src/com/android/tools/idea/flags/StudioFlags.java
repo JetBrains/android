@@ -959,6 +959,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "auto.reset", "The agent should reset all changed UI settings on disconnect",
     "Enables the reset logic in the device agent for the UI settings picker",
     true);
+  public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS = new BooleanFlag(
+    DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
+    "Show and allow starting remote device from their templates through the plus action",
+    false);
   //endregion
 
   // region Device Definition Download Service
