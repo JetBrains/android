@@ -18,23 +18,21 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Goal is to have light schema for GradlePropertiesDslElement.
  * Without creating element itself, we can get possible element children - blocks and properties
  */
 public abstract class GradlePropertiesDslElementSchema {
-  @NotNull
-  public abstract ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions();
+  public abstract @NotNull @Unmodifiable Map<String, PropertiesElementDescription> getBlockElementDescriptions();
 
-  @Nullable
-  public PropertiesElementDescription getBlockElementDescription(String name) {
+  public @Nullable PropertiesElementDescription getBlockElementDescription(String name) {
     return getBlockElementDescriptions().get(name);
   }
 
-  @NotNull
-  public abstract ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind);
+  public abstract @NotNull ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind);
 }

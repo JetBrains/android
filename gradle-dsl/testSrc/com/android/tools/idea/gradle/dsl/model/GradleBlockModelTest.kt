@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.TestFileName
@@ -15,7 +15,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.google.common.collect.HashBiMap
-import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.annotations.SystemDependent
@@ -158,7 +157,7 @@ class MyTestDslElement(parent: GradleDslElement, name: GradleNameElement) : Grad
     val elementName = "stringVal"
   }
 
-  override fun getChildPropertiesElementsDescriptionMap(): ImmutableMap<String, PropertiesElementDescription<GradlePropertiesDslElement>> {
+  override fun getChildPropertiesElementsDescriptionMap(): Map<String, PropertiesElementDescription<GradlePropertiesDslElement>> {
     return GradleBlockModelMap.getInstance().getOrCreateElementMap(MyTestDslElement::class.java)
   }
 }

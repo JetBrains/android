@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PropertiesElementDescription<T extends GradlePropertiesDslElement> {
+public final class PropertiesElementDescription<T extends GradlePropertiesDslElement> {
   @Nullable public final String name;
   @NotNull public final Class<T> clazz;
   @NotNull public final GradlePropertiesDslElementConstructor<T> constructor;
