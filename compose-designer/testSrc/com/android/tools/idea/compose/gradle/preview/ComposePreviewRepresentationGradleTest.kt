@@ -362,7 +362,7 @@ class ComposePreviewRepresentationGradleTest {
       )
       completableDeferred
     }
-    // Verify that is completed exceptionally
+    // Verify that it is completed exceptionally
     assertTrue(refreshDeferred.isCompleted)
     assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
   }
@@ -405,7 +405,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `refresh cancellation`() = runBlocking {
-    // Wait for an "infinte" refresh to start
+    // Wait for an "infinite" refresh to start
     projectRule.waitForAnyRefreshToStart(30.seconds, ComposePreviewRefreshType.NORMAL) {
       runWriteActionAndWait {
         projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -434,7 +434,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `fast preview fixing syntax error triggers compilation`() = runBlocking {
     runAndWaitForFastRefresh {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
-      // dissapear
+      // disappear
       PsiCodeFileChangeDetectorService.getInstance(project).markFileAsOutOfDate(psiMainFile)
       project.messageBus
         .syncPublisher(ProblemListener.TOPIC)
