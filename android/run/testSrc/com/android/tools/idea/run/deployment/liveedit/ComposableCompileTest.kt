@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.diff
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
@@ -101,9 +102,9 @@ class ComposableCompileTest {
   fun simpleComposeNested() {
     val file = projectRule.createKtFile("ComposeNested.kt" , """
       import androidx.compose.runtime.Composable
-      @Composable
+      @Composable // group -1050554150
       fun composableNested(): @Composable (Int) -> Unit {
-        return { }
+        return { } // group 22704048
       }""")
     val cache = projectRule.initialCache(listOf(file))
     projectRule.modifyKtFile(file, """
@@ -114,7 +115,8 @@ class ComposableCompileTest {
         return { val y = 0 }
       }""")
     val output = compile(file, cache)
-    Assert.assertEquals(-1050554150, output.groupIds.first())
+    Assert.assertTrue(-1050554150 in output.groupIds)
+    Assert.assertTrue(22704048 in output.groupIds)
   }
 
   @Test
@@ -153,7 +155,7 @@ class ComposableCompileTest {
       @Composable
       fun composableNested(): @Composable (Int) -> Unit {
         val x = 0
-        return { val y = 0 }
+        return { }
       }""")
       val output = compile(listOf(
       LiveEditCompilerInput(simpleFile, simpleState),

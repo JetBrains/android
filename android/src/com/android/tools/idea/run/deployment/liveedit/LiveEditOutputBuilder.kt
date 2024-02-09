@@ -17,9 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
-import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroupTree
 import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
-import com.android.tools.idea.run.deployment.liveedit.analysis.PsiRange
 import com.android.tools.idea.run.deployment.liveedit.analysis.RegularClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.SyntheticClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -27,19 +25,19 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.isInline
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.analysis.parseKeyMeta
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.charts.enumerator
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
-import org.jetbrains.kotlin.idea.base.psi.getLineEndOffset
-import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
+import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
+private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
 // PLEASE someone help me name this better
 internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
@@ -59,26 +57,25 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     if (keyMetaFiles.size > 1) {
       throw IllegalStateException("Multiple KeyMeta files Found: $keyMetaFiles")
     }
-    val kotlinOnly = keyMetaFiles.isEmpty()
 
-    val keyMetaClass = if (kotlinOnly) { null } else {IrClass(keyMetaFiles.single().asByteArray())}
-    val groupTree = keyMetaClass?.let { FunctionKeyMeta.parseTreeFrom(it) }
+    val keyMetaClass = keyMetaFiles.singleOrNull()?.let{ IrClass(it.asByteArray()) }
+    val groups = if (keyMetaClass != null) { extractComposeGroups(sourceFile, keyMetaClass) } else { emptyList() }
 
     for (classFile in outputFiles) {
       if (isKeyMeta(classFile)) {
         continue
       }
-      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, outputs)
+      val newClass = handleClassFile(classFile, sourceFile, groups, irCache, inlineCandidateCache, outputs)
       outputs.addIrClass(newClass)
     }
 
     val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs)
-    LiveEditLogger("LiveEditOutputBuilder").log("Class file analysis ran in ${durationMs}ms")
+    debug.log("Class file analysis ran in ${durationMs}ms")
   }
 
   private fun handleClassFile(classFile: OutputFile,
                               sourceFile: KtFile,
-                              groupTree: ComposeGroupTree?,
+                              groups: List<ComposeGroup>,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
                               output: LiveEditCompilerOutput.Builder): IrClass {
@@ -102,12 +99,12 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
-      if (groupTree == null) {
+      if (groups.isEmpty()) {
         output.resetState = true
-      } else {
-        val groupIds = computeGroupIds(newClass.methods, sourceFile, groupTree)
-        groupIds.forEach { output.addGroupId(it) }
+        return newClass
       }
+
+      selectComposeGroups(sourceFile, groups, newClass.methods).forEach { output.groupIds.add(it.key) }
       return newClass
     }
 
@@ -157,46 +154,21 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       modifiedIrMethods.add(irMethod)
     }
 
-    // Skip group ID resolution if the user's change modified any non-composable methods. Synthetic classes may not have @Composable
-    // annotations, so still perform group ID resolution in that case.
-    if (classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }) {
+    // Skip group ID resolution if the user's change modified any non-composable methods. Generated classes may not have @Composable
+    // annotations, so still perform group ID resolution in that case. Also skip if we don't have any groups.
+    val modifiedNonCompose = classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }
+    if (modifiedNonCompose || groups.isEmpty()) {
       output.resetState = true
-    } else {
-      if (groupTree == null) {
-        output.resetState = true
-      } else {
-        val groupIds = computeGroupIds(modifiedIrMethods, sourceFile, groupTree)
-        groupIds.forEach { output.addGroupId(it) }
-      }
+      return newClass
     }
 
+    debug.log("select groups for ${newClass.name}")
+    selectComposeGroups(sourceFile, groups, modifiedIrMethods).forEach { output.groupIds.add(it.key) }
     return newClass
   }
-
-  private fun computeGroupIds(modifiedIrMethods: List<IrMethod>,
-                              sourceFile: KtFile,
-                              groupTree: ComposeGroupTree): Set<Int> {
-    val groupIds = mutableSetOf<Int>()
-    for (method in modifiedIrMethods) {
-      // If the method doesn't correspond to any lines in the source file, it can't have an associated FunctionKeyMeta.
-      if (method.instructions.lines.isEmpty()) {
-        continue
-      }
-
-      val methodOffsets = getMethodOffsets(method, sourceFile)
-      groupIds.addAll(groupTree.getGroupIds(methodOffsets))
-    }
-    return groupIds
-  }
 }
 
-private fun getMethodOffsets(method: IrMethod, sourceFile: KtFile): PsiRange {
-  val startLine = method.instructions.lines.first()
-  val endLine = method.instructions.lines.last()
-  val startOffset = sourceFile.getLineStartOffset(startLine - 1, false) ?: throw IllegalStateException()
-  val endOffset = sourceFile.getLineEndOffset(endLine - 1) ?: throw IllegalStateException()
-  return PsiRange(startOffset, endOffset)
-}
+
 
 /**
  * Check if the class is a synthetic class; that is, a class generated by either the Kotlin or Compose compiler. Live Edit treats these

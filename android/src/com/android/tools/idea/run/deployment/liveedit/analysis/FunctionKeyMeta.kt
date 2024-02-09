@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
+import com.intellij.openapi.util.TextRange
 
 // Annotation type for KeyMeta annotations
 private const val KEY_META = "Landroidx/compose/runtime/internal/FunctionKeyMeta;"
@@ -27,21 +28,9 @@ private const val KEY_META_CONTAINER = "Landroidx/compose/runtime/internal/Funct
 // Annotation parameter name for the array of KeyMeta annotations
 private const val KEY_META_ARRAY = "value"
 
-data class FunctionKeyMeta(val key: Int, val startOffset: Int, val endOffset: Int) {
-  companion object {
-    fun parseTreeFrom(keyMetaClass: IrClass) = ComposeGroupTree(parseKeyMeta(keyMetaClass))
-  }
+data class FunctionKeyMeta(val key: Int, val range: TextRange)
 
-  fun contains(other: FunctionKeyMeta): Boolean {
-    return startOffset <= other.startOffset && endOffset >= other.endOffset
-  }
-
-  fun contains(startOffset: Int, endOffset: Int): Boolean {
-    return this.startOffset <= startOffset && this.endOffset >= endOffset
-  }
-}
-
-private fun parseKeyMeta(keyMetaClass: IrClass): List<FunctionKeyMeta> {
+fun parseKeyMeta(keyMetaClass: IrClass): List<FunctionKeyMeta> {
   val annotations = keyMetaClass.annotations.associateBy { it.desc }
 
   // Handle case of single @FunctionKeyMeta annotation
@@ -61,7 +50,6 @@ private fun parseKeyMeta(keyMetaClass: IrClass): List<FunctionKeyMeta> {
 }
 
 private fun toFunctionKeyMeta(annotation: IrAnnotation): FunctionKeyMeta {
-  return FunctionKeyMeta(annotation.values["key"] as Int,
-                         annotation.values["startOffset"] as Int,
-                         annotation.values["endOffset"] as Int)
+  val range = TextRange.create(annotation.values["startOffset"] as Int, annotation.values["endOffset"] as Int)
+  return FunctionKeyMeta(annotation.values["key"] as Int, range)
 }
