@@ -15,21 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
-import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.build.BuildConsoleUtils
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
-import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.externalSystem.issue.BuildIssueException
+import org.junit.Test
 
-abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrationTest() {
-  protected fun runSyncAndCheckBuildIssueFailure(
-    preparedProject: PreparedTestProject,
-    verifyBuildIssue: (BuildIssue) -> Unit,
-    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure
-  ) {
+class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
+
+
+  @Test
+  fun testNoVariantsFoundFailure() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+
+    val buildFile = preparedProject.root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)
+    buildFile.appendText("""
+
+      android {
+          variantFilter { variant ->
+              setIgnore(true)
+          }
+      }
+    """.trimIndent())
+
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
       verifySyncViewEvents = { buildEvents ->
@@ -40,13 +53,13 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
         buildEvents.filterIsInstance<FinishBuildEvent>().single().let { finishBuildEvent ->
           (finishBuildEvent.result as FailureResult).failures.let { failures ->
             expect.that(failures).hasSize(1)
-            (failures.firstOrNull()?.error as? BuildIssueException)?.let {
-               verifyBuildIssue(it.buildIssue)
-            } ?: expect.fail("%s not found in %s", BuildIssueException::class.java.name, FinishBuildEvent::class.java.name)
+            failures.firstOrNull()?.let {
+              expect.that(BuildConsoleUtils.getMessageTitle(it.message!!)).isEqualTo("No variants found for ':app'")
+            }
           }
         }
       },
-      expectedFailureReported = expectedFailureReported
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
     )
   }
 }

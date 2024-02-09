@@ -16,28 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.errors.StopGradleDaemonQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.MessageEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.externalSystem.issue.BuildIssueException
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
@@ -85,7 +71,7 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       """.trimIndent())
     }
 
-    runSyncAndCheckFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND)
+    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND)
   }
 
   //TODO(b/292231180): also add a separate test for 'cannot cast' in groovy code, it produces a different error and is not caught by any checker.
@@ -95,7 +81,7 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
 
     preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply( "Date a = (Date) (Object)\"123\";")
 
-    runSyncAndCheckFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
+    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
   }
 
   @Test
@@ -106,25 +92,25 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       "try { Class.forName(\"not.existing.MyClass\"); } catch (ClassNotFoundException e) { throw new RuntimeException(e); }"
     )
 
-    runSyncAndCheckFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND)
+    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND)
   }
 
   private fun verifyBuildIssue(buildIssue: BuildIssue) {
     val message = buildIssue.description
-    Truth.assertThat(message).contains("Gradle's dependency cache may be corrupt")
-    Truth.assertThat(message).contains("Re-download dependencies and sync project")
-    Truth.assertThat(message)
+    expect.that(message).contains("Gradle's dependency cache may be corrupt")
+    expect.that(message).contains("Re-download dependencies and sync project")
+    expect.that(message)
       .contains("In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
 
     val restartCapable = ApplicationManager.getApplication().isRestartCapable
     val quickFixText = if (restartCapable) "Stop Gradle build processes (requires restart)" else "Open Gradle Daemon documentation"
-    Truth.assertThat(message).contains(quickFixText)
+    expect.that(message).contains(quickFixText)
 
     // Verify QuickFixes.
     val quickFixes = buildIssue.quickFixes
-    Truth.assertThat(quickFixes).hasSize(2)
-    Truth.assertThat(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
-    Truth.assertThat(quickFixes[1]).isInstanceOf(StopGradleDaemonQuickFix::class.java)
+    expect.that(quickFixes).hasSize(2)
+    expect.that(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
+    expect.that(quickFixes[1]).isInstanceOf(StopGradleDaemonQuickFix::class.java)
   }
 
   private fun PreparedTestProject.setUpCustomPluginInBuildSrcWithCodeInApply(applyCodeLine: String) {
