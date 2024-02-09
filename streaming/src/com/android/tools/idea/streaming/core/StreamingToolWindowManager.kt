@@ -32,6 +32,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -138,6 +139,7 @@ private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
 private val ID_KEY = Key.create<DeviceId>("device-id")
 
 private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
+private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
 
 private val COLLATOR = Collator.getInstance()
 
@@ -184,7 +186,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
   /** Links pending AVD starts to the content managers that requested them. Keyed by AVD IDs. */
   private val recentAvdStartRequesters =
-      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, WeakReference<ContentManager>>()
+      Caffeine.newBuilder().weakValues().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ContentManager>()
+  /** Links pending remote device mirroring starts to the content managers that requested them. Keyed by AVD IDs. */
+  private val recentRemoteDeviceRequesters =
+      Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(REMOTE_DEVICE_REQUEST_EXPIRATION).build<DeviceHandle, ContentManager>()
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   @Suppress("UnstableApiUsage")
@@ -504,11 +509,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
     val avdId = emulator.emulatorId.avdFolder.toString()
-    val contentManagerRef = recentAvdStartRequesters.getIfPresent(avdId)
-    if (contentManagerRef != null) {
-      recentAvdStartRequesters.invalidate(avdId)
-    }
-    addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManagerRef?.get())
+    val contentManager = recentAvdStartRequesters.getIfPresent(avdId)?.also { recentAvdStartRequesters.invalidate(avdId) }
+    addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManager)
   }
 
   /**
@@ -769,9 +771,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun activateMirroring(serialNumber: String, handle: DeviceHandle, config: DeviceConfiguration, activation: ActivationLevel) {
     if (contentShown) {
+      val contentManager: ContentManager? = when {
+        handle.reservationAction == null -> null
+        else -> recentRemoteDeviceRequesters.getIfPresent(handle)?.also { recentRemoteDeviceRequesters.invalidate(handle) }
+      }
       recentAttentionRequests.invalidate(serialNumber)
       if (serialNumber !in deviceClients && serialNumber !in devicesExcludedFromMirroring) {
-        startMirroringIfConfirmed(serialNumber, handle, config, activation)
+        startMirroringIfConfirmed(serialNumber, handle, config, activation, contentManager)
       }
       if (activation >= ActivationLevel.SELECT_TAB) {
         onPhysicalDeviceHeadsUp(serialNumber, activation)
@@ -1113,6 +1119,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(device.sourceTemplate?.properties?.composeDeviceName(), null, device.sourceTemplate?.properties?.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
+      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
+      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+      if (contentManager != null) {
+        recentRemoteDeviceRequesters.put(device, contentManager)
+        alarm.addRequest(recentRemoteDeviceRequesters::cleanUp, REMOTE_DEVICE_REQUEST_EXPIRATION.toMillis())
+      }
       device.scope.launch { device.activationAction?.activate() }
     }
 
@@ -1128,7 +1140,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
       val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
       if (contentManager != null) {
-        recentAvdStartRequesters.put(avd.id, WeakReference(contentManager))
+        recentAvdStartRequesters.put(avd.id, contentManager)
         alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
       }
       toolWindowScope.launch(Dispatchers.IO) {
