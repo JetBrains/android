@@ -68,7 +68,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf())
 }
 
-/** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
+/** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
   private val filePreviewElementFinder: FilePreviewElementFinder<WearTilePreviewElement> =
     WearTilePreviewElementFinder
