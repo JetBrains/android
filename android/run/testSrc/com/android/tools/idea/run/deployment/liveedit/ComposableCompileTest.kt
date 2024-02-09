@@ -209,7 +209,7 @@ class ComposableCompileTest {
       @Composable fun hasLambdaA(content: @Composable () -> Unit) { }
       @Composable fun hasLambdaB() { hasLambdaA {} }
     """)
-    val fileState = getPsiValidationState(file)
+    val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileIr(file)
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
@@ -240,7 +240,7 @@ class ComposableCompileTest {
       @Composable fun composableFun4() {
         val a = { }
       }""")
-    val fileState = getPsiValidationState(file)
+    val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileIr(file)
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {

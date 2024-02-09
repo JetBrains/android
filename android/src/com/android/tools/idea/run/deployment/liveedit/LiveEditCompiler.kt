@@ -92,6 +92,10 @@ class LiveEditCompiler(val project: Project,
     val compileCmd = {
       var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
+        // Ignore script files. This check must be done in a read action.
+        if (file.isScript()) {
+          continue
+        }
         try {
           // Compiler pass
           if (isK2Plugin()) {

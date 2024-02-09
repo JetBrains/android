@@ -349,14 +349,7 @@ class LiveEditServiceImpl(val project: Project,
       // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes
       // an event is generated with a non-physical version of a given file, which will cause some
       // Live Edit checks that assume a non-null VirtualFile to fail.
-      val psiFile = PsiManager.getInstance(project).findFile(this)?.originalFile
-
-      // Ignore scripts. This check must be done in a read action.
-      if (psiFile is KtFile && psiFile.isScript()) {
-        return@compute null
-      }
-
-      psiFile
+      PsiManager.getInstance(project).findFile(this)?.originalFile
     }
     if (psiFile != null) {
       block(psiFile)
