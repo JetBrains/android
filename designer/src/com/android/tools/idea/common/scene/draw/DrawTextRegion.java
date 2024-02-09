@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.text.StringUtil;
 
 import javax.swing.*;
@@ -292,6 +293,9 @@ public class DrawTextRegion extends DrawRegion {
   }
 
   public static int getFont(NlComponent nlc, String default_dim) {
+    // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
+    //  getResourceResolver in non-smart mode.
+    if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
     Configuration configuration = nlc.getModel().getConfiguration();
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 

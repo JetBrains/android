@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.util.Collection;
@@ -69,19 +70,23 @@ public class ThemeMenuAction extends DropDownAction {
 
   private void updatePresentation(@NotNull AnActionEvent e) {
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
-    if (configurations == null) {
+    Project project = e.getProject();
+    Presentation presentation = e.getPresentation();
+
+    // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
+    //  getResourceResolver in non-smart mode.
+    if (configurations == null || project == null || DumbService.getInstance(project).isDumb()) {
+      presentation.setEnabled(false);
       return;
     }
+    presentation.setEnabled(true);
     Configuration configuration = Iterables.getFirst(configurations, null);
-    Presentation presentation = e.getPresentation();
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
       presentation.setText(brief, false);
     }
-    if (visible != presentation.isVisible()) {
-      presentation.setVisible(visible);
-    }
+    presentation.setVisible(visible);
   }
 
   /**

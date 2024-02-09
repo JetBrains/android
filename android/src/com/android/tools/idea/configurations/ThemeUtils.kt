@@ -38,6 +38,8 @@ import com.android.tools.idea.model.queryIsMainManifestIndexReady
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.AndroidModuleInfo
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -181,12 +183,20 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
   override fun getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
     module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
 
+  @Slow
   override fun getDefaultTheme(configuration: Configuration): String {
+    if (ApplicationManager.getApplication().isDispatchThread) {
+      Logger.getInstance(StudioThemeInfoProvider::class.java).warn("getDefaultTheme should not be called in the dispatch thread")
+    }
     val module = ConfigurationManager.getFromConfiguration(configuration).module
 
     val modificationTracker = MergedManifestModificationTracker.getInstance(module)
+    val dumbServiceTracker = DumbService.getInstance(module.project)
     val provider = CachedValueProvider {
-      CachedValueProvider.Result.create(computeDefaultThemeForConfiguration(configuration), configuration, modificationTracker)
+      CachedValueProvider.Result.create(computeDefaultThemeForConfiguration(configuration),
+                                        configuration,
+                                        modificationTracker,
+                                        dumbServiceTracker)
     }
     val manager = CachedValuesManager.getManager(module.project)
     return manager.getCachedValue(configuration,
