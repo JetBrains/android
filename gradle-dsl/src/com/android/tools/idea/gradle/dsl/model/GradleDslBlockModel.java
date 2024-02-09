@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
@@ -50,6 +51,11 @@ public abstract class GradleDslBlockModel implements GradleBlockModel, GradleDsl
 
   protected GradleDslBlockModel(@NotNull GradlePropertiesDslElement dslElement) {
     myDslElement = dslElement;
+  }
+
+  @Override
+  public <T extends @NotNull GradleDslModel> @NotNull T getModel(@NotNull Class<T> klass) {
+    return GradleBlockModelMap.get(myDslElement, getClass(), klass);
   }
 
   @Override

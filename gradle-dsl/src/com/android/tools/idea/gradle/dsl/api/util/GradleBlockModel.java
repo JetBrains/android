@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface for common functionality for the Dsl block models. This interface will be implemented by
  * the model classes as needed.
  */
 public interface GradleBlockModel extends DeletablePsiElementHolder, GradleDslElementModel, GradleDslModel {
+  <T extends @NotNull GradleDslModel> @NotNull T getModel(@NotNull Class<T> klass);
 }

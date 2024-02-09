@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
@@ -410,7 +411,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
-    return NO_CHILD_PROPERTIES_ELEMENTS;
+    return GradleBlockModelMap.getElementMap(this.getClass(), kind);
   }
 
   /**
