@@ -41,6 +41,8 @@ interface BlockModelProvider<ParentModel : GradleDslModel, ParentDsl : GradlePro
 
   val parentClass: Class<ParentModel>
 
+  val parentDslClass: Class<ParentDsl>
+
   fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, ParentDsl>>
 
   fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>>

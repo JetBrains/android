@@ -63,7 +63,7 @@ class GradleBlockModelMap internal constructor() {
   }
 
   fun getOrCreateElementMap(parentType: Class<out GradlePropertiesDslElement>, kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
-    return elementMapCache.computeIfAbsent(parentType to kind) { calculateElements(it.second) }
+    return elementMapCache.computeIfAbsent(parentType to kind) { calculateElements(it.first, it.second) }
   }
 
   private fun getOrCreateBlockMap(parentType: Class<out GradleDslModel>, kind: GradleDslNameConverter.Kind): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
@@ -99,9 +99,12 @@ class GradleBlockModelMap internal constructor() {
     val instance: GradleBlockModelMap
       get() = ApplicationManager.getApplication().getService(GradleBlockModelMap::class.java)
 
-    private fun calculateElements(kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+    private fun calculateElements(parentType: Class<out GradlePropertiesDslElement>, kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
       val builder = ImmutableMap.builder<String, PropertiesElementDescription<*>>()
       BlockModelProvider.EP.forEachExtensionSafe { p: BlockModelProvider<*, *> ->
+        if (!p.parentDslClass.isAssignableFrom(parentType)) {
+          return@forEachExtensionSafe
+        }
         val elementsMap = p.elementsMap(kind)
         builder.putAll(elementsMap)
       }
@@ -111,7 +114,7 @@ class GradleBlockModelMap internal constructor() {
     private fun calculateBlocks(parentType: Class<out GradleDslModel>, kind: GradleDslNameConverter.Kind): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
       val result: MutableMap<Class<out GradleDslModel>, BlockModelBuilder<*, *>> = HashMap()
       BlockModelProvider.EP.forEachExtensionSafe { p: BlockModelProvider<*, *> ->
-        if (!parentType.isAssignableFrom(p.parentClass)) {
+        if (!p.parentClass.isAssignableFrom(parentType)) {
           return@forEachExtensionSafe
         }
         val builders = p.availableModels(kind)

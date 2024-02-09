@@ -59,6 +59,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
   }
 
   override val parentClass = GradleBuildModel::class.java
+  override val parentDslClass = GradleBuildFile::class.java
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return when(kind) {

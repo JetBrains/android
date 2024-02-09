@@ -139,6 +139,7 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
 class MyTestModelProviderExtension : BlockModelProvider<GradleBuildModel, GradleDslFile> {
 
   override val parentClass = GradleBuildModel::class.java
+  override val parentDslClass = GradleDslFile::class.java
 
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleDslFile>> {
     return ROOT_MODELS
@@ -235,6 +236,7 @@ class MyNestedDslModelImpl(dslElement: MyNestedDslElement) : MyNestedDslModel, G
 
 class MyNestedModelProviderExtension : BlockModelProvider<MyTestDslModel, MyTestDslElement> {
   override val parentClass = MyTestDslModel::class.java
+  override val parentDslClass = MyTestDslElement::class.java
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, MyTestDslElement>> = listOf(
     object : BlockModelBuilder<MyNestedDslModel, MyTestDslElement> {
       override fun modelClass() = MyNestedDslModel::class.java
