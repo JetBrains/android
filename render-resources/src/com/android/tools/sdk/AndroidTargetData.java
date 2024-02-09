@@ -15,6 +15,7 @@
  */
 package com.android.tools.sdk;
 
+import com.android.annotations.TestOnly;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -317,5 +318,10 @@ public class AndroidTargetData {
       targetDataByTarget.put(key, new SoftReference<>(targetData));
     }
     return targetData;
+  }
+
+  @TestOnly
+  public static void clearCache() {
+    myTargetDataCache.clear();
   }
 }
