@@ -31,6 +31,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -185,10 +186,15 @@ class WearTilePreviewElementFinderTest {
         package com.android.test
 
         import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
 
         class WearTileService : TileService
 
         fun someRandomMethod() {
+        }
+
+        fun someMethodWithATilePreviewSignatureAndWithoutAPreviewAnnotation(): TilePreviewData {
+          return TilePreviewData()
         }
         """
           .trimIndent(),
@@ -408,6 +414,172 @@ class WearTilePreviewElementFinderTest {
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewInJavaFile"))
         assertThat(it).hasAnnotationDefinition("@Preview")
       }
+    }
+  }
+
+  @Test
+  fun testFindsMultiPreviews() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/test/AllWearDevices.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.WearDevices
+
+        @Preview(device = WearDevices.LARGE_ROUND)
+        @Preview(device = WearDevices.SMALL_ROUND)
+        @Preview(device = WearDevices.SQUARE)
+        @Preview(device = WearDevices.RECT)
+        annotation class AllWearDevices
+        """
+        .trimIndent(),
+    )
+
+    val previewsTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/Src.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import android.content.Context
+        import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+        import androidx.wear.tiles.tooling.preview.WearDevices
+
+        @Preview(name = "multipreview level 2")
+        annotation class MultiPreviewLevel2
+
+        @Preview(name = "multipreview level 1")
+        @MultiPreviewLevel2
+        annotation class MultiPreviewLevel1
+
+        @AllWearDevices
+        @Preview(name = "some preview")
+        @MultiPreviewLevel1
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent(),
+      )
+
+    val previewsWithoutDirectUseOfPreviewTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/OtherSrc.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @MultiPreviewLevel1
+        private fun tileWithMultiPreviewAnnotationFromAnotherFile(): TilePreviewData {
+          return TilePreviewData()
+        }
+
+        """
+          .trimIndent(),
+      )
+
+    assertTrue(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
+    assertTrue(
+      WearTilePreviewElementFinder.hasPreviewElements(
+        project,
+        previewsWithoutDirectUseOfPreviewTest.virtualFile,
+      )
+    )
+
+    val previewElements =
+      WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+    assertThat(previewElements).hasSize(7)
+
+    previewElements.elementAt(0).let {
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@AllWearDevices")
+    }
+    previewElements.elementAt(1).let {
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@AllWearDevices")
+    }
+    previewElements.elementAt(2).let {
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@AllWearDevices")
+    }
+    previewElements.elementAt(3).let {
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_rect"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@AllWearDevices")
+    }
+    previewElements.elementAt(4).let {
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - some preview"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@Preview(name = \"some preview\")")
+    }
+    previewElements.elementAt(5).let {
+      assertThat(it)
+        .hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - multipreview level 1"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
+    }
+    previewElements.elementAt(6).let {
+      assertThat(it)
+        .hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - multipreview level 2"))
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
+    }
+
+    val previewsWithoutDirectUseOfPreview =
+      WearTilePreviewElementFinder.findPreviewElements(
+        project,
+        previewsWithoutDirectUseOfPreviewTest.virtualFile,
+      )
+    assertThat(previewsWithoutDirectUseOfPreview).hasSize(2)
+
+    previewsWithoutDirectUseOfPreview.elementAt(0).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 1"
+          )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it)
+        .previewBodyHasTextRange(
+          previewsWithoutDirectUseOfPreviewTest.textRange(
+            "tileWithMultiPreviewAnnotationFromAnotherFile"
+          )
+        )
+      assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
+    }
+    previewsWithoutDirectUseOfPreview.elementAt(1).let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 2"
+          )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+      assertThat(it)
+        .previewBodyHasTextRange(
+          previewsWithoutDirectUseOfPreviewTest.textRange(
+            "tileWithMultiPreviewAnnotationFromAnotherFile"
+          )
+        )
+      assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
     }
   }
 }
