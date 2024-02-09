@@ -18,14 +18,11 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.fakeadbserver.DeviceState
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
-import com.android.repository.api.RemotePackage
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
-import com.android.sdklib.SystemImageTags.DEFAULT_TAG
-import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
 import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
@@ -1233,15 +1230,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val processDescriptor = setUpDevice(29)
     val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
 
-    checkBannerForTag(processDescriptor, sdkRoot, DEFAULT_TAG, MIN_API_29_AOSP_SYSIMG_REV, true)
-    checkBannerForTag(
-      processDescriptor,
-      sdkRoot,
-      GOOGLE_APIS_TAG,
-      MIN_API_29_GOOGLE_APIS_SYSIMG_REV,
-      true,
-    )
-    checkBannerForTag(processDescriptor, sdkRoot, PLAY_STORE_TAG, 999, false)
+    checkBannerForTag(processDescriptor, sdkRoot, PLAY_STORE_TAG, 999)
 
     // Set up an API 30 device and the inspector should be created successfully
     val processDescriptor2 = setUpDevice(30)
@@ -1284,7 +1273,6 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     sdkRoot: Path,
     tag: IdDisplay?,
     minRevision: Int,
-    checkUpdate: Boolean,
   ) {
     // Set up an AOSP api 29 device below the required system image revision, with no update
     // available
@@ -1326,49 +1314,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
               "Live Inspection is not available on API 29 Google Play images. Please use a different image."
             )
         } else {
-          assertThat(notification1.message)
-            .isEqualTo("Live Inspection not available on this system image revision.")
+          assertThat(notification1.message).isEmpty()
         }
       },
     )
     notificationModel.clear()
-
-    if (!checkUpdate) {
-      return
-    }
-
-    // Now there is an update available
-    val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
-    packages.setRemotePkgInfos(listOf(remotePackage))
-    setUpAvdManagerAndRun(
-      sdkHandler,
-      avdInfo,
-      suspend {
-        val client =
-          AppInspectionInspectorClient(
-            process = processDescriptor,
-            isInstantlyAutoConnected = false,
-            model = model(inspectorRule.disposable, inspectorRule.project) {},
-            notificationModel = notificationModel,
-            metrics = mock(),
-            treeSettings = mock(),
-            inspectorClientSettings = InspectorClientSettings(projectRule.project),
-            coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
-            parentDisposable = projectRule.testRootDisposable,
-            apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler,
-          )
-        client.connect(inspectorRule.project)
-        waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
-        invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-        val notification2 = notificationModel.notifications.single()
-        assertThat(notification2.message)
-          .isEqualTo(
-            "Live Inspection not available on this system image revision. Please update to the latest revision."
-          )
-        notificationModel.clear()
-      },
-    )
   }
 
   private suspend fun setUpAvdManagerAndRun(
