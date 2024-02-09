@@ -113,7 +113,7 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
     var errorMessage: String
     var settingsUpdated = false
 
-    val putValue = if (usePerDeviceSettings()) "1" else process.name
+    val putValue = if (usePerDeviceSettings()) "1" else process.packageName
     val putCommand = Command.Put(setting, putValue)
 
     try {
