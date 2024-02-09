@@ -13,60 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.util;
+package com.android.tools.adtui.util
 
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.util.ui.accessibility.ScreenReader;
-import java.awt.Component;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
-import java.util.Arrays;
-import javax.swing.JCheckBox;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.util.ui.accessibility.ScreenReader
+import java.awt.Component
+import java.awt.event.ContainerAdapter
+import java.awt.event.ContainerEvent
+import javax.swing.JCheckBox
 
-public class ActionToolbarUtil {
+/** Use the extension methods below instead of this object. */
+object ActionToolbarUtil {
+  /** See [ActionToolbar.findActionButton]. */
+  @JvmStatic
+  fun findActionButton(toolbar: ActionToolbar, action: AnAction): ActionButton? = toolbar.findActionButton(action)
 
-  // Avoid instantiation...
-  private ActionToolbarUtil() {}
-
-  /**
-   * Make it possible to navigate the actions buttons from the keyboard.
-   *
-   * When ScreenReader.isActive() is false the action buttons are not focusable.
-   * Override this when the buttons are added to the toolbar.
-   */
-  public static void makeToolbarNavigable(@NotNull ActionToolbar toolbar) {
-    if (!ScreenReader.isActive()) {
-      Arrays.stream(toolbar.getComponent().getComponents())
-        .forEach(ActionToolbarUtil::makeActionNavigable);
-
-      toolbar.getComponent().addContainerListener(new ContainerListener() {
-        @Override
-        public void componentAdded(@NotNull ContainerEvent event) {
-          makeActionNavigable(event.getChild());
-        }
-
-        @Override
-        public void componentRemoved(@NotNull ContainerEvent event) {
-        }
-      });
-    }
-  }
-
-  private static void makeActionNavigable(@NotNull Component child) {
-    if (child instanceof ActionButton || child instanceof JCheckBox) {
-      child.setFocusable(true);
-    }
-  }
-
-  @Nullable
-  public static ActionButton findActionButton(@NotNull ActionToolbar toolbar, @NotNull AnAction action) {
-    return (ActionButton)Arrays.stream(toolbar.getComponent().getComponents())
-      .filter(child -> child instanceof ActionButton && ((ActionButton)child).getAction().equals(action))
-      .findFirst()
-      .orElse(null);
+  /** See [ActionToolbar.makeNavigable]. */
+  @JvmStatic
+  fun makeToolbarNavigable(toolbar: ActionToolbar) {
+    toolbar.makeNavigable()
   }
 }
+
+/**
+ * Finds the toolbar button corresponding to [action].
+ */
+fun ActionToolbar.findActionButton(action: AnAction): ActionButton? =
+  component.components.find { (it as? ActionButton)?.action == action } as ActionButton?
+
+/**
+ * Makes it possible to navigate the actions buttons from the keyboard.
+ *
+ * The action buttons are not focusable when `ScreenReader.isActive()` is false,
+ * This method makes the buttons of the toolbar focusable unconditionally.
+ */
+fun ActionToolbar.makeNavigable() {
+  if (!ScreenReader.isActive()) {
+    for (child in component.components) {
+      child.makeActionNavigable()
+    }
+
+    component.addContainerListener(object : ContainerAdapter() {
+      override fun componentAdded(event: ContainerEvent) {
+        event.child.makeActionNavigable()
+      }
+    })
+  }
+}
+
+private fun Component.makeActionNavigable() {
+  if (this is ActionButton || this is JCheckBox) {
+    isFocusable = true
+  }
+}
+
