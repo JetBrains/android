@@ -111,7 +111,14 @@ private fun hasAnnotationsUncached(
 
   return annotationPsiElements.any { psiElement ->
     val uAnnotation = psiElement.toUElementOfType<UAnnotation>() ?: return@any false
-    val qualifiedName = uAnnotation.qualifiedName ?: return@any false
+    val qualifiedName =
+      try {
+        uAnnotation.qualifiedName
+      } catch (t: Throwable) {
+        // KotlinUAnnotationBase.qualifiedName might throw an InconsistencyIndexException if we
+        // try to get the qualified name before the index is ready.
+        return false
+      } ?: return@any false
     val shortName = StringUtilRt.getShortName(qualifiedName)
 
     ((shortName == shortAnnotationName && hasAnnotationImport) ||
