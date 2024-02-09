@@ -59,6 +59,5 @@ public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel zipAlignEnabled();
 
-  @NotNull
-  FirebaseCrashlyticsModel firebaseCrashlytics();
+
 }

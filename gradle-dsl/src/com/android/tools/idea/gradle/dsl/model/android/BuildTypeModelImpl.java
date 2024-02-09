@@ -126,12 +126,4 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   public ResolvedPropertyModel zipAlignEnabled() {
     return getModelForProperty(ZIP_ALIGN_ENABLED);
   }
-
-  @Override
-  @NotNull
-  public FirebaseCrashlyticsModel firebaseCrashlytics() {
-    FirebaseCrashlyticsDslElement firebaseCrashlyticsDslElement = myDslElement.ensurePropertyElement(FIREBASE_CRASHLYTICS);
-    return new FirebaseCrashlyticsModelImpl(firebaseCrashlyticsDslElement);
-  }
-
 }

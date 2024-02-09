@@ -122,9 +122,6 @@ public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel
   ConfigurationsModel configurations();
 
   @NotNull
-  CrashlyticsModel crashlytics();
-
-  @NotNull
   DependenciesModel dependencies();
 
   @NotNull

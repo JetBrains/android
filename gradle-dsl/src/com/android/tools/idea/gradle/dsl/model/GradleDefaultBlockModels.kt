@@ -73,7 +73,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "android" to AndroidDslElement.ANDROID,
       "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
       "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
-      "crashlytics" to CrashlyticsDslElement.CRASHLYTICS,
       "dependencies" to DependenciesDslElement.DEPENDENCIES,
       "ext" to ExtDslElement.EXT,
       "java" to JavaDslElement.JAVA,
@@ -85,7 +84,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "androidApplication" to AndroidDslElement.ANDROID,
       "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
       "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
-      "crashlytics" to CrashlyticsDslElement.CRASHLYTICS,
       "declarativeDependencies" to DependenciesDslElement.DEPENDENCIES,
       "ext" to ExtDslElement.EXT,
       "java" to JavaDslElement.JAVA,
@@ -104,10 +102,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
       ConfigurationsModel::class.java from {
         ConfigurationsModelImpl(it.ensurePropertyElementBefore(ConfigurationsDslElement.CONFIGURATIONS, DependenciesDslElement::class.java))
-      },
-
-      CrashlyticsModel::class.java from {
-        CrashlyticsModelImpl(it.ensurePropertyElement(CrashlyticsDslElement.CRASHLYTICS))
       },
 
       DependenciesModel::class.java from { file ->

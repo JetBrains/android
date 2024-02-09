@@ -311,12 +311,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
   @NotNull
   @Override
-  public CrashlyticsModel crashlytics() {
-    return getModel(CrashlyticsModel.class);
-  }
-
-  @NotNull
-  @Override
   public DependenciesModel dependencies() {
     return getModel(DependenciesModel.class);
   }
