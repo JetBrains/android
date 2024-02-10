@@ -41,6 +41,7 @@ class VersionsTomlAnnotator : Annotator {
         holder.newAnnotation(HighlightSeverity.ERROR,
                                "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
                                "and be made up of letters, digits and the symbols '.', '-' and '_' only").create()
+      checkAliasDuplication(element, holder)
     }
 
     if (element is TomlKey
@@ -54,4 +55,25 @@ class VersionsTomlAnnotator : Annotator {
     }
 
   }
+
+  private fun checkAliasDuplication(element: TomlKey, holder: AnnotationHolder) {
+    val parent = element.getParentOfType<TomlTable>(true) ?: return
+    val elementName = element.text.removeSurrounding("\"")
+    val same = parent.entries.map { it.key }
+      .filter { it != element }
+      .map { it.text.removeSurrounding("\"") }
+      .filter { compareAliases(elementName, it) }
+    if (same.isNotEmpty()) {
+      val suffix = if (same.size > 2) " etc." else "."
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Duplicated alias name. Effectively same as ${same.take(2).joinToString(", ")}" + suffix).create()
+    }
+  }
+
+  private fun compareAliases(alias1: String, alias2: String): Boolean {
+    if (alias1.length != alias2.length) return false
+    return alias1.zip(alias2).all { (a, b) -> a.normalize() == b.normalize() }
+  }
+
+  private fun Char.normalize(): Char = if (this == '-' || this == '.') '_' else this
 }

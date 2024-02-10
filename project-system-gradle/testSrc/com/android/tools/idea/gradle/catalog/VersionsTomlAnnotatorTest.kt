@@ -161,4 +161,101 @@ class VersionsTomlAnnotatorTest {
     fixture.checkHighlighting()
   }
 
+  @Test
+  fun checkDuplicationNames_SimpleCase() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_MixedNotation() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_MixedNotation2() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_MixedNotation3() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"some.plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_WithinSingleTable() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"\"some-alias\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"some.alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+
+      [libraries]
+      some_alias = "some:group:1.0"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_CheckMessage() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias.")} = "some:plugin"
+      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias.")} = "some:plugin"
+
+      [libraries]
+      some_alias = "some:group:1.0"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_CheckMessageForThree() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias, some-alias etc.")} = "some:plugin"
+      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+
+      [libraries]
+      some_alias = "some:group:1.0"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
 }
