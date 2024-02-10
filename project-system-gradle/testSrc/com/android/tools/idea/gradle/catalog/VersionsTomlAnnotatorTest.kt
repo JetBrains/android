@@ -117,4 +117,48 @@ class VersionsTomlAnnotatorTest {
     fixture.checkHighlighting()
   }
 
+  @Test
+  fun checkWrongTableName() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [${"temp" highlightedAs HighlightSeverity.ERROR}]
+      alias = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkWrongTableName2() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [${"plugins.plugins" highlightedAs HighlightSeverity.ERROR}]
+      alias = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkQuotedTableName() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      ["plugins"]
+      alias = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkNormalTableName() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      alias = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
 }

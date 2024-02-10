@@ -19,12 +19,16 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
+import org.toml.lang.psi.TomlTableHeader
 
 class VersionsTomlAnnotator : Annotator {
+
+  val tables = listOf("plugins", "versions", "libraries", "bundles")
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!element.containingFile.name.endsWith("versions.toml"))
@@ -39,6 +43,15 @@ class VersionsTomlAnnotator : Annotator {
                                "and be made up of letters, digits and the symbols '.', '-' and '_' only").create()
     }
 
-  }
+    if (element is TomlKey
+        && element.parent is TomlTableHeader
+        && grandParent is TomlTable
+        && grandParent.parent is TomlFile) {
+      val text = element.text.removeSurrounding("\"")
+      if (text !in tables)
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Invalid table name `${text}`. It must be one of: ${tables.joinToString(", ")}").create()
+    }
 
+  }
 }
