@@ -25,8 +25,8 @@
     <tutorial
         key="whats-new"
         label=" What's New in Iguana"
-        icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2023-2-1"
+        icon="stable/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes/2023-2-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -41,7 +41,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 8/10/2023</em><br><br>
+              <br><em>Last updated 2/09/2024</em><br><br>
             ]]>
           </section>
         </stepElement>
