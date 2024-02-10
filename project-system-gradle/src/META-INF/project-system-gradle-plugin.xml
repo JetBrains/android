@@ -135,6 +135,7 @@
     <completion.confidence language="TOML"
                            id="EnableAutoPopupInDeclarativeBuildCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInDeclarativeBuildCompletion" />
+    <annotator language="TOML" implementationClass="com.android.tools.idea.gradle.catalog.VersionsTomlAnnotator"/>
     <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <vetoRenameCondition implementation="com.android.tools.idea.gradle.refactoring.GradleCatalogTomlVetoCondition"/>
