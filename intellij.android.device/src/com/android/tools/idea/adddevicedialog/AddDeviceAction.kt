@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.adddevicedialog.localavd.SystemImage
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel

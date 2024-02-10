@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 internal enum class Boot(internal val properties: Map<String, String>, private val text: String) {
   COLD(
@@ -21,18 +21,18 @@ internal enum class Boot(internal val properties: Map<String, String>, private v
       "fastboot.chosenSnapshotFile" to "",
       "fastboot.forceChosenSnapshotBoot" to "no",
       "fastboot.forceColdBoot" to "yes",
-      "fastboot.forceFastBoot" to "no"
+      "fastboot.forceFastBoot" to "no",
     ),
-    "Cold"
+    "Cold",
   ),
   QUICK(
     mapOf(
       "fastboot.chosenSnapshotFile" to "",
       "fastboot.forceChosenSnapshotBoot" to "no",
       "fastboot.forceColdBoot" to "no",
-      "fastboot.forceFastBoot" to "yes"
+      "fastboot.forceFastBoot" to "yes",
     ),
-    "Quick"
+    "Quick",
   );
 
   override fun toString() = text

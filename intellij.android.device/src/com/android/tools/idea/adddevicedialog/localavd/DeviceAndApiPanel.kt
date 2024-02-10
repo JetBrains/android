@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +31,7 @@ import org.jetbrains.jewel.ui.component.TextField
 internal fun DeviceAndApiPanel(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
-  onDeviceChange: (VirtualDevice) -> Unit
+  onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Text("Name")
   TextField(device.name, { onDeviceChange(device.copy(name = it)) })
@@ -58,10 +58,14 @@ private fun ApiLevelDropdown(images: ImmutableCollection<SystemImage>) {
   Dropdown(
     menuContent = {
       levels.forEach {
-        selectableItem(selected = selectedLevel == it, onClick = { selectedLevel = it }, content = { ApiLevelText(it) })
+        selectableItem(
+          selected = selectedLevel == it,
+          onClick = { selectedLevel = it },
+          content = { ApiLevelText(it) },
+        )
       }
     },
-    content = { ApiLevelText(selectedLevel) }
+    content = { ApiLevelText(selectedLevel) },
   )
 }
 

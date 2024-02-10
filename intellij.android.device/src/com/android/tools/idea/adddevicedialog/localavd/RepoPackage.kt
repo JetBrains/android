@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.SystemImageTags
@@ -25,10 +25,12 @@ internal fun RepoPackage.hasSystemImage(): Boolean {
   val details = typeDetails
 
   return details is SysImgDetailsType ||
-         details is PlatformDetailsType && details.apiLevel <= 13 ||
-         details is AddonDetailsType && details.hasSystemImage()
+    details is PlatformDetailsType && details.apiLevel <= 13 ||
+    details is AddonDetailsType && details.hasSystemImage()
 }
 
 private fun AddonDetailsType.hasSystemImage(): Boolean {
-  return apiLevel <= 19 && vendor.id == "google" && SystemImageTags.TAGS_WITH_GOOGLE_API.contains(tag)
+  return apiLevel <= 19 &&
+    vendor.id == "google" &&
+    SystemImageTags.TAGS_WITH_GOOGLE_API.contains(tag)
 }

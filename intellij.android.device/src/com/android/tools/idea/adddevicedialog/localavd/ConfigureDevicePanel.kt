@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -35,7 +35,7 @@ internal fun ConfigureDevicePanel(
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
-  onImportButtonClick: () -> Unit
+  onImportButtonClick: () -> Unit,
 ) {
   @OptIn(ExperimentalJewelApi::class)
   SwingBridgeTheme {
@@ -53,7 +53,7 @@ private fun Tabs(
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
-  onImportButtonClick: () -> Unit
+  onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
 

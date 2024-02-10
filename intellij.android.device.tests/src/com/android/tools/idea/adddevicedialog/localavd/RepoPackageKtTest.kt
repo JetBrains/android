@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.TypeDetails
@@ -26,12 +26,14 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RepoPackageKtTest {
-  private val repoPackage = RepoManager.getCommonModule().createLatestFactory().createRemotePackage()
+  private val repoPackage =
+    RepoManager.getCommonModule().createLatestFactory().createRemotePackage()
 
   @Test
   fun repoPackageHasSystemImageDetailsIsSysImgDetailsType() {
     // Arrange
-    val details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
+    val details =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     repoPackage.setTypeDetails(details as TypeDetails)
 
     // Act
@@ -44,7 +46,8 @@ class RepoPackageKtTest {
   @Test
   fun repoPackageHasSystemImageDetailsIsPlatformDetailsTypeAndApiLevelIsLessThanOrEqualTo13() {
     // Arrange
-    val details = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType()
+    val details =
+      AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType()
     details.apiLevel = 10
 
     repoPackage.setTypeDetails(details as TypeDetails)

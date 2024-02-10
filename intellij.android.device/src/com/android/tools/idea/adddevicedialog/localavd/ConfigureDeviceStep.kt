@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.ui.awt.ComposePanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -40,7 +40,7 @@ internal constructor(model: AddDeviceWizardModel, private val project: Project?)
         model.systemImages,
         model.skins,
         { model.device = it },
-        ::importSkin
+        ::importSkin,
       )
     }
 
@@ -55,7 +55,7 @@ internal constructor(model: AddDeviceWizardModel, private val project: Project?)
         FileChooserDescriptorFactory.createSingleFolderDescriptor(),
         component,
         project,
-        null
+        null,
       )
 
     if (skin != null) {

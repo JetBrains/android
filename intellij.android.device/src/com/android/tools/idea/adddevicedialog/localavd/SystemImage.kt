@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Immutable
 import com.android.repository.api.RepoPackage
@@ -37,7 +37,7 @@ internal class SystemImage private constructor(repoPackage: RepoPackage) {
         0,
         indicator,
         StudioDownloader(),
-        StudioSettingsController.getInstance()
+        StudioSettingsController.getInstance(),
       )
 
       return manager.packages.consolidatedPkgs.values
