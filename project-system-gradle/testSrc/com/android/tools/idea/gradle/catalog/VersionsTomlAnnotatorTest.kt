@@ -258,4 +258,36 @@ class VersionsTomlAnnotatorTest {
     fixture.checkHighlighting()
   }
 
+  @Test
+  fun checkTableDuplicationNames() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+      alias = "some:plugin"
+     
+      [libraries]
+      some_alias = "some:group:1.0"
+      
+      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkTableDuplicationNames_withQuotationMarks() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [${"\"plugins\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+      alias = "some:plugin"
+     
+      [libraries]
+      some_alias = "some:group:1.0"
+      
+      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
 }

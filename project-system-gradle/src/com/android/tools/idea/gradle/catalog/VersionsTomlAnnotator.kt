@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.catalog
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.idea.editor.fixers.range
+import org.jetbrains.kotlin.idea.editor.fixers.start
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlKey
@@ -27,6 +31,9 @@ import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
 
 class VersionsTomlAnnotator : Annotator {
+  companion object {
+    private val FILE_IS_GOOD_FOR_LONG_CHECKS = Key.create<Boolean>("FILE_IS_GOOD_FOR_LONG_CHECKS")
+  }
 
   val tables = listOf("plugins", "versions", "libraries", "bundles")
 
@@ -35,13 +42,20 @@ class VersionsTomlAnnotator : Annotator {
       return
     val grandParent = element.parent.parent
 
+    if(element.isFirstElement()){
+      initFileStatusFlag(element.containingFile, holder)
+    }
+
     if (element is TomlKey && element.parent is TomlKeyValue && grandParent is TomlTable && grandParent.parent is TomlFile) {
       val text = element.text?.let { it.removeSurrounding("\"") }
-      if (text != null && !"[a-z]([a-zA-Z0-9_.\\-])+".toRegex().matches(text))
+      if (text != null && !"[a-z]([a-zA-Z0-9_.\\-])+".toRegex().matches(text)) {
         holder.newAnnotation(HighlightSeverity.ERROR,
                                "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
                                "and be made up of letters, digits and the symbols '.', '-' and '_' only").create()
-      checkAliasDuplication(element, holder)
+      }
+      else {
+        checkAliasDuplication(element, holder)
+      }
     }
 
     if (element is TomlKey
@@ -49,11 +63,14 @@ class VersionsTomlAnnotator : Annotator {
         && grandParent is TomlTable
         && grandParent.parent is TomlFile) {
       val text = element.text.removeSurrounding("\"")
-      if (text !in tables)
+      if (text !in tables) {
         holder.newAnnotation(HighlightSeverity.ERROR,
                              "Invalid table name `${text}`. It must be one of: ${tables.joinToString(", ")}").create()
+      }
+      else if (holder.currentAnnotationSession.getUserData(FILE_IS_GOOD_FOR_LONG_CHECKS) == true) {
+        checkTableDuplication(grandParent, holder)
+      }
     }
-
   }
 
   private fun checkAliasDuplication(element: TomlKey, holder: AnnotationHolder) {
@@ -76,4 +93,32 @@ class VersionsTomlAnnotator : Annotator {
   }
 
   private fun Char.normalize(): Char = if (this == '-' || this == '.') '_' else this
+
+  private fun checkTableDuplication(element: TomlTable, holder: AnnotationHolder) {
+    val name = element.header.key?.text?.removeSurrounding("\"") ?: return
+    val hasDuplicates = element.parent.children.asSequence()
+      .filterIsInstance<TomlTable>()
+      .filter { it != element }
+      .any {
+        it.header.key?.text?.removeSurrounding("\"") == name
+      }
+    if (hasDuplicates) {
+      holder.newAnnotation(HighlightSeverity.ERROR, "Duplicated table name.").create()
+    }
+  }
+
+  private fun PsiElement.isFirstElement(): Boolean {
+    var currentElement: PsiElement = containingFile
+
+    while (currentElement.firstChild != null)
+      currentElement = currentElement.firstChild
+
+    return this == currentElement
+  }
+
+  private fun initFileStatusFlag(psiFile: PsiFile, holder: AnnotationHolder) {
+    val tables = psiFile.children.filterIsInstance<TomlTable>().count()
+    // make it false if file is very wrong
+    holder.currentAnnotationSession.putUserData(FILE_IS_GOOD_FOR_LONG_CHECKS, tables < 1000)
+  }
 }
