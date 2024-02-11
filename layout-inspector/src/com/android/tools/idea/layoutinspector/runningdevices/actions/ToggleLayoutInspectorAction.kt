@@ -77,10 +77,12 @@ class ToggleLayoutInspectorAction :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    e.presentation.isVisible = isEnabled
 
     val project = e.project ?: return
+    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
+    val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isVisible =
+      isEnabled && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
     RunningDevicesStateObserver.getInstance(project).update(isEnabled)
 
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)

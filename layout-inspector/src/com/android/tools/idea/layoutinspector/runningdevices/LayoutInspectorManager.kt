@@ -86,6 +86,9 @@ interface LayoutInspectorManager : Disposable {
 
   /** Returns true if Layout Inspector is enabled for [deviceId], false otherwise. */
   fun isEnabled(deviceId: DeviceId): Boolean
+
+  /** Returns true if Layout Inspector can be enabled for [deviceId], false otherwise. */
+  fun isSupported(deviceId: DeviceId): Boolean
 }
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
@@ -310,6 +313,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   override fun isEnabled(deviceId: DeviceId): Boolean {
     ApplicationManager.getApplication().assertIsDispatchThread()
     return tabsWithLayoutInspector.contains(deviceId)
+  }
+
+  override fun isSupported(deviceId: DeviceId): Boolean {
+    val contentManager = project.getRunningDevicesContentManager()
+    return contentManager?.contents?.find { it.deviceId == deviceId } != null
   }
 
   override fun dispose() {
