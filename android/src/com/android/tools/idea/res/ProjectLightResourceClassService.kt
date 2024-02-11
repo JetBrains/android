@@ -149,8 +149,10 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
 
       private fun dropAarClassesCache() {
-        aarClassesCache.invalidateAll()
-        PsiManager.getInstance(project).dropPsiCaches()
+        if (aarClassesCache.size() != 0L) {
+          aarClassesCache.invalidateAll()
+          PsiManager.getInstance(project).dropPsiCaches()
+        }
       }
     })
   }
