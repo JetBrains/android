@@ -34,7 +34,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     private set
   var maxTrackingTimeUs = initMaxUs
     private set
-  private val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
+  val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
   val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY
   val isStatic get() = hasStartedTracking && hasEndedTracking
   private var lastTrackingEvent = Common.Event.getDefaultInstance()
@@ -95,22 +95,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       // Entering a static allocation stage indicates the opening of a task recorded in the past.
       trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
     } else {
-      // Start tracking when allocation ready
-      aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) {
-        if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
-      }
-      setupTrackingEventListener()
-      MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, false, null);
-      // Prevent selecting outside of range
-      timeline.selectionRange.apply {
-        addDependency(this@AllocationStage).onChange(Range.Aspect.RANGE) {
-          val rightBound = min(timeline.dataRange.max, maxTrackingTimeUs)
-          when {
-            !isEmpty && min > rightBound -> selectAll()
-            max > rightBound -> max = rightBound
-          }
-        }
-      }
+      startTracking()
     }
   }
 
@@ -133,6 +118,31 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     timeline.selectionRange.set(minTrackingTimeUs, minTrackingTimeUs)
     timeline.viewRange.set(minTrackingTimeUs, minTrackingTimeUs)
     timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE, ::onNewData)
+  }
+  val isAgentAttached get() = studioProfilers.isAgentAttached
+
+  fun startTracking() {
+    // In the regular session based, there is slim to no chance of agent being Unspecified when J/K Allocation stage is entered.
+    // This is because session is created way before we come to the J/K allocation stage.
+    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled && !isAgentAttached) return
+
+    // Agent is expected to get attached before startTracking. Agent changed event will also trigger this code path in case of tracking
+    // not started yet.
+    aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) {
+       if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
+    }
+    setupTrackingEventListener()
+    MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, false, null);
+    // Prevent selecting outside of range
+    timeline.selectionRange.apply {
+      addDependency(this@AllocationStage).onChange(Range.Aspect.RANGE) {
+        val rightBound = min(timeline.dataRange.max, maxTrackingTimeUs)
+        when {
+          !isEmpty && min > rightBound -> selectAll()
+          max > rightBound -> max = rightBound
+        }
+      }
+    }
   }
 
   fun stopTracking() {

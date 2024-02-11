@@ -41,6 +41,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
 import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
 import com.android.tools.profilers.tasks.TaskFinishedState
 import com.intellij.openapi.diagnostic.Logger
@@ -96,9 +97,17 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       // Early return if JVMTI agent is not attached.
       !profilers.isAgentAttached -> {}
       else -> try {
-        // Attempts to stop an existing tracking session.
-        // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-        trackAllocations(profilers, session, false, false, null)
+        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
+            profilers.sessionsManager.isSessionAlive &&
+            profilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS &&
+            profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
+          // If, current stage is allocation stage and tracking has not started, then start the tracking
+          (profilers.stage as AllocationStage).startTracking()
+        } else {
+          // Attempts to stop an existing tracking session.
+          // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
+          trackAllocations(profilers, session, false, false, null)
+        }
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)
