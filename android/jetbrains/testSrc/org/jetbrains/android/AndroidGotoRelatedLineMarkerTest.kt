@@ -254,7 +254,8 @@ class AndroidGotoRelatedLineMarkerTest {
 
     val action = GotoRelatedSymbolAction()
     val e = TestActionEvent.createTestEvent(action)
-    assertThat(ActionUtil.lastUpdateAndCheckDumb(action, e, true)).isTrue()
+    ActionUtil.performDumbAwareUpdate(action, e, false)
+    assertThat(e.presentation.isEnabledAndVisible).isTrue()
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
   }
 
