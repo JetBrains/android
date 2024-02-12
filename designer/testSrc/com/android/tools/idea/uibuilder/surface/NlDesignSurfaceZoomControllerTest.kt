@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
-import com.android.tools.idea.common.surface.MAX_SCALE
-import com.android.tools.idea.common.surface.MIN_SCALE
 import com.android.tools.idea.uibuilder.editor.multirepresentation.any
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import junit.framework.TestCase.assertEquals
@@ -76,11 +74,11 @@ class NlDesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     Assert.assertTrue(zoomController.setScale(-10.0))
-    Assert.assertEquals(MIN_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(zoomController.minScale, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     Assert.assertTrue(zoomController.setScale(20.0))
-    Assert.assertEquals(MAX_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(zoomController.maxScale, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same
@@ -104,11 +102,11 @@ class NlDesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     Assert.assertTrue(zoomController.setScale(-10.0, 3, 5))
-    Assert.assertEquals(MIN_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(zoomController.minScale, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     Assert.assertTrue(zoomController.setScale(20.0, 4, 2))
-    Assert.assertEquals(MAX_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(zoomController.maxScale, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same

@@ -22,7 +22,7 @@ interface ScaleListener {
   /**
    * Listens to any scale changes.
    *
-   * @param change the [ScaleChange] change.
+   * @param update Value with an update of the scale.
    */
   fun onScaleChange(update: ScaleChange)
 }

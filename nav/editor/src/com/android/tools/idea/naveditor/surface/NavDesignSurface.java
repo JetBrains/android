@@ -50,6 +50,9 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ScenesOwner;
+import com.android.tools.idea.common.surface.ZoomChange;
+import com.android.tools.idea.common.surface.ZoomListener;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
@@ -116,7 +119,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * {@link DesignSurface} for the navigation editor.
  */
-public class NavDesignSurface extends DesignSurface<NavSceneManager> {
+public class NavDesignSurface extends DesignSurface<NavSceneManager> implements ZoomListener {
   private static final int SCROLL_DURATION_MS = 300;
   private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
   private static final String FAILED_DEPENDENCY = "Failed to add navigation dependency";
@@ -138,6 +141,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
   private static final List<GoogleMavenArtifactId> ANDROIDX_NAVIGATION_DEPENDENCIES_KTX =
     ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT_KTX, GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI_KTX);
+
+  private final NavDesignSurfaceZoomController myZoomController;
 
   @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -165,6 +170,16 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     });
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
+    myZoomController = new NavDesignSurfaceZoomController(
+      this.getSize(),
+      this.getViewport(),
+      this.getSceneManager(),
+      this::getSizeFromSceneView,
+      this.getAnalyticsManager(),
+      this.getSelectionModel(),
+      (ScenesOwner) this
+    );
+    myZoomController.setZoomListener(this);
   }
 
   @NotNull
@@ -514,14 +529,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     Dimension size = new Dimension();
     SceneView view = getFocusedSceneView();
     if (view != null) {
-      SceneComponent root = view.getScene().getRoot();
-      if (root == null) {
-        size.setSize(0, 0);
-      }
-      else {
-        @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
-        size.setSize(boundingBox.getSize());
-      }
+      size.setSize(getSizeFromSceneView(view));
     }
     else {
       size.setSize(0, 0);
@@ -529,6 +537,17 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
     double scale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, size);
     return Math.min(scale, 1.0);
+  }
+
+  private Dimension getSizeFromSceneView(SceneView view) {
+    SceneComponent root = view.getScene().getRoot();
+    if (root == null) {
+      return new Dimension(0, 0);
+    }
+    else {
+      @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
+      return boundingBox.getSize();
+    }
   }
 
   private boolean isEmpty() {
@@ -602,10 +621,19 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   @UiThread
   @Override
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    // track user triggered change
-    getAnalyticsManager().trackZoom(type);
     boolean scaled = super.zoom(type, x, y);
-    boolean isFitZoom = type == ZoomType.FIT;
+    onZoomChange(new ZoomChange(
+      type,
+      scaled,
+      new Point(x, y)
+    ));
+    return scaled;
+  }
+
+  @Override
+  public void onZoomChange(@NotNull ZoomChange update) {
+    boolean isFitZoom = update.getZoomType() == ZoomType.FIT;
+    boolean scaled = update.getHasScaleChanged();
 
     if (scaled || isFitZoom) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
@@ -628,7 +656,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
       setScrollPosition((size.width - visibleSize.width) / 2, (size.height - visibleSize.height) / 2);
     }
-    return scaled;
   }
 
   @Override

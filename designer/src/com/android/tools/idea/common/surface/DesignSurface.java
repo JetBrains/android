@@ -484,8 +484,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return true;
   }
 
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
-  protected DesignSurfaceViewport getViewport() {
+  public DesignSurfaceViewport getViewport() {
     return myViewport;
   }
 

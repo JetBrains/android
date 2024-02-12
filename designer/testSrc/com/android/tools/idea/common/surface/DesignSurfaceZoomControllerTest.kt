@@ -40,11 +40,11 @@ class DesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     assertTrue(zoomController.setScale(-10.0))
-    assertEquals(MIN_SCALE, zoomController.scale, 0.0)
+    assertEquals(zoomController.minScale, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     assertTrue(zoomController.setScale(20.0))
-    assertEquals(MAX_SCALE, zoomController.scale, 0.0)
+    assertEquals(zoomController.maxScale, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same
@@ -68,11 +68,11 @@ class DesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     assertTrue(zoomController.setScale(-10.0, 3, 5))
-    assertEquals(MIN_SCALE, zoomController.scale, 0.0)
+    assertEquals(zoomController.minScale, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     assertTrue(zoomController.setScale(20.0, 4, 2))
-    assertEquals(MAX_SCALE, zoomController.scale, 0.0)
+    assertEquals(zoomController.maxScale, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same

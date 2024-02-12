@@ -39,18 +39,19 @@ import kotlin.math.min
  */
 class NlDesignSurfaceZoomController(
   private val viewPort: DesignSurfaceViewport,
-  private val sceneViewLayoutManagerProvider: () -> PositionableContentLayoutManager,
+  private val sceneViewLayoutManagerProvider: () -> NlDesignSurfacePositionableContentLayoutManager,
   private val sceneViewPeerPanelsProvider: () -> Collection<PositionableContent>,
   designerAnalyticsManager: DesignerAnalyticsManager?,
   selectionModel: SelectionModel?,
   scenesOwner: ScenesOwner?,
   maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
-) : DesignSurfaceZoomController(
-  designerAnalyticsManager,
-  selectionModel,
-  scenesOwner,
-  maxFitIntoZoomLevel,
-) {
+) :
+  DesignSurfaceZoomController(
+    designerAnalyticsManager,
+    selectionModel,
+    scenesOwner,
+    maxFitIntoZoomLevel,
+  ) {
 
   override fun getFitScale(): Double {
     val extent: Dimension = viewPort.extentSize
@@ -60,7 +61,7 @@ class NlDesignSurfaceZoomController(
       if (positionableContents.isEmpty()) {
         1.0
       } else {
-        (sceneViewLayoutManagerProvider() as NlDesignSurfacePositionableContentLayoutManager)
+        sceneViewLayoutManagerProvider()
           .getFitIntoScale(sceneViewPeerPanelsProvider(), extent)
       }
     return min(scale, myMaxFitIntoScale)
