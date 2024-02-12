@@ -834,18 +834,6 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Database Inspector
-  private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
-  public static final Flag<Boolean> DATABASE_INSPECTOR_OPEN_FILES_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "open.files.enabled",
-    "Enable support for opening SQLite files in Database Inspector",
-    "If enabled, the Database Inspector tool will be able to open SQLite files." +
-    "eg. SQLite files opened from the Device Explorer will open in the inspector.",
-    false
-  );
-  //endregion
-
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = new BooleanFlag(
