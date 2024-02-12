@@ -118,11 +118,12 @@ int GetFeatureLevel() {
   return *codename == '\0' || strcmp(codename, "REL") == 0 ? api_level : api_level + 1;
 }
 
-string GetBuildCharacteristics() {
+string GetSystemProperty(const char* property) {
   char result[PROP_VALUE_MAX] = { 0 };
-  if (__system_property_get("ro.build.characteristics", result) < 1) {
+  if (__system_property_get(property, result) < 1) {
     return "";
   }
+  Log::D("GetSystemProperty: %s=\"%s\"", property, result);
   return result;
 }
 
@@ -206,7 +207,7 @@ void Agent::Initialize(const vector<string>& args) {
   }
 
   feature_level_ = GetFeatureLevel();
-  string build_characteristics = GetBuildCharacteristics();
+  string build_characteristics = GetSystemProperty("ro.build.characteristics");
   is_watch_ = HasBuildCharacteristic("watch", build_characteristics);
 }
 
@@ -366,8 +367,16 @@ void Agent::RecordTouchEvent() {
   last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
+const string& Agent::device_manufacturer() {
+  if (device_manufacturer_ == "<uninitialized>") {
+    device_manufacturer_ = GetSystemProperty("ro.product.manufacturer");
+  }
+  return device_manufacturer_;
+}
+
 int32_t Agent::feature_level_(0);
 bool Agent::is_watch_(false);
+string Agent::device_manufacturer_("<uninitialized>");
 string Agent::socket_name_("screen-sharing-agent");
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);

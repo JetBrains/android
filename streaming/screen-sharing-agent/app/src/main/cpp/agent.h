@@ -65,6 +65,8 @@ public:
 
   static bool is_watch() { return is_watch_; };
 
+  static const std::string& device_manufacturer();
+
   static int32_t flags() { return flags_; }
 
   inline static int32_t feature_level() { return feature_level_; }
@@ -76,6 +78,7 @@ private:
 
   static int32_t feature_level_;
   static bool is_watch_;
+  static std::string device_manufacturer_;
   static std::string socket_name_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.
