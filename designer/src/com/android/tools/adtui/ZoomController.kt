@@ -53,4 +53,13 @@ interface ZoomController : Zoomable {
    * @return true if it is successfully applied, false otherwise.
    */
   fun zoomToFit(): Boolean
+
+  /**
+   * The scale to make the content fit the design surface.
+   *
+   * This value is the result of the measure of the scale size which can fit the SceneViews into the
+   * scrollable area. It doesn't consider the legal scale range, which can be get by [getMaxScale]
+   * and [getMinScale].
+   */
+  @SurfaceScale fun getFitScale(): Double
 }

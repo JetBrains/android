@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
+import java.awt.Point
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -45,14 +46,23 @@ import kotlin.math.min
  *
  * FIXME(b/291572358): this will replace the zoom logic within [DesignSurface]
  */
-class DesignSurfaceZoomController(
+abstract class DesignSurfaceZoomController(
   /** Analytics tracker responsible to track the zoom changes. */
   val designerAnalyticsManager: DesignerAnalyticsManager?,
   /** The collection of [NlComponent]s of [DesignSurface]. */
   val selectionModel: SelectionModel?,
-  /** Returns the current [SceneView] that owns the focus. */
-  val getFocusedSceneView: () -> SceneView?,
+  /** The owner of this [ZoomController] */
+  private val scenesOwner: ScenesOwner?,
+  /** The maximum zoom level allowed for ZoomType#FIT. */
+  private val maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
+
+  /**
+   * The max zoom level allowed in zoom to fit could not correspond if [screenScalingFactor] is
+   * different from 1.0.
+   */
+  protected val myMaxFitIntoScale
+    get() = maxFitIntoZoomLevel / screenScalingFactor
 
   /**
    * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If
@@ -61,7 +71,7 @@ class DesignSurfaceZoomController(
   private var currentScale: Double = 1.0
 
   /** A listener that calls a callback whenever zoom changes. */
-  private var zoomListener: ZoomListener? = null
+  private var myZoomListener: ZoomListener? = null
 
   /** Returns the current scale of [DesignSurface]. */
   @SurfaceScale
@@ -69,17 +79,6 @@ class DesignSurfaceZoomController(
     get() = currentScale
 
   @SurfaceScreenScalingFactor override var screenScalingFactor: Double = 1.0
-
-  /**
-   * The scale to make the content fit the design surface.
-   *
-   * This value is the result of the measure of the scale size which can fit the SceneViews into the
-   * scrollable area. It doesn't consider the legal scale range, which can be get by
-   * {@link #getMaxScale()} and {@link #getMinScale()}.
-   */
-  @SurfaceScale
-  private val fitScale: Double
-    get() = 1.0
 
   override fun setScale(scale: Double): Boolean {
     return setScale(scale, -1, -1)
@@ -109,7 +108,7 @@ class DesignSurfaceZoomController(
     }
     val previewsScale = this.scale
     this.currentScale = newScale
-    zoomListener?.setOnScaleChangeListener(previewsScale, this.scale)
+    myZoomListener?.setOnScaleChangeListener(ScaleChange(previewsScale, this.scale, Point(x, y)))
     return true
   }
 
@@ -150,12 +149,13 @@ class DesignSurfaceZoomController(
         ZoomType.OUT -> {
           @SurfaceZoomLevel val currentScale: Double = scale * screenScalingFactor
           val current = (currentScale * 100).toInt()
+
           @SurfaceScale
           val scale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
           setScale(scale, newX, newY)
         }
         ZoomType.ACTUAL -> setScale(1.0 / screenScalingFactor)
-        ZoomType.FIT -> setScale(fitScale)
+        ZoomType.FIT -> setScale(getFitScale())
         else -> throw UnsupportedOperationException("Not yet implemented: $type")
       }
 
@@ -167,14 +167,16 @@ class DesignSurfaceZoomController(
   override fun canZoomOut(): Boolean = MIN_SCALE < scale && !isScaleSame(MIN_SCALE, scale)
 
   override fun canZoomToFit(): Boolean =
-    (scale > fitScale && canZoomOut()) || (scale < fitScale && canZoomIn())
+    (scale > getFitScale() && canZoomOut()) || (scale < getFitScale() && canZoomIn())
 
   override fun canZoomToActual(): Boolean =
     (scale > 1 && canZoomOut()) || (scale < 1 && canZoomIn())
 
+  protected fun getFocusedSceneView(): SceneView? = scenesOwner?.focusedSceneView
+
   /** Sets a [ZoomListener] used by [DesignSurface] to interact with zoom changes. */
-  fun setOnScaleChangeListener(listener: ZoomListener) {
-    zoomListener = listener
+  fun setOnScaleListener(listener: ZoomListener) {
+    myZoomListener = listener
   }
 
   /**

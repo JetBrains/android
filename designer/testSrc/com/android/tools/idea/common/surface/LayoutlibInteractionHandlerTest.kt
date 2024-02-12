@@ -53,6 +53,8 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
 
         override fun zoomToFit() = true
 
+        override fun getFitScale() = 1.0
+
         override val screenScalingFactor: Double = 1.0
 
         override fun zoom(type: ZoomType): Boolean {

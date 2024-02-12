@@ -47,7 +47,9 @@ import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
+import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ScenesOwner;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
@@ -428,6 +430,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private final VisualLintIssueProvider myVisualLintIssueProvider;
 
+  private final NlDesignSurfaceZoomController myZoomController;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
@@ -470,6 +474,17 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
+
+    myZoomController = new NlDesignSurfaceZoomController(
+      getViewport(),
+      this::getSceneViewLayoutManager,
+      this::getPositionableContent,
+      getAnalyticsManager(),
+      getSelectionModel(),
+      (ScenesOwner) this,
+      maxFitIntoZoomLevel
+    );
+    myZoomController.setOnScaleListener(this);
   }
 
   /**
@@ -497,7 +512,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   @NotNull
   public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new NlActionManager((NlDesignSurface) surface);
+    return new NlActionManager((NlDesignSurface)surface);
   }
 
   /**
@@ -720,7 +735,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> { });
 
     if (handler != null) {
       handler.onActivateInDesignSurface(component, x, y);
@@ -920,54 +935,70 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return Math.min(scale, myMaxFitIntoScale);
   }
 
+  // FIXME(b/291572358): this code would be removed and replaced with myZoomController.setScale(scale, x, y)
   @Override
   public boolean setScale(double scale, int x, int y) {
     double previousScale = getScale();
     boolean changed = super.setScale(scale, x, y);
     if (changed) {
-      DesignSurfaceViewport port = getViewport();
-      Point scrollPosition = getScrollPosition();
-      @SuppressWarnings("deprecation")
-      SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-        .getLayoutManager();
-
-      // If layout is a vertical list layout
-      boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;
-      // If layout is grouped grid layout.
-      boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
-
-      if (isGroupedListLayout) { // new list mode
-        if(x < 0 || y < 0) {
-          // zoom with top-center of the visible area as anchor
-          myViewportScroller = new TopBoundCenterScroller(
-            new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, getScale());
-        }
-        else {
-          // zoom with mouse position as anchor, and considering its relative position to the existing scene views
-          myViewportScroller = new ReferencePointScroller(
-            new Dimension(port.getViewSize()), new Point(scrollPosition),
-            new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
-            (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
-                                                                                     getPositionableContent(),
-                                                                                     getExtentSize()));
-        }
-      } else if(isGroupedGridLayout) { // new grid mode
-        // zoom with top-left corner of the visible area as anchor
-        myViewportScroller = new TopLeftCornerScroller(
-          new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());
-      }
-      else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
-        Point zoomCenterInView;
-        if (x < 0 || y < 0) {
-          x = port.getViewportComponent().getWidth() / 2;
-          y = port.getViewportComponent().getHeight() / 2;
-        }
-        zoomCenterInView = new Point(scrollPosition.x + x, scrollPosition.y + y);
-
-        myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
-      }
+      onScaleChanged(previousScale, x, y);
     }
     return changed;
+  }
+
+  @Override
+  public void setOnScaleChangeListener(@NotNull ScaleChange update) {
+    super.setOnScaleChangeListener(update);
+    onScaleChanged(
+      update.getPreviousScale(),
+      update.getFocusPoint().x,
+      update.getFocusPoint().y
+    );
+  }
+
+  private void onScaleChanged(double previousScale, int x, int y) {
+    DesignSurfaceViewport port = getViewport();
+    Point scrollPosition = getScrollPosition();
+    @SuppressWarnings("deprecation")
+    SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+      .getLayoutManager();
+
+    // If layout is a vertical list layout
+    boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;
+    // If layout is grouped grid layout.
+    boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
+
+    if (isGroupedListLayout) { // new list mode
+      if (x < 0 || y < 0) {
+        // zoom with top-center of the visible area as anchor
+        myViewportScroller = new TopBoundCenterScroller(
+          new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, getScale());
+      }
+      else {
+        // zoom with mouse position as anchor, and considering its relative position to the existing scene views
+        myViewportScroller = new ReferencePointScroller(
+          new Dimension(port.getViewSize()), new Point(scrollPosition),
+          new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
+          (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
+                                                                                   getPositionableContent(),
+                                                                                   getExtentSize()));
+      }
+    }
+    else if (isGroupedGridLayout) { // new grid mode
+      // zoom with top-left corner of the visible area as anchor
+      myViewportScroller = new TopLeftCornerScroller(
+        new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());
+    }
+    else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
+      Point zoomCenterInView;
+      if (x < 0 || y < 0) {
+        x = port.getViewportComponent().getWidth() / 2;
+        y = port.getViewportComponent().getHeight() / 2;
+      }
+      zoomCenterInView = new Point(scrollPosition.x + x, scrollPosition.y + y);
+
+      myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
+    }
   }
 
   /**
@@ -976,9 +1007,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * When zooming, the sceneViews may move around, and so the rectangle's coordinates should be
    * relative to the sceneView.
    * The given rectangle should be a subsection of the given sceneView.
+   *
    * @param sceneView the {@link SceneView} that contains the given rectangle
    * @param rectangle the rectangle that should be visible, with its coordinates relative to the
-   *  sceneView, and with its currentsize (before zooming).
+   *                  sceneView, and with its currentsize (before zooming).
    */
   public final void zoomAndCenter(@NotNull SceneView sceneView,
                                   @NotNull @SwingCoordinate Rectangle rectangle) {
@@ -996,13 +1028,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     // Make sure both dimensions fit, and at least one of them is as tight
     // as possible (respecting the offset).
     double scaleChangeNeeded = Math.min(
-      (availableSize.getWidth() - 2*offset.width) / curSize.getWidth(),
-      (availableSize.getHeight() - 2*offset.height) / curSize.getHeight()
+      (availableSize.getWidth() - 2 * offset.width) / curSize.getWidth(),
+      (availableSize.getHeight() - 2 * offset.height) / curSize.getHeight()
     );
     // Adjust the scale change to keep the new scale between the lower and upper bounds.
     double curScale = getScale();
     double boundedNewScale = getBoundedScale(curScale * scaleChangeNeeded);
-    scaleChangeNeeded = boundedNewScale/curScale;
+    scaleChangeNeeded = boundedNewScale / curScale;
     // The rectangle size and its coordinates relative to the sceneView have
     // changed due to the scale change.
     rectangle.setRect(rectangle.x * scaleChangeNeeded, rectangle.y * scaleChangeNeeded,

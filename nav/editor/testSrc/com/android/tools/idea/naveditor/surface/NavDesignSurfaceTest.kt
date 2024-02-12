@@ -648,7 +648,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     whenever(surface.sceneManager).thenReturn(sceneManager)
     doCallRealMethod().whenever(surface).canZoomToFit()
 
-    whenever(surface.fitScale).thenReturn(1.5)
+    whenever(surface.getFitScale()).thenReturn(1.5)
     whenever(surface.scale).thenReturn(1.0)
     assertFalse(surface.canZoomToFit())
 

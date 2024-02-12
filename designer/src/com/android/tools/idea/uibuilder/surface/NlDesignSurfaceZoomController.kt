@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.uibuilder.surface
+
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
+import com.android.tools.idea.common.model.SelectionModel
+import com.android.tools.idea.common.surface.DesignSurfaceZoomController
+import com.android.tools.idea.common.surface.ScenesOwner
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
+import java.awt.Dimension
+import kotlin.math.min
+
+/**
+ * [DesignSurfaceZoomController] for the [NlDesignSurface]. It contains all the zooming logic of
+ * [NlDesignSurface].
+ *
+ * @param viewPort The visible portion of [NlDesignSurface].
+ * @param sceneViewLayoutManagerProvider The layoutManager provider of [NlDesignSurface].
+ * @param sceneViewPeerPanelsProvider The components provider of [NlDesignSurface].
+ * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
+ * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
+ * @param scenesOwner the scene owner of this [ZoomController].
+ * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT.
+ */
+class NlDesignSurfaceZoomController(
+  private val viewPort: DesignSurfaceViewport,
+  private val sceneViewLayoutManagerProvider: () -> PositionableContentLayoutManager,
+  private val sceneViewPeerPanelsProvider: () -> Collection<PositionableContent>,
+  designerAnalyticsManager: DesignerAnalyticsManager?,
+  selectionModel: SelectionModel?,
+  scenesOwner: ScenesOwner?,
+  maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
+) : DesignSurfaceZoomController(
+  designerAnalyticsManager,
+  selectionModel,
+  scenesOwner,
+  maxFitIntoZoomLevel,
+) {
+
+  override fun getFitScale(): Double {
+    val extent: Dimension = viewPort.extentSize
+    val positionableContents = sceneViewPeerPanelsProvider()
+    // If there is no content, use 100% as zoom-to-fit level.
+    val scale =
+      if (positionableContents.isEmpty()) {
+        1.0
+      } else {
+        (sceneViewLayoutManagerProvider() as NlDesignSurfacePositionableContentLayoutManager)
+          .getFitIntoScale(sceneViewPeerPanelsProvider(), extent)
+      }
+    return min(scale, myMaxFitIntoScale)
+  }
+}

@@ -201,10 +201,13 @@ class DesignSurfaceZoomControllerTest {
           }
         }
       }
-    return DesignSurfaceZoomController(
-      designerAnalyticsManager = designerAnalyticsManager,
-      selectionModel = null,
-      getFocusedSceneView = { null },
-    )
+    return object :
+      DesignSurfaceZoomController(
+        designerAnalyticsManager = designerAnalyticsManager,
+        selectionModel = null,
+        scenesOwner = null,
+      ) {
+      override fun getFitScale() = 1.0
+    }
   }
 }

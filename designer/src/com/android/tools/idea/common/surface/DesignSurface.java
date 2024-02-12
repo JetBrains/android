@@ -131,7 +131,7 @@ import org.jetbrains.annotations.TestOnly;
  * FIXME(b/291572358): [DesignSurface] shouldn't extend [ZoomController] as there is [DesignSurfaceZoomController] already
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
-  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport {
+  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport, ZoomListener {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -174,12 +174,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     /** The zoom controls will only be visible when the mouse is over the surface. */
     AUTO_HIDE
   }
-
-  /**
-   * The [ZoomController] implementation containing the zoom logic of [DesignSurface].
-   */
-  @NotNull
-  private final DesignSurfaceZoomController myZoomController;
 
   @NotNull
   @Override
@@ -472,13 +466,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     // Sets the maximum zoom level allowed for ZoomType#FIT.
     myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
-
-    myZoomController = new DesignSurfaceZoomController(
-      myAnalyticsManager,
-      selectionModel,
-      this::getFocusedSceneView
-    );
-    myZoomController.setOnScaleChangeListener(this::onScaleChanged);
   }
 
   /**
@@ -1019,15 +1006,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return scaled;
   }
 
-  /**
-   * Measure the scale size which can fit the SceneViews into the scrollable area.
-   * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
-   *
-   * @return The scale to make the content fit the design surface
-   */
-  @SurfaceScale
-  abstract public double getFitScale();
-
   @SwingCoordinate
   protected abstract Dimension getScrollToVisibleOffset();
 
@@ -1214,6 +1192,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return True if the scaling was changed, false if this was a noop.
+   * FIXME(b/291572358): this code would be removed and replaced with myZoomController.setScale(scale, x, y)
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
@@ -1224,17 +1203,22 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     double previousScale = myScale;
     myScale = newScale;
-    onScaleChanged(previousScale, myScale);
+    setOnScaleChangeListener(new ScaleChange(
+      previousScale,
+      myScale,
+      new Point(x ,y))
+    );
     return true;
   }
 
-  private void onScaleChanged(double previousScale, double newScale){
+  @Override
+  public void setOnScaleChangeListener(@NotNull ScaleChange update) {
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
       storeCurrentScale(model);
     }
     revalidateScrollArea();
-    notifyScaleChanged(previousScale, newScale);
+    notifyScaleChanged(update.getPreviousScale(), update.getNewScale());
   }
 
   /**

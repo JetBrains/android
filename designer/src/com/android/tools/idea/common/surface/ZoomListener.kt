@@ -15,13 +15,30 @@
  */
 package com.android.tools.idea.common.surface
 
+import java.awt.Point
+
 /** An interface containing the listeners for zoom interactions. */
 interface ZoomListener {
   /**
    * Listens to any scale changes.
    *
-   * @param previousScale the scale amount before the change.
-   * @param newScale the scale amount that we want to change.
+   * @param change the [ScaleChange] change
    */
-  fun setOnScaleChangeListener(previousScale: Double, newScale: Double)
+  fun setOnScaleChangeListener(update: ScaleChange)
 }
+
+/**
+ * Defines a change of the zoom scale
+ *
+ * @param previousScale the scale change before the zoom change
+ * @param newScale the scale change after the zoom change
+ * @param focusPoint the focus point where to apply the zoom change, default value is with
+ *   coordinates of (-1, -1), meaning that when the scale was changed, no coordinates were expressed
+ *   (for example when we press the zoom-in or the zoom-out buttons). In such case we need to
+ *   calculate the coordinates by checking the window size
+ */
+data class ScaleChange(
+  val previousScale: Double,
+  val newScale: Double,
+  val focusPoint: Point = Point(-1, -1),
+)
