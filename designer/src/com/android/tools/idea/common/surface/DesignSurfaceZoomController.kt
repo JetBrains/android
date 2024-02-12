@@ -24,7 +24,7 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
-import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.scene.Scene
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -52,8 +52,6 @@ class DesignSurfaceZoomController(
   val selectionModel: SelectionModel?,
   /** Returns the current [SceneView] that owns the focus. */
   val getFocusedSceneView: () -> SceneView?,
-  /** Returns the [SceneManager] from the primary [NlModel] of the [DesignSurface] */
-  val getSceneManager: () -> SceneManager?,
 ) : ZoomController {
 
   /**
@@ -134,13 +132,11 @@ class DesignSurfaceZoomController(
         view != null &&
         selectionModel?.isEmpty == false
     ) {
-      val scene = getSceneManager()?.scene
-      if (scene != null) {
-        val component = scene.getSceneComponent(selectionModel.primary)
-        if (component != null) {
-          newX = Coordinates.getSwingXDip(view, component.centerX)
-          newY = Coordinates.getSwingYDip(view, component.centerY)
-        }
+      val scene: Scene = view.scene
+      val component = scene.getSceneComponent(selectionModel.primary)
+      if (component != null) {
+        newX = Coordinates.getSwingXDip(view, component.centerX)
+        newY = Coordinates.getSwingYDip(view, component.centerY)
       }
     }
     val scaled: Boolean =

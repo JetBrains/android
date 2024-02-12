@@ -476,8 +476,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myZoomController = new DesignSurfaceZoomController(
       myAnalyticsManager,
       selectionModel,
-      this::getFocusedSceneView,
-      this::getSceneManager
+      this::getFocusedSceneView
     );
     myZoomController.setOnScaleChangeListener(this::onScaleChanged);
   }

@@ -205,7 +205,6 @@ class DesignSurfaceZoomControllerTest {
       designerAnalyticsManager = designerAnalyticsManager,
       selectionModel = null,
       getFocusedSceneView = { null },
-      getSceneManager = { null },
     )
   }
 }
