@@ -36,7 +36,7 @@ open class InspectorTests {
 
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   lateinit var parentDisposable: Disposable
 

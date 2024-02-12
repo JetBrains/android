@@ -16,6 +16,8 @@
 package com.android.tools.idea.preview.animation
 
 import com.android.SdkConstants
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndGet
+import kotlinx.coroutines.runBlocking
 import java.awt.Dimension
 import javax.swing.JSlider
 import org.junit.Assert
@@ -72,8 +75,7 @@ class PlaybackControlsTest {
   }
 
   @Test
-  fun `create toolbar and each component is visible`() =
-    ApplicationManager.getApplication().invokeAndWait {
+  fun `create toolbar and each component is visible`() = runBlocking(uiThread) {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),
@@ -82,8 +84,7 @@ class PlaybackControlsTest {
           parentDisposable,
         )
       val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
-      val ui =
-        com.android.tools.adtui.swing.FakeUi(toolbar).apply {
+      val ui = FakeUi(toolbar).apply {
           updateToolbars()
           layout()
         }
@@ -94,8 +95,7 @@ class PlaybackControlsTest {
     }
 
   @Test
-  fun `create toolbar with extra action and each component is visible`() =
-    ApplicationManager.getApplication().invokeAndWait {
+  fun `create toolbar with extra action and each component is visible`() = runBlocking(uiThread) {
       val playbackControl =
         PlaybackControls(
           clockControl = SliderClockControl(JSlider()),

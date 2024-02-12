@@ -41,14 +41,10 @@ private const val LEARN_MORE_LINK =
   "https://developer.android.com/jetpack/compose/tooling#animations"
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
-class UnsupportedLabel(
-  parent: JComponent,
-  state: ElementState,
-  private val rowMinY: Int,
-  positionProxy: PositionProxy,
-) :
+class UnsupportedLabel(parent: JComponent, private val rowMinY: Int, positionProxy: PositionProxy) :
   TimelineElement(
-    state,
+    0,
+    null,
     positionProxy.minimumXPosition(),
     positionProxy.maximumXPosition(),
     positionProxy,

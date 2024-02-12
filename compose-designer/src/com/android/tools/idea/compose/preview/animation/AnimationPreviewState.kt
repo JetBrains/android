@@ -20,4 +20,7 @@ interface AnimationPreviewState {
   fun isCoordinationAvailable(): Boolean = false
 
   fun isCoordinationPanelOpened(): Boolean = true
+
+  /** Time currently displayed by timeline */
+  val currentTime: Int
 }

@@ -15,54 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
-/** State of the [TimelineElement] in timeline. */
-class ElementState(val title: String? = null) {
-  private val valueOffsetListeners: MutableList<() -> Unit> = mutableListOf()
-
+/** State of Animation shared between the [TimelineElement]s in timeline. */
+data class ElementState(
+  val title: String? = null,
   /** The offset in ms for which the animation is shifted. */
-  var valueOffset = 0
-    set(value) {
-      // Ignore repeated values.
-      if (field != value) {
-        field = value
-        valueOffsetListeners.forEach { it() }
-      }
-    }
-
-  fun addValueOffsetListener(listener: () -> Unit) {
-    valueOffsetListeners.add(listener)
-  }
-
-  private val freezeListeners: MutableList<() -> Unit> = mutableListOf()
-
+  val valueOffset: Int = 0,
   /** If element is frozen in specified [frozenValue]. */
-  var frozen = false
-    set(value) {
-      // Ignore repeated values.
-      if (field != value) {
-        field = value
-        freezeListeners.forEach { it() }
-      }
-    }
-
+  val frozen: Boolean = false,
   /** The value in ms in which the animation is frozen. */
-  var frozenValue: Int = 0
-
-  fun addFreezeListener(listener: () -> Unit) {
-    freezeListeners.add(listener)
-  }
-
-  private val expandedListeners: MutableList<() -> Unit> = mutableListOf()
-  var expanded = false
-    set(value) {
-      // Ignore repeated values.
-      if (field != value) {
-        field = value
-        expandedListeners.forEach { it() }
-      }
-    }
-
-  fun addExpandedListener(listener: () -> Unit) {
-    expandedListeners.add(listener)
-  }
-}
+  val frozenValue: Int = 0,
+  val expanded: Boolean = false,
+)

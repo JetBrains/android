@@ -19,6 +19,7 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.StateFlow
 
 /** Card displayed in [AllTabPanel]. Each [ComposeAnimation] represented by one [Card]. */
 interface Card {
@@ -29,7 +30,7 @@ interface Card {
   fun getCurrentHeight(): Int
 
   /** State of the [TimelineElement] in the timeline. */
-  val state: ElementState
+  val state: StateFlow<ElementState>
 
   /** The size of the [Card] after it expands. */
   var expandedSize: Int

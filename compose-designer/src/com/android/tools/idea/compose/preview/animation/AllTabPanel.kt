@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
@@ -32,9 +33,11 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel : JPanel(TabularLayout("6px,*", "32px,*")) {
+class AllTabPanel(private val scope: CoroutineScope) : JPanel(TabularLayout("6px,*", "32px,*")) {
 
   //   ________________________________________________
   //   | [Playback control]                            |
@@ -100,8 +103,8 @@ class AllTabPanel : JPanel(TabularLayout("6px,*", "32px,*")) {
       cards.indexOf(card),
       TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
     )
-    card.state.addExpandedListener { updateCardSize(card) }
     updateDimension()
+    scope.launch(uiThread) { card.state.collect { updateCardSize(card) } }
   }
 
   fun updateCardSize(card: Card) {

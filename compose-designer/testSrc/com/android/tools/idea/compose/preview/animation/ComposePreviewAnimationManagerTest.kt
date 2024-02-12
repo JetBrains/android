@@ -698,9 +698,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     } catch (ignored: NullPointerException) {}
   }
 
-  private fun AnimationPreview.tabCount(): Int = runBlocking {
-    withContext(uiThread) { animations.size }
-  }
+  private fun AnimationPreview.tabCount(): Int = runBlocking(uiThread) { animations.size }
 
   private fun AnimationPreview.getAnimationTitleAt(index: Int): String =
     TestUtils.findAllCards(this.component)[index].findLabel().text
@@ -711,7 +709,6 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       .filter { it.name == "Loading Animations Panel" }
       .getIfSingle()
 
-  private fun AnimationPreview.animationPreviewCardsCount(): Int = runBlocking {
-    withContext(uiThread) { coordinationTab.cards.size }
-  }
+  private fun AnimationPreview.animationPreviewCardsCount(): Int =
+    runBlocking(uiThread) { coordinationTab.cards.size }
 }

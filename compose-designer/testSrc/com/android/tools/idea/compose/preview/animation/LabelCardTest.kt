@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.Dimension
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -28,7 +29,7 @@ class LabelCardTest {
 
   @Test
   fun `create animation card`(): Unit {
-    val card = LabelCard(ElementState("Title"))
+    val card = LabelCard(MutableStateFlow(ElementState("Title")))
     card.component.setSize(100, card.getCurrentHeight())
     card.setDuration(0)
 

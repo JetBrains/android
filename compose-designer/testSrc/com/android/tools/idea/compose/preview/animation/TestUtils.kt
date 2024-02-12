@@ -20,7 +20,6 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.TooltipInfo
@@ -51,17 +50,17 @@ object TestUtils {
     private val x: Int,
     private val y: Int,
     positionProxy: PositionProxy,
-    state: ElementState = ElementState(),
-  ) : TimelineElement(state, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
+    frozenValue: Int? = null,
+  ) : TimelineElement(0, frozenValue, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
     override fun contains(x: Int, y: Int): Boolean {
-      return x in this.x + offsetPx..this.x + TEST_ELEMENT_WIDTH + offsetPx &&
+      return x in this.x + offsetPx.value..this.x + TEST_ELEMENT_WIDTH + offsetPx.value &&
         y in this.y..this.y + TEST_ELEMENT_HEIGHT
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
 
     override fun paint(g: Graphics2D) {
-      g.fillRect(x + offsetPx, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
+      g.fillRect(x + offsetPx.value, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }
 
     override fun getTooltip(point: Point): TooltipInfo? =
@@ -71,6 +70,9 @@ object TestUtils {
   fun testPreviewState(withCoordination: Boolean = true) =
     object : AnimationPreviewState {
       override fun isCoordinationAvailable() = withCoordination
+
+      override val currentTime: Int
+        get() = 0
     }
 
   /** Create [TimelinePanel] with 300x500 size. */

@@ -46,6 +46,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.rd.util.launchChildOnUi
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.JBColor
@@ -112,7 +113,10 @@ class AnimationPreview(
       override fun isCoordinationAvailable(): Boolean =
         animationClock?.coordinationIsSupported() == true
 
-      override fun isCoordinationPanelOpened(): Boolean = selectedAnimation == null
+      override fun isCoordinationPanelOpened(): Boolean = selectedAnimation.value == null
+
+      override val currentTime
+        get() = timeline.value
     }
 
   /**
@@ -174,17 +178,20 @@ class AnimationPreview(
       addResetListener {
         timeline.sliderUI.elements.forEach { it.reset() }
         if (previewState.isCoordinationPanelOpened()) {
-          animations.forEach { it.elementState.valueOffset = 0 }
+          animations.filterIsInstance<SupportedAnimationManager>().forEach {
+            it.elementState.value = it.elementState.value.copy(valueOffset = 0)
+          }
         } else {
-          selectedAnimation.value?.elementState?.valueOffset = 0
+          selectedAnimation.value?.apply {
+            elementState.value = elementState.value.copy(valueOffset = 0)
+          }
         }
         updateTimelineMaximum()
-        timeline.repaint()
       }
     }
 
   @VisibleForTesting
-  val coordinationTab = AllTabPanel().apply { addPlayback(playbackControls.createToolbar()) }
+  val coordinationTab = AllTabPanel(scope).apply { addPlayback(playbackControls.createToolbar()) }
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
@@ -209,25 +216,44 @@ class AnimationPreview(
         val selected = selectedAnimation.value
         if (selected != null) {
           // Paint single selected animation.
+          val state = selected.elementState.value
           val curve =
             TransitionCurve.create(
-              selected.elementState,
+              state.valueOffset,
+              if (state.frozen) state.frozenValue else null,
               selected.currentTransition,
               minY,
               timeline.sliderUI.positionProxy,
             )
           selected.selectedPropertiesCallback = { curve.timelineUnits = it }
           curve.timelineUnits = selected.selectedProperties
+          Disposer.register(this@AnimationPreview, curve)
+          AndroidCoroutineScope(curve).launch {
+            curve.offsetPx.collect {
+              selected.elementState.value =
+                selected.elementState.value.copy(
+                  valueOffset = curve.getValueOffset(it)
+                )
+            }
+          }
           listOf(curve)
         } else
           animations.toList().map { tab ->
-            if (tab is SupportedAnimationManager) {
-              tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-              tab.card.setDuration(tab.currentTransition.duration)
-            }
-
             tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
+              Disposer.register(this@AnimationPreview, this)
               minY += heightScaled()
+              if (tab is SupportedAnimationManager) {
+                tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
+                tab.card.setDuration(tab.currentTransition.duration)
+                AndroidCoroutineScope(this).launch {
+                  offsetPx.collect {
+                    tab.elementState.value =
+                      tab.elementState.value.copy(
+                        valueOffset = getValueOffset(it)
+                      )
+                  }
+                }
+              }
             }
           }
       }
@@ -237,6 +263,14 @@ class AnimationPreview(
     timeline.revalidate()
     coordinationTab.revalidate()
   }
+
+  private fun TimelineElement.getValueOffset(offset: Int) =
+    if (offset >= 0)
+      timeline.sliderUI.positionProxy.valueForXPosition(minX + offset) -
+        timeline.sliderUI.positionProxy.valueForXPosition(minX)
+    else
+      timeline.sliderUI.positionProxy.valueForXPosition(maxX + offset) -
+        timeline.sliderUI.positionProxy.valueForXPosition(maxX)
 
   /**
    * Set clock time
@@ -254,8 +288,8 @@ class AnimationPreview(
             setClockTimes(
               animations.associate {
                 val newTime =
-                  (if (it.elementState.frozen) it.elementState.frozenValue.toLong()
-                  else clockTimeMs) - it.elementState.valueOffset
+                  (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
+                  else clockTimeMs) - it.elementState.value.valueOffset
                 it.animation to newTime
               }
             )
@@ -272,7 +306,7 @@ class AnimationPreview(
   }
 
   /**
-   * Creates and adss[AnimationManager] for given [ComposeAnimation] to the panel.
+   * Creates and adds [AnimationManager] for given [ComposeAnimation] to the panel.
    *
    * If this animation was already added, removes old [AnimationManager] first. Repaints panel.
    */
@@ -420,13 +454,12 @@ class AnimationPreview(
    */
   fun invalidatePanel() =
     scope.launch {
-      val allAnimations = animations.map { it.animation }
       /**
        * Calling [removeAnimation] for all animations will properly remove the cards from
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
        * noAnimationsPanel when removing all tabs.
        */
-      allAnimations.forEach { removeAnimation(it).join() }
+      animations.toList().forEach { removeAnimation(it.animation).join() }
       tabNames.clear()
     }
 
@@ -532,35 +565,19 @@ class AnimationPreview(
       protected set(value) {
         field = value
         // If transition has changed, reset it offset.
-        elementState.valueOffset = 0
-        scope.launch {
-          updateTimelineElements()
-          withContext(uiThread) { coordinationTab.updateCardSize(card) }
-        }
+        elementState.value = elementState.value.copy(valueOffset = 0)
       }
 
     override val timelineMaximumMs: Int
-      get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) } ?: 0
+      get() = currentTransition.endMillis?.let { max(it + elementState.value.valueOffset, it) } ?: 0
 
     val stateComboBox = animation.createState(tracker, animation.findCallback())
 
     /** State of animation, shared between single animation tab and coordination panel. */
-    final override val elementState =
-      ElementState(tabTitle).apply {
-        addExpandedListener { scope.launch { updateTimelineElements() } }
-        addFreezeListener {
-          timeline.repaint()
-          if (!this.frozen) {
-            setClockTime(timeline.value)
-            loadProperties()
-          }
-          frozenValue = timeline.value
-        }
-        addValueOffsetListener { setClockTime(timeline.value) }
-      }
+    final override val elementState = MutableStateFlow(ElementState(tabTitle))
 
     /** [AnimationCard] for coordination panel. */
-    override val card =
+    override val card: AnimationCard =
       AnimationCard(previewState, rootComponent, elementState, stateComboBox.extraActions, tracker)
         .apply {
 
@@ -630,10 +647,15 @@ class AnimationPreview(
         // timeout the first time they're executed.
         updateAnimationStartAndEndStates(longTimeout = true)
         loadTransitionFromCacheOrLib(longTimeout = true)
-        loadProperties()
         // Set up the state listeners so further changes to the selected state will trigger a
         // call to updateAnimationStartAndEndStates.
         stateComboBox.callbackEnabled = true
+      }
+      scope.launch {
+        elementState.collect {
+          loadProperties()
+          updateTimelineElements()
+        }
       }
     }
 
@@ -778,14 +800,18 @@ class AnimationPreview(
     }
 
     override fun loadProperties() {
-      animationClock?.apply {
-        try {
-          selectedProperties =
-            getAnimatedProperties(animation).map {
-              ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+      sceneManagerProvider()?.apply {
+        animationClock?.apply {
+          executeInRenderSessionAsync {
+            try {
+              selectedProperties =
+                getAnimatedProperties(animation).map {
+                  ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+                }
+            } catch (e: Exception) {
+              LOG.warn("Failed to get the Compose Animation properties", e)
             }
-        } catch (e: Exception) {
-          LOG.warn("Failed to get the Compose Animation properties", e)
+          }
         }
       }
     }
@@ -795,14 +821,23 @@ class AnimationPreview(
       minY: Int,
       positionProxy: PositionProxy,
     ): TimelineElement {
-      return if (elementState.expanded) {
-        val curve = TransitionCurve.create(elementState, currentTransition, minY, positionProxy)
+      val state = elementState.value
+      return if (state.expanded) {
+        val curve =
+          TransitionCurve.create(
+            state.valueOffset,
+            if (state.frozen) state.frozenValue else null,
+            currentTransition,
+            minY,
+            positionProxy,
+          )
         selectedPropertiesCallback = { curve.timelineUnits = it }
         curve.timelineUnits = selectedProperties
         curve
       } else
         TimelineLine(
-          elementState,
+          state.valueOffset,
+          if (state.frozen) state.frozenValue else null,
           currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
             ?: (positionProxy.minimumXPosition()),
           currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }

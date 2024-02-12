@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ApplicationManager
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.JComponent
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -40,35 +45,43 @@ class AnimationCardTest {
   private val minimumSize = Dimension(10, 10)
 
   @Test
-  fun `create animation card`() {
+  fun `create animation card`(): Unit = runBlocking {
     val card =
       AnimationCard(
           TestUtils.testPreviewState(),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title"),
+          MutableStateFlow(ElementState("Title")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
         .apply { setDuration(111) }
     card.setSize(300, 300)
 
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(card)
-      ui.updateToolbars()
-      ui.layout()
-      ui.layoutAndDispatchEvents()
+    val ui =
+      withContext(uiThread) {
+        FakeUi(card).apply {
+          updateToolbars()
+          layout()
+          layoutAndDispatchEvents()
+        }
+      }
+    var stateChanges = -1
+    val job = launch { card.state.collect { stateChanges++ } }
+
+    // collector above will collect once even without any user action
+    delayUntilCondition(200) { stateChanges == 0 }
+
+    withContext(uiThread) {
       // Expand/collapse button.
       card.findExpandButton().also {
         // Button is here and visible.
         assertTrue(it.isVisible)
         TestUtils.assertBigger(Dimension(10, 10), it.size)
-        // After clicking button callback is called.
-        var expandCalls = 0
-        card.state.addExpandedListener { expandCalls++ }
         ui.clickOn(it)
         ui.updateToolbars()
         ui.layoutAndDispatchEvents()
-        assertEquals(1, expandCalls)
+        // Expand/collapse button clicked
+        assertEquals(1, stateChanges)
       }
       // Transition name label.
       (card.components[0] as JComponent).components[1].also {
@@ -88,22 +101,16 @@ class AnimationCardTest {
         assertTrue(freezeButton.isVisible)
         assertTrue(freezeButton.isEnabled)
         TestUtils.assertBigger(minimumSize, freezeButton.size)
-        // After clicking button callback is called.
-        var freezeCalls = 0
-        card.state.addFreezeListener { freezeCalls++ }
-        ui.clickOn(freezeButton)
-        ui.updateToolbars()
-        assertEquals(1, freezeCalls)
-        card.state.frozen = false
-        ui.layout()
-        ui.updateToolbars()
-        assertEquals(2, freezeCalls)
+
         // Freeze and unfreeze
+        ui.clickOn(freezeButton)
+        ui.updateToolbars()
+        // Freeze button clicked
+        assertEquals(2, stateChanges)
         freezeButton = findFreezeButton(card)
         ui.clickOn(freezeButton)
-        freezeButton = findFreezeButton(card)
-        ui.clickOn(freezeButton)
-        assertEquals(4, freezeCalls)
+        // Freeze button clicked
+        assertEquals(3, stateChanges)
       }
       // Double click to open in new tab. Use label position just to make sure we are not clicking
       // on any button.
@@ -113,17 +120,18 @@ class AnimationCardTest {
       ui.mouse.doubleClick(label.x + 5, label.y + 5)
       assertEquals(1, openInTabActions)
       assertNotNull(ui)
+      job.cancel()
     }
   }
 
   @Test
   fun `create animation card if coordination is not available`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
+    runBlocking(uiThread) {
       val card =
         AnimationCard(
             TestUtils.testPreviewState(false),
             Mockito.mock(DesignSurface::class.java),
-            ElementState("Title"),
+            MutableStateFlow(ElementState("Title")),
             emptyList(),
             NoopComposeAnimationTracker,
           )

@@ -30,7 +30,8 @@ import java.awt.geom.Path2D
 
 /** Curve for one component of [AnimatedProperty]. */
 class ComponentCurve(
-  state: ElementState,
+  valueOffset: Int,
+  frozenValue: Int?,
   val component: AnimatedProperty.AnimatedComponent<Double>,
   minX: Int,
   maxX: Int,
@@ -38,7 +39,7 @@ class ComponentCurve(
   private val curve: Path2D,
   private val colorIndex: Int,
   positionProxy: PositionProxy,
-) : TimelineElement(state, minX, maxX, positionProxy) {
+) : TimelineElement(valueOffset, frozenValue, minX, maxX, positionProxy) {
 
   companion object {
     /**
@@ -50,7 +51,8 @@ class ComponentCurve(
      * @param colorIndex index of the color the curve should be painted
      */
     fun create(
-      state: ElementState,
+      valueOffset: Int,
+      frozenValue: Int?,
       property: AnimatedProperty<Double>,
       componentId: Int,
       rowMinY: Int,
@@ -95,7 +97,8 @@ class ComponentCurve(
         curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
 
         return ComponentCurve(
-          state = state,
+          valueOffset = valueOffset,
+          frozenValue,
           component = component,
           minX = minX,
           maxX = maxX,
@@ -125,24 +128,24 @@ class ComponentCurve(
   override var height: Int = InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
 
   init {
-    moveComponents(offsetPx)
+    moveComponents(offsetPx.value)
   }
 
   private var curveOffset = 0
 
-  override fun moveComponents(actualDelta: Int) {
-    startDiamond = Diamond(minX + offsetPx, curveBaseY, colorIndex)
-    endDiamond = Diamond(maxX + offsetPx, curveBaseY, colorIndex)
+  override fun moveComponents(actualDeltaPx: Int) {
+    startDiamond = Diamond(minX + offsetPx.value, curveBaseY, colorIndex)
+    endDiamond = Diamond(maxX + offsetPx.value, curveBaseY, colorIndex)
     boxedLabelPosition =
       Point(
-        (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(
+        (boxedLabelPositionWithoutOffset.x + offsetPx.value).coerceIn(
           positionProxy.minimumXPosition(),
           positionProxy.maximumXPosition(),
         ),
         boxedLabelPositionWithoutOffset.y,
       )
-    curveOffset += actualDelta
-    curve.transform(AffineTransform.getTranslateInstance(actualDelta.toDouble(), 0.0))
+    curveOffset += actualDeltaPx
+    curve.transform(AffineTransform.getTranslateInstance(actualDeltaPx.toDouble(), 0.0))
   }
 
   override fun reset() {
@@ -182,19 +185,19 @@ class ComponentCurve(
     //
     g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
     g.stroke = InspectorLayout.simpleStroke
-    g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
+    g.drawLine(minX + offsetPx.value, curveBaseY, maxX + offsetPx.value, curveBaseY)
     if (component.linkToNext) {
       g.stroke = InspectorLayout.dashedStroke
       g.drawLine(
-        minX + offsetPx,
+        minX + offsetPx.value,
         curveBaseY,
-        minX + offsetPx,
+        minX + offsetPx.value,
         curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.drawLine(
-        maxX + offsetPx,
+        maxX + offsetPx.value,
         curveBaseY,
-        maxX + offsetPx,
+        maxX + offsetPx.value,
         curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.stroke = InspectorLayout.simpleStroke
@@ -217,22 +220,22 @@ class ComponentCurve(
       status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
     )
 
-    if (offsetPx != 0) {
+    if (offsetPx.value != 0) {
       g.stroke = InspectorLayout.dashedStroke
       g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
-      if (offsetPx > 0) {
+      if (offsetPx.value > 0) {
         g.drawLine(
           minX + Diamond.diamondSize() + 1,
           curveBaseY,
-          minX + offsetPx - Diamond.diamondSize() - 1,
+          minX + offsetPx.value - Diamond.diamondSize() - 1,
           curveBaseY,
         )
         startDiamondNoOffset.paintOutline(g)
-      } else if (offsetPx < 0) {
+      } else if (offsetPx.value < 0) {
         g.drawLine(
           maxX - Diamond.diamondSize() - 1,
           curveBaseY,
-          maxX + offsetPx + Diamond.diamondSize() + 1,
+          maxX + offsetPx.value + Diamond.diamondSize() + 1,
           curveBaseY,
         )
         endDiamondNoOffset.paintOutline(g)

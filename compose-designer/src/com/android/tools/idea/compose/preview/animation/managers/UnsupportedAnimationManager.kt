@@ -22,6 +22,9 @@ import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
 import javax.swing.JComponent
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /** [AnimationManager] for unsupported animations. */
 class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
@@ -31,7 +34,8 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
    * State of animation, shared between single animation tab and coordination panel. All callbacks
    * are empty for [UnsupportedAnimationManager].
    */
-  override val elementState = ElementState(title)
+  override val elementState: StateFlow<ElementState> =
+    MutableStateFlow(ElementState(title)).asStateFlow()
   override val card = LabelCard(elementState)
 
   override fun loadProperties() {}
@@ -45,6 +49,6 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
     minY: Int,
     positionProxy: PositionProxy,
   ): TimelineElement {
-    return UnsupportedLabel(parent, elementState, minY, positionProxy)
+    return UnsupportedLabel(parent, minY, positionProxy)
   }
 }

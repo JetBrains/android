@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -32,6 +33,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -47,6 +49,8 @@ class AllTabPanelTest {
 
   private lateinit var surface: DesignSurface<*>
 
+  private lateinit var panel: AllTabPanel
+
   @Before
   fun setUp() {
     parentDisposable = Disposer.newDisposable()
@@ -61,6 +65,7 @@ class AllTabPanelTest {
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
+    panel = AllTabPanel(AndroidCoroutineScope(parentDisposable))
   }
 
   @After
@@ -70,13 +75,13 @@ class AllTabPanelTest {
 
   @Test
   fun `add playback`() {
-    val panel = AllTabPanel().apply { setSize(1000, 800) }
+    panel.apply { setSize(1000, 800) }
     panel.addPlayback(JPanel().apply { background = JBColor.blue })
   }
 
   @Test
   fun `add timeline`() {
-    val panel = AllTabPanel().apply { setSize(1000, 800) }
+    panel.apply { setSize(1000, 800) }
     panel.addTimeline(JPanel().apply { background = JBColor.blue })
   }
 
@@ -86,7 +91,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("One"),
+          MutableStateFlow(ElementState("One")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -95,7 +100,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("Two"),
+          MutableStateFlow(ElementState("Two")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -104,13 +109,13 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("Three"),
+          MutableStateFlow(ElementState("Three")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
 
-    val panel = AllTabPanel().apply { setSize(1000, 800) }
+    panel.apply { setSize(1000, 800) }
 
     ApplicationManager.getApplication().invokeAndWait {
       assertEquals(0, panel.getNumberOfCards())
@@ -144,11 +149,11 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove label cards`() {
-    val cardOne = LabelCard(ElementState("One"))
-    val cardTwo = LabelCard(ElementState("Two"))
-    val cardThree = LabelCard(ElementState("Three"))
+    val cardOne = LabelCard(MutableStateFlow(ElementState("One")))
+    val cardTwo = LabelCard(MutableStateFlow(ElementState("Two")))
+    val cardThree = LabelCard(MutableStateFlow(ElementState("Three")))
 
-    val panel = AllTabPanel().apply { setSize(1000, 800) }
+    panel.apply { setSize(1000, 800) }
 
     ApplicationManager.getApplication().invokeAndWait {
       assertEquals(0, panel.getNumberOfCards())
@@ -186,7 +191,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("One"),
+          MutableStateFlow(ElementState("One")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -195,7 +200,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("Two"),
+          MutableStateFlow(ElementState("Two")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -204,18 +209,17 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("Three"),
+          MutableStateFlow(ElementState("Three")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
 
-    val panel =
-      AllTabPanel().apply {
-        setSize(1000, 800)
-        addPlayback(TestUtils.createPlaybackPlaceHolder())
-        addTimeline(TestUtils.createTimelinePlaceHolder())
-      }
+    panel.apply {
+      setSize(1000, 800)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
 
     ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
@@ -235,7 +239,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("AnimationCard One"),
+          MutableStateFlow(ElementState("AnimationCard One")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -244,7 +248,7 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("AnimationCard Two"),
+          MutableStateFlow(ElementState("AnimationCard Two")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
@@ -253,21 +257,20 @@ class AllTabPanelTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           surface,
-          ElementState("AnimationCard Three"),
+          MutableStateFlow(ElementState("AnimationCard Three")),
           emptyList(),
           NoopComposeAnimationTracker,
         )
         .apply { setDuration(333) }
-    val labelCardOne = LabelCard(ElementState("LabelCard One"))
-    val labelCardTwo = LabelCard(ElementState("LabelCard Two"))
-    val labelCardThree = LabelCard(ElementState("LabelCard Three"))
+    val labelCardOne = LabelCard(MutableStateFlow(ElementState("LabelCard One")))
+    val labelCardTwo = LabelCard(MutableStateFlow(ElementState("LabelCard Two")))
+    val labelCardThree = LabelCard(MutableStateFlow(ElementState("LabelCard Three)")))
 
-    val panel =
-      AllTabPanel().apply {
-        setSize(1000, 800)
-        addPlayback(TestUtils.createPlaybackPlaceHolder())
-        addTimeline(TestUtils.createTimelinePlaceHolder())
-      }
+    panel.apply {
+      setSize(1000, 800)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
 
     ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
@@ -286,18 +289,17 @@ class AllTabPanelTest {
 
   @Test
   fun `expand cards`() {
-    val panel =
-      AllTabPanel().apply {
-        setSize(1000, 400)
-        addPlayback(TestUtils.createPlaybackPlaceHolder())
-        addTimeline(TestUtils.createTimelinePlaceHolder())
-      }
+    panel.apply {
+      setSize(1000, 400)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
     for (i in 0..10) {
       panel.addCard(
         AnimationCard(
             TestUtils.testPreviewState(),
             surface,
-            ElementState("card $i"),
+            MutableStateFlow(ElementState("card $i")),
             emptyList(),
             NoopComposeAnimationTracker,
           )
@@ -325,18 +327,17 @@ class AllTabPanelTest {
 
   @Test
   fun `scroll ui`() {
-    val panel =
-      AllTabPanel().apply {
-        setSize(1000, 400)
-        addPlayback(TestUtils.createPlaybackPlaceHolder())
-        addTimeline(TestUtils.createTimelinePlaceHolder())
-      }
+    panel.apply {
+      setSize(1000, 400)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
     for (i in 0..10) {
       panel.addCard(
         AnimationCard(
             TestUtils.testPreviewState(),
             surface,
-            ElementState("card $i"),
+            MutableStateFlow(ElementState("card $i")),
             emptyList(),
             NoopComposeAnimationTracker,
           )

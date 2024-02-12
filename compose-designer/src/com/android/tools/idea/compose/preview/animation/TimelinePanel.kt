@@ -201,8 +201,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
         else null
     }
 
-  /** Separate elements with a line. */
-  private fun separateElements() = elements.size > 1
+  private fun moreThanOneTimelineElementInPanel() = elements.size > 1
 
   open fun paintElements(g: Graphics2D) {
     elements.forEach { it.paint(g) }
@@ -266,7 +265,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   private fun paintMajorTicks(g: Graphics2D) {
     // Set background color
     g.color =
-      if (!separateElements() && elements.firstOrNull()?.frozen == true) {
+      if (!moreThanOneTimelineElementInPanel() && elements.firstOrNull()?.frozenValue != null) {
         InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
       } else {
         InspectorColors.TIMELINE_BACKGROUND_COLOR
@@ -278,28 +277,22 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       slider.height - InspectorLayout.timelineHeaderHeightScaled(),
     )
 
-    var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
-    if (separateElements())
+    if (moreThanOneTimelineElementInPanel()) {
+      var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
       elements.forEach { element ->
-        if (element.frozen) {
+        if (element.frozenValue != null) {
           g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
           g.fillRect(0, totalHeight, slider.width, element.heightScaled())
         }
         totalHeight += element.heightScaled()
       }
+    }
     // Add vertical ticks.
     g.color = InspectorColors.TIMELINE_TICK_COLOR
     getMajorTicksSpacing().forEach { tick ->
       val xPos = xPositionForValue(tick)
       g.drawLine(xPos, InspectorLayout.timelineHeaderHeightScaled(), xPos, tickRect.height)
     }
-    totalHeight = InspectorLayout.timelineHeaderHeightScaled()
-    g.color = InspectorColors.TIMELINE_HORIZONTAL_TICK_COLOR
-    if (separateElements())
-      elements.forEach { element ->
-        totalHeight += element.heightScaled()
-        g.drawLine(0, totalHeight, slider.width, totalHeight)
-      }
   }
 
   private fun getMajorTicksSpacing(): List<Int> {
@@ -308,40 +301,27 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   }
 
   /**
-   * Get vertical freeze lines for all frozen elements. If [separateElements] is not true, the line
-   * will have the height of the panel.
+   * Get vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is
+   * not true, the line will have the height of the panel.
    */
   private fun getFrozenLines(): List<VerticalTick> {
     val frozenTicks = mutableListOf<VerticalTick>()
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
-    if (separateElements())
-      elements.forEach { element ->
-        if (element.frozen) {
-          val frozenValue = element.state.frozenValue
-          val x = xPositionForValue(frozenValue)
-          val y1 = totalHeight + 2
-          val y2 = totalHeight + element.heightScaled() - 2
-          frozenTicks.add(VerticalTick(x, y1, y2))
-        }
-        totalHeight += element.heightScaled()
+    elements.forEach { element ->
+      if (element.frozenValue != null) {
+        val x = xPositionForValue(element.frozenValue)
+        val y1 = totalHeight + 2
+        val y2 = totalHeight + element.heightScaled() - 2
+        frozenTicks.add(VerticalTick(x, y1, y2))
       }
-    else
-      elements.firstOrNull()?.also {
-        if (it.frozen) {
-          val frozenValue = it.state.frozenValue
-          val x = xPositionForValue(frozenValue)
-          val y1 = InspectorLayout.timelineHeaderHeightScaled() + 2
-          val y2 = slider.height - 2
-          frozenTicks.add(VerticalTick(x, y1, y2))
-        }
-      }
-
+      totalHeight += element.heightScaled()
+    }
     return frozenTicks
   }
 
   /**
-   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
-   * line will have the height of the panel.
+   * Paint vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is
+   * not true, the line will have the height of the panel.
    */
   private fun paintFreezeLines(g: Graphics2D, lines: List<VerticalTick>) {
     g.color = InspectorColors.FREEZE_LINE_COLOR

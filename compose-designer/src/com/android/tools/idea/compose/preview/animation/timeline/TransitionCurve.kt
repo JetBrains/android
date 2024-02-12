@@ -19,18 +19,21 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.Transition
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.intellij.openapi.util.Disposer
 
 /** Curves for all properties of [Transition]. */
 class TransitionCurve
 private constructor(
-  state: ElementState,
+  valueOffset: Int,
+  frozenValue: Int?,
   private val propertyCurves: List<PropertyCurve>,
   positionProxy: PositionProxy,
-) : ParentTimelineElement(state, propertyCurves, positionProxy) {
+) : ParentTimelineElement(valueOffset, frozenValue, propertyCurves, positionProxy) {
 
   companion object {
     fun create(
-      state: ElementState,
+      valueOffset: Int,
+      frozenValue: Int?,
       transition: Transition,
       rowMinY: Int,
       positionProxy: PositionProxy,
@@ -48,11 +51,14 @@ private constructor(
         }
       val curves =
         properties.filterNotNull().mapIndexed { index, it ->
-          val curve = PropertyCurve.create(state, it, currentMinY, index, positionProxy)
+          val curve =
+            PropertyCurve.create(valueOffset, frozenValue, it, currentMinY, index, positionProxy)
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(state, curves, positionProxy)
+      return TransitionCurve(valueOffset, frozenValue, curves, positionProxy).also {
+        curves.forEach { curve -> Disposer.register(it, curve) }
+      }
     }
 
     fun expectedHeight(transition: Transition) =

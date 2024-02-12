@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import javax.swing.JComponent
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * [AnimationManager] is handling the state of one subscribed [animation]. Each [animation] is
@@ -31,7 +32,7 @@ import javax.swing.JComponent
  */
 abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: String) {
   /** State of the [TimelineElement] for the [animation]. */
-  abstract val elementState: ElementState
+  abstract val elementState: StateFlow<ElementState>
 
   /** [Card] for the current animation in the coordination panel. */
   abstract val card: Card

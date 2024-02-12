@@ -19,17 +19,18 @@ import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
 import javax.swing.JPanel
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -90,8 +91,8 @@ class BottomPanelTest(
 
   @Test
   fun `reset button is visible and clickable`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      if (!enableCoordinationDrag) return@invokeAndWait
+    runBlocking(uiThread) {
+      if (!enableCoordinationDrag) return@runBlocking
       val panel = createBottomPanel()
       val ui =
         FakeUi(panel.parent).apply {
@@ -114,8 +115,8 @@ class BottomPanelTest(
 
   @Test
   fun `reset button is disabled if coordination is not available`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      if (!enableCoordinationDrag) return@invokeAndWait
+    runBlocking(uiThread) {
+      if (!enableCoordinationDrag) return@runBlocking
       val panel = createBottomPanel(false)
       val ui =
         FakeUi(panel.parent).apply {
@@ -132,8 +133,8 @@ class BottomPanelTest(
 
   @Test
   fun `no reset button if coordination drag is not available`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      if (enableCoordinationDrag) return@invokeAndWait
+    runBlocking(uiThread) {
+      if (enableCoordinationDrag) return@runBlocking
       val panel = createBottomPanel()
       val ui =
         FakeUi(panel.parent).apply {
@@ -145,7 +146,7 @@ class BottomPanelTest(
 
   @Test
   fun `label is visible`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
+    runBlocking(uiThread) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()
@@ -160,7 +161,7 @@ class BottomPanelTest(
 
   @Test
   fun `label is updated immediately`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
+    runBlocking(uiThread) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()
@@ -174,7 +175,7 @@ class BottomPanelTest(
 
   @Test
   fun `ui preview renders correctly`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
+    runBlocking(uiThread) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()
@@ -192,6 +193,9 @@ class BottomPanelTest(
           override fun isCoordinationAvailable() = withCoordination
 
           override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
+
+          override val currentTime: Int
+            get() = 0
         },
         surface,
         NoopComposeAnimationTracker,

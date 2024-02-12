@@ -18,20 +18,26 @@ package com.android.tools.idea.compose.preview.animation.timeline
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class UnsupportedLabelTest {
+
+  @get:Rule val edtRule = EdtRule()
+
+  @RunsInEdt
   @Test
   fun `create and dispose labels`() {
     val slider = TestUtils.createTestSlider()
 
     // Create labels, all are visible.
-    val labelOne = UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
-    val labelTwo = UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
+    val labelOne = UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy)
+    val labelTwo = UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy)
     assertTrue(slider.components[1].isVisible)
     assertTrue(slider.components[2].isVisible)
     // componentCount is +1 to the number of labels here and checks below because slider also
@@ -43,7 +49,7 @@ class UnsupportedLabelTest {
     assertFalse(slider.components[1].isVisible)
 
     // Instead of creating new label, find and enable unused label.
-    UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
+    UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy)
     assertTrue(slider.components[1].isVisible)
     assertEquals(3, slider.componentCount)
 
@@ -52,12 +58,12 @@ class UnsupportedLabelTest {
     assertFalse(slider.components[2].isVisible)
 
     // Instead of creating new label, find and enable unused label.
-    UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
+    UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy)
     assertTrue(slider.components[2].isVisible)
     assertEquals(3, slider.componentCount)
 
     // All labels are enabled, create new one.
-    val labelThree = UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
+    val labelThree = UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy)
     assertEquals(4, slider.componentCount)
 
     // Dispose all labels
@@ -69,30 +75,30 @@ class UnsupportedLabelTest {
     assertFalse(slider.components[3].isVisible)
   }
 
+  @RunsInEdt
   @Test
   fun `create ui with labels`() {
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
+    val slider = TestUtils.createTestSlider()
 
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
-      var height = 25
-      for (i in 0..4) {
-        slider.sliderUI.elements =
-          listOf(
-            UnsupportedLabel(slider, ElementState(""), height, slider.sliderUI.positionProxy)
-              .apply { height += this.height }
-          )
-      }
-
-      // Call layoutAndDispatchEvents() so all JComponents are updated and visible.
-      ui.layoutAndDispatchEvents()
-
-      // No tooltips.
-      assertEquals(0, slider.scanForTooltips().size)
-      // Uncomment to preview ui.
-      // ui.render()
+    var height = 25
+    for (i in 0..4) {
+      slider.sliderUI.elements =
+        listOf(
+          UnsupportedLabel(slider, height, slider.sliderUI.positionProxy).apply {
+            height += this.height
+          }
+        )
     }
+
+    // Call layoutAndDispatchEvents() so all JComponents are updated and visible.
+    ui.layoutAndDispatchEvents()
+
+    // No tooltips.
+    assertEquals(0, slider.scanForTooltips().size)
+    // Uncomment to preview ui.
+    // ui.render()
   }
 }
