@@ -35,6 +35,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -283,6 +284,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private suspend fun doRefreshSync(
     filePreviewElements: List<T>,
     progressIndicator: ProgressIndicator,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
   ) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val psiFile =
@@ -313,6 +315,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         modelUpdater,
         navigationHandler,
         this::configureLayoutlibSceneManager,
+        refreshEventBuilder,
       )
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
@@ -379,12 +382,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             refreshProgressIndicator,
             previewElementModelAdapter::modelToElement,
             this@CommonPreviewRepresentation::configureLayoutlibSceneManager,
+            refreshEventBuilder = request.refreshEventBuilder,
           )
         } else {
           refreshProgressIndicator.text =
             message("refresh.progress.indicator.refreshing.all.previews")
           previewViewModel.beforePreviewsRefreshed()
-          doRefreshSync(filePreviewElements, refreshProgressIndicator)
+          doRefreshSync(filePreviewElements, refreshProgressIndicator, request.refreshEventBuilder)
         }
       } catch (t: Throwable) {
         requestLogger.warn("Request failed", t)

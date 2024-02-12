@@ -62,6 +62,7 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -1104,6 +1105,7 @@ class ComposePreviewRepresentation(
     filteredPreviews: List<ComposePreviewElementInstance>,
     quickRefresh: Boolean,
     progressIndicator: ProgressIndicator,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
   ) {
     val numberOfPreviewsToRender = filteredPreviews.size
     if (log.isDebugEnabled) log.debug("doRefresh of $numberOfPreviewsToRender elements.")
@@ -1137,6 +1139,7 @@ class ComposePreviewRepresentation(
         else defaultModelUpdater,
         navigationHandler,
         this::configureLayoutlibSceneManagerForPreviewElement,
+        refreshEventBuilder,
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
@@ -1319,6 +1322,7 @@ class ComposePreviewRepresentation(
                   .getTargetQuality(sceneManager)
                   .compareTo(sceneManager.lastRenderQuality)
               },
+              refreshRequest.refreshEventBuilder,
             )
           } else {
             refreshProgressIndicator.text =
@@ -1330,6 +1334,7 @@ class ComposePreviewRepresentation(
               previewsToRender,
               refreshRequest.refreshType == ComposePreviewRefreshType.QUICK,
               refreshProgressIndicator,
+              refreshRequest.refreshEventBuilder,
             )
           }
         } catch (t: Throwable) {

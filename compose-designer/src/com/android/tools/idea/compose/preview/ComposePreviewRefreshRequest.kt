@@ -87,6 +87,8 @@ class ComposePreviewRefreshRequest(
 
   val requestId = delegate.requestId
 
+  override val refreshEventBuilder = delegate.refreshEventBuilder
+
   var requestSources: List<Throwable> = listOf(Throwable())
     private set
 

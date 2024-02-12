@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
 import com.android.tools.idea.common.model.NlModel
@@ -36,6 +38,8 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
+import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
@@ -53,6 +57,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableConte
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.impl.HeadlessDataManager
@@ -186,6 +191,55 @@ class ComposePreviewRepresentationTest {
           .none { !it.html.contains("No Android SDK found.") }
       )
       preview.onDeactivate()
+    }
+
+  @Test
+  fun testPreviewRefreshMetricsAreTracked() =
+    runBlocking(workerThread) {
+      val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
+      val composeView = TestComposePreviewView(mainSurface)
+      try {
+        AnalyticsSettings.optedIn = true
+        var refreshTrackerFailed = false
+        var successEventCount = 0
+        val refreshTracker = PreviewRefreshTrackerForTest {
+          if (
+            it.result != PreviewRefreshEvent.RefreshResult.SUCCESS ||
+              it.previewRendersList.isEmpty()
+          ) {
+            return@PreviewRefreshTrackerForTest
+          }
+          try {
+            assertTrue(it.hasInQueueTimeMillis())
+            assertTrue(it.hasRefreshTimeMillis())
+            assertTrue(it.hasType())
+            assertTrue(it.hasResult())
+            assertTrue(it.hasPreviewsCount())
+            assertTrue(it.hasPreviewsToRefresh())
+            assertTrue(it.previewRendersList.isNotEmpty())
+            assertTrue(
+              it.previewRendersList.all { render ->
+                render.hasResult()
+                render.hasRenderTimeMillis()
+                render.hasRenderQuality()
+                render.hasInflate()
+              }
+            )
+            successEventCount++
+          } catch (t: Throwable) {
+            refreshTrackerFailed = true
+          }
+        }
+        PreviewRefreshTracker.setInstanceForTest(mainSurface, refreshTracker)
+        val preview = createAndInitializeComposePreviewRepresentation(mainSurface, composeView)
+
+        waitForCondition(5.seconds) { successEventCount > 0 }
+        assertFalse(refreshTrackerFailed)
+        preview.onDeactivate()
+      } finally {
+        PreviewRefreshTracker.cleanAfterTesting(mainSurface)
+        AnalyticsSettings.optedIn = false
+      }
     }
 
   @Test

@@ -59,7 +59,6 @@ interface RefreshType {
 interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
   /** Optional [PreviewRefreshEventBuilder] used for tracking refresh metrics */
   val refreshEventBuilder: PreviewRefreshEventBuilder?
-    get() = null
 
   /**
    * Identification used for grouping and cancelling requests.

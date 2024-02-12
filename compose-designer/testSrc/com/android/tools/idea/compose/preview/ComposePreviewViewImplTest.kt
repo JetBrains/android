@@ -259,6 +259,7 @@ class ComposePreviewViewImplTest {
         DefaultModelUpdater(),
         navigationHandler = ComposePreviewNavigationHandler(),
         ::configureLayoutlibSceneManagerForPreviewElement,
+        null,
       )
     }
     ApplicationManager.getApplication().invokeAndWait {

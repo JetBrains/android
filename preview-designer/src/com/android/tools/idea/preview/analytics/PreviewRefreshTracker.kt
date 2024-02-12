@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
+import org.jetbrains.annotations.TestOnly
 
 /** Tracker implementation for the refresh process of a preview tool. */
 interface PreviewRefreshTracker {
@@ -34,6 +35,18 @@ interface PreviewRefreshTracker {
       DesignerUsageTrackerManager(::PreviewRefreshDefaultTracker, PreviewRefreshNopTracker)
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
+
+    /** Sets the corresponding usage tracker for a [DesignSurface] in tests. */
+    @TestOnly
+    fun setInstanceForTest(surface: DesignSurface<*>, instance: PreviewRefreshTracker) {
+      MANAGER.setInstanceForTest(surface, instance)
+    }
+
+    /** Clears the cached instances to clean state in tests. */
+    @TestOnly
+    fun cleanAfterTesting(surface: DesignSurface<*>) {
+      MANAGER.cleanAfterTesting(surface)
+    }
   }
 }
 
@@ -51,6 +64,15 @@ private val PreviewRefreshNopTracker =
       return event.createAndroidStudioEvent()
     }
   }
+
+@TestOnly
+class PreviewRefreshTrackerForTest(private val onLogEvent: (PreviewRefreshEvent) -> Unit) :
+  PreviewRefreshTracker {
+  override fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder {
+    onLogEvent(event)
+    return event.createAndroidStudioEvent()
+  }
+}
 
 /**
  * Default [PreviewRefreshTracker] implementation that sends the event to the analytics backend

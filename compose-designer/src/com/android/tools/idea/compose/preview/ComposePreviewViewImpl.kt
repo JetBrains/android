@@ -37,6 +37,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -156,6 +157,7 @@ interface ComposePreviewView {
     navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
   ): List<ComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
@@ -173,6 +175,7 @@ interface ComposePreviewView {
       modelUpdater,
       navigationHandler,
       configureLayoutlibSceneManager,
+      refreshEventBuilder,
     )
   }
 
@@ -192,6 +195,7 @@ interface ComposePreviewView {
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshFilter: (LayoutlibSceneManager) -> Boolean,
     refreshOrder: (LayoutlibSceneManager) -> Int,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
   ) {
     mainSurface.refreshExistingPreviewElements(
       progressIndicator,
@@ -199,6 +203,7 @@ interface ComposePreviewView {
       configureLayoutlibSceneManager,
       refreshFilter,
       refreshOrder,
+      refreshEventBuilder,
     )
   }
 }

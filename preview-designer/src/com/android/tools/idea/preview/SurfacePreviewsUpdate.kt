@@ -127,7 +127,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshFilter: (LayoutlibSceneManager) -> Boolean = { true },
   refreshOrder: (LayoutlibSceneManager) -> Int = { 0 },
-  refreshEventBuilder: PreviewRefreshEventBuilder? = null,
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
 ) {
   val previewElementsToSceneManagers =
     sceneManagers.filter(refreshFilter).sortedBy(refreshOrder).mapNotNull {
@@ -187,7 +187,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
-  refreshEventBuilder: PreviewRefreshEventBuilder? = null,
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
 
@@ -338,7 +338,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
 private suspend fun renderAndTrack(
   sceneManager: LayoutlibSceneManager,
-  refreshEventBuilder: PreviewRefreshEventBuilder? = null,
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
   onCompleteCallback: (Throwable?) -> Unit = {},
 ) {
   val inflate = sceneManager.isForceReinflate

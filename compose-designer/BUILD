@@ -166,6 +166,7 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
     ],
 )
 
