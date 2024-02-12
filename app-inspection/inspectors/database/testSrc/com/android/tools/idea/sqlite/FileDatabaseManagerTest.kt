@@ -25,6 +25,7 @@ import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
