@@ -18,8 +18,6 @@ package com.android.tools.idea.sqlite.utils
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.util.io.ByteArraySequence
-import com.intellij.openapi.util.io.ByteSequence
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import java.sql.Connection
@@ -34,14 +32,6 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
 
   fun tearDown() {
     tempDirTestFixture.tearDown()
-  }
-
-  fun createByteSequence(file: VirtualFile, size: Int): ByteSequence = runReadAction {
-    val bytes = ByteArray(size)
-    file.inputStream.use { stream ->
-      val length = stream.read(bytes)
-      ByteArraySequence(bytes, 0, length)
-    }
   }
 
   fun createTestSqliteDatabase(name: String = "sqlite-database"): VirtualFile = runWriteAction {
