@@ -1285,7 +1285,7 @@ private fun shortenTitleText(title: String): String =
 @Service(Service.Level.APP)
 internal class DeviceClientRegistry : Disposable {
 
-  val clientsBySerialNumber = HashMap<String, DeviceClient>()
+  val clientsBySerialNumber = LinkedHashMap<String, DeviceClient>()
     /** The returned map may only be accessed on the UI thread. */
     @UiThread
     get

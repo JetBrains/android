@@ -135,8 +135,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     val pixel4Handle2 = deviceProvisioner2.devices.value.find { it.state.properties.model == "Pixel 4" }!!
     val pixel7Handle2 = deviceProvisioner2.devices.value.find { it.state.properties.model == "Pixel 7" }!!
     waitForCondition(2.seconds) { contentManager2.contents.size == 2 }
-    assertThat(contentManager2.contents[0].displayName).contains(pixel4Handle2.state.properties.model)
-    assertThat(contentManager2.contents[1].displayName).contains(pixel7Handle2.state.properties.model)
+    assertThat(contentManager2.contents.map { it.displayName }).containsExactly("Pixel 4 API 30", "Pixel 7 API 33")
     waitForCondition(1.seconds) { mirroringManager2.mirroringHandles.value.size == 2 }
     assertThat(mirroringManager2.mirroringHandles.value[pixel7Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
     assertThat(mirroringManager2.mirroringHandles.value[pixel4Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
