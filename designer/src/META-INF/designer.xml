@@ -159,11 +159,9 @@
     </group>
 
     <group id="Android.Designer.IssuePanel.ToolbarActions">
-      <group id="Android.Designer.IssuePanel.ViewOptions" text="View Options" icon="AllIcons.Actions.Show" popup="true">
-        <action id="Android.Designer.IssuePanel.SeverityFilter"
-                class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
-                text="Severity Filters of Issue Panel"/>
-      </group>
+      <group id="Android.Designer.IssuePanel.SeverityFilter"
+             class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
+             text="View Options" icon="AllIcons.Actions.Show" popup="true"/>
       <action id="Android.Designer.IssuePanel.ToggleIssueDetailAction"
               text="Show Issue Detail"
               icon="AllIcons.Actions.PreviewDetails"

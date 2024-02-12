@@ -127,11 +127,6 @@
     <option name="data" path="ActionManager" hit="Sample Data Directory" />
     <option name="directory" path="ActionManager" hit="Sample Data Directory" />
     <option name="sample" path="ActionManager" hit="Sample Data Directory" />
-    <option name="filters" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="issue" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="of" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="panel" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="severity" path="ActionManager" hit="Severity Filters of Issue Panel" />
     <option name="help" path="ActionManager" hit="Show Help Panel" />
     <option name="panel" path="ActionManager" hit="Show Help Panel" />
     <option name="show" path="ActionManager" hit="Show Help Panel" />
@@ -205,6 +200,8 @@
     <option name="the" path="ActionManager" hit="Update the preview to latest code change" />
     <option name="to" path="ActionManager" hit="Update the preview to latest code change" />
     <option name="update" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="options" path="ActionManager" hit="View Options" />
+    <option name="view" path="ActionManager" hit="View Options" />
   </configurable>
   <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />
