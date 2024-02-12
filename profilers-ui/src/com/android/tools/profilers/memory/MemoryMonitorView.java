@@ -36,7 +36,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 
   public MemoryMonitorView(@NotNull StudioProfilersView profilersView, @NotNull MemoryMonitor monitor) {
-    super(monitor);
+    super(profilersView, monitor);
   }
 
   @Override

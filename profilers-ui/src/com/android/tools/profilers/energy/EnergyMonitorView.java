@@ -40,7 +40,7 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
   public static final double CHART_INTERVAL_US = TimeUnit.MILLISECONDS.toMicros(200);
 
   public EnergyMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EnergyMonitor monitor) {
-    super(monitor);
+    super(profilersView, monitor);
   }
 
   @Override

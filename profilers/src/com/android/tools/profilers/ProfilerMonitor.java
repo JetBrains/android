@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.profiler.proto.Common;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -27,9 +27,11 @@ import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -54,7 +56,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   private ActivityComponent myActivityComponent;
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
-    super(monitor);
+    super(profilersView, monitor);
     initializeComponents();
   }
 
@@ -118,5 +120,19 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     container.setLayout(new TabularLayout("*", "*,*"));
     container.add(myUserEventComponent, new TabularLayout.Constraint(0, 0));
     container.add(myActivityComponent, new TabularLayout.Constraint(1, 0));
+  }
+
+  @Override
+  protected boolean hasCustomLoadingPanel() {
+    return Common.AgentData.Status.UNSPECIFIED == getMonitor().getProfilers().getAgentData().getStatus();
+  }
+
+  @Override
+  protected void populateCustomLoadingPanel(JPanel container) {
+    LoadingPanel loadingPanel = myProfilersView.getIdeProfilerComponents().createLoadingPanel(-1);
+    TabularLayout layout = new TabularLayout("*,Fit-,*", "*");
+    container.setLayout(layout);
+    loadingPanel.startLoading();
+    container.add(loadingPanel.getComponent(), new TabularLayout.Constraint(0, 0, 3));
   }
 }
