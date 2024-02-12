@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -33,8 +37,10 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlin.coroutines.resume
+import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -143,3 +149,11 @@ internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
     renderResults.joinToString { it.logger.toDebugString() },
   )
 }
+
+/** Wait for all running refreshes to complete. */
+suspend fun waitForAllRefreshesToFinish(timeout: Duration) =
+  withContext(workerThread) {
+    PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
+      .refreshingTypeFlow
+      .awaitStatus("Timeout waiting for all pending refreshes to finish", timeout) { it == null }
+  }

@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRenderQualityPolicy
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
@@ -412,7 +413,7 @@ class ComposePreviewRepresentationGradleTest {
       }
     }
 
-    assertFails { projectRule.waitForAllRefreshesToFinish(10.seconds) }
+    assertFails { waitForAllRefreshesToFinish(10.seconds) }
 
     // Delete the infinite loop, triggering a new refresh
     runWriteActionAndWait {
@@ -423,7 +424,7 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     // First refresh should get cancelled and then second one should complete
-    projectRule.waitForAllRefreshesToFinish(30.seconds)
+    waitForAllRefreshesToFinish(30.seconds)
   }
 
   @Test

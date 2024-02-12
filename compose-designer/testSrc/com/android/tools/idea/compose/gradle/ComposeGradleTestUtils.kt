@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -95,7 +96,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
         .debug("ComposePreviewRepresentation active")
 
       // Now wait for them to be rendered
-      waitForRender(sceneViewPeerPanels)
+      waitForRender(sceneViewPeerPanels, timeout)
     }
   } catch (e: TimeoutCancellationException) {
     throw AssertionError(
@@ -104,12 +105,13 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
     )
   }
 
-suspend fun ComposePreviewRepresentation.waitForRender(
-  sceneViewPeerPanels: Set<SceneViewPeerPanel>
+suspend fun waitForRender(
+  sceneViewPeerPanels: Set<SceneViewPeerPanel>,
+  timeout: Duration = 60.seconds,
 ) =
-  withTimeout(timeout = 30.seconds) {
+  withTimeout(timeout) {
     Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Waiting for render")
-    waitForAnyPendingRefresh()
+    waitForAllRefreshesToFinish(timeout)
     var retryCounter = 0
     while (
       isActive &&

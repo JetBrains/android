@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
@@ -358,9 +359,7 @@ class RenderErrorTest {
     // Once we enable Ui Check we need to render again since we are now showing the selected preview
     // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
     withContext(uiThread) {
-      composePreviewRepresentation.waitForRender(
-        fakeUi.findAllComponents<SceneViewPeerPanel>().toSet()
-      )
+      waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
       fakeUi.root.validate()
     }
   }
@@ -369,6 +368,7 @@ class RenderErrorTest {
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.setMode(PreviewMode.Default())
     onRefreshCompletable.join()
+    waitForAllRefreshesToFinish(1.minutes)
   }
 
   private suspend fun visualLintRenderIssues(

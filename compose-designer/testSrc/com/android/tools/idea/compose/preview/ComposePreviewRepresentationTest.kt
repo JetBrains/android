@@ -748,7 +748,7 @@ class ComposePreviewRepresentationTest {
       val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
       run {
-        preview.waitForAnyPendingRefresh()
+        waitForAllRefreshesToFinish(30.seconds)
         preview.setMode(PreviewMode.UiCheck(uiCheckElement))
         delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Enabled }
       }
@@ -776,7 +776,7 @@ class ComposePreviewRepresentationTest {
 
       // Stop UI Check mode
       run {
-        preview.waitForAnyPendingRefresh()
+        waitForAllRefreshesToFinish(30.seconds)
         preview.setMode(PreviewMode.Default())
         delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Disabled }
       }
@@ -800,7 +800,7 @@ class ComposePreviewRepresentationTest {
         assertFalse(actionEvent.presentation.isEnabled)
       }
 
-      preview.waitForAnyPendingRefresh()
+      waitForAllRefreshesToFinish(30.seconds)
       withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
     }
   }
@@ -888,7 +888,7 @@ class ComposePreviewRepresentationTest {
       // In addition to refresh, we can wait for another condition before returning.
       additionalCondition: () -> Boolean = { true },
     ) {
-      preview.waitForAnyPendingRefresh()
+      waitForAllRefreshesToFinish(30.seconds)
       var refresh = false
       composeView.refreshCompletedListeners.add { refresh = true }
       preview.setMode(previewMode)

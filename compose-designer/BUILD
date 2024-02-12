@@ -76,6 +76,7 @@ iml_module(
         },
         # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
         "RenderErrorTest": {
+            "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle.preview.RenderErrorTest",
         },
         "gradle-other": {

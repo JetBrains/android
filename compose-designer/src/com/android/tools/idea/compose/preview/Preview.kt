@@ -1214,11 +1214,6 @@ class ComposePreviewRepresentation(
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
-    if (refreshRequest.refreshType == ComposePreviewRefreshType.TRACE) {
-      refreshTriggers.forEach { requestLogger.debug("Refresh trace, no work being done", it) }
-      return CompletableDeferred(Unit)
-    }
-
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling
     // processFinish() if returning early.
@@ -1461,21 +1456,6 @@ class ComposePreviewRepresentation(
       BuildAndRefresh { it }
         .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
     }
-  }
-
-  /**
-   * Waits for any on-going or pending refreshes to complete. It optionally accepts a runnable that
-   * can be executed before the next render is executed.
-   */
-  suspend fun waitForAnyPendingRefresh(runnable: () -> Unit = {}) {
-    if (isDisposed.get()) {
-      return
-    }
-
-    val completableDeferred = CompletableDeferred<Unit>()
-    completableDeferred.invokeOnCompletion { if (it == null) runnable() }
-    requestRefresh(ComposePreviewRefreshType.TRACE, completableDeferred)
-    completableDeferred.join()
   }
 
   private suspend fun requestFastPreviewRefreshAndTrack(): CompilationResult {

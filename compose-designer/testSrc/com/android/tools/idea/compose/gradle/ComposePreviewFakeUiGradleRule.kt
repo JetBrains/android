@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.gradle.preview.displayName
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
@@ -197,16 +198,6 @@ class ComposePreviewFakeUiGradleRule(
     assertTrue(awaitingJob.isCompleted)
     // Make sure that the job hasn't failed, i.e. that a refresh started
     assertFalse(awaitingJob.isCancelled)
-  }
-
-  /** Wait for all running refreshes to complete. */
-  suspend fun waitForAllRefreshesToFinish(timeout: Duration) {
-    refreshManager.refreshingTypeFlow.awaitStatus(
-      "Timeout waiting for refresh to finish",
-      timeout,
-    ) {
-      it == null
-    }
   }
 
   /**

@@ -39,12 +39,6 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
 
   /** The existing Previews that need a quality change are re-rendered, but no inflation is done. */
   QUALITY(1),
-
-  /**
-   * Previews are not rendered or inflated. This mode is just used to trace a request to, for
-   * example, ensure there are no pending requests.
-   */
-  TRACE(0)
 }
 
 /**

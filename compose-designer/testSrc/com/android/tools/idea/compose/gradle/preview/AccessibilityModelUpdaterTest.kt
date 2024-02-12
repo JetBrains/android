@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -40,6 +41,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -112,7 +114,7 @@ class AccessibilityModelUpdaterTest {
     val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
 
     runBlocking {
-      composePreviewRepresentation.waitForAnyPendingRefresh()
+      waitForAllRefreshesToFinish(30.seconds)
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
       composePreviewRepresentation.setMode(
         PreviewMode.UiCheck(uiCheckElement, atfChecksEnabled = true)
