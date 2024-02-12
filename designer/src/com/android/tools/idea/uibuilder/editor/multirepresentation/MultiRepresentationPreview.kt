@@ -263,8 +263,7 @@ open class MultiRepresentationPreview(
   /** Updates the current representations and ensures the current selected one is valid. */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file = readAction { psiFilePointer.element }
-    if (file == null || !readAction { file.isValid }) return
+    val file = readAction { psiFilePointer.element?.takeIf { it.isValid } } ?: return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
