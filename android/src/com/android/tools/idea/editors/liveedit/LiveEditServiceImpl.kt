@@ -368,13 +368,6 @@ class LiveEditServiceImpl(val project: Project,
 
     // Filter to only files from this project.
     val index = ProjectFileIndex.getInstance(project)
-    if (!index.isInProject(file)) {
-      return false
-    }
-
-    // All sort of files might be modified and written during save actions. This is an issue for
-    // manual mode where some metadata files get updated on save. To avoid that, we only Live Edit
-    // files that are currently opened by the editor.
-    return FileEditorManager.getInstance(project).isFileOpen(file)
+    return index.isInProject(file)
   }
 }
