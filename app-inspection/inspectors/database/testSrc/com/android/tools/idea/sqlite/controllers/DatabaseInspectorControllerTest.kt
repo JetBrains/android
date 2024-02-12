@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorTabProvider
 import com.android.tools.idea.sqlite.FileDatabaseException
@@ -1716,8 +1715,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val inOrderVerifier = inOrder(projectService, fileDatabaseManager)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
@@ -1835,8 +1832,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1877,8 +1872,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1917,8 +1910,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
-
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
 
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
