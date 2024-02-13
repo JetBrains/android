@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.device.tests",
     iml_files = ["intellij.android.device.tests.iml"],
+    kotlin_use_compose = True,
     test_friends = ["//tools/adt/idea/intellij.android.device"],
     test_srcs = ["src"],
     visibility = ["//visibility:public"],

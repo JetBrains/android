@@ -20,7 +20,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
 import com.android.testutils.MockitoKt
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
-import org.junit.Ignore
+import org.junit.AfterClass
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,9 +30,25 @@ import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class StorageCapacityFieldTest {
+  // TODO: http://b/87654321
+  private companion object {
+    private val oldHome: String = System.getProperty("user.home")
+
+    @BeforeClass
+    @JvmStatic
+    fun overrideUserHome() {
+      System.setProperty("user.home", System.getProperty("java.io.tmpdir"))
+    }
+
+    @AfterClass
+    @JvmStatic
+    fun restoreUserHome() {
+      System.setProperty("user.home", oldHome)
+    }
+  }
+
   @get:Rule val rule = createComposeRule()
 
-  @Ignore("kotlinx-coroutines-* Version 1.8.0-RC2 is required")
   @Test
   fun replaceValueWithMaxValuePlus1() {
     // Arrange
