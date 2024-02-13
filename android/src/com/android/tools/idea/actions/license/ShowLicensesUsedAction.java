@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions.license;
 
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -27,10 +28,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBDimension;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +35,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Surfaces a UI action for displaying a dialog of licenses for 3rd-party libraries
@@ -61,11 +61,31 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
 
         Path ideHome = Paths.get(PathManager.getHomePath());
         LicensesLocator locator = new LicensesLocator(ideHome, SystemInfo.isMac);
-        CompletableFuture<String> cf = new LicenseTextCollector(ideHome, locator.getLicenseFiles()).getLicenseText();
+        CompletableFuture<String> cf =
+          new LicenseTextCollector(ideHome, locator.getLicenseFiles()).getLicenseText();
+        // TODO: b/295135492  Remove the special case for emulator once we decide to add all
+        // the licenses in Android Sdk.
+        CompletableFuture<String> emuCf = null;
+        Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+        if (sdkPath != null) {
+          Path emulatorPath = sdkPath.resolve("emulator");
+          if (emulatorPath != null) {
+            //`isMacLayout` is false because special treatment is not needed for emulator's
+            // file layout.
+            LicensesLocator emulatorLocator = new LicensesLocator(emulatorPath, false);
+            emuCf = new LicenseTextCollector(emulatorPath, emulatorLocator.getLicenseFiles())
+                        .getLicenseText();
+          }
+        }
 
         while (!indicator.isCanceled()) {
           try {
-            myLicenseText = cf.get(100, TimeUnit.MILLISECONDS);
+            StringBuilder sb = new StringBuilder();
+            sb.append(cf.get(100, TimeUnit.MILLISECONDS));
+            if (emuCf != null) {
+              sb.append(emuCf.get(100, TimeUnit.MILLISECONDS));
+            }
+            myLicenseText = sb.toString();
             return;
           }
           catch (InterruptedException e) {
