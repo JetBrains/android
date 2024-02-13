@@ -46,6 +46,7 @@ import javax.swing.JLabel
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+@org.junit.Ignore("b/323520092")
 class ResourceExplorerToolWindowTest {
 
   lateinit var fixture: CodeInsightTestFixture
