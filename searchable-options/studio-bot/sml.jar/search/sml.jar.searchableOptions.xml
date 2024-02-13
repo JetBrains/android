@@ -1,9 +1,6 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="" path="ActionManager" hit="" />
-    <option name="accept" path="ActionManager" hit="Accept All Changes" />
-    <option name="all" path="ActionManager" hit="Accept All Changes" />
-    <option name="changes" path="ActionManager" hit="Accept All Changes" />
     <option name="code" path="ActionManager" hit="Comment Code" />
     <option name="comment" path="ActionManager" hit="Comment Code" />
     <option name="code" path="ActionManager" hit="Document Code" />
