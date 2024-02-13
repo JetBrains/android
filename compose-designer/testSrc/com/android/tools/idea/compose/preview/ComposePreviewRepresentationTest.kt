@@ -81,7 +81,6 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -190,7 +189,7 @@ class ComposePreviewRepresentationTest {
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
@@ -251,7 +250,7 @@ class ComposePreviewRepresentationTest {
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
@@ -544,7 +543,7 @@ class ComposePreviewRepresentationTest {
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
@@ -800,7 +799,7 @@ class ComposePreviewRepresentationTest {
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
@@ -863,7 +862,7 @@ class ComposePreviewRepresentationTest {
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
@@ -966,7 +965,7 @@ class ComposePreviewRepresentationTest {
       )
 
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(Dispatchers.IO) {
+      withContext(workerThread) {
         logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
         logger.info("activate")
