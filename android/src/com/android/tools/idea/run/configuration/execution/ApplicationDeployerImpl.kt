@@ -107,6 +107,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
               val artifactDetailBuilder = ArtifactDetail.newBuilder()
               artifactDetailBuilder.setSize(bp.length())
               artifactDetailBuilder.setType(ArtifactDetail.ArtifactType.BASELINE_PROFILE)
+              addArtifact(artifactDetailBuilder)
             }
           }
       }
