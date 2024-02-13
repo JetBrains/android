@@ -13,38 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("ChannelDefault")
 package com.android.tools.idea.flags
 
 import com.android.tools.idea.IdeChannel
-import java.util.function.Supplier
-import org.jetbrains.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * Utility API allowing specification of a different default flag value depending on the release channel of Android Studio.
  *
- * Example usage: `ChannelDefault.of(100).withOverride(200, BETA)`.
+ * Example usage: `ChannelDefault.enabledUpTo(CANARY)` would return true for dev, nightly and canary, but false for beta, release-candidate
+ * and stable versions of Studio.
  */
-internal class ChannelDefault<T>
-private constructor(default: T, private val versionProvider: (() -> String)? = null) : Supplier<T> {
+internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel) : Boolean = enabledUpTo(leastStableChannel, null)
 
-  private var value: T = default
 
-  override fun get(): T = value
-
-  fun withOverride(override: T, channel: IdeChannel.Channel, vararg moreChannels: IdeChannel.Channel) = apply {
-    val ideChannel = IdeChannel.getChannel(versionProvider)
-    if (ideChannel == channel || ideChannel in moreChannels) value = override
+@VisibleForTesting
+internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : Boolean {
+  check(leastStableChannel <= IdeChannel.Channel.CANARY || leastStableChannel == IdeChannel.Channel.STABLE) {
+    "Flags must not be conditional between Beta, RC and Stable"
   }
-
-  fun withOverride(override: T, channels: ClosedRange<IdeChannel.Channel>) = apply {
-    if (IdeChannel.getChannel(versionProvider) in channels) value = override
-  }
-
-  companion object {
-    @JvmStatic fun <T> of(default: T) = ChannelDefault(default)
-
-    @VisibleForTesting
-    fun <T> of(default: T, versionProvider: (() -> String)) =
-      ChannelDefault(default, versionProvider)
-  }
+  return IdeChannel.getChannel(versionProvider) <= leastStableChannel
 }

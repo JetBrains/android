@@ -123,7 +123,7 @@ public final class StudioFlags {
     NPW, "genai.template",
     "Enable GenAI template",
     "Allows the GenAI template to be used.",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Memory Usage Reporting
@@ -916,7 +916,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = new BooleanFlag(
     EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
     "Enables the settings picker to be shown for testing an application",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Device Mirroring
@@ -937,7 +937,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_TAB_DND = new BooleanFlag(
     DEVICE_MIRRORING, "tab.dnd", "Drag and Drop of Device Tabs",
     "Allow drag and drop of device tabs",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
   public static final Flag<String> DEVICE_MIRRORING_AGENT_LOG_LEVEL = new StringFlag(
     DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\";" +
@@ -1086,7 +1086,7 @@ public final class StudioFlags {
     EDITOR, "compose.state.read.inlay.hints.enabled",
     "Enable inlay hints for State reads in @Composable functions",
     "If enabled, calls out reads of variables of type State inside @Composable functions.",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED = Flag.create(
     EDITOR, "render.drawables.in.autocomplete.enabled",
@@ -1194,7 +1194,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
     COMPOSE, "preview.essentials.mode", "Enable Compose Preview Essentials Mode",
     "If enabled, Compose Preview Essentials Mode will be enabled.",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = new BooleanFlag(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
@@ -1205,7 +1205,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy.enable.default",
     "Enable live edit by default",
     "If enabled, live edit will be enabled by default",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY)
+    ChannelDefault.enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = new BooleanFlag(
@@ -1360,7 +1360,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
     COMPOSE, "compose.preview.keep.image.on.error", "Keeps the last valid image after a render error",
     "If enabled, when an error happens, the surface will keep the last valid image",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(
     COMPOSE, "compose.preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
@@ -1374,7 +1374,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GLANCE_APP_WIDGET_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "glance.preview.appwidget.enabled", "Enable Glance AppWidget preview",
     "If enabled, a preview for annotated glance app widget composable functions is displayed",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> GLANCE_TILE_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
@@ -1384,7 +1384,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
-    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+    ChannelDefault.enabledUpTo(CANARY));
   // endregion
 
   // region Wear Health Services
@@ -1731,7 +1731,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
                     "When enabled, inline code completion suggestions will be shown.",
-                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+                    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
@@ -1748,61 +1748,61 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
                     "Enable sending context with build/sync error queries.",
                     "When enabled, build/sync error queries will attach context from the project.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
                 "Enable sending context with compiler error queries.",
                 "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "gradle.error.context.enabled",
                     "Enable sending contents of Gradle build files with applicable sync/build error queries.",
                     "When enabled, applicable sync/build error queries will attach context (e.g. build file contents), from the project.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_EDITOR_ACTION_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.action.context.enabled",
                     "Enable sending context with editor actions.",
                     "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_CHAT_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.context.enabled",
                     "Enable sending context with chat queries.",
                     "When enabled, chat queries will attach context (e.g. project structure, currently open file) from the project.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_EDITOR_AI_ACTIONS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.actions.enabled",
                     "Enable AI Actions in the editor.",
                     "When enabled, shows the 'AI Actions' item in the editor popup menu along with allowing individual actions to be enabled.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
                     "Enable the transform actions.",
                     "When enabled, the transform actions (document, comment, the custom transform action, etc.) are enabled.",
-                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+                    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_CUSTOM_TRANSFORM_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.enabled",
                     "Enable the custom transform action in the editor.",
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
-                    ChannelDefault.of(false).withOverride(true, DEV));
+                    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_EXPERIMENTAL_SLASH_COMMANDS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.experimental.slash.commands.enabled",
                     "Enable experimental slash comments.",
                     "When enabled, experimental slash commands will be enabled.",
-                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+                    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_USE_FACTS_FOR_CONTEXT =
     new BooleanFlag(STUDIOBOT, "chat.use.facts.for.context",
                     "Use retrieval augmentation facts to attach context to queries.",
                     "When enabled, project context is attached to queries using facts, instead of prepending them directly to the query string.",
-                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+                    ChannelDefault.enabledUpTo(CANARY));
 
   // endregion STUDIO_BOT
 
