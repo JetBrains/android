@@ -32,7 +32,7 @@ import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 
-internal class AddDeviceWizardModel
+internal class LocalAvdConfigurationState
 internal constructor(
   internal val systemImages: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,

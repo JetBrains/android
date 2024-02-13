@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.android.tools.idea.adddevicedialog.localavd.AddDeviceWizardModel
+import com.android.tools.idea.adddevicedialog.localavd.LocalAvdConfigurationState
 import com.android.tools.idea.adddevicedialog.localavd.ConfigureDeviceStep
 import com.android.tools.idea.adddevicedialog.localavd.SystemImage
 import com.android.tools.idea.avdmanager.skincombobox.Skin
@@ -32,7 +32,7 @@ internal object AddDeviceDialog {
     skins: ImmutableCollection<Skin>,
     project: Project?,
   ): DialogWrapper {
-    val model = AddDeviceWizardModel(images, skins)
+    val model = LocalAvdConfigurationState(images, skins)
 
     return StudioWizardDialogBuilder(
         ModelWizard.Builder(ChooseDeviceStep(model), ConfigureDeviceStep(model, project)).build(),

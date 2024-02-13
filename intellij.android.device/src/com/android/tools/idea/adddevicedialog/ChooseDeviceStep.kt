@@ -16,14 +16,14 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.ui.awt.ComposePanel
-import com.android.tools.idea.adddevicedialog.localavd.AddDeviceWizardModel
+import com.android.tools.idea.adddevicedialog.localavd.LocalAvdConfigurationState
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
-internal class ChooseDeviceStep(val model: AddDeviceWizardModel) :
-  ModelWizardStep<AddDeviceWizardModel>(model, "") {
+internal class ChooseDeviceStep(val model: LocalAvdConfigurationState) :
+  ModelWizardStep<LocalAvdConfigurationState>(model, "") {
 
   @OptIn(ExperimentalJewelApi::class)
   private val component: ComposePanel = run {

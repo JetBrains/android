@@ -29,8 +29,8 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 internal class ConfigureDeviceStep
-internal constructor(model: AddDeviceWizardModel, private val project: Project?) :
-  ModelWizardStep<AddDeviceWizardModel>(model, "") {
+internal constructor(model: LocalAvdConfigurationState, private val project: Project?) :
+  ModelWizardStep<LocalAvdConfigurationState>(model, "") {
 
   private val component = initComponent()
 
