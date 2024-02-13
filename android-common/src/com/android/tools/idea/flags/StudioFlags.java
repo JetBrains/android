@@ -1201,6 +1201,13 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     false);
 
+  public static final Flag<Boolean> LIVE_EDIT_ENABLE_BY_DEFAULT = new BooleanFlag(
+    COMPOSE, "deploy.live.edit.deploy.enable.default",
+    "Enable live edit by default",
+    "If enabled, live edit will be enabled by default",
+    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY)
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",

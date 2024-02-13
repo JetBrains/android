@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit
 
-import com.android.tools.idea.IdeChannel
-import com.android.tools.idea.IdeChannel.Channel.CANARY
-import com.android.tools.idea.IdeChannel.Channel.DEV
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
 
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
@@ -27,7 +24,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-import com.android.tools.idea.flags.ChannelDefault
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -48,7 +45,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
 
   class State : BaseState() {
     // Enabled by default only in Dev and Canary.
-    var mode by enum(ChannelDefault.of(DISABLED).withOverride(LIVE_EDIT, DEV, CANARY).get())
+    var mode by enum(if (StudioFlags.LIVE_EDIT_ENABLE_BY_DEFAULT.get()) LIVE_EDIT else DISABLED)
     var leTriggerMode by enum(ON_HOTKEY)
   }
 

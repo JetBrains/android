@@ -19,12 +19,12 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import java.util.regex.Pattern
 
-object IdeChannel {
+internal object IdeChannel {
   /**
    * The IDE channel value. The channels are order based on stability, [DEV] being
    * the least stable and [STABLE] the most.
    */
-  enum class Channel {
+  internal enum class Channel {
     // Channels are ORDERED by stability, do not change the order.
     DEV, // Less stable
     NIGHTLY,
@@ -51,9 +51,7 @@ object IdeChannel {
   /**
    * Returns the [Channel] based on the given [ApplicationInfo].
    */
-  @JvmStatic
-  @JvmOverloads
-  fun getChannel(versionProvider: (() -> String)? = null): Channel {
+  internal fun getChannel(versionProvider: (() -> String)? = null): Channel {
     val versionName = when {
       versionProvider != null -> versionProvider()
       ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"

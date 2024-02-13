@@ -24,7 +24,7 @@ import org.jetbrains.annotations.VisibleForTesting
  *
  * Example usage: `ChannelDefault.of(100).withOverride(200, BETA)`.
  */
-class ChannelDefault<T>
+internal class ChannelDefault<T>
 private constructor(default: T, private val versionProvider: (() -> String)? = null) : Supplier<T> {
 
   private var value: T = default

@@ -24,7 +24,7 @@ ServerFlagOverrides is used to override StudioFlags from
 the server. The server flag name is equal to the studio
 flag name prefaced by "studio_flags/".
  */
-class ServerFlagOverrides : ImmutableFlagOverrides {
+internal class ServerFlagOverrides : ImmutableFlagOverrides {
 
   override fun get(flag: Flag<*>): String? {
     val service = ServerFlagService.instance
