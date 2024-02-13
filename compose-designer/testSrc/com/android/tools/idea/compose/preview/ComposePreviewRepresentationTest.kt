@@ -165,39 +165,9 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testPreviewInitialization() =
     runBlocking(workerThread) {
-      val composeTest = createComposeTest()
-
       val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
-      val modelRenderedLatch = CountDownLatch(2)
-
-      mainSurface.addListener(
-        object : DesignSurfaceListener {
-          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-            val id = UUID.randomUUID().toString().substring(0, 5)
-            logger.info("modelChanged ($id)")
-            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-              logger.info("renderListener ($id)")
-              modelRenderedLatch.countDown()
-            }
-          }
-        }
-      )
-
       val composeView = TestComposePreviewView(mainSurface)
-      val preview =
-        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-          composeView
-        }
-      Disposer.register(fixture.testRootDisposable, preview)
-      withContext(workerThread) {
-        logger.info("compile")
-        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-        logger.info("activate")
-        preview.onActivate()
-
-        modelRenderedLatch.await()
-        delayWhileRefreshingOrDumb(preview)
-      }
+      val preview = createAndInitializeComposePreviewRepresentation(mainSurface, composeView)
 
       mainSurface.models.forEach {
         assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
@@ -224,42 +194,11 @@ class ComposePreviewRepresentationTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     runBlocking(workerThread) {
-      val composeTest = createComposeTest()
-
       val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
-      val modelRenderedLatch = CountDownLatch(2)
-
-      mainSurface.addListener(
-        object : DesignSurfaceListener {
-          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-            val id = UUID.randomUUID().toString().substring(0, 5)
-            logger.info("modelChanged ($id)")
-            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-              logger.info("renderListener ($id)")
-              modelRenderedLatch.countDown()
-            }
-          }
-        }
-      )
+      val composeView = TestComposePreviewView(mainSurface)
       val originalScale = 0.6
       mainSurface.setScale(originalScale)
-
-      val composeView = TestComposePreviewView(mainSurface)
-      val preview =
-        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-          composeView
-        }
-      Disposer.register(fixture.testRootDisposable, preview)
-      withContext(workerThread) {
-        logger.info("compile")
-        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-        logger.info("activate")
-        preview.onActivate()
-
-        modelRenderedLatch.await()
-
-        delayWhileRefreshingOrDumb(preview)
-      }
+      val preview = createAndInitializeComposePreviewRepresentation(mainSurface, composeView)
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
@@ -519,40 +458,10 @@ class ComposePreviewRepresentationTest {
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
     runBlocking(workerThread) {
-      val composeTest = createComposeTest()
-
       val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
-      val modelRenderedLatch = CountDownLatch(2)
-
-      mainSurface.addListener(
-        object : DesignSurfaceListener {
-          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-            val id = UUID.randomUUID().toString().substring(0, 5)
-            logger.info("modelChanged ($id)")
-            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-              logger.info("renderListener ($id)")
-              modelRenderedLatch.countDown()
-            }
-          }
-        }
-      )
-
       val composeView = TestComposePreviewView(mainSurface)
-      val preview =
-        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-          composeView
-        }
-      Disposer.register(fixture.testRootDisposable, preview)
-      withContext(workerThread) {
-        logger.info("compile")
-        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-        logger.info("activate")
-        preview.onActivate()
+      val preview = createAndInitializeComposePreviewRepresentation(mainSurface, composeView)
 
-        modelRenderedLatch.await()
-
-        delayWhileRefreshingOrDumb(preview)
-      }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
@@ -1035,6 +944,41 @@ class ComposePreviewRepresentationTest {
       preview.waitForAnyPendingRefresh()
       withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
     }
+  }
+
+  private suspend fun createAndInitializeComposePreviewRepresentation(
+    mainSurface: NlDesignSurface,
+    composeView: ComposePreviewView,
+  ): ComposePreviewRepresentation {
+    val composeTest = createComposeTest()
+    val modelRenderedLatch = CountDownLatch(2)
+    mainSurface.addListener(
+      object : DesignSurfaceListener {
+        override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+          val id = UUID.randomUUID().toString().substring(0, 5)
+          logger.info("modelChanged ($id)")
+          (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+            logger.info("renderListener ($id)")
+            modelRenderedLatch.countDown()
+          }
+        }
+      }
+    )
+    val preview =
+      ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        composeView
+      }
+    Disposer.register(fixture.testRootDisposable, preview)
+    withContext(workerThread) {
+      logger.info("compile")
+      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+      logger.info("activate")
+      preview.onActivate()
+
+      modelRenderedLatch.await()
+      delayWhileRefreshingOrDumb(preview)
+    }
+    return preview
   }
 
   private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
