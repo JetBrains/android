@@ -219,8 +219,7 @@ internal class SceneViewPanel(
             if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height
             else size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details
-        // in the
-        // ScanlineUtils.kt documentation.
+        // in the ScanlineUtils.kt documentation.
         @SwingCoordinate
         var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
         @SwingCoordinate
@@ -230,17 +229,13 @@ internal class SceneViewPanel(
         var maxY = findLargerScanline(horizontalTopScanLines, bottom, viewportBottom)
 
         // Now, (minX, minY) (maxX, maxY) describes the box that a PositionableContent could paint
-        // into without painting
-        // on top of another PositionableContent render. We use this box to paint the components
-        // that are outside of the
-        // rendering area.
+        // into without painting on top of another PositionableContent render. We use this box to
+        // paint the components that are outside of the rendering area.
         // However, now we need to avoid there "out of bounds" components from being on top of each
-        // other.
-        // To do that, we simply find the middle point, except on the corners of the surface. For
-        // example, the
-        // first PositionableContent on the left, does not have any other PositionableContent that
-        // could paint on its left side so we
-        // do not need to find the middle point in those cases.
+        // other. To do that, we simply find the middle point, except on the corners of the surface.
+        // For example, the first PositionableContent on the left, does not have any other
+        // PositionableContent that could paint on its left side so we do not need to find the
+        // middle point in those cases.
         minX = if (minX > viewportBounds.x) (minX + positionable.x) / 2 else viewportBounds.x
         maxX = if (maxX < viewportRight) (maxX + right) / 2 else viewportRight
         minY = if (minY > viewportBounds.y) (minY + positionable.y) / 2 else viewportBounds.y
