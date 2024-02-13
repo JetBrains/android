@@ -31,9 +31,9 @@ class SdkIndexLintTest : SdkIndexTestBase() {
       },
       beforeClose = null,
       expectedIssues = setOf(
-        "com.mopub:mopub-sdk version 4.16.0 has been marked as outdated by its author",
-        "com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console",
-        "com.startapp:inapp-sdk version 3.9.1 has been marked as outdated by its author and will block publishing of your app to Play Console",
+        "com.mopub:mopub-sdk version 4.16.0 has been reported as outdated by its author",
+        "[Prevents app release in Google Play Console] com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console",
+        "[Prevents app release in Google Play Console] com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console",
         "com.stripe:stripe-android version 9.3.2 has policy issues that will block publishing of your app to Play Console in the future",
       )
     )
