@@ -42,6 +42,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -451,6 +452,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     if (virtualFile != null) {
       PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
       properties.setValue(SCREENSHOT_SAVE_PATH_KEY, virtualFile.getParent().getPath());
+
+      FileEditorManager.getInstance(myProject).openFile(virtualFile, true);
     }
 
     super.doOKAction();
@@ -524,7 +527,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   /**
    * Returns the saved screenshot file, or null of the screenshot was not saved.
    */
-  public @Nullable Path getScreenshot() {
+  public @Nullable Path getScreenshotFile() {
     return myScreenshotFile;
   }
 

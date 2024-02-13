@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
@@ -103,20 +102,14 @@ class ScreenshotAction : DumbAwareAction(
         try {
           val defaultFrame =
               if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshot) else 0
-          val viewer: ScreenshotViewer = object : ScreenshotViewer(project,
-                                                                   screenshot,
-                                                                   backingFile,
-                                                                   screenshotSupplier,
-                                                                   screenshotPostprocessor,
-                                                                   framingOptions,
-                                                                   defaultFrame,
-                                                                   screenshotOptions.screenshotViewerOptions) {
-            override fun doOKAction() {
-              super.doOKAction()
-              backingFile.refresh(false, false)
-              FileEditorManager.getInstance(project).openFile(backingFile, true)
-            }
-          }
+          val viewer = ScreenshotViewer(project,
+                                        screenshot,
+                                        backingFile,
+                                        screenshotSupplier,
+                                        screenshotPostprocessor,
+                                        framingOptions,
+                                        defaultFrame,
+                                        screenshotOptions.screenshotViewerOptions)
           viewer.show()
           Disposer.register(viewer.disposable, screenshotSupplier)
           disposable = null

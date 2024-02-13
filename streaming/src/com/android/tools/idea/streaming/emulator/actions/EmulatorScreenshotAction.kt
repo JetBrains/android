@@ -36,13 +36,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Rectangle
@@ -91,34 +89,14 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
 
         ApplicationManager.getApplication().invokeLater {
-          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator, framingOptions)
+          val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator, framingOptions, 0,
+                                        EnumSet.noneOf(ScreenshotViewer.Option::class.java))
+          viewer.show()
         }
       }
       catch (e: Exception) {
         thisLogger().error("Error while displaying screenshot viewer", e)
       }
-    }
-
-    private fun showScreenshotViewer(project: Project,
-                                     screenshotImage: ScreenshotImage,
-                                     backingFile: VirtualFile,
-                                     screenshotSupplier: ScreenshotSupplier,
-                                     screenshotDecorator: ScreenshotDecorator,
-                                     framingOptions: List<FramingOption>) {
-      val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator,
-                                             framingOptions, 0, EnumSet.noneOf(Option::class.java)) {
-        override fun doOKAction() {
-          super.doOKAction()
-          screenshot?.let {
-            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(it)?.let { virtualFile ->
-              virtualFile.refresh(false, false)
-              FileEditorManager.getInstance(project).openFile(virtualFile, true)
-            }
-          }
-        }
-      }
-
-      viewer.show()
     }
   }
 
