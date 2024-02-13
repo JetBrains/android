@@ -57,6 +57,8 @@ class EmulatorScreenshotActionTest {
 
   @get:Rule
   val ruleChain = RuleChain(emulatorViewRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule
+  val portableUiFontRule = PortableUiFontRule()
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
@@ -68,9 +70,6 @@ class EmulatorScreenshotActionTest {
   private var emulatorView: EmulatorView
     get() = nullableEmulatorView ?: throw IllegalStateException()
     set(value) { nullableEmulatorView = value }
-
-  @get:Rule
-  val portableUiFontRule = PortableUiFontRule()
 
   @Test
   fun testAction() {
