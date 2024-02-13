@@ -26,15 +26,22 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
 import java.awt.Point
+import javax.swing.JViewport
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+
+/** The minimum scale we'll allow. */
+@VisibleForTesting @SurfaceScale const val MIN_SCALE: Double = 0.0
+
+/** The maximum scale we'll allow. */
+@VisibleForTesting @SurfaceScale const val MAX_SCALE: Double = 10.0
 
 /**
  * If the difference between old and new scaling values is less than threshold, the scaling will be
  * ignored.
  */
-@SurfaceZoomLevel const val SCALING_THRESHOLD = 0.005
+@SurfaceZoomLevel private const val SCALING_THRESHOLD = 0.005
 
 /**
  * Implementation of [ZoomController] for [DesignSurface] zoom logic.
@@ -44,16 +51,16 @@ import kotlin.math.min
  * this means that changing zooming interaction in this class will also affect [NlDesignSurface] as
  * well as [NavDesignSurface].
  *
+ * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
+ * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
+ * @param scenesOwner The owner of this [ZoomController].
+ * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT.
  * FIXME(b/291572358): this will replace the zoom logic within [DesignSurface]
  */
 abstract class DesignSurfaceZoomController(
-  /** Analytics tracker responsible to track the zoom changes. */
   val designerAnalyticsManager: DesignerAnalyticsManager?,
-  /** The collection of [NlComponent]s of [DesignSurface]. */
   val selectionModel: SelectionModel?,
-  /** The owner of this [ZoomController] */
   private val scenesOwner: ScenesOwner?,
-  /** The maximum zoom level allowed for ZoomType#FIT. */
   private val maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
 
@@ -80,18 +87,13 @@ abstract class DesignSurfaceZoomController(
 
   @SurfaceScreenScalingFactor override var screenScalingFactor: Double = 1.0
 
-  override fun setScale(scale: Double): Boolean {
-    return setScale(scale, -1, -1)
-  }
-
   /**
-   * <p>
    * Set the scale factor used to multiply the content size and try to position the viewport such
    * that its center is the closest possible to the provided x and y coordinate in the Viewport's
-   * view coordinate system ({@link JViewport#getView()}). </p><p> If x OR y are negative, the scale
-   * will be centered toward the center the viewport. </p>
+   * view coordinate system [JViewport.getView]. If x OR y are negative, the scale will be centered
+   * toward the center the viewport.
    *
-   * @param scale The scale factor. Can be any value but it will be capped between -1 and 10 (value
+   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
    *   below 0 means zoom to fit) This value doesn't consider DPI.
    * @param x The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y The Y coordinate to center the scale to (in the Viewport's view coordinate system)
@@ -112,11 +114,7 @@ abstract class DesignSurfaceZoomController(
     return true
   }
 
-  private fun getBoundedScale(scale: Double): Double = min(max(scale, MIN_SCALE), MAX_SCALE)
-
-  @UiThread override fun zoomToFit(): Boolean = zoom(ZoomType.FIT, -1, -1)
-
-  @UiThread override fun zoom(type: ZoomType): Boolean = zoom(type, -1, -1)
+  override fun setScale(scale: Double): Boolean = setScale(scale, -1, -1)
 
   @UiThread
   override fun zoom(type: ZoomType, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean {
@@ -162,6 +160,10 @@ abstract class DesignSurfaceZoomController(
     return scaled
   }
 
+  @UiThread override fun zoomToFit(): Boolean = zoom(ZoomType.FIT, -1, -1)
+
+  @UiThread override fun zoom(type: ZoomType): Boolean = zoom(type, -1, -1)
+
   override fun canZoomIn(): Boolean = scale < MAX_SCALE && !isScaleSame(scale, MAX_SCALE)
 
   override fun canZoomOut(): Boolean = MIN_SCALE < scale && !isScaleSame(MIN_SCALE, scale)
@@ -188,11 +190,5 @@ abstract class DesignSurfaceZoomController(
     return abs(scaleA - scaleB) < tolerance
   }
 
-  companion object {
-    /** The minimum scale we'll allow. */
-    @VisibleForTesting @SurfaceScale const val MIN_SCALE: Double = 0.0
-
-    /** The maximum scale we'll allow. */
-    @VisibleForTesting @SurfaceScale const val MAX_SCALE: Double = 10.0
-  }
+  private fun getBoundedScale(scale: Double): Double = min(max(scale, MIN_SCALE), MAX_SCALE)
 }

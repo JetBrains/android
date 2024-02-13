@@ -18,7 +18,7 @@ package com.android.tools.adtui
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
 
-/** Applies zoom changes to a Zoomable surface. */
+/** Applies zoom changes to a [Zoomable] surface. */
 interface ZoomController : Zoomable {
 
   /**
@@ -50,7 +50,7 @@ interface ZoomController : Zoomable {
   /**
    * Applies zoom to fit.
    *
-   * @return true if it is successfully applied, false otherwise.
+   * @return True if it is successfully applied, false otherwise.
    */
   fun zoomToFit(): Boolean
 
@@ -58,8 +58,8 @@ interface ZoomController : Zoomable {
    * The scale to make the content fit the design surface.
    *
    * This value is the result of the measure of the scale size which can fit the SceneViews into the
-   * scrollable area. It doesn't consider the legal scale range, which can be get by [getMaxScale]
-   * and [getMinScale].
+   * scrollable area. It doesn't consider the legal scale range, which can be got by max scale and
+   * min scale.
    */
   @SurfaceScale fun getFitScale(): Double
 }

@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
+import com.android.tools.idea.common.surface.MAX_SCALE
+import com.android.tools.idea.common.surface.MIN_SCALE
 import com.android.tools.idea.uibuilder.editor.multirepresentation.any
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import junit.framework.TestCase.assertEquals
@@ -32,9 +34,7 @@ class NlDesignSurfaceZoomControllerTest {
   @Test
   fun `test fit scale when the surface is empty`() {
     // There are no items to show in [NlDesignSurface]
-    val zoomController = createNlDesignSurfaceZoomController(
-      sceneViewPanelComponents = emptyList()
-    )
+    val zoomController = createNlDesignSurfaceZoomController(sceneViewPanelComponents = emptyList())
 
     // Fit scale remains with a value of 1.0
     assertEquals(1.0, zoomController.getFitScale())
@@ -47,7 +47,8 @@ class NlDesignSurfaceZoomControllerTest {
     // [NlDesignSurface] contains 3 [SceneViewPeerPanel]s
     val sceneViewPeerPanelsMock: Collection<PositionableContent> = (0..2).map { mock() }
 
-    // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit these 3 panels
+    // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit these 3
+    // panels
     val layoutManagerMock =
       mock<NlDesignSurfacePositionableContentLayoutManager>().apply {
         whenever(getFitIntoScale(any(), any())).thenReturn(10.0)
@@ -75,11 +76,11 @@ class NlDesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     Assert.assertTrue(zoomController.setScale(-10.0))
-    Assert.assertEquals(DesignSurfaceZoomController.MIN_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(MIN_SCALE, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     Assert.assertTrue(zoomController.setScale(20.0))
-    Assert.assertEquals(DesignSurfaceZoomController.MAX_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(MAX_SCALE, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same
@@ -103,11 +104,11 @@ class NlDesignSurfaceZoomControllerTest {
 
     // We can't change the scale less than the minimum scale
     Assert.assertTrue(zoomController.setScale(-10.0, 3, 5))
-    Assert.assertEquals(DesignSurfaceZoomController.MIN_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(MIN_SCALE, zoomController.scale, 0.0)
 
     // We can't change the scale more than the maximum scale
     Assert.assertTrue(zoomController.setScale(20.0, 4, 2))
-    Assert.assertEquals(DesignSurfaceZoomController.MAX_SCALE, zoomController.scale, 0.0)
+    Assert.assertEquals(MAX_SCALE, zoomController.scale, 0.0)
 
     zoomController.setScale(2.0)
     // We can't change the scale if scale is the same
