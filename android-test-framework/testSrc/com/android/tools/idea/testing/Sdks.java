@@ -34,7 +34,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
@@ -42,11 +41,12 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -82,6 +82,7 @@ public final class Sdks {
     Sdk androidSdk = androidSdks.stream().filter(sdk -> sdk.getName().equals(sdkName)).findFirst()
       .orElseGet(() -> createAndroidSdk(parentDisposable, sdkName, true, androidPlatformVersion));
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    IndexingTestUtil.waitUntilIndexesAreReady(module.getProject());
     return androidSdk;
   }
 
