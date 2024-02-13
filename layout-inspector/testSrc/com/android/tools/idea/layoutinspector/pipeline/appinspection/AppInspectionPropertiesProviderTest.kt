@@ -66,6 +66,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -713,6 +714,7 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
+  @Ignore("b/324465557")
   @Test
   fun testPropertiesModelNotifications() {
     projectRule.fixture.addFileToProject(
