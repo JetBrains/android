@@ -16,11 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
-import com.android.repository.api.RepoPackage
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
@@ -40,6 +37,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
@@ -397,23 +395,21 @@ class AppInspectionInspectorClient(
   ) {
     val compatibility = checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
 
-    val systemImagePackage =
+    val notCompatibleReason =
       when (compatibility) {
         Compatibility.Compatible -> return
-        is Compatibility.NotCompatible -> compatibility.systemImage
+        is Compatibility.NotCompatible -> compatibility.reason
       }
 
-    val systemImageTags =
-      (systemImagePackage.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: emptyList()
-
-    if (systemImageTags.contains(SystemImageTags.PLAY_STORE_TAG)) {
-      // We don't support Play Store images on API 29: b/180622424
-      notificationModel.addNotification(
-        SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-        LayoutInspectorBundle.message("api29.playstore.message"),
-        Status.Warning,
-        listOf(notificationModel.dismissAction),
-      )
+    when (notCompatibleReason) {
+      API_29_PLAY_STORE -> {
+        notificationModel.addNotification(
+          SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+          LayoutInspectorBundle.message("api29.playstore.message"),
+          Status.Warning,
+          listOf(notificationModel.dismissAction),
+        )
+      }
     }
 
     throw ConnectionFailedException(
@@ -444,11 +440,10 @@ private fun checkSystemImageForAppInspectionCompatibility(
       ?.name ?: return Compatibility.Compatible
 
   val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
-  val imagePackage =
-    (avd?.systemImage as? SystemImage)?.`package` ?: return Compatibility.Compatible
 
-  return if (SystemImageTags.PLAY_STORE_TAG == avd.tag) {
-    Compatibility.NotCompatible(imagePackage)
+  return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
+    // We don't support Play Store images on API 29: b/180622424
+    Compatibility.NotCompatible(API_29_PLAY_STORE)
   } else {
     Compatibility.Compatible
   }
@@ -457,5 +452,9 @@ private fun checkSystemImageForAppInspectionCompatibility(
 private sealed class Compatibility {
   object Compatible : Compatibility()
 
-  data class NotCompatible(val systemImage: RepoPackage) : Compatibility()
+  data class NotCompatible(val reason: Reason) : Compatibility() {
+    enum class Reason {
+      API_29_PLAY_STORE
+    }
+  }
 }
