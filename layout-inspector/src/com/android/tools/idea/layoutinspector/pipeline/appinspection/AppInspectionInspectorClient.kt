@@ -393,7 +393,14 @@ class AppInspectionInspectorClient(
     project: Project,
     sdkHandler: AndroidSdkHandler,
   ) {
-    val compatibility = checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
+    val compatibility =
+      checkSystemImageForAppInspectionCompatibility(
+        process.device.isEmulator,
+        process.device.apiLevel,
+        process.device.serial,
+        project,
+        sdkHandler,
+      )
 
     val notCompatibleReason =
       when (compatibility) {
@@ -420,24 +427,22 @@ class AppInspectionInspectorClient(
 }
 
 /** Check whether the current target's system image is compatible with app inspection. */
-private fun checkSystemImageForAppInspectionCompatibility(
-  process: ProcessDescriptor,
+fun checkSystemImageForAppInspectionCompatibility(
+  isEmulator: Boolean,
+  apiLevel: Int,
+  serialNumber: String,
   project: Project,
   sdkHandler: AndroidSdkHandler,
 ): Compatibility {
-  if (!process.device.isEmulator || process.device.apiLevel != 29) {
+  if (!isEmulator || apiLevel != 29) {
     // We are interested in checking only emulators running API 29.
     return Compatibility.Compatible
   }
 
   val adb = AdbUtils.getAdbFuture(project).get()
   val avdName =
-    adb
-      ?.devices
-      ?.find { it.serialNumber == process.device.serial }
-      ?.avdData
-      ?.get(1, TimeUnit.SECONDS)
-      ?.name ?: return Compatibility.Compatible
+    adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.get(1, TimeUnit.SECONDS)?.name
+      ?: return Compatibility.Compatible
 
   val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
 
@@ -449,7 +454,7 @@ private fun checkSystemImageForAppInspectionCompatibility(
   }
 }
 
-private sealed class Compatibility {
+sealed class Compatibility {
   object Compatible : Compatibility()
 
   data class NotCompatible(val reason: Reason) : Compatibility() {
