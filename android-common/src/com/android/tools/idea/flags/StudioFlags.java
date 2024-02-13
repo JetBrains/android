@@ -1729,7 +1729,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
-                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
+                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", true);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
