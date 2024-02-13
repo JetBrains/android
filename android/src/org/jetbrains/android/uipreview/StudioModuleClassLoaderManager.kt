@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
+import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
@@ -90,6 +91,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
       ModuleManager.getInstance(project).modules.forEach {
         ModuleClassLoaderManager.get().clearCache(it)
       }
+      JarManager.getInstance(project).clearCache()
     }
   }
 
