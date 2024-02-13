@@ -141,21 +141,27 @@ class WearHealthServicesToolWindowTest {
   }
 
   @Test
-  fun `test override value doesn't get reformatted to float if it has f in it`() = runBlocking {
+  fun `test override value rejects invalid text`() = runBlocking {
     val fakeUi = FakeUi(toolWindow)
 
     deviceManager.activeExercise = true
 
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+
     textField.text = "50f"
+    assertThat(textField.text).isEmpty()
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
+    textField.text = "50"
+    assertThat(textField.text).isEqualTo("50")
 
-    delay(200) // TODO: Change to 2 times polling interval
+    textField.text = "50.0"
+    assertThat(textField.text).isEqualTo("50.0")
 
-    assertThat(textField.text).isNotEqualTo("50.0")
-    assertThat(textField.text).isEqualTo("50f")
+    textField.text = "50.0a"
+    assertThat(textField.text).isEqualTo("50.0")
+
+    textField.text = "test"
+    assertThat(textField.text).isEqualTo("50.0")
   }
 
   @Test

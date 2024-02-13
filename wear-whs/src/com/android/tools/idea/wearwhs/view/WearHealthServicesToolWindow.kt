@@ -24,14 +24,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
-import com.intellij.codeInsight.hint.HintUtil.createWarningLabel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
@@ -47,8 +45,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
+import java.awt.Toolkit
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
@@ -58,9 +55,12 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
-import javax.swing.event.DocumentEvent
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 private const val PADDING = 15
+private val floatPattern = Regex("([0-9]*[.])?[0-9]*")
 
 private val horizontalBorders = Borders.empty(0, PADDING)
 
@@ -227,20 +227,14 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   }
 
   private fun createCenterPanel(capabilities: List<WhsCapability>): JPanel {
-    val warningLabel = createWarningLabel(message("wear.whs.panel.overridden.value.invalid")).apply {
-      setBorder(Borders.empty(2))
-      isVisible = false
-    }
     // List of elements that should be hidden if there's an active exercise
     val overrideElementsList = mutableListOf<JComponent>()
-    overrideElementsList.add(warningLabel)
     stateManager.getOngoingExercise().onEach {
       overrideElementsList.forEach { element ->
         element.isVisible = it
       }
     }.launchIn(uiScope)
     return JPanel(VerticalFlowLayout()).apply {
-      add(warningLabel)
       border = horizontalBorders
       add(JPanel(BorderLayout()).apply {
         add(JLabel(message("wear.whs.panel.sensor")).apply {
@@ -283,49 +277,45 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           add(JPanel(FlowLayout()).apply {
             overrideElementsList.add(this)
             add(JTextField().also { textField ->
-              textField.addFocusListener(object : FocusListener {
-                override fun focusGained(e: FocusEvent?) {}
-
-                override fun focusLost(e: FocusEvent?) {
-                  // Validate the field when the user navigates away and clear it
-                  try {
-                    textField.text.toFloat()
+              (textField.document as AbstractDocument).documentFilter = object : DocumentFilter() {
+                fun validate(string: String): Boolean {
+                  if (!floatPattern.matches(string)) {
+                    return false
                   }
-                  catch (exception: NumberFormatException) {
-                    getLogger().warn("String is not a float")
-                    textField.text = ""
-                    workerScope.launch {
-                      stateManager.setOverrideValue(capability, null)
-                    }
-                  }
-                  finally {
-                    warningLabel.isVisible = false
-                  }
-                }
-              })
-              textField.document.addDocumentListener(object : DocumentAdapter() {
-                override fun textChanged(e: DocumentEvent) {
                   workerScope.launch {
-                    try {
-                      if (textField.text.isEmpty()) {
-                        stateManager.setOverrideValue(capability, null)
-                      }
-                      else {
-                        stateManager.setOverrideValue(capability, textField.text.toFloat())
-                      }
-                      uiScope.launch {
-                        warningLabel.isVisible = false
-                      }
-                    }
-                    catch (exception: NumberFormatException) {
-                      getLogger().warn("String is not a float")
-                      uiScope.launch {
-                        warningLabel.isVisible = true
-                      }
-                    }
+                    stateManager.setOverrideValue(capability, string.toFloatOrNull())
+                  }
+                  return true
+                }
+
+                override fun insertString(fb: FilterBypass, offset: Int, text: String, attr: AttributeSet?) {
+                  val newValue =
+                    fb.document.getText(0, offset) +
+                    text +
+                    fb.document.getText(offset, fb.document.length - offset)
+
+                  if (validate(newValue)) {
+                    super.insertString(fb, offset, text, attr)
+                  }
+                  else {
+                    Toolkit.getDefaultToolkit().beep()
                   }
                 }
-              })
+
+                override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String, attr: AttributeSet?) {
+                  val newValue =
+                    fb.document.getText(0, offset) +
+                    text +
+                    fb.document.getText(offset + length, fb.document.length - offset - length)
+
+                  if (validate(newValue)) {
+                    super.replace(fb, offset, length, text, attr)
+                  }
+                  else {
+                    Toolkit.getDefaultToolkit().beep()
+                  }
+                }
+              }
               stateManager.getState(capability).map { it.capabilityState.overrideValue }.onEach {
                 if (!textField.isFocusOwner && textField.text.toFloatOrNull() != it) {
                   textField.text = it?.toString() ?: ""
