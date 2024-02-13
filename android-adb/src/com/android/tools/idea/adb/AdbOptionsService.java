@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SmartList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ public final class AdbOptionsService {
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
 
   private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
-  private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name";
+  private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name2";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
@@ -69,11 +70,18 @@ public final class AdbOptionsService {
 
   @NotNull
   public AdbServerMdnsBackend getAdbServerMdnsBackend() {
-    String value = PropertiesComponent.getInstance().getValue(MDNS_BACKEND_NAME, AdbServerMdnsBackend.DEFAULT.name());
+    final AdbServerMdnsBackend defaultMdnsBackend;
+    if (SystemInfo.isMac) {
+      defaultMdnsBackend = AdbServerMdnsBackend.BONJOUR;
+    } else {
+      defaultMdnsBackend = AdbServerMdnsBackend.OPENSCREEN;
+    }
+
+    String value = PropertiesComponent.getInstance().getValue(MDNS_BACKEND_NAME, defaultMdnsBackend.name());
     try {
       return AdbServerMdnsBackend.valueOf(value);
     } catch(IllegalArgumentException e) {
-      return AdbServerMdnsBackend.DEFAULT;
+      return defaultMdnsBackend;
     }
   }
 
