@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import java.awt.Component
 import java.awt.event.InputEvent
 import java.util.function.Function
-import javax.swing.JComponent
 
 open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManagerEx() {
   override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu =
@@ -97,10 +96,6 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   override fun getActionIdList(idPrefix: String): MutableList<String> =
     wrapped.getActionIdList(idPrefix)
   override fun isGroup(actionId: String): Boolean = wrapped.isGroup(actionId)
-  override fun createButtonToolbar(
-    actionPlace: String,
-    messageActionGroup: ActionGroup
-  ): JComponent = wrapped.createButtonToolbar(actionPlace, messageActionGroup)
   override fun fireAfterActionPerformed(
     action: AnAction,
     event: AnActionEvent,
