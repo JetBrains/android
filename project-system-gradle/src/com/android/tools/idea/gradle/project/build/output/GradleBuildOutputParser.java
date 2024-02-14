@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
+import static com.android.ide.common.blame.MessageJsonSerializer.STDOUT_ERROR_TAG;
 import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;

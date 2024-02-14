@@ -7,7 +7,6 @@ iml_module(
     iml_files = ["intellij.android.buildCommon.iml"],
     jvm_target = "8",
     lint_baseline = "lint_baseline.xml",
-    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [

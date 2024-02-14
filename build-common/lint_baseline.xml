@@ -1,26 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="                  position = AbstractAaptOutputParser.findResourceLine(file.getSourceFile(), matcher.group(2), logger);"
-        errorLine2="                                                      ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/gradle/output/parser/BuildFailureParser.java"
-            line="174"
-            column="55"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="                  SourcePosition otherPos = AbstractAaptOutputParser.findResourceLine(other, matcher.group(4), logger);"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/gradle/output/parser/BuildFailureParser.java"
-            line="176"
-            column="70"/>
-    </issue>
-
 </issues>
