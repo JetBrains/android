@@ -849,7 +849,7 @@ public class NavigationSchema implements Disposable {
    * tag "foo" we'll return the subtags for both fragments and activities here.
    * <p>
    * Implementation note: We define the hierarchy this way instead of via the normal mechanism
-   * (https://www.jetbrains.org/intellij/sdk/docs/reference_guide/frameworks_and_external_apis/xml_dom_api.html)
+   * (<a href="https://plugins.jetbrains.com/docs/intellij/xml-dom-api.html">XML DOM API</a>)
    * since we need to support custom tags that aren't known at compile time.
    * TODO: investigate whether this can be done using the normal mechanism and a DomExtender (specifically for the root tag).
    */
