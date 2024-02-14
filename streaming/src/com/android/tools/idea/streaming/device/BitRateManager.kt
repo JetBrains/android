@@ -123,7 +123,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   @TestOnly
   fun toXmlString(): String {
     val element = synchronized(bitRateTrackers) {
-      serialize(this) ?: throw RuntimeException("Unable to serialize $this")
+      serialize(this@BitRateManager) ?: throw RuntimeException("Unable to serialize ${this@BitRateManager}")
     }
     val writer = StringWriter()
     JbXmlOutputter().output(element, writer)
@@ -131,7 +131,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   }
 
   private fun DeviceProperties.key(): String =
-      "${this.manufacturer ?: ""}|${this.model ?: ""}|${this.primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
+      "${manufacturer ?: ""}|${model ?: ""}|${primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
 
   companion object {
     fun getInstance(): BitRateManager = ApplicationManager.getApplication().service<BitRateManager>()
