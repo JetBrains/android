@@ -19,7 +19,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions;
 import com.intellij.openapi.wm.ToolWindowContentUiType;
-import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
@@ -550,7 +549,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content[] getContents() {
+    public Content @NotNull [] getContents() {
       return myContents.toArray(new Content[0]);
     }
 
@@ -565,7 +564,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content[] getSelectedContents() {
+    public Content @NotNull [] getSelectedContents() {
       return mySelected != null ? new Content[]{mySelected} : new Content[0];
     }
 
