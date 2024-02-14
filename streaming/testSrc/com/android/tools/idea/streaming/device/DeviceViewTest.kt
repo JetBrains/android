@@ -841,7 +841,7 @@ internal class DeviceViewTest {
   @Test
   fun testConnectionTimeout() {
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.override(200, testRootDisposable)
-    agent.startDelayMillis = 300
+    agent.startDelayMillis = 500
     val loggedErrors = executeCapturingLoggedErrors {
       createDeviceViewWithoutWaitingForAgent(500, 1000, screenScale = 1.0)
       val errorMessage = fakeUi.getComponent<JEditorPane>()
