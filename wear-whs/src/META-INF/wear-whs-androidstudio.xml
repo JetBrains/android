@@ -27,6 +27,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Wear Health Services"
                 anchor="right"
+                doNotActivateOnStart="true"
                 icon="StudioIcons.Emulator.Wear.HEALTH_SERVICES"
                 factoryClass="com.android.tools.idea.wearwhs.widget.WearHealthServicesToolWindowFactory"/>
   </extensions>
