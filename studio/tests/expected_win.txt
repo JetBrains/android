@@ -105,6 +105,7 @@ android-studio/jbr/bin/attach.dll
 android-studio/jbr/bin/awt.dll
 android-studio/jbr/bin/dt_shmem.dll
 android-studio/jbr/bin/dt_socket.dll
+android-studio/jbr/bin/extnet.dll
 android-studio/jbr/bin/fontmanager.dll
 android-studio/jbr/bin/freetype.dll
 android-studio/jbr/bin/instrument.dll
