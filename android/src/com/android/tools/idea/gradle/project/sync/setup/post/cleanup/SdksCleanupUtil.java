@@ -27,7 +27,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
@@ -95,6 +95,6 @@ public class SdksCleanupUtil {
       sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
     }
     attachJdkAnnotations(sdkModificator);
-    ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges);
+    WriteAction.runAndWait(sdkModificator::commitChanges);
   }
 }
