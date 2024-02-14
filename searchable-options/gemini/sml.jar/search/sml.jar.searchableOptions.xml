@@ -7,13 +7,12 @@
     <option name="document" path="ActionManager" hit="Document Code" />
     <option name="code" path="ActionManager" hit="Explain Code" />
     <option name="explain" path="ActionManager" hit="Explain Code" />
+    <option name="gemini" path="ActionManager" hit="Gemini" />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
-    <option name="bot" path="ActionManager" hit="Studio Bot" />
-    <option name="studio" path="ActionManager" hit="Studio Bot" />
     <option name="transform" path="ActionManager" hit="Transform..." />
   </configurable>
-  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
+  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Gemini">
     <option name="" hit=" Augment responses with information from your codebase" />
     <option name="augment" hit=" Augment responses with information from your codebase" />
     <option name="codebase" hit=" Augment responses with information from your codebase" />
@@ -34,17 +33,15 @@
     <option name="code" hit="Enable AI code completion" />
     <option name="completion" hit="Enable AI code completion" />
     <option name="enable" hit="Enable AI code completion" />
+    <option name="gemini" hit="Gemini" />
+    <option name="a" hit="Gemini requires a logged in Google account." />
+    <option name="account" hit="Gemini requires a logged in Google account." />
+    <option name="gemini" hit="Gemini requires a logged in Google account." />
+    <option name="google" hit="Gemini requires a logged in Google account." />
+    <option name="in" hit="Gemini requires a logged in Google account." />
+    <option name="logged" hit="Gemini requires a logged in Google account." />
+    <option name="requires" hit="Gemini requires a logged in Google account." />
     <option name="privacy" hit="Privacy Settings" />
     <option name="settings" hit="Privacy Settings" />
-    <option name="bot" hit="Studio Bot" />
-    <option name="studio" hit="Studio Bot" />
-    <option name="a" hit="Studio Bot requires a logged in Google account." />
-    <option name="account" hit="Studio Bot requires a logged in Google account." />
-    <option name="bot" hit="Studio Bot requires a logged in Google account." />
-    <option name="google" hit="Studio Bot requires a logged in Google account." />
-    <option name="in" hit="Studio Bot requires a logged in Google account." />
-    <option name="logged" hit="Studio Bot requires a logged in Google account." />
-    <option name="requires" hit="Studio Bot requires a logged in Google account." />
-    <option name="studio" hit="Studio Bot requires a logged in Google account." />
   </configurable>
 </options>
