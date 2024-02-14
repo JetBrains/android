@@ -42,6 +42,7 @@ class ApplyChangesTest {
   @Test
   fun applyChangesTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/applychanges")
+
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->

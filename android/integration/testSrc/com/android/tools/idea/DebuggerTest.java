@@ -37,7 +37,6 @@ public class DebuggerTest {
   @Test
   public void runDebuggerTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/mindebugapp");
-
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"));
 

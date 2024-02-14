@@ -37,7 +37,7 @@ public class AndroidProject {
 
     // By default, we set the distribution to the version that most integration tests should be
     // using. This version corresponds to `INTEGRATION_TEST_GRADLE_VERSION` in Bazel.
-    setDistribution("tools/external/gradle/gradle-7.5-bin.zip");
+    setDistribution("tools/external/gradle/gradle-8.6-bin.zip");
   }
 
   public void setDistribution(String path) {

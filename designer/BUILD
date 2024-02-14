@@ -2,6 +2,7 @@ load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -195,12 +196,12 @@ iml_module(
 
 layout_editor_data = [
     ":layout_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/designer/testData:simpleApplication",
     "//tools/adt/idea/designer/testData:visualLintApplication",
-    "//tools/base/build-system:gradle-distrib-7.3.3",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 maven_repository(
@@ -209,8 +210,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KGP_VERSION_FOR_TESTS,

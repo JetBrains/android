@@ -62,7 +62,6 @@ class LiveEditTest {
   @Test
   fun liveEditTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
-    project.setDistribution("tools/external/gradle/gradle-8.0-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
 
     enableLiveEdit()

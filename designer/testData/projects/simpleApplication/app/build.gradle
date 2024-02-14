@@ -4,7 +4,7 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId "google.simpleapplication"
+        namespace "google.simpleapplication"
         minSdkVersion 29
         targetSdkVersion 33
         versionCode 1

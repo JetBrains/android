@@ -34,7 +34,7 @@ maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KGP_VERSION_FOR_TESTS,

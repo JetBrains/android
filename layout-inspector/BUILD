@@ -210,7 +210,7 @@ iml_module(
 
 layout_inspector_view_data = [
     ":view_project_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/layout-inspector/integration/testData:emptyApplication",
@@ -222,10 +222,10 @@ maven_repository(
     name = "view_project_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
-        "@maven//:com.android.library.com.android.library.gradle.plugin_7.2.0",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.1.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_8.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
