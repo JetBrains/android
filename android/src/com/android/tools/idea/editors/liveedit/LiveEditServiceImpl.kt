@@ -71,6 +71,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -327,6 +328,10 @@ class LiveEditServiceImpl(val project: Project,
       }
 
       override fun contentRemoveQuery(event: ContentManagerEvent) {
+        val content = event.content
+        if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
+          return
+        }
         val dataProvider = event.content.component as? DataProvider ?: return
         val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
         serial?.let { adapter.unregister(it) }
