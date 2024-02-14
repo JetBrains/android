@@ -39,6 +39,7 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       }
       // Make sure no additional error build issue events are generated
       expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
+      expect.that(buildEvents.finishEventFailures()).isEmpty()
     },
     expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND
   )

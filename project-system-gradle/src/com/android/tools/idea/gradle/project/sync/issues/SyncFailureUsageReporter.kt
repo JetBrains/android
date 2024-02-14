@@ -80,6 +80,7 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Could not find method ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
   }
