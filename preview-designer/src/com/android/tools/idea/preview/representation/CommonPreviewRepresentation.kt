@@ -181,6 +181,8 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             setUseCustomInflater(useCustomInflater)
             setShrinkRendering(true)
             setRenderingTopic(renderingTopic)
+            setListenResourceChange(false) // don't re-render on resource changes
+            setUpdateAndRenderWhenActivated(false) // don't re-render on activation
           }
         }
         .setInteractionHandlerProvider {
