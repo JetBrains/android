@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
  * therefore it allows to have several representations for a single source code file.
  */
 internal class SourceCodeEditorWithMultiRepresentationPreview(
-  private val project: Project,
+  project: Project,
   textEditor: TextEditor,
   preview: SourceCodePreview,
 ) :
