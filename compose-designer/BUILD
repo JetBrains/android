@@ -169,6 +169,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests[module, test]",
     ],
 )
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.preview.animation.InspectorPainter
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Graphics2D
 import javax.swing.JSlider

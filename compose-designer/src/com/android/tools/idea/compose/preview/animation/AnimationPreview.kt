@@ -26,18 +26,22 @@ import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.state.AnimationState.Companion.createState
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.AnimationPreviewState
+import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
+import com.android.tools.idea.preview.animation.TimelinePanel
+import com.android.tools.idea.preview.animation.Tooltip
+import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.timeline.PositionProxy
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.TimelineLine
+import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -199,7 +203,7 @@ class AnimationPreview(
    */
   var animationClock: AnimationClock? = null
 
-  private var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
+  private var maxDurationPerIteration = DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
     set(value) {
       field = value
       updateTimelineMaximum()

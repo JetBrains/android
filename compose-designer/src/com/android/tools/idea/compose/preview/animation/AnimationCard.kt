@@ -17,10 +17,11 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
+import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -100,7 +101,11 @@ class AnimationCard(
 
   init {
     val expandButton =
-      createToolbarWithNavigation(rootComponent, "ExpandCollapseAnimationCard", ExpandAction())
+      createToolbarWithNavigation(
+        rootComponent,
+        "ExpandCollapseAnimationCard",
+        listOf(ExpandAction()),
+      )
     firstRow.add(expandButton.component, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.value.title ?: "_"), TabularLayout.Constraint(0, 1))
 

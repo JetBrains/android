@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.StateFlow
 

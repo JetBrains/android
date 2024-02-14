@@ -132,7 +132,8 @@ class ComposePreviewViewImplTest {
   private lateinit var fakeUi: FakeUi
 
   @Before
-  fun setUp() = runBlocking(uiThread) {
+  fun setUp() =
+    runBlocking(uiThread) {
       // Setup a fake manifest so rendering works correctly
       val manifest =
         fixture.addFileToProjectAndInvalidate(

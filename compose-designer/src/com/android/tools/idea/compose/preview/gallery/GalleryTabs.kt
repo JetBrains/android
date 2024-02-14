@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.preview.Colors
+import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar

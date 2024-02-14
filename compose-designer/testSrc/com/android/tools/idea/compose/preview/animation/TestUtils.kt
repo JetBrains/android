@@ -18,54 +18,23 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.preview.animation.TooltipInfo
+import com.android.tools.idea.preview.animation.AnimationPreviewState
+import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor
-import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.Graphics2D
-import java.awt.Point
 import java.util.stream.Collectors
 import javax.swing.JLabel
-import javax.swing.JPanel
 import org.junit.Assert.assertTrue
 
 val NoopComposeAnimationTracker =
   ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
-  private const val TEST_ELEMENT_WIDTH = 100
-  private const val TEST_ELEMENT_HEIGHT = 10
-  private const val TEST_ELEMENT_ROW_HEIGHT = 100
-
-  /** Test [TimelineElement] with size [TEST_ELEMENT_WIDTH] x [TEST_ELEMENT_HEIGHT] */
-  class TestTimelineElement(
-    private val x: Int,
-    private val y: Int,
-    positionProxy: PositionProxy,
-    frozenValue: Int? = null,
-  ) : TimelineElement(0, frozenValue, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
-    override fun contains(x: Int, y: Int): Boolean {
-      return x in this.x + offsetPx.value..this.x + TEST_ELEMENT_WIDTH + offsetPx.value &&
-        y in this.y..this.y + TEST_ELEMENT_HEIGHT
-    }
-
-    override var height = TEST_ELEMENT_ROW_HEIGHT
-
-    override fun paint(g: Graphics2D) {
-      g.fillRect(x + offsetPx.value, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
-    }
-
-    override fun getTooltip(point: Point): TooltipInfo? =
-      if (contains(point)) TooltipInfo("$x", "$y") else null
-  }
 
   fun testPreviewState(withCoordination: Boolean = true) =
     object : AnimationPreviewState {
@@ -74,24 +43,6 @@ object TestUtils {
       override val currentTime: Int
         get() = 0
     }
-
-  /** Create [TimelinePanel] with 300x500 size. */
-  fun createTestSlider(): TimelinePanel {
-    val root = JPanel(BorderLayout())
-    val slider =
-      TimelinePanel(
-        Tooltip(root, TooltipLayeredPane(root)),
-        testPreviewState(),
-        NoopComposeAnimationTracker,
-      )
-    slider.maximum = 100
-    root.apply {
-      // Extra parent panel is required for slider to properly set all sizes and to enable tooltips.
-      setSize(300, 500)
-      add(slider, BorderLayout.CENTER)
-    }
-    return slider
-  }
 
   fun createPlaybackPlaceHolder() =
     JLabel("Playback placeholder").apply { background = JBColor.blue }
@@ -112,18 +63,6 @@ object TestUtils {
 
   fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
     assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
-
-  fun TimelinePanel.scanForTooltips(): Set<TooltipInfo> =
-    this.sliderUI.elements.flatMap { it.scanForTooltips(this.size) }.toSet()
-
-  fun TimelineElement.scanForTooltips(dimension: Dimension): Set<TooltipInfo> {
-    val set = mutableSetOf<TooltipInfo>()
-    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5) this.getTooltip(
-        Point(x, y)
-      )
-      ?.let { set.add(it) }
-    return set
-  }
 
   fun findAllCards(parent: Component): List<Card> =
     TreeWalker(parent)

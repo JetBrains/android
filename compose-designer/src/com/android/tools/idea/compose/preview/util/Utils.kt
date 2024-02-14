@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
@@ -26,16 +25,10 @@ import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import com.intellij.psi.util.parentOfType
-import javax.swing.JComponent
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
@@ -61,19 +54,6 @@ fun SceneView.getRootComponent(): NlComponent? {
 /** Returns true if the ComposeViewAdapter component of this SceneView is currently selected. */
 fun SceneView.isRootComponentSelected() =
   getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
-
-/** Create [ActionToolbar] with enabled navigation. */
-fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: List<AnAction>) =
-  createToolbarWithNavigation(rootComponent, place, DefaultActionGroup(actions))
-
-/** Create [ActionToolbar] with enabled navigation. */
-fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: ActionGroup) =
-  ActionManager.getInstance().createActionToolbar(place, actions, true).apply {
-    targetComponent = rootComponent
-    layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-    ActionToolbarUtil.makeToolbarNavigable(this)
-    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
-  }
 
 /**
  * Whether fast preview is available. In addition to checking its normal availability from

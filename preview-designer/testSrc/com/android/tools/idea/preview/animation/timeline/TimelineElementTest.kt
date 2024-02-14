@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation.timeline
+package com.android.tools.idea.preview.animation.timeline
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.android.tools.idea.preview.animation.AnimationTracker
-import com.android.tools.idea.preview.animation.InspectorColors
-import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.timeline.PositionProxy
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.TimelineElementStatus
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
@@ -41,16 +38,16 @@ import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.max
 
 /**
- * Default max duration (ms) of the animation preview when it's not possible to get it from Compose.
+ * Default max duration (ms) of the animation preview when it's not possible to get it from andoidx.
  */
-internal const val DEFAULT_MAX_DURATION_MS = 10000L
+const val DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS = 10000L
 
 /** Timeline slider with auto-resized ticks and labels distance. */
 open class TimelinePanel(
   val tooltip: Tooltip,
   val previewState: AnimationPreviewState,
   val tracker: AnimationTracker,
-) : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
+) : JSlider(0, DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
 

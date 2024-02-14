@@ -19,9 +19,9 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.AnimationPreview
 import com.android.tools.idea.compose.preview.animation.Card
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.timeline.PositionProxy
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.StateFlow
 

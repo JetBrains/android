@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation.timeline
+package com.android.tools.idea.preview.animation
 
-/** State of Animation shared between the [TimelineElement]s in timeline. */
-data class ElementState(
-  val title: String? = null,
-  /** The offset in ms for which the animation is shifted. */
-  val valueOffset: Int = 0,
-  /** If element is frozen in specified [frozenValue]. */
-  val frozen: Boolean = false,
-  /** The value in ms in which the animation is frozen. */
-  val frozenValue: Int = 0,
-  val expanded: Boolean = false,
-)
+/** Describes availability of different features in Animation Preview. */
+interface AnimationPreviewState {
+  fun isCoordinationAvailable(): Boolean = false
+
+  fun isCoordinationPanelOpened(): Boolean = true
+
+  /** Time currently displayed by timeline */
+  val currentTime: Int
+}

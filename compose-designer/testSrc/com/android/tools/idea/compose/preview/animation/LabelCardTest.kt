@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.Dimension
 import kotlinx.coroutines.flow.MutableStateFlow

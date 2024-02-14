@@ -19,6 +19,8 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.TooltipInfo
+import com.android.tools.idea.preview.animation.timeline.ParentTimelineElement
+import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import java.awt.Graphics2D
 import java.awt.Point
 

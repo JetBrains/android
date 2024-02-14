@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.LabelCard
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
+import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.timeline.PositionProxy
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

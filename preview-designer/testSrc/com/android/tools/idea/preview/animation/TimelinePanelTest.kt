@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
-import com.android.tools.idea.compose.preview.animation.timeline.ParentTimelineElement
-import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.animation.TooltipInfo
+import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
+import com.android.tools.idea.preview.animation.timeline.ParentTimelineElement
+import com.android.tools.idea.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
