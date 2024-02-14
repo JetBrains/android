@@ -1773,6 +1773,12 @@ public final class StudioFlags {
                     "When enabled, shows the 'AI Actions' item in the editor popup menu along with allowing individual actions to be enabled.",
                     ChannelDefault.of(false).withOverride(true, DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
+                    "Enable the transform actions.",
+                    "When enabled, the transform actions (document, comment, the custom transform action, etc.) are enabled.",
+                    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_CUSTOM_TRANSFORM_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.enabled",
                     "Enable the custom transform action in the editor.",
