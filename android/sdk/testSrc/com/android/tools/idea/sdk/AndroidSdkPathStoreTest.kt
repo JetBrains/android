@@ -1,6 +1,7 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.sdk
 
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.components.impl.stores.IComponentStore
 import com.intellij.openapi.components.service
@@ -75,7 +76,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     }
 
     try {
-      initComponent(androidSdkPathStore, null, null)
+      initComponent(androidSdkPathStore, null, PluginManagerCore.CORE_ID)
 
       if (initialAndroidSdkPathState != null) {
         // Save initial state and re-init component to trigger loadState method
@@ -86,7 +87,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
         finally {
           unloadComponent(androidSdkPathStore)
         }
-        initComponent(androidSdkPathStore, null, null)
+        initComponent(androidSdkPathStore, null, PluginManagerCore.CORE_ID)
       }
 
       action(androidSdkPathStore)
