@@ -2,9 +2,9 @@
 
 Prerequisites:
 
-* [PsiElement](https://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi_elements.html)
+* [PsiElement](https://plugins.jetbrains.com/docs/intellij/psi-elements.html)
 
-* [PsiReference](https://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi_references.html)
+* [PsiReference](https://plugins.jetbrains.com/docs/intellij/psi-references.html)
 
 * [Custom Languages Support](../README.md)
 
