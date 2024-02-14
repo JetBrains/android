@@ -64,7 +64,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -263,8 +263,9 @@ class ComposePreviewRepresentationTest {
       val previewElements =
         wrapper.mainSurface.models.mapNotNull { it.dataContext.previewElement() }
       val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
+      val problemsView = ProblemsView.getToolWindow(project)!!
 
-      val contentManager = ProblemsView.getToolWindow(project)!!.contentManager
+      val contentManager = problemsView.contentManager
       withContext(uiThread) {
         ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
         assertEquals(1, contentManager.contents.size)
@@ -429,7 +430,7 @@ class ComposePreviewRepresentationTest {
       assertEquals(2, contentManager.contents.size)
       assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
 
-      ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)?.show()
+      problemsView.show()
       val reopenTabAction = UiCheckReopenTabAction(preview)
       // Check that UiCheckReopenTabAction is disabled when the UI Check tab is visible and selected
       run {
@@ -451,8 +452,6 @@ class ComposePreviewRepresentationTest {
       withContext(uiThread) {
         val actionEvent = TestActionEvent.createTestEvent()
         reopenTabAction.actionPerformed(actionEvent)
-      }
-      invokeAndWaitIfNeeded {
         assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
       }
 
@@ -472,7 +471,12 @@ class ComposePreviewRepresentationTest {
         val actionEvent = TestActionEvent.createTestEvent()
         reopenTabAction.actionPerformed(actionEvent)
       }
-      invokeAndWaitIfNeeded {
+
+      // We set the modality state here because we're removing and recreating the tab using the
+      // APIs from ProblemsViewToolWindowUtils, which use invokeLater when creating the components.
+      // By setting the modality state to the problems view component, we'll make sure the runnable
+      // below will execute only after the component is ready.
+      withContext(uiThread(ModalityState.stateForComponent(problemsView.component))) {
         assertEquals(2, contentManager.contents.size)
         assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
       }
