@@ -65,7 +65,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   class RequiredJdkNotSelected(languageLevel: LanguageLevel, new: AgpVersion): BlockReason(
     shortDescription = "Required JDK not selected",
-    description = "Android Gradle Plugin version $new requires running with JDK ${languageLevel.toJavaVersion().feature}." +
+    description = "Android Gradle Plugin version $new requires running with JDK ${languageLevel.feature()}." +
                   "Select a suitable JDK from the combo box.",
   )
 
@@ -83,7 +83,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     if (currentCompatibleJdk == newCompatibleJdk) return listOf()
 
     // If we have found a JDK of the right version already configured for Studio, don't block.
-    if (newJdkInfo?.javaVersion?.feature == newCompatibleJdk.languageLevel.toJavaVersion().feature) return listOf()
+    if (newJdkInfo?.javaVersion?.feature == newCompatibleJdk.languageLevel.feature()) return listOf()
 
     // If the project is already using a new enough version of the JDK (or we can't tell), don't block.
     if (isCurrentJdkNewEnough) return listOf()
@@ -132,7 +132,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.projectJdkRefactoringProcessor.commandName")
 
-  override fun getShortDescription() = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.toJavaVersion().feature.let { v ->
+  override fun getShortDescription() = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.feature().let { v ->
     """
       The new version of the Android Gradle Plugin requires a newer version
       of the JDK to run (JDK version $v) than is currently configured for
