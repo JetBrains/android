@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.executeStreamingAction
@@ -100,6 +101,8 @@ class DeviceToolWindowPanelTest {
     @JvmField
     @ClassRule
     val iconRule = IconLoaderRule() // Enable icon loading in a headless test environment.
+
+    private val controlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE, SetMaxVideoResolutionMessage.TYPE)
   }
 
   private val agentRule = FakeScreenSharingAgentRule()
@@ -477,7 +480,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
-    val message = agent.getNextControlMessage(2.seconds)
+    val message = agent.getNextControlMessage(2.seconds, filter = controlMessageFilter)
     waitForFrame(displayId)
     return message
   }
