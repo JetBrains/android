@@ -36,7 +36,7 @@ class NoMatchingConfigurationSelectionIssueChecker : RuntimeJavaCompiledVersionI
     if (agpVersion.isNullOrEmpty() || gradleJdkVersion.isNullOrEmpty()) return null
 
     return AgpVersion.tryParse(agpVersion)?.let {
-      val agpMinCompatibleJdkVersion = AgpCompatibleJdkVersion.getCompatibleJdkVersion(it).languageLevel.toJavaVersion().feature.toString()
+      val agpMinCompatibleJdkVersion = AgpCompatibleJdkVersion.getCompatibleJdkVersion(it).languageLevel.feature().toString()
       Pair(agpMinCompatibleJdkVersion, gradleJdkVersion)
     }
   }

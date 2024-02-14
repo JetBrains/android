@@ -55,7 +55,7 @@ public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implem
 
   @Override
   public void setLanguageLevel(@NotNull LanguageLevel level) {
-    int major = level.toJavaVersion().feature;
+    int major = level.feature();
     if (allowedTargets.containsKey(major)) {
       setValue(allowedTargets.get(major));
       return;
