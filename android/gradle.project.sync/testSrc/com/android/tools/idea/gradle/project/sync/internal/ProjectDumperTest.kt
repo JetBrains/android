@@ -44,8 +44,8 @@ class ProjectDumperTest {
 
   @Test
   fun testJDKVersionMask() {
-    val samples11 = listOf("JetBrains Runtime version 11.0.8", "Amazon Corretto version 11.0.8")
-    val samples = listOf("JetBrains Runtime version 17.0.8", "Amazon Corretto version 17.0.8")
+    val samples11 = listOf("JetBrains Runtime 11.0.8", "Amazon Corretto 11.0.8")
+    val samples = listOf("JetBrains Runtime 17.0.8", "Amazon Corretto 17.0.8")
     fun ProjectDumper.test(src: String) = src.replaceJdkVersion()
 
     val dumper = ProjectDumper(offlineRepos = emptyList(), androidSdk = File("/nowhere"))
