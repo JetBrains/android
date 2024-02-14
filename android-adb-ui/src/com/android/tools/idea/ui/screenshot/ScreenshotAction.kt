@@ -69,12 +69,16 @@ class ScreenshotAction : DumbAwareAction(
           val framingOptions = screenshotOptions.getFramingOptions(screenshot)
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull(), project)
           val processedImage = screenshotDecorator.decorate(screenshot, decoration)
+          indicator.checkCanceled()
           val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
+          indicator.checkCanceled()
           backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
               throw IOException(message("screenshot.error.save"))
+          indicator.checkCanceled()
         }
         catch (e: IOException) {
+          indicator.checkCanceled()
           thisLogger().warn("Error while saving screenshot file", e)
           error = message("screenshot.error.generic", e)
         }

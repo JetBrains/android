@@ -41,10 +41,8 @@ open class ScreenshotTask(
       screenshot = screenshotSupplier.captureScreenshot()
     }
     catch (e: Exception) {
-      if (indicator.isCanceled) {
-        return
-      }
       error = ExceptionUtil.getMessage(e) ?: AndroidAdbUiBundle.message("screenshot.error.generic", e.javaClass.name)
     }
+    indicator.checkCanceled()
   }
 }

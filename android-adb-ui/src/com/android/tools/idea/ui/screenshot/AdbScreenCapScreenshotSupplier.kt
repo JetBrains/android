@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.ui.screenshot
 
+import com.android.ProgressManagerAdapter
 import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
@@ -69,10 +70,13 @@ class AdbScreenCapScreenshotSupplier(
 
     return runBlocking {
       val dumpsysOutput = dumpsysJob.await()
+      ProgressManagerAdapter.checkCanceled()
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       val pmOutput = pmJob.await()
+      ProgressManagerAdapter.checkCanceled()
       val deviceType = extractDeviceType(pmOutput)
       val screenshotBytes = screenshotJob.await()
+      ProgressManagerAdapter.checkCanceled()
 
       @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes.stdout))
