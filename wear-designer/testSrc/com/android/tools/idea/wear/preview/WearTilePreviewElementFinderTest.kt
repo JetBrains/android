@@ -303,21 +303,30 @@ class WearTilePreviewElementFinderTest {
         assertThat(it).hasAnnotationDefinition("@Preview")
       }
       previewElements.elementAt(7).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
+        assertThat(it)
+          .hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+        assertThat(it)
+          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
         assertThat(it).hasAnnotationDefinition("@Preview")
       }
       previewElements.elementAt(8).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+        assertThat(it)
+          .hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
+        assertThat(it)
+          .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
+        assertThat(it)
+          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
         assertThat(it).hasAnnotationDefinition("@Preview(device = WearDevices.LARGE_ROUND)")
       }
       previewElements.elementAt(9).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations - some name"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations - some name")
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+        assertThat(it)
+          .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
         assertThat(it).hasAnnotationDefinition("@Preview(name = \"some name\")")
       }
     }
@@ -382,7 +391,7 @@ class WearTilePreviewElementFinderTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))

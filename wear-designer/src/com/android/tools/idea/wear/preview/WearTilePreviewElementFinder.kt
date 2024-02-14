@@ -37,7 +37,8 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
 
 private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
-private const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
+private const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
+  "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
 private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 /** Object that can detect wear tile preview elements in a file. */
@@ -51,19 +52,19 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
       filter = {
         val uMethod = it.getContainingUMethodAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
         uMethod.isTilePreview()
-      }
+      },
     )
   }
 
   override suspend fun findPreviewElements(
     project: Project,
-    vFile: VirtualFile
+    vFile: VirtualFile,
   ): Collection<WearTilePreviewElement> {
     return findAnnotatedMethodsValues(
       project = project,
       vFile = vFile,
       annotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
-      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME
+      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME,
     ) { methods ->
       val tilePreviewNodes = getTilePreviewNodes(methods)
       val previewElements = tilePreviewNodes.distinct()
@@ -91,8 +92,11 @@ private fun UAnnotation.getTilePreviewNode(uMethod: UMethod): WearTilePreviewEle
   val defaultValues = findPreviewDefaultValues()
 
   val device = findAttributeValue("device")?.evaluateString()?.nullize() ?: defaultValues["device"]
-  val locale = (findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
-  val fontScale = findAttributeValue("fontScale")?.evaluate() as? Float ?: defaultValues["fontScale"]?.toFloatOrNull()
+  val locale =
+    (findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
+  val fontScale =
+    findAttributeValue("fontScale")?.evaluate() as? Float
+      ?: defaultValues["fontScale"]?.toFloatOrNull()
   val name = findAttributeValue("name")?.evaluateString()?.nullize()
   val group = findAttributeValue("group")?.evaluateString()?.nullize()
 
@@ -104,7 +108,7 @@ private fun UAnnotation.getTilePreviewNode(uMethod: UMethod): WearTilePreviewEle
       group = group,
       showDecoration = false,
       showBackground = true,
-      backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND
+      backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND,
     )
 
   return WearTilePreviewElement(
@@ -112,11 +116,12 @@ private fun UAnnotation.getTilePreviewNode(uMethod: UMethod): WearTilePreviewEle
     previewElementDefinitionPsi = this.toSmartPsiPointer(),
     previewBodyPsi = uMethod.uastBody.toSmartPsiPointer(),
     methodFqn = uMethod.qualifiedName,
-    configuration = WearTilePreviewConfiguration.forValues(
-      device = device,
-      locale = locale?.let { Locale.create(it) },
-      fontScale = fontScale
-    )
+    configuration =
+      WearTilePreviewConfiguration.forValues(
+        device = device,
+        locale = locale?.let { Locale.create(it) },
+        fontScale = fontScale,
+      ),
   )
 }
 
@@ -126,6 +131,8 @@ private fun UMethod?.isTilePreview(): Boolean {
   if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
 
   val hasNoParameters = uastParameters.isEmpty()
-  val hasContextParameter = uastParameters.size == 1 && uastParameters.first().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
+  val hasContextParameter =
+    uastParameters.size == 1 &&
+      uastParameters.first().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
   return hasNoParameters || hasContextParameter
 }
