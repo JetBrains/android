@@ -34,24 +34,35 @@ data class UAnnotationSubtreeInfo(
 /**
  * Specific implementation of [NodeInfo] that populates a [UAnnotationSubtreeInfo.children] field
  * before each child is traversed.
+ *
+ * The [onTraversal] parameter is invoked for each child, after it is traversed.
  */
 private class UAnnotationNodeInfo(
   override val parent: NodeInfo<UAnnotationSubtreeInfo>?,
   override val element: UElement,
   override val subtreeInfo: UAnnotationSubtreeInfo,
+  private val onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
 ) : NodeInfo<UAnnotationSubtreeInfo> {
 
   override fun onSkippedChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {}
 
-  override fun onAfterChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {}
+  override fun onAfterChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
+    onTraversal?.invoke(child)
+  }
 
   override fun onBeforeChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
     subtreeInfo.children += child
   }
 }
 
-/** [NodeInfoFactory] implementation that creates [UAnnotationNodeInfo] for each node traversed. */
-private object UAnnotationNodeInfoFactory : NodeInfoFactory<UAnnotationSubtreeInfo> {
+/**
+ * [NodeInfoFactory] implementation that creates [UAnnotationNodeInfo] for each node traversed.
+ *
+ * The [onTraversal] parameter is invoked after each node's child is traversed.
+ */
+private class UAnnotationNodeInfoFactory(
+  private val onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null
+) : NodeInfoFactory<UAnnotationSubtreeInfo> {
   override fun create(
     parent: NodeInfo<UAnnotationSubtreeInfo>?,
     curElement: UElement,
@@ -64,6 +75,7 @@ private object UAnnotationNodeInfoFactory : NodeInfoFactory<UAnnotationSubtreeIn
           depth = parent?.subtreeInfo?.depth?.let { it + 1 } ?: 0,
           topLevelAnnotation = parent?.subtreeInfo?.topLevelAnnotation ?: curElement as? UAnnotation,
         ),
+      onTraversal = onTraversal,
     )
   }
 }
@@ -94,15 +106,22 @@ private class UAnnotationResultFactory(private val filter: (UAnnotation) -> Bool
  * The parameter [shouldTraverse] can be provided to determine which [UAnnotation]s in the graph
  * should be traversed. By default, all [UAnnotation]s are traversed.
  *
+ * The [onTraversal] parameter, if provided, is invoked for each node that is traversed in the
+ * graph. The traversal and invocation of this method is done post-order, see [ResultFactory].
+ *
  * Note: [UAnnotation]s matching the [filter] predicate act as leaves when traversing the graph.
  */
 @Slow
 fun UElement.findAllAnnotationsInGraph(
   shouldTraverse: (UAnnotation) -> Boolean = { true },
+  onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
   filter: (UAnnotation) -> Boolean,
 ): Sequence<NodeInfo<UAnnotationSubtreeInfo>> {
   val annotationsGraph =
-    AnnotationsGraph(UAnnotationNodeInfoFactory, UAnnotationResultFactory { filter(it) })
+    AnnotationsGraph(
+      UAnnotationNodeInfoFactory(onTraversal),
+      UAnnotationResultFactory { filter(it) },
+    )
   return annotationsGraph.traverse(
     listOf(this),
     annotationFilter = { _, annotation -> shouldTraverse(annotation) },

@@ -259,6 +259,64 @@ class AnnotationsGraphFinderTest {
     )
   }
 
+  @Test
+  fun testOnTraversalIsInvokedOnAllTraversedNodesPostOrder() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
+      annotation class MyTestPreview
+
+      // Using this annotation shouldn't have any effect
+      annotation class EmptyAnnotation
+
+      @MyTestPreview
+      annotation class NotReachableFromSourceElements
+
+      @MyTestPreview
+      @EmptyAnnotation
+      annotation class Intermediate1 // with 1 direct Preview
+
+      @MyTestPreview
+      @MyTestPreview
+      annotation class Intermediate2 // with 2 direct Previews
+
+      @MyTestPreview // direct preview
+      @Intermediate1
+      @Intermediate2
+      @EmptyAnnotation
+      fun rootMethod(){}
+    """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    val rootMethod = psiFile.getMethodAnnotatedBy("Intermediate1")
+
+    val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
+    rootMethod
+      .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
+        runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
+      }
+      .toList()
+
+    val traversedNodeNames =
+      traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
+    // the order should be post-order
+    assertEquals(
+      //
+      listOf(
+        "MyTestPreview",
+        "MyTestPreview",
+        "EmptyAnnotation",
+        "Intermediate1",
+        "MyTestPreview",
+        "MyTestPreview",
+        "Intermediate2",
+      ),
+      traversedNodeNames,
+    )
+  }
+
   private fun PsiFile.getMethodAnnotatedBy(annotationShortName: String) = runReadAction {
     findAnnotations(project, virtualFile, annotationShortName).firstNotNullOf {
       it.qualifiedName?.let { qualifiedName -> it.getContainingUMethodAnnotatedWith(qualifiedName) }
