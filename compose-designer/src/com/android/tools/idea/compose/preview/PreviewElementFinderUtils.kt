@@ -61,11 +61,13 @@ private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx."
  * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
  *    [NON_MULTIPREVIEW_PREFIXES].
  */
+@Slow
 private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
-  return (this.tryResolve() as? PsiClass)?.qualifiedName?.let { fqcn ->
-    if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
-    else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
-  } == true
+  return runReadAction { (this.tryResolve() as? PsiClass)?.qualifiedName }
+    ?.let { fqcn ->
+      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
+      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+    } == true
 }
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
@@ -208,9 +210,10 @@ private fun UElement.directPreviewChildrenCount() =
 /**
  * Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation.
  */
+@Slow
 private fun shouldTraverse(annotation: UAnnotation): Boolean {
   if (!annotation.isPsiValid) return false
-  val annotationClassFqcn = (annotation.tryResolve() as? PsiClass)?.qualifiedName
+  val annotationClassFqcn = runReadAction { (annotation.tryResolve() as? PsiClass)?.qualifiedName }
   return annotation.isPreviewAnnotation() ||
     (annotation.couldBeMultiPreviewAnnotation() && annotationClassFqcn != null)
 }
