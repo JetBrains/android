@@ -16,15 +16,20 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.project.DefaultProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.setTrusted
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +46,34 @@ class AgpUpgradeActionTest {
   @After
   fun tearDown() {
     JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+  }
+
+  @Test
+  fun testAgpUpgradeActionDisabledForDefaultProjectSystem() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
+    val action = AgpUpgradeAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+  }
+
+  @Test
+  fun testAgpUpgradeActionEnabledForGradleProjectSystem() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+    val action = AgpUpgradeAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun testAgpUpgradeActionDisabledForUntrustedProject() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+    project.setTrusted(false)
+    val action = AgpUpgradeAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
