@@ -18,7 +18,8 @@ cc_library(
         "//prebuilts/studio/jdk:jni_headers",
         "@freetype_repo//:freetype",
         "@libpng_repo//:libpng",
-        "@skia_repo//:skia_public",
+        "@skia_repo//:core",
+        "@skia_repo//:png_encode_codec",
     ],
     alwayslink = 1,
 )
