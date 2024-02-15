@@ -27,8 +27,8 @@ import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewDisplaySettings
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -128,7 +128,7 @@ private suspend fun findUMethodsWithTilePreviewSignature(
   vFile: VirtualFile,
 ): List<UMethod> {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
-  return readAction {
+  return smartReadAction(project) {
     PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
       .mapNotNull { it.toUElement(UMethod::class.java) }
       .filter { it.hasTilePreviewSignature() }
