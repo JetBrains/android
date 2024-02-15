@@ -144,12 +144,14 @@ class LayoutInspectorManagerTest {
       displayViewRule.disposable,
     )
 
-    RunningDevicesStateObserver.getInstance(displayViewRule.project).update(true)
+    RunningDevicesStateObserver.getInstance(displayViewRule.project)
+      .update(enabled = true, newContentManager = fakeToolWindowManager.toolWindow.contentManager)
   }
 
   @After
   fun tearDown() {
-    RunningDevicesStateObserver.getInstance(displayViewRule.project).update(false)
+    RunningDevicesStateObserver.getInstance(displayViewRule.project)
+      .update(enabled = false, newContentManager = fakeToolWindowManager.toolWindow.contentManager)
   }
 
   @Test

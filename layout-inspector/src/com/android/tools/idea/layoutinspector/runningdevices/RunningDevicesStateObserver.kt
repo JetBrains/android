@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
@@ -35,7 +36,7 @@ import com.intellij.ui.content.ContentManagerListener
  * as source for Running Devices state.
  */
 @UiThread
-class RunningDevicesStateObserver(private val project: Project) : Disposable {
+class RunningDevicesStateObserver(project: Project) : Disposable {
 
   interface Listener {
     /** Called when the selected tab in Running Devices changes */
@@ -78,7 +79,8 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
       listeners.forEach { it.onExistingTabsChanged(value) }
     }
 
-  private var contentManagerListener: RunningDevicesContentManagerListener? = null
+  // TODO(b/324741151): Add support for multiple context managers.
+  private var runningDevicesContext: RunningDevicesContext? = null
 
   init {
     // Listen for changes to RD Tool Window state.
@@ -93,7 +95,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
               if (toolWindow.isVisible) {
-                val deviceId = project.getRunningDevicesSelectedTabDeviceSerialNumber()
+                val deviceId = getSelectedTabDeviceId()
                 listeners.forEach { it.onToolWindowShown(deviceId) }
               } else {
                 listeners.forEach { it.onToolWindowHidden() }
@@ -119,49 +121,60 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
   /**
    * Called to enable/disable the observer. Can be called periodically, for example from the update
    * method of AnAction.
+   *
+   * @param newContentManager The content manager associated with the update. For example, two
+   *   actions added to two different tool windows will have a different content manager.
    */
-  fun update(enabled: Boolean) {
+  fun update(enabled: Boolean, newContentManager: ContentManager?) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (enabled) {
-      if (contentManagerListener != null) {
-        // observer is already registered
+      if (runningDevicesContext != null) {
+        // Context already registered.
         return
       }
 
-      val contentManager = project.getRunningDevicesContentManager()
-      checkNotNull(contentManager)
+      checkNotNull(newContentManager)
+
+      val runningDevicesContentManagerListener = RunningDevicesContentManagerListener()
+      newContentManager.addContentManagerListener(runningDevicesContentManagerListener)
+
+      runningDevicesContext =
+        RunningDevicesContext(newContentManager, runningDevicesContentManagerListener)
 
       updateSelectedTab()
       updateExistingTabs()
-
-      val runningDevicesContentManagerListener = RunningDevicesContentManagerListener()
-      contentManager.addContentManagerListener(runningDevicesContentManagerListener)
-      contentManagerListener = runningDevicesContentManagerListener
     } else {
-      if (contentManagerListener == null) {
-        // listener is not registered, so we're not observing anything
-        return
-      }
+      // If context is null, we're not registered, so we're not observing anything.
+      val localRunningDevicesContext = runningDevicesContext ?: return
 
-      val contentManager = project.getRunningDevicesContentManager()
-      checkNotNull(contentManager)
+      localRunningDevicesContext.contentManager.removeContentManagerListener(
+        localRunningDevicesContext.contentManagerListener
+      )
 
-      contentManager.removeContentManagerListener(contentManagerListener!!)
-      contentManagerListener = null
+      runningDevicesContext = null
       selectedTab = null
     }
   }
 
+  fun getTabContent(deviceId: DeviceId): Content? {
+    return runningDevicesContext?.contentManager?.contents?.find { it.deviceId == deviceId }
+  }
+
   private fun updateSelectedTab() {
-    val deviceId = project.getRunningDevicesSelectedTabDeviceSerialNumber()
+    val deviceId = getSelectedTabDeviceId()
     selectedTab = deviceId
   }
 
   private fun updateExistingTabs() {
-    val deviceIds = project.getRunningDevicesExistingTabsDeviceSerialNumber()
+    val deviceIds = getAllTabsDeviceIds()
     existingTabs = deviceIds
   }
+
+  private data class RunningDevicesContext(
+    val contentManager: ContentManager,
+    val contentManagerListener: RunningDevicesContentManagerListener,
+  )
 
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
   private inner class RunningDevicesContentManagerListener : ContentManagerListener {
@@ -183,32 +196,44 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
       invokeLater { updateSelectedTab() }
     }
   }
+
+  /** Returns [DeviceId] of the selected tab in the Running Devices Tool Window. */
+  private fun getSelectedTabDeviceId(): DeviceId? {
+    val contentManager = runningDevicesContext?.contentManager ?: return null
+    val selectedContent = contentManager.selectedContent ?: return null
+    val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
+
+    return selectedTabDataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
+  }
+
+  /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
+  private fun getAllTabsDeviceIds(): List<DeviceId> {
+    val contentManager = runningDevicesContext?.contentManager ?: return emptyList()
+    val contents = contentManager.contents
+    val tabIds =
+      contents
+        .map { it.component }
+        .filterIsInstance<DataProvider>()
+        .mapNotNull { dataProvider -> dataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId }
+
+    return tabIds
+  }
+
+  /**
+   * Returns true if Running Devices has a tab containing a device with the desired serial number.
+   */
+  fun hasDeviceWithSerialNumber(desiredSerialNumber: String): Boolean {
+    val devicesIds = getAllTabsDeviceIds()
+    return devicesIds.map { it.serialNumber }.contains(desiredSerialNumber)
+  }
+
+  /** Returns true if Running Devices has a tab containing a device associated with [deviceId]. */
+  fun hasDevice(deviceId: DeviceId): Boolean {
+    return hasDeviceWithSerialNumber(deviceId.serialNumber)
+  }
 }
 
-fun Project.getRunningDevicesContentManager(): ContentManager? {
-  return getServiceIfCreated(ToolWindowManager::class.java)
-    ?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-    ?.contentManager
-}
-
-/** Returns [DeviceId] of the selected tab in the Running Devices Tool Window. */
-private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): DeviceId? {
-  val contentManager = getRunningDevicesContentManager() ?: return null
-  val selectedContent = contentManager.selectedContent ?: return null
-  val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
-
-  return selectedTabDataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
-}
-
-/** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
-fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
-  val contentManager = getRunningDevicesContentManager() ?: return emptyList()
-  val contents = contentManager.contents ?: return emptyList()
-  val tabIds =
-    contents
-      .map { it.component }
-      .filterIsInstance<DataProvider>()
-      .mapNotNull { dataProvider -> dataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId }
-
-  return tabIds
-}
+private val Content.deviceId: DeviceId?
+  get() {
+    return (component as? DataProvider)?.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
+  }

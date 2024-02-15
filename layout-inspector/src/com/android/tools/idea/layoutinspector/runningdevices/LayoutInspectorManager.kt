@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurab
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
@@ -40,7 +39,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.EditorNotificationPanel.Status
-import com.intellij.ui.content.Content
 import com.intellij.ui.scale.JBUIScale
 import javax.swing.JComponent
 
@@ -245,9 +243,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    val runningDevicesContentManager = project.getRunningDevicesContentManager()
+
     val selectedTabContent =
-      runningDevicesContentManager?.contents?.find { it.deviceId == deviceId }
+      RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
     val selectedTabDataProvider = selectedTabContent?.component as? DataProvider
 
     val streamingContentPanel =
@@ -316,8 +314,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun isSupported(deviceId: DeviceId): Boolean {
-    val contentManager = project.getRunningDevicesContentManager()
-    return contentManager?.contents?.find { it.deviceId == deviceId } != null
+    return RunningDevicesStateObserver.getInstance(project).hasDevice(deviceId)
   }
 
   override fun dispose() {
@@ -374,8 +371,3 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService.getInstance(this).getLayoutInspector()
 }
-
-private val Content.deviceId: DeviceId?
-  get() {
-    return (component as? DataProvider)?.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
-  }

@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorMana
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
@@ -37,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
@@ -65,6 +67,8 @@ class ToggleLayoutInspectorActionTest {
 
   private lateinit var tab1: TabInfo
 
+  private lateinit var toolWindowManager: FakeToolWindowManager
+
   @Before
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
@@ -77,10 +81,12 @@ class ToggleLayoutInspectorActionTest {
         displayViewRule.newEmulatorView(),
       )
 
+    toolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1))
+
     // replace ToolWindowManager with fake one
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
-      FakeToolWindowManager(displayViewRule.project, listOf(tab1)),
+      toolWindowManager,
       displayViewRule.disposable,
     )
 
@@ -237,6 +243,8 @@ class ToggleLayoutInspectorActionTest {
         STREAMING_CONTENT_PANEL_KEY.name -> contentPanel
         DISPLAY_VIEW_KEY.name -> displayView
         DEVICE_ID_KEY.name -> deviceId
+        CONTENT_MANAGER.name ->
+          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager
         else -> null
       }
     }

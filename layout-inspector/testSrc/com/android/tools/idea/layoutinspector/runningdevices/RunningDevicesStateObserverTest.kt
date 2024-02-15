@@ -74,7 +74,10 @@ class RunningDevicesStateObserverTest {
 
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(true)
+    runningDevicesStateObserver.update(
+      enabled = true,
+      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
+    )
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -104,7 +107,10 @@ class RunningDevicesStateObserverTest {
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(true)
+    runningDevicesStateObserver.update(
+      enabled = true,
+      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
+    )
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -149,7 +155,10 @@ class RunningDevicesStateObserverTest {
   fun testListenerIsCalledWhenSelectedTabChanges() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(true)
+    runningDevicesStateObserver.update(
+      enabled = true,
+      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
+    )
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -200,7 +209,10 @@ class RunningDevicesStateObserverTest {
   fun testToolWindowStateChange() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(true)
+    runningDevicesStateObserver.update(
+      enabled = true,
+      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
+    )
 
     val toolWindowOpenDeviceIds = mutableListOf<DeviceId?>()
     var toolWindowClosedCount = 0

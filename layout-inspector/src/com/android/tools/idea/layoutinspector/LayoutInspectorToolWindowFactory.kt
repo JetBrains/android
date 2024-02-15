@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -22,8 +23,8 @@ import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.layoutinspector.runningdevices.actions.EMBEDDED_LAYOUT_INSPECTOR_MIN_API
-import com.android.tools.idea.layoutinspector.runningdevices.getRunningDevicesExistingTabsDeviceSerialNumber
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -34,6 +35,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -62,11 +64,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     layoutInspector.inspectorModel.addConnectionListener { client ->
       if (client != null) {
-        showTryEmbeddedLayoutInspectorBanner(
-          layoutInspector.inspectorModel.project,
-          layoutInspector.notificationModel,
-          client,
-        )
+        invokeLater {
+          // TODO: remove this banner. Embedded LI is now on by default.
+          showTryEmbeddedLayoutInspectorBanner(
+            layoutInspector.inspectorModel.project,
+            layoutInspector.notificationModel,
+            client,
+          )
+        }
       }
     }
 
@@ -170,6 +175,7 @@ private const val SHOW_TRY_EMBEDDED_INSPECTOR_KEY =
   "com.android.tools.idea.layoutinspector.try.embedded.layout.inspector.key"
 const val TRY_EMBEDDED_INSPECTOR_BANNER_ID = "try.embedded.layout.inspector"
 
+@UiThread
 private fun showTryEmbeddedLayoutInspectorBanner(
   project: Project,
   notificationModel: NotificationModel,
@@ -211,10 +217,11 @@ private fun showTryEmbeddedLayoutInspectorBanner(
   }
 }
 
+@UiThread
 private fun isDeviceInRunningDevicesToolWindow(
   project: Project,
   requiredDeviceId: String,
 ): Boolean {
-  val devicesIds = project.getRunningDevicesExistingTabsDeviceSerialNumber()
-  return devicesIds.map { it.serialNumber }.contains(requiredDeviceId)
+  return RunningDevicesStateObserver.getInstance(project)
+    .hasDeviceWithSerialNumber(requiredDeviceId)
 }
