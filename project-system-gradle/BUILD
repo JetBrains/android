@@ -215,6 +215,7 @@ generate_old_agp_tests_from_list(
             agp_version = AGP_7_4,
             data = [
                 "//prebuilts/studio/jdk/jdk11",
+                "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
                 "//prebuilts/studio/sdk:build-tools/30.0.3",
                 "//prebuilts/studio/sdk:build-tools/latest",
                 "//prebuilts/studio/sdk:platforms/android-32",
