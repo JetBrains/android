@@ -22,7 +22,6 @@ import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelColorB
 import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelColorBoxSize
 import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelOffset
 import com.android.tools.idea.preview.animation.TooltipInfo
-import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.JBFont
 import java.awt.Graphics2D
 import java.awt.Point
@@ -53,7 +52,9 @@ class BoxedLabel(
   var timelineUnit: ComposeUnit.TimelineUnit? = null
     set(value) {
       field = value
-      value.alsoIfNull { boxRect = Rectangle(0, 0, 0, 0) }
+      if (value == null) {
+        boxRect = Rectangle(0, 0, 0, 0)
+      }
     }
 
   private var boxRect = Rectangle(0, 0, 0, 0)
