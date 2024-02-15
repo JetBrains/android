@@ -42,12 +42,13 @@ class ProcessListModel(
   private val _selectedDevicesCount = MutableStateFlow(0)
   val selectedDevicesCount = _selectedDevicesCount.asStateFlow()
 
-  private var preferredProcessName: String? = null
+  @VisibleForTesting
+  val preferredProcessName get() = profilers.preferredProcessName
 
   init {
     profilers.addDependency(this)
       .onChange(ProfilerAspect.PROCESSES) { deviceToProcessesUpdated() }
-      .onChange(ProfilerAspect.PREFERRED_PROCESS) { preferredProcessUpdated() }
+      .onChange(ProfilerAspect.PREFERRED_PROCESS_NAME) { preferredProcessUpdated() }
   }
 
   fun getSelectedDeviceProcesses() = _deviceToProcesses.value.getOrDefault(
@@ -219,7 +220,6 @@ class ProcessListModel(
   }
 
   private fun preferredProcessUpdated() {
-    preferredProcessName = profilers.preferredProcessName
     // Force update of process list ordering.
     reorderProcessList()
   }
@@ -227,9 +227,6 @@ class ProcessListModel(
   fun setSelectedDevicesCount(selectedDevicesCount: Int) {
     _selectedDevicesCount.value = selectedDevicesCount;
   }
-
-  @VisibleForTesting
-  fun getPreferredProcessName() = preferredProcessName
 
   fun resetDeviceSelection() { _selectedDevice.value = null }
 

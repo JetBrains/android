@@ -22,6 +22,8 @@ public enum ProfilerAspect {
   PROCESSES,
   // The profile's preferred process has changed.
   PREFERRED_PROCESS,
+  // The profiler's preferred process name has changed.
+  PREFERRED_PROCESS_NAME,
   // The agent attach state has changed
   AGENT,
   // The active tooltip has changed

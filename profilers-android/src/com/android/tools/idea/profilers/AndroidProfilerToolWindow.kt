@@ -84,7 +84,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
                                 { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
-                                { getToolbarDeviceSelections(project) })
+                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) })
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.

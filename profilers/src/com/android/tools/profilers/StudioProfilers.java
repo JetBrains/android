@@ -161,6 +161,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final Function0<List<ToolbarDeviceSelection>> myToolbarDeviceSelectionsFetcher;
 
+  @NotNull
+  private final Function0<String> myPreferredProcessNameFetcher;
+
   @Nullable
   private ToolbarDeviceSelection myLastToolbarDeviceSelection = null;
 
@@ -215,7 +218,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private AxisComponentModel myViewAxis;
 
-  private long myRefreshDevices;
+  private long myRefreshDevicesAndPreferredProcessName;
 
   private long myEventPollingInternvalNs;
 
@@ -242,7 +245,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new);
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, () -> null);
   }
 
   /**
@@ -257,9 +260,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                          @NotNull Runnable openTaskTab,
-                         @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher) {
+                         @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
+                         @NotNull Function0<String> preferredProcessNameFetcher) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
-         toolbarDeviceSelectionsFetcher);
+         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
@@ -268,7 +272,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                           @NotNull Runnable openTaskTab,
-                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher)  {
+                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
+                          @NotNull Function0<String> preferredProcessNameFetcher)  {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -281,6 +286,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
     myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
+    myPreferredProcessNameFetcher = preferredProcessNameFetcher;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -430,11 +436,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void setPreferredProcessName(@Nullable String processName) {
+    if (Objects.equals(myPreference.processName, processName)) {
+      return;
+    }
+
     myPreference = new Preference(
       myPreference.deviceName,
       processName,
       myPreference.processFilter
     );
+
+    changed(ProfilerAspect.PREFERRED_PROCESS_NAME);
   }
 
   @Nullable
@@ -564,11 +576,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       myEventPollingInternvalNs = 0;
     }
 
-    myRefreshDevices += elapsedNs;
-    if (myRefreshDevices < TimeUnit.SECONDS.toNanos(1)) {
+    myRefreshDevicesAndPreferredProcessName += elapsedNs;
+    if (myRefreshDevicesAndPreferredProcessName < TimeUnit.SECONDS.toNanos(1)) {
       return;
     }
-    myRefreshDevices = 0;
+    myRefreshDevicesAndPreferredProcessName = 0;
+
+    String preferredProcessName = myPreferredProcessNameFetcher.invoke();
+    if (preferredProcessName != null && !preferredProcessName.isEmpty()) {
+      setPreferredProcessName(preferredProcessName);
+    }
 
     try {
       readMainToolbarDeviceSelection();
