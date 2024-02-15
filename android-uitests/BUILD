@@ -1450,7 +1450,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "no_windows",
-        "qa_smoke",  # fails 1 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1562,7 +1561,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2201,7 +2199,6 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
