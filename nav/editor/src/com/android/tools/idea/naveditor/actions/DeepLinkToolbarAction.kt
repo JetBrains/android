@@ -56,7 +56,7 @@ class DeepLinkToolbarAction private constructor(): AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     surface.selectionModel.selection.firstOrNull()?.let {
       val dialog = AddDeeplinkDialog(null, it)
       if (dialog.showAndGet()) {

@@ -47,7 +47,7 @@ class AddActionToolbarAction private constructor(): AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     surface.selectionModel.selection.firstOrNull()?.let {
       val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it, NavEditorEvent.Source.TOOLBAR)
       showAndUpdateFromDialog(dialog, surface, false)

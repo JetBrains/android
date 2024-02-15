@@ -59,8 +59,8 @@ import javax.imageio.ImageIO
 class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    val project = event.getData(CommonDataKeys.PROJECT) ?: return
+    val emulatorController = getEmulatorController(event) ?: return
     emulatorController.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorController, project))
   }
 

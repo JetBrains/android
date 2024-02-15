@@ -19,7 +19,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.common.actions.isActionEventFromJTextField
 import com.android.tools.idea.uibuilder.editor.NlActionManager
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
@@ -50,7 +49,7 @@ class SwitchToNextScreenViewProviderAction : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(NlActionManager.LAYOUT_EDITOR)
+    val surface = e.getData(NlActionManager.LAYOUT_EDITOR) ?: return
     surface.screenViewProvider.next()?.let { surface.setScreenViewProvider(it, true) }
   }
 

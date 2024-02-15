@@ -35,7 +35,8 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorView = getEmulatorView(event) ?: return
-    showManageSnapshotsDialog(emulatorView, getProject(event))
+    val project = event.project ?: return
+    showManageSnapshotsDialog(emulatorView, project)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

@@ -23,9 +23,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
 import java.util.function.Predicate
 
 /**
@@ -46,9 +44,6 @@ abstract class AbstractEmulatorAction(private val configFilter: Predicate<Emulat
   protected open fun isEnabled(event: AnActionEvent): Boolean =
     isEmulatorConnected(event)
 }
-
-internal fun getProject(event: AnActionEvent): Project =
-  event.getRequiredData(CommonDataKeys.PROJECT)
 
 internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
   event.getData(EMULATOR_CONTROLLER_KEY)

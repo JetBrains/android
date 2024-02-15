@@ -23,9 +23,7 @@ import com.android.tools.idea.streaming.device.DeviceController
 import com.android.tools.idea.streaming.device.DeviceView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
 import java.util.function.Predicate
 
 /**
@@ -46,9 +44,6 @@ internal abstract class AbstractDeviceAction(private val configFilter: Predicate
   protected open fun isEnabled(event: AnActionEvent): Boolean =
     isDeviceConnected(event)
 }
-
-internal fun getProject(event: AnActionEvent): Project =
-  event.getRequiredData(CommonDataKeys.PROJECT)
 
 internal fun getDeviceController(event: AnActionEvent): DeviceController? =
   event.dataContext.getData(DEVICE_CONTROLLER_KEY)

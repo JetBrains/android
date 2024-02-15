@@ -36,7 +36,8 @@ class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    showExtendedControls(emulatorController, getProject(event))
+    val project = event.project ?: return
+    showExtendedControls(emulatorController, project)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

@@ -56,7 +56,8 @@ public class ToggleDeviceOrientationAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    DesignSurface<?> surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    if (surface == null) return;
     surface.getConfigurations()
       .forEach(configuration -> {
         if (HardwareConfigHelper.isWear(configuration.getDevice())) {
