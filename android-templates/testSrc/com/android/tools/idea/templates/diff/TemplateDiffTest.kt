@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.templates.diff
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.RenderTemplateModel
+import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -31,7 +31,6 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
-import kotlin.system.measureTimeMillis
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -43,6 +42,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
+import kotlin.system.measureTimeMillis
 
 /**
  * Template test that generates the template files and diffs them against golden files located in
@@ -222,7 +222,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   private fun withKotlin(
-    kotlinVersion: String = TestUtils.KOTLIN_VERSION_FOR_TESTS
+    kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
   ): ProjectStateCustomizer =
     { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin

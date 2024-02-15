@@ -54,7 +54,7 @@ class ConfigureMultiModuleNoCatalogProject {
 
 
     companion object {
-        private const val DEFAULT_VERSION = TestUtils.KOTLIN_VERSION_FOR_TESTS
+        private const val DEFAULT_KOTLIN_VERSION = "1.9.20"
         private const val GRADLE_CATALOG_DIR = "idea-android/testData/configuration/android-gradle/multiProjectNoCatalog"
     }
 
@@ -95,7 +95,7 @@ class ConfigureMultiModuleNoCatalogProject {
             VfsUtil.saveText(topBuildFile, topFileText)
             VfsUtil.saveText(projectRule.fixture.tempDirFixture.createFile("settings.$extension"), "include ':app'")
         }
-        val version = IdeKotlinVersion.get(DEFAULT_VERSION)
+        val kotlinVersion = IdeKotlinVersion.get(DEFAULT_KOTLIN_VERSION)
 
         val project = projectRule.project
         val collector = NotificationMessageCollector.create(project)
@@ -103,11 +103,11 @@ class ConfigureMultiModuleNoCatalogProject {
         val configurator = KotlinAndroidGradleModuleConfigurator()
         val jvmTarget = JvmTarget.JVM_1_8.description
         val changeTracker = ChangedConfiguratorFiles()
-        configurator.configureModule(projectRule.module, topBuildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version,
+        configurator.configureModule(projectRule.module, topBuildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, kotlinVersion,
                                      jvmTarget,
                                      collector, changeTracker)
         val appModule = projectRule.project.gradleModule(":app")!!
-        configurator.configureModule(appModule, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
+        configurator.configureModule(appModule, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, kotlinVersion, jvmTarget,
                                      collector, changeTracker)
 
         collector.showNotification()

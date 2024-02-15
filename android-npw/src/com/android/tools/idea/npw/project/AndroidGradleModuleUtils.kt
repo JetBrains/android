@@ -75,12 +75,10 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 /** Find the most appropriate Kotlin plugin version for the specified project. */
 @Slow
 fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
-  // TODO(b/322863175): Establish process/tests to ensure the default version gets updated.
-  val defaultKotlinVersion = "1.9.0"
-  if (isNewProject) return defaultKotlinVersion
+  if (isNewProject) return DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 
   val versionInUse = project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) }
-  return versionInUse ?: defaultKotlinVersion
+  return versionInUse ?: DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 }
 
 /** Call detector to check whether Version Catalogs are in use.  Is (very occasionally) slow if cached value has been invalidated. */
@@ -88,3 +86,6 @@ fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
 fun determineVersionCatalogUse(project: Project): Boolean {
   return GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
 }
+
+// TODO(b/322863175): Establish process/tests to ensure the default version gets updated.
+const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "1.9.0"

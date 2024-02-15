@@ -1,8 +1,7 @@
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_FOR_TESTS")
 
 # managed by go/iml_to_build
 iml_module(
@@ -48,12 +47,12 @@ iml_studio_test(
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
-    artifacts = KGP_FOR_TESTS + [
+    artifacts = [
         "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 filegroup(
