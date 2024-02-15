@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.actions
 
-import android.annotation.SuppressLint
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -31,7 +30,7 @@ class SelectHeapDumpTaskAction : ProfilerTaskActionBase(
   "Select a heap dump task in the current profiling session",
 ) {
 
-  @SuppressLint("VisibleForTests")
+  @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.HEAP_DUMP)
   }

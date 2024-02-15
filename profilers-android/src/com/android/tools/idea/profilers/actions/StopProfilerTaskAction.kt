@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.actions
 
-import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -37,7 +36,7 @@ class StopProfilerTaskAction : ProfilerTaskActionBase(
    * This action is purely for testing purposes, the action stops the current profiling task, and is only limited to stopping
    * profiling tasks: System Trace, Callstack sample, Native Allocations, Java/Kotlin trace.
    */
-  @SuppressLint("VisibleForTests")
+  @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val profilers = getStudioProfilers(e.project!!)
     val currentTask = profilers.sessionsManager.currentTaskType

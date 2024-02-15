@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.actions
 
-import android.annotation.SuppressLint
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
@@ -30,7 +29,7 @@ class StartProfilerTaskAction : ProfilerTaskActionBase(
   "Start a task in the current profiling session"
 ) {
 
-  @SuppressLint("VisibleForTests")
+  @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     getTaskHomeTabModel(e.project!!).onEnterTaskButtonClick()
   }
