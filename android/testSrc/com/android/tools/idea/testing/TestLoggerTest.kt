@@ -20,11 +20,11 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestLoggerFactory
-import com.intellij.util.io.readText
 import org.junit.ClassRule
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.readText
 
 class TestLoggerTest {
   companion object {

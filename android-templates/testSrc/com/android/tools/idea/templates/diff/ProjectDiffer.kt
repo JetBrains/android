@@ -18,12 +18,12 @@ package com.android.tools.idea.templates.diff
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.truth.Truth
 import com.intellij.util.containers.isEmpty
-import com.intellij.util.io.isDirectory
 import java.io.File
 import java.nio.charset.MalformedInputException
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.Assert
+import kotlin.io.path.isDirectory
 
 /**
  * Renders a project using the template to be tested, then diffs the generated files against the

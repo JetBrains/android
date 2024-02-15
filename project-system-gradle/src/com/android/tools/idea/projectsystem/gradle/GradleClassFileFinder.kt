@@ -33,12 +33,12 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
 import com.intellij.psi.util.ParameterizedCachedValueProvider
-import com.intellij.util.io.isFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Optional
 import java.util.regex.Pattern
 import kotlin.io.path.extension
+import kotlin.io.path.isRegularFile
 
 /**
  * [CompileRoots] of a module, including dependencies. [directories] is the list of paths to
@@ -66,7 +66,7 @@ private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarMan
 
   /** Contains a list of the jar outputs in the [CompileRoots] (typically R.jar files) */
   private val jars: List<Path> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    allRoots.filter { it.isFile() && it.extension == SdkConstants.EXT_JAR }
+    allRoots.filter { it.isRegularFile() && it.extension == SdkConstants.EXT_JAR }
   }
 
   /** Finds a class in the directories included in this [CompileRoots]. */
