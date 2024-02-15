@@ -78,8 +78,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -209,6 +209,10 @@ public class LiveEditProjectMonitor implements Disposable {
   private final ConcurrentHashMap<PsiFile, PsiState> psiSnapshots = new ConcurrentHashMap<>();
 
   private final MutableIrClassCache irClassCache = new MutableIrClassCache();
+
+  private final AtomicInteger pendingRecompositionStatusPolls = new AtomicInteger(0);
+
+  public static final int NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT = 5;
 
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this(liveEditService, project, new DefaultApkClassProvider());
@@ -617,21 +621,30 @@ public class LiveEditProjectMonitor implements Disposable {
 
   @VisibleForTesting
   void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
+    if (pendingRecompositionStatusPolls.getAndSet(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT) < 1) {
+      scheduleNextErrorPolling(deployer, installer, adb, packageName);
+    }
+  }
+
+  private void scheduleNextErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
+
+    scheduler.schedule(() -> {
+      int pollsLeft = pendingRecompositionStatusPolls.decrementAndGet();
       try {
         List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
         if (!errors.isEmpty()) {
           Deploy.ComposeException error = errors.get(0);
           updateEditableStatus(createRecomposeErrorStatus(error.getExceptionClassName(), error.getMessage(), error.getRecoverable()));
         }
+        if (pollsLeft > 0) {
+          scheduleNextErrorPolling(deployer, installer, adb, packageName);
+        }
       } catch (IOException e) {
         updateEditableStatus(createRecomposeRetrievalErrorStatus(e));
         LOGGER.warning(e.toString());
       }
-    }, 2, 2, TimeUnit.SECONDS);
-    // Schedule a cancel after 10 seconds.
-    scheduler.schedule(() -> {statusPolling.cancel(true);}, 10, TimeUnit.SECONDS);
+    }, 2, TimeUnit.SECONDS);
   }
 
   public void clearDevices() {
@@ -683,7 +696,8 @@ public class LiveEditProjectMonitor implements Disposable {
     liveEditDevices.update(status);
   }
 
-  private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
+  @VisibleForTesting
+  void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
     liveEditDevices.update((device, prevStatus) -> (
       prevStatus.unrecoverable() ||
       prevStatus == LiveEditStatus.Disabled.INSTANCE ||

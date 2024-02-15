@@ -29,8 +29,10 @@ import com.android.tools.deployer.Installer
 import com.android.tools.deployer.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.deploy.proto.Deploy
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -46,6 +48,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.spy
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -237,6 +240,93 @@ class LiveEditProjectMonitorTest {
       val status = monitor.status(device)
       status.description.contains("IOException")
     }
+  }
+
+  /**
+   * Make sure that 10 recomposition status retrieval request all at once doesn't trigger 10+ round trip to the device
+   */
+  @Test
+  fun recompositionCheckRate() {
+    // Force the test env to queue up 10 Live Edit recomposition status retrieval
+    val numRecompositionRequested = NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
+    val recompositionStatusRequestFinished = CountDownLatch(numRecompositionRequested)
+
+    // We should only get a single failure.
+    val taskComposeStatusFinished = CountDownLatch(1)
+
+    val monitor = spy(LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject))
+    val device: IDevice = MockitoKt.mock()
+    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+
+    val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
+    val adb = AdbClient(device, TestLogger())
+    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+
+    var totalStatusRetrieve = 0
+    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
+      recompositionStatusRequestFinished.await() // Wait until all 10 request has been queued up before we return the one status.
+      taskComposeStatusFinished.countDown()
+      totalStatusRetrieve++
+      throw IOException("Fake IO Exception")
+    }
+
+    // Fake Deployment
+    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
+    monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
+
+    for (i in 1..numRecompositionRequested) {
+      monitor.scheduleErrorPolling(deployer, installer, adb, "some.app")
+      recompositionStatusRequestFinished.countDown()
+    }
+
+    recompositionStatusRequestFinished.await()
+    taskComposeStatusFinished.await()
+
+    assertEquals(1, totalStatusRetrieve)
+  }
+
+  /**
+   * Make sure we get 5 recomposition status update.
+   */
+  @Test
+  fun recompositionCheckCount() {
+    // Force the test env to queue up 10 Live Edit recomposition status retrieval
+    val numRecompositionRequested = NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
+    val recompositionStatusRequestFinished = CountDownLatch(numRecompositionRequested)
+
+    // We should only get 5 status update.
+    val taskComposeStatusFinished = CountDownLatch(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT)
+
+    var totalStatusRetrieve = 0
+    val monitor = object : LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject) {
+      override fun updateEditableStatus(newStatus: LiveEditStatus) {
+        recompositionStatusRequestFinished.await()
+        totalStatusRetrieve++
+        taskComposeStatusFinished.countDown()
+      }
+    }
+
+    val device: IDevice = MockitoKt.mock()
+    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+
+    val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
+    val adb = AdbClient(device, TestLogger())
+    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+
+    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).thenReturn(listOf(Deploy.ComposeException.newBuilder().build()))
+    // Fake Deployment
+    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
+    monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
+
+    for (i in 1..numRecompositionRequested) {
+      monitor.scheduleErrorPolling(deployer, installer, adb, "some.app")
+      recompositionStatusRequestFinished.countDown()
+    }
+
+    recompositionStatusRequestFinished.await()
+    taskComposeStatusFinished.await()
+
+    assertEquals(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT, totalStatusRetrieve)
   }
 
   @Test
