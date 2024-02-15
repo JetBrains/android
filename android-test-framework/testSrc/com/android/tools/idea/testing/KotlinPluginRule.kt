@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.testing
 
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKind
-import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginKind
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginMode
 import org.junit.rules.ExternalResource
 
-class KotlinPluginRule(private val pluginKind: KotlinPluginKind) : ExternalResource() {
+class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResource() {
   private var oldPropertyValue: String? = null
   override fun before() {
     oldPropertyValue = System.getProperty(PROPERTY_NAME)
-    System.setProperty(PROPERTY_NAME, (pluginKind == KotlinPluginKind.FIR_PLUGIN).toString())
+    System.setProperty(PROPERTY_NAME, (pluginKind == KotlinPluginMode.K2).toString())
   }
 
   override fun after() {
-    checkKotlinPluginKind(pluginKind)
+    checkKotlinPluginMode(pluginKind)
 
     val value = oldPropertyValue
     if (value != null) {

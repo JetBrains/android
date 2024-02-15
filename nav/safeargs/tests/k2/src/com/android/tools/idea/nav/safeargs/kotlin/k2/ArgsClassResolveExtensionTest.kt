@@ -33,8 +33,8 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKind
-import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginKind
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginMode
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.types.Variance
 import org.junit.Before
@@ -57,7 +57,7 @@ class ArgsClassResolveExtensionTest(
 
   @Before
   fun setUp() {
-    checkKotlinPluginKind(KotlinPluginKind.FIR_PLUGIN)
+    checkKotlinPluginMode(KotlinPluginMode.K2)
     if (navVersion > SafeArgsFeatureVersions.MINIMUM_VERSION) {
       safeArgsRule.addFakeNavigationDependency(navVersion)
     }

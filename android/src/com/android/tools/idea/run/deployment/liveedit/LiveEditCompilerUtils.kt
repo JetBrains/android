@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
-import org.jetbrains.kotlin.idea.base.plugin.isFe10Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.name.FqName
@@ -167,7 +167,7 @@ internal fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageV
   put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
 
   // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-  if (isFe10Plugin()) {
+  if (KotlinPluginModeProvider.isK1Mode()) {
     put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
   }
 

@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbolOrigin
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKind
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -55,8 +55,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
   protected val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(KotlinPluginRule(KotlinPluginKind.FIR_PLUGIN)).around(safeArgsRule)!!
+  val ruleChain = RuleChain.outerRule(KotlinPluginRule(KotlinPluginMode.K2)).around(safeArgsRule)!!
 
   protected fun addNavXml(
     @Language("xml") fileContent: String,
