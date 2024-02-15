@@ -184,6 +184,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   var displayMode = config.displayModes.firstOrNull { it.width == config.displayWidth && it.height == config.displayHeight }
+  val avdName: String
+    get() = config.avdName
 
   @Volatile var extendedControlsVisible = false
 
@@ -230,13 +232,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val embeddedFlags = if (standalone) "" else """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
 
     return """
-        port.serial=${serialPort}
+        port.serial=$serialPort
         port.adb=${serialPort + 1}
-        avd.name=${avdId}
-        avd.dir=${avdFolder}
-        avd.id=${avdId}
+        avd.name=$avdName
+        avd.dir=$avdFolder
+        avd.id=$avdId
         cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
-        grpc.port=${grpcPort}
+        grpc.port=$grpcPort
         grpc.token=RmFrZSBnUlBDIHRva2Vu
         """.trimIndent()
   }

@@ -32,7 +32,6 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -74,6 +73,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
@@ -124,7 +124,6 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
-import java.lang.ref.WeakReference
 import java.text.Collator
 import java.time.Duration
 import java.util.Arrays
@@ -1106,9 +1105,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
-      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
-      activateMirroring(device, contentManager)
+      activateMirroring(device, event.contentManager)
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -1119,8 +1116,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(device.sourceTemplate?.properties?.composeDeviceName(), null, device.sourceTemplate?.properties?.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
-      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+      val contentManager = event.contentManager
       if (contentManager != null) {
         recentRemoteDeviceRequesters.put(device, contentManager)
         alarm.addRequest(recentRemoteDeviceRequesters::cleanUp, REMOTE_DEVICE_REQUEST_EXPIRATION.toMillis())
@@ -1137,8 +1133,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(avd.displayName, null, avd.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
-      val contentManager = ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+      val contentManager = event.contentManager
       if (contentManager != null) {
         recentAvdStartRequesters.put(avd.id, contentManager)
         alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
@@ -1272,6 +1267,16 @@ private fun Content.removeAndDispose() {
   FlightRecorder.log { "$simpleId.removeAndDispose()\n$currentStack" }
   manager?.removeContent(this, true)
 }
+
+private val AnActionEvent.contentManager: ContentManager?
+  get() {
+    val contentManager = getData(PlatformDataKeys.CONTENT_MANAGER)
+    if (contentManager != null) {
+      return contentManager
+    }
+    val component = getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
+    return ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+  }
 
 private fun isLocalEmulator(deviceSerialNumber: String) =
     deviceSerialNumber.startsWith("emulator-")

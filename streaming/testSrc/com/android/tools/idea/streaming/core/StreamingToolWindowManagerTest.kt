@@ -104,6 +104,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JViewport
+import javax.swing.SwingConstants
 import javax.swing.UIManager
 import kotlin.time.Duration.Companion.seconds
 
@@ -365,6 +366,44 @@ class StreamingToolWindowManagerTest {
   }
 
   @Test
+  fun testSplitWindow() {
+    val tempFolder = emulatorRule.avdRoot
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createFoldableAvd(tempFolder))
+    val device1 = agentRule.connectDevice("Pixel 8 Pro", 34, Dimension(1080, 2400))
+    val device2 = agentRule.connectDevice("Pixel Watch 2", 33, Dimension(450, 450))
+
+    toolWindow.show()
+
+    // Start the emulator.
+    emulator1.start()
+    waitForCondition(15.seconds) { contentManager.contents[0].displayName != null }
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(device1.serialNumber, project)
+    waitForCondition(15.seconds) { contentManager.contents.size == 2 }
+
+    val topContent = contentManager.contents[0]
+    val bottomContent = contentManager.contents[1]
+    ToolWindowHeadlessManagerImpl.split(bottomContent, SwingConstants.BOTTOM)
+    val topContentManager = topContent.manager!!
+    assertThat(topContentManager.contents).hasLength(1)
+    val bottomContentManager = bottomContent.manager!!
+    assertThat(bottomContentManager.contents).hasLength(1)
+
+    var action = triggerAddDevicePopup().actions.find { it.templateText == emulator2.avdName }!!
+    executeStreamingAction(action, toolWindow.component, project,
+                           extraData = mapOf(PlatformDataKeys.CONTENT_MANAGER.name to bottomContentManager))
+    waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
+    assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
+
+    val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
+    action = triggerAddDevicePopup().actions.find { it.templateText == device2Name }!!
+    executeStreamingAction(action, toolWindow.component, project,
+                           extraData = mapOf(PlatformDataKeys.CONTENT_MANAGER.name to topContentManager))
+    waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
+    assertThat(topContentManager.contents[1].displayName).isEqualTo(device2Name)
+  }
+
+  @Test
   fun testRemoteDevice() {
     val properties = DeviceProperties.buildForTest {
       icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
@@ -597,16 +636,7 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     RunningEmulatorCatalog.getInstance().updateNow().get()
 
-    waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
-    val newTabAction = toolWindow.tabActions[0]
-    val testEvent = createTestEvent(toolWindow.component, project)
-    newTabAction.actionPerformed(testEvent)
-    lateinit var popup: FakeListPopup<Any>
-    waitForCondition(4.seconds) {
-      newTabAction.actionPerformed(testEvent)
-      popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-      popup.items.size >= 2
-    }
+    val popup = triggerAddDevicePopup()
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Virtual Devices), ${phone.avdName} (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
@@ -737,9 +767,6 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private val FakeEmulator.avdName
-    get() = avdId.replace('_', ' ')
-
   private fun createToolWindow(): TestToolWindow {
     val windowManager = TestToolWindowManager()
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
@@ -752,6 +779,20 @@ class StreamingToolWindowManagerTest {
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return displayView.frameNumber
+  }
+
+  private fun triggerAddDevicePopup(): FakeListPopup<Any> {
+    waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
+    val newTabAction = toolWindow.tabActions[0]
+    val testEvent = createTestEvent(toolWindow.component, project)
+    newTabAction.actionPerformed(testEvent)
+    lateinit var popup: FakeListPopup<Any>
+    waitForCondition(4.seconds) {
+      newTabAction.actionPerformed(testEvent)
+      popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+      popup.items.size >= 2
+    }
+    return popup
   }
 
   private inner class TestToolWindowManager : ToolWindowHeadlessManagerImpl(project) {
