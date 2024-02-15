@@ -33,9 +33,14 @@ import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.concurrency.getCompletedOrNull
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
+import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -43,13 +48,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.EnumSet
-import java.util.concurrent.Future
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Supplier
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -145,15 +143,18 @@ class DeviceTemplateAndroidDevice(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
     getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
-    supportedAbis: MutableSet<Abi>
+    supportedAbis: MutableSet<Abi>,
   ): LaunchCompatibility {
-    return LaunchCompatibility.canRunOnDevice(
-      minSdkVersion,
-      projectTarget,
-      getRequiredHardwareFeatures,
-      supportedAbis,
-      this
-    )
+
+    val projectLaunchCompatibility =
+      LaunchCompatibility.canRunOnDevice(
+        minSdkVersion,
+        projectTarget,
+        getRequiredHardwareFeatures,
+        supportedAbis,
+        this,
+      )
+    return projectLaunchCompatibility.combine(deviceTemplate.state.error.toLaunchCompatibility())
   }
 }
 
@@ -200,35 +201,36 @@ class DeviceHandleAndroidDevice(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
     getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
-    supportedAbis: MutableSet<Abi>
+    supportedAbis: MutableSet<Abi>,
   ): LaunchCompatibility {
+    val projectLaunchCompatibility =
+      LaunchCompatibility.canRunOnDevice(
+        minSdkVersion,
+        projectTarget,
+        getRequiredHardwareFeatures,
+        supportedAbis,
+        this,
+      )
     // If the device is running, assume that these errors don't matter.
-    if (!isRunning) {
-      deviceHandle.state.error?.let {
-        when (it.severity) {
-          DeviceError.Severity.ERROR ->
-            return LaunchCompatibility(LaunchCompatibility.State.ERROR, it.message)
+    val deviceLaunchCompatibility =
+      deviceHandle.state.error?.takeUnless { isRunning }.toLaunchCompatibility()
 
-          DeviceError.Severity.WARNING ->
-            return LaunchCompatibility(LaunchCompatibility.State.WARNING, it.message)
-
-          DeviceError.Severity.INFO -> {}
-        }
-      }
-    }
-    return LaunchCompatibility.canRunOnDevice(
-      minSdkVersion,
-      projectTarget,
-      getRequiredHardwareFeatures,
-      supportedAbis,
-      this
-    )
+    // Favor the project launch compatibility, since handle state tends to be more temporary.
+    return projectLaunchCompatibility.combine(deviceLaunchCompatibility)
   }
 }
 
+private fun DeviceError?.toLaunchCompatibility(): LaunchCompatibility =
+  when (this?.severity) {
+    DeviceError.Severity.ERROR -> LaunchCompatibility(LaunchCompatibility.State.ERROR, message)
+    DeviceError.Severity.WARNING -> LaunchCompatibility(LaunchCompatibility.State.WARNING, message)
+    DeviceError.Severity.INFO,
+    null -> LaunchCompatibility.YES
+  }
+
 private suspend fun DeviceProvisionerAndroidDevice.DdmlibDeviceLookup.findDdmlibDeviceWithTimeout(
   connectedDevice: ConnectedDevice,
-  timeout: Duration = 1.seconds
+  timeout: Duration = 1.seconds,
 ): IDevice {
   return withTimeoutOrNull(timeout) { findDdmlibDevice(connectedDevice) }
     ?: throw IllegalStateException("IDevice not found for ${connectedDevice.serialNumber}")

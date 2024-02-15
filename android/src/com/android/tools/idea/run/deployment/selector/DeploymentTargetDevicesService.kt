@@ -20,6 +20,8 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.mapChangedState
+import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.run.DeviceHandleAndroidDevice
@@ -35,9 +37,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import com.intellij.util.containers.orNull
-import java.util.Optional
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -47,16 +46,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.android.facet.AndroidFacet
@@ -108,41 +105,21 @@ constructor(
 
   /** A StateFlow that tracks DeviceHandles to build [DeviceHandleState]s. */
   private val deviceStateFlow: StateFlow<List<DeviceHandleState>> =
-    channelFlow {
-        val connectionTimes = ConcurrentHashMap<DeviceId, Instant>()
-        val handles = ConcurrentHashMap<DeviceHandle, Optional<DeviceHandleState>>()
-        devicesFlow.collect { newHandles ->
-          val removed = handles.keys - newHandles
-          val added = newHandles - handles.keys
-          for (handle in added) {
-            // Create a slot for the handle, to be filled in by the coroutine tracking the handle
-            handles[handle] = Optional.empty()
-            handle.scope.launch {
-              handle.stateFlow.collect { state ->
-                val connectionTime =
-                  if (state.isOnline()) {
-                    connectionTimes.computeIfAbsent(handle.id) { clock.now() }
-                  } else {
-                    connectionTimes.remove(handle.id)
-                    null
-                  }
-                // Don't update the handle if it has already been removed. (We can reach this
-                // point after the removal, and must not undo the remove.)
-                if (handles.containsKey(handle)) {
-                  handles.computeIfPresent(handle) { _, _ ->
-                    Optional.of(DeviceHandleState(handle, state, connectionTime))
-                  }
-                  send(handles.values.mapNotNull { it.orNull() })
-                }
+    run {
+        val connectionTimes = mutableMapOf<DeviceId, Instant>()
+        devicesFlow
+          .pairWithNestedState(DeviceHandle::stateFlow)
+          .onEach { handles -> connectionTimes.keys.retainAll(handles.map { it.first.id }.toSet()) }
+          .mapChangedState { handle, state ->
+            val connectionTime =
+              if (state.isOnline()) {
+                connectionTimes.computeIfAbsent(handle.id) { clock.now() }
+              } else {
+                connectionTimes.remove(handle.id)
+                null
               }
-            }
+            DeviceHandleState(handle, state, connectionTime)
           }
-          for (handle in removed) {
-            handles.remove(handle)
-            connectionTimes.remove(handle.id)
-          }
-          send(handles.values.mapNotNull { it.orNull() })
-        }
       }
       .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
 
@@ -167,23 +144,14 @@ constructor(
   private fun deviceTemplateFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker,
-  ): Flow<List<DeploymentTargetDevice>> = flow {
-    val templateDevices = mutableMapOf<DeviceTemplate, DeploymentTargetDevice>()
-    templatesFlow.collect { templates ->
-      templateDevices.keys.retainAll(templates)
-      for (template in templates) {
-        if (!templateDevices.containsKey(template)) {
-          templateDevices[template] =
-            DeploymentTargetDevice.create(
-              DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
-              null,
-              launchCompatibilityChecker,
-            )
-        }
-      }
-      emit(templateDevices.values.toList())
+  ): Flow<List<DeploymentTargetDevice>> =
+    templatesFlow.pairWithNestedState(DeviceTemplate::stateFlow).mapChangedState { template, _ ->
+      DeploymentTargetDevice.create(
+        DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
+        null,
+        launchCompatibilityChecker,
+      )
     }
-  }
 
   val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
     adbFlow

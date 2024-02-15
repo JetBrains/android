@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.TemplateState
+import com.android.sdklib.devices.Abi
+import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.run.DeviceHandleAndroidDevice
@@ -26,6 +32,7 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.google.common.truth.Truth.assertThat
+import com.jetbrains.rd.util.enumSetOf
 import icons.StudioIcons
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.cancel
@@ -71,7 +78,16 @@ class DeploymentTargetDevicesServiceTest {
       )
 
     suspend fun sendLaunchCompatibility() {
-      launchCompatibilityCheckerFlow.emit(LaunchCompatibilityChecker { LaunchCompatibility.YES })
+      launchCompatibilityCheckerFlow.emit(
+        LaunchCompatibilityChecker { device ->
+          device.canRun(
+            AndroidVersion(31),
+            MockPlatformTarget(31, 0),
+            { enumSetOf<IDevice.HardwareFeature>() },
+            setOf(Abi.ARM64_V8A),
+          )
+        }
+      )
     }
   }
 
@@ -145,6 +161,33 @@ class DeploymentTargetDevicesServiceTest {
     device = devices.first()
     assertThat(device.id).isEqualTo(id)
     assertThat(device.templateId).isEqualTo(templateId)
+  }
+
+  private data class TestDeviceError(
+    override val severity: DeviceError.Severity,
+    override val message: String,
+  ) : DeviceError
+
+  @Test
+  fun deviceTemplateState() = runTestWithFixture {
+    val templateId = templateId("1")
+    val template = FakeDeviceTemplate(templateId)
+    template.stateFlow.value = TemplateState(TestDeviceError(DeviceError.Severity.ERROR, "Error"))
+    templatesFlow.value = listOf(template)
+    sendLaunchCompatibility()
+
+    var devices = devicesService.loadedDevices.first { it.isNotEmpty() }
+    var device = devices.first()
+    assertThat(device.id).isEqualTo(templateId)
+    assertThat(device.launchCompatibility.state).isEqualTo(LaunchCompatibility.State.ERROR)
+
+    // Clear the error; launch compatibility should become OK
+    template.stateFlow.value = TemplateState(null)
+    testScope.advanceUntilIdle()
+
+    device = devicesService.loadedDevices.first().first()
+    assertThat(device.launchCompatibility.reason).isNull()
+    assertThat(device.launchCompatibility.state).isEqualTo(LaunchCompatibility.State.OK)
   }
 
   @Test
