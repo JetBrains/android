@@ -39,7 +39,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.editor.fixers.range
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -68,7 +67,7 @@ class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() 
     val iconRenderer = ColorIconRenderer(uElement, color)
     return LineMarkerInfo(
       element,
-      element.range,
+      element.textRange,
       iconRenderer.icon,
       { ComposeBundle.message("compose.color.picker.tooltip") },
       iconRenderer,

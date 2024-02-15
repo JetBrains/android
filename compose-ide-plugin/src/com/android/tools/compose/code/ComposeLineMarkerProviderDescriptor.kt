@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
-import org.jetbrains.kotlin.idea.editor.fixers.range
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
@@ -67,7 +66,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
     return LineMarkerInfo<PsiElement>(
       element,
-      element.range,
+      element.textRange,
       StudioIcons.GutterIcons.COMPOSABLE_FUNCTION,
       { ComposeBundle.message("composable.line.marker.tooltip") },
       /* navHandler = */ null,
