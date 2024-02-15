@@ -18,7 +18,7 @@ public class AndroidLanguageFeatureProvider implements LanguageFeatureProvider {
     if (JavaFeature.MULTI_CATCH == feature) {
       return ThreeState.fromBoolean(isApiLevelAtLeast(file, 19, true));
     }
-    else if (JavaFeature.STREAMS == feature || JavaFeature.ADVANCED_COLLECTIONS_API == feature) {
+    else if (JavaFeature.STREAM_OPTIONAL == feature || JavaFeature.ADVANCED_COLLECTIONS_API == feature) {
       return ThreeState.fromBoolean(isApiLevelAtLeast(file, 24, true));
     }
     else if (JavaFeature.THREAD_LOCAL_WITH_INITIAL == feature) {

@@ -30,7 +30,8 @@ import javax.swing.JOptionPane
 import kotlin.system.exitProcess
 
 class SafeMode : ApplicationLoadListener {
-  override fun beforeApplicationLoaded(application: Application, path: Path) {
+
+  override suspend fun beforeApplicationLoaded(application: Application, configPath: Path) {
     checkSafeMode()
   }
 

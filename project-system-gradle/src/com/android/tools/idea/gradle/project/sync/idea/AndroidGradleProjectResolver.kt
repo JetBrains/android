@@ -125,9 +125,9 @@ import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
 import org.jetbrains.plugins.gradle.model.Build
-import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
+import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
@@ -329,7 +329,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (androidModels != null) androidModels.kaptGradleModel else resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
     val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
     val gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel::class.java)
-    val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel::class.java)
+    val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, GradleBuildScriptClasspathModel::class.java)
     var androidModel: GradleAndroidModelData? = null
     var ndkModuleModel: NdkModuleModel? = null
     var gradleModel: GradleModuleModel? = null
@@ -789,7 +789,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       moduleName: String,
       gradleModule: IdeaModule,
       modelVersionString: String?,
-      buildScriptClasspathModel: BuildScriptClasspathModel?,
+      buildScriptClasspathModel: GradleBuildScriptClasspathModel?,
       gradlePluginModel: GradlePluginModel?
     ): GradleModuleModel {
       val buildScriptPath = try {
