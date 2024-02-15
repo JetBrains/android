@@ -57,6 +57,9 @@ object TaskBasedUxIcons {
   // The garbage icon is used for the delete recording button.
   val DELETE_RECORDING_ICON = TaskBasedUxIcon("studio/icons/common/delete.svg", StudioIcons::class.java, StudioIcons.Common.DELETE)
 
+  // The android head icon to indicate the preferred process
+  val ANDROID_HEAD_ICON = TaskBasedUxIcon("studio/icons/common/android-head.svg", StudioIcons::class.java, StudioIcons.Common.ANDROID_HEAD)
+
   // Recording screen icons.
   val RECORDING_IN_PROGRESS_ICON = TaskBasedUxIcon("studio/icons/profiler/toolbar/stop-recording.svg", StudioIcons::class.java,
                                                    StudioIcons.Profiler.Toolbar.STOP_RECORDING)

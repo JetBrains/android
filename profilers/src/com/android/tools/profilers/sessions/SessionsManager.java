@@ -214,7 +214,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     return myCurrentTaskType;
   }
 
-  public boolean getIsCurrentTaskStartup() {
+  public boolean isCurrentTaskStartup() {
     return myIsCurrentTaskStartup;
   }
 

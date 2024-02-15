@@ -19,7 +19,6 @@ import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -39,7 +38,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -90,10 +88,7 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
+        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
       }
     }
   }
@@ -121,10 +116,7 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = true) {
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
+        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
       }
     }
   }
@@ -150,10 +142,7 @@ class TaskGridTest {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
+        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
       }
     }
 
@@ -167,89 +156,13 @@ class TaskGridTest {
     composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
-  }
-
-  @Test
-  fun `only startup tasks are enabled and selectable without a selected device and process`() {
-    // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
-    composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.getDefaultInstance()),
-                 Common.Process.getDefaultInstance(), true, myProfilers.taskHandlers, myProfilers)
-      }
-    }
-
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
-
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsNotEnabled()
-  }
-
-  @Test
-  fun `unsupported task (based off device feature level) is displayed but not clickable`() {
-    composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = false) {
-        // Set feature level to 28, which will enable all tasks except Native Allocations.
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(28).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
-      }
-    }
-
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
-
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
-    // Because the Native Allocations task requires device feature level 29, this task is not supported and this should not be clickable.
-    composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsNotEnabled()
-  }
-
-  @Test
-  fun `unsupported tasks (based off process support level being profileable) are displayed but not clickable`() {
-    composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = false) {
-        // Set exposure level of process to profileable so only profileable-compatible tasks are enabled.
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
-      }
-    }
-
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
-
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
-    // Java/Kotlin Allocations and Heap Dump tasks can only be done on Debuggable processes and thus should be disabled when a profileable
-    // process is selected.
-    composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsNotEnabled()
   }
 
   @Test
   fun `clicking task registers task type selection in model`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel,
-                 ProcessListModel.ProfilerDeviceSelection("FakeDevice", true, Common.Device.newBuilder().setFeatureLevel(30).build()),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
-                 myProfilers.taskHandlers, myProfilers)
+        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
       }
     }
 

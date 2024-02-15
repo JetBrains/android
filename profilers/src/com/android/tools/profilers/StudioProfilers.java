@@ -563,6 +563,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
+  private void checkAndUpdateStartupTaskStatus() {
+    if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      return;
+    }
+    // Update the task home tab model state after confirmation that the startup task has already started (the task is alive/ongoing).
+    if (getSessionsManager().isSessionAlive() && getSessionsManager().isCurrentTaskStartup() &&
+        getTaskHomeTabModel().getSelectionStateOnTaskEnter().isProfilingFromProcessStart()) {
+      getTaskHomeTabModel().onStartupTaskStart();
+    }
+  }
+
   @NotNull
   public Common.Stream getStream(long streamId) {
     return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
@@ -620,7 +631,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           TaskHomeTabModel.SelectionStateOnTaskEnter selectionStateOnTaskEnter = getTaskHomeTabModel().getSelectionStateOnTaskEnter();
-          boolean isProfilingFromProcessStart = selectionStateOnTaskEnter.isStartupTaskEnabled();
+          boolean isProfilingFromProcessStart = selectionStateOnTaskEnter.isProfilingFromProcessStart();
           ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
           // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
           // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
@@ -636,6 +647,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
 
       mySessionsManager.update();
+
+      checkAndUpdateStartupTaskStatus();
 
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
@@ -836,7 +849,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
-      boolean isStartupTask = mySessionsManager.getIsCurrentTaskStartup();
+      boolean isStartupTask = mySessionsManager.isCurrentTaskStartup();
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
                                               myCreateTaskTab);
     }

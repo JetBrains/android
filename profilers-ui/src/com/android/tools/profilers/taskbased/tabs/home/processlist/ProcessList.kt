@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.android.tools.idea.IdeInfo
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.DeviceSelection
@@ -41,6 +40,7 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
     DeviceSelection(deviceList = deviceList, selectedDevice = selectedDevice, selectedDevicesCount = selectedDevicesCount,
                     onDeviceSelection = processListModel::onDeviceSelection)
 
+    val preferredProcessName = processListModel.preferredProcessName
     val selectedProcess by processListModel.selectedProcess.collectAsState()
     val deviceToProcessList by processListModel.deviceToProcesses.collectAsState()
     val processList = if (selectedDevice != null && deviceToProcessList.containsKey(selectedDevice!!.device)) {
@@ -51,7 +51,13 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
     }
 
     if (selectedDevicesCount == 1) {
-      ProcessTable(processList = processList, selectedProcess = selectedProcess, onProcessSelection = processListModel::onProcessSelection)
+      if (selectedDevice != null) {
+        ProcessTable(processList = processList, selectedProcess = selectedProcess, preferredProcessName = preferredProcessName,
+                     onProcessSelection = processListModel::onProcessSelection)
+      }
+      else {
+        throw IllegalStateException("If there count of devices selected is one, then the selected device must be non-null.")
+      }
     }
     else {
       val processListMessage =

@@ -1740,7 +1740,7 @@ public final class StudioProfilersTest {
     // Check that setProcess was called on process change and thus the session pid is that of FAKE_PROCESS (pid=1).
     assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
     // Make sure that the startup task is tied to the session created on startup.
-    assertThat(myProfilers.getSessionsManager().getIsCurrentTaskStartup()).isTrue();
+    assertThat(myProfilers.getSessionsManager().isCurrentTaskStartup()).isTrue();
     assertThat(myProfilers.getSessionsManager().getCurrentTaskType()).isEqualTo(ProfilerTaskType.SYSTEM_TRACE);
   }
 

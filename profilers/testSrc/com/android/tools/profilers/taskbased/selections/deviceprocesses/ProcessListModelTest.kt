@@ -56,7 +56,7 @@ class ProcessListModelTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    processListModel = ProcessListModel(myProfilers, MutableStateFlow(false)) {}
+    processListModel = ProcessListModel(myProfilers, MutableStateFlow(false), {}) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
 

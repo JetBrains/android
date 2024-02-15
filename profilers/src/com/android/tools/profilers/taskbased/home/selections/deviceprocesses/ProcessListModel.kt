@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class ProcessListModel(
   val profilers: StudioProfilers,
   private val isProfilingFromProcessStart: StateFlow<Boolean>,
+  private val setIsProfilingFromProcessStart: (Boolean) -> Unit,
   private val resetTaskSelection: () -> Unit,
 ) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
@@ -41,6 +42,8 @@ class ProcessListModel(
   val selectedProcess = _selectedProcess.asStateFlow()
   private val _selectedDevicesCount = MutableStateFlow(0)
   val selectedDevicesCount = _selectedDevicesCount.asStateFlow()
+  private var _isPreferredProcessSelected = MutableStateFlow(false)
+  val isPreferredProcessSelected = _isPreferredProcessSelected.asStateFlow()
 
   @VisibleForTesting
   val preferredProcessName get() = profilers.preferredProcessName
@@ -73,6 +76,8 @@ class ProcessListModel(
     _deviceToProcesses.value = newDeviceToProcesses
     _deviceList.value = newDeviceToProcesses.keys.toList()
 
+    checkForPreferredProcess()
+
     // In the standalone/game-tool profiler, device selection is made via a dropdown in the profiler UI with only running devices listed.
     // Therefore, if the device selected in the dropdown is disconnected, and thus no longer available in the dropdown, the selection of
     // such device should be removed. This reset logic is not necessary in the case of the regular/non-standalone profiler as the selection
@@ -88,6 +93,16 @@ class ProcessListModel(
     }
 
     reorderProcessList()
+  }
+
+  /**
+   * Checks for the presence of the preferred process, and resets the selection if preferred process is selected and no longer present.
+   */
+  private fun checkForPreferredProcess() {
+    val isPreferredProcessPresent = getSelectedDeviceProcesses().find { it.name == preferredProcessName } != null
+    if (!isPreferredProcessPresent && _isPreferredProcessSelected.value) {
+      resetProcessSelection()
+    }
   }
 
   /**
@@ -133,6 +148,14 @@ class ProcessListModel(
     reorderedProcessList.sortBy { it.name }
     // Add the preferred processes to the top of the new, reordered list.
     reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { getSelectedDeviceProcesses()[it] })
+
+    // If the preferred process is not present, add it.
+    if (!preferredProcessName.isNullOrBlank() && preferredProcessesWithIndicesSorted.isEmpty()) {
+      val deadPreferredProcess = Common.Process.newBuilder().setName(preferredProcessName).setState(Common.Process.State.DEAD).build()
+      // The preferred process, dead or alive, should always be added to the top.
+      reorderedProcessList.add(0, deadPreferredProcess)
+    }
+
     // Create and set new mapping of devices to sorted processes.
     val newDeviceToProcesses = mutableMapOf<Common.Device, List<Common.Process>>()
     newDeviceToProcesses.putAll(_deviceToProcesses.value)
@@ -217,6 +240,10 @@ class ProcessListModel(
   fun onProcessSelection(newProcess: Common.Process) {
     resetTaskSelection()
     _selectedProcess.value = newProcess
+    _isPreferredProcessSelected.value = newProcess.name == preferredProcessName
+    if (!_isPreferredProcessSelected.value) {
+      setIsProfilingFromProcessStart(false)
+    }
   }
 
   private fun preferredProcessUpdated() {
@@ -228,9 +255,19 @@ class ProcessListModel(
     _selectedDevicesCount.value = selectedDevicesCount;
   }
 
+  /**
+   * Allows to simulate preferred process selection and startup tasks from tests without having to create and select a process.
+   */
+  @VisibleForTesting
+  fun setIsPreferredProcessSelected(selected: Boolean) {
+    _isPreferredProcessSelected.value = selected
+  }
+
   fun resetDeviceSelection() { _selectedDevice.value = null }
 
-  private fun resetProcessSelection() { _selectedProcess.value = Common.Process.getDefaultInstance() }
+  fun resetProcessSelection() {
+    onProcessSelection(Common.Process.getDefaultInstance())
+  }
 
   private fun isDeviceSelected() = _selectedDevice.value != null
 

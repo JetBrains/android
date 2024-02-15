@@ -137,12 +137,7 @@ class TaskHomeTabTest {
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
 
-    // If startup tasks are enabled, the system trace task would be enabled already. Here we make sure it is not enabled when startup tasks
-    // is disabled.
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsNotEnabled()
-
-
-    // Auto-selection of the FakeDevice should populate the process list with 2 processes.
+    // Selection of the FakeDevice should populate the process list with 2 processes.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(taskHomeTabModel.processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
@@ -172,9 +167,10 @@ class TaskHomeTabTest {
   }
 
   @Test
-  fun `startup tasks are enabled and selectable without process and device selection with task starting from process start`() {
+  fun `startup tasks are enabled and selectable with preferred process and device selection with task starting from process start`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
+        taskHomeTabModel.processListModel.setIsPreferredProcessSelected(true)
         taskHomeTabModel.setIsProfilingFromProcessStart(true)
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
