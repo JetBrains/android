@@ -26,12 +26,12 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.google.errorprone.annotations.CheckReturnValue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import org.jetbrains.annotations.CheckReturnValue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
