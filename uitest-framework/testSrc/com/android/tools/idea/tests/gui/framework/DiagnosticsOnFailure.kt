@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework
 import com.intellij.ide.logsUploader.LogsPacker.packLogs
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import kotlinx.coroutines.runBlocking
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import java.nio.file.Files
@@ -30,7 +31,7 @@ internal class DiagnosticsOnFailure : TestWatcher() {
   override fun failed(throwable: Throwable, description: Description) {
     val project = ProjectManager.getInstance().openProjects[0]
     val fileName = description.testClass.simpleName + "." + description.methodName + "-diagnostics.zip"
-    @Suppress("UnstableApiUsage") val diagnostics = packLogs(project)
+    @Suppress("UnstableApiUsage") val diagnostics = runBlocking { packLogs(project) }
 
     try {
       val diagnosticsDir = GuiTests.getFailedTestDiagnosticsDirPath().toPath()

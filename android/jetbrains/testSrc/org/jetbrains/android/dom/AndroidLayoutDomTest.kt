@@ -1513,8 +1513,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val f = copyFileToProject("bigfile.xml")
     myFixture.configureFromExistingVirtualFile(f)
 
-    PlatformTestUtil.startPerformanceTest("android custom attrs highlighting", 800) { myFixture.doHighlighting() }.attempts(
-      2).usesAllCPUCores().assertTiming()
+    PlatformTestUtil.newPerformanceTest("android custom attrs highlighting", myFixture::doHighlighting).attempts(2).start()
   }
 
   fun testSupportGridLayoutCompletion() {

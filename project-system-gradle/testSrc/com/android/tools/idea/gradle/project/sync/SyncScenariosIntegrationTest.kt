@@ -50,10 +50,9 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
-import com.intellij.platform.workspace.storage.url.VirtualFileUrlManager
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.workspaceModel.ide.getInstance
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -249,9 +248,9 @@ class SyncScenariosIntegrationTest {
         "project", "project.app", "project.app.androidTest", "project.app.main", "project.app.unitTest")
       val unitTestModule = modules.first { it.name == "project.app.unitTest" }
       val roots = ModuleRootManager.getInstance(unitTestModule).contentRoots
-      @Suppress("UnstableApiUsage")
       assertThat(roots.map { it.url }).doesNotContain(
-        preparedProject.root.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
+        preparedProject.root.resolve("app/src/test/resources").toPath()
+          .toVirtualFileUrl(WorkspaceModel.getInstance(project).getVirtualFileUrlManager()).url)
     }
   }
 
