@@ -104,7 +104,7 @@ public class DeploymentTest {
     }
   }
 
-  @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule public final GuiTestRule myGuiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private final FakeDeviceHandler myHandler = new FakeDeviceHandler();
   private FakeAdbServer myAdbServer;
   private AndroidDebugBridge myBridge;

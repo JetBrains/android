@@ -73,7 +73,8 @@ public class WarningsCheckInNewCPPProjectTest {
       .moveBetween("\"Hello from C++\";", "") //To reduce flakiness
       .pressAndReleaseKeys(KeyEvent.VK_ENTER)
       .typeText("int x = 0;\n");
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    myIdeFrameFixture.requestFocusIfLost();
     InspectionsFixture myInspections = myIdeFrameFixture.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickAnalyze();
 
@@ -81,7 +82,7 @@ public class WarningsCheckInNewCPPProjectTest {
     myIdeFrameFixture.waitUntilProgressBarNotDisplayed();
 
     GuiTests.takeScreenshot(myIdeFrameFixture.robot(), "Problems panel");
-
+    myIdeFrameFixture.requestFocusIfLost();
     String inspectionResults = myInspections.getResults(); //get inspections results from the problem panel
     assertThat((inspectionResults).contains("Local variable 'x' is only assigned but never accessed")).isTrue();
     assertThat((inspectionResults).contains("The value is never used")).isTrue();
