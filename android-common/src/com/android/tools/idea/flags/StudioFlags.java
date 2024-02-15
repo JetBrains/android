@@ -1816,7 +1816,7 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "google.login", "Google Login");
   public static final Flag<Boolean> ENABLE_SETTINGS_ACCOUNT_UI =
     Flag.create(GOOGLE_LOGIN, "enabled", "Enable new login settings UI",
-                "When enabled, a login settings page will replace the popup from the login action in the top right.", false);
+                "When enabled, a login settings page will replace the popup from the login action in the top right.", true);
   // endregion GOOGLE_LOGIN
 
   public static Boolean isBuildOutputShowsDownloadInfo() {

@@ -7,4 +7,23 @@
     <option name="login" path="ActionManager" hit="Google Login V2" />
     <option name="v2" path="ActionManager" hit="Google Login V2" />
   </configurable>
+  <configurable id="com.google.gct.login2.settings.GoogleLoginApplicationSettingsConfigurableProvider" configurable_name="Google Accounts">
+    <option name="allow" hit="Allow" />
+    <option name="available" hit="Available integrations" />
+    <option name="integrations" hit="Available integrations" />
+    <option name="console" hit="Go to Firebase Console" />
+    <option name="firebase" hit="Go to Firebase Console" />
+    <option name="go" hit="Go to Firebase Console" />
+    <option name="to" hit="Go to Firebase Console" />
+    <option name="console" hit="Go to Play Console" />
+    <option name="go" hit="Go to Play Console" />
+    <option name="play" hit="Go to Play Console" />
+    <option name="to" hit="Go to Play Console" />
+    <option name="accounts" hit="Google Accounts" />
+    <option name="google" hit="Google Accounts" />
+    <option name="bot" hit="View Studio Bot settings" />
+    <option name="settings" hit="View Studio Bot settings" />
+    <option name="studio" hit="View Studio Bot settings" />
+    <option name="view" hit="View Studio Bot settings" />
+  </configurable>
 </options>
