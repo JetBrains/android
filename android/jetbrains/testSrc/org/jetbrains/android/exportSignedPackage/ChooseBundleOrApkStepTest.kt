@@ -44,11 +44,23 @@ class ChooseBundleOrApkStepTest : HeavyPlatformTestCase() {
     whenever(wizard.project).thenReturn(myProject)
 
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
-    settings.BUILD_TARGET_KEY = ExportSignedPackageWizard.APK
+    settings.BUILD_TARGET_KEY = ExportSignedPackageWizard.APK.toString()
     val chooseStep = ChooseBundleOrApkStep(wizard)
     assertTrue(chooseStep.myBundleButton.isEnabled)
     assertFalse(chooseStep.myBundleButton.isSelected)
     assertTrue(chooseStep.myApkButton.isSelected)
+  }
+
+  fun testBundleSelectedThroughSetting() {
+    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
+    whenever(wizard.project).thenReturn(myProject)
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.BUILD_TARGET_KEY = ExportSignedPackageWizard.BUNDLE.toString()
+    val chooseStep = ChooseBundleOrApkStep(wizard)
+    assertTrue(chooseStep.myBundleButton.isEnabled)
+    assertTrue(chooseStep.myBundleButton.isSelected)
+    assertFalse(chooseStep.myApkButton.isSelected)
   }
 
   fun testGetHelpId() {

@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -102,7 +103,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myBuildVariantsList.setSelectedIndices(lastSelectedIndices.toIntArray());
 
     String moduleName = myAndroidModel.getModuleName();
-    String targetType = myWizard.getTargetType();
+    TargetType targetType = myWizard.getTargetType();
     myApkPathField.setText(FileUtil.toSystemDependentName(getInitialPath(properties, moduleName, targetType)));
   }
 
@@ -148,7 +149,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   }
 
   @VisibleForTesting
-  String getInitialPath(@NotNull PropertiesComponent properties, @NotNull String moduleName, @NotNull String targetType) {
+  String getInitialPath(@NotNull PropertiesComponent properties, @NotNull String moduleName, @NotNull TargetType targetType) {
     String lastApkFolderPath = properties.getValue(getApkPathPropertyName(moduleName, targetType));
     if (!isNullOrEmpty(lastApkFolderPath)) {
       return lastApkFolderPath;
@@ -162,7 +163,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   }
 
   @VisibleForTesting
-  String getApkPathPropertyName(String moduleName, String targetType) {
+  String getApkPathPropertyName(String moduleName, TargetType targetType) {
     return (targetType.equals(ExportSignedPackageWizard.APK) ? PROPERTY_APK_PATH : PROPERTY_BUNDLE_PATH) +
            (isNullOrEmpty(moduleName) ? "" : "For" + moduleName);
   }

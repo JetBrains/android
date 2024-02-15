@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.Consumer
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +36,7 @@ import java.io.File
 import java.util.concurrent.ExecutionException
 
 @RunWith(Parameterized::class)
-class ExportSignedPackageWizardSigningTest(private val targetType: String,
+class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
                                            validStorePassword: Boolean,
                                            validKeyAlias: Boolean,
                                            validKeyPassword: Boolean,

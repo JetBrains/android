@@ -22,6 +22,7 @@ import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import java.io.File
@@ -89,7 +90,7 @@ class GradleSignStepTest : LightPlatformTestCase() {
     verifyDestinationEndsWhiteSpace(ExportSignedPackageWizard.BUNDLE)
   }
 
-  private fun verifyDestinationEndsWhiteSpace(targetType: String) {
+  private fun verifyDestinationEndsWhiteSpace(targetType: TargetType) {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance(project)
     val destinationPath = "${this.homePath}${File.separator}$targetType "
