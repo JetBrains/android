@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import android.annotation.SuppressLint
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.repository.Revision
@@ -152,7 +151,7 @@ private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
-@SuppressLint("AvoidByLazy")
+@Suppress("AvoidByLazy")
 class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal constructor(private val myCommandLineArgs: CommandLineArgs) :
   AbstractProjectResolverExtension(), AndroidGradleProjectResolverMarker {
   private var project: Project? = null
@@ -401,7 +400,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     populateAdditionalClassifierArtifactsModel(gradleModule)
   }
 
-  @SuppressLint("NewApi")
+  @Suppress("NewApi")
   private fun createAndSetupTestDataNode(
     moduleDataNode: DataNode<ModuleData>,
     gradleAndroidModel: GradleAndroidModelData

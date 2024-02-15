@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation
 
-import android.annotation.SuppressLint
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
@@ -25,7 +24,7 @@ import java.awt.Stroke
  * Layout sizes for Animation Inspector. All sizes are in px. TODO Check how layout is resized and
  * scale it appropriately if needed.
  */
-@SuppressLint("JbUiStored")
+@Suppress("JbUiStored")
 object InspectorLayout {
 
   init {

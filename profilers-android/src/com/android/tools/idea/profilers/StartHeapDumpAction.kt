@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers
 
-import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -38,7 +37,7 @@ class StartHeapDumpAction : DumbAwareAction(
       AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
   }
 
-  @SuppressLint("VisibleForTests")
+  @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers
 
-import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -42,7 +41,7 @@ class StopCpuCaptureAction : DumbAwareAction(
       (profilers.stage as CpuProfilerStage).recordingModel.canStop()
   }
 
-  @SuppressLint("VisibleForTests")
+  @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers

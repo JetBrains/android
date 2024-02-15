@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.internal
 
-import android.annotation.SuppressLint
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
@@ -244,7 +243,7 @@ internal class AppInspectorConnection(
    * Query the payload, removing it from the datastore at the same time (so obsolete, expensively
    * large data doesn't fill up the cache).
    */
-  @SuppressLint("CheckResult") // deleteEvents returns an empty message, nothing to check
+  @Suppress("CheckResult") // deleteEvents returns an empty message, nothing to check
   private fun removePayload(id: Long): ByteArray {
     val response =
       transport.client.transportStub.getEventGroups(
