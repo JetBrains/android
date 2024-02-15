@@ -19,7 +19,6 @@ import com.android.resources.NightMode
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions.ACTION_TOGGLE_DEVICE_NIGHT_MODE
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
@@ -40,7 +39,7 @@ class ToggleDeviceNightModeAction : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface: DesignSurface<*> = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     surface.configurations.forEach { configuration: Configuration ->
       val ordinal = configuration.nightMode.ordinal
       val newNightMode = NightMode.getByIndex((ordinal + 1) % NightMode.values().size)

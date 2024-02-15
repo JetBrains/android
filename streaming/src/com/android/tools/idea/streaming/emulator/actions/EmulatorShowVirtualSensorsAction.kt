@@ -26,7 +26,8 @@ class EmulatorShowVirtualSensorsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    showExtendedControls(emulatorController, getProject(event), PaneIndex.VIRT_SENSORS)
+    val project = event.project ?: return
+    showExtendedControls(emulatorController, project, PaneIndex.VIRT_SENSORS)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

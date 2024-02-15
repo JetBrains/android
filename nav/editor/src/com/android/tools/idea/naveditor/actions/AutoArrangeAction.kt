@@ -33,7 +33,7 @@ class AutoArrangeAction private constructor(): AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     WriteCommandAction.runWriteCommandAction(surface.project) {
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
       surface.sceneManager?.requestRenderAsync()

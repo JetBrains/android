@@ -52,7 +52,7 @@ abstract class SwitchDeviceAction : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(NlActionManager.LAYOUT_EDITOR)
+    val surface = e.getData(NlActionManager.LAYOUT_EDITOR) ?: return
     val config = surface.configurations.firstOrNull() ?: return
     switchDevice(surface, config)
   }

@@ -40,7 +40,7 @@ class StartDestinationToolbarAction private constructor(): AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     val component = surface.selectionModel.selection.singleOrNull() ?: return
     if (!component.id.isNullOrEmpty() &&
         component.isDestination && component != surface.currentNavigation &&

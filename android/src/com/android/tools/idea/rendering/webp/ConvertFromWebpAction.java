@@ -65,7 +65,8 @@ public class ConvertFromWebpAction extends DumbAwareAction {
       return;
     }
     boolean delete = answer == Messages.YES;
-    VirtualFile[] files = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
+    VirtualFile[] files = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
+    if (files == null) return;
     perform(project, files, delete);
   }
 

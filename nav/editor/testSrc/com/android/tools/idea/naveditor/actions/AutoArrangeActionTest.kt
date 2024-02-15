@@ -52,7 +52,7 @@ class AutoArrangeActionTest : NavTestCase() {
     whenever(surface.sceneManager).thenReturn(manager)
     whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())
     val actionEvent = mock(AnActionEvent::class.java)
-    whenever(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
     AutoArrangeAction.instance.actionPerformed(actionEvent)
     root.children.forEach { component ->
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
