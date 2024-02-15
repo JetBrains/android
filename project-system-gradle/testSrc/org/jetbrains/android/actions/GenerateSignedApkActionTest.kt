@@ -15,31 +15,42 @@
  */
 package org.jetbrains.android.actions
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.project.DefaultProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_LIB
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.replaceService
-import org.mockito.Mockito
+import com.intellij.testFramework.TestActionEvent
 
 /**
  * Tests for [GenerateSignedApkAction]
  */
 class GenerateSignedApkActionTest: AndroidGradleTestCase() {
-  fun testNullProjectBundleDisabled() {
-    assertThat(GenerateSignedApkAction.allowBundleSigning(null)).isFalse()
+  fun testDefaultProjectSystemActionDisabled() {
+    loadSimpleApplication()
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
+    val action = GenerateSignedApkAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.isVisible).isFalse()
   }
 
-  fun testApkProjectBundleDisabled() {
+  fun testSimpleProjectActionEnabled() {
     loadSimpleApplication()
-    val mockInfo = Mockito.mock(AndroidProjectInfo::class.java)
-    whenever(mockInfo.isApkProject).thenReturn(true)
-    project.replaceService(AndroidProjectInfo::class.java, mockInfo, testRootDisposable)
-    assertThat(GenerateSignedApkAction.allowBundleSigning(project)).isFalse()
+    val action = GenerateSignedApkAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.isVisible).isTrue()
   }
 
-  fun testSimpleProjectBundleEnabled() {
-    loadSimpleApplication()
-    assertThat(GenerateSignedApkAction.allowBundleSigning(project)).isTrue()
+  fun testLibraryOnlyProjectActionDisabled() {
+    loadProject(KOTLIN_LIB)
+    val action = GenerateSignedApkAction()
+    val event = TestActionEvent.createTestEvent(action)
+    action.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.isVisible).isFalse()
   }
 }

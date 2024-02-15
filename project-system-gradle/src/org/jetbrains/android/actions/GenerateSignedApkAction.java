@@ -51,8 +51,7 @@ public class GenerateSignedApkAction extends AnAction {
   @VisibleForTesting
   static boolean allowBundleSigning(@Nullable Project project) {
     return project != null &&
-           StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() &&
-           !AndroidProjectInfo.getInstance(project).isApkProject();
+           StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get();
   }
 
   @Override
@@ -66,8 +65,7 @@ public class GenerateSignedApkAction extends AnAction {
 
     assert !facets.isEmpty();
 
-    ExportSignedPackageWizard wizard =
-      new ExportSignedPackageWizard(project, facets, true, allowBundleSigning(project));
+    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, allowBundleSigning(project));
     wizard.show();
   }
 
@@ -84,9 +82,8 @@ public class GenerateSignedApkAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     boolean enabled = project != null && hasAtLeastOneApp(project) &&
-                      /* Available for Gradle projects and legacy IDEA Android projects */
-                      (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem ||
-                       !ProjectSystemUtil.requiresAndroidModel(project));
+                      /* Available for Android Gradle projects only */
+                      (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {
       String actionText = allowBundleSigning(project) ?  "android.generate.signed.apk.action.bundle.text"

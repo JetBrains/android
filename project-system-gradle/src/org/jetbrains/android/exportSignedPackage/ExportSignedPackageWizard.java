@@ -52,7 +52,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.SigningWizardEvent;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -71,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,12 +81,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   public static final String BUNDLE = "bundle";
   public static final String APK = "apk";
   @NotNull private final Project myProject;
-  private final boolean mySigned;
   // build variants and gradle signing info are valid only for Gradle projects
   private AndroidFacet myFacet;
   private PrivateKey myPrivateKey;
   private X509Certificate myCertificate;
-  private CompileScope myCompileScope;
   private String myApkPath;
   @NotNull private String myTargetType = APK;
   private List<String> myBuildVariants;
@@ -96,35 +92,20 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public ExportSignedPackageWizard(@NotNull Project project,
                                    @NotNull List<AndroidFacet> facets,
-                                   boolean signed,
                                    Boolean showBundle) {
     super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"),
           project);
 
     myProject = project;
-    mySigned = signed;
     assert !facets.isEmpty();
     myFacet = facets.get(0);
+
     if (showBundle) {
       addStep(new ChooseBundleOrApkStep(this));
     }
-    boolean useGradleToSign = AndroidModel.isRequired(myFacet);
-
-    if (signed) {
-      addStep(new KeystoreStep(this, useGradleToSign, facets));
-    }
-
-    if (useGradleToSign) {
-      addStep(new GradleSignStep(this));
-    }
-    else {
-      addStep(new ApkStep(this));
-    }
+    addStep(new KeystoreStep(this, true, facets));
+    addStep(new GradleSignStep(this));
     init();
-  }
-
-  public boolean isSigned() {
-    return mySigned;
   }
 
   @Override
@@ -264,10 +245,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setCertificate(@NotNull X509Certificate certificate) {
     myCertificate = certificate;
-  }
-
-  public void setCompileScope(@NotNull CompileScope compileScope) {
-    myCompileScope = compileScope;
   }
 
   public void setApkPath(@NotNull String apkPath) {
