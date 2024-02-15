@@ -1086,7 +1086,7 @@ iml_module(
         "@intellij//:com.intellij.plugins.netbeanskeymap",
         "@intellij//:com.intellij.plugins.visualstudiokeymap",
         "@intellij//:com.intellij.properties",
-        "@intellij//:com.intellij.rml.dfa.ide",
+        "@intellij//:com.intellij.rml.dfa",
         "@intellij//:com.intellij.tasks",
         "@intellij//:com.intellij.turboComplete",
         "@intellij//:com.jetbrains.performancePlugin",

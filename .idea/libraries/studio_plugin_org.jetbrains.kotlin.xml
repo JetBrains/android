@@ -1,10 +1,9 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.jetbrains.kotlin">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/javaslang.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/javax-inject.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-base-jps.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-gradle-tooling.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-plugin-shared.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar!/" />
@@ -19,7 +18,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.parcelize-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-collections-immutable.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

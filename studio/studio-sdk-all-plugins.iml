@@ -30,7 +30,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.netbeanskeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.visualstudiokeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.rml.dfa.ide" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.rml.dfa" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.tasks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.turboComplete" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
