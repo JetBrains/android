@@ -111,11 +111,15 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   override val projectSystem = this
 
   private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
-  override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleCache.getOrPut(module, { DefaultModuleSystem(module) })
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = synchronized(moduleCache) {
+    moduleCache.getOrPut(module) { DefaultModuleSystem(module) }
+  }
 
   @TestOnly
   fun setModuleSystem(module: Module, moduleSystem: AndroidModuleSystem) {
-    moduleCache[module] = moduleSystem
+    synchronized(moduleCache) {
+      moduleCache[module] = moduleSystem
+    }
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
