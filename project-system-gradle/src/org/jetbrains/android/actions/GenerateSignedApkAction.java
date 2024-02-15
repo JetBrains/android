@@ -45,13 +45,12 @@ public class GenerateSignedApkAction extends AnAction {
   }
 
   public GenerateSignedApkAction() {
-    super(AndroidBundle.message(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
+    super(AndroidBundle.message("android.generate.signed.apk.action.bundle.text"));
   }
 
   @VisibleForTesting
   static boolean allowBundleSigning(@Nullable Project project) {
-    return project != null &&
-           StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get();
+    return project != null;
   }
 
   @Override
@@ -86,9 +85,7 @@ public class GenerateSignedApkAction extends AnAction {
                       (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {
-      String actionText = allowBundleSigning(project) ?  "android.generate.signed.apk.action.bundle.text"
-                                                      : "android.generate.signed.apk.action.text";
-      e.getPresentation().setText(AndroidBundle.message(actionText));
+      e.getPresentation().setText(AndroidBundle.message("android.generate.signed.apk.action.bundle.text"));
     }
   }
 }

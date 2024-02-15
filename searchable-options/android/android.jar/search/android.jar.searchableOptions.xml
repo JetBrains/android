@@ -94,10 +94,6 @@
     <option name="build" path="ActionManager" hit="Build Bundle(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s)" />
-    <option name="apk" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="build" path="ActionManager" hit="Build Entire Project" />
     <option name="entire" path="ActionManager" hit="Build Entire Project" />
     <option name="project" path="ActionManager" hit="Build Entire Project" />

@@ -320,14 +320,13 @@
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
     </group>
-    <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
-      <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
-    </action>
+    <group id="Android.BuildApkOrBundle" text="Build Bundle(s) / APK(s)" popup="true">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction"/>
+      <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction"/>
+    </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
-    </action>
-    <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction">
-      <add-to-group group-id="BuildMenu" relative-to-action="Android.BuildApk" anchor="after"/>
     </action>
     <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>

@@ -319,12 +319,6 @@ public final class StudioFlags {
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     false);
 
-  public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
-    RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
-    "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting Android Studio.",
-    true);
-
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = Flag.create(
     RUNDEBUG,
     "baselineprofile.guttericon.enabled",
