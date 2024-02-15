@@ -2357,7 +2357,6 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
             localDebugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2376,7 +2375,6 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
             localDebugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2395,7 +2393,6 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2474,14 +2471,6 @@ MODULE                        : MainActivity.javaLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
@@ -2499,14 +2488,6 @@ MODULE                        : MainActivity.javaLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

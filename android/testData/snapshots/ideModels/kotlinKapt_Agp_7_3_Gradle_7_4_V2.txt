@@ -787,11 +787,13 @@ MODULE                        : MainActivity
                         androidTestLocalDebugApiDependenciesMetadata      : <empty>
                         androidTestLocalDebugCompileOnly        : <empty>
                         androidTestLocalDebugCompileOnlyDependenciesMetadata        : <empty>
+                        androidTestLocalDebugDependencySources  : <empty>
                         androidTestLocalDebugImplementation     : <empty>
                         androidTestLocalDebugImplementationDependenciesMetadata     : <empty>
                         androidTestLocalDebugIntransitiveDependenciesMetadata       : <empty>
                         androidTestLocalDebugRuntimeOnly        : <empty>
                         androidTestLocalDebugWearApp  : <empty>
+                        androidTestLocalDependencySources       : <empty>
                         androidTestLocalImplementation          : <empty>
                         androidTestLocalImplementationDependenciesMetadata          : <empty>
                         androidTestLocalIntransitiveDependenciesMetadata  : <empty>
@@ -817,11 +819,13 @@ MODULE                        : MainActivity
                         androidTestRemoteDebugApiDependenciesMetadata     : <empty>
                         androidTestRemoteDebugCompileOnly       : <empty>
                         androidTestRemoteDebugCompileOnlyDependenciesMetadata       : <empty>
+                        androidTestRemoteDebugDependencySources : <empty>
                         androidTestRemoteDebugImplementation    : <empty>
                         androidTestRemoteDebugImplementationDependenciesMetadata    : <empty>
                         androidTestRemoteDebugIntransitiveDependenciesMetadata      : <empty>
                         androidTestRemoteDebugRuntimeOnly       : <empty>
                         androidTestRemoteDebugWearApp : <empty>
+                        androidTestRemoteDependencySources      : <empty>
                         androidTestRemoteImplementation         : <empty>
                         androidTestRemoteImplementationDependenciesMetadata         : <empty>
                         androidTestRemoteIntransitiveDependenciesMetadata : <empty>
@@ -906,6 +910,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -925,6 +930,7 @@ MODULE                        : MainActivity
                         localDebugAndroidTestCompileClasspath   : <empty>
                         localDebugAndroidTestCompileOnly        : <empty>
                         localDebugAndroidTestCompileOnlyDependenciesMetadata        : <empty>
+                        localDebugAndroidTestDependencySources  : <empty>
                         localDebugAndroidTestImplementation     : <empty>
                         localDebugAndroidTestImplementationDependenciesMetadata     : <empty>
                         localDebugAndroidTestIntransitiveDependenciesMetadata       : <empty>
@@ -943,6 +949,7 @@ MODULE                        : MainActivity
                         localDebugCompileClasspath    : <empty>
                         localDebugCompileOnly         : <empty>
                         localDebugCompileOnlyDependenciesMetadata         : <empty>
+                        localDebugDependencySources   : <empty>
                         localDebugImplementation      : <empty>
                         localDebugImplementationDependenciesMetadata      : <empty>
                         localDebugIntransitiveDependenciesMetadata        : <empty>
@@ -960,6 +967,7 @@ MODULE                        : MainActivity
                         localDebugUnitTestCompileClasspath      : <empty>
                         localDebugUnitTestCompileOnly : <empty>
                         localDebugUnitTestCompileOnlyDependenciesMetadata : <empty>
+                        localDebugUnitTestDependencySources     : <empty>
                         localDebugUnitTestImplementation        : <empty>
                         localDebugUnitTestImplementationDependenciesMetadata        : <empty>
                         localDebugUnitTestIntransitiveDependenciesMetadata          : <empty>
@@ -984,6 +992,7 @@ MODULE                        : MainActivity
                         localReleaseCompileClasspath  : <empty>
                         localReleaseCompileOnly       : <empty>
                         localReleaseCompileOnlyDependenciesMetadata       : <empty>
+                        localReleaseDependencySources : <empty>
                         localReleaseImplementation    : <empty>
                         localReleaseImplementationDependenciesMetadata    : <empty>
                         localReleaseIntransitiveDependenciesMetadata      : <empty>
@@ -1001,6 +1010,7 @@ MODULE                        : MainActivity
                         localReleaseUnitTestCompileClasspath    : <empty>
                         localReleaseUnitTestCompileOnly         : <empty>
                         localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
+                        localReleaseUnitTestDependencySources   : <empty>
                         localReleaseUnitTestImplementation      : <empty>
                         localReleaseUnitTestImplementationDependenciesMetadata      : <empty>
                         localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
@@ -1036,6 +1046,7 @@ MODULE                        : MainActivity
                         remoteDebugAndroidTestCompileClasspath  : <empty>
                         remoteDebugAndroidTestCompileOnly       : <empty>
                         remoteDebugAndroidTestCompileOnlyDependenciesMetadata       : <empty>
+                        remoteDebugAndroidTestDependencySources : <empty>
                         remoteDebugAndroidTestImplementation    : <empty>
                         remoteDebugAndroidTestImplementationDependenciesMetadata    : <empty>
                         remoteDebugAndroidTestIntransitiveDependenciesMetadata      : <empty>
@@ -1054,6 +1065,7 @@ MODULE                        : MainActivity
                         remoteDebugCompileClasspath   : <empty>
                         remoteDebugCompileOnly        : <empty>
                         remoteDebugCompileOnlyDependenciesMetadata        : <empty>
+                        remoteDebugDependencySources  : <empty>
                         remoteDebugImplementation     : <empty>
                         remoteDebugImplementationDependenciesMetadata     : <empty>
                         remoteDebugIntransitiveDependenciesMetadata       : <empty>
@@ -1071,6 +1083,7 @@ MODULE                        : MainActivity
                         remoteDebugUnitTestCompileClasspath     : <empty>
                         remoteDebugUnitTestCompileOnly          : <empty>
                         remoteDebugUnitTestCompileOnlyDependenciesMetadata          : <empty>
+                        remoteDebugUnitTestDependencySources    : <empty>
                         remoteDebugUnitTestImplementation       : <empty>
                         remoteDebugUnitTestImplementationDependenciesMetadata       : <empty>
                         remoteDebugUnitTestIntransitiveDependenciesMetadata         : <empty>
@@ -1095,6 +1108,7 @@ MODULE                        : MainActivity
                         remoteReleaseCompileClasspath : <empty>
                         remoteReleaseCompileOnly      : <empty>
                         remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
+                        remoteReleaseDependencySources          : <empty>
                         remoteReleaseImplementation   : <empty>
                         remoteReleaseImplementationDependenciesMetadata   : <empty>
                         remoteReleaseIntransitiveDependenciesMetadata     : <empty>
@@ -1112,6 +1126,7 @@ MODULE                        : MainActivity
                         remoteReleaseUnitTestCompileClasspath   : <empty>
                         remoteReleaseUnitTestCompileOnly        : <empty>
                         remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
+                        remoteReleaseUnitTestDependencySources  : <empty>
                         remoteReleaseUnitTestImplementation     : <empty>
                         remoteReleaseUnitTestImplementationDependenciesMetadata     : <empty>
                         remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
@@ -1200,6 +1215,7 @@ MODULE                        : MainActivity
                         testLocalDebugApiDependenciesMetadata   : <empty>
                         testLocalDebugCompileOnly     : <empty>
                         testLocalDebugCompileOnlyDependenciesMetadata     : <empty>
+                        testLocalDebugDependencySources         : <empty>
                         testLocalDebugImplementation  : <empty>
                         testLocalDebugImplementationDependenciesMetadata  : <empty>
                         testLocalDebugIntransitiveDependenciesMetadata    : <empty>
@@ -1213,6 +1229,7 @@ MODULE                        : MainActivity
                         testLocalReleaseApiDependenciesMetadata : <empty>
                         testLocalReleaseCompileOnly   : <empty>
                         testLocalReleaseCompileOnlyDependenciesMetadata   : <empty>
+                        testLocalReleaseDependencySources       : <empty>
                         testLocalReleaseImplementation          : <empty>
                         testLocalReleaseImplementationDependenciesMetadata          : <empty>
                         testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
@@ -1240,6 +1257,7 @@ MODULE                        : MainActivity
                         testRemoteDebugApiDependenciesMetadata  : <empty>
                         testRemoteDebugCompileOnly    : <empty>
                         testRemoteDebugCompileOnlyDependenciesMetadata    : <empty>
+                        testRemoteDebugDependencySources        : <empty>
                         testRemoteDebugImplementation : <empty>
                         testRemoteDebugImplementationDependenciesMetadata : <empty>
                         testRemoteDebugIntransitiveDependenciesMetadata   : <empty>
@@ -1253,6 +1271,7 @@ MODULE                        : MainActivity
                         testRemoteReleaseApiDependenciesMetadata          : <empty>
                         testRemoteReleaseCompileOnly  : <empty>
                         testRemoteReleaseCompileOnlyDependenciesMetadata  : <empty>
+                        testRemoteReleaseDependencySources      : <empty>
                         testRemoteReleaseImplementation         : <empty>
                         testRemoteReleaseImplementationDependenciesMetadata         : <empty>
                         testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
@@ -1293,6 +1312,7 @@ MODULE                        : MainActivity
                         compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         default                       : <empty>
+                        dependencySources             : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
@@ -1307,6 +1327,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1323,6 +1344,7 @@ MODULE                        : MainActivity
                         testCompileClasspath          : <empty>
                         testCompileOnly               : <empty>
                         testCompileOnlyDependenciesMetadata     : <empty>
+                        testDependencySources         : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -1437,11 +1459,13 @@ MODULE                        : MainActivity
                         androidTestDebugApiDependenciesMetadata : <empty>
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
+                        androidTestDebugDependencySources       : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
                         androidTestDebugWearApp       : <empty>
+                        androidTestDependencySources  : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -1476,6 +1500,7 @@ MODULE                        : MainActivity
                         debugAndroidTestCompileClasspath        : <empty>
                         debugAndroidTestCompileOnly   : <empty>
                         debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
+                        debugAndroidTestDependencySources       : <empty>
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
@@ -1495,6 +1520,7 @@ MODULE                        : MainActivity
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
+                        debugDependencySources        : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
@@ -1514,6 +1540,7 @@ MODULE                        : MainActivity
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestCompileOnly      : <empty>
                         debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
+                        debugUnitTestDependencySources          : <empty>
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
@@ -1537,6 +1564,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1554,6 +1582,7 @@ MODULE                        : MainActivity
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
+                        releaseDependencySources      : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
@@ -1573,6 +1602,7 @@ MODULE                        : MainActivity
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestCompileOnly    : <empty>
                         releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                        releaseUnitTestDependencySources        : <empty>
                         releaseUnitTestImplementation : <empty>
                         releaseUnitTestImplementationDependenciesMetadata : <empty>
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -1594,6 +1624,7 @@ MODULE                        : MainActivity
                         testDebugApiDependenciesMetadata        : <empty>
                         testDebugCompileOnly          : <empty>
                         testDebugCompileOnlyDependenciesMetadata          : <empty>
+                        testDebugDependencySources    : <empty>
                         testDebugImplementation       : <empty>
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
@@ -1637,6 +1668,7 @@ MODULE                        : MainActivity
                         testReleaseApiDependenciesMetadata      : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseCompileOnlyDependenciesMetadata        : <empty>
+                        testReleaseDependencySources  : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>

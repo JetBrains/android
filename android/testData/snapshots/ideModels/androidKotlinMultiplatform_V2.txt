@@ -809,6 +809,7 @@ MODULE                        : Kotlin_Multiplatform
                         androidInstrumentedTestCompileClasspath : <empty>
                         androidInstrumentedTestCompileOnly      : <empty>
                         androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
+                        androidInstrumentedTestDependencySources          : <empty>
                         androidInstrumentedTestImplementation   : <empty>
                         androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
                         androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
@@ -819,6 +820,7 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
+                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -839,19 +841,19 @@ MODULE                        : Kotlin_Multiplatform
                         androidUnitTestCompileClasspath         : <empty>
                         androidUnitTestCompileOnly    : <empty>
                         androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                        androidUnitTestDependencySources        : <empty>
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
                         androidUnitTestResolvableDependenciesMetadata     : <empty>
                         androidUnitTestRuntimeClasspath         : <empty>
                         androidUnitTestRuntimeOnly    : <empty>
-                        - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
                         - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
-                        - archives                    : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -861,6 +863,7 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -878,6 +881,7 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -920,6 +924,7 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -929,6 +934,7 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -945,6 +951,7 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -962,6 +969,7 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -975,6 +983,7 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1022,6 +1031,7 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
+                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -1033,14 +1043,13 @@ MODULE                        : Kotlin_Multiplatform
                         androidSourcesElements        : <empty>
                         - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
                         androidTestUtil               : <empty>
-                        - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
                         - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                        - archives                    : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -1050,6 +1059,7 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -1067,6 +1077,7 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -1084,6 +1095,7 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -1098,6 +1110,7 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -3088,7 +3101,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta1
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta4
             commonTest
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain
