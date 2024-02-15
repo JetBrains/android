@@ -19,14 +19,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.testutils.MockitoKt
+import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
@@ -40,7 +43,7 @@ import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
-  // TODO: http://b/87654321
+  // TODO: http://b/325127223
   private companion object {
     private val oldHome: String = System.getProperty("user.home")
 
@@ -62,11 +65,21 @@ class AdditionalSettingsPanelTest {
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
+    val fileSystem = createInMemoryFileSystem()
+    val home = System.getProperty("user.home")
+
+    val mySdCardFileImg: Path = fileSystem.getPath(home, "mySdCardFile.img")
+
+    Files.createDirectories(mySdCardFileImg.parent)
+    Files.createFile(mySdCardFileImg)
+
+    val onDeviceChange = MockitoKt.mock<(VirtualDevice) -> Unit>()
+
     val device =
       VirtualDevice(
         "Pixel 6 API 34",
         AndroidVersion(34, null, 7, true),
-        DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")),
+        DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_6")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
@@ -79,8 +92,6 @@ class AdditionalSettingsPanelTest {
         GpuMode.AUTO,
       )
 
-    val onDeviceChange = MockitoKt.mock<(VirtualDevice) -> Unit>()
-
     rule.setContent {
       IntUiTheme {
         Column {
@@ -90,6 +101,7 @@ class AdditionalSettingsPanelTest {
             AdditionalSettingsPanelState(device),
             onDeviceChange,
             onImportButtonClick = {},
+            fileSystem,
           )
         }
       }
@@ -97,12 +109,16 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
+    rule.onNodeWithTag("ExistingImageTextField").performTextReplacement(mySdCardFileImg.toString())
     rule.onNodeWithTag("CustomRadioButton").performClick()
 
     // Assert
     val inOrder = Mockito.inOrder(onDeviceChange)
 
-    inOrder.verify(onDeviceChange).invoke(device.copy(expandedStorage = ExistingImage(null)))
+    inOrder
+      .verify(onDeviceChange)
+      .invoke(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)))
+
     inOrder.verify(onDeviceChange).invoke(device)
   }
 }

@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.Files
 import java.nio.file.Path
 
 @Immutable
@@ -49,8 +50,12 @@ internal data class Custom internal constructor(internal val value: StorageCapac
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage internal constructor(internal val value: Path?) :
+internal data class ExistingImage internal constructor(private val value: Path) :
   ExpandedStorage() {
+
+  init {
+    assert(Files.isRegularFile(value))
+  }
 
   override fun toString() = value.toString()
 }
