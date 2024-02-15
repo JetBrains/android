@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.compose
 
 import com.android.ddmlib.internal.FakeAdbTestRule
-import com.android.tools.adtui.compose.IssueNotificationActionButton
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -31,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
+import com.intellij.icons.AllIcons
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
@@ -172,11 +172,7 @@ class ComposePreviewTest {
 
     guiTest.robot().waitForIdle()
 
-    val notificationButton = GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(IssueNotificationActionButton::class.java))
-    Wait
-      .seconds(10)
-      .expecting("Status to be Paused, due to a syntax error.")
-      .until { notificationButton.presentation.text == "Paused" }
+    GuiTests.waitUntilShowing(guiTest.robot(), Matchers.buttonWithIcon(AllIcons.General.InspectionsPause))
 
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
