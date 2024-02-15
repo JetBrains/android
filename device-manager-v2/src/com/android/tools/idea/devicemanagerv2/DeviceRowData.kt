@@ -100,7 +100,7 @@ internal data class DeviceRowData(
         androidVersion = properties.androidVersion,
         abi = properties.primaryAbi,
         status = Status.OFFLINE,
-        error = null,
+        error = template.state.error,
         handleType = HandleType.REMOTE,
         wearPairingId = properties.wearPairingId,
         pairingStatus = emptyList(),

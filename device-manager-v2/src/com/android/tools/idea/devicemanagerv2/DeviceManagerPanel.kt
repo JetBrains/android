@@ -25,6 +25,8 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.SetChange
+import com.android.sdklib.deviceprovisioner.TemplateState
+import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
@@ -229,15 +231,21 @@ constructor(
   }
 
   private suspend fun trackDeviceTemplates() {
-    templates
-      .map { it.toSet() }
-      .trackSetChanges()
-      .collect { change ->
-        when (change) {
-          is SetChange.Add -> deviceTable.addOrUpdateRow(DeviceRowData.create(change.value))
-          is SetChange.Remove -> deviceTable.removeRowByKey(change.value)
+    val currentTemplates = mutableMapOf<DeviceTemplate, TemplateState>()
+    templates.pairWithNestedState(DeviceTemplate::stateFlow).collect { pairs ->
+      val newTemplates = pairs.map { it.first }.toSet()
+      val removed = currentTemplates.keys - newTemplates
+      removed.forEach {
+        currentTemplates.remove(it)
+        deviceTable.removeRowByKey(it)
+      }
+      for ((template, state) in pairs) {
+        if (currentTemplates[template] != state) {
+          currentTemplates[template] = state
+          deviceTable.addOrUpdateRow(DeviceRowData.create(template))
         }
       }
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
