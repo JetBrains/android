@@ -78,7 +78,10 @@ class ComposePreviewTest {
 
     editor.open(file)
 
-    return editor.getSplitEditorFixture().waitForRenderToFinish()
+    return editor.getSplitEditorFixture().apply {
+      setSplitMode()
+      waitForRenderToFinish()
+    }
   }
 
   private fun getSyncedProjectFixture() =
