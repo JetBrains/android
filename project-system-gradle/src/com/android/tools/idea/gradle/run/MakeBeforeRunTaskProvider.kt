@@ -148,9 +148,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   private fun createAvailableTasks(project: Project): List<String> {
     val moduleManager = ModuleManager.getInstance(project)
     val gradleTasks: MutableList<String> = ArrayList()
-    val cachedModuleDataFinder = CachedModuleDataFinder.getInstance(project) ?: return listOf()
     for (module in moduleManager.modules) {
-      cachedModuleDataFinder.findModuleData(module)?.findAll(ProjectKeys.TASK)?.forEach {
+      CachedModuleDataFinder.findModuleData(module)?.findAll(ProjectKeys.TASK)?.forEach {
         gradleTasks.add(it.data.name)
       }
     }
