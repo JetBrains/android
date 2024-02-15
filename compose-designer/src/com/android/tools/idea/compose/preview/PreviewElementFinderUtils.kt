@@ -54,7 +54,7 @@ import org.jetbrains.uast.tryResolve
 private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx.", "java.")
 
 /**
- * Returns true if the MultiPreview flag is enabled and one of the following is true:
+ * Returns true if one of the following is true:
  * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
  *    contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or
  *    'package androidx.preview.example')
@@ -80,7 +80,7 @@ private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewA
 
 /**
  * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration
- * indirect annotations with MultiPreview when the flag is enabled
+ * indirect annotations with MultiPreview.
  */
 internal fun UMethod?.hasPreviewElements() =
   SlowOperations.allowSlowOperations(
