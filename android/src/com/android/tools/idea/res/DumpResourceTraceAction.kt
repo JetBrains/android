@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
 /** Dumps resource trace to idea.log. */
-class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
+class DumpResourceTraceAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     ResourceUpdateTracer.dumpTrace(null)
   }

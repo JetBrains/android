@@ -102,8 +102,12 @@
     </group>
     <group id="Android.Diagnostics">
       <separator/>
-      <action class="com.android.tools.idea.res.ToggleResourceTraceAction"/>
-      <action class="com.android.tools.idea.res.DumpResourceTraceAction"/>
+      <action
+          id="Android.ToggleResourceTrace"
+          class="com.android.tools.idea.res.ToggleResourceTraceAction"/>
+      <action
+          id="Android.DumpResourceTrace"
+          class="com.android.tools.idea.res.DumpResourceTraceAction"/>
       <separator/>
       <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
     </group>
