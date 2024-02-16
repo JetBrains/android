@@ -101,6 +101,7 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
 open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
+
   private var rowSelected: Boolean = false
     set(value) {
       field = value

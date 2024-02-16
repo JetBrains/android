@@ -290,7 +290,7 @@ constructor(
 
   private fun <A : DeviceAction> A.toAnAction(
     action: suspend A.() -> Unit,
-    isIconEnabled: Boolean = true
+    isIconEnabled: Boolean = true,
   ): DumbAwareAction {
     panelScope.launch {
       // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
@@ -388,6 +388,7 @@ internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
       action.presentation.collect {
         isEnabled = it.enabled
         baseIcon = it.icon
+        toolTipText = if (it.enabled) it.label else it.detail
       }
   }
 
