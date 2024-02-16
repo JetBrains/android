@@ -17,10 +17,10 @@ package com.android.tools.idea.tests.gui.framework.heapassertions
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import java.util.WeakHashMap
 
-class HeapAssertionsTest : PlatformTestCase() {
+class HeapAssertionsTest : HeavyPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()

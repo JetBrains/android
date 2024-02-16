@@ -26,7 +26,7 @@ import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.S
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.NONE
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -36,7 +36,7 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 
 @RunWith(Parameterized::class)
-class GradleVersionCatalogDetectorTest: PlatformTestCase() {
+class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
   companion object {
     @JvmStatic
     @Parameters(name="{0}")

@@ -19,10 +19,10 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito
 
-class ChooseBundleOrApkStepTest : PlatformTestCase() {
+class ChooseBundleOrApkStepTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   override fun setUp() {

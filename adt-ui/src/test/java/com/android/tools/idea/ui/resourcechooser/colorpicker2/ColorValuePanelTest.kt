@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.junit.Assert
 import java.awt.Color
 import java.awt.event.ActionEvent
@@ -23,7 +23,7 @@ import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
 import kotlin.math.roundToInt
 
-class ColorValuePanelTest : PlatformTestCase() {
+class ColorValuePanelTest : HeavyPlatformTestCase() {
 
   fun testChangeColorModeFromRGBToHSB() {
     val model = ColorPickerModel()
