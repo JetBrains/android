@@ -27,6 +27,12 @@
   <depends>org.jetbrains.android</depends>
   <depends>org.jetbrains.kotlin</depends>
 
+  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
+    <supportsKotlinK2Mode/>
+  </extensions>
+
   <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/naveditor-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
