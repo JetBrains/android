@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -35,7 +35,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
-    dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let { previewManager ->
+    dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
       previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
     }
   }
@@ -51,7 +51,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
   }
 
   private val selectedProvider: (DataContext) -> PreviewElementKey? = { dataContext ->
-    dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let { previewManager ->
+    dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
       (previewManager.mode.value as? PreviewMode.Gallery)?.selected?.let { PreviewElementKey(it) }
     }
   }
@@ -64,7 +64,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
 
   /** Simulates a tab change, firing the [tabChangeListener]. Intended to be used in tests only. */
   @TestOnly
-  fun triggerTabChange(context: DataContext, previewElement: ComposePreviewElementInstance) {
+  fun triggerTabChange(context: DataContext, previewElement: PreviewElement) {
     tabChangeListener(context, PreviewElementKey(previewElement))
   }
 
