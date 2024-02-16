@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.gallery
+package com.android.tools.idea.preview.gallery
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.gallery.GalleryTabs.Companion.truncate
+import com.android.tools.idea.preview.gallery.GalleryTabs.Companion.truncate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
@@ -136,10 +136,10 @@ class GalleryTabsTest {
     val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    val toolbar = findTabs(tabs)
+    val toolbar = findGalleryTabs(tabs)
     // Update toolbars
     ui.updateNestedActions()
-    val updatedToolbar = findTabs(tabs)
+    val updatedToolbar = findGalleryTabs(tabs)
     // Toolbar was not updated, it's same as before.
     assertEquals(toolbar, updatedToolbar)
   }
@@ -152,11 +152,11 @@ class GalleryTabsTest {
     val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    val toolbar = findTabs(tabs)
+    val toolbar = findGalleryTabs(tabs)
     // Set new set of keys.
     providedKeys += TestKey("New Tab")
     ui.updateNestedActions()
-    val updatedToolbar = findTabs(tabs)
+    val updatedToolbar = findGalleryTabs(tabs)
     // New toolbar was created.
     assertNotEquals(toolbar, updatedToolbar)
   }
@@ -170,11 +170,11 @@ class GalleryTabsTest {
     val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     ui.updateNestedActions()
-    val toolbar = findTabs(tabs)
+    val toolbar = findGalleryTabs(tabs)
     // Set updated set of keys
     providedKeys.remove(keyToRemove)
     ui.updateNestedActions()
-    val updatedToolbar = findTabs(tabs)
+    val updatedToolbar = findGalleryTabs(tabs)
     // New toolbar was created.
     assertNotEquals(toolbar, updatedToolbar)
   }

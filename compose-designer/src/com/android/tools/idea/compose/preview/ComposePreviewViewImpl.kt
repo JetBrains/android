@@ -27,8 +27,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
-import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -38,6 +36,8 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -110,7 +110,7 @@ interface ComposePreviewView {
    * If Gallery Mode is enabled, null if mode is disabled. In Gallery Mode only one preview at a
    * time is rendered. It is always on for Essentials Mode.
    */
-  var galleryMode: ComposeGalleryMode?
+  var galleryMode: GalleryMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -407,7 +407,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var galleryMode: ComposeGalleryMode? = null
+  override var galleryMode: GalleryMode? = null
     set(value) {
       // Avoid repeated values.
       if (value == field) return

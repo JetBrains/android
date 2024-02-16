@@ -21,11 +21,11 @@ import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
-import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
-import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
+import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -73,7 +73,7 @@ class TestComposePreviewView(
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false
-  override var galleryMode: ComposeGalleryMode? = null
+  override var galleryMode: GalleryMode? = null
     set(value) {
       // Avoid repeated values.
       if (value == field) return

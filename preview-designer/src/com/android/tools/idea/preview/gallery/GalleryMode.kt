@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.gallery
+package com.android.tools.idea.preview.gallery
 
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.findPreviewManager
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.TestOnly
  * If Gallery mode is enabled, one preview at a time is available with tabs to select between them.
  * Gallery mode is always enabled for Essentials mode.
  */
-class ComposeGalleryMode(rootComponent: JComponent) {
+class GalleryMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element

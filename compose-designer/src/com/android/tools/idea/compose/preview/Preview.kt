@@ -31,7 +31,6 @@ import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssential
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
-import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -64,6 +63,7 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -399,8 +399,8 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Updates the [composeWorkBench]'s [ComposeGalleryMode] according to the state of Android Studio
-   * (and/or Compose Preview) Essentials Mode.
+   * Updates the [composeWorkBench]'s [GalleryMode] according to the state of Android Studio (and/or
+   * Compose Preview) Essentials Mode.
    *
    * @param sourceEventType type of the event that triggered the update
    */
@@ -1553,7 +1553,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Gallery -> {
         withContext(uiThread) {
-          composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
+          composeWorkBench.galleryMode = GalleryMode(composeWorkBench.mainSurface)
         }
       }
     }

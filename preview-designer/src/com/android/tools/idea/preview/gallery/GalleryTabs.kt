@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.gallery
+package com.android.tools.idea.preview.gallery
 
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.Colors
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
