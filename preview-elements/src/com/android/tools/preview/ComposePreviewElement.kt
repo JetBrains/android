@@ -22,44 +22,26 @@ import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.ide.common.resources.Locale
-import com.android.resources.Density
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
-import com.android.tools.configurations.Wallpaper
-import com.android.tools.configurations.updateScreenSize
-import com.android.tools.preview.config.findOrParseFromDefinition
 import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
-import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Dimension
-import java.awt.image.BufferedImage
 import java.util.Objects
-import java.util.function.Consumer
-import kotlin.math.max
 import kotlin.math.min
 import org.jetbrains.annotations.TestOnly
 
-const val UNDEFINED_API_LEVEL = -1
-const val UNDEFINED_DIMENSION = -1
-
-const val MAX_WIDTH = 2000
-const val MAX_HEIGHT = 2000
-
 /** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
-
-/** Value to use for the wallpaper attribute when none has been specified. */
-private const val NO_WALLPAPER_SELECTED = -1
 
 /**
  * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should
@@ -85,85 +67,6 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
     "${dimension}dp"
   }
 
-/** Empty device spec when the user has not specified any. */
-private const val NO_DEVICE_SPEC = ""
-
-/**
- * Applies the [PreviewConfiguration] to the given [Configuration].
- *
- * [highestApiTarget] should return the highest api target available for a given [Configuration].
- * [devicesProvider] should return all the devices available for a [Configuration].
- * [defaultDeviceProvider] should return which device to use for a [Configuration] if the device
- * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
- * devices returned by [devicesProvider].
- *
- * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
- */
-private fun PreviewConfiguration.applyTo(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-  @AndroidDpCoordinate customSize: Dimension? = null,
-) {
-  fun updateRenderConfigurationTargetIfChanged(newTarget: IAndroidTarget) {
-    if (renderConfiguration.target?.hashString() != newTarget.hashString()) {
-      renderConfiguration.target = newTarget
-    }
-  }
-
-  renderConfiguration.startBulkEditing()
-  renderConfiguration.imageTransformation = imageTransformation
-  if (apiLevel != UNDEFINED_API_LEVEL) {
-    val newTarget =
-      renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
-    highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
-    }
-  } else {
-    // Use the highest available one when not defined.
-    highestApiTarget(renderConfiguration)?.let { updateRenderConfigurationTargetIfChanged(it) }
-  }
-
-  if (theme != null) {
-    renderConfiguration.setTheme(theme)
-  }
-
-  renderConfiguration.locale = Locale.create(locale)
-  renderConfiguration.uiModeFlagValue = uiMode
-  renderConfiguration.fontScale = max(0f, fontScale)
-  renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
-
-  val allDevices = devicesProvider(renderConfiguration)
-  val device =
-    allDevices.findOrParseFromDefinition(deviceSpec) ?: defaultDeviceProvider(renderConfiguration)
-  if (device != null) {
-    // Ensure the device is reset
-    renderConfiguration.setEffectiveDevice(null, null)
-    // If the user is not using the device frame, we never want to use the round frame around. See
-    // b/215362733
-    renderConfiguration.setDevice(device, false)
-    // If there is no application theme set, we might need to change the theme when changing the
-    // device, because different devices might
-    // have different default themes.
-    renderConfiguration.setTheme(renderConfiguration.getPreferredTheme())
-  }
-
-  customSize?.let {
-    // When the device frame is not being displayed and the user has given us some specific sizes,
-    // we want to apply those to the
-    // device itself.
-    // This is to match the intuition that those sizes always determine the size of the composable.
-    renderConfiguration.device?.let { device ->
-      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
-      // current dpi vs the default dpi (160).
-      val dpiFactor = 1.0 * renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      renderConfiguration.updateScreenSize((it.width * dpiFactor).toInt(), (it.height * dpiFactor).toInt(), device)
-    }
-  }
-  renderConfiguration.finishBulkEditing()
-}
-
 /**
  * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp`
  * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
@@ -186,16 +89,6 @@ fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
 }
 
 @TestOnly
-fun PreviewConfiguration.applyConfigurationForTest(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-) {
-  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
-}
-
-@TestOnly
 fun ComposePreviewElement.applyConfigurationForTest(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
@@ -209,58 +102,6 @@ fun ComposePreviewElement.applyConfigurationForTest(
     defaultDeviceProvider,
     getCustomDeviceSize()
   )
-}
-
-/** Contains settings for rendering. */
-data class PreviewConfiguration
-internal constructor(
-  val apiLevel: Int,
-  val theme: String?,
-  val width: Int,
-  val height: Int,
-  val locale: String,
-  val fontScale: Float,
-  val uiMode: Int,
-  val deviceSpec: String,
-  val wallpaper: Int,
-  val imageTransformation: Consumer<BufferedImage>?,
-) {
-  companion object {
-    /**
-     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the
-     * user inputted value are within reasonable values before the PreviewConfiguration is created
-     */
-    @JvmStatic
-    fun cleanAndGet(
-      apiLevel: Int? = null,
-      theme: String? = null,
-      width: Int? = null,
-      height: Int? = null,
-      locale: String? = null,
-      fontScale: Float? = null,
-      uiMode: Int? = null,
-      device: String? = null,
-      wallpaper: Int? = null,
-      imageTransformation: Consumer<BufferedImage>? = null,
-    ): PreviewConfiguration =
-      // We only limit the sizes. We do not limit the API because using an incorrect API level will
-      // throw an exception that
-      // we will handle and any other error.
-      PreviewConfiguration(
-        apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
-        theme = theme,
-        width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_WIDTH)
-            ?: UNDEFINED_DIMENSION,
-        height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_HEIGHT)
-            ?: UNDEFINED_DIMENSION,
-        locale = locale ?: "",
-        fontScale = fontScale ?: 1f,
-        uiMode = uiMode ?: 0,
-        deviceSpec = device ?: NO_DEVICE_SPEC,
-        wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,
-        imageTransformation = imageTransformation,
-      )
-  }
 }
 
 /**

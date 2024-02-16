@@ -28,33 +28,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 class ComposePreviewElementTest {
 
   @Test
-  fun testPreviewConfigurationCleaner() {
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, "", 2f, null, "", 2),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null, 2)
-    )
-
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(
-        9000,
-        null,
-        MAX_WIDTH,
-        MAX_HEIGHT,
-        null,
-        null,
-        null,
-        "id:device"
-      ),
-      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, null, 1f, 0, "id:device")
-    )
-
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, null, 123, null, -1),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 1f, 123, null, null)
-    )
-  }
-
-  @Test
   fun testValidXmlForPreview() {
     val previewsToCheck =
       listOf(
