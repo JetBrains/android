@@ -22,7 +22,6 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
-import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
@@ -71,12 +70,4 @@ class GalleryMode(rootComponent: JComponent) {
   @get:TestOnly
   val selectedKey: PreviewElementKey?
     get() = tabs.selectedKey
-}
-
-class GalleryModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
-  JPanel(BorderLayout()) {
-  init {
-    add(northComponent, BorderLayout.NORTH)
-    add(centerComponent, BorderLayout.CENTER)
-  }
 }

@@ -39,7 +39,7 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.gallery.GalleryMode
-import com.android.tools.idea.preview.gallery.GalleryModeWrapperPanel
+import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
@@ -400,28 +400,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var galleryMode: GalleryMode? = null
-    set(value) {
-      // Avoid repeated values.
-      if (value == field) return
-      // If essentials mode is enabled,disabled or updated - components should be rearranged.
-      // Remove components from its existing places.
-      if (field == null) {
-        content.remove(mainSurface)
-      } else {
-        content.components.filterIsInstance<GalleryModeWrapperPanel>().firstOrNull()?.let {
-          it.remove(mainSurface)
-          content.remove(it)
-        }
-      }
-      // Add components to new places.
-      if (value == null) {
-        content.add(mainSurface, BorderLayout.CENTER)
-      } else {
-        content.add(GalleryModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
-      }
-      field = value
-    }
+  override var galleryMode by GalleryModeProperty(content, mainSurface)
 
   override fun updateProgress(message: String) =
     UIUtil.invokeLaterIfNeeded {
