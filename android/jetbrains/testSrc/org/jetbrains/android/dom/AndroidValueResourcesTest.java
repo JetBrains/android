@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
+import static com.android.tools.idea.testing.AndroidTestUtils.getOffsetForWindow;
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -44,6 +45,10 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.FoldingModel;
+import com.intellij.openapi.editor.impl.ImaginaryEditor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -92,6 +97,7 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 /**
  * Tests for code editor features when working with resources under res/values.
@@ -834,11 +840,11 @@ public class AndroidValueResourcesTest {
 
     // In themes_holo.xml: point to value of "Theme" in the parent attribute on line:
     //     <style name="Theme.Holo.Light" parent="Theme.Light">
-    myFixture.configureFromExistingVirtualFile(themes_holo);
-    AndroidTestUtils.moveCaret(myFixture, "<style name=\"Theme.Holo.Light\" parent=\"The|me.Light\">");
+    Document themesHoloDocument = FileDocumentManager.getInstance().getDocument(themes_holo);
+    ImaginaryEditor editor = new MyImaginaryEditor(myProject, themesHoloDocument);
+    int offset = getOffsetForWindow(themesHoloDocument, "<style name=\"Theme.Holo.Light\" parent=\"The|me.Light\">");
 
-    PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
+    PsiElement[] targets = GotoDeclarationAction.findAllTargetElements(myProject, editor, offset);
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -863,11 +869,11 @@ public class AndroidValueResourcesTest {
 
     // In themes_holo.xml: point to value of "Theme" in the name attribute on line:
     //     <style name="Theme.Holo.NoActionBar">
-    myFixture.configureFromExistingVirtualFile(themes_holo);
-    AndroidTestUtils.moveCaret(myFixture, "<style name=\"Th|eme.Holo.NoActionBar\">");
+    Document themesHoloDocument = FileDocumentManager.getInstance().getDocument(themes_holo);
+    ImaginaryEditor editor = new MyImaginaryEditor(myProject, themesHoloDocument);
+    int offset = getOffsetForWindow(themesHoloDocument, "<style name=\"Th|eme.Holo.NoActionBar\">");
 
-    PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
+    PsiElement[] targets = GotoDeclarationAction.findAllTargetElements(myProject, editor, offset);
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -892,11 +898,12 @@ public class AndroidValueResourcesTest {
 
     // In themes_holo.xml: point to value of "bright_foreground_holo_light" on line:
     //    <item name="colorForeground">@color/bright_foreground_holo_light</item>
-    myFixture.configureFromExistingVirtualFile(themes_holo);
-    AndroidTestUtils.moveCaret(myFixture, "<item name=\"colorForeground\">@color/bright_fore|ground_holo_light</item>");
+    Document themesHoloDocument = FileDocumentManager.getInstance().getDocument(themes_holo);
+    ImaginaryEditor editor = new MyImaginaryEditor(myProject, themesHoloDocument);
+    int offset = getOffsetForWindow(themesHoloDocument, "<item name=\"colorForeground\">@color/bright_fore|ground_holo_light</item>");
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
+      GotoDeclarationAction.findAllTargetElements(myProject, editor, offset);
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -1173,5 +1180,28 @@ public class AndroidValueResourcesTest {
       });
     }
     return actions;
+  }
+
+  /**
+   * Allows opening of platform SDK files in an {@link com.intellij.openapi.editor.Editor} for test purposes.
+   * <p>
+   * The default test editor provided by the fixture requires that an opened file not be read-only. Platform SDK files are read-only when
+   * running via bazel locally (ie, not using --config=remote).
+   * <p>
+   * The platform's {@link ImaginaryEditor} provides almost all of the fake functionality we need, but not quite everything. This derived
+   * class provides the missing pieces.
+   */
+  private static class MyImaginaryEditor extends ImaginaryEditor {
+
+    private final FoldingModel myFoldingModel = Mockito.mock(FoldingModel.class);
+
+    public MyImaginaryEditor(@NotNull Project project, @NotNull Document document) {
+      super(project, document);
+    }
+
+    @Override
+    public @NotNull FoldingModel getFoldingModel() {
+      return myFoldingModel;
+    }
   }
 }
