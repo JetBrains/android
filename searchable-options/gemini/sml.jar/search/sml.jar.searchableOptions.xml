@@ -41,6 +41,8 @@
     <option name="in" hit="Gemini requires a logged in Google account." />
     <option name="logged" hit="Gemini requires a logged in Google account." />
     <option name="requires" hit="Gemini requires a logged in Google account." />
+    <option name="in" hit="Log in" />
+    <option name="log" hit="Log in" />
     <option name="privacy" hit="Privacy Settings" />
     <option name="settings" hit="Privacy Settings" />
   </configurable>
