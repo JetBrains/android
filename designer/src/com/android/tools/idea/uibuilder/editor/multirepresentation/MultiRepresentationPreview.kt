@@ -52,6 +52,7 @@ import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
+import com.jetbrains.rd.util.first
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
@@ -255,7 +256,14 @@ open class MultiRepresentationPreview(
       if (representations.isEmpty()) {
         currentRepresentationName = ""
       } else if (!representations.containsKey(currentRepresentationName)) {
-        currentRepresentationName = representationNames.minOf { it }
+        val representationsWithPreviews = representations.filter { it.value.hasPreviewsCached() }
+        // Prefer selecting a representation with previews.
+        currentRepresentationName =
+          if (representationsWithPreviews.isNotEmpty()) {
+            representationsWithPreviews.first().key
+          } else {
+            representationNames.minOf { it }
+          }
       }
     }
     if (representationNeverShown) {
@@ -316,12 +324,16 @@ open class MultiRepresentationPreview(
       // when saving the state.
       stateFromDisk?.let { currentRepresentationName = it.selectedRepresentationName }
     }
+    // Updates the cached value of hasPreviews for each representation
+    withContext(workerThread) { representations.values.forEach { it.hasPreviews() } }
 
     withContext(uiThread) {
       // update current if it was deleted
       validateCurrentRepresentationName()
 
-      representationSelectionToolbar.isVisible = representations.size > 1
+      // Only show the bar if there is more than one representation with previews to be shown.
+      representationSelectionToolbar.isVisible =
+        representations.filter { it.value.hasPreviewsCached() }.size > 1
       onRepresentationsUpdated?.invoke()
     }
   }
@@ -453,8 +465,12 @@ open class MultiRepresentationPreview(
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently
       // selected state
-      synchronized(previewEditor.representations) { previewEditor.representations.keys }
-        .forEach { add(RepresentationOption(it, previewEditor)) }
+      synchronized(previewEditor.representations) { previewEditor.representations }
+        .forEach {
+          if (it.value.hasPreviewsCached()) {
+            add(RepresentationOption(it.key, previewEditor))
+          }
+        }
       e.presentation.setText(previewEditor.currentRepresentationName, false)
     }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -69,6 +70,20 @@ interface PreviewRepresentation : Disposable {
    * or its parents).
    */
   fun registerShortcuts(applicableTo: JComponent) {}
+
+  /**
+   * Returns whether this [PreviewRepresentation] has previews to show.
+   *
+   * This method is potentially slow, because we might need to read the file to compute if it has
+   * previews. Therefore, it shouldn't be called from the UI thread.
+   */
+  @Slow suspend fun hasPreviews(): Boolean = true
+
+  /**
+   * Whether this [PreviewRepresentation] has previews to show. This method should return fast and
+   * not block.
+   */
+  fun hasPreviewsCached() = true
 
   // region Lifecycle handling
   /**

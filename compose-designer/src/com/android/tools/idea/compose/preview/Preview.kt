@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
@@ -64,6 +66,7 @@ import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
 import com.android.tools.idea.preview.gallery.GalleryMode
@@ -744,6 +747,8 @@ class ComposePreviewRepresentation(
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
 
+  private val hasPreviewsCachedValue = AtomicBoolean(false)
+
   init {
     launch {
       // Keep track of the last mode that was set to ensure it is correctly disposed
@@ -1375,6 +1380,33 @@ class ComposePreviewRepresentation(
           }
         }
     }
+  }
+
+  override fun hasPreviewsCached() = hasPreviewsCachedValue.get()
+
+  /**
+   * Iterate over the Composables of this file and returns true as soon as we find one with a
+   * `@Preview` or MultiPreview annotations. This function also updates the value of
+   * [hasPreviewsCachedValue] accordingly.
+   */
+  override suspend fun hasPreviews(): Boolean {
+    val vFile = previewedFile?.virtualFile ?: return false
+    findAnnotatedMethodsValues(
+        project,
+        vFile,
+        COMPOSABLE_ANNOTATION_FQ_NAME,
+        COMPOSABLE_ANNOTATION_NAME,
+      ) { methods ->
+        methods.asSequence()
+      }
+      .forEach { composableMethod ->
+        if (composableMethod.hasPreviewElements()) {
+          hasPreviewsCachedValue.set(true)
+          return@hasPreviews true
+        }
+      }
+    hasPreviewsCachedValue.set(false)
+    return false
   }
 
   /**
