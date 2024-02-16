@@ -17,11 +17,12 @@ package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
 import com.android.sdklib.devices.Device
-import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewXmlBuilder
-import com.android.tools.preview.config.findOrParseFromDefinition
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -34,6 +35,7 @@ internal const val TILE_SERVICE_VIEW_ADAPTER = "androidx.wear.tiles.tooling.Tile
 internal const val DEFAULT_WEAR_TILE_BACKGROUND = "#ff000000"
 
 internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
+  ConfigurablePreviewElementModelAdapter<WearTilePreviewElement, M>,
   MethodPreviewElementModelAdapter<WearTilePreviewElement, M>(WEAR_TILE_PREVIEW_ELEMENT_INSTANCE) {
     override fun toXml(previewElement: WearTilePreviewElement) =
     PreviewXmlBuilder(TILE_SERVICE_VIEW_ADAPTER)
@@ -52,26 +54,6 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
     id: Long
   ): LightVirtualFile =
     WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
-
-  override fun applyToConfiguration(
-    previewElement: WearTilePreviewElement,
-    configuration: Configuration
-  ) {
-    configuration.apply {
-      startBulkEditing()
-      target = configuration.settings.highestApiTarget
-      val device = settings.devices.findOrParseFromDefinition(previewElement.configuration.device)
-      device?.let {
-        setEffectiveDevice(null, null)
-        setDevice(device, false)
-      }
-      previewElement.configuration.locale?.let {
-        locale = it
-      }
-      fontScale = previewElement.configuration.fontScale
-      finishBulkEditing()
-    }
-  }
 }
 
 private fun Collection<Device>.findById(deviceDefinition: String): Device? {

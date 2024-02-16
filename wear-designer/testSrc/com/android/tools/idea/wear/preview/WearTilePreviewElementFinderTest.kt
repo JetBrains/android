@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.ide.common.resources.Locale
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.wear.preview.WearTilePreviewElementSubject.Companion.assertThat
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.google.common.truth.FailureMetadata
 import com.google.common.truth.Subject
@@ -274,7 +274,7 @@ class WearTilePreviewElementFinderTest {
       }
       previewElements.elementAt(4).let {
         assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithLocale"))
-        assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = Locale.create("fr")))
+        assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = "fr"))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithLocale"))
         assertThat(it)
           .hasAnnotationDefinition(
@@ -605,7 +605,7 @@ private class WearTilePreviewElementSubject(
     assertThat(actual()?.displaySettings).isEqualTo(settings)
   }
 
-  fun hasPreviewConfiguration(configuration: WearTilePreviewConfiguration) {
+  fun hasPreviewConfiguration(configuration: PreviewConfiguration) {
     assertThat(actual()?.configuration).isEqualTo(configuration)
   }
 
@@ -641,6 +641,6 @@ private fun defaultDisplaySettings(name: String, group: String? = null) =
 
 private fun defaultConfiguration(
   device: String = "id:wearos_small_round",
-  locale: Locale? = null,
+  locale: String? = null,
   fontScale: Float = 1.0f,
-) = WearTilePreviewConfiguration(device = device, locale = locale, fontScale = fontScale)
+) = PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)

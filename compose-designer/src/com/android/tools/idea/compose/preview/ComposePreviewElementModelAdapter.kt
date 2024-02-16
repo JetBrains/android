@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.applyTo
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
@@ -35,7 +36,7 @@ abstract class ComposePreviewElementModelAdapter :
   override fun applyToConfiguration(
     previewElement: ComposePreviewElementInstance,
     configuration: Configuration,
-  ) = previewElement.applyTo(configuration)
+  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 
   override fun createLightVirtualFile(
     content: String,

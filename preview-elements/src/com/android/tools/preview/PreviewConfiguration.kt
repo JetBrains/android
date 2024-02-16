@@ -24,7 +24,6 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.preview.config.findOrParseFromDefinition
-import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.sdk.CompatibilityRenderTarget
 import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
@@ -92,7 +91,7 @@ internal constructor(
         height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_HEIGHT)
                  ?: UNDEFINED_DIMENSION,
         locale = locale ?: "",
-        fontScale = fontScale ?: 1f,
+        fontScale = max(0f, fontScale ?: 1f),
         uiMode = uiMode ?: 0,
         deviceSpec = device ?: NO_DEVICE_SPEC,
         wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,
@@ -102,12 +101,12 @@ internal constructor(
 }
 
 /** Applies the [ConfigurablePreviewElement] settings to the given [renderConfiguration]. */
-fun ConfigurablePreviewElement.applyTo(renderConfiguration: Configuration) {
+fun ConfigurablePreviewElement.applyTo(renderConfiguration: Configuration, defaultDeviceProvider: (Configuration) -> Device? = { null }) {
   configuration.applyTo(
     renderConfiguration,
     { it.settings.highestApiTarget },
     { it.settings.devices },
-    { it.settings.getDefaultPreviewDevice() },
+    defaultDeviceProvider,
     getCustomDeviceSize()
   )
 }

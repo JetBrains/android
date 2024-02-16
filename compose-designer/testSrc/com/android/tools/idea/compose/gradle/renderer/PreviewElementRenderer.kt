@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.applyTo
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -55,7 +56,7 @@ fun createRenderTaskFuture(
     classesToPreload = classesToPreload,
     customViewInfoParser = customViewInfoParser,
     showDecorations = previewElement.displaySettings.showDecoration,
-    configure = previewElement::applyTo,
+    configure = { conf -> previewElement.applyTo(conf) { it.settings.getDefaultPreviewDevice() } },
   )
 
 /**

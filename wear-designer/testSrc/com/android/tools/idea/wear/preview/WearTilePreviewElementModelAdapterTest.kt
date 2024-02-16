@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
@@ -36,7 +37,7 @@ private fun wearTilePreviewElement(
     previewElementDefinitionPsi = previewElementDefinitionPsi,
     previewBodyPsi = previewBodyPsi,
     methodFqn = methodFqn,
-    configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+    configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
   )
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
@@ -101,7 +102,7 @@ class WearTilePreviewElementModelAdapterTest {
             previewElementDefinitionPsi = null,
             previewBodyPsi = null,
             methodFqn = "foo",
-            configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+            configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
           )
         )
     )
