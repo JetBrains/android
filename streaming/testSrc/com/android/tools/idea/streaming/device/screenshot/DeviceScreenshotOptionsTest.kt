@@ -118,7 +118,11 @@ class DeviceScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 960, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.HANDHELD)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive", "Generic Tablet")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly(
+      "Automotive (1080p landscape)",
+      "Automotive Large Portrait",
+      "Automotive",
+      "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
   }
 
@@ -130,7 +134,7 @@ class DeviceScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 768, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.HANDHELD)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Tablet")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive (1080p landscape)", "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
   }
 

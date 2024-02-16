@@ -1432,6 +1432,12 @@ android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/back.png
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/fore.png
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/layout
+android-studio/plugins/android/resources/device-art-resources/automotive_landscape/back.png
+android-studio/plugins/android/resources/device-art-resources/automotive_landscape/layout
+android-studio/plugins/android/resources/device-art-resources/automotive_large_portrait/back.png
+android-studio/plugins/android/resources/device-art-resources/automotive_large_portrait/layout
+android-studio/plugins/android/resources/device-art-resources/automotive_ultrawide_cutout/back.png
+android-studio/plugins/android/resources/device-art-resources/automotive_ultrawide_cutout/layout
 android-studio/plugins/android/resources/device-art-resources/device-art.xml
 android-studio/plugins/android/resources/device-art-resources/galaxy_nexus/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/galaxy_nexus/land_fore.webp

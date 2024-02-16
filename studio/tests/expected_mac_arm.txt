@@ -2113,6 +2113,12 @@ Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sql
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/back.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/fore.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_landscape/back.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_landscape/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_large_portrait/back.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_large_portrait/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_ultrawide_cutout/back.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_ultrawide_cutout/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/device-art.xml
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/galaxy_nexus/land_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/galaxy_nexus/land_fore.webp
