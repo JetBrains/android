@@ -22,11 +22,6 @@ import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.sdklib.AndroidDpCoordinate
-import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.devices.Device
-import com.android.tools.configurations.Configuration
-import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
@@ -35,7 +30,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import java.awt.Dimension
 import java.util.Objects
 import kotlin.math.min
 import org.jetbrains.annotations.TestOnly
@@ -68,43 +62,6 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
   }
 
 /**
- * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp`
- * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
- */
-@AndroidDpCoordinate
-private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
-  if (!displaySettings.showDecoration && configuration.width != -1 && configuration.height != -1) {
-    Dimension(configuration.width, configuration.height)
-  } else null
-
-/** Applies the [ComposePreviewElement] settings to the given [renderConfiguration]. */
-fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
-  configuration.applyTo(
-    renderConfiguration,
-    { it.settings.highestApiTarget },
-    { it.settings.devices },
-    { it.settings.getDefaultPreviewDevice() },
-    getCustomDeviceSize()
-  )
-}
-
-@TestOnly
-fun ComposePreviewElement.applyConfigurationForTest(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-) {
-  configuration.applyTo(
-    renderConfiguration,
-    highestApiTarget,
-    devicesProvider,
-    defaultDeviceProvider,
-    getCustomDeviceSize()
-  )
-}
-
-/**
  * Definition of a preview parameter provider. This is defined by annotating parameters with
  * `PreviewParameter`
  *
@@ -121,13 +78,7 @@ data class PreviewParameter(
 )
 
 /** Definition of a Composable preview element */
-interface ComposePreviewElement : MethodPreviewElement {
-  /** Fully Qualified Name of the composable method */
-  override val methodFqn: String
-
-  /** Preview element configuration that affects how LayoutLib resolves the resources */
-  val configuration: PreviewConfiguration
-
+interface ComposePreviewElement : MethodPreviewElement, ConfigurablePreviewElement {
   /**
    * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
    * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.

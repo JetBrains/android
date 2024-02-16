@@ -24,6 +24,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.preview.config.findOrParseFromDefinition
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.sdk.CompatibilityRenderTarget
 import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
@@ -42,6 +43,11 @@ private const val NO_WALLPAPER_SELECTED = -1
 
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
+
+interface ConfigurablePreviewElement: PreviewElement {
+  /** Preview element configuration that affects how LayoutLib resolves the resources */
+  val configuration: PreviewConfiguration
+}
 
 /** Contains settings for rendering. */
 data class PreviewConfiguration
@@ -95,6 +101,27 @@ internal constructor(
   }
 }
 
+/** Applies the [ConfigurablePreviewElement] settings to the given [renderConfiguration]. */
+fun ConfigurablePreviewElement.applyTo(renderConfiguration: Configuration) {
+  configuration.applyTo(
+    renderConfiguration,
+    { it.settings.highestApiTarget },
+    { it.settings.devices },
+    { it.settings.getDefaultPreviewDevice() },
+    getCustomDeviceSize()
+  )
+}
+
+/**
+ * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and `heightDp`
+ * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
+ */
+@AndroidDpCoordinate
+private fun ConfigurablePreviewElement.getCustomDeviceSize(): Dimension? =
+  if (!displaySettings.showDecoration && configuration.width != -1 && configuration.height != -1) {
+    Dimension(configuration.width, configuration.height)
+  } else null
+
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
  *
@@ -106,7 +133,7 @@ internal constructor(
  *
  * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
  */
-internal fun PreviewConfiguration.applyTo(
+private fun PreviewConfiguration.applyTo(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
@@ -179,4 +206,20 @@ fun PreviewConfiguration.applyConfigurationForTest(
   defaultDeviceProvider: (Configuration) -> Device?,
 ) {
   applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
+}
+
+@TestOnly
+fun ConfigurablePreviewElement.applyConfigurationForTest(
+  renderConfiguration: Configuration,
+  highestApiTarget: (Configuration) -> IAndroidTarget?,
+  devicesProvider: (Configuration) -> Collection<Device>,
+  defaultDeviceProvider: (Configuration) -> Device?,
+) {
+  configuration.applyTo(
+    renderConfiguration,
+    highestApiTarget,
+    devicesProvider,
+    defaultDeviceProvider,
+    getCustomDeviceSize()
+  )
 }

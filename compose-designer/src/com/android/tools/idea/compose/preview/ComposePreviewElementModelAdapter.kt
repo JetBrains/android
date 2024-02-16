@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -26,6 +27,7 @@ import com.intellij.testFramework.LightVirtualFile
 
 /** [PreviewElementModelAdapter] adapting [ComposePreviewElementInstance] to [NlModel]. */
 abstract class ComposePreviewElementModelAdapter :
+  ConfigurablePreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>,
   MethodPreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>(
     COMPOSE_PREVIEW_ELEMENT_INSTANCE
   ) {
