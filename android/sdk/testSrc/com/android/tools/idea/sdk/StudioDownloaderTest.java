@@ -18,18 +18,22 @@ package com.android.tools.idea.sdk;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import com.android.flags.junit.FlagRule;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
 import com.android.testutils.file.DelegatingFileSystemProvider;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.util.io.HttpRequests;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpServer;
 import java.io.BufferedInputStream;
@@ -64,6 +68,9 @@ public class StudioDownloaderTest {
 
   @Rule
   public ApplicationRule rule = new ApplicationRule();
+
+  @Rule
+  public FlagRule riscVFlagRule = new FlagRule<>(StudioFlags.RISC_V, true);
 
   private HttpServer myServer;
   private String myUrl;
@@ -346,5 +353,70 @@ public class StudioDownloaderTest {
       assertEquals(4, is.read(bytes));
       assertEquals("blah", new String(bytes).trim());
     }
+  }
+
+  @Test
+  public void testCustomAddonsListVersionFilterWorks() throws Exception {
+    StudioDownloader.RepositoryAddonsListVersionUrlFilter filter = new StudioDownloader.RepositoryAddonsListVersionUrlFilter() {
+      @Override
+      protected int getMaximumVersionAllowed() {
+        return 5;
+      }
+    };
+
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-0.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-5.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-6.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-7.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-10.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-100.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.comaddons_list-1.xml/foo/bar")));
+  }
+
+  @Test
+  public void testCustomAddonsListVersionFilterWithNegativeVersionWorks() throws Exception {
+    StudioDownloader.RepositoryAddonsListVersionUrlFilter filter = new StudioDownloader.RepositoryAddonsListVersionUrlFilter() {
+      @Override
+      protected int getMaximumVersionAllowed() {
+        return -1;
+      }
+    };
+
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-0.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-5.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-6.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-7.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-10.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-100.xml")));
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.comaddons_list-1.xml/foo/bar")));
+  }
+
+  @Test
+  public void testOlderAddonsListAreAllowedForRiscV() throws Exception {
+    StudioFlags.RISC_V.override(false);
+    StudioDownloader.RiscVUrlFilter filter = new StudioDownloader.RiscVUrlFilter();
+    assertTrue(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-5.xml")));
+  }
+
+  @Test
+  public void testNewerAddonsListAreDisabledForRiscV() throws Exception {
+    StudioFlags.RISC_V.override(false);
+    StudioDownloader.RiscVUrlFilter filter = new StudioDownloader.RiscVUrlFilter();
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-6.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-7.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-8.xml")));
+    assertFalse(filter.isUrlAllowed(new URL("https://dl.google.com/android/repository/addons_list-20.xml")));
+  }
+
+  @Test
+  public void testDownloadV6AddonsIsDisabledIfRiscVIsDisabled() throws Exception {
+    StudioFlags.RISC_V.override(false);
+    StudioDownloader downloader = new StudioDownloader(new FakeSettingsController(false));
+    com.android.repository.api.ProgressIndicator progressIndicator = new FakeProgressIndicator();
+    assertThrows(HttpRequests.HttpStatusException.class, () -> {
+      downloader.downloadFully(new URL("https://dl.google.com/android/repository/addons_list-6.xml"), progressIndicator);
+    });
   }
 }

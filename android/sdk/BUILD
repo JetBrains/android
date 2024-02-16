@@ -46,5 +46,6 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
