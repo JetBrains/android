@@ -2714,6 +2714,7 @@ java_test(
 
 java_test(
     name = "ConstraintLayoutResizeHandleTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
@@ -2728,8 +2729,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_fast",
-        "qa_fast_unreliable",  # b/115685973
-        "qa_unreliable",  # b/115685973
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

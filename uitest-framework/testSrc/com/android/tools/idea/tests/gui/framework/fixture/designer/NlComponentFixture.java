@@ -75,8 +75,10 @@ public class NlComponentFixture {
   @NotNull
   public NlComponentFixture resizeBy(int widthBy, int heightBy) {
     Point point = getSceneComponent().getRightBottomPoint();
+    getSceneComponent().click();
     myDragAndDrop.drag(mySurface, point);
     myDragAndDrop.drop(mySurface, new Point(((int)point.getX()) + widthBy, ((int)point.getY()) + heightBy));
+    getSceneComponent().waitForSceneComponentAnimation();
     pause(SceneComponent.ANIMATION_DURATION);
     return this;
   }

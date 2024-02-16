@@ -34,7 +34,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class ConstraintLayoutResizeHandleTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -58,6 +58,7 @@ public class ConstraintLayoutResizeHandleTest {
   @Test
   public void constraintLayoutResizeHandle() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
@@ -69,9 +70,10 @@ public class ConstraintLayoutResizeHandleTest {
     NlComponentFixture textView = design.findView("Button", 0);
     int width = textView.getSceneComponent().getWidth();
     int height = textView.getSceneComponent().getHeight();
-    textView.resizeBy(10, 10);
+    textView.resizeBy(20, 20);
     design.waitForRenderToFinish();
-    assertThat(textView.getSceneComponent().getWidth()).isGreaterThan(width);
-    assertThat(textView.getSceneComponent().getHeight()).isGreaterThan(height);
+    NlComponentFixture resizedTextView = design.findView("Button", 0);
+    assertThat(resizedTextView.getSceneComponent().getWidth()).isGreaterThan(width);
+    assertThat(resizedTextView.getSceneComponent().getHeight()).isGreaterThan(height);
   }
 }
