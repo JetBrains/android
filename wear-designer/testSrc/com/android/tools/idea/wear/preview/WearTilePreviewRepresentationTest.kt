@@ -20,10 +20,12 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -98,7 +100,8 @@ class WearTilePreviewRepresentationTest {
 
       val status = preview.previewViewModel
       assertFalse(status.isOutOfDate)
-      val renderResults = preview.previewView.mainSurface.sceneManagers.mapNotNull { it.renderResult }
+      val renderResults =
+        preview.previewView.mainSurface.sceneManagers.mapNotNull { it.renderResult }
       // Ensure the only warning message is the missing Android SDK message
       assertTrue(
         renderResults
@@ -164,6 +167,41 @@ class WearTilePreviewRepresentationTest {
         assertThat(previewElements).hasSize(1)
         assertThat(previewElements.map { it.methodFqn })
           .containsExactly("com.android.test.TestKt.tilePreview2")
+      }
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testGalleryMode() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+      val previewModeManager =
+        preview.previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
+      val previewFlowManager =
+        preview.previewView.mainSurface.getData(PreviewFlowManager.KEY.name)
+          as PreviewFlowManager<*>
+
+      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.galleryMode).isNull()
+
+      // go into gallery mode
+      run {
+        val previewElement =
+          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+        previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+
+        delayUntilCondition(250) { preview.previewView.mainSurface.models.size == 1 }
+
+        val previewElements =
+          preview.previewView.mainSurface.models.mapNotNull {
+            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
+          }
+        assertThat(previewElements).containsExactly(previewElement)
+        assertThat(previewElements.map { it.methodFqn })
+          .containsExactly("com.android.test.TestKt.tilePreview2")
+
+        assertThat(preview.previewView.galleryMode).isNotNull()
       }
 
       preview.onDeactivate()

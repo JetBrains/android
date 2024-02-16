@@ -39,6 +39,7 @@ import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
@@ -480,6 +481,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
         var lastMode: PreviewMode? = null
 
         previewModeManager.mode.collect {
+          previewFlowManager.setSingleFilter(it.selected as? T)
+
           lastMode?.let { last -> onExit(last) }
           // The layout update needs to happen before onEnter, so that any zooming performed
           // in onEnter uses the correct preview layout when measuring scale.
@@ -529,6 +532,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
       is PreviewMode.Interactive -> {
         stopInteractivePreview()
       }
+      is PreviewMode.Gallery -> {
+        withContext(uiThread) { previewView.galleryMode = null }
+      }
       else -> {}
     }
   }
@@ -542,6 +548,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
       is PreviewMode.Interactive -> {
         startInteractivePreview(mode.selected)
       }
+      is PreviewMode.Gallery -> {
+        invalidateAndRefresh()
+        surface.repaint()
+        withContext(uiThread) { previewView.galleryMode = GalleryMode(surface) }
+      }
       else -> {}
     }
     surface.background = mode.backgroundColor
@@ -549,7 +560,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   private suspend fun startInteractivePreview(element: PreviewElement<*>) {
     LOG.debug("Starting interactive preview mode on: $element")
-    previewFlowManager.setSingleFilter(element as T)
     invalidateAndRefresh()
     interactiveManager.start()
     ActivityTracker.getInstance().inc()
@@ -557,7 +567,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   private suspend fun stopInteractivePreview() {
     LOG.debug("Stopping interactive preview mode")
-    previewFlowManager.setSingleFilter(null)
     interactiveManager.stop()
     invalidateAndRefresh()
   }
