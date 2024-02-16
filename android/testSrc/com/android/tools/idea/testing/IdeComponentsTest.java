@@ -17,7 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.adtui.common.AutoCloseDisposable;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static org.mockito.Mockito.mock;
@@ -25,11 +25,11 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link IdeComponents}.
  */
-public class IdeComponentsTest extends PlatformTestCase {
+public class IdeComponentsTest extends HeavyPlatformTestCase {
 
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()) {
       SdkSync mockSdkSync = mock(SdkSync.class);
       new IdeComponents(myProject, scope).replaceApplicationService(SdkSync.class, mockSdkSync);
       assertSame(mockSdkSync, SdkSync.getInstance());
@@ -41,7 +41,7 @@ public class IdeComponentsTest extends PlatformTestCase {
 
   public void testReplaceProjectService() {
     GradleSettings originalSettings = GradleSettings.getInstance(getProject());
-    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()) {
       GradleSettings mockSettings = mock(GradleSettings.class);
       new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
       assertSame(mockSettings, GradleSettings.getInstance(getProject()));

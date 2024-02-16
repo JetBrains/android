@@ -20,7 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link NativeLibrary}.
  */
-public class NativeLibraryTest extends PlatformTestCase {
+public class NativeLibraryTest extends HeavyPlatformTestCase {
   private NativeLibrary myLibrary;
 
   @Override

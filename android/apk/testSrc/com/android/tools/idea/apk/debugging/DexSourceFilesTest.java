@@ -18,7 +18,7 @@ package com.android.tools.idea.apk.debugging;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link DexSourceFiles}.
  */
-public class DexSourceFilesTest extends PlatformTestCase {
+public class DexSourceFilesTest extends HeavyPlatformTestCase {
   private File myOutputFolderPath;
   private DexSourceFiles myDexSourceFiles;
 
@@ -129,4 +129,5 @@ public class DexSourceFilesTest extends PlatformTestCase {
 
     File found = myDexSourceFiles.findSmaliFilePathForPackage("com.android.smali");
     assertAbout(file()).that(found).isEquivalentAccordingToCompareTo(packagePath);
-  }}
+  }
+}

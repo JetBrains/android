@@ -18,7 +18,7 @@ package com.android.tools.idea.project;
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.List;
@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link AndroidProjectInfo}.
  */
-public class AndroidProjectInfoTest extends PlatformTestCase {
+public class AndroidProjectInfoTest extends HeavyPlatformTestCase {
   private AndroidProjectInfo myProjectInfo;
 
   @Override

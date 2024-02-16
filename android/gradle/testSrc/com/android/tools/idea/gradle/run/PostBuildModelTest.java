@@ -22,7 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link PostBuildModel}.
  */
-public class PostBuildModelTest extends PlatformTestCase {
+public class PostBuildModelTest extends HeavyPlatformTestCase {
   @Mock private ProjectBuildOutput myAppOutput;
   @Mock private ProjectBuildOutput myLibOutput;
   @Mock private InstantAppProjectBuildOutput myInstantAppOutput;
@@ -66,7 +66,9 @@ public class PostBuildModelTest extends PlatformTestCase {
     @NotNull private final Map<String, OutputBuildAction.PostBuildModuleModels> myModels = new HashMap<>();
 
     @NotNull
-    private <T> PostBuildProjectModelsBuilder setModelForModule(@NotNull String gradlePath, @NotNull Class<T> modelType, @NotNull T model) {
+    private <T> PostBuildModelTest.PostBuildProjectModelsBuilder setModelForModule(@NotNull String gradlePath,
+                                                                                   @NotNull Class<T> modelType,
+                                                                                   @NotNull T model) {
       if (!myModels.containsKey(gradlePath)) {
         myModels.put(gradlePath, mock(OutputBuildAction.PostBuildModuleModels.class));
       }

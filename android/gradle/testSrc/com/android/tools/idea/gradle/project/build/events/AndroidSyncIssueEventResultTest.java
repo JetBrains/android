@@ -23,12 +23,12 @@ import static com.intellij.openapi.externalSystem.service.notification.Notificat
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.build.events.MessageEvent.Kind;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 /**
  * Test class for {@link AndroidSyncIssueEventResult}.
  */
-public class AndroidSyncIssueEventResultTest extends PlatformTestCase {
+public class AndroidSyncIssueEventResultTest extends HeavyPlatformTestCase {
   private GradleSyncMessages mySyncMessages;
 
   @Override

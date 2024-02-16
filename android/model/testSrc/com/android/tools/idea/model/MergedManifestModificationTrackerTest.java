@@ -32,7 +32,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.AdditionalAnswers;
 import org.mockito.stubbing.Answer;
 
-public class MergedManifestModificationTrackerTest extends PlatformTestCase {
+public class MergedManifestModificationTrackerTest extends HeavyPlatformTestCase {
   public void testWhenProjectSync() {
     // Load service on demand
     ProjectSyncModificationTracker projectSyncTracker = ProjectSyncModificationTracker.getInstance(myProject);

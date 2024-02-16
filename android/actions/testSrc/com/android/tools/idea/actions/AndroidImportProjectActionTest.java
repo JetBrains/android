@@ -21,7 +21,7 @@ import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * Tests for {@link AndroidImportProjectAction}.
  */
-public class AndroidImportProjectActionTest extends PlatformTestCase {
+public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
   private VirtualFile myProjectRootDir;
 
   @Override
@@ -55,7 +55,7 @@ public class AndroidImportProjectActionTest extends PlatformTestCase {
   }
 
   @NotNull
-  private VirtualFile createChildFile(@NotNull String name, @NotNull String...contents) throws IOException {
+  private VirtualFile createChildFile(@NotNull String name, @NotNull String... contents) throws IOException {
     File file = new File(myProjectRootDir.getPath(), name);
     assertTrue(FileUtilRt.createIfNotExists(file));
     if (contents.length > 0) {

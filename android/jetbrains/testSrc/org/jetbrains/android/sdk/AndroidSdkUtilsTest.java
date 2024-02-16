@@ -29,7 +29,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -39,7 +39,7 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link AndroidSdkUtils}.
  */
-public class AndroidSdkUtilsTest extends PlatformTestCase {
+public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
 
   @Override
   protected void setUp() throws Exception {
@@ -100,7 +100,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
 
   public void testGetAdbInPath() throws Exception {
     assertWithMessage("Precondition: project with no android facets")
-        .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
+      .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
     try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
       String separator = System.getProperty("path.separator");
       File fakeAdb = createTempFile(FN_ADB, "");
