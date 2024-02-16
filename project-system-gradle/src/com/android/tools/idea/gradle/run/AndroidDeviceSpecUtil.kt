@@ -228,19 +228,6 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, mo
   }
 }
 
-fun IDevice.createSpec(): AndroidDeviceSpec {
-  return AndroidDeviceSpecImpl(
-    version,
-    version,
-    Density.create(density),
-    abis,
-    supportsSdkRuntimeProvider =  {
-      services().containsKey("sdk_sandbox") && version.isGreaterOrEqualThan(34)
-    },
-    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
-  )
-}
-
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
 
