@@ -17,14 +17,14 @@ package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 
 /**
  * Tests for {@link GradleSyncMessages}.
  */
-public class GradleSyncMessagesTest extends PlatformTestCase {
+public class GradleSyncMessagesTest extends HeavyPlatformTestCase {
   private GradleSyncMessages mySyncMessages;
 
   @Override

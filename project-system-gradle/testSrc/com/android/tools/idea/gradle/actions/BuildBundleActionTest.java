@@ -42,14 +42,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildBundleActionTest extends PlatformTestCase {
+public class BuildBundleActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AndroidNotification myAndroidNotification;
   private BuildBundleAction myAction;
@@ -75,7 +75,8 @@ public class BuildBundleActionTest extends PlatformTestCase {
           .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
       ),
-      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
+      new AndroidModuleModelBuilder(":feature1", "debug",
+                                    new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
     );
     Module[] appModules = new Module[]{gradleModule(getProject(), ":app1")};
     assume().that(appModules).asList().doesNotContain(null);

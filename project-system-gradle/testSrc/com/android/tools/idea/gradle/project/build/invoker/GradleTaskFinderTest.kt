@@ -33,7 +33,7 @@ import com.google.common.truth.TruthJUnit.assume
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito
 import java.io.File
 import java.nio.file.Path
@@ -41,7 +41,7 @@ import java.nio.file.Path
 /**
  * Tests for [GradleTaskFinder].
  */
-class GradleTaskFinderTest : PlatformTestCase() {
+class GradleTaskFinderTest : HeavyPlatformTestCase() {
 
   private val modules get() = ModuleManager.getInstance(project).modules
   private val projectDir get() = File(project.basePath!!)

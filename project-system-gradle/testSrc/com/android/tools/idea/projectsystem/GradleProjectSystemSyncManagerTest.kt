@@ -25,12 +25,12 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultL
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.mock
 
 
-class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
+class GradleProjectSystemSyncManagerTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var gradleProjectInfo: Info
   private lateinit var syncManager: ProjectSystemSyncManager

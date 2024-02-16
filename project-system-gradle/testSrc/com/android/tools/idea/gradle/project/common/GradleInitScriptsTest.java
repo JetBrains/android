@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.common;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.Collections;
 import org.mockito.Mock;
 
@@ -37,7 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleInitScripts}.
  */
-public class GradleInitScriptsTest extends PlatformTestCase {
+public class GradleInitScriptsTest extends HeavyPlatformTestCase {
   @Mock private GradleInitScripts.ContentCreator myContentCreator;
 
   private File myInitScriptPath;
@@ -68,7 +68,8 @@ public class GradleInitScriptsTest extends PlatformTestCase {
 
   private void setupCreateLocalMavenRepoInitScriptContent() {
     when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenAnswer(mock -> {
-      if(mock.getArgument(0).equals(Collections.emptyList())) return null; else return "Test";
+      if (mock.getArgument(0).equals(Collections.emptyList())) return null;
+      else return "Test";
     });
   }
 

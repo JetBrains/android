@@ -45,7 +45,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
@@ -58,7 +58,7 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
-class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
+class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
 
   @Mock
   private lateinit var myDevice: AndroidDevice

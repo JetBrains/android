@@ -29,14 +29,14 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, AgpVersion, AgpVersion)}}.
  */
-public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
+public class ForcedGradlePluginUpgradeTest extends HeavyPlatformTestCase {
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
 

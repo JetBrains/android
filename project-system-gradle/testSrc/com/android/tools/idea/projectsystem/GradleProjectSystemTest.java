@@ -27,9 +27,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
-public class GradleProjectSystemTest extends PlatformTestCase {
+public class GradleProjectSystemTest extends HeavyPlatformTestCase {
 
   @Override
   protected void setUp() throws Exception {

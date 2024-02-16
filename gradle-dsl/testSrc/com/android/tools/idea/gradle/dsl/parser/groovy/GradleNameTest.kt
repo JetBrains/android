@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.groovy
 
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory
 
-class GradleNameTest : PlatformTestCase() {
+class GradleNameTest : HeavyPlatformTestCase() {
   fun gradleNameFromString(string : String) : String? {
     val psiFactory = GroovyPsiElementFactory.getInstance(myProject)
     val expression = psiFactory.createExpressionFromText(string)

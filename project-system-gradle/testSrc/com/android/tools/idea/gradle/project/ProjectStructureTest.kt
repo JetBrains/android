@@ -24,13 +24,13 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.android.tools.idea.testing.updateTestProjectFromAndroidModel
 import com.google.common.truth.Truth
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import java.io.File
 
 /**
  * Tests for [ProjectStructure].
  */
-class ProjectStructureTest : PlatformTestCase() {
+class ProjectStructureTest : HeavyPlatformTestCase() {
 
   fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1 Java library.
     setupTestProjectFromAndroidModel(
