@@ -22,8 +22,11 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.jetbrains.rd.util.getLogger
+import com.jetbrains.rd.util.info
 import org.junit.Rule
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -36,6 +39,10 @@ import kotlin.time.Duration.Companion.seconds
  * All Profiler integration tests should extend this class.
  */
 open class ProfilersTestBase {
+
+  private fun getLogger(): Logger {
+    return Logger.getLogger(ProfilersTestBase::class.java.getName())
+  }
 
   private val testProjectMinAppPath = "tools/adt/idea/profilers-integration/testData/minapp"
   private val testMinAppRepoManifest = "tools/adt/idea/profilers-integration/minapp_deps.manifest"
@@ -70,6 +77,8 @@ open class ProfilersTestBase {
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
+          getLogger().info("Test set-up completed, invoking the test function.")
+
           // Test Function or test steps to be executed.
           testFunction.invoke(studio, adb)
         }
@@ -84,12 +93,20 @@ open class ProfilersTestBase {
       TimeUnit.SECONDS)
   }
 
-  protected fun profileWithCompleteData(studio: AndroidStudio) {
+  protected fun profileWithCompleteData(studio: AndroidStudio, adb:Adb) {
     studio.executeAction("Android.ProfileWithCompleteData")
+
+    adb.runCommand("logcat") {
+      waitForLog(".*Hello Minimal World!.*", 180.seconds);
+    }
   }
 
-  protected fun profileWithLowOverhead(studio: AndroidStudio) {
+  protected fun profileWithLowOverhead(studio: AndroidStudio, adb: Adb) {
     studio.executeAction("Android.ProfileWithLowOverhead")
+
+    adb.runCommand("logcat") {
+      waitForLog(".*Hello Minimal World!.*", 180.seconds);
+    }
   }
 
   protected fun stopProfilingSession(studio: AndroidStudio) {

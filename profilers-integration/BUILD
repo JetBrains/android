@@ -89,7 +89,7 @@ iml_studio_test(
     name = "CallstackSampleTest",
     timeout = "long",
     data = profilers_test_common_data + [
-        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
@@ -127,7 +127,7 @@ iml_studio_test(
     name = "NativeAllocationsTest",
     timeout = "long",
     data = profilers_test_common_data + [
-        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [

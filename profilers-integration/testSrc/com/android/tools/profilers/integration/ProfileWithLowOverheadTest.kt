@@ -43,13 +43,13 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
   fun testLowOverheadSession() {
     profileApp(
       systemImage = Emulator.SystemImage.API_33_PlayStore,
-      testFunction = { studio, _ ->
+      testFunction = { studio, adb ->
         // Since there is no definitive way to tell that the emulator is ready
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
         println("Waiting for 20 seconds before running the app so that the emulator is ready")
         Thread.sleep(20000)
 
-        profileWithLowOverhead(studio)
+        profileWithLowOverhead(studio, adb)
         // TODO(b/260296636): Reduce the time-out to 180, once the performance issue b/260296636 is fixed.
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=PROFILEABLE\$", 480)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)

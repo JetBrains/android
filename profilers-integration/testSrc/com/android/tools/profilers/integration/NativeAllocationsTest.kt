@@ -46,11 +46,9 @@ class NativeAllocationsTest : ProfilersTestBase() {
   @Test
   fun testRecordNativeAllocation() {
     profileApp(
-      systemImage = Emulator.SystemImage.API_33_PlayStore, // Provides more stability than API 29
-      testFunction = { studio, _ ->
-        Thread.sleep(20000)
-
-        profileWithCompleteData(studio)
+      systemImage = Emulator.SystemImage.API_31, // Provides more stability than API 29
+      testFunction = { studio, adb ->
+        profileWithCompleteData(studio, adb)
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
 

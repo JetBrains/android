@@ -46,10 +46,10 @@ class HeapDumpTest  : ProfilersTestBase() {
   fun testRecordHeapDump() {
     profileApp(
       systemImage = Emulator.SystemImage.API_33_PlayStore, // Provides more stability than API 29
-      testFunction = { studio, _ ->
+      testFunction = { studio, adb ->
         Thread.sleep(20000)
 
-        profileWithCompleteData(studio)
+        profileWithCompleteData(studio, adb)
 
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)

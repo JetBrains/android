@@ -46,15 +46,15 @@ class CallstackSampleTest : ProfilersTestBase() {
   @Test
   fun testRecordCallstackSample() {
     profileApp(
-      systemImage = Emulator.SystemImage.API_33_PlayStore, // Provides more stability than API 29
-      testFunction = { studio, _ ->
+      systemImage = Emulator.SystemImage.API_31, // Provides more stability than API 29
+      testFunction = { studio, adb ->
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
         println("Waiting for 20 seconds before running the app so that the emulator is ready")
         Thread.sleep(20000)
 
-        profileWithCompleteData(studio)
+        profileWithCompleteData(studio, adb)
 
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
+        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
         // Waiting for UI Component specific to profiling with complete data
         studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent")

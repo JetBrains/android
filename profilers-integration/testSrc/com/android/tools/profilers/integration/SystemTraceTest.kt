@@ -49,12 +49,12 @@ class SystemTraceTest : ProfilersTestBase() {
   fun testRecordSystemTrace() {
     profileApp(
       systemImage = Emulator.SystemImage.API_33_PlayStore, // Provides more stability than API 29
-      testFunction = { studio, _ ->
+      testFunction = { studio, adb ->
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
         println("Waiting for 20 seconds before running the app so that the emulator is ready")
         Thread.sleep(20000)
 
-        profileWithCompleteData(studio)
+        profileWithCompleteData(studio, adb)
 
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
@@ -76,8 +76,8 @@ class SystemTraceTest : ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
 
         // Verify if the cpu capture is parsed.
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 300)
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 300)
+        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 600)
+        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 600)
 
         studio.waitForComponentByClass("TooltipLayeredPane", "CpuAnalysisSummaryTab", "UsageInstructionsView")
 

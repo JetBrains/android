@@ -17,6 +17,7 @@ package com.android.tools.profilers.integration
 
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class ProfileWithCompleteDataTest : ProfilersTestBase() {
 
@@ -43,10 +44,11 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
   fun testProfileAppWithComplete() {
     profileApp(
       systemImage = Emulator.SystemImage.API_31,
-      testFunction = { studio, _ ->
-        profileWithCompleteData(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
-        verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
+      testFunction = { studio, adb ->
+        profileWithCompleteData(studio, adb)
+
+        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+        verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
 
         studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent") // Specific to profiling with complete data
 
