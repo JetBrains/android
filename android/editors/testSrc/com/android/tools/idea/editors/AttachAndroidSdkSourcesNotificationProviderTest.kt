@@ -31,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -214,7 +215,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
       for (sdk in AndroidSdks.getInstance().allAndroidSdks) {
         val sdkModificator = sdk.sdkModificator
         sdkModificator.removeRoots(OrderRootType.SOURCES)
-        ApplicationManager.getApplication().invokeAndWait { sdkModificator.commitChanges() }
+        WriteAction.runAndWait<Throwable>(sdkModificator::commitChanges)
       }
 
       return runReadAction {

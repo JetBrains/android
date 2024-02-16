@@ -130,7 +130,7 @@ public final class Sdks {
     data.setBuildTarget(foundTarget);
     sdkModificator.setSdkAdditionalData(data);
     ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-    sdkModificator.commitChanges();
+    WriteAction.run(sdkModificator::commitChanges);
     return sdk;
   }
 
