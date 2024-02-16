@@ -41,7 +41,6 @@ MODULE                        : MainActivity.app
                     artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -57,7 +56,6 @@ MODULE                        : MainActivity.app
                     artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -82,7 +80,6 @@ MODULE                        : MainActivity.app
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -101,7 +98,6 @@ MODULE                        : MainActivity.app
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -142,7 +138,6 @@ MODULE                        : MainActivity.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -403,10 +398,6 @@ MODULE                        : MainActivity.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -484,7 +475,6 @@ MODULE                        : MainActivity.lib
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -518,7 +508,6 @@ MODULE                        : MainActivity.lib
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
@@ -558,7 +547,6 @@ MODULE                        : MainActivity.lib
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     artifacts::lib                : null => :lib@main
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -593,7 +581,6 @@ MODULE                        : MainActivity.lib
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     artifacts::lib                : null => :lib@main
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
@@ -636,7 +623,6 @@ MODULE                        : MainActivity.lib
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                 artifacts::lib                : null => :lib@main
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -671,7 +657,6 @@ MODULE                        : MainActivity.lib
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                 artifacts::lib                : null => :lib@main
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
@@ -1044,10 +1029,6 @@ MODULE                        : MainActivity.lib
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>

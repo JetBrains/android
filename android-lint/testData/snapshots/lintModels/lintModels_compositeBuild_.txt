@@ -65,7 +65,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -107,7 +106,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -155,7 +153,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -198,7 +195,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -249,7 +245,6 @@ MODULE                        : TestCompositeLib1.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -652,10 +647,6 @@ MODULE                        : TestCompositeLib1.app
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -733,7 +724,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -771,7 +761,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -815,7 +804,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -854,7 +842,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -901,7 +888,6 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -940,7 +926,6 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1317,10 +1302,6 @@ MODULE                        : TestCompositeLib1.lib
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -1401,7 +1382,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1441,7 +1421,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1487,7 +1466,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1528,7 +1506,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1577,7 +1554,6 @@ MODULE                        : TestCompositeLib3.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -1978,10 +1954,6 @@ MODULE                        : TestCompositeLib3.app
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -2686,7 +2658,6 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -2728,7 +2699,6 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -2776,7 +2746,6 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -2819,7 +2788,6 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -2870,7 +2838,6 @@ MODULE                        : project.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3273,10 +3240,6 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -3351,7 +3314,6 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3386,7 +3348,6 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3427,7 +3388,6 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3463,7 +3423,6 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3507,7 +3466,6 @@ MODULE                        : project.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3543,7 +3501,6 @@ MODULE                        : project.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
@@ -3917,10 +3874,6 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>

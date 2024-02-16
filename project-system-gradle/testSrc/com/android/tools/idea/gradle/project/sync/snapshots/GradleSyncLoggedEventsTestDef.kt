@@ -152,7 +152,7 @@ data class GradleSyncLoggedEventsTestDef(
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
             |Module count: 13
-            |Library count: 36
+            |Library count: 35
             |total_module_count: 13
             |app_module_count: 3
             |lib_module_count: 3

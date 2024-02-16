@@ -3,7 +3,6 @@ import org.example.buildsrc.lib1.Lib1Class
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 
 String lib1 = Lib1Class.getString()
