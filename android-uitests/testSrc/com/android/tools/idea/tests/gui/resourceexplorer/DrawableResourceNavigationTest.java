@@ -88,6 +88,7 @@ public class DrawableResourceNavigationTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Verify 1 : A drawable named icon_category_entertainment should be showing
+    myResourceExplorerFixture.focus();
     myResourceExplorerFixture.selectResource("icon_category_entertainment");
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
