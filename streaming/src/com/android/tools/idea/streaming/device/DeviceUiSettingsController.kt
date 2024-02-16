@@ -68,4 +68,8 @@ internal class DeviceUiSettingsController(
   override fun setScreenDensity(density: Int) {
     deviceController.sendControlMessage(SetScreenDensityMessage(density))
   }
+
+  override fun reset() {
+    // Noop. A device agent will reset all settings when the device is disconnected.
+  }
 }

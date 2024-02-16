@@ -55,7 +55,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val balloon = UiSettingsPanel(model).createPicker(component, emulatorView)
+        val balloon = UiSettingsPanel(model, showResetButton = true).createPicker(component, emulatorView)
         balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
       }
     }

@@ -25,7 +25,13 @@ internal open class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T
   private var actualValue = initialValue
   private val emptyChangeListener = ChangeListener<T> {}
   override var uiChangeListener = emptyChangeListener
-    set(value) { if (field === emptyChangeListener) field = value else error("uiChangeListener is already specified")}
+    set(value) {
+      if (field === emptyChangeListener || value === emptyChangeListener) field = value else error("uiChangeListener is already specified")
+    }
+
+  override fun clearUiChangeListener() {
+    uiChangeListener = emptyChangeListener
+  }
 
   override val value: T
     get() = actualValue

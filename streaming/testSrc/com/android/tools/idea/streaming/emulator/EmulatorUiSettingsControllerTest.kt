@@ -19,6 +19,7 @@ import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -67,6 +68,7 @@ class EmulatorUiSettingsControllerTest {
                                                    "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
     adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services " +
                                                    "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
+    adb.configureShellCommand(rule.deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
   }
 
   @Test
@@ -225,6 +227,30 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 480" }
     model.screenDensity.setFromUi(544)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 544" }
+  }
+
+  @Test
+  fun testReset() {
+    rule.configureUiSettings(
+      darkMode = true,
+      applicationId = APPLICATION_ID1,
+      appLocales = "da",
+      talkBackInstalled = true,
+      talkBackOn = true,
+      selectToSpeakOn = true,
+      fontSize = CUSTOM_FONT_SIZE,
+      physicalDensity = DEFAULT_DENSITY,
+      overrideDensity = CUSTOM_DENSITY
+    )
+    controller.initAndWait()
+    adb.shellV2Requests.clear()
+    model.resetAction()
+    waitForCondition(10.seconds) { adb.shellV2Requests.size == 3 }
+    val commands = adb.shellV2Requests.map { it.command }
+    assertThat(commands).hasSize(3)
+    assertThat(commands[0]).isEqualTo(FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY))
+    assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
+    assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
   }
 
   private fun createController() =

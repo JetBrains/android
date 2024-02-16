@@ -37,6 +37,7 @@ internal abstract class UiSettingsController(
     model.selectToSpeakOn.uiChangeListener = ChangeListener(::setSelectToSpeak)
     model.fontSizeInPercent.uiChangeListener = ChangeListener(::setFontSize)
     model.screenDensity.uiChangeListener = ChangeListener(::setScreenDensity)
+    model.resetAction = ::reset
   }
 
   /**
@@ -49,8 +50,10 @@ internal abstract class UiSettingsController(
     if (applicationId.isEmpty() || languages.size < 2) {
       return false
     }
+    model.appLanguage.removeAllElements()
     model.appLanguage.addAll(languages)
     model.appLanguage.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
+    model.appLanguage.selection.clearUiChangeListener()
     model.appLanguage.selection.uiChangeListener = ChangeListener { setAppLanguage(applicationId, it) }
     return true
   }
@@ -85,4 +88,9 @@ internal abstract class UiSettingsController(
    * Changes the screen density on the device/emulator.
    */
   protected abstract fun setScreenDensity(density: Int)
+
+  /**
+   * Reset UI settings to factory defaults.
+   */
+  protected abstract fun reset()
 }

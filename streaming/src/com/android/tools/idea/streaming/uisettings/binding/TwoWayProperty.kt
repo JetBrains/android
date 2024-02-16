@@ -55,6 +55,11 @@ internal interface TwoWayProperty<T> : ReadOnlyProperty<T> {
   var uiChangeListener: ChangeListener<T>
 
   /**
+   * Remove the current uiChangeListener
+   */
+  fun clearUiChangeListener()
+
+  /**
    * The UI should call this function to specify a new value.
    */
   fun setFromUi(newValue: T)

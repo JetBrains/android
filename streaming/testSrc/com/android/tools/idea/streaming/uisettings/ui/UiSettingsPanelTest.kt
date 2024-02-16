@@ -19,8 +19,9 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.popup.FakeBalloon
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
@@ -35,9 +36,11 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.mockito.Mockito.doAnswer
 import java.awt.Dimension
 import java.awt.event.WindowFocusListener
+import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JPanel
@@ -48,9 +51,10 @@ import kotlin.time.Duration.Companion.seconds
 class UiSettingsPanelTest {
   private val popupRule = JBPopupRule()
   private val projectRule = ProjectRule()
+  private val nameRule = TestName()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, popupRule)
+  val ruleChain = RuleChain(projectRule, popupRule, nameRule)
 
   private lateinit var model: UiSettingsModel
   private lateinit var panel: UiSettingsPanel
@@ -64,18 +68,19 @@ class UiSettingsPanelTest {
     model.appLanguage.addElement(RUSSIAN_LANGUAGE)
     model.appLanguage.selection.setFromController(DEFAULT_LANGUAGE)
 
-    panel = UiSettingsPanel(model)
+    panel = UiSettingsPanel(model, showResetButton = nameRule.methodName == "testResetButton")
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
     model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
     model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
     model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
+    model.resetAction = { lastCommand = "reset" }
   }
 
   @Test
   fun testSetDarkModeFromUi() {
-    val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == DARK_THEME_TITLE }.single()
+    val checkBox = panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }
     assertThat(checkBox.isSelected).isFalse()
 
     checkBox.doClick()
@@ -87,7 +92,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testChangeLanguageFromUi() {
-    val comboBox = AdtUiUtils.allComponents(panel).filterIsInstance<JComboBox<*>>().single { it.name == APP_LANGUAGE_TITLE }
+    val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
     assertThat(comboBox.isVisible).isTrue()
     assertThat(comboBox.selectedIndex).isEqualTo(0)
 
@@ -103,7 +108,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetTalkBackFromUi() {
-    val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == TALKBACK_TITLE }.single()
+    val checkBox = panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }
     assertThat(checkBox.isVisible).isFalse()
     model.talkBackInstalled.setFromController(true)
     assertThat(checkBox.isVisible).isTrue()
@@ -119,7 +124,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetSelectToSpeakFromUi() {
-    val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == SELECT_TO_SPEAK_TITLE }.single()
+    val checkBox = panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }
     assertThat(checkBox.isVisible).isFalse()
     model.talkBackInstalled.setFromController(true)
     assertThat(checkBox.isVisible).isTrue()
@@ -135,7 +140,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetFontSizeFromUi() {
-    val slider = AdtUiUtils.allComponents(panel).filterIsInstance<JSlider>().filter { it.name == FONT_SIZE_TITLE }.single()
+    val slider = panel.getDescendant<JSlider> { it.name == FONT_SIZE_TITLE }
     assertThat(slider.value).isEqualTo(FontSize.NORMAL.ordinal)
 
     slider.value = FontSize.values().size - 1
@@ -147,7 +152,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetDensityFromUi() {
-    val slider = AdtUiUtils.allComponents(panel).filterIsInstance<JSlider>().filter { it.name == DENSITY_TITLE }.single()
+    val slider = panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }
     assertThat(slider.value).isEqualTo(1)
 
     val densities = GoogleDensityRange.computeDensityRange(Dimension(1344, 2992), 480)
@@ -156,6 +161,18 @@ class UiSettingsPanelTest {
 
     slider.value = 0
     waitForCondition(1.seconds) { lastCommand == "density=408" }
+  }
+
+  @Test
+  fun testNoResetButtonIfNotRequested() {
+    assertThat(panel.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNull()
+  }
+
+  @Test
+  fun testResetButton() {
+    val button = panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }
+    button.doClick()
+    waitForCondition(1.seconds) { lastCommand == "reset" }
   }
 
   @Test

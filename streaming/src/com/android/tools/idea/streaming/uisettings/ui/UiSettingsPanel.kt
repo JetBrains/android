@@ -48,6 +48,8 @@ internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SIZE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Screen Size:"
+internal const val RESET_BUTTON_TEXT = "Reset"
+private const val RESET_TITLE = "Reset to factory defaults"
 
 /**
  * Custom horizontal spacing between labels and controls.
@@ -59,7 +61,7 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
 /**
  * Displays a picker with setting shortcuts.
  */
-internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayoutPanel()  {
+internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButton: Boolean = false) : BorderLayoutPanel()  {
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
@@ -104,6 +106,14 @@ internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayou
             .bindSliderPosition(model.screenDensityIndex)
             .bindSliderMaximum(model.screenDensityMaxIndex)
             .apply { component.name = DENSITY_TITLE }
+        }
+
+        if (showResetButton) {
+          row(label(RESET_TITLE)) {
+            button(RESET_BUTTON_TEXT) {
+              model.resetAction()
+            }.apply { component.name = RESET_BUTTON_TEXT }
+          }
         }
       }
     })

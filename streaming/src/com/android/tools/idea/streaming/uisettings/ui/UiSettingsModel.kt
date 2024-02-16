@@ -38,7 +38,7 @@ internal enum class FontSize(val percent: Int) {
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
+internal class UiSettingsModel(screenSize: Dimension, private val physicalDensity: Int) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
@@ -52,6 +52,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
   val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
+  var resetAction: () -> Unit = {}
 
   private fun toFontSizeInPercent(fontIndex: Int): Int =
     FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent
