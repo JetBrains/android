@@ -2,13 +2,14 @@ load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 common_data = [
     ":sdkindexapp",
     ":sdkindexproject_deps",
     ":sdkindexsnapshot",
     "//prebuilts/studio/sdk:build-tools/latest",
-    "//tools/base/build-system:gradle-distrib-7.3.3",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 old_project_app_data = [
@@ -102,7 +103,7 @@ maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KGP_VERSION_FOR_TESTS,
