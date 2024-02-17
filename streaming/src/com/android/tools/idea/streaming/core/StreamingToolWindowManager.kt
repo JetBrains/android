@@ -53,8 +53,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils.currentStack
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.collaboration.async.disposingScope
@@ -272,7 +270,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
   init {
-    FlightRecorder.initialize(1000)
     Disposer.register(toolWindow.disposable, this)
     deviceClientRegistry.addListener(this)
     PhysicalDeviceWatcher(this)
@@ -557,8 +554,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       contentManager.addContent(content, index)
     }
 
-    FlightRecorder.log { "$simpleId: added panel ${content.simpleId} ${content.displayName}\n$currentStack" }
-
     if (!content.isSelected) {
       // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
       val deviceId = panel.id
@@ -580,9 +575,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun reportDuplicatePanel(content: Content) {
-    thisLogger().error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}\n" +
-                       currentStack +
-                       "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
+    thisLogger().error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}")
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
@@ -1264,7 +1257,6 @@ private fun Content.select() {
 }
 
 private fun Content.removeAndDispose() {
-  FlightRecorder.log { "$simpleId.removeAndDispose()\n$currentStack" }
   manager?.removeContent(this, true)
 }
 
