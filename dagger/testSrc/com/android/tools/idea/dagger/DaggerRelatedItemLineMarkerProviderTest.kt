@@ -46,8 +46,8 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.registerServiceInstance
-import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
-import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
+import icons.StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
+import icons.StudioIcons.GutterIcons.DEPENDENCY_PROVIDER
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JLabel

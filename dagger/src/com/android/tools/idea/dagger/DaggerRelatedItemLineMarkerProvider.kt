@@ -56,7 +56,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // A custom ID is required for isEnabledByDefault to be called
     "com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"
 
-  override fun getIcon(): Icon = StudioIcons.Misc.DEPENDENCY_CONSUMER
+  override fun getIcon(): Icon = StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
 
   override fun isEnabledByDefault(): Boolean = true
 
@@ -171,8 +171,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private fun DaggerElement.getIcon(): Icon =
       when (this) {
         is AssistedFactoryMethodDaggerElement,
-        is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        else -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        is ConsumerDaggerElementBase -> StudioIcons.GutterIcons.DEPENDENCY_PROVIDER
+        else -> StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
       }
   }
 

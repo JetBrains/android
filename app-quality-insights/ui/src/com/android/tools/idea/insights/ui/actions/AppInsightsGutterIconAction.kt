@@ -92,7 +92,7 @@ class AppInsightsGutterIconAction(
               ResizedSimpleColoredComponent().apply {
                 icon =
                   generateColoredIcon(
-                    StudioIcons.AppQualityInsights.ISSUE,
+                    StudioIcons.GutterIcons.ISSUE,
                     UIUtil.getLabelDisabledForeground(),
                   )
                 append(
@@ -235,7 +235,7 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
         renderer.add(leftComponent, BorderLayout.WEST)
 
         val eventsComponent =
-          JListSimpleColoredComponent(StudioIcons.AppQualityInsights.ISSUE, list, hasFocus).apply {
+          JListSimpleColoredComponent(StudioIcons.GutterIcons.ISSUE, list, hasFocus).apply {
             append(
               issueDetails.eventsCount.formatNumberToPrettyString(),
               SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,

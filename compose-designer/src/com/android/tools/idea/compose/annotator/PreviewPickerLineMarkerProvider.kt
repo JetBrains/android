@@ -27,7 +27,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.NavigateAction
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.module.Module
@@ -38,6 +37,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
+import icons.StudioIcons
 import javax.swing.Icon
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
@@ -56,7 +56,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
   override fun getName(): String = message("picker.preview.annotator.name")
 
-  override fun getIcon(): Icon = AllIcons.Actions.InlayGear
+  override fun getIcon(): Icon = StudioIcons.GutterIcons.PREVIEW_SETTINGS
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (element !is LeafPsiElement) return null
@@ -112,7 +112,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     return LineMarkerInfo<PsiElement>(
       element,
       textRange,
-      AllIcons.Actions.InlayGear,
+      icon,
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
         val model =

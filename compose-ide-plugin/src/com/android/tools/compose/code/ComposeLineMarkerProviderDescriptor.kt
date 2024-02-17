@@ -52,7 +52,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
   override fun getId() = "ComposeLineMarkerProviderDescriptor"
 
-  override fun getIcon() = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
+  override fun getIcon() = StudioIcons.GutterIcons.COMPOSABLE_FUNCTION
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (
@@ -68,7 +68,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
     return LineMarkerInfo<PsiElement>(
       element,
       element.range,
-      StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
+      StudioIcons.GutterIcons.COMPOSABLE_FUNCTION,
       { ComposeBundle.message("composable.line.marker.tooltip") },
       /* navHandler = */ null,
       GutterIconRenderer.Alignment.RIGHT,

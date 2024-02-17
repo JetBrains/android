@@ -223,7 +223,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   class LineMarkerProvider : LineMarkerProviderDescriptor() {
     override fun getName() = "App quality insights"
 
-    override fun getIcon(): Icon = StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS
+    override fun getIcon(): Icon = StudioIcons.GutterIcons.APP_QUALITY_INSIGHTS
 
     override fun getLineMarkerInfo(element: PsiElement) = null
   }
