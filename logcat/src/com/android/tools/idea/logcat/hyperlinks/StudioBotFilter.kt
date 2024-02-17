@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.util.extractStudioBotContent
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.Filter.ResultItem
@@ -62,9 +63,8 @@ internal class StudioBotFilter(private val editor: EditorEx) : Filter {
         // If context sharing is enabled, send the query immediately. Otherwise, stage
         // it in the query bar.
         if (studioBot.isContextAllowed()) {
-          val validatedRequest =
-            studioBot.aiExcludeService().validateQuery(project, query, emptyList()).getOrThrow()
-          studioBot.chat(project).sendChatQuery(validatedRequest, StudioBot.RequestSource.LOGCAT)
+          val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
+          studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
         } else {
           studioBot.chat(project).stageChatQuery(query, StudioBot.RequestSource.LOGCAT)
         }

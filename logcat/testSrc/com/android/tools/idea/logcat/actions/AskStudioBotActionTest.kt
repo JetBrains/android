@@ -18,9 +18,9 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
-import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -52,10 +52,6 @@ class AskStudioBotActionTest {
     override fun isAvailable() = available
 
     override fun isContextAllowed() = contextAllowed
-
-    private val _aiExcludeService = spy(object : AiExcludeService.StubAiExcludeService() {})
-
-    override fun aiExcludeService(): AiExcludeService = _aiExcludeService
 
     private val _chatService = spy(object : ChatService.StubChatService() {})
 
@@ -161,8 +157,13 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().aiExcludeService())
-      .validateQuery(project, "Explain this log entry: Message 1 with tag MyTag", emptyList())
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Explain this log entry: Message 1 with tag MyTag", emptyList()) }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
   }
 
   @Test
@@ -176,16 +177,22 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().aiExcludeService())
-      .validateQuery(
-        project,
-        """
+    val prompt =
+      buildPrompt(project) {
+        userMessage {
+          text(
+            """
         Explain this crash: Exception
         at com.example(File.kt:1) with tag MyTag
       """
-          .trimIndent(),
-        emptyList(),
-      )
+              .trimIndent(),
+            emptyList(),
+          )
+        }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
   }
 
   @Test
@@ -202,8 +209,13 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().aiExcludeService())
-      .validateQuery(project, "Explain this selection: This is the selection", emptyList())
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Explain this selection: This is the selection", emptyList()) }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
   }
 
   @Test

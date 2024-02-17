@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.studiobot.prompts.SafePrompt
+
 /**
  * Service which lets clients communicate with the StudioBot backend via the chat UI.
  *
@@ -42,14 +44,15 @@ interface ChatService {
    * The query will be sent "as-is", without a preamble, chat history, or retrieved facts
    * being added.
    *
-   * @param query The validated request containing the text to be sent to the model.
-   * @param displayText How the query should appear in the chat timeline.
+   * @param prompt The validated request containing the text to be sent to the model.
    * @param requestSource The source of the query in Android Studio
+   * @param displayText How the query should appear in the chat timeline.
+   *  This will default to the last user query if not specified.
    */
   fun sendChatQuery(
-    query: AiExcludeService.ValidatedQuery,
+    prompt: SafePrompt,
     requestSource: StudioBot.RequestSource,
-    displayText: String = query.query
+    displayText: String? = null
   ) { }
 
   /**
@@ -59,17 +62,17 @@ interface ChatService {
    * by the user before they send it.
    */
   fun stageChatQuery(
-    query: String,
+    prompt: String,
     requestSource: StudioBot.RequestSource,
   ) { }
 
   open class StubChatService: ChatService {
-    override fun sendChatQuery(query: AiExcludeService.ValidatedQuery,
+    override fun sendChatQuery(prompt: SafePrompt,
                                requestSource: StudioBot.RequestSource,
-                               displayText: String) {
+                               displayText: String?) {
     }
 
-    override fun stageChatQuery(query: String, requestSource: StudioBot.RequestSource) {
+    override fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {
     }
   }
 }

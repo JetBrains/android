@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.studiobot.prompts.SafePrompt
 import com.intellij.lang.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -37,7 +38,7 @@ interface LlmService {
    *  - A citations chunk containing citations attached with the response, which will start with "CITATIONS: " followed
    *    by a comma-separated list of URLs.
    */
-  suspend fun sendQuery(request: AiExcludeService.ValidatedQuery, source: StudioBot.RequestSource): Flow<String>
+  suspend fun sendQuery(prompt: SafePrompt, source: StudioBot.RequestSource): Flow<String>
 
   /**
    * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
@@ -51,10 +52,10 @@ interface LlmService {
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
    */
   @Experimental
-  suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, nSamples: Int = 4, language: Language = KotlinLanguage.INSTANCE): List<String>
+  suspend fun generateCode(prompt: SafePrompt, nSamples: Int = 4, language: Language = KotlinLanguage.INSTANCE): List<String>
 
   open class StubLlmService : LlmService {
-    override suspend fun sendQuery(request: AiExcludeService.ValidatedQuery, source: StudioBot.RequestSource): Flow<String> = emptyFlow()
-    override suspend fun generateCode(prompt: AiExcludeService.ValidatedQuery, nSamples: Int, language: Language) = listOf<String>()
+    override suspend fun sendQuery(prompt: SafePrompt, source: StudioBot.RequestSource): Flow<String> = emptyFlow()
+    override suspend fun generateCode(prompt: SafePrompt, nSamples: Int, language: Language) = listOf<String>()
   }
 }

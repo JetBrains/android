@@ -26,12 +26,11 @@ import org.jetbrains.annotations.TestOnly
  * all [StudioBot.isContextAllowed], or specify that the content of some files must never be sent to
  * the backend.
  *
- * Users can place files called .aiexclude throughout their project to block ai features from
- * accessing or being active in those files. In order to send queries directly to a model, clients
- * must consult aiexclude. When building queries, clients must check each file they read using
- * [isFileExcluded]. Then to send the query, construct a ValidatedQueryRequest by passing your
- * intended query and the files used to construct it. This can then be sent to
- * [ChatService.sendChatQuery] or [LlmService.sendQuery].
+ * Users can place files called .aiexclude throughout their project to block ai features from accessing or being
+ * active in those files. In order to send queries directly to a model, clients must consult aiexclude.
+ * When building queries, clients must check each file they read using [isFileExcluded]. Then to send
+ * the query, construct a SafePrompt by passing your intended query and the files used to construct it.
+ * This can then be sent to [ChatService.sendChatQuery] or [LlmService.sendQuery].
  *
  * See
  * [aiexclude Documentation](https://developer.android.com/studio/preview/studio-bot/data-and-privacy#aiexclude).
@@ -52,45 +51,14 @@ abstract class AiExcludeService {
   @RequiresReadLock
   abstract fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile>
 
-  /**
-   * Clients requesting to send queries to Studio Bot that may contain or be constructed using
-   * context like source files and build artifacts from the user's project must create a
-   * [ValidatedQuery] by providing the intended query string and the list of files accessed while
-   * building it. If all of these files are allowed by aiexclude, a [ValidatedQuery] is returned,
-   * otherwise a [RuntimeException] is thrown.
-   *
-   * @param filesUsedAsContext The project files used to write the query, which will be checked
-   *   against aiexclude.
-   */
-  abstract fun validateQuery(
-    project: Project,
-    query: String,
-    filesUsedAsContext: Collection<VirtualFile>,
-  ): Result<ValidatedQuery>
-
-  /**
-   * A query which may depend on some files or other context, and is certified to have complied with
-   * aiexclude.
-   */
-  sealed interface ValidatedQuery {
-    val query: String
-  }
-
-  protected class ValidatedQueryImpl(override val query: String) : ValidatedQuery
-
   @TestOnly
   open class StubAiExcludeService : AiExcludeService() {
     override fun isFileExcluded(project: Project, file: VirtualFile): Boolean = false
 
     override fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile> =
       emptyList()
-
-    class StubValidatedQuery(override val query: String) : ValidatedQuery
-
-    override fun validateQuery(
-      project: Project,
-      query: String,
-      filesUsedAsContext: Collection<VirtualFile>,
-    ): Result<StubValidatedQuery> = Result.success(StubValidatedQuery(query))
   }
 }
+
+class AiExcludeException(problemFiles: Collection<VirtualFile>) :
+  RuntimeException("One or more files are blocked by aiexclude: $problemFiles")

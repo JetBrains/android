@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.ml.xmltocompose
 
-import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.LlmService
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.SafePrompt
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +38,7 @@ class NShotXmlToComposeConverterTest {
       override fun model() =
         object : LlmService.StubLlmService() {
           override suspend fun sendQuery(
-            request: AiExcludeService.ValidatedQuery,
+            prompt: SafePrompt,
             source: StudioBot.RequestSource,
           ): Flow<String> {
             return flowOf("CITATIONS: Some citations here", "```kotlin\n${simpleKotlinCode()}\n```")
@@ -54,27 +55,42 @@ class NShotXmlToComposeConverterTest {
   @Test
   fun testNShotConversion() {
     val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).build()
-    val expectedQuery =
-      """
-      What's the Jetpack Compose equivalent of the following Android XML layout? Include imports in your answer. Add a @Preview function. Don't use ConstraintLayout. Use material3, not material.
 
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-       </LinearLayout>
-      """
-        .trimIndent()
-    assertEquals(expectedQuery, nShotXmlToComposeConverter.getQuery(simpleXmlLayout()))
+    val expectedPrompt =
+      buildPrompt(projectRule.project) {
+        userMessage {
+          text(
+            "What's the Jetpack Compose equivalent of the following Android XML layout? Include imports in your answer. Add a @Preview function. Don't use ConstraintLayout. Use material3, not material.",
+            emptyList(),
+          )
+          code(
+            """
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+             </LinearLayout>
+          """
+              .trimIndent(),
+            XMLLanguage.INSTANCE,
+            emptyList(),
+          )
+        }
+      }
+    assertEquals(expectedPrompt, nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()))
   }
 
   @Test
   fun testViewModel() {
     val nShotXmlToComposeConverter =
       NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(true).build()
-    val query = nShotXmlToComposeConverter.getQuery(simpleXmlLayout())
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
     assertTrue(
-      query.contains("Create a subclass of androidx.lifecycle.ViewModel to store the states.")
+      query.messages
+        .flatMap { it.chunks }
+        .any {
+          it.text.contains("Create a subclass of androidx.lifecycle.ViewModel to store the states.")
+        }
     )
   }
 
@@ -85,15 +101,26 @@ class NShotXmlToComposeConverterTest {
         .useViewModel(true)
         .withDataType(ComposeConverterDataType.LIVE_DATA)
         .build()
-    val query = nShotXmlToComposeConverter.getQuery(simpleXmlLayout())
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
+    val chunks = query.messages.flatMap { it.chunks }
     assertTrue(
-      query.contains(
-        "The ViewModel must store data using objects of type androidx.lifecycle.LiveData. " +
-          "The Composable methods will use states derived from the data stored in the ViewModel."
-      )
+      chunks.any {
+        it.text.contains(
+          "The ViewModel must store data using objects of type androidx.lifecycle.LiveData. " +
+            "The Composable methods will use states derived from the data stored in the ViewModel."
+        )
+      }
     )
-    assertTrue(query.contains("Do not use androidx.compose.runtime.MutableState in the ViewModel."))
-    assertTrue(query.contains("Do not use kotlinx.coroutines.flow.StateFlow in the ViewModel."))
+    assertTrue(
+      chunks.any {
+        it.text.contains("Do not use androidx.compose.runtime.MutableState in the ViewModel.")
+      }
+    )
+    assertTrue(
+      chunks.any {
+        it.text.contains("Do not use kotlinx.coroutines.flow.StateFlow in the ViewModel.")
+      }
+    )
   }
 
   @Test
@@ -103,9 +130,13 @@ class NShotXmlToComposeConverterTest {
         .useViewModel(false)
         .withDataType(ComposeConverterDataType.LIVE_DATA)
         .build()
-    val query = nShotXmlToComposeConverter.getQuery(simpleXmlLayout())
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
     // If not querying about a ViewModel, it's pointless to include data types in the query.
-    assertFalse(query.contains("The ViewModel must store data using objects of type"))
+    assertTrue(
+      query.messages
+        .flatMap { it.chunks }
+        .none { it.text.contains("The ViewModel must store data using objects of type") }
+    )
   }
 
   @Test
@@ -115,9 +146,13 @@ class NShotXmlToComposeConverterTest {
         .useViewModel(true)
         .withDataType(ComposeConverterDataType.UNKNOWN)
         .build()
-    val query = nShotXmlToComposeConverter.getQuery(simpleXmlLayout())
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
     // If data type is specified as unknown, we shouldn't specify it in the query.
-    assertFalse(query.contains("The ViewModel must store data using objects of type"))
+    assertTrue(
+      query.messages
+        .flatMap { it.chunks }
+        .none { it.text.contains("The ViewModel must store data using objects of type") }
+    )
   }
 
   @Test

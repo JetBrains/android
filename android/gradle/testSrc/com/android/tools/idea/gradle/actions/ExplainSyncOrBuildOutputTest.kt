@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetailsContext
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorFileLocationContext
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getGradleFilesContext
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
@@ -32,7 +31,6 @@ import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.FilePosition
 import com.intellij.build.events.EventResult
-import com.intellij.build.events.Failure
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.MessageEventResult
@@ -46,7 +44,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -61,35 +58,30 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
-import java.io.File
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import java.util.function.Supplier
 import kotlin.test.assertTrue
 
 @RunsInEdt
 class ExplainSyncOrBuildOutputTest {
 
-  private val testStudioBot =
-      object : StudioBot.StubStudioBot() {
-        var wasCalled: String? = null
+  private class MockStudioBot : StudioBot.StubStudioBot() {
+    var available = true
+    var contextAllowed = true
 
-        override fun isAvailable(): Boolean = true
+    override fun isAvailable() = available
 
-        override fun isContextAllowed(): Boolean = true
+    override fun isContextAllowed() = contextAllowed
 
-        override fun chat(project: Project): ChatService = object : ChatService {
-          override fun sendChatQuery(query: AiExcludeService.ValidatedQuery,
-                                     requestSource: StudioBot.RequestSource,
-                                     displayText: String) {
-            ApplicationManager.getApplication().assertIsDispatchThread()
-            wasCalled = query.query
-          }
-        }
-      }
+    private val _chatService = spy(object : ChatService.StubChatService() {})
+
+    override fun chat(project: Project): ChatService = _chatService
+  }
 
   private val projectRule = ProjectRule()
   private val project get() = projectRule.project
@@ -98,7 +90,7 @@ class ExplainSyncOrBuildOutputTest {
   val tempDirRule = TemporaryDirectoryRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, testStudioBot), EdtRule())
+  val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, MockStudioBot()), EdtRule())
 
   @Before
   fun setUp() {
@@ -115,8 +107,13 @@ class ExplainSyncOrBuildOutputTest {
     val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
-    assertEquals(
-      """
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(
+        buildPrompt(project) {
+          userMessage {
+            text(
+              """
         I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
 
         Here are more details about the error and my project:
@@ -126,12 +123,17 @@ class ExplainSyncOrBuildOutputTest {
         END CONTEXT
 
         Explain this error and how to fix it.
-      """.trimIndent(), testStudioBot.wasCalled)
+      """.trimIndent(), emptyList())
+          }
+        },
+        StudioBot.RequestSource.BUILD,
+        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)"
+      )
   }
 
   @Test
   fun testActionPerformedWithContextFlagDisabled() {
-    StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.override(false)
+    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
     val panel = createTree()
     panel.setSelectionRow(5)
 
@@ -139,11 +141,11 @@ class ExplainSyncOrBuildOutputTest {
     val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
-    assertEquals(
-      """
-        I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
-        Explain this error and how to fix it.
-      """.trimIndent(), testStudioBot.wasCalled)
+    verify(StudioBot.getInstance().chat(project))
+      .stageChatQuery(
+        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
+        StudioBot.RequestSource.BUILD,
+      )
   }
 
   @Test
@@ -164,7 +166,7 @@ class ExplainSyncOrBuildOutputTest {
     panel.setSelectionRow(4)
     action.update(event)
     assertFalse(event.presentation.isEnabled)
-    assertNull(testStudioBot.wasCalled)
+    verifyNoInteractions(StudioBot.getInstance().chat(project))
   }
 
   inner class TestDataContext(val panel: Tree) : DataContext {
@@ -228,7 +230,7 @@ class ExplainSyncOrBuildOutputTest {
       to this project's gradle.properties.
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
       Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
-      
+
       """.trimIndent(), getErrorShortDescription(event))
   }
 
@@ -238,8 +240,8 @@ class ExplainSyncOrBuildOutputTest {
       override fun getResult(): EventResult = FailureResult {
         listOf(
           FailureImpl(
-          "Gradle Sync issues.",
-          """
+            "Gradle Sync issues.",
+            """
             Could not find com.android.tools.build:gradle:123.456.789.
             Searched in the following locations:
               - file:/Users/username/dev/studio-main/out/repo/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
@@ -276,7 +278,7 @@ class ExplainSyncOrBuildOutputTest {
     val node = object : ExecutionNode(null, null, false, Supplier { true }) {
       override fun getResult(): EventResult = object : MessageEventResult {
         override fun getKind() = MessageEvent.Kind.ERROR
-        override fun getDetails()= "e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration"
+        override fun getDetails() = "e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration"
       }
     }
     assertEquals(

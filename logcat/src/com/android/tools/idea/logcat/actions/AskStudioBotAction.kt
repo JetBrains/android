@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.util.extractStudioBotContent
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -72,9 +73,8 @@ internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
     // Logcat output is considered sensitive text, so we have to check the context sharing setting
     if (studioBot.isContextAllowed()) {
-      val validatedQuery =
-        studioBot.aiExcludeService().validateQuery(project, queryText, emptyList()).getOrThrow()
-      studioBot.chat(project).sendChatQuery(validatedQuery, StudioBot.RequestSource.LOGCAT)
+      val prompt = buildPrompt(project) { userMessage { text(queryText, filesUsed = emptyList()) } }
+      studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
     } else {
       studioBot.chat(project).stageChatQuery(queryText, StudioBot.RequestSource.LOGCAT)
     }

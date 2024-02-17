@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventR
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.StudioBotBundle
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.events.EventResult
@@ -174,10 +175,12 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
 
       // This is how the query will appear in the chat timeline
       val displayText = "Explain build error: $errorName"
-      val validatedQuery = aiExcludeService
-        .validateQuery(project, query, filesUsedAsContext)
-        .getOrThrow()
-      studioBot.chat(project).sendChatQuery(validatedQuery, source, displayText = displayText)
+      val prompt = buildPrompt(project) {
+        userMessage {
+          text(query, filesUsed = filesUsedAsContext)
+        }
+      }
+      studioBot.chat(project).sendChatQuery(prompt, source, displayText = displayText)
     }
   }
 

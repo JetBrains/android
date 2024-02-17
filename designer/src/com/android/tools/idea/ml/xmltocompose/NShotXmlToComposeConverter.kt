@@ -16,6 +16,8 @@
 package com.android.tools.idea.ml.xmltocompose
 
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.toList
@@ -53,19 +55,14 @@ private constructor(private val project: Project, private val nShots: List<Strin
   private val logger = Logger.getInstance(NShotXmlToComposeConverter::class.java)
 
   override suspend fun convertToCompose(xml: String): String {
-    val query = getQuery(xml)
+    val prompt = getPrompt(xml)
     val studioBot = StudioBot.getInstance()
     try {
-      val validatedQueryRequest =
-        studioBot.aiExcludeService().validateQuery(project, query, listOf()).getOrThrow()
       // Note: you must complete the Studio Bot onboarding and enable context sharing,
       // otherwise the following call will fail.
       // TODO(b/322759144): Guard against context sharing.
       val response =
-        studioBot
-          .model()
-          .sendQuery(validatedQueryRequest, StudioBot.RequestSource.DESIGN_TOOLS)
-          .toList()
+        studioBot.model().sendQuery(prompt, StudioBot.RequestSource.DESIGN_TOOLS).toList()
       return response.parseCode()
     } catch (t: Throwable) {
       logger.error("Error while trying to send query", t)
@@ -74,7 +71,13 @@ private constructor(private val project: Project, private val nShots: List<Strin
   }
 
   @VisibleForTesting
-  fun getQuery(xml: String) = "$PROMPT_PREFIX ${nShots.joinToString(" ")}\n\n$xml"
+  fun getPrompt(xml: String) =
+    buildPrompt(project) {
+      userMessage {
+        text("$PROMPT_PREFIX ${nShots.joinToString(" ")}", filesUsed = emptyList())
+        code(xml, XMLLanguage.INSTANCE, filesUsed = emptyList())
+      }
+    }
 
   class Builder(val project: Project) {
 
