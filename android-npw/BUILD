@@ -61,6 +61,12 @@ iml_module(
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
+        "AddBaselineProfilesModuleTest": {
+            "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleTest",
+        },
+        "AddBaselineProfilesModuleKtTest": {
+            "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleKtTest",
+        },
         "other": {
             "shard_count": 4,
         },
