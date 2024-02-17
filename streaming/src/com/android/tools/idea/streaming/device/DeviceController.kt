@@ -40,6 +40,7 @@ import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
 import java.util.EnumSet
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -84,10 +85,13 @@ internal class DeviceController(
    * Sends a control message to the device. The control message is not expected to trigger a response.
    */
   fun sendControlMessage(message: ControlMessage) {
-    if (!executor.isShutdown) {
+    try {
       executor.submit {
         send(message)
       }
+    }
+    catch (ignore: RejectedExecutionException) {
+      // Executor has been shut down by the dispose method.
     }
   }
 
@@ -116,8 +120,16 @@ internal class DeviceController(
       return withTimeout(unit.toMillis(timeout)) {
         suspendCancellableCoroutine { continuation ->
           responseCallbacks.put(request.requestId, continuation)
-          executor.submit {
-            send(request)
+          try {
+            executor.submit {
+              send(request)
+            }
+          }
+          catch (e: RejectedExecutionException) {
+            continuation.cancel() // Executor has been shut down by the dispose method.
+          }
+          catch (e: Throwable) {
+            continuation.resumeWithException(e)
           }
         }
       }
