@@ -290,6 +290,17 @@ public final class StudioIcons {
     }
   }
 
+  public static final class GutterIcons {
+    /** 14x14 */ public static final @NotNull Icon APP_QUALITY_INSIGHTS = load("studio/icons/gutter-icons/app-quality-insights.svg", -76013951, 2);
+    /** 14x14 */ public static final @NotNull Icon COMPOSABLE_FUNCTION = load("studio/icons/gutter-icons/composable-function.svg", -642809118, 2);
+    /** 14x14 */ public static final @NotNull Icon DEPENDENCY_CONSUMER = load("studio/icons/gutter-icons/dependency-consumer.svg", 501048674, 2);
+    /** 14x14 */ public static final @NotNull Icon DEPENDENCY_PROVIDER = load("studio/icons/gutter-icons/dependency-provider.svg", 1883761199, 2);
+    /** 14x14 */ public static final @NotNull Icon ISSUE = load("studio/icons/gutter-icons/issue.svg", 767546378, 2);
+    /** 14x14 */ public static final @NotNull Icon PREVIEW_SETTINGS = load("studio/icons/gutter-icons/preview-settings.svg", -1691982491, 2);
+    /** 14x14 */ public static final @NotNull Icon RESOURCE_PICKER = load("studio/icons/gutter-icons/resource-picker.svg", -194804171, 2);
+    /** 14x14 */ public static final @NotNull Icon RUN_ON_DEVICE = load("studio/icons/gutter-icons/run-on-device.svg", -1526846306, 2);
+  }
+
   public static final class LayoutEditor {
     public static final class Extras {
       /** 24x24 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("studio/icons/layout-editor/extras/download-overlay-legacy-large.svg", 982198546, 2);

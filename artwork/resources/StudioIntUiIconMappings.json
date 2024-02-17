@@ -212,6 +212,16 @@
           "tilt.svg": "studio/icons/emulator/wear/tilt.svg"
         }
       },
+      "gutter-icons": {
+        "app-quality-insights.svg": "studio/icons/gutter-icons/app-quality-insights.svg",
+        "composable-function.svg": "studio/icons/gutter-icons/composable-function.svg",
+        "dependency-consumer.svg": "studio/icons/gutter-icons/dependency-consumer.svg",
+        "dependency-provider.svg": "studio/icons/gutter-icons/dependency-provider.svg",
+        "issue.svg": "studio/icons/gutter-icons/issue.svg",
+        "preview-settings.svg": "studio/icons/gutter-icons/preview-settings.svg",
+        "resource-picker.svg": "studio/icons/gutter-icons/resource-picker.svg",
+        "run-on-device.svg": "studio/icons/gutter-icons/run-on-device.svg"
+      },
       "layout-editor": {
         "extras": {
           "download-overlay-legacy-large.svg": "studio/icons/layout-editor/extras/download-overlay-legacy-large.svg",
