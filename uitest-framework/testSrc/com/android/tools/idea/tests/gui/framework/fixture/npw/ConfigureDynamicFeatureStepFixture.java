@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardS
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
+import java.util.regex.Pattern;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JRootPane;
@@ -86,7 +87,7 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureDynamicDelivery() {
     wizard().clickNext();
-    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Configure On-Demand Options"));
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Install-time inclusion"));
     return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
   }
 
