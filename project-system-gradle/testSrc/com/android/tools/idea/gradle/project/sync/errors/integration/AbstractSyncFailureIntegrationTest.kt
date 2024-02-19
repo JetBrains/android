@@ -62,7 +62,7 @@ abstract class AbstractSyncFailureIntegrationTest {
   protected fun runSyncAndCheckGeneralFailure(
     preparedProject: PreparedTestProject,
     verifySyncViewEvents: (List<BuildEvent>) -> Unit,
-    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure
+    verifyFailureReported: (AndroidStudioEvent) -> Unit
   ) {
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
     val allBuildEventsProcessedLatch = CountDownLatch(1)
@@ -93,7 +93,8 @@ abstract class AbstractSyncFailureIntegrationTest {
 
     val reportedFailureDetails = usageTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-    expect.that(reportedFailureDetails.map { it.studioEvent.gradleSyncFailure }).containsExactly(expectedFailureReported)
+    expect.that(reportedFailureDetails).hasSize(1)
+    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let { verifyFailureReported(it) }
   }
 
   fun List<BuildEvent>.finishEventFailures() = (filterIsInstance<FinishBuildEvent>().single().result as FailureResult).failures

@@ -59,7 +59,10 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
           }
         }
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+        expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
+      }
     )
   }
 }

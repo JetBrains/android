@@ -64,6 +64,7 @@ class SyncFailureUsageReporterTest {
     val exception = BuildIssueException(BuildIssueComposer("Test error").composeBuildIssue())
     SyncFailureUsageReporter.getInstance().reportFailure(
       GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project,
       projectRule.project.basePath!!,
       exception
     )
@@ -79,6 +80,7 @@ class SyncFailureUsageReporterTest {
     val exception = BuildIssueException(BuildIssueComposer("Test error").composeBuildIssue())
     SyncFailureUsageReporter.getInstance().reportFailure(
       GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project,
       projectRule.project.basePath!!,
       exception
     )
@@ -96,6 +98,7 @@ class SyncFailureUsageReporterTest {
     )
     SyncFailureUsageReporter.getInstance().reportFailure(
       GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project,
       projectRule.project.basePath!!,
       exception
     )
@@ -113,6 +116,7 @@ class SyncFailureUsageReporterTest {
     )
     SyncFailureUsageReporter.getInstance().reportFailure(
       GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project,
       projectRule.project.basePath!!,
       exception
     )
@@ -128,6 +132,7 @@ class SyncFailureUsageReporterTest {
     val exception = ExternalSystemException("Test Failure")
     SyncFailureUsageReporter.getInstance().reportFailure(
       GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project,
       projectRule.project.basePath!!,
       exception
     )

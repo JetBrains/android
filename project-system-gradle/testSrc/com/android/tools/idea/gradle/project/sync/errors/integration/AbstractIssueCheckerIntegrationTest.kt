@@ -46,7 +46,10 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
           }
         }
       },
-      expectedFailureReported = expectedFailureReported
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(expectedFailureReported)
+        expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
+      }
     )
   }
 }

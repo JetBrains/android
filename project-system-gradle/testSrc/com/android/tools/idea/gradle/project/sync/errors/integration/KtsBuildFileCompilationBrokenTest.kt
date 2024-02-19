@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
@@ -44,7 +45,12 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
       expect.that(buildEvents.finishEventFailures()).isEmpty()
 
     },
-    AndroidStudioEvent.GradleSyncFailure.KTS_COMPILATION_ERROR
+    verifyFailureReported = {
+      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.KTS_COMPILATION_ERROR)
+      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+    }
+
   )
 
   @Test

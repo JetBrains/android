@@ -280,7 +280,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-    SyncFailureUsageReporter.getInstance().reportFailure(this, rootProjectPath, error)
+    SyncFailureUsageReporter.getInstance().reportFailure(this, project, rootProjectPath, error)
     syncFinished(LastSyncState.FAILED, rootProjectPath)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
