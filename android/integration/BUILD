@@ -20,6 +20,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
@@ -261,6 +262,7 @@ iml_studio_test(
 create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
     "//prebuilts/studio/sdk:platforms/latest",
     "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
