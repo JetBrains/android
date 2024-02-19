@@ -2,6 +2,7 @@ load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -234,9 +235,9 @@ iml_module(
 
 compose_preview_data = [
     ":compose_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//tools/adt/idea/compose-designer/testData:composepreview",
-    "//tools/base/build-system:gradle-distrib-7.5",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 maven_repository(
@@ -253,9 +254,8 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
-        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
