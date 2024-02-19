@@ -16,7 +16,7 @@
 package com.android.tools.idea.annotations
 
 import com.intellij.openapi.application.runReadAction
-import com.intellij.psi.PsiClass
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.utils.ifEmpty
 import org.jetbrains.uast.UAnnotation
@@ -106,6 +106,7 @@ class AnnotationsGraph<S, T>(
   private val nodeInfoFactory: NodeInfoFactory<S>,
   private val resultFactory: ResultFactory<S, T>,
 ) {
+  private val logger = Logger.getInstance(this.javaClass)
   /**
    * DFS to traverse the annotations graph using the given [sourceElements] as starting points.
    *
@@ -121,7 +122,7 @@ class AnnotationsGraph<S, T>(
     annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
     isLeafAnnotation: (UAnnotation) -> Boolean = { false },
   ): Sequence<T> {
-    val visitedAnnotationClasses: MutableMap<String, NodeInfo<S>> = mutableMapOf()
+    val visitedAnnotationClasses: MutableMap<String?, NodeInfo<S>> = mutableMapOf()
 
     return sequence {
         yield(
@@ -134,7 +135,7 @@ class AnnotationsGraph<S, T>(
   }
 
   private fun UElement.traverse(
-    visitedAnnotationClasses: MutableMap<String, NodeInfo<S>>,
+    visitedAnnotationClasses: MutableMap<String?, NodeInfo<S>>,
     annotationFilter: (UElement, UAnnotation) -> Boolean,
     isLeafAnnotation: (UAnnotation) -> Boolean,
     parent: NodeInfo<S>?,
@@ -146,7 +147,13 @@ class AnnotationsGraph<S, T>(
     // multiple times, and in such cases the value for the given annotation class will be
     // overwritten every time.
     if (this is UAnnotation) {
-      visitedAnnotationClasses[this.fqcn] = curNode
+      runReadAction { this.qualifiedName }
+        .let {
+          visitedAnnotationClasses[it] = curNode
+          // Log any unexpected null name. This could make the traversal to filter out some
+          // annotations later if another null name happens
+          if (it == null) logger.warn("Failed to resolve annotation qualified name")
+        }
     }
 
     val result: Sequence<T>
@@ -160,9 +167,12 @@ class AnnotationsGraph<S, T>(
               annotations
                 .asSequence()
                 .filter { annotationFilter(this@traverse, it) }
-                .flatMap {
-                  if ((isLeafAnnotation(it) || !visitedAnnotationClasses.containsKey(it.fqcn))) {
-                    it.traverse(
+                .map { it to runReadAction { it.qualifiedName } }
+                .flatMap { (annotation, name) ->
+                  if (
+                    (isLeafAnnotation(annotation) || !visitedAnnotationClasses.containsKey(name))
+                  ) {
+                    annotation.traverse(
                       visitedAnnotationClasses,
                       annotationFilter,
                       isLeafAnnotation,
@@ -170,7 +180,7 @@ class AnnotationsGraph<S, T>(
                     )
                   } else {
                     emptySequence<T>().also { _ ->
-                      curNode.onSkippedChildTraversal(visitedAnnotationClasses[it.fqcn]!!)
+                      curNode.onSkippedChildTraversal(visitedAnnotationClasses[name]!!)
                     }
                   }
                 }
@@ -183,9 +193,6 @@ class AnnotationsGraph<S, T>(
 
     return result
   }
-
-  private val UAnnotation.fqcn: String
-    get() = runReadAction { (this.tryResolve() as PsiClass).qualifiedName!! }
 }
 
 /**
