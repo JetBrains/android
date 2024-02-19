@@ -19,11 +19,13 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.lint.common.AnnotateQuickFix
 import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.lint.common.toIdeFix
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.lint.checks.DuplicateResourceDetector
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.ExtensionSdk
@@ -428,6 +430,35 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     }
 
     checkPreviewFix(file, "val f^oo =", createFix, "")
+  }
+
+  fun testIntentionPreviewSuppressQuickFix() {
+    // Test that the intention preview for SuppressQuickFix works exactly as the quickfix
+    myFixture.configureByText(
+      "strings.xml", /* language=XML */
+      """
+      <resources>
+          <string name="test">Test</string>
+          <string nam<caret>e="test">Duplicate</string>
+      </resources>
+      """
+        .trimIndent(),
+    )
+
+    val intention =
+      SuppressLintIntentionAction(DuplicateResourceDetector.ISSUE, myFixture.elementAtCaret)
+
+    myFixture.checkPreviewAndLaunchAction(intention)
+    myFixture.checkResult(
+      /* language=XML */
+      """
+      <resources xmlns:tools="http://schemas.android.com/tools">
+          <string name="test">Test</string>
+          <string name="test" tools:ignore="DuplicateDefinition">Duplicate</string>
+      </resources>
+      """
+        .trimIndent()
+    )
   }
 
   // --- Test fixtures below ---

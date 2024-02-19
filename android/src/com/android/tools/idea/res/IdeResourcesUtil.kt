@@ -1119,8 +1119,6 @@ fun ensureNamespaceImported(
     return prefix
   }
 
-  ApplicationManager.getApplication().assertWriteAccessAllowed()
-
   prefix =
     suggestedPrefix
       ?: when (namespaceUri) {
