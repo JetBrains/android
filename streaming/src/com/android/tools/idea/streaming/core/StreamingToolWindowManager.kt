@@ -707,7 +707,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   override fun deviceClientRemoved(client: DeviceClient, requester: Any?) {
-    if (requester != this) {
+    if (requester != this && deviceClients[client.deviceSerialNumber]?.client == client) {
       deactivateMirroring(client.deviceSerialNumber)
     }
   }
@@ -1299,7 +1299,9 @@ internal class DeviceClientRegistry : Disposable {
         Disposer.register(this, client)
         for (listener in listeners) {
           EventQueue.invokeLater {
-            listener.deviceClientAdded(client, requester)
+            if (clientsBySerialNumber[serialNumber] == client) {
+              listener.deviceClientAdded(client, requester)
+            }
           }
         }
       }
