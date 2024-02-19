@@ -93,6 +93,9 @@ internal class SceneViewPanel(
         .toList()
 
     toRemove.forEach { remove(it) }
+    // Remove components from groups.
+    groups.forEach { group -> group.value.removeIf { toRemove.contains(it) } }
+    groups.filter { it.value.isEmpty() }.forEach { groups.remove(it.key) }
     invalidate()
   }
 
