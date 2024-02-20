@@ -677,7 +677,13 @@
           "record.svg": "studio/icons/profiler/toolbar/record.svg",
           "select-entire-range.svg": "studio/icons/profiler/toolbar/select-entire-range.svg",
           "stop-recording.svg": "studio/icons/profiler/toolbar/stop-recording.svg",
-          "stop-session.svg": "studio/icons/profiler/toolbar/stop-session.svg"
+          "stop-session.svg": "studio/icons/profiler/toolbar/stop-session.svg",
+          "upload.svg": "studio/icons/profiler/toolbar/upload.svg"
+        },
+        "memoryleakstask": {
+          "leaking-maybe.svg": "studio/icons/profiler/memoryleakstask/leaking-maybe.svg",
+          "leaking-no.svg": "studio/icons/profiler/memoryleakstask/leaking-no.svg",
+          "leaking-yes.svg": "studio/icons/profiler/memoryleakstask/leaking-yes.svg"
         }
       },
       "shell": {
