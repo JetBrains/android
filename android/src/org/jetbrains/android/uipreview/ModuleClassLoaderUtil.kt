@@ -18,8 +18,6 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.rendering.classloading.PseudoClass
-import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
@@ -43,7 +41,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.util.PsiModificationTracker
@@ -71,39 +68,6 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
     .useCache(ourLoaderCachePool) { true }
     .allowLock(allowLock)
     .get()
-}
-
-/**
- * [PseudoClassLocator] that uses the [Sequence] of [DelegatingClassLoader.Loader]s to find the `.class` file.
- * If a class is not found within the [loaders], this class will try to load it from the given [fallbackClassloader] allowing
- * to load system classes from it.
- */
-@VisibleForTesting
-class PseudoClassLocatorForLoader @JvmOverloads constructor(
-  private val loaders: Sequence<DelegatingClassLoader.Loader>,
-  private val fallbackClassloader: ClassLoader?
-)  : PseudoClassLocator {
-
-  constructor(loader: DelegatingClassLoader.Loader, classLoader: ClassLoader) :
-    this(sequenceOf(loader), classLoader)
-
-  override fun locatePseudoClass(classFqn: String): PseudoClass {
-    if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
-    val bytes = loaders.map { it.loadClass(classFqn) }.firstNotNullOfOrNull { it }
-    if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
-
-    if (fallbackClassloader != null) {
-      try {
-        return PseudoClass.fromClass(fallbackClassloader.loadClass (classFqn), this)
-      }
-      catch (ex: ClassNotFoundException) {
-        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $classFqn", ex)
-      }
-    } else {
-      Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $classFqn")
-    }
-    return PseudoClass.objectPseudoClass()
-  }
 }
 
 private val additionalLibraries: List<Path>
