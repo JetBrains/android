@@ -153,6 +153,7 @@ tests_list = [
         agp_version = AGP_4_0,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.1.1",
@@ -178,6 +179,7 @@ tests_list = [
         agp_version = AGP_4_1,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.5",
@@ -203,6 +205,7 @@ tests_list = [
         agp_version = AGP_4_2,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.7.1",
@@ -228,6 +231,7 @@ tests_list = [
         agp_version = AGP_7_0,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/android/testData:snapshots",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
@@ -254,6 +258,7 @@ tests_list = [
         agp_version = AGP_7_1,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.2",
@@ -279,6 +284,7 @@ tests_list = [
         agp_version = AGP_7_2,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.3.3",
@@ -304,6 +310,7 @@ tests_list = [
         agp_version = AGP_7_3,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.4",
         ] + AGP_DATA[AGP_7_3],
@@ -327,6 +334,7 @@ tests_list = [
         timeout = "long",
         agp_version = "LATEST",
         data = [
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:build-tools/latest",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
