@@ -64,7 +64,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
             ActionManager.getInstance(),
             0,
           )
-        ActionUtil.performDumbAwareUpdate(false, action, event, false)
+        ActionUtil.performDumbAwareUpdate(action, event, false)
         if (model.focusRequest && !isFocusOwner) {
           button.requestFocusInWindow()
         }
