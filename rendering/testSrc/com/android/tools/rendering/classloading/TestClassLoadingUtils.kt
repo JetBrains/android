@@ -40,8 +40,8 @@ fun loadClassBytes(c: Class<*>): ByteArray {
  */
 fun setupTestClassLoaderWithTransformation(
   classDefinitions: Map<String, Class<*>>,
-  beforeTransformTrace: StringWriter,
-  afterTransformTrace: StringWriter,
+  beforeTransformTrace: StringWriter = StringWriter(),
+  afterTransformTrace: StringWriter = StringWriter(),
   classTransformation: (ClassVisitor) -> ClassVisitor,
 ): TestClassLoader {
   // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
