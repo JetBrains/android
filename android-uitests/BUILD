@@ -871,7 +871,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.build.analyzer.BuildAnalyzerTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1278,7 +1277,6 @@ java_test(
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
         "ui_test",
@@ -1299,10 +1297,8 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionSplitViewTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "ui_test",
-        "very_flaky",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1383,7 +1379,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1833,7 +1828,6 @@ java_test(
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AddOrRemoveAttributesTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2213,7 +2207,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.CodeGenerationTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
