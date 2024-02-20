@@ -35,7 +35,7 @@ class AddNewBuildTypeTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   /**
    * Verifies addition of new build types

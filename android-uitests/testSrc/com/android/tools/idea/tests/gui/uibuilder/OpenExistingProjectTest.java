@@ -32,6 +32,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,7 +97,7 @@ public class OpenExistingProjectTest {
     assertThat(errors).hasSize(0);
 
     //Rebuilding the project.x
-    BuildStatus rebuildStatus = ideFrame.invokeRebuildProject();
+    BuildStatus rebuildStatus = ideFrame.invokeRebuildProject(Wait.seconds(300));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(rebuildStatus.isBuildSuccessful()).isTrue();

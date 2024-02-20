@@ -46,6 +46,6 @@ public class NewProjectTestUtil {
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful());
+    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(360)).isBuildSuccessful());
   }
 }
