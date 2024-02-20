@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.isClassPackageNeeded
 import com.android.tools.lint.checks.RESTRICT_TO_ANNOTATION
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiModifier
@@ -29,6 +30,7 @@ import com.intellij.psi.PsiModifierList
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /** Returns class by name. It can be either short name for library classes or FQCN. */
 private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: String): PsiClass? {
@@ -59,7 +61,7 @@ private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: St
  */
 fun findClassValidInXMLByName(facet: AndroidFacet, name: String, baseClassName: String): PsiClass? {
   val candidate = findClassByName(facet, name, baseClassName) ?: return null
-  if (!candidate.isVisibleInXml()) return null
+  if (!candidate.isVisibleInXml(facet.module)) return null
   if (
     candidate.name == name &&
       isClassPackageNeeded(
@@ -88,13 +90,14 @@ fun findViewValidInXMLByName(facet: AndroidFacet, name: String) =
  * For classes that can't be used in XML (i.e abstract) returns empty array.
  */
 fun getTagNamesByClass(
+  module: Module,
   c: PsiClass,
   apiLevel: Int,
   parentClassQualifiedName: String?,
 ): Array<String> {
   return runReadAction {
     val name = c.name
-    if (name == null || !c.isVisibleInXml()) {
+    if (name == null || !c.isVisibleInXml(module)) {
       return@runReadAction emptyArray()
     }
     val qualifiedName = c.qualifiedName ?: return@runReadAction arrayOf(name)
@@ -105,13 +108,16 @@ fun getTagNamesByClass(
   }
 }
 
-fun PsiClass.isVisibleInXml(): Boolean {
+fun PsiClass.isVisibleInXml(currentModule: Module): Boolean {
   val modifierList: PsiModifierList = modifierList ?: return false
-  val isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC)
+
+  val isVisibleInModule =
+    modifierList.hasModifierProperty(PsiModifier.PUBLIC) || this.module == currentModule
+
   val isRestricted =
     modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
       modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName())
-  return isPublic && !isRestricted && !AndroidUtils.isAbstract(this)
+  return isVisibleInModule && !isRestricted && !AndroidUtils.isAbstract(this)
 }
 
 interface TagFromClassDescriptor {
