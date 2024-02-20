@@ -45,8 +45,8 @@ import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptSettingsP
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import javax.swing.tree.TreePath
 
-private val ASK_STUDIO_BOT_UNTIL_EOL = Regex(">> Ask Gemini:[^\n]*")
-private const val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">>> Ask Gemini</a>"
+private val ASK_STUDIO_BOT_UNTIL_EOL = Regex(">> Ask Studio Bot:[^\n]*")
+private const val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">>> Ask Studio Bot</a>"
 
 class ExplainSyncOrBuildOutput : DumbAwareAction(
   StudioBotBundle.message("studiobot.ask.text"), StudioBotBundle.message("studiobot.ask.text"),

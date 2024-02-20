@@ -71,7 +71,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
   private class ComposeCodeDialog(project: Project) : DialogWrapper(project) {
 
-    private val textArea = JBTextArea("Sending query to Gemini...")
+    private val textArea = JBTextArea("Sending query to Studio Bot...")
 
     init {
       isModal = false

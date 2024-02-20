@@ -639,12 +639,12 @@ studio_plugin(
 
 studio_plugin(
     name = "com.android.tools.studiobot",
-    directory = "gemini",
+    directory = "studio-bot",
     libs = [
         "//tools/vendor/google/ml/sml-core:aida_grpc",
         "//tools/vendor/google/ml/sml-core:aida_proto",
         "//tools/vendor/google/ml/sml-core:aida_protobuf",
-        "//tools/vendor/google/ml/sml-core:gemini_plugin_proto",
+        "//tools/vendor/google/ml/sml-core:studio_bot_proto",
         "//prebuilts/tools/common/m2:commonmark-0.20.0",
     ],
     modules = {

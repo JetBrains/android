@@ -21,8 +21,9 @@
     <option name="to" hit="Go to Play Console" />
     <option name="accounts" hit="Google Accounts" />
     <option name="google" hit="Google Accounts" />
-    <option name="gemini" hit="View Gemini settings" />
-    <option name="settings" hit="View Gemini settings" />
-    <option name="view" hit="View Gemini settings" />
+    <option name="bot" hit="View Studio Bot settings" />
+    <option name="settings" hit="View Studio Bot settings" />
+    <option name="studio" hit="View Studio Bot settings" />
+    <option name="view" hit="View Studio Bot settings" />
   </configurable>
 </options>

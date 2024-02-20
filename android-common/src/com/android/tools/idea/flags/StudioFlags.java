@@ -294,7 +294,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
     NELE, "xml.to.compose", "Enable XML to Compose conversion",
-    "Enable an action that converts XML layouts to Compose using the Gemini backend",
+    "Enable an action that converts XML layouts to Compose using the Studio Bot backend",
     false);
   //endregion
 
@@ -1724,9 +1724,9 @@ public final class StudioFlags {
   // endregion PRIVACY_SANDBOX_SDK
 
   // region STUDIO_BOT
-  private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
+  private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Studio Bot");
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
-    Flag.create(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", true);
+    Flag.create(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
