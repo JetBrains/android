@@ -1601,11 +1601,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     )
 
     val highlights =
-      doTestHighlighting(
+      collectTestHighlighting(
         AndroidLintNewApiInspection(),
         "src/com/example/test/TestActivity.java",
         "java",
-        true,
       )
     // All Java8 features should be flagged as errors
     val errors =
@@ -1639,11 +1638,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     )
 
     val highlights =
-      doTestHighlighting(
+      collectTestHighlighting(
         AndroidLintNewApiInspection(),
         "src/com/example/test/TestActivity.java",
         "java",
-        true,
       )
     // Java8 features should not be flagged as issues
     val errors =

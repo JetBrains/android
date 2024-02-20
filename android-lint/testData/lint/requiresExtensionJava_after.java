@@ -18,7 +18,7 @@ public @interface RequiresExtension {
 class SdkExtensionsTest {
     @RequiresExtension(extension = Build.VERSION_CODES.R, version = 4)
     public void test() {
-        <caret>requiresExtRv4();
+        requires<caret>ExtRv4();
     }
 
   @RequiresExtension(extension = Build.VERSION_CODES.R, version=4)
