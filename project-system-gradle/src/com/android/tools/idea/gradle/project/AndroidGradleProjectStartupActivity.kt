@@ -233,9 +233,12 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val modulesById =
     existingGradleModules
-      .asSequence()
       .mapNotNull { module ->
-        val externalId = CachedModuleDataFinder.getInstance(project).findModuleData(module)?.data?.id ?: return@mapNotNull null
+        val externalId = ExternalSystemApiUtil.getExternalProjectId(module)
+        if (externalId == null) {
+          requestSync("Unable to get external project id for ${module.name} from project ${project.name}.")
+          return
+        }
         externalId to module
       }
       .toMap()
