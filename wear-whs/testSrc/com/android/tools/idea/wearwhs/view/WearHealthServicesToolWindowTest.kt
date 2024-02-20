@@ -142,7 +142,7 @@ class WearHealthServicesToolWindowTest {
     val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
     applyButton.doClick()
 
-    delay(200) // TODO: Change to 2 times polling interval
+    delay(2 * TEST_POLLING_INTERVAL_MILLISECONDS)
 
     assertThat(textField.text).isNotEqualTo("50.0")
     assertThat(textField.text).isEqualTo("50")
