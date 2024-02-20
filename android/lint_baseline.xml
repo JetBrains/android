@@ -377,17 +377,6 @@
 
     <issue
         id="VisibleForTests"
-        message="This class should only be accessed from tests or within package private scope"
-        errorLine1="    fun fromClass(loadClass: Class&lt;*>, classLocator: PseudoClassLocatorForLoader) ="
-        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/ClassWriterWithPseudoClassLocator.kt"
-            line="164"
-            column="54"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
         message="This method should only be accessed from tests or within package private scope"
         errorLine1="      if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl()"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">

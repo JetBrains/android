@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.rendering.classloading.fromBinaryNameToPackageName
 import com.google.common.base.MoreObjects
-import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
 import org.jetbrains.annotations.TestOnly
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -161,7 +160,7 @@ class PseudoClass private constructor(val name: String,
                          reader.interfaces.map { it.fromBinaryNameToPackageName() }.toList(), classLocator)
     }
 
-    fun fromClass(loadClass: Class<*>, classLocator: PseudoClassLocatorForLoader) =
+    fun fromClass(loadClass: Class<*>, classLocator: PseudoClassLocator) =
       PseudoClass(loadClass.canonicalName,
                   loadClass.superclass?.canonicalName ?: objectPseudoClass.name,
                   loadClass.isInterface,
