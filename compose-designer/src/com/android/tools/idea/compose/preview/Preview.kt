@@ -82,7 +82,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
@@ -822,8 +821,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-      layoutManager.setLayoutManager(
+      surface.layoutManagerSwitcher?.setLayoutManager(
         mode.layoutOption.layoutManager,
         mode.layoutOption.sceneViewAlignment,
       )
@@ -1386,9 +1384,7 @@ class ComposePreviewRepresentation(
       (composePreviewFlowManager.getCurrentFilterAsGroup())?.filterGroup?.name ?: ""
     val selectedLayoutName =
       PREVIEW_LAYOUT_MANAGER_OPTIONS.find {
-          (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
-            it.layoutManager
-          )
+          surface.layoutManagerSwitcher?.isLayoutManagerSelected(it.layoutManager) == true
         }
         ?.displayName ?: ""
     return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)

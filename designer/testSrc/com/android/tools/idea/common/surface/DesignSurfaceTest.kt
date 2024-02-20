@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
@@ -426,6 +427,9 @@ class TestDesignSurface(
     java.util.function.Function { TestActionHandler(it) },
     ZoomControlsPolicy.VISIBLE,
   ) {
+
+  override fun getLayoutManagerSwitcher(): LayoutManagerSwitcher? = null
+
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }

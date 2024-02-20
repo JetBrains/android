@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -132,6 +133,9 @@ private class Surface(
     Function { TestActionHandler(it) },
     ZoomControlsPolicy.AUTO_HIDE,
   ) {
+
+  override fun getLayoutManagerSwitcher(): LayoutManagerSwitcher? = null
+
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }

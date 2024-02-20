@@ -57,7 +57,6 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
@@ -593,8 +592,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-      layoutManager.setLayoutManager(
+      surface.layoutManagerSwitcher?.setLayoutManager(
         mode.layoutOption.layoutManager,
         mode.layoutOption.sceneViewAlignment,
       )

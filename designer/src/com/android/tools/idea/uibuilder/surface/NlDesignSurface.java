@@ -935,6 +935,11 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return Math.min(scale, myMaxFitIntoScale);
   }
 
+  @Override
+  public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
+    return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
+  }
+
   // FIXME(b/291572358): this code would be removed and replaced with myZoomController.setScale(scale, x, y)
   @Override
   public boolean setScale(double scale, int x, int y) {

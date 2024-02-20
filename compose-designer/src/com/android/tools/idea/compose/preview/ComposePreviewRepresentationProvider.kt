@@ -50,7 +50,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -150,8 +149,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
       if (isEssentialsModeSelected != ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
         isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
         if (isEssentialsModeSelected) {
-          val layoutSwitcher =
-            (e.getData(DESIGN_SURFACE)?.sceneViewLayoutManager as? LayoutManagerSwitcher)
+          val layoutSwitcher = e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher
           ApplicationManager.getApplication().invokeLater {
             layoutSwitcher?.setLayoutManager(
               PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,

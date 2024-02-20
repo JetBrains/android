@@ -61,6 +61,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -174,6 +175,11 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     //  SceneManager#requestRender() doesn't re-inflate the NlModel.
     SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
     return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
+    return null;
   }
 
   @Override

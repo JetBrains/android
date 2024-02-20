@@ -53,6 +53,7 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
@@ -1929,6 +1930,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public final PositionableContentLayoutManager getSceneViewLayoutManager() {
     return (PositionableContentLayoutManager)mySceneViewPanel.getLayout();
   }
+
+  @Nullable
+  public abstract LayoutManagerSwitcher getLayoutManagerSwitcher();
 
   /**
    * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the

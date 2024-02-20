@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -59,7 +58,8 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
-      return (e.getData(DESIGN_SURFACE)?.sceneViewLayoutManager as? LayoutManagerSwitcher)
+      return e.getData(DESIGN_SURFACE)
+        ?.layoutManagerSwitcher
         ?.isLayoutManagerSelected(option.layoutManager) ?: false
     }
 

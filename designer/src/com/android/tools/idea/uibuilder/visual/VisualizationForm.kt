@@ -39,7 +39,6 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
@@ -118,7 +117,6 @@ class VisualizationForm(
   private var myEditor: FileEditor? = null
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
-  private val myLayoutManager: NlDesignSurfacePositionableContentLayoutManager
   private val myGridSurfaceLayoutManager =
     GridSurfaceLayoutManager(
       NlConstants.DEFAULT_SCREEN_OFFSET_X,
@@ -199,8 +197,6 @@ class VisualizationForm(
     myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText("Loading...")
     myWorkBench.setToolContext(surface)
-    myLayoutManager =
-      surface.sceneViewLayoutManager as NlDesignSurfacePositionableContentLayoutManager
     myActionToolbarPanel = createToolbarPanel()
     myRoot.add(myActionToolbarPanel, BorderLayout.NORTH)
     myRoot.add(myWorkBench, BorderLayout.CENTER)
@@ -655,7 +651,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      myLayoutManager.setLayoutManager(
+      surface.layoutManagerSwitcher?.setLayoutManager(
         myGridSurfaceLayoutManager,
         DesignSurface.SceneViewAlignment.LEFT,
       )
