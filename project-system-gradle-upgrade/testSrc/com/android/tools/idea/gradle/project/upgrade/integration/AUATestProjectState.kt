@@ -31,10 +31,17 @@
 package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.testutils.junit4.OldAgpSuite
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion
-import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.*
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.LATEST
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_0
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_1
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_2
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_0
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_1
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_2
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_3
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.BASIC
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.utils.FileUtils
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
@@ -69,7 +76,7 @@ enum class TestAGPVersion(
   V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_2("7.2.0", CompatibleGradleVersion.VERSION_7_3_3, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_3("7.3.0", CompatibleGradleVersion.VERSION_7_4, jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
-  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, kotlinVersion = "1.6.21"),
+  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, kotlinVersion = "1.6.21", jdkVersion = JavaSdkVersion.JDK_17),
 }
 
 /**
