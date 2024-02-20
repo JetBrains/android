@@ -73,7 +73,7 @@ public class ClassConverter {
    * @param classLocator {@link PseudoClassLocator} to use when the class writing process needs to load additional types.
    */
   @NotNull
-  static byte[] rewriteClass(@NotNull byte[] classData,
+  public static byte[] rewriteClass(@NotNull byte[] classData,
                              @NotNull ClassTransform transformations,
                              @NotNull PseudoClassLocator classLocator) {
     return rewriteClass(classData, transformations, ClassWriter.COMPUTE_FRAMES, classLocator);
