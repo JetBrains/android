@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface
 
-import androidx.annotation.VisibleForTesting
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
@@ -52,34 +51,31 @@ import kotlin.math.min
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner The owner of this [ZoomController].
- * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT. FIXME(b/291572358):
- *   this will replace the zoom logic within [DesignSurface]
+ * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 abstract class DesignSurfaceZoomController(
   private val designerAnalyticsManager: DesignerAnalyticsManager?,
   private val selectionModel: SelectionModel?,
   private val scenesOwner: ScenesOwner?,
-  private val maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
+  override val maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
 
-  /** The minimum scale we'll allow. */
-  @VisibleForTesting(VisibleForTesting.PROTECTED) open val minScale: Double = MIN_SCALE
+  override val minScale: Double = MIN_SCALE
 
-  /** The maximum scale we'll allow. */
-  @VisibleForTesting(VisibleForTesting.PROTECTED) open val maxScale: Double = MAX_SCALE
+  override val maxScale: Double = MAX_SCALE
 
   /**
    * The max zoom level allowed in zoom to fit could not correspond if [screenScalingFactor] is
    * different from 1.0.
    */
-  protected val myMaxFitIntoScale
-    get() = maxFitIntoZoomLevel / screenScalingFactor
+  protected val maxZoomToFitScale
+    get() = maxZoomToFitLevel / screenScalingFactor
 
   /**
    * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If
    * you want to get the scale you can use [scale].
    */
-  private var currentScale: Double = 1.0
+  @SurfaceScale private var currentScale: Double = 1.0
 
   /** A listener that calls a callback whenever zoom changes. */
   private var myScaleListener: ScaleListener? = null
@@ -109,12 +105,12 @@ abstract class DesignSurfaceZoomController(
     @SwingCoordinate y: Int,
   ): Boolean {
     @SurfaceScale val newScale: Double = getBoundedScale(scale)
-    if (isScaleSame(this.scale, newScale)) {
+    if (isScaleSame(currentScale, newScale)) {
       return false
     }
-    val previewsScale = this.scale
-    this.currentScale = newScale
-    myScaleListener?.onScaleChange(ScaleChange(previewsScale, this.scale, Point(x, y)))
+    val previewsScale = currentScale
+    currentScale = newScale
+    myScaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
     return true
   }
 
@@ -143,17 +139,18 @@ abstract class DesignSurfaceZoomController(
     val scaled: Boolean =
       when (type) {
         ZoomType.IN -> {
-          @SurfaceZoomLevel val currentScale: Double = scale * screenScalingFactor
-          val current = Math.round(currentScale * 100).toInt()
-          @SurfaceScale val scale: Double = (ZoomType.zoomIn(current) / 100.0) / screenScalingFactor
-          setScale(scale, newX, newY)
-        }
-        ZoomType.OUT -> {
-          @SurfaceZoomLevel val currentScale: Double = scale * screenScalingFactor
+          @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
           val current = Math.round(currentScale * 100).toInt()
           @SurfaceScale
-          val scale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
-          setScale(scale, newX, newY)
+          val newScale: Double = (ZoomType.zoomIn(current) / 100.0) / screenScalingFactor
+          setScale(newScale, newX, newY)
+        }
+        ZoomType.OUT -> {
+          @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
+          val current = (currentScale * 100).toInt()
+          @SurfaceScale
+          val newScale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
+          setScale(newScale, newX, newY)
         }
         ZoomType.ACTUAL -> setScale(1.0 / screenScalingFactor)
         ZoomType.FIT -> setScale(getFitScale())
@@ -167,12 +164,15 @@ abstract class DesignSurfaceZoomController(
 
   @UiThread override fun zoom(type: ZoomType): Boolean = zoom(type, -1, -1)
 
-  override fun canZoomIn(): Boolean = scale < maxScale && !isScaleSame(scale, maxScale)
+  override fun canZoomIn(): Boolean = currentScale < maxScale && !isScaleSame(scale, maxScale)
 
-  override fun canZoomOut(): Boolean = minScale < scale && !isScaleSame(minScale, scale)
+  override fun canZoomOut(): Boolean = minScale < currentScale && !isScaleSame(minScale, scale)
 
-  override fun canZoomToFit(): Boolean =
-    (scale > getFitScale() && canZoomOut()) || (scale < getFitScale() && canZoomIn())
+  override fun canZoomToFit(): Boolean {
+    @SurfaceScale val zoomToFitScale = getFitScale()
+    return (currentScale > zoomToFitScale && canZoomOut()) ||
+      (currentScale < zoomToFitScale && canZoomIn())
+  }
 
   override fun canZoomToActual(): Boolean =
     (scale > 1 && canZoomOut()) || (scale < 1 && canZoomIn())

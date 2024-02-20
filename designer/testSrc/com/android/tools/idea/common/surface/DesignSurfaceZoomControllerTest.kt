@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,7 +29,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `change scale`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
     zoomController.setScale(1.0)
 
     assertTrue(zoomController.setScale(0.5))
@@ -58,7 +57,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `can change scale with coordinates`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
     zoomController.setScale(1.0)
 
     assertTrue(zoomController.setScale(0.5, 2, 4))
@@ -86,7 +85,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `test zoom in`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
 
     zoomController.setScale(1.0)
     do {
@@ -98,7 +97,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `test zoom out`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
 
     zoomController.setScale(10.0)
     do {
@@ -110,7 +109,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `test zoom in and zoom out`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
 
     val initialScale = 9.0
     zoomController.setScale(initialScale)
@@ -137,7 +136,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `can zoom to fit`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
 
     repeat((0..4).count()) { zoomController.zoom(ZoomType.IN) }
 
@@ -153,7 +152,7 @@ class DesignSurfaceZoomControllerTest {
 
   @Test
   fun `can zoom to the actual sizes`() {
-    val zoomController = createDesignSurfaceZoomController()
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule)
 
     repeat((0..4).count()) { zoomController.zoom(ZoomType.IN) }
 
@@ -170,7 +169,7 @@ class DesignSurfaceZoomControllerTest {
   @Test
   fun `can track zoom`() {
     var zoomTypeToTrack: ZoomType? = null
-    val zoomController = createDesignSurfaceZoomController { zoomTypeToTrack = it }
+    val zoomController = createDesignSurfaceZoomControllerFake(projectRule) { zoomTypeToTrack = it }
 
     zoomController.zoom(ZoomType.IN)
     assertEquals(zoomTypeToTrack, ZoomType.IN)
@@ -183,29 +182,5 @@ class DesignSurfaceZoomControllerTest {
 
     zoomController.zoom(ZoomType.ACTUAL)
     assertEquals(zoomTypeToTrack, ZoomType.ACTUAL)
-  }
-
-  private fun createDesignSurfaceZoomController(
-    trackZoom: ((ZoomType) -> Unit)? = null
-  ): DesignSurfaceZoomController {
-    val designerAnalyticsManager =
-      trackZoom?.let {
-        object :
-          DesignerAnalyticsManager(
-            TestDesignSurface(projectRule.project, projectRule.fixture.projectDisposable)
-          ) {
-          override fun trackZoom(type: ZoomType) {
-            trackZoom(type)
-          }
-        }
-      }
-    return object :
-      DesignSurfaceZoomController(
-        designerAnalyticsManager = designerAnalyticsManager,
-        selectionModel = null,
-        scenesOwner = null,
-      ) {
-      override fun getFitScale() = 1.0
-    }
   }
 }

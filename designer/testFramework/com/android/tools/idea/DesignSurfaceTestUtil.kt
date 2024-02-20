@@ -16,6 +16,8 @@
 package com.android.tools.idea
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.ZoomController
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
@@ -121,7 +123,45 @@ object DesignSurfaceTestUtil {
     whenever(surface.scene).thenReturn(scene)
     whenever(surface.project).thenReturn(project)
     whenever(surface.layoutType).thenCallRealMethod()
-    whenever(surface.canZoomToFit()).thenReturn(true)
+    val zoomController = createZoomControllerFake()
+    whenever(surface.zoomable).thenReturn(zoomController)
     return surface
   }
+
+  fun createZoomControllerFake(onZoom: () -> Unit = {}): ZoomController =
+    object : ZoomController {
+      override val scale: Double
+        get() = 1.0
+
+      override val screenScalingFactor: Double
+        get() = 1.0
+
+      override val minScale: Double
+        get() = 0.0
+
+      override val maxScale: Double
+        get() = 10.0
+
+      override val maxZoomToFitLevel: Double
+        get() = 1.0
+
+      override fun setScale(scale: Double, x: Int, y: Int): Boolean = true
+
+      override fun zoomToFit(): Boolean = true
+
+      override fun getFitScale(): Double = 1.0
+
+      override fun zoom(type: ZoomType): Boolean {
+        onZoom()
+        return true
+      }
+
+      override fun canZoomIn(): Boolean = true
+
+      override fun canZoomOut(): Boolean = true
+
+      override fun canZoomToFit(): Boolean = true
+
+      override fun canZoomToActual(): Boolean = true
+    }
 }

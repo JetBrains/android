@@ -21,6 +21,15 @@ import com.android.tools.idea.common.surface.SurfaceScale
 /** Applies zoom changes to a [Zoomable] surface. */
 interface ZoomController : Zoomable {
 
+  /** The minimum scale allowed. */
+  val minScale: Double
+
+  /** The maximum scale allowed. */
+  val maxScale: Double
+
+  /** The maximum zoom level allowed for ZoomType#FIT. */
+  val maxZoomToFitLevel: Double
+
   /**
    * Sets the scale factor used to multiply content size.
    *

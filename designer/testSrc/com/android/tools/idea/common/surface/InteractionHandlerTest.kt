@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.ZoomController
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
@@ -140,14 +142,10 @@ private class Surface(
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  override fun getFitScale(): Double = 1.0
-
   override fun createSceneManager(model: NlModel) =
     TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
-
-  override fun canZoomToFit() = true
 
   override fun getMinScale() = 0.1
 
@@ -161,6 +159,9 @@ private class Surface(
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
+
+  override val zoomable: ZoomController
+    get() = createZoomControllerFake()
 
   override fun isShowing(): Boolean = true
 

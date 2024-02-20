@@ -142,7 +142,7 @@ class NavDesignSurfaceZoomControllerTest {
     return NavDesignSurfaceZoomController(
       navSelectionModel = null,
       viewPort = navDesignSurface.viewport,
-      sceneManager = navDesignSurface.sceneManager,
+      sceneManager = { navDesignSurface.sceneManager },
       sceneViewDimensionProvider = dimension,
       analyticsManager = null,
       scenesOwner = navDesignSurface,

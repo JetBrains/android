@@ -52,7 +52,7 @@ import kotlin.math.min
 class NavDesignSurfaceZoomController(
   private val surfaceSize: Dimension,
   private val viewPort: DesignSurfaceViewport,
-  private val sceneManager: NavSceneManager?,
+  private val sceneManager: () -> NavSceneManager?,
   private val sceneViewDimensionProvider: (SceneView) -> Dimension,
   analyticsManager: DesignerAnalyticsManager?,
   navSelectionModel: SelectionModel?,
@@ -92,7 +92,7 @@ class NavDesignSurfaceZoomController(
   }
 
   private fun isEmpty(): Boolean {
-    val sceneManager: NavSceneManager? = sceneManager
+    val sceneManager: NavSceneManager? = sceneManager()
     return sceneManager == null || sceneManager.isEmpty
   }
 
@@ -113,7 +113,7 @@ class NavDesignSurfaceZoomController(
       } else {
         availableHeight.toDouble() / contentSize.height
       }
-    return minOf(scaleX, scaleY, myMaxFitIntoScale)
+    return minOf(scaleX, scaleY, maxZoomToFitScale)
   }
 
   override fun setScale(scale: Double, x: Int, y: Int): Boolean {

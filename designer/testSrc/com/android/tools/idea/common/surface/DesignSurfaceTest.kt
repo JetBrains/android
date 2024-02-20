@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
+import com.android.tools.adtui.ZoomController
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.model.DnDTransferItem
@@ -411,8 +412,8 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
 }
 
 class TestDesignSurface(
-  project: Project,
-  disposable: Disposable,
+  private val project: Project,
+  private val disposable: Disposable,
   val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
     { model, surface ->
       TestSceneManager(model, surface)
@@ -434,19 +435,11 @@ class TestDesignSurface(
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  override fun getFitScale(): Double = 1.0
-
   override fun createSceneManager(model: NlModel) = runBlocking {
     createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
   }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
-
-  override fun canZoomToFit() = true
-
-  override fun getMinScale() = 0.1
-
-  override fun getMaxScale() = 10.0
 
   override fun getScrollToVisibleOffset() = Dimension()
 
@@ -456,4 +449,15 @@ class TestDesignSurface(
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
+
+  private val zoomController =
+    createDesignSurfaceZoomControllerFake(
+      project = project,
+      disposable = disposable,
+      minScale = 0.1,
+      maxScale = 10.0,
+      trackZoom = null,
+    )
+  override val zoomable: ZoomController
+    get() = zoomController
 }

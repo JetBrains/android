@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.Pannable
-import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.ZoomController
 import com.intellij.openapi.actionSystem.DataProvider
 
 /**
@@ -32,5 +32,5 @@ import com.intellij.openapi.actionSystem.DataProvider
  */
 interface InteractableScenesSurface : Pannable, DataProvider, ScenesOwner, HoverableSurface {
 
-  val zoomable: Zoomable
+  val zoomable: ZoomController
 }

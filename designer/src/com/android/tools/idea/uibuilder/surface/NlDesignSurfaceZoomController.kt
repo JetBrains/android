@@ -19,9 +19,9 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.ScenesOwner
+import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import java.awt.Dimension
 import kotlin.math.min
 
@@ -53,6 +53,10 @@ class NlDesignSurfaceZoomController(
     maxFitIntoZoomLevel,
   ) {
 
+  override var minScale: Double = super.minScale
+
+  override var maxScale: Double = super.maxScale
+
   override fun getFitScale(): Double {
     val extent: Dimension = viewPort.extentSize
     val positionableContents = sceneViewPeerPanelsProvider()
@@ -61,9 +65,13 @@ class NlDesignSurfaceZoomController(
       if (positionableContents.isEmpty()) {
         1.0
       } else {
-        sceneViewLayoutManagerProvider()
-          .getFitIntoScale(sceneViewPeerPanelsProvider(), extent)
+        sceneViewLayoutManagerProvider().getFitIntoScale(sceneViewPeerPanelsProvider(), extent)
       }
-    return min(scale, myMaxFitIntoScale)
+    return min(scale, maxZoomToFitScale)
+  }
+
+  override fun canZoomToActual(): Boolean {
+    @SurfaceScale val scaleOfActual = 1.0 / screenScalingFactor
+    return (scale > scaleOfActual && canZoomOut()) || (scale < scaleOfActual && canZoomIn())
   }
 }

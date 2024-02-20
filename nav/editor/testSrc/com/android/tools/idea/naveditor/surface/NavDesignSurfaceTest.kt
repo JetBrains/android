@@ -640,25 +640,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     testCurrentNavigation(surface, nested1, fragment2, nested2, fragment1)
   }
 
-  fun testCanZoomToFit() {
-    val sceneManager = mock(NavSceneManager::class.java)
-    whenever(sceneManager.isEmpty).thenReturn(true)
-
-    val surface = mock(NavDesignSurface::class.java)
-    whenever(surface.sceneManager).thenReturn(sceneManager)
-    doCallRealMethod().whenever(surface).canZoomToFit()
-
-    whenever(surface.getFitScale()).thenReturn(1.5)
-    whenever(surface.scale).thenReturn(1.0)
-    assertFalse(surface.canZoomToFit())
-
-    whenever(sceneManager.isEmpty).thenReturn(false)
-    assertTrue(surface.canZoomToFit())
-
-    whenever(surface.scale).thenReturn(1.5)
-    assertFalse(surface.canZoomToFit())
-  }
-
   private fun testCurrentNavigation(surface: NavDesignSurface, expected: NlComponent, vararg select: NlComponent) {
     surface.selectionModel.setSelection(select.toList())
     assertEquals(expected.id, surface.currentNavigation.id)

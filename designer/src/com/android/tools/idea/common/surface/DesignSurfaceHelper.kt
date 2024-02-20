@@ -204,7 +204,7 @@ fun DesignSurface<*>.getFitContentIntoWindowScale(contentSize: Dimension): Doubl
   @SurfaceScale
   val scaleY: Double =
     if (size.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-  return minOf(scaleX, scaleY, myMaxFitIntoScale)
+  return minOf(scaleX, scaleY, zoomable.maxZoomToFitLevel)
 }
 
 /** Helper function to set the visibilities of all [SceneView]s in the [DesignSurface]. */
