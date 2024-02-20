@@ -22,8 +22,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.jetbrains.rd.util.getLogger
-import com.jetbrains.rd.util.info
 import org.junit.Rule
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger

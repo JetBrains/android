@@ -22,7 +22,7 @@ iml_module(
 profilers_test_common_data = [
     ":minapp",
     ":minapp_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
@@ -44,7 +44,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.ProfileWithCompleteDataTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithCompleteDataTest",
 )
 
 iml_studio_test(
@@ -63,7 +63,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.ProfileWithLowOverheadTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithLowOverheadTest",
 )
 
 iml_studio_test(
@@ -82,7 +82,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.SystemTraceTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.SystemTraceTest",
 )
 
 iml_studio_test(
@@ -101,7 +101,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.CallstackSampleTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.CallstackSampleTest",
 )
 
 iml_studio_test(
@@ -120,7 +120,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.HeapDumpTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.HeapDumpTest",
 )
 
 iml_studio_test(
@@ -139,15 +139,15 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.NativeAllocationsTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.NativeAllocationsTest",
 )
 
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_7.4.1-8841542",
-        "@maven//:com.android.tools.build.gradle_7.4.1",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.android.tools.lint.lint-gradle_30.4.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
