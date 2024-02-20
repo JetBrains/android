@@ -80,7 +80,7 @@ class TilePreviewRepresentationProvider(
       filePreviewElementFinder.hasPreviewElements(project, virtualFile)
   }
 
-  /** Creates a [TilePreviewRepresentation] for the input [psiFile]. */
+  /** Creates a [GlancePreviewElement] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     val previewProvider =
       object : PreviewElementProvider<GlancePreviewElement> {
