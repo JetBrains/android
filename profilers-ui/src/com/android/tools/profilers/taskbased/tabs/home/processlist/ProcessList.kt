@@ -51,13 +51,8 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
     }
 
     if (selectedDevicesCount == 1) {
-      if (selectedDevice != null) {
-        ProcessTable(processList = processList, selectedProcess = selectedProcess, preferredProcessName = preferredProcessName,
-                     onProcessSelection = processListModel::onProcessSelection)
-      }
-      else {
-        throw IllegalStateException("If there count of devices selected is one, then the selected device must be non-null.")
-      }
+      ProcessTable(processList = processList, selectedProcess = selectedProcess, preferredProcessName = preferredProcessName,
+                   onProcessSelection = processListModel::onProcessSelection)
     }
     else {
       val processListMessage =
