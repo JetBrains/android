@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.Pannable
-import com.android.tools.adtui.ZoomController
 import com.intellij.openapi.actionSystem.DataProvider
 
 /**
@@ -30,7 +29,5 @@ import com.intellij.openapi.actionSystem.DataProvider
  *   should not extend [DataProvider]. This is only done so because of [Pannable] can be obtained
  *   with [PANNABLE_KEY].
  */
-interface InteractableScenesSurface : Pannable, DataProvider, ScenesOwner, HoverableSurface {
-
-  val zoomController: ZoomController
-}
+interface InteractableScenesSurface :
+  Pannable, DataProvider, ScenesOwner, HoverableSurface, ZoomControllableSurface
