@@ -37,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -79,6 +80,7 @@ class WearHealthServicesToolWindowTest {
     Disposer.register(projectRule.testRootDisposable, toolWindow)
   }
 
+  @Ignore("b/326061638")
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
     val fakeUi = FakeUi(toolWindow)

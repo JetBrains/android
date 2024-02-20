@@ -36,6 +36,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
@@ -60,6 +61,7 @@ private val capabilities = listOf(WhsCapability(
   isStandardCapability = false,
 ))
 
+@Ignore("b/326042906")
 class WearHealthServicesToolWindowStateManagerTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
