@@ -145,7 +145,7 @@ class SourceCodeEditorProviderTest {
           fixture.project,
           rootElement
         )
-        assertTrue(JDOMUtil.createOutputter("\n").outputString(rootElement).isNotBlank())
+        assertTrue(JDOMUtil.writeElement(rootElement).isNotBlank())
         val state =
           serializationProvider.readState(rootElement, fixture.project, file.virtualFile)
             as SourceCodeEditorWithMultiRepresentationPreviewState
