@@ -743,6 +743,12 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon PROFILER_CAPTURE = load("studio/icons/profiler/files/profiler-capture.png", 0, 1);
     }
 
+    public static final class Memoryleakstask {
+      /** 16x16 */ public static final @NotNull Icon LEAK_MAYBE = load("studio/icons/profiler/memoryleakstask/leak-maybe.svg", 1282998888, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_NO = load("studio/icons/profiler/memoryleakstask/leak-no.svg", 725363233, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_YES = load("studio/icons/profiler/memoryleakstask/leak-yes.svg", 459106998, 2);
+    }
+
     public static final class Overlays {
       /** 16x16 */ public static final @NotNull Icon ARRAY_STACK = load("studio/icons/profiler/overlays/array-stack.svg", -1671662398, 0);
       /** 16x16 */ public static final @NotNull Icon CLASS_STACK = load("studio/icons/profiler/overlays/class-stack.svg", -1608250002, 0);
@@ -780,6 +786,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon SELECT_ENTIRE_RANGE = load("studio/icons/profiler/toolbar/select-entire-range.svg", 1785830740, 2);
       /** 16x16 */ public static final @NotNull Icon STOP_RECORDING = load("studio/icons/profiler/toolbar/stop-recording.svg", -1767492129, 2);
       /** 16x16 */ public static final @NotNull Icon STOP_SESSION = load("studio/icons/profiler/toolbar/stop-session.svg", 175614829, 2);
+      /** 16x16 */ public static final @NotNull Icon UPLOAD = load("studio/icons/profiler/toolbar/upload.svg", 703384072, 2);
     }
   }
 
