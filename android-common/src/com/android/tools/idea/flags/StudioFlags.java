@@ -17,7 +17,6 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
-import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
 
 import com.android.flags.BooleanFlag;
 import com.android.flags.Flag;
@@ -1803,6 +1802,12 @@ public final class StudioFlags {
                     "Use retrieval augmentation facts to attach context to queries.",
                     "When enabled, project context is attached to queries using facts, instead of prepending them directly to the query string.",
                     ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_USE_COMPOSE_TOOLWINDOW_UI =
+    new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
+                    "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
+                    "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
+                    false);
 
   // endregion STUDIO_BOT
 
