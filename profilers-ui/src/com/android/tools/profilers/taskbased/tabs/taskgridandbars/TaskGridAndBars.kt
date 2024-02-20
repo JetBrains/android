@@ -21,18 +21,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
-import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
-import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 
 @Composable
 private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
@@ -51,47 +47,51 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
 }
 
 @Composable
-fun TaskGridAndBars(taskGridModel: TaskGridModel,
-                    isProfilingFromProcessStart: Boolean,
-                    isPreferredProcessSelected: Boolean,
-                    setIsProfilingFromProcessStart: (Boolean) -> Unit,
-                    isSelectedDeviceProcessTaskValid: () -> Boolean,
-                    onEnterProfilerTask: () -> Unit,
-                    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                    profilers: StudioProfilers,
+fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
                     ideProfilerComponents: IdeProfilerComponents,
                     modifier: Modifier) {
+  val taskTypes = taskHomeTabModel.taskHandlers.keys.toList()
+  val profilers = taskHomeTabModel.profilers
+  val isSelectedDeviceProcessTaskValid = taskHomeTabModel::isSelectedDeviceProcessTaskValid
+  val isProfilingFromProcessStart by taskHomeTabModel.isProfilingFromProcessStart.collectAsState()
+
+  val processListModel = taskHomeTabModel.processListModel
+  val isPreferredProcessSelected by processListModel.isPreferredProcessSelected.collectAsState()
+
+  val taskGridModel = taskHomeTabModel.taskGridModel
   val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
+
   val isTaskSupportedOnStartup = profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
 
   val canStartTask = (isProfilingFromProcessStart && isPreferredProcessSelected && isTaskSupportedOnStartup) ||
                      isSelectedDeviceProcessTaskValid()
-
-  val taskTypes = taskHandlers.keys.toList()
-
   TaskGridAndBarsContainer(
     taskGrid = {
-      TaskGrid(taskGridModel = taskGridModel, setIsProfilingFromProcessStart, taskTypes = taskTypes, profilers = profilers)
+      TaskGrid(taskGridModel = taskGridModel, taskHomeTabModel::setIsProfilingFromProcessStart, taskTypes = taskTypes,
+               profilers = profilers)
     },
     topBar = { TopBar(profilers, ideProfilerComponents) },
     taskActionBar = {
-      TaskActionBar(canStartTask, onEnterProfilerTask, isProfilingFromProcessStart, setIsProfilingFromProcessStart,
-                    isPreferredProcessSelected, isTaskSupportedOnStartup)
+      TaskActionBar(canStartTask, taskHomeTabModel::onEnterTaskButtonClick, isProfilingFromProcessStart,
+                    taskHomeTabModel::setIsProfilingFromProcessStart, isPreferredProcessSelected, isTaskSupportedOnStartup)
     },
     modifier = modifier)
 }
 
 @Composable
-fun TaskGridAndBars(taskGridModel: TaskGridModel,
-                    selectedRecording: SessionItem?,
-                    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                    onEnterProfilerTask: () -> Unit,
-                    modifier: Modifier) {
+fun TaskGridAndBars(pastRecordingsTabModel: PastRecordingsTabModel, modifier: Modifier) {
+  val taskHandlers = pastRecordingsTabModel.taskHandlers
+
+  val taskGridModel = pastRecordingsTabModel.taskGridModel
   val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
+
+  val recordingListModel = pastRecordingsTabModel.recordingListModel
+  val selectedRecording by recordingListModel.selectedRecording.collectAsState()
+
   val canStartTask = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
   TaskGridAndBarsContainer(
     taskGrid = { TaskGrid(taskGridModel = taskGridModel, selectedRecording = selectedRecording, taskHandlers = taskHandlers) },
     topBar = { TopBar() },
-    taskActionBar = { TaskActionBar(canStartTask, onEnterProfilerTask) },
+    taskActionBar = { TaskActionBar(canStartTask, pastRecordingsTabModel::onEnterTaskButtonClick) },
     modifier = modifier)
 }

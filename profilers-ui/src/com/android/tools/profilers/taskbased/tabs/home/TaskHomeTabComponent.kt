@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
@@ -40,13 +38,7 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    val taskGridModel = taskHomeTabModel.taskGridModel
-    val taskHandlers = taskHomeTabModel.taskHandlers
-    val isSelectedDeviceProcessTaskValid = taskHomeTabModel::isSelectedDeviceProcessTaskValid
-    val isProfilingFromProcessStart by taskHomeTabModel.isProfilingFromProcessStart.collectAsState()
     val processListModel = taskHomeTabModel.processListModel
-    val isPreferredProcessSelected by processListModel.isPreferredProcessSelected.collectAsState()
-    val profilers = taskHomeTabModel.profilers
 
     HorizontalSplitLayout(
       minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
@@ -55,9 +47,7 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
         ProcessList(processListModel, it)
       },
       second = {
-        TaskGridAndBars(taskGridModel, isProfilingFromProcessStart, isPreferredProcessSelected,
-                        taskHomeTabModel::setIsProfilingFromProcessStart, isSelectedDeviceProcessTaskValid,
-                        taskHomeTabModel::onEnterTaskButtonClick, taskHandlers, profilers, ideProfilerComponents, it)
+        TaskGridAndBars(taskHomeTabModel, ideProfilerComponents, it)
       }
     )
   }

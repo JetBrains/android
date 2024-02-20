@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
@@ -40,10 +38,7 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    val taskGridModel = pastRecordingsTabModel.taskGridModel
-    val taskHandlers = pastRecordingsTabModel.taskHandlers
     val recordingListModel = pastRecordingsTabModel.recordingListModel
-    val selectedRecording by recordingListModel.selectedRecording.collectAsState()
 
     HorizontalSplitLayout(
       minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
@@ -52,7 +47,7 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
         RecordingList(recordingListModel, ideProfilerComponents, it)
       },
       second = {
-        TaskGridAndBars(taskGridModel, selectedRecording, taskHandlers, pastRecordingsTabModel::onEnterTaskButtonClick, it)
+        TaskGridAndBars(pastRecordingsTabModel, it)
       }
     )
   }
