@@ -448,7 +448,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @SurfaceScreenScalingFactor
   public double getScreenScalingFactor() {
-    return getZoomable().getScreenScalingFactor();
+    return getZoomController().getScreenScalingFactor();
   }
 
   @NotNull
@@ -865,7 +865,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @UiThread
   final public boolean zoom(@NotNull ZoomType type) {
-    return getZoomable().zoom(type);
+    return getZoomController().zoom(type);
   }
 
   @Nullable
@@ -918,7 +918,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @UiThread
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    return getZoomable().zoom(type, x, y);
+    return getZoomController().zoom(type, x, y);
   }
 
   @SwingCoordinate
@@ -926,12 +926,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @UiThread
   final public boolean zoomToFit() {
-    return getZoomable().zoomToFit();
+    return getZoomController().zoomToFit();
   }
 
   @SurfaceScale
   public double getScale() {
-    return getZoomable().getScale();
+    return getZoomController().getScale();
   }
 
   @Override
@@ -945,11 +945,11 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   public boolean canZoomIn() {
-    return getZoomable().canZoomIn();
+    return getZoomController().canZoomIn();
   }
 
   public boolean canZoomOut() {
-    return getZoomable().canZoomOut();
+    return getZoomController().canZoomOut();
   }
 
   public Map<SceneView, Rectangle> findSceneViewRectangles() {
@@ -1093,11 +1093,11 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    return getZoomable().setScale(scale, x, y);
+    return getZoomController().setScale(scale, x, y);
   }
 
   public boolean setScale(@SurfaceScale double scale){
-    return getZoomable().setScale(scale);
+    return getZoomController().setScale(scale);
   }
 
   @Override
@@ -1130,7 +1130,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    state.saveFileScale(myProject, model.getVirtualFile(), getZoomable().getScale());
+    state.saveFileScale(myProject, model.getVirtualFile(), getZoomController().getScale());
   }
 
   /**
@@ -1144,7 +1144,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
     Double previousScale = state.loadFileScale(myProject, model.getVirtualFile());
     if (previousScale != null) {
-      getZoomable().setScale(previousScale);
+      getZoomController().setScale(previousScale);
       return true;
     }
     else {
@@ -1157,7 +1157,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @SurfaceScale
   protected double getMinScale() {
-    return getZoomable().getMinScale();
+    return getZoomController().getMinScale();
   }
 
   /**
@@ -1165,7 +1165,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @SurfaceScale
   protected double getMaxScale() {
-    return getZoomable().getMaxScale();
+    return getZoomController().getMaxScale();
   }
 
   private void notifyScaleChanged(double previousScale, double newScale) {
@@ -1665,7 +1665,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return this;
     }
     if (ZOOMABLE_KEY.is(dataId)){
-      return getZoomable();
+      return getZoomController();
     }
     if (CONFIGURATIONS.is(dataId)) {
       return getConfigurations();

@@ -124,7 +124,7 @@ object DesignSurfaceTestUtil {
     whenever(surface.project).thenReturn(project)
     whenever(surface.layoutType).thenCallRealMethod()
     val zoomController = createZoomControllerFake()
-    whenever(surface.zoomable).thenReturn(zoomController)
+    whenever(surface.zoomController).thenReturn(zoomController)
     return surface
   }
 

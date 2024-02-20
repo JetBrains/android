@@ -140,7 +140,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull
   @Override
-  public ZoomController getZoomable() {
+  public ZoomController getZoomController() {
     return myZoomController;
   }
 

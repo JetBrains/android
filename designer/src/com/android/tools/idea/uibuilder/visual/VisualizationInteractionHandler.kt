@@ -131,7 +131,7 @@ class VisualizationInteractionHandler(
   }
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoomable.zoom(type, mouseX, mouseY)
+    surface.zoomController.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(

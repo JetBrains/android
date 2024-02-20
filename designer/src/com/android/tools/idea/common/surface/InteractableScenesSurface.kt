@@ -32,5 +32,5 @@ import com.intellij.openapi.actionSystem.DataProvider
  */
 interface InteractableScenesSurface : Pannable, DataProvider, ScenesOwner, HoverableSurface {
 
-  val zoomable: ZoomController
+  val zoomController: ZoomController
 }

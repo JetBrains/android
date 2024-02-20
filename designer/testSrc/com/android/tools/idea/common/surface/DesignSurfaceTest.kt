@@ -450,7 +450,7 @@ class TestDesignSurface(
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
 
-  private val zoomController =
+  private val zoomControllerFake =
     createDesignSurfaceZoomControllerFake(
       project = project,
       disposable = disposable,
@@ -458,6 +458,6 @@ class TestDesignSurface(
       maxScale = 10.0,
       trackZoom = null,
     )
-  override val zoomable: ZoomController
-    get() = zoomController
+  override val zoomController: ZoomController
+    get() = zoomControllerFake
 }

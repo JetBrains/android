@@ -160,7 +160,7 @@ private class Surface(
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
 
-  override val zoomable: ZoomController
+  override val zoomController: ZoomController
     get() = createZoomControllerFake()
 
   override fun isShowing(): Boolean = true

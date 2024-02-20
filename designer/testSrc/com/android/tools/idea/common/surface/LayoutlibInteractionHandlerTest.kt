@@ -41,7 +41,7 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
     hoverCounter++
   }
 
-  override val zoomable: ZoomController
+  override val zoomController: ZoomController
     get() = createZoomControllerFake { zoomCounter++ }
 
   override var isPanning = false

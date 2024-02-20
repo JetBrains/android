@@ -412,7 +412,7 @@ class NavActionManagerTest : NavTestCase() {
     val dataContext = SimpleDataContext.builder()
       .add(CommonDataKeys.PROJECT, project)
       .add(DESIGN_SURFACE, surface)
-      .add(ZOOMABLE_KEY, surface.zoomable)
+      .add(ZOOMABLE_KEY, surface.zoomController)
       .add(COPY_PROVIDER, surfaceActionProvider)
       .add(CUT_PROVIDER, surfaceActionProvider)
       .add(PASTE_PROVIDER, surfaceActionProvider)

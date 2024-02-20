@@ -351,7 +351,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   @NotNull
   @Override
-  public ZoomController getZoomable() {
+  public ZoomController getZoomController() {
     return myZoomController;
   }
 
