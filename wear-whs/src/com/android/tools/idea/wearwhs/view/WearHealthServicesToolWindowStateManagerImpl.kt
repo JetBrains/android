@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -48,7 +49,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   : WearHealthServicesToolWindowStateManager, Disposable {
 
   private val logger: Logger = Logger.getInstance(WearHealthServicesToolWindowStateManagerImpl::class.java)
-  private val currentPreset = MutableStateFlow(Preset.ALL)
+  override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityUIState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
@@ -72,6 +73,21 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       while (true) {
         updateState()
         delay(pollingIntervalMillis.milliseconds)
+      }
+    }
+    workerScope.launch {
+      preset.collect {
+        when (it) {
+          Preset.STANDARD -> for (capability in capabilityToState.keys) {
+            setCapabilityEnabled(capability, capability.isStandardCapability)
+          }
+
+          Preset.ALL -> for (capability in capabilityToState.keys) {
+            setCapabilityEnabled(capability, true)
+          }
+
+          Preset.CUSTOM -> {}
+        }
       }
     }
   }
@@ -106,7 +122,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   private suspend fun setCapabilities(whsCapabilities: List<WhsCapability>) {
     capabilityToState.clear()
     capabilityToState.putAll(whsCapabilities.associateWith { MutableStateFlow(CapabilityUIState()) })
-    setPreset(currentPreset.value)
     capabilitiesList.emit(whsCapabilities)
   }
 
@@ -132,23 +147,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     catch (exception: ConnectionLostException) {
       progress.emit(WhsStateManagerStatus.ConnectionLost)
     }
-  }
-
-  override fun getPreset(): StateFlow<Preset> = currentPreset.asStateFlow()
-
-  override suspend fun setPreset(preset: Preset) {
-    when (preset) {
-      Preset.STANDARD -> for (capability in capabilityToState.keys) {
-        setCapabilityEnabled(capability, capability.isStandardCapability)
-      }
-
-      Preset.ALL -> for (capability in capabilityToState.keys) {
-        setCapabilityEnabled(capability, true)
-      }
-
-      Preset.CUSTOM -> {}
-    }
-    currentPreset.emit(preset)
   }
 
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
@@ -190,7 +188,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   override suspend fun reset() {
-    setPreset(Preset.ALL)
+    preset.value = Preset.ALL
     for (entry in capabilityToState.keys) {
       setOverrideValue(entry, null)
     }

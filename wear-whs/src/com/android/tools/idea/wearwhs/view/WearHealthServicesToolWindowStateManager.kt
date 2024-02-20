@@ -23,6 +23,7 @@ import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.view.Preset.ALL
 import com.android.tools.idea.wearwhs.view.Preset.CUSTOM
 import com.android.tools.idea.wearwhs.view.Preset.STANDARD
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.PropertyKey
 
@@ -35,15 +36,7 @@ internal interface WearHealthServicesToolWindowStateManager {
    */
   fun getCapabilitiesList(): StateFlow<List<WhsCapability>>
 
-  /**
-   * State flow for the current preset.
-   */
-  fun getPreset(): StateFlow<Preset>
-
-  /**
-   * Sets the current preset.
-   */
-  suspend fun setPreset(preset: Preset)
+  val preset:MutableStateFlow<Preset>
 
   /**
    * Sets the current capability enabled state.

@@ -106,7 +106,7 @@ class WearHealthServicesToolWindowTest {
 
     stateManager.forceUpdateState()
 
-    stateManager.setPreset(Preset.CUSTOM)
+    stateManager.preset.value = Preset.CUSTOM
     stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)

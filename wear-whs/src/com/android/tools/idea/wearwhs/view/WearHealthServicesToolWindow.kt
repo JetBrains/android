@@ -123,11 +123,9 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         model = DefaultComboBoxModel(Preset.values())
       }
       capabilitiesComboBox.addActionListener {
-        workerScope.launch {
-          stateManager.setPreset(capabilitiesComboBox.selectedItem as Preset)
-        }
+        stateManager.preset.value = (capabilitiesComboBox.selectedItem as Preset)
       }
-      stateManager.getPreset().onEach {
+      stateManager.preset.onEach {
         capabilitiesComboBox.selectedItem = it
       }.launchIn(uiScope)
       val eventTriggersDropDownButton = CommonDropDownButton(
@@ -275,7 +273,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             checkBox.addActionListener {
               workerScope.launch {
                 stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
-                stateManager.setPreset(Preset.CUSTOM)
+                stateManager.preset.value = Preset.CUSTOM
               }
             }
           }
