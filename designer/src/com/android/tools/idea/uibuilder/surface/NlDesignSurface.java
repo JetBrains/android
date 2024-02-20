@@ -947,8 +947,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
-  public void setOnScaleChangeListener(@NotNull ScaleChange update) {
-    super.setOnScaleChangeListener(update);
+  public void onScaleChange(@NotNull ScaleChange update) {
+    super.onScaleChange(update);
     onScaleChanged(
       update.getPreviousScale(),
       update.getFocusPoint().x,

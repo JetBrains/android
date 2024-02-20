@@ -54,8 +54,8 @@ import kotlin.math.min
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner The owner of this [ZoomController].
- * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT.
- * FIXME(b/291572358): this will replace the zoom logic within [DesignSurface]
+ * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT. FIXME(b/291572358):
+ *   this will replace the zoom logic within [DesignSurface]
  */
 abstract class DesignSurfaceZoomController(
   val designerAnalyticsManager: DesignerAnalyticsManager?,
@@ -78,7 +78,7 @@ abstract class DesignSurfaceZoomController(
   private var currentScale: Double = 1.0
 
   /** A listener that calls a callback whenever zoom changes. */
-  private var myZoomListener: ZoomListener? = null
+  private var myScaleListener: ScaleListener? = null
 
   /** Returns the current scale of [DesignSurface]. */
   @SurfaceScale
@@ -110,7 +110,7 @@ abstract class DesignSurfaceZoomController(
     }
     val previewsScale = this.scale
     this.currentScale = newScale
-    myZoomListener?.setOnScaleChangeListener(ScaleChange(previewsScale, this.scale, Point(x, y)))
+    myScaleListener?.onScaleChange(ScaleChange(previewsScale, this.scale, Point(x, y)))
     return true
   }
 
@@ -176,9 +176,9 @@ abstract class DesignSurfaceZoomController(
 
   protected fun getFocusedSceneView(): SceneView? = scenesOwner?.focusedSceneView
 
-  /** Sets a [ZoomListener] used by [DesignSurface] to interact with zoom changes. */
-  fun setOnScaleListener(listener: ZoomListener) {
-    myZoomListener = listener
+  /** Sets a [ScaleListener] used by [DesignSurface] to interact with zoom changes. */
+  fun setOnScaleListener(listener: ScaleListener) {
+    myScaleListener = listener
   }
 
   /**

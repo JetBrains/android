@@ -131,7 +131,7 @@ import org.jetbrains.annotations.TestOnly;
  * FIXME(b/291572358): [DesignSurface] shouldn't extend [ZoomController] as there is [DesignSurfaceZoomController] already
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
-  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport, ZoomListener {
+  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport, ScaleListener {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -1203,7 +1203,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     double previousScale = myScale;
     myScale = newScale;
-    setOnScaleChangeListener(new ScaleChange(
+    onScaleChange(new ScaleChange(
       previousScale,
       myScale,
       new Point(x ,y))
@@ -1212,7 +1212,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @Override
-  public void setOnScaleChangeListener(@NotNull ScaleChange update) {
+  public void onScaleChange(@NotNull ScaleChange update) {
     NlModel model = Iterables.getFirst(getModels(), null);
     if (model != null) {
       storeCurrentScale(model);
