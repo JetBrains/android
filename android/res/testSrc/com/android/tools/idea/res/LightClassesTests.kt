@@ -55,7 +55,6 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -81,7 +80,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.junit.Before
@@ -211,10 +209,8 @@ abstract class SingleModuleLightClassesTestBase {
 
     if (packageNameForNamespacing != null) {
       AndroidModel.set(myFacet, namespaced(myFacet))
-      runWriteCommandAction(project) {
-        Manifest.getMainManifest(myFacet)!!.getPackage().setValue(packageNameForNamespacing)
-      }
-      LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
+      updatePrimaryManifest(myFacet) { `package`.value = packageNameForNamespacing }
+      LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     }
   }
 
@@ -506,11 +502,7 @@ abstract class SingleModuleLightClassesTestBase {
 
     assertNoElementAtCaret(myFixture)
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply {
-        name.value = "com.example.SEND_MESSAGE"
-      }
-    }
+    updatePrimaryManifest(myFacet) { addPermission().name.value = "com.example.SEND_MESSAGE" }
 
     assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
@@ -540,11 +532,7 @@ abstract class SingleModuleLightClassesTestBase {
 
     assertNoElementAtCaret(myFixture)
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply {
-        name.value = "com.example.SEND_MESSAGE"
-      }
-    }
+    updatePrimaryManifest(myFacet) { addPermission().name.value = "com.example.SEND_MESSAGE" }
 
     assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
@@ -847,12 +835,8 @@ abstract class AppAndLibModulesLightClassesTestBase {
         .trimIndent(),
     )
 
-    runWriteCommandAction(project) {
-      libModule
-        .let(AndroidFacet::getInstance)!!
-        .let { Manifest.getMainManifest(it)!! }
-        .`package`!!
-        .value = "com.example.mylib"
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
+      `package`.value = "com.example.mylib"
     }
 
     myFixture.addFileToProject(
@@ -1503,9 +1487,8 @@ class UnrelatedModules : LightClassesTestBase() {
 
     val libModule = getAdditionalModuleByName("unrelatedLib")!!
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(libModule.let(AndroidFacet::getInstance)!!)!!.`package`!!.value =
-        "p1.p2.unrelatedLib"
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
+      `package`.value = "p1.p2.unrelatedLib"
     }
 
     myFixture.addFileToProject(
@@ -1617,10 +1600,8 @@ class NamespacedModuleWithAarLightClassesTest {
     )
 
     AndroidModel.set(myFacet, namespaced(myFacet))
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.getPackage().setValue("p1.p2")
-    }
-    LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
+    updatePrimaryManifest(myFacet) { `package`.value = "p1.p2" }
+    LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     addBinaryAarDependency(myModule)
   }
 
