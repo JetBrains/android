@@ -117,6 +117,10 @@ class LayoutInspectorRenderer(
     renderModel.modificationListeners.remove(repaintDisplayView)
   }
 
+  fun clearSelection() {
+    renderModel.clearSelection()
+  }
+
   fun refresh() {
     revalidate()
     repaint()
