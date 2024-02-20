@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import static com.android.tools.idea.rendering.classloading.ClassConverter.classVersionToJdk;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
@@ -62,19 +61,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ClassConverterTest extends TestCase {
-  public void testClassVersionToJdk() {
-    assertEquals("1.5", classVersionToJdk(49));
-    assertEquals("1.6", classVersionToJdk(50));
-    assertEquals("1.7", classVersionToJdk(51));
-    assertEquals("1.8", classVersionToJdk(52));
-    assertEquals("1.4", classVersionToJdk(48));
-    assertEquals("1.3", classVersionToJdk(47));
-    assertEquals("1.2", classVersionToJdk(46));
-    assertEquals("1.1", classVersionToJdk(45));
-    assertEquals("9", classVersionToJdk(53));
-    assertEquals("11", classVersionToJdk(55));
-  }
-
   public void testJdkToClassVersion() {
     assertEquals(-1, jdkToClassVersion("?"));
     assertEquals(49, jdkToClassVersion("1.5"));

@@ -85,14 +85,6 @@ public class ClassConverter {
     return javaVersion != null ? javaVersion.feature + 44 : -1;
   }
 
-  /** Converts a class file version number  JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */
-  public static String classVersionToJdk(int version) {
-    if (version >= 53) {
-      return Integer.toString(version - 53 + 9);
-    }
-    return "1." + Integer.toString(version - 44); // 47 => 1.3, 50 => 1.6, ...
-  }
-
   /** Return the classfile version of the current JDK */
   public static int getCurrentClassVersion() {
     return ourCurrentJdkClassVersion;
