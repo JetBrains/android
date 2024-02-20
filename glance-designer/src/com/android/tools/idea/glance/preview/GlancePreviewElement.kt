@@ -20,12 +20,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
-/**
- * Information required to display the preview of a Glance UI element.
- *
- * TODO(b/239802877): Create 2 different classes instead for appwidget and tile cases with different
- *   PreviewConfigurations reflecting the specifics of those.
- */
+/** Information required to display the preview of a Glance UI element. */
 class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,

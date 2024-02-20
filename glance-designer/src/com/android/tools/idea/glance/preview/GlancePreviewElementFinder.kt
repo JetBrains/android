@@ -35,7 +35,6 @@ private const val GLANCE_PREVIEW_ANNOTATION_FQN =
 
 private const val SURFACE_PARAM_NAME = "surface"
 private const val APP_WIDGET_SURFACE = "AppWidget"
-private const val TILE_SURFACE = "Tile"
 
 /**
  * Returns true if the [annotationEntry] annotation has [SURFACE_PARAM_NAME] parameter of
@@ -120,6 +119,3 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
 object AppWidgetPreviewElementFinder : GlancePreviewElementFinder(APP_WIDGET_SURFACE)
-
-/** Object that finds Glance Tile preview elements in the (Kotlin) file. */
-object TilePreviewElementFinder : GlancePreviewElementFinder(TILE_SURFACE)

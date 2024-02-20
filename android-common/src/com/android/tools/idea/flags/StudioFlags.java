@@ -1381,11 +1381,6 @@ public final class StudioFlags {
     "If enabled, a preview for annotated glance app widget composable functions is displayed",
     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> GLANCE_TILE_PREVIEW = new BooleanFlag(
-    WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
-    "If enabled, a preview for annotated glance tile composable functions is displayed",
-    false);
-
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",

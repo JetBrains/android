@@ -104,24 +104,6 @@ class GlancePreviewElementModelAdapterTest {
     )
   }
 
-  @Test
-  fun testWearTilesXml() {
-    assertEquals(
-      """<androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    tools:composableName="foo" />
-
-"""
-        .trimIndent(),
-      WearTilesModelAdapter.toXml(
-        GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      ),
-    )
-  }
-
   @After
   fun tearDown() {
     Disposer.dispose(rootDisposable)

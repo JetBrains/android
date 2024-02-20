@@ -60,22 +60,3 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   ): LightVirtualFile =
     GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content) { backedFile }
 }
-
-internal const val WEAR_TILE_VIEW_ADAPTER =
-  "androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter"
-
-object WearTilesModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) =
-    PreviewXmlBuilder(WEAR_TILE_VIEW_ADAPTER)
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
-      .toolsAttribute("composableName", previewElement.methodFqn)
-      .buildString()
-
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long,
-  ): LightVirtualFile =
-    GlanceTileAdapterLightVirtualFile("model-glance-weartile-$id.xml", content) { backedFile }
-}

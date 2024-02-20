@@ -33,8 +33,6 @@ class GlancePreviewElementFinderTest {
   private val fixture
     get() = projectRule.fixture
 
-  private lateinit var sourceFileBoth: PsiFile
-  private lateinit var sourceFileTiles: PsiFile
   private lateinit var sourceFileAppWidgets: PsiFile
   private lateinit var sourceFileNone: PsiFile
 
@@ -50,44 +48,6 @@ class GlancePreviewElementFinderTest {
         """
         .trimIndent(),
     )
-    sourceFileBoth =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileBoth.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import androidx.glance.preview.Preview
-
-        @Preview("AppWidget")
-        fun Foo1() { }
-
-        @Preview("Tile")
-        fun Foo2() { }
-
-        @Preview("AppWidget")
-        @Preview("Tile")
-        fun Foo3() { }
-
-        fun Foo4() { }
-        """
-          .trimIndent(),
-      )
-
-    sourceFileTiles =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileTile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import androidx.glance.preview.Preview
-
-        @Preview("Tile")
-        fun Foo21() { }
-        """
-          .trimIndent(),
-      )
 
     sourceFileAppWidgets =
       fixture.addFileToProjectAndInvalidate(
@@ -122,12 +82,6 @@ class GlancePreviewElementFinderTest {
   @Test
   fun testAppWidgetElementsFinder() = runBlocking {
     Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
-    )
-    Assert.assertFalse(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileTiles.virtualFile)
-    )
-    Assert.assertTrue(
       AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
     )
     Assert.assertFalse(
@@ -136,46 +90,9 @@ class GlancePreviewElementFinderTest {
 
     runBlocking {
       Assert.assertEquals(
-        listOf("com.android.test.SourceFileBothKt.Foo1", "com.android.test.SourceFileBothKt.Foo3"),
-        AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqn
-        },
-      )
-      Assert.assertEquals(
         listOf("com.android.test.SourceFileWidgetKt.Foo31"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
           .map { it.methodFqn },
-      )
-    }
-  }
-
-  @Test
-  fun testWearTileElementsFinder() = runBlocking {
-    Assert.assertTrue(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
-    )
-    Assert.assertTrue(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileTiles.virtualFile)
-    )
-    Assert.assertFalse(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
-    )
-    Assert.assertFalse(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
-    )
-
-    runBlocking {
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileBothKt.Foo2", "com.android.test.SourceFileBothKt.Foo3"),
-        TilePreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqn
-        },
-      )
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileTileKt.Foo21"),
-        TilePreviewElementFinder.findPreviewElements(project, sourceFileTiles.virtualFile).map {
-          it.methodFqn
-        },
       )
     }
   }

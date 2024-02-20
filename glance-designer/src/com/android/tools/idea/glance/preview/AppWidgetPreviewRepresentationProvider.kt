@@ -69,8 +69,8 @@ class AppWidgetPreviewRepresentationProvider(
     DesignerTypeRegistrar.register(GlanceAppWidgetEditorFileType)
   }
   /**
-   * Checks if the input [psiFile] contains glance tile services and therefore can be provided with
-   * the [PreviewRepresentation] of them.
+   * Checks if the input [psiFile] contains glance app widget services and therefore can be provided
+   * with the [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     if (DumbService.isDumb(project)) return false
