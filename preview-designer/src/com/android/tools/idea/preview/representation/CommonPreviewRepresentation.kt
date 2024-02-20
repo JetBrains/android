@@ -307,7 +307,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       surface.updatePreviewsAndRefresh(
         tryReusingModels = true,
         reinflate = true,
-        previewElementProvider.previewElements().toList(),
+        filePreviewElements,
         LOG,
         psiFile,
         this,
