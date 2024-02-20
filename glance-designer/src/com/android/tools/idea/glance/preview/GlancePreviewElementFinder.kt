@@ -16,9 +16,9 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.annotations.hasAnnotation
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction

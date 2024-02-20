@@ -19,9 +19,9 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.annotations.NodeInfo
-import com.android.tools.idea.annotations.UAnnotationSubtreeInfo
-import com.android.tools.idea.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.annotations.NodeInfo
+import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
