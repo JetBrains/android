@@ -104,19 +104,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
 
-  public ExportSignedPackageWizard(@NotNull Project project,
-                                   @NotNull List<AndroidFacet> facets,
-                                   Boolean showBundle) {
-    super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"),
-          project);
+  public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets) {
+    super(AndroidBundle.message("android.export.package.wizard.title"), project);
 
     myProject = project;
     assert !facets.isEmpty();
     myFacet = facets.get(0);
 
-    if (showBundle) {
-      addStep(new ChooseBundleOrApkStep(this));
-    }
+    addStep(new ChooseBundleOrApkStep(this));
     addStep(new KeystoreStep(this, true, facets));
     addStep(new GradleSignStep(this));
     init();

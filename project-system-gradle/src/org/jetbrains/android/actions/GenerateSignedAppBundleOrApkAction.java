@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -36,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class GenerateSignedApkAction extends AnAction {
+public class GenerateSignedAppBundleOrApkAction extends AnAction {
 
   @NotNull
   @Override
@@ -44,8 +42,8 @@ public class GenerateSignedApkAction extends AnAction {
     return ActionUpdateThread.BGT;
   }
 
-  public GenerateSignedApkAction() {
-    super(AndroidBundle.message("android.generate.signed.apk.action.bundle.text"));
+  public GenerateSignedAppBundleOrApkAction() {
+    super(AndroidBundle.message("android.generate.signed.app.bundle.or.apk.action.text"));
   }
 
   @VisibleForTesting
@@ -64,7 +62,7 @@ public class GenerateSignedApkAction extends AnAction {
 
     assert !facets.isEmpty();
 
-    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, allowBundleSigning(project));
+    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets);
     wizard.show();
   }
 
@@ -85,7 +83,7 @@ public class GenerateSignedApkAction extends AnAction {
                       (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {
-      e.getPresentation().setText(AndroidBundle.message("android.generate.signed.apk.action.bundle.text"));
+      e.getPresentation().setText(AndroidBundle.message("android.generate.signed.app.bundle.or.apk.action.text"));
     }
   }
 }

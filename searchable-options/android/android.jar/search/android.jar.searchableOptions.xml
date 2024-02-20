@@ -91,13 +91,14 @@
     <option name="apk" path="ActionManager" hit="Build APK(s)" />
     <option name="build" path="ActionManager" hit="Build APK(s)" />
     <option name="s" path="ActionManager" hit="Build APK(s)" />
+    <option name="apk" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="app" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="build" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="bundle" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="s" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
     <option name="build" path="ActionManager" hit="Build Bundle(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s)" />
-    <option name="apk" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="build" path="ActionManager" hit="Build Entire Project" />
     <option name="entire" path="ActionManager" hit="Build Entire Project" />
     <option name="project" path="ActionManager" hit="Build Entire Project" />
@@ -312,10 +313,11 @@
     <option name="entire" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="generate" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="profile" path="ActionManager" hit="Generate Entire App Baseline Profile" />
-    <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="apk" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="app" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="bundle" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="generate" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="signed" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
     <option name="a" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="always" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="and" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />

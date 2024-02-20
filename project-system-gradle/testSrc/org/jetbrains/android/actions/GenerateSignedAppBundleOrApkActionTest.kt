@@ -23,13 +23,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestActionEvent
 
 /**
- * Tests for [GenerateSignedApkAction]
+ * Tests for [GenerateSignedAppBundleOrApkAction]
  */
-class GenerateSignedApkActionTest: AndroidGradleTestCase() {
+class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
   fun testDefaultProjectSystemActionDisabled() {
     loadSimpleApplication()
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
-    val action = GenerateSignedApkAction()
+    val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
@@ -38,7 +38,7 @@ class GenerateSignedApkActionTest: AndroidGradleTestCase() {
 
   fun testSimpleProjectActionEnabled() {
     loadSimpleApplication()
-    val action = GenerateSignedApkAction()
+    val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
@@ -47,7 +47,7 @@ class GenerateSignedApkActionTest: AndroidGradleTestCase() {
 
   fun testLibraryOnlyProjectActionDisabled() {
     loadProject(KOTLIN_LIB)
-    val action = GenerateSignedApkAction()
+    val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
