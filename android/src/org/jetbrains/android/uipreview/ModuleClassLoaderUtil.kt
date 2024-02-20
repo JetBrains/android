@@ -18,7 +18,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
@@ -32,6 +32,7 @@ import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
+import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader

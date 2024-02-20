@@ -1,6 +1,6 @@
 package org.jetbrains.android.uipreview;
 
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 

@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 
 import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader;
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader;
 import com.android.tools.rendering.classloading.ClassBinaryCache;
 import com.android.tools.rendering.classloading.ClassTransform;
@@ -50,7 +50,7 @@ import java.util.Set;
 import kotlin.Unit;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.uipreview.ModuleClassLoaderUtil;
-import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader;
+import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

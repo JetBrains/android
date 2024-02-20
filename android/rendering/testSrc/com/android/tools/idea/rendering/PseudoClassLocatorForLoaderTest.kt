@@ -19,7 +19,7 @@ import com.android.tools.idea.rendering.classloading.FilteringClassLoader
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.NopLoader
-import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
+import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

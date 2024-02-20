@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
-import com.android.tools.rendering.classloading.fromBinaryNameToPackageName
 import com.google.common.base.MoreObjects
 import org.jetbrains.annotations.TestOnly
 import org.objectweb.asm.ClassReader
@@ -155,16 +154,16 @@ class PseudoClass private constructor(val name: String,
 
       val reader = ClassReader(classBytes)
       return PseudoClass(reader.className.fromBinaryNameToPackageName(),
-                         reader.superName?.fromBinaryNameToPackageName() ?: JAVA_OBJECT_FQN,
-                         (reader.access and Opcodes.ACC_INTERFACE) > 0,
-                         reader.interfaces.map { it.fromBinaryNameToPackageName() }.toList(), classLocator)
+        reader.superName?.fromBinaryNameToPackageName() ?: JAVA_OBJECT_FQN,
+        (reader.access and Opcodes.ACC_INTERFACE) > 0,
+        reader.interfaces.map { it.fromBinaryNameToPackageName() }.toList(), classLocator)
     }
 
     fun fromClass(loadClass: Class<*>, classLocator: PseudoClassLocator) =
       PseudoClass(loadClass.canonicalName,
-                  loadClass.superclass?.canonicalName ?: objectPseudoClass.name,
-                  loadClass.isInterface,
-                  loadClass.interfaces.map { it.canonicalName }.toList(), classLocator)
+        loadClass.superclass?.canonicalName ?: objectPseudoClass.name,
+        loadClass.isInterface,
+        loadClass.interfaces.map { it.canonicalName }.toList(), classLocator)
 
 
     /**

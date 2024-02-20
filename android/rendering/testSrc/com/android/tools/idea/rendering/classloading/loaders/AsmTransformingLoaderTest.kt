@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.NopClassLocator
+import com.android.tools.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.textifyClass
 import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.SimpleRemapper

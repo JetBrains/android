@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading.loaders
+package com.android.tools.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.ClassConverter
-import com.android.tools.idea.rendering.classloading.PseudoClassLocator
+import com.android.tools.rendering.classloading.ClassConverter
 import com.android.tools.rendering.classloading.ClassTransform
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.PseudoClassLocator
 import org.jetbrains.org.objectweb.asm.ClassWriter
 
 /**
  * A [DelegatingClassLoader.Loader] that applies the given [transform] to the loaded classes.
  *
- * The [pseudoClassLocator] is needed for ASM to be able to apply certain transformations without having to
- * fully load the class in the class loader.
- * [asmFlags] includes the flags needed to apply the transformation. See [ClassWriter].
+ * The [pseudoClassLocator] is needed for ASM to be able to apply certain transformations without
+ * having to fully load the class in the class loader. [asmFlags] includes the flags needed to apply
+ * the transformation. See [ClassWriter].
  *
  * [onRewrite] will be called after a class has been successfully transformed.
  */
-class AsmTransformingLoader @JvmOverloads constructor(
+class AsmTransformingLoader
+@JvmOverloads
+constructor(
   private val transform: ClassTransform,
   private val delegate: DelegatingClassLoader.Loader,
   private val pseudoClassLocator: PseudoClassLocator,
   private val asmFlags: Int = ClassWriter.COMPUTE_FRAMES,
-  private val onRewrite: (fqcn: String, durationMs: Long, size: Int) -> Unit = { _, _, _ -> }) : DelegatingClassLoader.Loader {
+  private val onRewrite: (fqcn: String, durationMs: Long, size: Int) -> Unit = { _, _, _ -> },
+) : DelegatingClassLoader.Loader {
 
   override fun loadClass(fqcn: String): ByteArray? {
     val bytes = delegate.loadClass(fqcn) ?: return null

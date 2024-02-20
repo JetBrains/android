@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getMinorVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
+import static com.android.tools.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.getMagic;
+import static com.android.tools.rendering.classloading.ClassConverter.getMajorVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.getMinorVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.isValidClassFile;
+import static com.android.tools.rendering.classloading.ClassConverter.jdkToClassVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.rewriteClass;
 import static com.google.common.truth.Truth.assertThat;
 import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -43,6 +43,8 @@ import static org.objectweb.asm.Opcodes.V1_7;
 
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider;
+import com.android.tools.rendering.classloading.NopClassLocator;
+import com.android.tools.rendering.classloading.PseudoClassLocator;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;

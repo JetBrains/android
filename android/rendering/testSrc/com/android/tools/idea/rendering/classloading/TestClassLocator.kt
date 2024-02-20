@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.android.tools.rendering.classloading.PseudoClass
+import com.android.tools.rendering.classloading.PseudoClassLocator
+
 /**
  * A [PseudoClassLocator] for test that resolves the [PseudoClass]es from the given [classes] map.
  */
