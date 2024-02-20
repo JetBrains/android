@@ -37,7 +37,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import java.io.File
 import java.util.function.Consumer
 
-private val toolNameToEnumMap = mapOf("Java compiler" to BuildErrorMessage.ErrorType.JAVA_COMPILER,
+private val toolNameToEnumMap = mapOf("Compiler" to BuildErrorMessage.ErrorType.JAVA_COMPILER,
                                       "Kotlin Compiler" to BuildErrorMessage.ErrorType.KOTLIN_COMPILER,
                                       CLANG_COMPILER_MESSAGES_GROUP_PREFIX to BuildErrorMessage.ErrorType.CLANG,
                                       CMAKE to BuildErrorMessage.ErrorType.CMAKE,

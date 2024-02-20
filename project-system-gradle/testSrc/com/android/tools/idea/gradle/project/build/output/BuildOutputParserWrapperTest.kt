@@ -93,7 +93,7 @@ class BuildOutputParserWrapperTest {
   @Test
   fun testMetricsReporting() {
     val folder = temporaryFolder.newFolder("test")
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Java compiler errors", "error message", "error message",
+    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Compiler", "error message", "error message",
                                         FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
     myParserWrapper.parse(null, null) {}
 
