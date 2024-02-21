@@ -25,7 +25,7 @@ interface AnnotatedMethod {
 
   val qualifiedName: String
 
-  val psiPointer: SmartPsiElementPointer<PsiElement>?
+  val methodBody: SmartPsiElementPointer<PsiElement>?
 
   val parameterAnnotations: List<Pair<String, AnnotationAttributesProvider>>
 }

@@ -32,7 +32,7 @@ class UastAnnotatedMethod(private val method: UMethod) : AnnotatedMethod {
   override val qualifiedName: String
     get() = method.qualifiedName
 
-  override val psiPointer: SmartPsiElementPointer<PsiElement>?
+  override val methodBody: SmartPsiElementPointer<PsiElement>?
     get() = method.uastBody.toSmartPsiPointer()
 
   override val parameterAnnotations: List<Pair<String, AnnotationAttributesProvider>>

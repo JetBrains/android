@@ -81,7 +81,7 @@ fun previewAnnotationToPreviewElement(
       composableMethod,
       displaySettings,
       previewElementDefinitionPsi,
-      annotatedMethod.psiPointer,
+      annotatedMethod.methodBody,
       attributesToConfiguration(attributesProvider)
     )
   return if (!parameters.isEmpty()) {
