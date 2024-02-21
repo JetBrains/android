@@ -216,15 +216,4 @@ public class ExternalAnnotationsSupport {
     attachJdkAnnotations(modifier);
     modifier.commitChanges();
   }
-
-  public static void addAnnotationsIfNecessary(@NotNull Sdk sdk) {
-    // Attempt to insert SDK annotations
-    VirtualFile[] roots = sdk.getRootProvider().getFiles(AnnotationOrderRootType.getInstance());
-    if (roots.length > 0) {
-      return;
-    }
-    SdkModificator modifier = sdk.getSdkModificator();
-    attachJdkAnnotations(modifier);
-    modifier.commitChanges();
-  }
 }
