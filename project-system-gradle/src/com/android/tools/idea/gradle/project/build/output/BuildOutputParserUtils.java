@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
+import com.intellij.build.output.BuildOutputInstantReader;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildOutputParserUtils {
@@ -24,4 +25,11 @@ public class BuildOutputParserUtils {
   @NotNull public static final String MESSAGE_GROUP_ERROR_SUFFIX = " errors";
 
   @NotNull public static final String BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception.";
+
+  public static void consumeRestOfOutput(BuildOutputInstantReader reader) {
+    while (true) {
+      String nextLine = reader.readLine();
+      if (nextLine == null || nextLine.startsWith("BUILD FAILED") || nextLine.startsWith("CONFIGURE FAILED")) break;
+    }
+  }
 }

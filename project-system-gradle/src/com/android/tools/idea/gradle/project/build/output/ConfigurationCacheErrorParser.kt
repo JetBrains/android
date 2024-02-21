@@ -28,7 +28,7 @@ import java.util.function.Consumer
 
 class ConfigurationCacheErrorParser : BuildOutputParser {
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith("FAILURE: Build failed with an exception.")) return false
+    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
     // First skip to what went wrong line.
     if (!reader.readLine().isNullOrBlank()) return false
 
@@ -52,6 +52,8 @@ class ConfigurationCacheErrorParser : BuildOutputParser {
       if (descriptionLine == "* Try:") break
       description.appendLine(descriptionLine)
     }
+
+    BuildOutputParserUtils.consumeRestOfOutput(reader)
 
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()

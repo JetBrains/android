@@ -37,7 +37,7 @@ import java.util.function.Consumer
 
 class TomlErrorParser : BuildOutputParser {
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith("FAILURE: Build failed with an exception.")) return false
+    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
 
     // First skip to what went wrong line.
     if (!reader.readLine().isNullOrBlank()) return false
@@ -63,7 +63,7 @@ class TomlErrorParser : BuildOutputParser {
       description.appendLine(problemLine)
       val event = extractIssueInformation(catalogName, description, reader) ?: return false
       messageConsumer.accept(event)
-      consumeRestOfOutput(reader)
+      BuildOutputParserUtils.consumeRestOfOutput(reader)
       return true
     } else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
@@ -75,17 +75,10 @@ class TomlErrorParser : BuildOutputParser {
         catalog, tomlTableName, alias, description, reader
       ) ?: return false
       messageConsumer.accept(event)
-      consumeRestOfOutput(reader)
+      BuildOutputParserUtils.consumeRestOfOutput(reader)
       return true
     }
     return false
-  }
-
-  private fun consumeRestOfOutput(reader: BuildOutputInstantReader) {
-    while (true) {
-      val nextLine = reader.readLine() ?: break
-      if (nextLine == "BUILD FAILED" || nextLine.startsWith("CONFIGURE FAILED")) break
-    }
   }
 
   private fun extractAliasInformation(catalog: String,
