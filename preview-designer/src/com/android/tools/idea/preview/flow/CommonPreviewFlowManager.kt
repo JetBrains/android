@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * When setting a new [groupFilter], the [CommonPreviewFlowManager] will request a new refresh by
  * invoking [requestRefresh].
  */
-class CommonPreviewFlowManager<T : PreviewElement>(
+class CommonPreviewFlowManager<T : PreviewElement<*>>(
   private val filePreviewElementProvider: PreviewElementProvider<T>,
   private val requestRefresh: () -> Unit,
 ) : PreviewFlowManager<T> {

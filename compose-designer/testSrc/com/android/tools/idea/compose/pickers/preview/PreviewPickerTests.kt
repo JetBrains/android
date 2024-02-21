@@ -29,7 +29,7 @@ import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
-import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElement
 import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -49,7 +49,7 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 
-private fun ComposePreviewElement.annotationText(): String =
+private fun PsiComposePreviewElement.annotationText(): String =
   ReadAction.compute<String, Throwable> { previewElementDefinition?.element?.text ?: "" }
 
 class PreviewPickerTests {

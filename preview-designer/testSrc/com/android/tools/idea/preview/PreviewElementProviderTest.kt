@@ -68,7 +68,7 @@ class PreviewElementProviderTest {
     val modificationTracker = SimpleModificationTracker()
     val memoized =
       MemoizedPreviewElementProvider(
-        object : PreviewElementProvider<PreviewElement> {
+        object : PreviewElementProvider<PreviewElement<Unit>> {
           override suspend fun previewElements() = staticPreviewProvider.previewElements()
         },
         modificationTracker,

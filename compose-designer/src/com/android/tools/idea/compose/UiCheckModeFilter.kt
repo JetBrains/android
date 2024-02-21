@@ -32,6 +32,7 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.annotations.VisibleForTesting
@@ -63,11 +64,11 @@ private val lightDarkModes =
  */
 sealed class UiCheckModeFilter {
   var modelsWithErrors: Set<NlModel>? = null
-  abstract val basePreviewInstance: ComposePreviewElementInstance?
+  abstract val basePreviewInstance: ComposePreviewElementInstance<*>?
 
   abstract fun filterPreviewInstances(
-    previewInstances: FlowableCollection<ComposePreviewElementInstance>
-  ): FlowableCollection<ComposePreviewElementInstance>
+    previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
+  ): FlowableCollection<PsiComposePreviewElementInstance>
 
   abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
@@ -75,16 +76,16 @@ sealed class UiCheckModeFilter {
     override val basePreviewInstance = null
 
     override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<ComposePreviewElementInstance>
-    ): FlowableCollection<ComposePreviewElementInstance> = previewInstances
+      previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
+    ): FlowableCollection<PsiComposePreviewElementInstance> = previewInstances
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
   }
 
-  class Enabled(selected: ComposePreviewElementInstance) : UiCheckModeFilter() {
+  class Enabled(selected: PsiComposePreviewElementInstance) : UiCheckModeFilter() {
     override val basePreviewInstance = selected
 
-    private val uiCheckPreviews: Collection<ComposePreviewElementInstance> =
+    private val uiCheckPreviews: Collection<PsiComposePreviewElementInstance> =
       calculatePreviews(selected)
 
     /** Calculate the groups. This will be all the groups available in [uiCheckPreviews] if any. */
@@ -94,8 +95,8 @@ sealed class UiCheckModeFilter {
         .toSet()
 
     override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<ComposePreviewElementInstance>
-    ): FlowableCollection<ComposePreviewElementInstance> =
+      previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
+    ): FlowableCollection<PsiComposePreviewElementInstance> =
       when (previewInstances) {
         is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
         is FlowableCollection.Present ->
@@ -110,10 +111,10 @@ sealed class UiCheckModeFilter {
     @VisibleForTesting
     companion object {
       fun calculatePreviews(
-        base: ComposePreviewElementInstance
-      ): Collection<ComposePreviewElementInstance> {
+        base: PsiComposePreviewElementInstance
+      ): Collection<PsiComposePreviewElementInstance> {
 
-        val composePreviewInstances = mutableListOf<ComposePreviewElementInstance>()
+        val composePreviewInstances = mutableListOf<PsiComposePreviewElementInstance>()
         composePreviewInstances.addAll(deviceSizePreviews(base))
         composePreviewInstances.addAll(fontSizePreviews(base))
         composePreviewInstances.addAll(lightDarkPreviews(base))
@@ -129,8 +130,8 @@ sealed class UiCheckModeFilter {
 }
 
 private fun deviceSizePreviews(
-  baseInstance: ComposePreviewElementInstance
-): List<ComposePreviewElementInstance> {
+  baseInstance: PsiComposePreviewElementInstance
+): List<PsiComposePreviewElementInstance> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   val effectiveDeviceIds =
@@ -152,8 +153,8 @@ private fun deviceSizePreviews(
 }
 
 private fun fontSizePreviews(
-  baseInstance: ComposePreviewElementInstance
-): List<ComposePreviewElementInstance> {
+  baseInstance: PsiComposePreviewElementInstance
+): List<PsiComposePreviewElementInstance> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return fontScales.map { (value, name) ->
@@ -168,8 +169,8 @@ private fun fontSizePreviews(
 }
 
 private fun lightDarkPreviews(
-  baseInstance: ComposePreviewElementInstance
-): List<ComposePreviewElementInstance> {
+  baseInstance: PsiComposePreviewElementInstance
+): List<PsiComposePreviewElementInstance> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return lightDarkModes.map { (value, name) ->
@@ -185,8 +186,8 @@ private fun lightDarkPreviews(
 }
 
 private fun colorBlindPreviews(
-  baseInstance: ComposePreviewElementInstance
-): List<ComposePreviewElementInstance> {
+  baseInstance: PsiComposePreviewElementInstance
+): List<PsiComposePreviewElementInstance> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return ColorBlindMode.values().map { colorBlindMode ->
@@ -208,10 +209,10 @@ private fun colorBlindPreviews(
  * Derives a new [ComposePreviewElementInstance] from an existing one, replacing the
  * [PreviewDisplaySettings] and the [PreviewConfiguration].
  */
-private fun ComposePreviewElementInstance.createDerivedInstance(
+private fun PsiComposePreviewElementInstance.createDerivedInstance(
   displaySettings: PreviewDisplaySettings,
   config: PreviewConfiguration,
-): ComposePreviewElementInstance {
+): PsiComposePreviewElementInstance {
   val singleInstance =
     SingleComposePreviewElementInstance(
       methodFqn,

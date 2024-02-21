@@ -216,7 +216,7 @@ class SwitchSurfaceLayoutManagerActionTest {
   )
 
   private fun setupTestData(
-    previewElements: Collection<PreviewElement> = emptyList(),
+    previewElements: Collection<PreviewElement<*>> = emptyList(),
     currentPreviewMode: PreviewMode = PreviewMode.Default(),
   ): TestData {
     val previewFlowManager = mock<PreviewFlowManager<*>>()

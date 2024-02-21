@@ -335,7 +335,7 @@ class RenderErrorTest {
       .toList()
 
   private suspend fun startUiCheckForModel(model: String) {
-    lateinit var uiCheckElement: ComposePreviewElementInstance
+    lateinit var uiCheckElement: ComposePreviewElementInstance<*>
 
     delayUntilCondition(250, timeout = 1.minutes) {
       previewView.mainSurface.models

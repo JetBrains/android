@@ -20,8 +20,8 @@ import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -97,7 +97,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
       }
       .withShapePolicy {
         (if (
-            COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+            PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
               ?.displaySettings
               ?.showDecoration == true
           )

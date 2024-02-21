@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.preview.PreviewElement
+import com.android.tools.preview.PsiPreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
@@ -28,20 +29,20 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
  *
  * This property needs a [ReadAction] to be read.
  */
-private val PreviewElement?.sourceOffset: Int
+private val PsiPreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinition?.element?.startOffset ?: -1
 
-private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
+private val sourceOffsetComparator = compareBy<PsiPreviewElement> { it.sourceOffset }
 private val displayPriorityComparator =
-  compareBy<PreviewElement> { it.displaySettings.displayPositioning }
+  compareBy<PsiPreviewElement> { it.displaySettings.displayPositioning }
 
 /**
  * Sorts Previews by descending group name as we want to show ungrouped Previews first. Ungrouped
  * Previews will be grouped as if they have "" as group name.
  */
 private val previewGroupsComparator =
-  compareByDescending<PreviewElement> { it.displaySettings.group ?: "" }
-private val lexicographicalNameComparator = compareBy<PreviewElement> { it.displaySettings.name }
+  compareByDescending<PreviewElement<*>> { it.displaySettings.group ?: "" }
+private val lexicographicalNameComparator = compareBy<PreviewElement<*>> { it.displaySettings.name }
 
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line
@@ -51,11 +52,12 @@ private val lexicographicalNameComparator = compareBy<PreviewElement> { it.displ
  * ordered lexicographically between them, as the actual Previews may be defined in different files
  * and/or in a not structured way, so it is not possible to order them based on code source offsets.
  */
-fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
-  sortedWith(
-    displayPriorityComparator
-      .thenComparing(sourceOffsetComparator)
-      .thenComparing(previewGroupsComparator)
-      .thenComparing(lexicographicalNameComparator)
-  )
-}
+fun <T : PsiPreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> =
+  runReadAction {
+    sortedWith(
+      displayPriorityComparator
+        .thenComparing(sourceOffsetComparator)
+        .thenComparing(previewGroupsComparator)
+        .thenComparing(lexicographicalNameComparator)
+    )
+  }

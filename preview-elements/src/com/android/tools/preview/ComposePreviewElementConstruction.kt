@@ -21,21 +21,19 @@ import com.android.tools.preview.config.PARAMETER_NAME
 import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.preview.config.PARAMETER_SHOW_DECORATION
 import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 
 /**
  * Converts the given preview annotation represented by the [attributesProvider] to a
  * [ComposePreviewElement].
  */
-fun previewAnnotationToPreviewElement(
+fun <T : Any> previewAnnotationToPreviewElement(
   attributesProvider: AnnotationAttributesProvider,
-  annotatedMethod: AnnotatedMethod,
-  previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
-  parameterizedElementConstructor: (SingleComposePreviewElementInstance, Collection<PreviewParameter>) -> ComposePreviewElement,
+  annotatedMethod: AnnotatedMethod<T>,
+  previewElementDefinition: T?,
+  parameterizedElementConstructor: (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<T>,
   overrideGroupName: String? = null,
   parentAnnotationInfo: String? = null
-): ComposePreviewElement {
+): ComposePreviewElement<T> {
   fun getPreviewName(nameParameter: String?) =
     when {
       nameParameter != null -> "${annotatedMethod.name} - $nameParameter"

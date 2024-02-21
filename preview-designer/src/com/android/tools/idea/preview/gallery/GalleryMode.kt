@@ -64,7 +64,7 @@ class GalleryMode(rootComponent: JComponent) {
 
   /** Simulates a tab change, firing the [tabChangeListener]. Intended to be used in tests only. */
   @TestOnly
-  fun triggerTabChange(context: DataContext, previewElement: PreviewElement) {
+  fun triggerTabChange(context: DataContext, previewElement: PreviewElement<*>) {
     tabChangeListener(context, PreviewElementKey(previewElement))
   }
 

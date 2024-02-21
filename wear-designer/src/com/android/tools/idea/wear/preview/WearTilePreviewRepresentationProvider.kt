@@ -69,7 +69,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
-  private val filePreviewElementFinder: FilePreviewElementFinder<WearTilePreviewElement> =
+  private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> =
     WearTilePreviewElementFinder
 ) : PreviewRepresentationProvider {
 
@@ -99,8 +99,8 @@ class WearTilePreviewRepresentationProvider(
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     val previewProvider =
-      object : PreviewElementProvider<WearTilePreviewElement> {
-        override suspend fun previewElements(): Sequence<WearTilePreviewElement> =
+      object : PreviewElementProvider<PsiWearTilePreviewElement> {
+        override suspend fun previewElements(): Sequence<PsiWearTilePreviewElement> =
           filePreviewElementFinder
             .findPreviewElements(psiFile.project, psiFile.virtualFile)
             .asSequence()

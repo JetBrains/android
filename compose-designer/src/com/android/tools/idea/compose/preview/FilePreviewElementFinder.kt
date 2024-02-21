@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -23,7 +23,8 @@ import com.intellij.openapi.vfs.VirtualFile
 val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
 
 /**
- * Interface to be implemented by classes able to find [ComposePreviewElement]s on [VirtualFile]s.
+ * Interface to be implemented by classes able to find [PsiComposePreviewElement]s on
+ * [VirtualFile]s.
  */
 interface FilePreviewElementFinder {
   /**
@@ -40,12 +41,12 @@ interface FilePreviewElementFinder {
   suspend fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
-   * Returns all the [ComposePreviewElement]s present in the passed Kotlin [VirtualFile].
+   * Returns all the [PsiComposePreviewElement]s present in the passed Kotlin [VirtualFile].
    *
    * This method always runs on smart mode.
    */
   suspend fun findPreviewMethods(
     project: Project,
     vFile: VirtualFile,
-  ): Collection<ComposePreviewElement>
+  ): Collection<PsiComposePreviewElement>
 }

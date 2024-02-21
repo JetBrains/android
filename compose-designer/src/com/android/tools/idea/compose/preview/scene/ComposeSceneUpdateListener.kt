@@ -39,7 +39,7 @@ import org.jetbrains.annotations.VisibleForTesting
 fun updateAnimationInspectorToolbarIcon(
   viewObj: Any,
   previewManager: ComposePreviewManager,
-  previewElement: ComposePreviewElementInstance,
+  previewElement: ComposePreviewElementInstance<*>,
   animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker,
 ) {
   if (!previewManager.mode.value.isNormal) return

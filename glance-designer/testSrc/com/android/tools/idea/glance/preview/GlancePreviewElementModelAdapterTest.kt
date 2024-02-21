@@ -35,7 +35,7 @@ private fun simplestDisplaySettings(name: String = "") =
   PreviewDisplaySettings(name, null, false, false, null)
 
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) = ""
+  override fun toXml(previewElement: PsiGlancePreviewElement) = ""
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
@@ -45,7 +45,7 @@ private fun glancePreviewElement(
   methodFqn: String,
   displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
 ) =
-  GlancePreviewElement(
+  PsiGlancePreviewElement(
     displaySettings = displaySettings,
     previewElementDefinition = null,
     previewBody = null,

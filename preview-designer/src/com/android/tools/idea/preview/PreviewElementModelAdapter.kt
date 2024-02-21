@@ -29,7 +29,7 @@ import com.intellij.testFramework.LightVirtualFile
  * interface is a way to adapt that rigidity of the system to be able to preview a generic
  * [PreviewElement].
  */
-interface PreviewElementModelAdapter<T : PreviewElement, M> {
+interface PreviewElementModelAdapter<T : PreviewElement<*>, M> {
   /**
    * Returns a number indicating how [el1] [PreviewElement] is to the [el2] [PreviewElement]. 0
    * meaning they are equal and higher the number the more dissimilar they are. This allows for,
@@ -65,6 +65,6 @@ interface PreviewElementModelAdapter<T : PreviewElement, M> {
   fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile
 }
 
-open class DelegatingPreviewElementModelAdapter<T : PreviewElement, M>(
+open class DelegatingPreviewElementModelAdapter<T : PreviewElement<*>, M>(
   private val delegate: PreviewElementModelAdapter<T, M>
 ) : PreviewElementModelAdapter<T, M> by delegate

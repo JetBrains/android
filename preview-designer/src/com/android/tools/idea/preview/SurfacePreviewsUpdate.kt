@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
+import com.android.tools.preview.PsiPreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -46,7 +47,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 
-private fun <T : PreviewElement, M> calcAffinityMatrix(
+private fun <T : PreviewElement<*>, M> calcAffinityMatrix(
   elements: List<T>,
   models: List<M>,
   previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
@@ -63,7 +64,7 @@ private fun <T : PreviewElement, M> calcAffinityMatrix(
  * indices are for the input [models] [List]. If there are less [models] than [elements] then
  * indices for some [PreviewElement]s will be set to -1.
  */
-fun <T : PreviewElement, M> matchElementsToModels(
+fun <T : PreviewElement<*>, M> matchElementsToModels(
   models: List<M>,
   elements: List<T>,
   previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
@@ -120,7 +121,7 @@ fun <T : PreviewElement, M> matchElementsToModels(
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 @Slow
-suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
+suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElements(
   progressIndicator: ProgressIndicator,
   modelToPreview: NlModel.() -> T?,
   configureLayoutlibSceneManager:
@@ -173,7 +174,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  *   [LayoutlibSceneManager].
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
-suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
+suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   tryReusingModels: Boolean,
   reinflate: Boolean,
   previewElements: Collection<T>,
@@ -285,7 +286,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       newModel.modelDisplayName = previewElement.displaySettings.name
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      (previewElement as? MethodPreviewElement)?.let { newModel.organizationGroup = it.methodFqn }
+      (previewElement as? MethodPreviewElement<*>)?.let {
+        newModel.organizationGroup = it.methodFqn
+      }
       val sceneManager =
         configureLayoutlibSceneManager(
             previewElement.displaySettings,

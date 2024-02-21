@@ -27,15 +27,17 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "GlancePreview"
-private val GLANCE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<GlancePreviewElement>("$PREFIX.PreviewElement")
+private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE =
+  DataKey.create<PsiGlancePreviewElement>("$PREFIX.PreviewElement")
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
 abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
-  MethodPreviewElementModelAdapter<GlancePreviewElement, M>(GLANCE_PREVIEW_ELEMENT_INSTANCE) {
+  MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(
+    PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE
+  ) {
 
   override fun applyToConfiguration(
-    previewElement: GlancePreviewElement,
+    previewElement: PsiGlancePreviewElement,
     configuration: Configuration,
   ) {
     configuration.target = configuration.settings.highestApiTarget
@@ -46,7 +48,7 @@ internal const val APP_WIDGET_VIEW_ADAPTER =
   "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
 object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) =
+  override fun toXml(previewElement: PsiGlancePreviewElement) =
     PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")

@@ -54,7 +54,7 @@ internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
 class AppWidgetPreviewRepresentationProvider(
-  private val filePreviewElementFinder: FilePreviewElementFinder<GlancePreviewElement> =
+  private val filePreviewElementFinder: FilePreviewElementFinder<PsiGlancePreviewElement> =
     AppWidgetPreviewElementFinder
 ) : PreviewRepresentationProvider {
 
@@ -84,8 +84,8 @@ class AppWidgetPreviewRepresentationProvider(
   /** Creates a [AppWidgetPreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     val previewProvider =
-      object : PreviewElementProvider<GlancePreviewElement> {
-        override suspend fun previewElements(): Sequence<GlancePreviewElement> =
+      object : PreviewElementProvider<PsiGlancePreviewElement> {
+        override suspend fun previewElements(): Sequence<PsiGlancePreviewElement> =
           filePreviewElementFinder
             .findPreviewElements(psiFile.project, psiFile.virtualFile)
             .asSequence()

@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * the file. This interface serves a generic case where [PreviewElement] are nt necessarily marked
  * with @Preview annotations or similar.
  */
-interface FilePreviewElementFinder<T : PreviewElement> {
+interface FilePreviewElementFinder<T : PreviewElement<*>> {
   suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
 
   /**

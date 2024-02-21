@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.openapi.vfs.VirtualFile
@@ -28,13 +29,13 @@ import com.intellij.testFramework.LightVirtualFile
 
 /** [PreviewElementModelAdapter] adapting [ComposePreviewElementInstance] to [NlModel]. */
 abstract class ComposePreviewElementModelAdapter :
-  ConfigurablePreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>,
-  MethodPreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>(
-    COMPOSE_PREVIEW_ELEMENT_INSTANCE
+  ConfigurablePreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>,
+  MethodPreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>(
+    PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
   ) {
 
   override fun applyToConfiguration(
-    previewElement: ComposePreviewElementInstance,
+    previewElement: PsiComposePreviewElementInstance,
     configuration: Configuration,
   ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 

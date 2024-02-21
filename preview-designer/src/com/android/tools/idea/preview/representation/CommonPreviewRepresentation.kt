@@ -62,6 +62,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
+import com.android.tools.preview.PsiPreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -94,10 +95,10 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
-val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PreviewElement>("PreviewElement")
+val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElement>("PreviewElement")
 
 /** A generic [PreviewElement] [PreviewRepresentation]. */
-open class CommonPreviewRepresentation<T : PreviewElement>(
+open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
@@ -546,7 +547,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     surface.background = mode.backgroundColor
   }
 
-  private suspend fun startInteractivePreview(element: PreviewElement) {
+  private suspend fun startInteractivePreview(element: PreviewElement<*>) {
     LOG.debug("Starting interactive preview mode on: $element")
     previewFlowManager.setSingleFilter(element as T)
     invalidateAndRefresh()

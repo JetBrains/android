@@ -21,6 +21,8 @@ import com.android.tools.idea.concurrency.flatMap
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -33,8 +35,8 @@ import kotlinx.coroutines.flow.map
 object ComposePreviewElementsModel {
   /** Instantiates all the given [ComposePreviewElement] into [ComposePreviewElementInstance]s. */
   fun instantiatedPreviewElementsFlow(
-    input: Flow<FlowableCollection<ComposePreviewElement>>
-  ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
+    input: Flow<FlowableCollection<PsiComposePreviewElement>>
+  ): Flow<FlowableCollection<PsiComposePreviewElementInstance>> =
     input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() } }
 
   /**
@@ -48,37 +50,37 @@ object ComposePreviewElementsModel {
      */
     class Group(val filterGroup: PreviewGroup.Named) : Filter() {
       override fun filter(
-        input: FlowableCollection<ComposePreviewElementInstance>
-      ): FlowableCollection<ComposePreviewElementInstance> =
+        input: FlowableCollection<PsiComposePreviewElementInstance>
+      ): FlowableCollection<PsiComposePreviewElementInstance> =
         input.filter inner@{
           PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup
         }
     }
 
     /** Filter that selects a single element. */
-    data class Single(val instance: ComposePreviewElementInstance) : Filter() {
+    data class Single(val instance: ComposePreviewElementInstance<*>) : Filter() {
       override fun filter(
-        input: FlowableCollection<ComposePreviewElementInstance>
-      ): FlowableCollection<ComposePreviewElementInstance> = input.filter { it == instance }
+        input: FlowableCollection<PsiComposePreviewElementInstance>
+      ): FlowableCollection<PsiComposePreviewElementInstance> = input.filter { it == instance }
     }
 
     /** Filtering disabled. */
     object Disabled : Filter() {
       override fun filter(
-        input: FlowableCollection<ComposePreviewElementInstance>
-      ): FlowableCollection<ComposePreviewElementInstance> = input
+        input: FlowableCollection<PsiComposePreviewElementInstance>
+      ): FlowableCollection<PsiComposePreviewElementInstance> = input
     }
 
     abstract fun filter(
-      input: FlowableCollection<ComposePreviewElementInstance>
-    ): FlowableCollection<ComposePreviewElementInstance>
+      input: FlowableCollection<PsiComposePreviewElementInstance>
+    ): FlowableCollection<PsiComposePreviewElementInstance>
   }
 
   /** Filters [allPreviewInstancesFlow] using the given [filterFlow]. */
   fun filteredPreviewElementsFlow(
-    allPreviewInstancesFlow: Flow<FlowableCollection<ComposePreviewElementInstance>>,
+    allPreviewInstancesFlow: Flow<FlowableCollection<PsiComposePreviewElementInstance>>,
     filterFlow: Flow<Filter>,
-  ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
+  ): Flow<FlowableCollection<PsiComposePreviewElementInstance>> =
     combine(allPreviewInstancesFlow, filterFlow) { allPreviewInstances, filter ->
       when (allPreviewInstances) {
         is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized

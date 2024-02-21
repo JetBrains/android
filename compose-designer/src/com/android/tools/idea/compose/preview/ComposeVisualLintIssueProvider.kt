@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSuppressTask
-import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -98,7 +98,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 class ComposeVisualLintSuppressTask(
   private val facet: AndroidFacet,
   private val project: Project,
-  private val previewElement: ComposePreviewElement,
+  private val previewElement: PsiComposePreviewElement,
   private val issueType: VisualLintErrorType,
 ) : VisualLintSuppressTask {
 

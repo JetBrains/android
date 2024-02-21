@@ -76,7 +76,7 @@ internal class DeployToDeviceAction :
   private fun runPreviewConfiguration(
     project: Project,
     module: Module,
-    previewElement: ComposePreviewElement,
+    previewElement: ComposePreviewElement<*>,
   ) {
     val factory =
       runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
@@ -113,5 +113,5 @@ internal class DeployToDeviceAction :
  * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the
  * provider class FQN and the target value index.
  */
-private fun ComposePreviewElement.previewProviderClassAndIndex() =
+private fun ComposePreviewElement<*>.previewProviderClassAndIndex() =
   if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null

@@ -77,17 +77,22 @@ data class PreviewParameter(
   val limit: Int,
 )
 
-/** Definition of a Composable preview element */
-interface ComposePreviewElement : MethodPreviewElement, ConfigurablePreviewElement {
+/**
+ * Definition of a Composable preview element. [T] represents a generic type specifying the
+ * location of the code. See [PreviewElement] for more details.
+ */
+interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
   /**
    * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
    * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
    */
-  fun resolve(): Sequence<ComposePreviewElementInstance>
+  fun resolve(): Sequence<ComposePreviewElementInstance<T>>
 }
 
+typealias PsiComposePreviewElement = ComposePreviewElement<SmartPsiElementPointer<PsiElement>>
+
 /** Definition of a preview element */
-abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSerializable {
+abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlSerializable {
   /** Unique identifier that can be used for filtering. */
   abstract val instanceId: String
 
@@ -97,7 +102,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
    */
   override var hasAnimations = false
 
-  override fun resolve(): Sequence<ComposePreviewElementInstance> = sequenceOf(this)
+  override fun resolve(): Sequence<ComposePreviewElementInstance<T>> = sequenceOf(this)
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
@@ -130,7 +135,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as ComposePreviewElementInstance
+    other as ComposePreviewElementInstance<T>
 
     return methodFqn == other.methodFqn &&
       instanceId == other.instanceId &&
@@ -141,22 +146,24 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
   override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId)
 }
 
+typealias PsiComposePreviewElementInstance = ComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>
+
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-class SingleComposePreviewElementInstance(
+class SingleComposePreviewElementInstance<T>(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings,
-  override val previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
-  override val previewBody: SmartPsiElementPointer<PsiElement>?,
+  override val previewElementDefinition: T?,
+  override val previewBody: T?,
   override val configuration: PreviewConfiguration,
-) : ComposePreviewElementInstance() {
+) : ComposePreviewElementInstance<T>() {
   override val instanceId: String = methodFqn
 
   companion object {
     @JvmStatic
     @TestOnly
-    fun forTesting(
+    fun <T> forTesting(
       composableMethodFqn: String,
       displayName: String = "",
       groupName: String? = null,
@@ -166,7 +173,7 @@ class SingleComposePreviewElementInstance(
       displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
       configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
     ) =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<T>(
         composableMethodFqn,
         PreviewDisplaySettings(
           displayName,
@@ -184,13 +191,13 @@ class SingleComposePreviewElementInstance(
 }
 
 class
-ParametrizedComposePreviewElementInstance(
-  private val basePreviewElement: ComposePreviewElement,
+ParametrizedComposePreviewElementInstance<T>(
+  private val basePreviewElement: ComposePreviewElement<T>,
   parameterName: String?,
   val providerClassFqn: String,
   val index: Int,
   val maxIndex: Int,
-) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
+) : ComposePreviewElementInstance<T>(), ComposePreviewElement<T> by basePreviewElement {
   override var hasAnimations = false
   override val instanceId: String = "$methodFqn#$parameterName$index"
 
@@ -230,16 +237,16 @@ ParametrizedComposePreviewElementInstance(
  * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
  * parameters.
  */
-open class ParametrizedComposePreviewElementTemplate(
-  private val basePreviewElement: ComposePreviewElement,
+open class ParametrizedComposePreviewElementTemplate<T>(
+  private val basePreviewElement: ComposePreviewElement<T>,
   val parameterProviders: Collection<PreviewParameter>,
-  private val renderContextFactory: (ComposePreviewElement) -> ModuleRenderContext?,
-) : ComposePreviewElement by basePreviewElement {
+  private val renderContextFactory: (ComposePreviewElement<T>) -> ModuleRenderContext?,
+) : ComposePreviewElement<T> by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
    * will be populated with data from the parameter providers.
    */
-  override fun resolve(): Sequence<ComposePreviewElementInstance> {
+  override fun resolve(): Sequence<ComposePreviewElementInstance<T>> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     if (parameterProviders.size > 1) {
@@ -263,7 +270,7 @@ open class ParametrizedComposePreviewElementTemplate(
   private fun loadPreviewParameterProvider(
     classLoader: ClassLoader,
     previewParameter: PreviewParameter,
-  ): Sequence<ComposePreviewElementInstance> {
+  ): Sequence<ComposePreviewElementInstance<T>> {
     try {
       val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
       val parameterProviderSizeMethod =
@@ -336,7 +343,7 @@ open class ParametrizedComposePreviewElementTemplate(
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as ParametrizedComposePreviewElementTemplate
+    other as ParametrizedComposePreviewElementTemplate<*>
 
     return basePreviewElement == other.basePreviewElement &&
       parameterProviders == other.parameterProviders

@@ -39,6 +39,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -68,7 +69,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
  * the render process and setting the current mode.
  */
-internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElementInstance> {
+internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewElementInstance> {
 
   private val log = Logger.getInstance(ComposePreviewFlowManager::class.java)
 
@@ -77,7 +78,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElem
    * flow is only updated when this Compose Preview representation is active.
    */
   override val allPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>>(
+    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>>(
       FlowableCollection.Uninitialized
     )
 
@@ -107,7 +108,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElem
    * This flow is only updated when this Compose Preview representation is active.
    */
   override val filteredPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>>(
+    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>>(
       FlowableCollection.Uninitialized
     )
 
@@ -116,7 +117,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElem
    * are all the [filteredPreviewElementsFlow] that have rendered.
    */
   private val renderedPreviewElementsInstancesFlow:
-    MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>> =
+    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>> =
     MutableStateFlow(FlowableCollection.Uninitialized)
 
   /**
@@ -149,7 +150,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElem
    * Filter that can be applied to select a single instance. Setting this filter will trigger a
    * refresh.
    */
-  override fun setSingleFilter(previewElement: ComposePreviewElementInstance?) {
+  override fun setSingleFilter(previewElement: PsiComposePreviewElementInstance?) {
     filterFlow.value =
       if (previewElement != null) {
         ComposePreviewElementsModel.Filter.Single(previewElement)
@@ -177,7 +178,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<ComposePreviewElem
   /**
    * Updates the value of [renderedPreviewElementsInstancesFlow] with the given list of previews.
    */
-  fun updateRenderedPreviews(previewElements: List<ComposePreviewElementInstance>) {
+  fun updateRenderedPreviews(previewElements: List<PsiComposePreviewElementInstance>) {
     renderedPreviewElementsInstancesFlow.value = FlowableCollection.Present(previewElements)
   }
 

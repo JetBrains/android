@@ -45,7 +45,7 @@ class GalleryModeTest {
 
   @Test
   fun firstSelectedComponent() {
-    val firstElement = SingleComposePreviewElementInstance.forTesting("PreviewMethod1")
+    val firstElement = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod1")
     val previewFlowManager =
       previewFlowManagerFor(
         listOf(
@@ -76,7 +76,7 @@ class GalleryModeTest {
 
   @Test
   fun secondSelectedElement() {
-    val secondElement = SingleComposePreviewElementInstance.forTesting("PreviewMethod2")
+    val secondElement = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod2")
     val previewFlowManager =
       previewFlowManagerFor(
         listOf(
@@ -95,8 +95,8 @@ class GalleryModeTest {
 
   @Test
   fun selectedElementUpdated() {
-    val selected = SingleComposePreviewElementInstance.forTesting("PreviewMethod1")
-    val newSelected = SingleComposePreviewElementInstance.forTesting("PreviewMethod3")
+    val selected = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod1")
+    val newSelected = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod3")
     val previewFlowManager =
       previewFlowManagerFor(
         listOf(
@@ -121,7 +121,7 @@ class GalleryModeTest {
   }
 
   private fun setupGallery(
-    previewFlowManager: () -> PreviewFlowManager<PreviewElement>
+    previewFlowManager: () -> PreviewFlowManager<PreviewElement<*>>
   ): Pair<GalleryMode, () -> Unit> {
     val gallery = GalleryMode(JPanel())
     val tabsToolbar = findGalleryTabs(gallery.component)
@@ -138,8 +138,8 @@ class GalleryModeTest {
     return Pair(gallery, refresh)
   }
 
-  private fun previewFlowManagerFor(previewElements: Collection<PreviewElement>) =
-    object : PreviewFlowManager<PreviewElement> {
+  private fun previewFlowManagerFor(previewElements: Collection<PreviewElement<*>>) =
+    object : PreviewFlowManager<PreviewElement<*>> {
       override val allPreviewElementsFlow =
         MutableStateFlow(FlowableCollection.Present(previewElements))
 
@@ -147,6 +147,6 @@ class GalleryModeTest {
       override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(setOf())
       override var groupFilter: PreviewGroup = PreviewGroup.All
 
-      override fun setSingleFilter(previewElement: PreviewElement?) {}
+      override fun setSingleFilter(previewElement: PreviewElement<*>?) {}
     }
 }

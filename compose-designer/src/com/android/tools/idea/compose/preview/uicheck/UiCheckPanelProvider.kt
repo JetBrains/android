@@ -33,7 +33,7 @@ val TAB_VIRTUAL_FILE: Key<VirtualFile> =
   Key.create(IssuePanelService::class.java.name + "_VirtualFile")
 
 class UiCheckPanelProvider(
-  private val instance: ComposePreviewElementInstance,
+  private val instance: ComposePreviewElementInstance<*>,
   private val psiPointer: SmartPsiElementPointer<PsiFile>,
 ) : ProblemsViewPanelProvider {
   override fun create(): ProblemsViewTab? {

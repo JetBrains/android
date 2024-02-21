@@ -45,8 +45,9 @@ import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PsiComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -148,7 +149,7 @@ interface ComposePreviewView {
    */
   suspend fun updatePreviewsAndRefresh(
     reinflate: Boolean,
-    previewElements: Collection<ComposePreviewElementInstance>,
+    previewElements: Collection<PsiComposePreviewElementInstance>,
     psiFile: PsiFile,
     progressIndicator: ProgressIndicator,
     onRenderCompleted: (Int) -> Unit,
@@ -158,7 +159,7 @@ interface ComposePreviewView {
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshEventBuilder: PreviewRefreshEventBuilder?,
-  ): List<ComposePreviewElementInstance> {
+  ): List<PsiComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
       // Don't reuse models when in gallery mode to avoid briefly showing an unexpected/mixed
@@ -190,7 +191,7 @@ interface ComposePreviewView {
   @Slow
   suspend fun refreshExistingPreviewElements(
     progressIndicator: ProgressIndicator,
-    modelToPreview: NlModel.() -> ComposePreviewElement?,
+    modelToPreview: NlModel.() -> PsiComposePreviewElement?,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshFilter: (LayoutlibSceneManager) -> Boolean,

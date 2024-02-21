@@ -15,8 +15,6 @@
  */
 package com.android.tools.preview
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
@@ -93,10 +91,10 @@ $t
       override val instanceId: String,
       override val methodFqn: String,
       override val displaySettings: PreviewDisplaySettings,
-      override val previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
-      override val previewBody: SmartPsiElementPointer<PsiElement>?,
+      override val previewElementDefinition: Unit?,
+      override val previewBody: Unit?,
       override val configuration: PreviewConfiguration
-    ) : ComposePreviewElementInstance() {
+    ) : ComposePreviewElementInstance<Unit>() {
       override var hasAnimations = false
     }
 

@@ -25,8 +25,10 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert
@@ -48,7 +50,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
     val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
@@ -67,7 +69,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
     val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
@@ -89,7 +91,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
@@ -106,7 +108,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview"
       )
 
@@ -139,7 +141,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview"
       )
 
@@ -173,7 +175,7 @@ class AtfAnalyzerComposeTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
@@ -203,7 +205,7 @@ class AtfAnalyzerComposeTest {
   }
 
   private fun collectIssuesFromRenders(
-    uiCheckPreviews: Collection<ComposePreviewElementInstance>,
+    uiCheckPreviews: Collection<PsiComposePreviewElementInstance>,
     facet: AndroidFacet,
   ): List<VisualLintIssueContent> =
     uiCheckPreviews.flatMap {

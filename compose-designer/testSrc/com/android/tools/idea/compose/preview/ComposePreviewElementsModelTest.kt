@@ -19,10 +19,12 @@ import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.groups.PreviewGroup.Companion.namedGroup
-import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElement
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -32,21 +34,24 @@ class ComposePreviewElementsModelTest {
   @Test
   fun testPreviewFilters(): Unit = runBlocking {
     val basePreviewElement =
-      SingleComposePreviewElementInstance.forTesting("Template", groupName = "TemplateGroup")
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "Template",
+        groupName = "TemplateGroup",
+      )
 
     // Fake PreviewElementTemplate that generates a couple of instances
     val template =
-      object : ComposePreviewElement by basePreviewElement {
+      object : PsiComposePreviewElement by basePreviewElement {
         private val templateInstances =
           listOf(
-            SingleComposePreviewElementInstance.forTesting(
+            SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
               "Instance1",
               groupName = "TemplateGroup",
             ),
             SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup"),
           )
 
-        override fun resolve(): Sequence<ComposePreviewElementInstance> =
+        override fun resolve(): Sequence<PsiComposePreviewElementInstance> =
           templateInstances.asSequence()
       }
     val allPreviews =
@@ -122,7 +127,12 @@ class ComposePreviewElementsModelTest {
 
   @Test
   fun instanceFilterIsApplied(): Unit = runBlocking {
-    val previewElement = SingleComposePreviewElementInstance.forTesting("A1", groupName = "GroupA")
+    val previewElement =
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "A1",
+        groupName = "GroupA",
+      )
+
     val allPreviews =
       listOf(
         previewElement,

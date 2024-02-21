@@ -27,18 +27,18 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /** Interface to be implemented by classes providing a list of [PreviewElement] */
-interface PreviewElementProvider<P : PreviewElement> {
+interface PreviewElementProvider<P : PreviewElement<*>> {
   /** Returns a [Sequence] of [PreviewElement]s. */
   suspend fun previewElements(): Sequence<P>
 }
 
-class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) :
+class StaticPreviewProvider<P : PreviewElement<*>>(private val collection: Collection<P>) :
   PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
 
 /** A [PreviewElementProvider] that applies a filter to the result. */
-class FilteredPreviewElementProvider<P : PreviewElement>(
+class FilteredPreviewElementProvider<P : PreviewElement<*>>(
   private val delegate: PreviewElementProvider<P>,
   private val filter: (P) -> Boolean,
 ) : PreviewElementProvider<P> {
@@ -50,7 +50,7 @@ class FilteredPreviewElementProvider<P : PreviewElement>(
  * [PreviewElementProvider] contents will only be updated when the given [modificationTracker]
  * updates.
  */
-class MemoizedPreviewElementProvider<P : PreviewElement>(
+class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
   private val delegate: PreviewElementProvider<P>,
   private val modificationTracker: ModificationTracker,
 ) : PreviewElementProvider<P> {
@@ -97,7 +97,7 @@ class MemoizedPreviewElementProvider<P : PreviewElement>(
  * in the provided [PreviewGroupManager]. If the selected preview group is [PreviewGroup.All] then
  * no filter is applied.
  */
-class GroupFilteredPreviewElementProvider<P : PreviewElement>(
+class GroupFilteredPreviewElementProvider<P : PreviewElement<*>>(
   private val previewGroupManager: PreviewGroupManager,
   private val delegate: PreviewElementProvider<P>,
 ) :

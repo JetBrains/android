@@ -25,7 +25,8 @@ import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.uast.UMethod
 
 /** [AnnotatedMethod] implementation based on [UMethod]. */
-class UastAnnotatedMethod(private val method: UMethod) : AnnotatedMethod {
+class UastAnnotatedMethod(private val method: UMethod) :
+  AnnotatedMethod<SmartPsiElementPointer<PsiElement>> {
   override val name: String
     get() = method.name
 

@@ -48,7 +48,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -200,8 +200,8 @@ class ComposePreviewRepresentationProvider(
 
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$PREFIX.Manager")
-internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<ComposePreviewElementInstance>("$PREFIX.PreviewElement")
+internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE =
+  DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
 

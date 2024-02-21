@@ -48,7 +48,7 @@ private const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
 private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 /** Object that can detect wear tile preview elements in a file. */
-internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTilePreviewElement> {
+internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearTilePreviewElement> {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     return findUMethodsWithTilePreviewSignature(project, vFile).any {
       it.findAllTilePreviewAnnotations().any()
@@ -58,7 +58,7 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
   override suspend fun findPreviewElements(
     project: Project,
     vFile: VirtualFile,
-  ): Collection<WearTilePreviewElement> {
+  ): Collection<PsiWearTilePreviewElement> {
     return findUMethodsWithTilePreviewSignature(project, vFile)
       .flatMap { method ->
         ProgressManager.checkCanceled()
@@ -76,7 +76,7 @@ private fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
 
 private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   uMethod: UMethod
-): WearTilePreviewElement? {
+): PsiWearTilePreviewElement? {
   val annotation = element as UAnnotation
   if (!annotation.isTilePreviewAnnotation()) return null
   val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
@@ -112,7 +112,7 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
     )
   }
 
-  return WearTilePreviewElement(
+  return PsiWearTilePreviewElement(
     displaySettings = displaySettings,
     previewElementDefinition =
       runReadAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },

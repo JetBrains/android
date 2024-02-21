@@ -89,6 +89,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
@@ -178,8 +179,8 @@ private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = Accessi
 private class PreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
-  private val previewFlowManager: PreviewFlowManager<ComposePreviewElementInstance>,
-  private val previewElement: ComposePreviewElementInstance,
+  private val previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
+  private val previewElement: ComposePreviewElementInstance<*>,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
@@ -187,7 +188,7 @@ private class PreviewElementDataContext(
       PreviewModeManager.KEY.name -> composePreviewManager
       PreviewGroupManager.KEY.name,
       PreviewFlowManager.KEY.name -> previewFlowManager
-      COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
+      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
       else -> null
@@ -558,7 +559,7 @@ class ComposePreviewRepresentation(
 
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
-      override fun createDataContext(previewElement: ComposePreviewElementInstance) =
+      override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
         PreviewElementDataContext(
           project,
           this@ComposePreviewRepresentation,
@@ -566,7 +567,7 @@ class ComposePreviewRepresentation(
           previewElement,
         )
 
-      override fun toXml(previewElement: ComposePreviewElementInstance) =
+      override fun toXml(previewElement: PsiComposePreviewElementInstance) =
         previewElement
           .toPreviewXml()
           // Whether to paint the debug boundaries or not
@@ -581,7 +582,7 @@ class ComposePreviewRepresentation(
           .buildString()
     }
 
-  private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
+  private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance<*>) {
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
     // We should call this before assigning the instance to singlePreviewElementInstance
@@ -600,7 +601,7 @@ class ComposePreviewRepresentation(
     ActivityTracker.getInstance().inc()
   }
 
-  private suspend fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
+  private suspend fun startUiCheckPreview(instance: PsiComposePreviewElementInstance) {
     log.debug(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
@@ -633,7 +634,7 @@ class ComposePreviewRepresentation(
     completableDeferred.join()
   }
 
-  fun createUiCheckTab(instance: ComposePreviewElementInstance) {
+  fun createUiCheckTab(instance: ComposePreviewElementInstance<*>) {
     val uiCheckIssuePanel = UiCheckPanelProvider(instance, psiFilePointer).getPanel()
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
     uiCheckIssuePanel.issueProvider.activate()
@@ -794,7 +795,7 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
-        (it.selected as? ComposePreviewElementInstance).let { element ->
+        (it.selected as? PsiComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
         }
 
@@ -1095,7 +1096,7 @@ class ComposePreviewRepresentation(
    * progress is given, and this method should return early if the indicator is cancelled.
    */
   private suspend fun doRefreshSync(
-    filteredPreviews: List<ComposePreviewElementInstance>,
+    filteredPreviews: List<PsiComposePreviewElementInstance>,
     quickRefresh: Boolean,
     progressIndicator: ProgressIndicator,
     refreshEventBuilder: PreviewRefreshEventBuilder?,
@@ -1529,7 +1530,7 @@ class ComposePreviewRepresentation(
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)
       }
       is PreviewMode.UiCheck -> {
-        startUiCheckPreview(mode.baseElement as ComposePreviewElementInstance)
+        startUiCheckPreview(mode.baseElement as PsiComposePreviewElementInstance)
       }
       is PreviewMode.AnimationInspection -> {
         ComposePreviewAnimationManager.onAnimationInspectorOpened()

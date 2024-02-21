@@ -31,7 +31,7 @@ class CommonPreviewModeManagerTest {
   @Test
   fun testRestoreMode(): Unit = runBlocking {
     val manager = CommonPreviewModeManager()
-    val previewElement = mock<PreviewElement>()
+    val previewElement = mock<PreviewElement<Unit>>()
 
     manager.setMode(PreviewMode.Interactive(previewElement))
 
@@ -50,7 +50,7 @@ class CommonPreviewModeManagerTest {
   @Test
   fun testChangeModeLayout(): Unit = runBlocking {
     val manager = CommonPreviewModeManager()
-    val previewElement = mock<PreviewElement>()
+    val previewElement = mock<PreviewElement<Unit>>()
 
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 

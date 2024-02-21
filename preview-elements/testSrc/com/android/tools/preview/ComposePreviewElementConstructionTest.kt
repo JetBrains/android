@@ -38,7 +38,7 @@ class ComposePreviewElementConstructionTest {
 
   @Test
   fun testPreviewAnnotationToPreviewElement_backgroundColor() {
-    val annotatedMethod = object : AnnotatedMethod {
+    val annotatedMethod = object : AnnotatedMethod<Unit> {
       override val name = "Method"
       override val qualifiedName = "com.test.Method"
       override val methodBody = null

@@ -72,7 +72,7 @@ class ComposePreviewElementFlowTest {
 
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
-    val previousElement = AtomicReference<Collection<ComposePreviewElement>>(emptySet())
+    val previousElement = AtomicReference<Collection<ComposePreviewElement<*>>>(emptySet())
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =

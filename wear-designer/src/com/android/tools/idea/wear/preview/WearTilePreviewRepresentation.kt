@@ -30,10 +30,10 @@ private val WEAR_TILE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_
 internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<WearTilePreviewElement>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<WearTilePreviewElement, NlModel>
+  previewProvider: PreviewElementProvider<PsiWearTilePreviewElement>,
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>
 ) :
-  CommonPreviewRepresentation<WearTilePreviewElement>(
+  CommonPreviewRepresentation<PsiWearTilePreviewElement>(
     adapterViewFqcn,
     psiFile,
     previewProvider,

@@ -46,8 +46,10 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
@@ -219,7 +221,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @Test
   fun testFastPreviewEditChangeRender() {
     val previewElement =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.MainActivityKt.TwoElementsPreview"
       )
     val initialState =

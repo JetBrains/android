@@ -67,7 +67,7 @@ sealed class PreviewMode {
 
   open val layoutOption: SurfaceLayoutManagerOption = LIST_LAYOUT_MANAGER_OPTION
 
-  open val selected: PreviewElement? = null
+  open val selected: PreviewElement<*>? = null
 
   /**
    * Returns a [PreviewMode] with the same content as the current one, but with a different layout
@@ -100,13 +100,13 @@ sealed class PreviewMode {
     }
   }
 
-  sealed class Focus<T : PreviewElement>(override val selected: T) : PreviewMode()
+  sealed class Focus<T : PreviewElement<*>>(override val selected: T) : PreviewMode()
 
   /** Represents a mode that can be restored when clicking on "Stop" when inside a mode. */
   sealed class RestorePreviewMode : PreviewMode()
 
   class UiCheck(
-    val baseElement: PreviewElement,
+    val baseElement: PreviewElement<*>,
     override val layoutOption: SurfaceLayoutManagerOption = GRID_LAYOUT_MANAGER_OPTIONS,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get(),
@@ -126,7 +126,7 @@ sealed class PreviewMode {
     }
   }
 
-  class Gallery(override val selected: PreviewElement?) : RestorePreviewMode() {
+  class Gallery(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
     override val layoutOption: SurfaceLayoutManagerOption = PREVIEW_LAYOUT_GALLERY_OPTION
 
     /**
@@ -136,8 +136,8 @@ sealed class PreviewMode {
      * update. So we are doing our best guess to select new element.
      */
     fun newMode(
-      newElements: Collection<PreviewElement>,
-      previousElements: Set<PreviewElement>,
+      newElements: Collection<PreviewElement<*>>,
+      previousElements: Set<PreviewElement<*>>,
     ): Gallery {
       // Try to match which element was selected before
       // If selectedKey was removed select first key. If it was only updated (i.e. if a
@@ -161,11 +161,11 @@ sealed class PreviewMode {
     }
   }
 
-  class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected) {
+  class Interactive(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
   }
 
-  class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected) {
+  class AnimationInspection(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
   }
 }

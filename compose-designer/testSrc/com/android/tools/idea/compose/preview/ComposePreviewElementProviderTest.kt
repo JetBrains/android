@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -27,9 +26,11 @@ class ComposePreviewElementProviderTest {
   @Test
   fun testFilteredProvider() = runBlocking {
     val staticPreviewProvider =
-      StaticPreviewProvider<ComposePreviewElementInstance>(
+      StaticPreviewProvider(
         listOf(
-          SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+          SingleComposePreviewElementInstance.forTesting<Unit>(
+            "com.sample.TestClass.PreviewMethod1"
+          ),
           SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
           SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod"),
         )

@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 
 /** Base model adapter for [MethodPreviewElement]s. */
-abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement, M : DataContextHolder>(
+abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement<*>, M : DataContextHolder>(
   private val elementKey: DataKey<T>
 ) : PreviewElementModelAdapter<T, M> {
   override fun calcAffinity(el1: T, el2: T?): Int {

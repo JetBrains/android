@@ -23,8 +23,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightVirtualFile
 import kotlin.test.assertEquals
@@ -35,10 +33,10 @@ import org.junit.Test
 private class TestMethodPreviewElement(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
-  override val previewElementDefinition: SmartPsiElementPointer<PsiElement>? = null,
-  override val previewBody: SmartPsiElementPointer<PsiElement>? = null,
+  override val previewElementDefinition: Unit? = null,
+  override val previewBody: Unit? = null,
   override val hasAnimations: Boolean = false,
-) : MethodPreviewElement
+) : MethodPreviewElement<Unit>
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}

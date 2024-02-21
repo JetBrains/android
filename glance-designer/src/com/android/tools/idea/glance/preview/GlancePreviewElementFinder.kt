@@ -59,7 +59,7 @@ private fun UAnnotation.isGlancePreview(surfaceName: String) =
 private fun toGlancePreviewElements(
   methods: List<UMethod>,
   surfaceName: String,
-): Sequence<GlancePreviewElement> =
+): Sequence<PsiGlancePreviewElement> =
   methods
     .flatMap { method ->
       val uClass = method.uastParent as UClass
@@ -80,12 +80,12 @@ private fun toGlancePreviewElements(
 
 /** Common class to find Glance preview elements for [surfaceName] surface. */
 open class GlancePreviewElementFinder(private val surfaceName: String) :
-  FilePreviewElementFinder<GlancePreviewElement> {
+  FilePreviewElementFinder<PsiGlancePreviewElement> {
   private val glanceSurfaceUAnnotationFilter: (UAnnotation?) -> Boolean = {
     surfaceFilter(it, surfaceName)
   }
 
-  private val methodsToElements: (List<UMethod>) -> Sequence<GlancePreviewElement> = {
+  private val methodsToElements: (List<UMethod>) -> Sequence<PsiGlancePreviewElement> = {
     toGlancePreviewElements(it, surfaceName)
   }
 

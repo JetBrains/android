@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * @see [FlowableCollection]
  */
-interface PreviewFlowManager<T : PreviewElement> : PreviewGroupManager {
+interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 

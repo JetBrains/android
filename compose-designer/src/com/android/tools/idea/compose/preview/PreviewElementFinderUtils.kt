@@ -103,7 +103,7 @@ fun UAnnotation?.isMultiPreviewAnnotation() =
  * Preview annotations
  */
 private fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
-  getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement }
+  getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement<*> }
 
 /**
  * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's
@@ -266,7 +266,7 @@ private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION
 private fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   composableMethod: UMethod,
   overrideGroupName: String?,
-): ComposePreviewElement? {
+): ComposePreviewElement<*>? {
   val annotation = element as UAnnotation
   return annotation.toPreviewElement(
     uMethod = composableMethod,

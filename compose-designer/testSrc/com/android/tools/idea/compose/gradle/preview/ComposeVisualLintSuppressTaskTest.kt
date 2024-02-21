@@ -19,10 +19,10 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.getPsiFile
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposeVisualLintIssueProvider
 import com.android.tools.idea.compose.preview.ComposeVisualLintSuppressTask
+import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.getPreviewNodes
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
@@ -32,7 +32,7 @@ import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
 import com.intellij.lang.annotation.HighlightSeverity
@@ -71,7 +71,7 @@ class ComposeVisualLintSuppressTaskTest {
               .mapNotNull { it.getContainingUMethod() }
               .toSet()
               .flatMap { getPreviewNodes(it, null, false) }
-              .filterIsInstance<ComposePreviewElementInstance>()
+              .filterIsInstance<PsiComposePreviewElementInstance>()
               .toList()
           }
         }
@@ -108,7 +108,7 @@ class ComposeVisualLintSuppressTaskTest {
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     nlModel.dataContext = DataContext {
       when (it) {
-        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
         else -> null
       }
     }
@@ -167,7 +167,7 @@ class ComposeVisualLintSuppressTaskTest {
               .mapNotNull { it.getContainingUMethod() }
               .toSet()
               .flatMap { getPreviewNodes(it, null, false) }
-              .filterIsInstance<ComposePreviewElementInstance>()
+              .filterIsInstance<PsiComposePreviewElementInstance>()
               .toList()
           }
         }
@@ -204,7 +204,7 @@ class ComposeVisualLintSuppressTaskTest {
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
     nlModel.dataContext = DataContext {
       when (it) {
-        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
         else -> null
       }
     }

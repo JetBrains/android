@@ -22,7 +22,7 @@ import com.android.tools.preview.applyTo
 
 /** Base model adapter for [ConfigurablePreviewElement]s. */
 interface ConfigurablePreviewElementModelAdapter<
-  T : ConfigurablePreviewElement,
+  T : ConfigurablePreviewElement<*>,
   M : DataContextHolder,
 > : PreviewElementModelAdapter<T, M> {
   override fun applyToConfiguration(previewElement: T, configuration: Configuration) {

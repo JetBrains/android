@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.RenderResult
@@ -36,7 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 fun createRenderTaskFuture(
   facet: AndroidFacet,
-  previewElement: ComposePreviewElementInstance,
+  previewElement: PsiComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
   useLayoutScanner: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
@@ -66,7 +67,7 @@ fun createRenderTaskFuture(
  */
 fun renderPreviewElementForResult(
   facet: AndroidFacet,
-  previewElement: ComposePreviewElementInstance,
+  previewElement: PsiComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
   useLayoutScanner: Boolean = false,
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
@@ -108,7 +109,7 @@ fun renderPreviewElementForResult(
  */
 fun renderPreviewElement(
   facet: AndroidFacet,
-  previewElement: ComposePreviewElementInstance,
+  previewElement: PsiComposePreviewElementInstance,
 ): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement).thenApply { it?.renderedImage?.copy }
 }

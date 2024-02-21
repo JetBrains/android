@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert
 import org.junit.Test
 
@@ -28,7 +30,7 @@ class ComposePreviewElementModelAdapterTest {
   @Test
   fun testAffinity() {
     val composable0 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
@@ -38,7 +40,7 @@ class ComposePreviewElementModelAdapterTest {
 
     // The same as composable0, just a different instance
     val composable0b =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
@@ -48,7 +50,7 @@ class ComposePreviewElementModelAdapterTest {
 
     // Same as composable0 but with different display settings
     val composable1 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
@@ -58,7 +60,7 @@ class ComposePreviewElementModelAdapterTest {
 
     // Same as composable0 but with different display settings
     val composable2 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
@@ -68,9 +70,9 @@ class ComposePreviewElementModelAdapterTest {
 
     val adapter =
       object : ComposePreviewElementModelAdapter() {
-        override fun toXml(previewElement: ComposePreviewElementInstance) = ""
+        override fun toXml(previewElement: PsiComposePreviewElementInstance) = ""
 
-        override fun createDataContext(previewElement: ComposePreviewElementInstance) =
+        override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
           DataContext {}
       }
 
