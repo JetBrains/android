@@ -20,6 +20,7 @@ import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.intellij.configurationStore.serialize
 import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -116,7 +117,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       }
 
       // Persist the multi-preview state
-      XmlSerializer.serializeIfNotDefault(state.previewState, null)?.let {
+      serialize(state.previewState)?.let {
         targetElement.addContent(it)
       }
 
