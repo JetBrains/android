@@ -61,8 +61,10 @@ class TomlErrorParser : BuildOutputParser {
       val problemLine = reader.readLine() ?: return false
       val catalogName = PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.groupValues?.get(1) ?: return false
       description.appendLine(problemLine)
-      val event = extractIssueInformation(catalogName, description, reader)
-      return event != null.also { event?.let { messageConsumer.accept(it) } }
+      val event = extractIssueInformation(catalogName, description, reader) ?: return false
+      messageConsumer.accept(event)
+      consumeRestOfOutput(reader)
+      return true
     } else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return false
@@ -71,10 +73,19 @@ class TomlErrorParser : BuildOutputParser {
       val tomlTableName = TYPE_NAMING_PARSING[type] ?: return false
       val event = extractAliasInformation(
         catalog, tomlTableName, alias, description, reader
-      )
-      return event != null.also { event?.let { messageConsumer.accept(it) } }
+      ) ?: return false
+      messageConsumer.accept(event)
+      consumeRestOfOutput(reader)
+      return true
     }
     return false
+  }
+
+  private fun consumeRestOfOutput(reader: BuildOutputInstantReader) {
+    while (true) {
+      val nextLine = reader.readLine() ?: break
+      if (nextLine == "BUILD FAILED" || nextLine.startsWith("CONFIGURE FAILED")) break
+    }
   }
 
   private fun extractAliasInformation(catalog: String,
