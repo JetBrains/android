@@ -170,7 +170,7 @@ class FakeToolWindow(
 /**
  * Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager
  */
-private class FakeContentManager : ContentManager {
+class FakeContentManager : ContentManager {
   private val myDispatcher = EventDispatcher.create(ContentManagerListener::class.java)
   private val myContents: MutableList<Content> = ArrayList()
   private var mySelected: Content? = null
@@ -438,7 +438,7 @@ private class FakeContentManager : ContentManager {
   }
 }
 
-private class FakeContent(
+class FakeContent(
   private val disposable: Disposable,
   private val contentManager: ContentManager,
   private val fakeComponent: JComponent,
@@ -548,7 +548,7 @@ private class FakeContent(
   override fun getExecutionId() = 1L
 }
 
-private class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), DataProvider {
+class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), DataProvider {
   init {
     tabInfo.container.add(tabInfo.content)
   }

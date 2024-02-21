@@ -33,6 +33,7 @@ import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
+import com.intellij.util.containers.DisposableWrapperList
 
 /**
  * Class responsible for observing the state of Running Devices tabs. Can be used by other classes
@@ -42,8 +43,11 @@ import com.intellij.ui.content.ContentManagerListener
 class RunningDevicesStateObserver(project: Project) : Disposable {
 
   interface Listener {
-    /** Called when the selected tab in Running Devices changes */
-    fun onSelectedTabChanged(deviceId: DeviceId?)
+    /**
+     * Called when the visible tabs in Running Devices change. There can be more than one visible
+     * tab if Running Deices is running in split window mode.
+     */
+    fun onVisibleTabsChanged(visibleTabs: List<DeviceId>)
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<DeviceId>)
   }
@@ -57,7 +61,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
 
   private val listeners = mutableListOf<Listener>()
 
-  private var selectedTab: DeviceId? = null
+  private var visibleTabs: List<DeviceId> = emptyList()
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
@@ -65,7 +69,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
       }
 
       field = value
-      listeners.forEach { it.onSelectedTabChanged(value) }
+      listeners.forEach { it.onVisibleTabsChanged(value) }
     }
 
   private var existingTabs = emptyList<DeviceId>()
@@ -78,8 +82,11 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
       listeners.forEach { it.onExistingTabsChanged(value) }
     }
 
-  // TODO(b/324741151): Add support for multiple context managers.
-  private var currentContentManager: ContentManager? = null
+  /**
+   * Running devices supports split window mode, where multiple tabs are visible at the same time
+   * and belong to multiple content managers. See b/325091329#comment8
+   */
+  private val contentManagers = DisposableWrapperList<ContentManager>()
 
   init {
     var toolWindowListener: RunningDevicesContentManagerListener? = null
@@ -104,7 +111,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
               // Restore selected tabs in case they are removed when the tool window is hidden.
-              updateSelectedTab()
+              updateVisibleTabs()
             }
           }
         }
@@ -117,7 +124,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
   fun addListener(listener: Listener) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    listener.onSelectedTabChanged(selectedTab)
+    listener.onVisibleTabsChanged(visibleTabs)
     listener.onExistingTabsChanged(existingTabs)
 
     listeners.add(listener)
@@ -133,30 +140,32 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
   fun update(enabled: Boolean, newContentManager: ContentManager?) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    if (newContentManager == null) {
+      return
+    }
+
     if (enabled) {
-      if (currentContentManager != null) {
-        // Context already registered.
+      if (contentManagers.contains(newContentManager)) {
+        // Content manager already registered.
         return
       }
 
-      checkNotNull(newContentManager)
-      currentContentManager = newContentManager
+      contentManagers.add(newContentManager, newContentManager)
 
-      updateSelectedTab()
+      // Update the state with tabs from the new content manager.
       updateExistingTabs()
     } else {
-      currentContentManager = null
-      selectedTab = null
+      contentManagers.remove(newContentManager)
     }
   }
 
   fun getTabContent(deviceId: DeviceId): Content? {
-    return currentContentManager?.contents?.find { it.deviceId == deviceId }
+    return contentManagers.flatMap { it.contents.toList() }.find { it.deviceId == deviceId }
   }
 
-  private fun updateSelectedTab() {
-    val deviceId = getSelectedTabDeviceId()
-    selectedTab = deviceId
+  private fun updateVisibleTabs() {
+    val deviceIds = getRunningDevicesVisibleTabs()
+    visibleTabs = deviceIds
   }
 
   private fun updateExistingTabs() {
@@ -182,25 +191,22 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
     override fun selectionChanged(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using
       // invokeLater, they should be executed first.
-      invokeLater { updateSelectedTab() }
+      invokeLater { updateVisibleTabs() }
     }
 
     override fun dispose() {}
   }
 
-  /** Returns [DeviceId] of the selected tab in the Running Devices Tool Window. */
-  private fun getSelectedTabDeviceId(): DeviceId? {
-    val contentManager = currentContentManager ?: return null
-    val selectedContent = contentManager.selectedContent ?: return null
-    val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
-
-    return selectedTabDataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
+  /** Returns [DeviceId] of the visible tabs in the Running Devices Tool Window. */
+  private fun getRunningDevicesVisibleTabs(): List<DeviceId> {
+    val selectedContent = contentManagers.mapNotNull { it.selectedContent }
+    val selectedTabDataProvider = selectedContent.mapNotNull { it.component as? DataProvider }
+    return selectedTabDataProvider.mapNotNull { it.getData(DEVICE_ID_KEY.name) as? DeviceId }
   }
 
   /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
   private fun getAllTabsDeviceIds(): List<DeviceId> {
-    val contentManager = currentContentManager ?: return emptyList()
-    val contents = contentManager.contents
+    val contents = contentManagers.flatMap { it.contents.toList() }
     val tabIds =
       contents
         .map { it.component }

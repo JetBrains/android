@@ -593,6 +593,40 @@ class LayoutInspectorManagerTest {
     assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(4)
     assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(4)
   }
+
+  @Test
+  @RunsInEdt
+  fun testEnableLiAcrossTabsFromMultipleContentManagers() {
+    val secondContentManager = FakeContentManager()
+    Disposer.register(displayViewRule.disposable, secondContentManager)
+
+    RunningDevicesStateObserver.getInstance(displayViewRule.project)
+      .update(enabled = true, newContentManager = secondContentManager)
+
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    fakeToolWindowManager.addContent(tab1)
+
+    val fakeComponent = FakeRunningDevicesComponent(tab2)
+    val fakeContent = FakeContent(displayViewRule.disposable, secondContentManager, fakeComponent)
+    secondContentManager.addContent(fakeContent)
+    secondContentManager.setSelectedContent(fakeContent)
+
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    fakeToolWindowManager.setSelectedContent(tab1)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+
+    verifyUiInjected(tab1)
+
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
+
+    verifyUiRemoved(tab1)
+    verifyUiInjected(tab2)
+
+    RunningDevicesStateObserver.getInstance(displayViewRule.project)
+      .update(enabled = false, newContentManager = secondContentManager)
+  }
 }
 
 private fun verifyUiInjected(tabInfo: TabInfo) {
