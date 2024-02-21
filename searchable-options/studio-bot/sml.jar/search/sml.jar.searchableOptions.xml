@@ -7,6 +7,10 @@
     <option name="document" path="ActionManager" hit="Document Code" />
     <option name="code" path="ActionManager" hit="Explain Code" />
     <option name="explain" path="ActionManager" hit="Explain Code" />
+    <option name="compose" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="data" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="generate" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="sample" path="ActionManager" hit="Generate Compose Sample Data" />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
     <option name="bot" path="ActionManager" hit="Studio Bot" />

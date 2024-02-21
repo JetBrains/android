@@ -1370,6 +1370,11 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
     "Invalidates the preview is there is a resource change",
     true);
+
+  public static final Flag<Boolean> COMPOSE_GENERATE_SAMPLE_DATA = new BooleanFlag(
+    COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
+    "Enable a Studio Bot context-menu action that generates sample data for a given Composable function",
+    false);
   //endregion
 
   // region Wear surfaces
