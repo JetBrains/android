@@ -113,9 +113,8 @@ class ConfigurationCacheFailureTest {
         .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
       expect.that(reportedFailureDetails).hasSize(1)
       reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-        // TODO report specific error type
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-          .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+          .containsExactly(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE)
       }
 
     }

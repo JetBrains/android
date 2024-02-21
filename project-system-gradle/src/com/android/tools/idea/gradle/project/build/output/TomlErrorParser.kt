@@ -96,7 +96,7 @@ class TomlErrorParser : BuildOutputParser {
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Invalid TOML catalog definition."
+      override val title: String = BUILD_ISSUE_TITLE
 
       private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
@@ -143,7 +143,7 @@ class TomlErrorParser : BuildOutputParser {
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Invalid TOML catalog definition."
+      override val title: String = BUILD_ISSUE_TITLE
 
       override fun getNavigatable(project: Project): Navigatable? {
         val tomlFile = when {
@@ -161,6 +161,7 @@ class TomlErrorParser : BuildOutputParser {
     baseDir?.findChild("gradle")?.findChild("$catalog.versions.toml")
 
   companion object {
+    const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
     val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), parsing failed with [0-9]+ error(?:s)?.".toRegex()
     val PROBLEM_ALIAS_PATTERN: Regex =  "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()

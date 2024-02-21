@@ -27,6 +27,7 @@ import com.android.tools.idea.studiobot.StudioBotBundle
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FileMessageEventImpl
@@ -48,7 +49,8 @@ private val toolNameToEnumMap = mapOf("Compiler" to BuildErrorMessage.ErrorType.
                                       "D8" to BuildErrorMessage.ErrorType.D8,
                                       "R8" to BuildErrorMessage.ErrorType.R8,
                                       RESOURCE_ASSET_MERGER_TOOL_NAME to BuildErrorMessage.ErrorType.RESOURCE_AND_ASSET_MERGER,
-                                      ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP to BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN)
+                                      ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP to BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
+                                      )
 
 private fun findErrorType(messageGroup: String): BuildErrorMessage.ErrorType? = toolNameToEnumMap.filterKeys {
   messageGroup.startsWith(it)
@@ -101,8 +103,31 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
       return
     }
 
-    val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
+    if (buildEvent is BuildIssueEvent) {
+      addStatsFromBuildIssue(buildEvent)
+    }
+    else {
+      addStatsFromDefaultMessage(buildEvent)
+    }
+  }
 
+  private fun addStatsFromBuildIssue(buildEvent: BuildIssueEvent) {
+    val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
+    when(buildEvent.issue.title) {
+      TomlErrorParser.BUILD_ISSUE_TITLE -> BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+      ConfigurationCacheErrorParser.BUILD_ISSUE_TITLE -> BuildErrorMessage.ErrorType.CONFIGURATION_CACHE
+      else -> null
+    }?.let {
+      buildErrorMessageBuilder.errorShownType = it
+    }
+
+  //TODO(b/326938231): add file stats based on navigable, while doing refactoring. Currently it is hard as requires project.
+  //               Plus eagerly requesting navigable might be wrong.
+    buildErrorMessages.add(buildErrorMessageBuilder.build())
+  }
+
+  private fun addStatsFromDefaultMessage(buildEvent: MessageEvent) {
+    val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
     findErrorType(buildEvent.group)?.let {
       buildErrorMessageBuilder.errorShownType = it
     }
@@ -114,7 +139,6 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
         buildErrorMessageBuilder.lineLocationIncluded = true
       }
     }
-
     buildErrorMessages.add(buildErrorMessageBuilder.build())
   }
 

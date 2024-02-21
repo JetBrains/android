@@ -103,6 +103,10 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
+      error?.message?.startsWith("Compilation failed; see the compiler error output for details.") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
+      error?.message?.startsWith("Invalid TOML catalog definition:") == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
+      error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
+        GradleSyncFailure.GROOVY_COMPILATION_ERROR
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
   }

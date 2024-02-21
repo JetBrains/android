@@ -58,12 +58,16 @@ class ConfigurationCacheErrorParser : BuildOutputParser {
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Configuration cache problems found in this build."
+      override val title: String = BUILD_ISSUE_TITLE
 
       override fun getNavigatable(project: Project): Navigatable? = null
 
     }
     messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR))
     return true
+  }
+
+  companion object {
+    const val BUILD_ISSUE_TITLE: String = "Configuration cache problems found in this build."
   }
 }

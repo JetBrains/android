@@ -42,10 +42,9 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
       expect.that(buildEvents.finishEventFailures()).isEmpty()
     },
     verifyFailureReported = {
-      //TODO(b/306405462): need to change to separate value detected
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE)
+      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.INVALID_TOML_DEFINITION)
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+        .containsExactly(BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION)
     },
   )
 

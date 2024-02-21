@@ -46,8 +46,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       expect.that(buildEvents.finishEventFailures()).isEmpty()
     },
     verifyFailureReported = {
-      //TODO(b/306405462): need to change to separate value detected
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE)
+      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.GROOVY_COMPILATION_ERROR)
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
         .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
     },
