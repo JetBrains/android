@@ -27,11 +27,11 @@ import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import java.io.Serializable
 
 sealed interface GradleModelCollection {
-  fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+  fun deliverModels(consumer: GradleModelConsumer)
 }
 
 class GradleProject(
@@ -39,15 +39,15 @@ class GradleProject(
   private val ideLibraryTable: IdeUnresolvedLibraryTableImpl
 ) : GradleModelCollection {
 
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+  override fun deliverModels(consumer: GradleModelConsumer) {
     with(ModelConsumer(consumer)) {
       ideLibraryTable.deliver()
     }
   }
 
-  private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
+  private inner class ModelConsumer(val buildModelConsumer: GradleModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
-      buildModelConsumer.consume(buildModel, this, T::class.java)
+      buildModelConsumer.consumeBuildModel(buildModel, this, T::class.java)
     }
   }
 }
@@ -61,7 +61,7 @@ sealed class DeliverableGradleModule(
   val exceptions: List<Throwable>
 ) : GradleModelCollection {
 
-  final override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+  final override fun deliverModels(consumer: GradleModelConsumer) {
     with(ModelConsumer(consumer)) {
       if (projectSyncIssues.isNotEmpty() || exceptions.isNotEmpty()) {
         IdeAndroidSyncIssuesAndExceptions(projectSyncIssues, exceptions).deliver()
@@ -72,7 +72,7 @@ sealed class DeliverableGradleModule(
 
   protected abstract fun ModelConsumer.deliverModels()
 
-  protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
+  protected inner class ModelConsumer(val buildModelConsumer: GradleModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
       buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
     }
@@ -142,8 +142,8 @@ class StandaloneDeliverableModel<T : Serializable>(
   private val modelFor: BuildModel
   ) : GradleModelCollection {
 
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    consumer.consume(modelFor, model, clazz)
+  override fun deliverModels(consumer: GradleModelConsumer) {
+    consumer.consumeBuildModel(modelFor, model, clazz)
   }
 
   companion object {
