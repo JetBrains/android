@@ -77,6 +77,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
       }
     }
     label.font = UIUtil.getToolTipFont()
+    label.name = "Current Zoom Level"
     return label
   }
 }

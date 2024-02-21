@@ -202,6 +202,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> setLocale(@NotNull String localeName) {
+    selectDropDownActionButtonItem("Locale for Preview", item -> item.equals(localeName));
+    return this;
+  }
+
   private void selectDropDownActionButtonItem(@NotNull String tooltip, @NotNull Predicate<String> predicate) {
     new ActionButtonFixture(myRobot, findToolbarButton(tooltip)).click();
     clickPopupMenuItemMatching(predicate, myToolBar.getComponent(), myRobot);
