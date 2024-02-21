@@ -742,7 +742,7 @@ public class AndroidGradleTests {
   }
 
   public static String getEmbeddedJdk8Path() throws IOException {
-    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk");
+    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk8");
     if (SystemInfo.isWindows) {
       // For JDK8 we have 32 and 64 bits versions on Windows
       jdkRootPath = jdkRootPath.resolve("win64");

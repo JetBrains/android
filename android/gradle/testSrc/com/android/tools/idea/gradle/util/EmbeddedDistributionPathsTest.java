@@ -56,9 +56,9 @@ public class EmbeddedDistributionPathsTest {
   public void testGetJdkRootPathFromSourcesRoot() {
     @SuppressWarnings("deprecation") String root = getSourcesRoot();
     List<Path> jdk8Paths = Stream.of("win64", "linux", "mac/Contents/Home")
-      .map((x) -> Path.of(root + "/prebuilts/studio/jdk/" + x))
+      .map((x) -> Path.of(root + "/prebuilts/studio/jdk/jdk8/" + x))
       .collect(Collectors.toList());
-    assertThat(jdk8Paths).contains(getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk"));
+    assertThat(jdk8Paths).contains(getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8"));
     List<Path> jdk11Paths = Stream.of("win", "linux", "mac/Contents/Home")
       .map((x) -> Path.of(root + "/prebuilts/studio/jdk/jdk11/" + x))
       .collect(Collectors.toList());

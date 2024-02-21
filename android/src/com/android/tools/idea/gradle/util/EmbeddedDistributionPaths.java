@@ -226,7 +226,7 @@ public class EmbeddedDistributionPaths {
   public static Path getJdkRootPathFromSourcesRoot(String embeddedJdkPath) {
     Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot(embeddedJdkPath);
     if (SystemInfo.isWindows) {
-      if (embeddedJdkPath.endsWith("jdk")) { // our prebuilt JDK 1.8: has distinct win32/win64.  In practice we will want win64 always.
+      if (embeddedJdkPath.endsWith("jdk8")) { // our prebuilt JDK 1.8: has distinct win32/win64.  In practice we will want win64 always.
         jdkRootPath = jdkRootPath.resolve("win64");
       }
       else {
