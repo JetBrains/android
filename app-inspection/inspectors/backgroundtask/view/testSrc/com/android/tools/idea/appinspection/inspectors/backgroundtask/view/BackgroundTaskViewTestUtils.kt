@@ -67,9 +67,14 @@ object BackgroundTaskViewTestUtils {
 
   fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)
 
+  fun JComponent.getValueOf(key: String): String = namedChild<JLabel>(key).text
+
   fun JComponent.getCategoryPanel(key: String): Container =
     findLabels(key).findFirst().get().parent.parent
 
   fun JComponent.findLabels(text: String): Stream<Component> =
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }
+
+  inline fun <reified T : Component> JComponent.namedChild(name: String): T =
+    TreeWalker(this).descendants().filterIsInstance<T>().first { it.name == name }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.PendingIntent.Type.BROADCAST
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -31,6 +32,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.findLabels
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueComponent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueOf
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.namedChild
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -40,8 +43,10 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -257,9 +262,25 @@ class EntryDetailsViewTest {
         alarmSetBuilder.apply {
           type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
           intervalMs = 5000
+          windowMs = 0
           operationBuilder.apply {
             creatorPackage = "creator.package"
             creatorUid = 100
+            type = BROADCAST
+            flags = 0xc000000
+            requestCode = 12
+            intentBuilder.apply {
+              action = "action"
+              data = "data"
+              addAllCategories(listOf("c1", "c2"))
+              componentNameBuilder.apply {
+                packageName = "foo"
+                className = "Bar"
+              }
+              type = "type"
+              flags = 0x8000
+              extras = "extras"
+            }
           }
         }
         stacktrace =
@@ -271,16 +292,28 @@ class EntryDetailsViewTest {
       selectionModel.selectedEntry = client.getEntry("1")
 
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
-      val typeComponent = descriptionPanel.getValueComponent("Type") as JLabel
-      assertThat(typeComponent.text).isEqualTo(alarmSet.type.name)
-      val intervalComponent = descriptionPanel.getValueComponent("Interval time") as JLabel
-      assertThat(intervalComponent.text).isEqualTo("5 s")
-      val creatorComponent = descriptionPanel.getValueComponent("Creator") as JLabel
-      assertThat(creatorComponent.text).isEqualTo("creator.package (UID: 100)")
+      assertThat(descriptionPanel.getValueOf("Type")).isEqualTo(alarmSet.type.name)
+      assertThat(descriptionPanel.getValueOf("Interval time")).isEqualTo("5 s")
+      assertThat(descriptionPanel.getValueOf("Window time")).isEqualTo("Exact")
+
+      val pendingIntent = detailsView.namedChild<JComponent>("PendingIntent")
+      assertThat(pendingIntent.getValueOf("Creator")).isEqualTo("creator.package (UID: 100)")
+      assertThat(pendingIntent.getValueOf("Type")).isEqualTo("BROADCAST")
+      assertThat(pendingIntent.getValueOf("Flags"))
+        .isEqualTo("0xc000000 (FLAG_UPDATE_CURRENT, FLAG_IMMUTABLE)")
+      assertThat(pendingIntent.getValueOf("Request code")).isEqualTo("12")
+
+      val intent = detailsView.namedChild<JComponent>("Intent")
+      assertThat(intent.getValueOf("Action")).isEqualTo("action")
+      assertThat(intent.getValueOf("Data")).isEqualTo("data")
+      assertThat(intent.getValueOf("Categories")).isEqualTo("c1, c2")
+      assertThat(intent.getValueOf("Component")).isEqualTo("foo.Bar")
+      assertThat(intent.getValueOf("Type")).isEqualTo("type")
+      assertThat(intent.getValueOf("Flags")).isEqualTo("0x8000 (FLAG_ACTIVITY_CLEAR_TASK)")
+      assertThat(intent.namedChild<JTextArea>("Extras").text).isEqualTo("extras")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
-      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
-      assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+      assertThat(resultsPanel.getValueOf("Time started")).isEqualTo(0L.toFormattedTimeString())
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
