@@ -48,8 +48,8 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   val logger = Logger.getInstance(this::class.java)
 
   @Slow
-  override fun readUrlData(url: String, timeout: Int): ByteArray? =
-    IdeNetworkCacheUtils.readHttpUrlData(url, timeout)
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 
   override fun error(throwable: Throwable, message: String?) =
     logger.error(message, throwable)

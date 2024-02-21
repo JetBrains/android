@@ -16,18 +16,28 @@
 package com.android.ide.common.repository
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.NetworkCache.ReadUrlDataResult
 import com.intellij.util.io.HttpRequests
+import java.net.HttpURLConnection
 import java.net.URL
 
 class IdeNetworkCacheUtils {
   companion object {
     @Slow
-    fun readHttpUrlData(url: String, timeout: Int, mimeType: String? = null): ByteArray? = HttpRequests
+    fun readHttpUrlData(url: String, timeout: Int, lastModified: Long, mimeType: String? = null): ReadUrlDataResult = HttpRequests
       .request(URL(url).toExternalForm())
-      .accept(mimeType)
       .connectTimeout(timeout)
       .readTimeout(timeout)
-      .readBytes(null)
+      .accept(mimeType)
+      .tuner { c -> c.ifModifiedSince = lastModified }
+      .connect { r ->
+        r.connection.let { connection ->
+          when (connection) {
+            is HttpURLConnection -> if (connection.responseCode == 304) return@let ReadUrlDataResult(null, false)
+          }
+          ReadUrlDataResult(r.readBytes(null), true)
+        }
+      }
   }
 }
 

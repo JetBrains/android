@@ -39,8 +39,8 @@ object GradleVersionsRepository : NetworkCache(
   GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
 
   @Slow
-  override fun readUrlData(url: String, timeout: Int) =
-    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, mimeType = "application/json")
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified, mimeType = "application/json")
 
   override fun readDefaultData(relative: String): InputStream? = null
 

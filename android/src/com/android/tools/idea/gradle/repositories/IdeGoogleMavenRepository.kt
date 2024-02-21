@@ -29,8 +29,8 @@ import java.nio.file.Paths
 /** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
 object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
   @Slow
-  override fun readUrlData(url: String, timeout: Int) =
-    IdeNetworkCacheUtils.readHttpUrlData(url, timeout)
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 
   override fun error(throwable: Throwable, message: String?) {
     Logger.getInstance(IdeGoogleMavenRepository::class.java).warn(message, throwable)
@@ -39,7 +39,7 @@ object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
 
 /** A [GoogleMavenRepository] for only cached data. */
 object OfflineIdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir(), useNetwork = false) {
-  override fun readUrlData(url: String, timeout: Int): ByteArray? = throw UnsupportedOperationException()
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long): ReadUrlDataResult = throw UnsupportedOperationException()
 
   override fun error(throwable: Throwable, message: String?) {
     Logger.getInstance(OfflineIdeGoogleMavenRepository::class.java).warn(message, throwable)
