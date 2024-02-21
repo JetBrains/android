@@ -81,7 +81,7 @@ internal interface WearHealthServicesToolWindowStateManager {
    * State flow for the ongoing exercise status, emits a single boolean, true if there's an
    * ongoing exercise on the device, false otherwise.
    */
-  fun getOngoingExercise(): StateFlow<Boolean>
+  val ongoingExercise: StateFlow<Boolean>
 
   /**
    * Triggers given event on the device.

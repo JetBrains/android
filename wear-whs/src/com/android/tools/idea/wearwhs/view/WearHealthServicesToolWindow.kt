@@ -125,6 +125,9 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       stateManager.preset.onEach {
         capabilitiesComboBox.selectedItem = it
       }.launchIn(uiScope)
+      stateManager.ongoingExercise.onEach {
+        capabilitiesComboBox.isEnabled = !it
+      }.launchIn(uiScope)
       val eventTriggersDropDownButton = CommonDropDownButton(
         CommonAction("", AllIcons.Actions.More).apply {
           toolTipText = message("wear.whs.panel.trigger.events")
@@ -148,7 +151,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       }, BorderLayout.WEST)
       add(JLabel(message("wear.whs.panel.test.data.inactive")).apply {
         icon = StudioIcons.Common.INFO
-        stateManager.getOngoingExercise().onEach {
+        stateManager.ongoingExercise.onEach {
           if (it) {
             this.text = message("wear.whs.panel.test.data.active")
             this.toolTipText = message("wear.whs.panel.press.apply.for.overrides")
@@ -224,7 +227,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
     val elementsToDisableDuringExercise = mutableListOf<JComponent>()
     // List of elements that should be visible only if there's an active exercise
     val elementsToDisplayDuringExercise = mutableListOf<JComponent>()
-    stateManager.getOngoingExercise().onEach {
+    stateManager.ongoingExercise.onEach {
       elementsToDisableDuringExercise.forEach { element ->
         element.isEnabled = !it
       }

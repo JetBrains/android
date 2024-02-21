@@ -57,7 +57,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
   private val workerScope = AndroidCoroutineScope(this)
 
-  private val ongoingExercise = MutableStateFlow(false)
+  private val _ongoingExercise = MutableStateFlow(false)
+  override val ongoingExercise = _ongoingExercise
 
   override var serialNumber: String? = null
     set(value) {
@@ -99,7 +100,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       return
     }
     try {
-      ongoingExercise.emit(deviceManager.loadActiveExercise())
+      _ongoingExercise.value = deviceManager.loadActiveExercise()
       val currentStates = deviceManager.loadCurrentCapabilityStates()
       currentStates.forEach { (dataType, state) ->
         // Update values only if they're synced through and got changed in the background
@@ -121,7 +122,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
-  override fun getOngoingExercise(): StateFlow<Boolean> = ongoingExercise.asStateFlow()
 
   override suspend fun isWhsVersionSupported(): Boolean {
     return try {

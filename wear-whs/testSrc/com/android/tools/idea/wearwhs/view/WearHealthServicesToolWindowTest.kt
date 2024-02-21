@@ -26,6 +26,7 @@ import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -183,14 +184,16 @@ class WearHealthServicesToolWindowTest {
   }
 
   @Test
-  fun `test panel disables checkboxes during an exercise`() = runBlocking<Unit> {
+  fun `test panel disables checkboxes and dropdown during an exercise`() = runBlocking<Unit> {
     val fakeUi = FakeUi(toolWindow)
 
+    fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && it.isEnabled }
 
     deviceManager.activeExercise = true
 
+    fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && !it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && !it.isEnabled }
   }

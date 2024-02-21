@@ -240,11 +240,11 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test stateManager periodically updates the exercise status from the device`() = runBlocking {
-    stateManager.getOngoingExercise().waitForValue(false)
+    stateManager.ongoingExercise.waitForValue(false)
     deviceManager.activeExercise = true
 
     // Verify that the value is updated
-    stateManager.getOngoingExercise().waitForValue(true)
+    stateManager.ongoingExercise.waitForValue(true)
   }
 
   private suspend fun <T> Flow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {
