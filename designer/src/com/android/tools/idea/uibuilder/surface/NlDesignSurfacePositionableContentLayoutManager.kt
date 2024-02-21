@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
+import androidx.annotation.VisibleForTesting
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.layout
+import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * [PositionableContentLayoutManager] for the [NlDesignSurface]. It uses a delegated
@@ -32,11 +38,21 @@ import kotlin.math.max
  */
 class NlDesignSurfacePositionableContentLayoutManager(
   private val surface: NlDesignSurface,
-  var layoutManager: SurfaceLayoutManager,
+  parentDisposable: Disposable,
+  layoutOption: SurfaceLayoutOption,
 ) : PositionableContentLayoutManager(), LayoutManagerSwitcher {
+
+  @VisibleForTesting val scope = AndroidCoroutineScope(parentDisposable)
+
+  override val currentLayout = MutableStateFlow(layoutOption)
+
+  init {
+    scope.launch(uiThread) { currentLayout.collect { surface.onLayoutUpdated(it) } }
+  }
+
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
-    layoutManager.layout(
+    currentLayout.value.layoutManager.layout(
       content,
       availableSize.width,
       availableSize.height,
@@ -49,7 +65,11 @@ class NlDesignSurfacePositionableContentLayoutManager(
    * [availableSize].
    */
   fun getFitIntoScale(content: Collection<PositionableContent>, availableSize: Dimension): Double {
-    return layoutManager.getFitIntoScale(content, availableSize.width, availableSize.height)
+    return currentLayout.value.layoutManager.getFitIntoScale(
+      content,
+      availableSize.width,
+      availableSize.height,
+    )
   }
 
   override fun preferredLayoutSize(
@@ -58,7 +78,12 @@ class NlDesignSurfacePositionableContentLayoutManager(
   ): Dimension {
     availableSize.size = surface.extentSize
     val dimension =
-      layoutManager.getRequiredSize(content, availableSize.width, availableSize.height, null)
+      currentLayout.value.layoutManager.getRequiredSize(
+        content,
+        availableSize.width,
+        availableSize.height,
+        null,
+      )
     dimension.setSize(
       max(surface.scrollableViewMinSize.width.toDouble(), dimension.width.toDouble()),
       max(surface.scrollableViewMinSize.height.toDouble(), dimension.height.toDouble()),
@@ -67,25 +92,16 @@ class NlDesignSurfacePositionableContentLayoutManager(
     return dimension
   }
 
-  override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager) =
-    this.layoutManager == layoutManager
-
-  @UiThread
-  override fun setLayoutManager(
-    layoutManager: SurfaceLayoutManager,
-    sceneViewAlignment: SceneViewAlignment,
-  ) {
-    this.layoutManager = layoutManager
-    surface.setSceneViewAlignment(sceneViewAlignment)
-    surface.setScrollPosition(0, 0)
-    surface.revalidateScrollArea()
-  }
-
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
   ): Map<PositionableContent, Point> {
-    return layoutManager.measure(content, availableWidth, availableHeight, surface.isCanvasResizing)
+    return currentLayout.value.layoutManager.measure(
+      content,
+      availableWidth,
+      availableHeight,
+      surface.isCanvasResizing,
+    )
   }
 }

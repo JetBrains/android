@@ -22,7 +22,7 @@ import java.awt.Dimension
 import java.awt.Insets
 import org.junit.Test
 
-class SurfaceLayoutManagerOptionTest {
+class SurfaceLayoutOptionTest {
 
   open class TestPositionableContent(override val organizationGroup: String?) :
     PositionableContent {

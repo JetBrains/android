@@ -54,7 +54,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
@@ -261,9 +260,7 @@ class ComposePreviewRepresentationTest {
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
-      GRID_LAYOUT_MANAGER_OPTIONS.layoutManager ==
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
+      GRID_LAYOUT_MANAGER_OPTIONS == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     assertTrue(preview.atfChecksEnabled)
@@ -366,9 +363,7 @@ class ComposePreviewRepresentationTest {
 
     assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
-      LIST_LAYOUT_MANAGER_OPTION.layoutManager ==
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
+      LIST_LAYOUT_MANAGER_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the surface zooms to fit when exiting UI check mode.
@@ -403,9 +398,7 @@ class ComposePreviewRepresentationTest {
 
     // Restart UI Check mode on the same preview
     setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement)) {
-      GRID_LAYOUT_MANAGER_OPTIONS.layoutManager ==
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
+      GRID_LAYOUT_MANAGER_OPTIONS == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the UI Check tab is being reused
@@ -464,9 +457,7 @@ class ComposePreviewRepresentationTest {
     }
 
     setModeAndWaitForRefresh(PreviewMode.Default()) {
-      LIST_LAYOUT_MANAGER_OPTION.layoutManager ==
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
+      LIST_LAYOUT_MANAGER_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
   }
 

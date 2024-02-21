@@ -157,10 +157,13 @@ internal class SceneViewPanel(
     }
   }
 
+  /** @return true if Organization feature is enabled and layout supports groups. */
   private fun organizationIsEnabled() =
     StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get() &&
-      ((layout as? NlDesignSurfacePositionableContentLayoutManager)?.layoutManager
-        is GroupedSurfaceLayoutManager)
+      ((layout as? NlDesignSurfacePositionableContentLayoutManager)
+        ?.currentLayout
+        ?.value
+        ?.layoutManager is GroupedSurfaceLayoutManager)
 
   override fun doLayout() {
     revalidateSceneViews()

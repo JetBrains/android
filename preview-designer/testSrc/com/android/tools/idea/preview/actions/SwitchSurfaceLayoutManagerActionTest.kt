@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
@@ -26,7 +27,6 @@ import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
@@ -49,7 +49,7 @@ class SwitchSurfaceLayoutManagerActionTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testCanChangeMultiChoiceMode() {
-    val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
+    val option = listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
     val nonMultiChoiceAction = SwitchSurfaceLayoutManagerAction(option) { enabled }

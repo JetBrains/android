@@ -20,18 +20,17 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
@@ -68,9 +67,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(false)
     val options =
       listOf(
-        createOption("Layout A", EmptySurfaceLayoutManager()),
-        createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
@@ -109,9 +108,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
-        createOption("Layout A", EmptySurfaceLayoutManager()),
-        createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
@@ -154,9 +153,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
-        createOption("Layout A", EmptySurfaceLayoutManager()),
-        createOption("Layout B", EmptySurfaceLayoutManager()),
-        createOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
     val viewControlAction =
@@ -223,7 +222,7 @@ class ComposeViewControlActionTest {
     }
     val event = TestActionEvent.createTestEvent(context)
     val viewControlAction =
-      ComposeViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
+      ComposeViewControlAction(listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager())))
 
     manager.currentStatus = nonRefreshingStatus
     viewControlAction.update(event)
@@ -241,7 +240,7 @@ class ComposeViewControlActionTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testNotMultiChoiceAction() {
-    val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
+    val option = listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
     val action = ComposeViewControlAction(option, { enabled })
@@ -254,11 +253,4 @@ class ComposeViewControlActionTest {
     action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
   }
-}
-
-private fun createOption(
-  displayText: String,
-  layoutManager: SurfaceLayoutManager,
-): SurfaceLayoutManagerOption {
-  return SurfaceLayoutManagerOption(displayText, layoutManager)
 }

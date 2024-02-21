@@ -93,7 +93,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           )
           .visibleOnlyInDefaultPreview(),
         ComposeViewControlAction(
-            layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
+            layoutOptions = PREVIEW_LAYOUT_OPTIONS,
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(it.dataContext) &&
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
@@ -105,7 +105,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
-            layoutManagers = BASE_LAYOUT_MANAGER_OPTIONS,
+            layoutOptions = BASE_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(it.dataContext) &&
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
@@ -126,10 +126,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         if (isEssentialsModeSelected) {
           val layoutSwitcher = e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher
           ApplicationManager.getApplication().invokeLater {
-            layoutSwitcher?.setLayoutManager(
-              PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
-              PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment,
-            )
+            layoutSwitcher?.currentLayout?.value = PREVIEW_LAYOUT_GALLERY_OPTION
           }
         }
       }

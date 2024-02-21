@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.modes
 
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -27,20 +28,7 @@ import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.OrganizationPadding
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import org.jetbrains.annotations.VisibleForTesting
-
-/**
- * Wrapper class to define the options available for [SwitchSurfaceLayoutManagerAction].
- *
- * @param displayName Name to be shown for this option.
- * @param layoutManager [SurfaceLayoutManager] to switch to when this option is selected.
- */
-data class SurfaceLayoutManagerOption(
-  val displayName: String,
-  val layoutManager: SurfaceLayoutManager,
-  val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER,
-)
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   dynamicPadding(scale, 5, 20)
@@ -156,7 +144,7 @@ private val organizationGridPadding =
 
 /** Toolbar option to select [PreviewMode.Gallery] layout. */
 val PREVIEW_LAYOUT_GALLERY_OPTION =
-  SurfaceLayoutManagerOption(
+  SurfaceLayoutOption(
     message("gallery.mode.title"),
     GroupedGridSurfaceLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
     DesignSurface.SceneViewAlignment.LEFT,
@@ -164,14 +152,14 @@ val PREVIEW_LAYOUT_GALLERY_OPTION =
 
 val LIST_LAYOUT_MANAGER_OPTION =
   if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
+    SurfaceLayoutOption(
       // TODO(b/289994157) Change name to "List"
       message("vertical.groups"),
       ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   } else {
-    SurfaceLayoutManagerOption(
+    SurfaceLayoutOption(
       message("new.list.layout.title"),
       GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
       DesignSurface.SceneViewAlignment.LEFT,
@@ -180,14 +168,14 @@ val LIST_LAYOUT_MANAGER_OPTION =
 
 val GRID_LAYOUT_MANAGER_OPTIONS =
   if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
+    SurfaceLayoutOption(
       // TODO(b/289994157) Change name to "Grid"
       message("grid.groups"),
       GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   } else {
-    SurfaceLayoutManagerOption(
+    SurfaceLayoutOption(
       message("new.grid.layout.title"),
       GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
       DesignSurface.SceneViewAlignment.LEFT,

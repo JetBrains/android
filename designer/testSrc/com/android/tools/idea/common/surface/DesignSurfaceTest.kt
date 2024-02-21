@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -26,7 +27,6 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList

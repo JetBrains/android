@@ -18,13 +18,13 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -37,7 +37,7 @@ import com.intellij.util.ui.JBUI
 
 /** [DropDownAction] that allows switching the layout manager in the surface. */
 class SwitchSurfaceLayoutManagerAction(
-  layoutManagers: List<SurfaceLayoutManagerOption>,
+  layoutManagers: List<SurfaceLayoutOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
@@ -51,7 +51,7 @@ class SwitchSurfaceLayoutManagerAction(
   private val enabledIcon = copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
-  inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) :
+  inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) :
     ToggleAction(option.displayName) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -62,9 +62,7 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
-      return e.getData(DESIGN_SURFACE)
-        ?.layoutManagerSwitcher
-        ?.isLayoutManagerSelected(option.layoutManager) ?: false
+      return e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher?.currentLayout?.value == option
     }
 
     override fun update(e: AnActionEvent) {

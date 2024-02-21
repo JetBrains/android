@@ -53,7 +53,7 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
@@ -1924,11 +1924,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     if (mySceneViewPanel != null) {
       mySceneViewPanel.setBackground(bg);
     }
-  }
-
-  @NotNull
-  public final PositionableContentLayoutManager getSceneViewLayoutManager() {
-    return (PositionableContentLayoutManager)mySceneViewPanel.getLayout();
   }
 
   @Nullable

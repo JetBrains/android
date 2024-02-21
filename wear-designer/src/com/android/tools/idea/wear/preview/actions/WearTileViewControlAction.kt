@@ -19,9 +19,9 @@ import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 
-class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutManagerOption>) :
+class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
   ViewControlAction(
     isEnabled = { !isPreviewRefreshing(it.dataContext) },
     isEssentialsModeEnabled = EssentialsMode::isEnabled,

@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
@@ -76,10 +76,11 @@ import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider;
@@ -143,7 +144,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private final Disposable myParentDisposable;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
-    @SuppressWarnings("deprecation") private SurfaceLayoutManager myLayoutManager;
+    @SuppressWarnings("deprecation") private SurfaceLayoutOption myLayoutOption;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     /**
@@ -201,13 +202,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     /**
-     * Allows customizing the {@link SurfaceLayoutManager}. Use this method if you need to apply additional settings to it or if you
-     * need to completely replace it, for example for tests.
+     * Allows customizing the {@link SurfaceLayoutOption}.
      */
     @SuppressWarnings("deprecation")
     @NotNull
-    public Builder setLayoutManager(@NotNull SurfaceLayoutManager layoutManager) {
-      myLayoutManager = layoutManager;
+    public Builder setLayoutOption(@NotNull SurfaceLayoutOption layoutOption) {
+      myLayoutOption = layoutOption;
       return this;
     }
 
@@ -368,8 +368,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     @NotNull
     public NlDesignSurface build() {
-      @SuppressWarnings("deprecation")
-      SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
+      SurfaceLayoutOption layoutOption = myLayoutOption != null
+                                                ? myLayoutOption
+                                                : SurfaceLayoutOption.Companion.getDEFAULT_OPTION();
       if (myMinScale > myMaxScale) {
         throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
       }
@@ -377,7 +378,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myProject,
         myParentDisposable,
         mySceneManagerProvider,
-        layoutManager,
+        layoutOption,
         myActionManagerProvider,
         myInteractableProvider,
         myInteractionHandlerProvider,
@@ -435,7 +436,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutManager defaultLayoutManager,
+                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutOption defaultLayoutOption,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
@@ -450,7 +451,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           double maxFitIntoZoomLevel,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> issueProviderFactory) {
     super(project, parentDisposable, actionManagerProvider, interactableProvider, interactionHandlerProvider,
-          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, parentDisposable, defaultLayoutOption),
           actionHandlerProvider,
           selectionModel,
           zoomControlsPolicy,
@@ -500,11 +501,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return sceneManager;
   }
 
-  @SuppressWarnings("deprecation")
   @NotNull
-  public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
-    return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA,
-                                            SingleDirectionLayoutManager.Alignment.CENTER);
+  final NlDesignSurfacePositionableContentLayoutManager getSceneViewLayoutManager() {
+    return (NlDesignSurfacePositionableContentLayoutManager)mySceneViewPanel.getLayout();
   }
 
   /**
@@ -551,6 +550,15 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     manager.addRenderListener(myRenderListener);
 
     return manager;
+  }
+
+  @UiThread
+  public void onLayoutUpdated(SurfaceLayoutOption layoutOption) {
+    if (mySceneViewPanel != null) {
+      setSceneViewAlignment(layoutOption.getSceneViewAlignment());
+      setScrollPosition(0, 0);
+      revalidateScrollArea();
+    }
   }
 
   @NotNull
@@ -638,6 +646,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * Builds a new {@link NlDesignSurface} with the default settings
    */
   @NotNull
+  @TestOnly
   public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
     return new Builder(project, parentDisposable).build();
   }
@@ -929,8 +938,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     Collection<PositionableContent> positionableContents = getPositionableContent();
     // If there is no content, use 100% as zoom-to-fit level.
     double scale = positionableContents.isEmpty() ? 1.0 :
-                   ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-                     .getFitIntoScale(getPositionableContent(), extent);
+                   getSceneViewLayoutManager().getFitIntoScale(getPositionableContent(), extent);
 
     return Math.min(scale, myMaxFitIntoScale);
   }
@@ -965,8 +973,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     DesignSurfaceViewport port = getViewport();
     Point scrollPosition = getScrollPosition();
     @SuppressWarnings("deprecation")
-    SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-      .getLayoutManager();
+    SurfaceLayoutManager layoutManager = getSceneViewLayoutManager().getCurrentLayout().getValue().getLayoutManager();
 
     // If layout is a vertical list layout
     boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;

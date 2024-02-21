@@ -573,10 +573,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      surface.layoutManagerSwitcher?.setLayoutManager(
-        mode.layoutOption.layoutManager,
-        mode.layoutOption.sceneViewAlignment,
-      )
+      surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
     }
   }
 }

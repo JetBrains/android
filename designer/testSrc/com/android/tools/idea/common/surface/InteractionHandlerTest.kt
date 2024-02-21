@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -24,7 +25,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup

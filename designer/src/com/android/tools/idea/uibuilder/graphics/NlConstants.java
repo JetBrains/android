@@ -26,9 +26,6 @@ public class NlConstants {
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
   public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
-  /** Distance between blueprint screen and regular screen */
-  @SwingCoordinate
-  public static final int SCREEN_DELTA = 48;
 
   /**
    * The maximum number of pixels will be considered a "match" when snapping

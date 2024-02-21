@@ -816,10 +816,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      surface.layoutManagerSwitcher?.setLayoutManager(
-        mode.layoutOption.layoutManager,
-        mode.layoutOption.sceneViewAlignment,
-      )
+      surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
     }
   }
 
@@ -1378,11 +1375,7 @@ class ComposePreviewRepresentation(
   override fun getState(): PreviewRepresentationState {
     val selectedGroupName =
       (composePreviewFlowManager.getCurrentFilterAsGroup())?.filterGroup?.name ?: ""
-    val selectedLayoutName =
-      PREVIEW_LAYOUT_MANAGER_OPTIONS.find {
-          surface.layoutManagerSwitcher?.isLayoutManagerSelected(it.layoutManager) == true
-        }
-        ?.displayName ?: ""
+    val selectedLayoutName = surface.layoutManagerSwitcher?.currentLayout?.value?.displayName ?: ""
     return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)
   }
 
@@ -1396,7 +1389,7 @@ class ComposePreviewRepresentation(
           ?.let { composePreviewFlowManager.groupFilter = it }
       }
 
-      PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }
+      PREVIEW_LAYOUT_OPTIONS.find { it.displayName == previewLayoutName }
         ?.let {
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {

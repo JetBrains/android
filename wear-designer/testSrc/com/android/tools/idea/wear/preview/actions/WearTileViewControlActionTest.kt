@@ -19,8 +19,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -108,6 +108,6 @@ class WearTileViewControlActionTest {
 private fun createOption(
   displayText: String,
   layoutManager: SurfaceLayoutManager,
-): SurfaceLayoutManagerOption {
-  return SurfaceLayoutManagerOption(displayText, layoutManager)
+): SurfaceLayoutOption {
+  return SurfaceLayoutOption(displayText, layoutManager)
 }

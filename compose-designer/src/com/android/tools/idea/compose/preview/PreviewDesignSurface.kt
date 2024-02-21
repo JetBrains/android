@@ -42,11 +42,10 @@ internal val BASE_LAYOUT_MANAGER_OPTIONS =
   listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
 
 /** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
+internal val PREVIEW_LAYOUT_OPTIONS = BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
 
-/** Default layout manager selected in the preview. */
-internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
+/** Default layout option selected in the preview. */
+internal val DEFAULT_PREVIEW_LAYOUT_OPTION = PREVIEW_LAYOUT_OPTIONS.first()
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
@@ -127,4 +126,4 @@ internal fun createMainDesignSurfaceBuilder(
       screenViewProvider,
       isInteractive,
     )
-    .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
+    .setLayoutOption(DEFAULT_PREVIEW_LAYOUT_OPTION)

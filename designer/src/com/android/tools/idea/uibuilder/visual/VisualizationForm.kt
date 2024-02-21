@@ -28,6 +28,7 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
@@ -117,13 +118,17 @@ class VisualizationForm(
   private var myEditor: FileEditor? = null
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
-  private val myGridSurfaceLayoutManager =
-    GridSurfaceLayoutManager(
-      NlConstants.DEFAULT_SCREEN_OFFSET_X,
-      NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-      GRID_HORIZONTAL_SCREEN_DELTA,
-      VERTICAL_SCREEN_DELTA,
-      false,
+  private val myLayoutOption =
+    SurfaceLayoutOption(
+      "Layout",
+      GridSurfaceLayoutManager(
+        NlConstants.DEFAULT_SCREEN_OFFSET_X,
+        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+        GRID_HORIZONTAL_SCREEN_DELTA,
+        VERTICAL_SCREEN_DELTA,
+        false,
+      ),
+      DesignSurface.SceneViewAlignment.LEFT,
     )
   private val myUpdateQueue: MergingUpdateQueue
 
@@ -153,7 +158,6 @@ class VisualizationForm(
     myCurrentConfigurationSet =
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
-    val surfaceLayoutManager = myGridSurfaceLayoutManager
     val config = LayoutScannerEnabled()
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
@@ -178,7 +182,7 @@ class VisualizationForm(
         .setInteractionHandlerProvider { surface: DesignSurface<*> ->
           VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
         }
-        .setLayoutManager(surfaceLayoutManager)
+        .setLayoutOption(myLayoutOption)
         .setMaxScale(4.0)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
         .setDelegateDataProvider {
@@ -651,10 +655,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      surface.layoutManagerSwitcher?.setLayoutManager(
-        myGridSurfaceLayoutManager,
-        DesignSurface.SceneViewAlignment.LEFT,
-      )
+      surface.layoutManagerSwitcher?.currentLayout?.value = myLayoutOption
       refresh()
     }
   }
