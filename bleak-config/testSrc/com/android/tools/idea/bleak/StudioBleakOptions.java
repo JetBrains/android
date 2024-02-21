@@ -32,6 +32,7 @@ public class StudioBleakOptions {
     new IgnoredRef(-2, "com.android.tools.idea.diagnostics.report.MetricsLogFileProviderKt", "DefaultMetricsLogFileProvider"),
     new IgnoredRef(-4, "com.android.tools.idea.tests.gui.framework.GuiPerfLogger", "myMetric"),
     new IgnoredRef(1, "org.fest.swing.core.BasicRobot", "inputState"),
+    new IgnoredRef(1, "org.fest.swing.hierarchy.ExistingHierarchy", "windowMonitor"),
     new IgnoredRef(1, "com.intellij.testGuiFramework.impl.GuiTestThread", "client"),
     new IgnoredRef(1, "com.android.layoutlib.bridge.impl.DelegateManager", "sJavaReferences"),
     new IgnoredRef(-2, "com.intellij.util.ref.DebugReflectionUtil", "allFields"),
@@ -47,12 +48,15 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftHashMap", "myMap"),
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftValueHashMap", "myMap"),
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap", "myMap"),
+    new IgnoredRef(-2, "com.intellij.concurrency.ConcurrentIntKeySoftValueHashMap", "myMap"),
     new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProtectedQueue"), // SLRUMap is a bounded cache
     new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProbationalQueue"),
     new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProtectedQueue"),
     new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProbationalQueue"),
     new IgnoredRef(-1, "com.intellij.util.containers.FixedHashMap", "table"),
     new IgnoredRef(-1, "com.github.benmanes.caffeine.cache.BoundedBuffer$RingBuffer", "buffer"),
+    new IgnoredRef(-2, "com.github.benmanes.caffeine.cache.BoundedLocalCache$BoundedLocalLoadingCache", "cache"),
+    new IgnoredRef(-2, "com.github.benmanes.caffeine.cache.BoundedLocalCache$BoundedLocalManualCache", "cache"),
 
     new IgnoredRef(-2, "com.android.tools.idea.configurations.ConfigurationManager", "myCache"),
     new IgnoredRef(-2, "com.intellij.openapi.vfs.newvfs.impl.VfsData$Segment", "myObjectArray"),
@@ -95,6 +99,8 @@ public class StudioBleakOptions {
     new IgnoredRef(-2, "kotlinx.coroutines.channels.ChannelSegment", "data"),
     new IgnoredRef(1, "com.intellij.openapi.externalSystem.statistics.ExternalSystemSyncActionsCollector", "idToStartTS"), // small bounded cache
     new IgnoredRef(-1, "java.lang.ThreadGroup", "threads"), // false positives for e.g. I/O pool growth
+    new IgnoredRef(1, "kotlinx.coroutines.debug.internal.DebugProbesImpl", "capturedCoroutinesMap"),
+    new IgnoredRef(-2, "kotlinx.coroutines.DefaultExecutor", "_delayed"),
 
     // as-driver-specific:
     new IgnoredRef(2, "com.android.tools.idea.io.grpc.InternalChannelz", "perServerSockets"),
