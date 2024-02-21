@@ -18,12 +18,15 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.adblib.AdbSession
 import com.android.adblib.ClosedSessionException
 import com.android.adblib.DeviceSelector
+import com.android.adblib.DeviceState
 import com.android.adblib.shellAsText
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.flow.take
+import kotlin.jvm.Throws
 
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
@@ -64,10 +67,9 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-      val output = adbSession.deviceServices.shellAsText(device, "content query --uri $whsConfigUri")
+      val output = runAdbShellCommandIfConnected("content query --uri $whsConfigUri")
 
-      val contentProviderEntryMatches = capabilityStatePattern.findAll(output.stdout)
+      val contentProviderEntryMatches = capabilityStatePattern.findAll(output)
 
       val capabilities = mutableMapOf<WhsDataType, CapabilityState>()
 
@@ -99,8 +101,7 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-      adbSession.deviceServices.shellAsText(device, "content delete --uri $whsConfigUri")
+      runAdbShellCommandIfConnected("content delete --uri $whsConfigUri")
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't clear content provider", e)
     }
@@ -113,10 +114,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-      val output = adbSession.deviceServices.shellAsText(device, "dumpsys package $whsPackage | grep versionCode | head -n1")
-
-      val versionCode: Int? = versionCodePattern.find(output.stdout)?.groupValues?.get(1)?.toInt()
+      val output = runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1")
+      val versionCode: Int? = versionCodePattern.find(output)?.groupValues?.get(1)?.toInt()
 
       return versionCode != null && (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
     } catch (e: Exception) {
@@ -139,8 +138,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val output = adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), activeExerciseCommand())
-      val activeExercise = activeExerciseRegex.find(output.stdout)?.groupValues?.get(1)?.toBoolean()
+      val output = runAdbShellCommandIfConnected(activeExerciseCommand())
+      val activeExercise = activeExerciseRegex.find(output)?.groupValues?.get(1)?.toBoolean()
       return activeExercise ?: false
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't load active exercise", e)
@@ -185,9 +184,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
       val contentUpdateCommand = contentUpdateMultipleCapabilities(capabilityUpdates)
-      adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
+      runAdbShellCommandIfConnected(contentUpdateCommand)
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't set capabilities", e)
     }
@@ -200,8 +198,7 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-      adbSession.deviceServices.shellAsText(device, triggerEventCommand(eventTrigger))
+      runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger))
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't trigger event", e)
     }
@@ -223,13 +220,23 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     }
 
     try {
-      val device = DeviceSelector.fromSerialNumber(serialNumber!!)
-
       val contentUpdateCommand = contentUpdateMultipleCapabilities(overrideUpdates)
-      adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
+      runAdbShellCommandIfConnected(contentUpdateCommand)
     } catch (e: Exception) {
       throw ConnectionLostException("Couldn't override values", e)
     }
+  }
+
+  @Throws(ConnectionLostException::class)
+  private suspend fun runAdbShellCommandIfConnected(command: String): String {
+    var deviceOnline = false
+    adbSession.hostServices.trackDevices().take(1).collect { devices ->
+      deviceOnline = devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
+    }
+    if (!deviceOnline) {
+      throw ConnectionLostException("Device is not online")
+    }
+    return adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command).stdout
   }
 }
 

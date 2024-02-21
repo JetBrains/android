@@ -15,29 +15,61 @@
  */
 package com.android.tools.idea.wearwhs.communication
 
+import com.android.adblib.ClosedSessionException
+import com.android.adblib.DeviceAddress
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertThrows
+import org.junit.Before
 import org.junit.Test
 
 const val WHS_PACKAGE_ID = "com.google.android.wearable.healthservices"
 const val WHS_CONTENT_PROVIDER_URI = "content://$WHS_PACKAGE_ID.dev.synthetic/synthetic_config"
 const val CONTENT_UPDATE_SHELL_COMMAND = "content update --uri $WHS_CONTENT_PROVIDER_URI"
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DeviceManagerTest {
 
   private var adbSession = FakeAdbSession()
   private var adbSessionProvider = { adbSession }
-  private val serialNumber: String = "1234"
+  private val serialNumber: String = "12345"
+
+  @Before
+  fun setUp() = runBlocking {
+    adbSession.hostServices.connect(DeviceAddress(serialNumber))
+  }
+
+  @After
+  fun tearDown() = runBlocking {
+    try {
+      adbSession.hostServices.disconnect(DeviceAddress(serialNumber))
+    } catch (_: ClosedSessionException) {
+      // Already closed during test, ignore
+    }
+  }
+
+  @Test
+  fun `test adb commands are not sent if the device is disconnected`() = runBlocking {
+    adbSession.hostServices.disconnect(DeviceAddress(serialNumber))
+
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
+
+    assertThrows(ConnectionLostException::class.java) {
+      runBlocking {
+        deviceManager.clearContentProvider()
+      }
+    }
+    assertThat(adbSession.deviceServices.shellV2Requests).isEmpty()
+  }
 
   @Test
   fun `test setCapabilities throws connection lost exception when adb session is closed`() {
@@ -742,7 +774,9 @@ class DeviceManagerTest {
     currentAdbSession.close()
 
     // Create and redirect to the new adb session
-    val newAdbSession = FakeAdbSession()
+    val newAdbSession = FakeAdbSession().apply {
+      hostServices.connect(DeviceAddress(serialNumber))
+    }
     currentAdbSession = newAdbSession
 
     assertDeviceManagerFunctionSendsAdbCommand({ it.clearContentProvider() },

@@ -102,6 +102,12 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test state manager reports to the subscribers when all capabilities preset is selected`() = runBlocking {
+    stateManager.preset.value = Preset.STANDARD
+
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
+
     stateManager.preset.value = Preset.ALL
 
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
