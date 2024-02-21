@@ -63,6 +63,7 @@ import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -172,19 +173,20 @@ private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = Accessi
  *
  * @param project the [Project] used by the current view.
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
- * @param previewElement the [ComposePreviewElement] associated to this model
+ * @param previewElement the [ComposePreviewElementInstance] associated to this model
  */
 private class PreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
-  private val previewGroupManager: PreviewGroupManager,
+  private val previewFlowManager: PreviewFlowManager<ComposePreviewElementInstance>,
   private val previewElement: ComposePreviewElementInstance,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
       COMPOSE_PREVIEW_MANAGER.name,
       PreviewModeManager.KEY.name -> composePreviewManager
-      PreviewGroupManager.KEY.name -> previewGroupManager
+      PreviewGroupManager.KEY.name,
+      PreviewFlowManager.KEY.name -> previewFlowManager
       COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
@@ -704,7 +706,8 @@ class ComposePreviewRepresentation(
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
       PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
-      PreviewGroupManager.KEY.name -> composePreviewFlowManager
+      PreviewGroupManager.KEY.name,
+      PreviewFlowManager.KEY.name -> composePreviewFlowManager
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.name -> project
       else -> null

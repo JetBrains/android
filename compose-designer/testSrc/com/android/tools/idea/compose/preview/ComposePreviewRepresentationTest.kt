@@ -40,6 +40,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
@@ -622,18 +623,12 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
-  fun testPreviewModeManagerShouldBeRegisteredInDataProvider() =
-    runComposePreviewRepresentationTest {
-      createPreviewAndCompile()
-      assertTrue(getData(PreviewModeManager.KEY.name) is PreviewModeManager)
-    }
-
-  @Test
-  fun testPreviewGroupManagerShouldBeRegisteredInDataProvider() =
-    runComposePreviewRepresentationTest {
-      createPreviewAndCompile()
-      assertTrue(getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
-    }
+  fun testPreviewManagersShouldBeRegisteredInDataProvider() = runComposePreviewRepresentationTest {
+    createPreviewAndCompile()
+    assertTrue(getData(PreviewModeManager.KEY.name) is PreviewModeManager)
+    assertTrue(getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
+    assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
+  }
 
   @Test
   fun testActivationDoesNotCleanOverlayClassLoader() =

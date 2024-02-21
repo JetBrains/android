@@ -74,11 +74,7 @@ class ComposeViewControlActionTest {
       )
 
     val viewControlAction =
-      ComposeViewControlAction(
-        options,
-        updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction(),
-      )
+      ComposeViewControlAction(options, additionalActionProvider = ColorBlindModeAction())
 
     val expected =
       """View Control
@@ -119,11 +115,7 @@ class ComposeViewControlActionTest {
       )
 
     val viewControlAction =
-      ComposeViewControlAction(
-        options,
-        updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction(),
-      )
+      ComposeViewControlAction(options, additionalActionProvider = ColorBlindModeAction())
 
     val expected =
       """View Control
@@ -168,11 +160,7 @@ class ComposeViewControlActionTest {
       )
 
     val viewControlAction =
-      ComposeViewControlAction(
-        options,
-        updateMode = { _, _ -> },
-        additionalActionProvider = ColorBlindModeAction(),
-      )
+      ComposeViewControlAction(options, additionalActionProvider = ColorBlindModeAction())
 
     val expected =
       """View Control
@@ -235,10 +223,7 @@ class ComposeViewControlActionTest {
     }
     val event = TestActionEvent.createTestEvent(context)
     val viewControlAction =
-      ComposeViewControlAction(
-        listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        updateMode = { _, _ -> },
-      )
+      ComposeViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
 
     manager.currentStatus = nonRefreshingStatus
     viewControlAction.update(event)
@@ -259,7 +244,7 @@ class ComposeViewControlActionTest {
     val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
-    val action = ComposeViewControlAction(option, { enabled }, { _, _ -> })
+    val action = ComposeViewControlAction(option, { enabled })
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.

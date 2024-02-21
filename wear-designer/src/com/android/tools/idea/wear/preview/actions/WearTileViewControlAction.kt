@@ -19,30 +19,24 @@ import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
-import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
-import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 
-class WearTileViewControlAction(
-  layoutOptions: List<SurfaceLayoutManagerOption>,
-  updateMode: (SurfaceLayoutManagerOption, PreviewModeManager) -> Unit,
-) : ViewControlAction(
-  isEnabled = { !isPreviewRefreshing(it.dataContext) },
-  isEssentialsModeEnabled = EssentialsMode::isEnabled
-) {
+class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutManagerOption>) :
+  ViewControlAction(
+    isEnabled = { !isPreviewRefreshing(it.dataContext) },
+    isEssentialsModeEnabled = EssentialsMode::isEnabled,
+  ) {
 
   init {
     add(
-      SwitchSurfaceLayoutManagerAction(layoutOptions, isActionEnabled = {
-        !isPreviewRefreshing(it.dataContext) &&
-        // If Essentials Mode is enabled, it should not be possible to switch layout.
-        !EssentialsMode.isEnabled()
-      }) {
-        selectedOption,
-        previewManager ->
-        PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
-        updateMode(selectedOption, previewManager)
-      }
+      SwitchSurfaceLayoutManagerAction(
+          layoutOptions,
+          isActionEnabled = {
+            !isPreviewRefreshing(it.dataContext) &&
+              // If Essentials Mode is enabled, it should not be possible to switch layout.
+              !EssentialsMode.isEnabled()
+          },
+        )
         .apply {
           isPopup = false
           templatePresentation.isMultiChoice = false

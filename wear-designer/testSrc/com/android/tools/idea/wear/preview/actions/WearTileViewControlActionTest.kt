@@ -28,7 +28,6 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
@@ -40,8 +39,7 @@ import org.junit.Test
 
 class WearTileViewControlActionTest {
 
-  @JvmField @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   private val viewModelStatus =
     object : PreviewViewModelStatus {
@@ -68,14 +66,9 @@ class WearTileViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
-    val viewControlAction =
-      WearTileViewControlAction(
-        options,
-        updateMode = { _, _ -> },
-      )
+    val viewControlAction = WearTileViewControlAction(options)
 
-    val expected =
-      """View Control
+    val expected = """View Control
     Switch Layout
     Layout A
     Layout B
@@ -96,10 +89,7 @@ class WearTileViewControlActionTest {
   fun testNotEnabledWhenRefreshing() {
     val event = TestActionEvent.createTestEvent(dataContext)
     val viewControlAction =
-      WearTileViewControlAction(
-        listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        updateMode = { _, _ -> },
-      )
+      WearTileViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
 
     viewModelStatus.isRefreshing = false
     viewControlAction.update(event)
