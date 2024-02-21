@@ -13,6 +13,7 @@ iml_module(
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
+        "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
