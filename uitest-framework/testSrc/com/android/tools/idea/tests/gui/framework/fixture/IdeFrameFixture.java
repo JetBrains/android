@@ -866,4 +866,34 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                            Matchers.byType(JProgressBar.class).andIsShowing(),
                            30);
   }
+
+  /**
+   * Copy using keyboard (Ctrl+c or Command+c)
+   */
+  public void copyUsingKeyboard(){
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.VK_META);
+      robot().pressAndReleaseKey(KeyEvent.VK_C);
+      robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      robot().pressKey(KeyEvent.VK_CONTROL);
+      robot().pressAndReleaseKey(KeyEvent.VK_C);
+      robot().releaseKey(KeyEvent.VK_CONTROL);
+    }
+  }
+
+  /**
+   * Paste using keyboard (Ctrl+v or Command+v)
+   */
+  public void pasteUsingKeyboard(){
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.VK_META);
+      robot().pressAndReleaseKey(KeyEvent.VK_V);
+      robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      robot().pressKey(KeyEvent.VK_CONTROL);
+      robot().pressAndReleaseKey(KeyEvent.VK_V);
+      robot().releaseKey(KeyEvent.VK_CONTROL);
+    }
+  }
 }
