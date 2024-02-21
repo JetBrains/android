@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
+import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin

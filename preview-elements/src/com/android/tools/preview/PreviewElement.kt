@@ -15,9 +15,7 @@
  */
 package com.android.tools.preview
 
-import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 
 enum class DisplayPositioning {
@@ -70,13 +68,4 @@ interface PreviewElement : PreviewNode {
    * [SmartPsiElementPointer] to the preview body. This is the code that will be run during preview
    */
   val previewBodyPsi: SmartPsiElementPointer<PsiElement>?
-
-  /**
-   * [PsiFile] containing this PreviewElement. null if there is not source file, like in synthetic
-   * preview elements
-   */
-  val containingFile: PsiFile?
-    get() = runReadAction {
-      previewBodyPsi?.containingFile ?: previewElementDefinitionPsi?.containingFile
-    }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
@@ -31,5 +32,5 @@ class StudioParametrizedComposePreviewElementTemplate(
   ParametrizedComposePreviewElementTemplate(
     basePreviewElement,
     parameterProviders,
-    { file -> file?.let { StudioModuleRenderContext.forFile(it) } },
+    { element -> element.containingFile?.let { StudioModuleRenderContext.forFile(it) } },
   )

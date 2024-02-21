@@ -233,7 +233,7 @@ ParametrizedComposePreviewElementInstance(
 open class ParametrizedComposePreviewElementTemplate(
   private val basePreviewElement: ComposePreviewElement,
   val parameterProviders: Collection<PreviewParameter>,
-  private val renderContextFactory: (PsiFile?) -> ModuleRenderContext?,
+  private val renderContextFactory: (ComposePreviewElement) -> ModuleRenderContext?,
 ) : ComposePreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
@@ -247,7 +247,7 @@ open class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = renderContextFactory(basePreviewElement.containingFile) ?: return sequenceOf()
+    val moduleRenderContext = renderContextFactory(basePreviewElement) ?: return sequenceOf()
     ModuleClassLoaderManager.get()
       .getPrivate(
         ParametrizedComposePreviewElementTemplate::class.java.classLoader,
