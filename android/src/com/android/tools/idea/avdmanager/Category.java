@@ -22,12 +22,8 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "pixel_fold", definition ->
-    !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
-
-  TABLET("Tablet", "pixel_tablet", definition ->
-    !definition.getIsDeprecated() && definition.getTagId() == null && hasTabletScreen(definition)),
-
+  PHONE("Phone", "pixel_fold", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isPhone(definition)),
+  TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isTablet(definition)),
   WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
   DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
   TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && (HardwareConfigHelper.isTv(definition) || hasTvScreen(definition))),
@@ -45,11 +41,6 @@ enum Category {
 
   @NotNull
   private final Predicate<Device> myPredicate;
-
-  private static boolean hasTabletScreen(@NotNull Device definition) {
-    var screen = definition.getDefaultHardware().getScreen();
-    return screen.getDiagonalLength() >= Device.MINIMUM_TABLET_SIZE && !screen.isFoldable();
-  }
 
   private static boolean hasTvScreen(@NotNull Device definition) {
     return definition.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
