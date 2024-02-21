@@ -23,8 +23,8 @@ import com.intellij.psi.SmartPsiElementPointer
 /** Information required to display the preview of a Glance UI element. */
 class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+  override val previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
+  override val previewBody: SmartPsiElementPointer<PsiElement>?,
   override val methodFqn: String,
   override val hasAnimations: Boolean = false,
 ) : MethodPreviewElement

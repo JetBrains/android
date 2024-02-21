@@ -147,8 +147,8 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
 class SingleComposePreviewElementInstance(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings,
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+  override val previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
+  override val previewBody: SmartPsiElementPointer<PsiElement>?,
   override val configuration: PreviewConfiguration,
 ) : ComposePreviewElementInstance() {
   override val instanceId: String = methodFqn

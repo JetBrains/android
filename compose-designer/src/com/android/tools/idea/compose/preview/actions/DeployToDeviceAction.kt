@@ -43,7 +43,7 @@ internal class DeployToDeviceAction :
 
   override fun actionPerformed(e: AnActionEvent) {
     e.dataContext.previewElement()?.let {
-      val psiElement = it.previewElementDefinitionPsi?.element
+      val psiElement = it.previewElementDefinition?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
 
@@ -54,7 +54,7 @@ internal class DeployToDeviceAction :
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isTestFile =
-      e.dataContext.previewElement()?.previewBodyPsi?.let {
+      e.dataContext.previewElement()?.previewBody?.let {
         SlowOperations.allowSlowOperations(
           ThrowableComputable { isTestFile(it.project, it.virtualFile) }
         )

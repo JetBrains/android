@@ -24,6 +24,4 @@ import com.intellij.psi.PsiFile
  * preview elements.
  */
 val PreviewElement.containingFile: PsiFile?
-  get() = runReadAction {
-    previewBodyPsi?.containingFile ?: previewElementDefinitionPsi?.containingFile
-  }
+  get() = runReadAction { previewBody?.containingFile ?: previewElementDefinition?.containingFile }

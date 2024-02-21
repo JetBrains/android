@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
  * This property needs a [ReadAction] to be read.
  */
 private val PreviewElement?.sourceOffset: Int
-  get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
+  get() = this?.previewElementDefinition?.element?.startOffset ?: -1
 
 private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
 private val displayPriorityComparator =
@@ -47,7 +47,7 @@ private val lexicographicalNameComparator = compareBy<PreviewElement> { it.displ
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line
  * number, smaller first. Previews belonging to groups will be sorted by their group name, ungrouped
  * Previews will appear at the beginning of the list. When Multipreview is enabled, different
- * Previews may have the same [PreviewElement.previewElementDefinitionPsi] value, and those will be
+ * Previews may have the same [PreviewElement.previewElementDefinition] value, and those will be
  * ordered lexicographically between them, as the actual Previews may be defined in different files
  * and/or in a not structured way, so it is not possible to order them based on code source offsets.
  */

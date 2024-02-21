@@ -50,7 +50,7 @@ import org.junit.Rule
 import org.junit.Test
 
 private fun ComposePreviewElement.annotationText(): String =
-  ReadAction.compute<String, Throwable> { previewElementDefinitionPsi?.element?.text ?: "" }
+  ReadAction.compute<String, Throwable> { previewElementDefinition?.element?.text ?: "" }
 
 class PreviewPickerTests {
 
@@ -109,7 +109,7 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            noParametersPreview.previewElementDefinitionPsi,
+            noParametersPreview.previewElementDefinition,
             NoOpTracker,
           )
         assertNotNull(parsed.properties["", "name"])
@@ -120,7 +120,7 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            namedPreview.previewElementDefinitionPsi,
+            namedPreview.previewElementDefinition,
             NoOpTracker,
           )
         assertEquals("named", parsed.properties["", "name"].value)
@@ -130,7 +130,7 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            namedPreviewFromConst.previewElementDefinitionPsi,
+            namedPreviewFromConst.previewElementDefinition,
             NoOpTracker,
           )
         assertEquals("Name from Const", parsed.properties["", "name"].value)
@@ -485,7 +485,7 @@ class PreviewPickerTests {
         PreviewPickerPropertiesModel.fromPreviewElement(
           project,
           module,
-          noParametersPreview.previewElementDefinitionPsi,
+          noParametersPreview.previewElementDefinition,
           NoOpTracker,
         )
       }
@@ -555,7 +555,7 @@ class PreviewPickerTests {
       PreviewPickerPropertiesModel.fromPreviewElement(
         project,
         module,
-        preview.previewElementDefinitionPsi,
+        preview.previewElementDefinition,
         tracker,
       )
     }

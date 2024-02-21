@@ -35,8 +35,8 @@ import org.junit.Test
 private class TestMethodPreviewElement(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
+  override val previewElementDefinition: SmartPsiElementPointer<PsiElement>? = null,
+  override val previewBody: SmartPsiElementPointer<PsiElement>? = null,
   override val hasAnimations: Boolean = false,
 ) : MethodPreviewElement
 

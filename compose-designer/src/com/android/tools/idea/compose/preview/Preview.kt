@@ -941,8 +941,8 @@ class ComposePreviewRepresentation(
             is FlowableCollection.Present -> {
               filePreviewElements.collection
                 .find { element ->
-                  element.previewBodyPsi?.psiRange.containsOffset(offset) ||
-                    element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+                  element.previewBody?.psiRange.containsOffset(offset) ||
+                    element.previewElementDefinition?.psiRange.containsOffset(offset)
                 }
                 ?.let { selectedPreviewElement ->
                   surface.models.find {

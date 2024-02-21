@@ -34,8 +34,8 @@ private fun wearTilePreviewElement(
 ) =
   WearTilePreviewElement(
     displaySettings = displaySettings,
-    previewElementDefinitionPsi = previewElementDefinitionPsi,
-    previewBodyPsi = previewBodyPsi,
+    previewElementDefinition = previewElementDefinitionPsi,
+    previewBody = previewBodyPsi,
     methodFqn = methodFqn,
     configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
   )
@@ -99,8 +99,8 @@ class WearTilePreviewElementModelAdapterTest {
         .toXml(
           WearTilePreviewElement(
             displaySettings = simplestDisplaySettings(),
-            previewElementDefinitionPsi = null,
-            previewBodyPsi = null,
+            previewElementDefinition = null,
+            previewBody = null,
             methodFqn = "foo",
             configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
           )

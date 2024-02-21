@@ -83,7 +83,7 @@ class ComposeVisualLintSuppressTaskTest {
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
       ) {
-        previewElement.previewElementDefinitionPsi?.virtualFile
+        previewElement.previewElementDefinition?.virtualFile
       }
     val renderTaskFuture =
       createRenderTaskFuture(
@@ -179,7 +179,7 @@ class ComposeVisualLintSuppressTaskTest {
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
       ) {
-        previewElement.previewElementDefinitionPsi?.virtualFile
+        previewElement.previewElementDefinition?.virtualFile
       }
     val renderTaskFuture =
       createRenderTaskFuture(
@@ -227,7 +227,7 @@ class ComposeVisualLintSuppressTaskTest {
     }
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      previewElement.previewElementDefinitionPsi!!.element?.delete()
+      previewElement.previewElementDefinition!!.element?.delete()
     }
     run {
       val buttonSuppressTasks = buttonIssues[0].suppresses.toList()

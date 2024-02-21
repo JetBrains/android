@@ -301,12 +301,11 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           }
 
       val offset = runReadAction {
-        previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
+        previewElement.previewElementDefinition?.element?.textOffset ?: 0
       }
       val defaultFile =
-        previewElement.previewElementDefinitionPsi?.virtualFile?.let {
-          getPsiFileSafely(project, it)
-        } ?: psiFile
+        previewElement.previewElementDefinition?.virtualFile?.let { getPsiFileSafely(project, it) }
+          ?: psiFile
       navigationHandler.setDefaultLocation(newModel, defaultFile, offset)
 
       withContext(AndroidDispatchers.workerThread) {

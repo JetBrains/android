@@ -58,7 +58,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 
     issue.customizeIsSuppressed {
       val suppressedTypes = runReadAction {
-        previewElement.previewElementDefinitionPsi?.let { pointer ->
+        previewElement.previewElementDefinition?.let { pointer ->
           val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let emptyList()
           val composableFunction =
             annotationEntry.parentOfType<KtFunction>() ?: return@let emptyList()
@@ -110,7 +110,7 @@ class ComposeVisualLintSuppressTask(
       issueType.toSuppressActionDescription(),
       null,
       {
-        previewElement.previewElementDefinitionPsi?.let { pointer ->
+        previewElement.previewElementDefinition?.let { pointer ->
           val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let
           val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@let
           var suppress =
@@ -134,7 +134,7 @@ class ComposeVisualLintSuppressTask(
   }
 
   override fun isValid(): Boolean {
-    return previewElement.previewElementDefinitionPsi?.let { runReadAction { it.element?.isValid } }
+    return previewElement.previewElementDefinition?.let { runReadAction { it.element?.isValid } }
       ?: false
   }
 }

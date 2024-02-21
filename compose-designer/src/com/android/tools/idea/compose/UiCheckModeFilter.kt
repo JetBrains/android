@@ -216,8 +216,8 @@ private fun ComposePreviewElementInstance.createDerivedInstance(
     SingleComposePreviewElementInstance(
       methodFqn,
       displaySettings,
-      previewElementDefinitionPsi,
-      previewBodyPsi,
+      previewElementDefinition,
+      previewBody,
       config,
     )
   return if (this is ParametrizedComposePreviewElementInstance) {

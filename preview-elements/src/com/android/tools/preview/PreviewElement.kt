@@ -58,14 +58,14 @@ interface PreviewElement : PreviewNode {
 
   /**
    * [SmartPsiElementPointer] to the preview element definition. This means the code that indicates
-   * that [previewBodyPsi] should be previewed. This might be the [previewBodyPsi] itself or an
+   * that [previewBody] should be previewed. This might be the [previewBody] itself or an
    * annotation (annotating the composable method, that won't necessarily be a '@Preview' when
    * Multipreview is enabled).
    */
-  val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
+  val previewElementDefinition: SmartPsiElementPointer<PsiElement>?
 
   /**
    * [SmartPsiElementPointer] to the preview body. This is the code that will be run during preview
    */
-  val previewBodyPsi: SmartPsiElementPointer<PsiElement>?
+  val previewBody: SmartPsiElementPointer<PsiElement>?
 }

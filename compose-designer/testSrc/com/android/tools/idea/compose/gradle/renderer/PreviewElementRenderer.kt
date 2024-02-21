@@ -49,7 +49,7 @@ fun createRenderTaskFuture(
         "singlePreviewElement.xml",
         previewElement.toPreviewXml().buildString(),
       ) {
-        previewElement.previewElementDefinitionPsi?.virtualFile
+        previewElement.previewElementDefinition?.virtualFile
       },
     privateClassLoader = privateClassLoader,
     useLayoutScanner = useLayoutScanner,

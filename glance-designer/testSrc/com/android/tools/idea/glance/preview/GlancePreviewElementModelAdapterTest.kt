@@ -47,8 +47,8 @@ private fun glancePreviewElement(
 ) =
   GlancePreviewElement(
     displaySettings = displaySettings,
-    previewElementDefinitionPsi = null,
-    previewBodyPsi = null,
+    previewElementDefinition = null,
+    previewBody = null,
     methodFqn = methodFqn,
   )
 

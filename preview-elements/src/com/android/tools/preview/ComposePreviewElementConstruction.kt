@@ -31,7 +31,7 @@ import com.intellij.psi.SmartPsiElementPointer
 fun previewAnnotationToPreviewElement(
   attributesProvider: AnnotationAttributesProvider,
   annotatedMethod: AnnotatedMethod,
-  previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+  previewElementDefinition: SmartPsiElementPointer<PsiElement>?,
   parameterizedElementConstructor: (SingleComposePreviewElementInstance, Collection<PreviewParameter>) -> ComposePreviewElement,
   overrideGroupName: String? = null,
   parentAnnotationInfo: String? = null
@@ -80,7 +80,7 @@ fun previewAnnotationToPreviewElement(
     SingleComposePreviewElementInstance(
       composableMethod,
       displaySettings,
-      previewElementDefinitionPsi,
+      previewElementDefinition,
       annotatedMethod.methodBody,
       attributesToConfiguration(attributesProvider)
     )

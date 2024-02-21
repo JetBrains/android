@@ -114,9 +114,9 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 
   return WearTilePreviewElement(
     displaySettings = displaySettings,
-    previewElementDefinitionPsi =
+    previewElementDefinition =
       runReadAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },
-    previewBodyPsi = runReadAction { uMethod.uastBody.toSmartPsiPointer() },
+    previewBody = runReadAction { uMethod.uastBody.toSmartPsiPointer() },
     methodFqn = runReadAction { uMethod.qualifiedName },
     configuration = configuration,
   )
