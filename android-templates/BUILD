@@ -218,7 +218,7 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.google.prefab.cli_2.0.0",
+        "@maven//:com.google.prefab.cli_2.1.0",
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.squareup.okio.okio_3.4.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",

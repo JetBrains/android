@@ -288,7 +288,7 @@ maven_repository(
         "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.google.prefab.cli_2.0.0",
+        "@maven//:com.google.prefab.cli_2.1.0",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
