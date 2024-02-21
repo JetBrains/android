@@ -55,7 +55,7 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
       return field
     }
 
-  override suspend fun loadCapabilities() = capabilities
+  override fun getCapabilities() = capabilities
 
   override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityState> {
     if (serialNumber == null) {

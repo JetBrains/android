@@ -101,9 +101,6 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
-    stateManager.getCapabilitiesList().waitForValue(deviceManager.capabilities)
-    stateManager.getCapabilitiesList().waitForValue(WHS_CAPABILITIES)
-
     deviceManager.activeExercise = true
 
     stateManager.forceUpdateState()

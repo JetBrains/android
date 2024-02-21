@@ -32,11 +32,14 @@ import org.jetbrains.annotations.PropertyKey
  */
 internal interface WearHealthServicesToolWindowStateManager {
   /**
-   * State flow for all capabilities of WHS, used to display a list of capabilities.
+   * Capabilities of WHS.
    */
-  fun getCapabilitiesList(): StateFlow<List<WhsCapability>>
+  val capabilitiesList: List<WhsCapability>
 
-  val preset:MutableStateFlow<Preset>
+  /**
+   * State flow for the current preset.
+   */
+  val preset: MutableStateFlow<Preset>
 
   /**
    * Sets the current capability enabled state.
@@ -47,7 +50,7 @@ internal interface WearHealthServicesToolWindowStateManager {
    * Sets the overridden sensor value for the given capability. Null value here means there's no
    * overridden value and WHS should use the default value.
    */
-  suspend  fun setOverrideValue(capability: WhsCapability, value: Float?)
+  suspend fun setOverrideValue(capability: WhsCapability, value: Float?)
 
   fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 

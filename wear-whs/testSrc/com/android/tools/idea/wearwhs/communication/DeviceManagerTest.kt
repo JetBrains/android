@@ -20,7 +20,6 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsDataType
-import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -574,7 +573,7 @@ class DeviceManagerTest {
     val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
     val job = launch {
-      deviceManager.loadCapabilities()
+      deviceManager.getCapabilities()
     }
     job.join()
   }

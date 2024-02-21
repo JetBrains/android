@@ -26,7 +26,6 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -91,8 +90,6 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       }
     }
   }
-
-  private fun getLogger() = Logger.getInstance(this::class.java)
 
   private fun createWhsVersionNotSupportedPanel(): JPanel =
     JPanel().apply {
@@ -164,9 +161,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       }, BorderLayout.EAST)
     }
     val content = JBScrollPane().apply {
-      stateManager.getCapabilitiesList().onEach { capabilities ->
-        setViewportView(createCenterPanel(capabilities))
-      }.launchIn(uiScope)
+      setViewportView(createCenterPanel(stateManager.capabilitiesList))
     }
     val footer = JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders

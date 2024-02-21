@@ -24,11 +24,9 @@ import com.android.tools.idea.wearwhs.WhsDataType
  */
 internal interface WearHealthServicesDeviceManager {
   /**
-   * Loads the capabilities of the WHS in current device.
-   *
-   * @return the capabilities of the device.
+   * @return Capabilities of WHS.
    */
-  suspend fun loadCapabilities(): List<WhsCapability>
+  fun getCapabilities(): List<WhsCapability>
 
   /**
    * Checks if there's an ongoing exercise

@@ -26,12 +26,10 @@ import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceMana
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -50,8 +48,12 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   private val logger: Logger = Logger.getInstance(WearHealthServicesToolWindowStateManagerImpl::class.java)
   override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
-  private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
-  private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityUIState>>()
+  override val capabilitiesList = deviceManager.getCapabilities()
+
+  private val capabilityToState = capabilitiesList.associateWith {
+    MutableStateFlow(CapabilityUIState())
+  }
+
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
   private val workerScope = AndroidCoroutineScope(this)
 
@@ -69,7 +71,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   init {
     workerScope.launch {
-      setCapabilities(deviceManager.loadCapabilities())
       while (true) {
         updateState()
         delay(pollingIntervalMillis.milliseconds)
@@ -119,12 +120,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
   }
 
-  private suspend fun setCapabilities(whsCapabilities: List<WhsCapability>) {
-    capabilityToState.clear()
-    capabilityToState.putAll(whsCapabilities.associateWith { MutableStateFlow(CapabilityUIState()) })
-    capabilitiesList.emit(whsCapabilities)
-  }
-
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
   override fun getOngoingExercise(): StateFlow<Boolean> = ongoingExercise.asStateFlow()
 
@@ -137,8 +132,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       false
     }
   }
-
-  override fun getCapabilitiesList(): StateFlow<List<WhsCapability>> = capabilitiesList.asStateFlow()
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) {
     try {
@@ -200,9 +193,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
   }
 
-  override fun dispose() { // Clear all callbacks to avoid memory leaks
-    capabilityToState.clear()
-  }
+  override fun dispose() {}
 
   @TestOnly
   internal suspend fun forceUpdateState() {
