@@ -73,8 +73,13 @@ class ScreenshotAction : DumbAwareAction(
           val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
           indicator.checkCanceled()
-          backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
+          val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
               throw IOException(message("screenshot.error.save"))
+          while (virtualFile.length == 0L) {
+            // It's not clear why the file may have zero length after the first refresh, but it was empirically observed.
+            virtualFile.refresh(false, false)
+          }
+          backingFile = virtualFile
           indicator.checkCanceled()
         }
         catch (e: IOException) {
