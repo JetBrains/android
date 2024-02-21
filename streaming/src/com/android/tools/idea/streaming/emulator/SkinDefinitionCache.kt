@@ -34,7 +34,7 @@ internal class SkinDefinitionCache {
     if (skinFolder == null) {
       return null
     }
-    return folderToSkin.computeIfAbsent(skinFolder) { SkinDefinition.create(skinFolder) }
+    return folderToSkin.computeIfAbsent(skinFolder) { SkinDefinition.createOrNull(skinFolder) }
   }
 
   companion object {

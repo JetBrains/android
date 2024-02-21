@@ -95,77 +95,67 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     return size.rotatedByQuadrants(displayRotationQuadrants)
   }
 
+  internal data class LayoutDescriptor(val displaySize: Dimension, val frameRectangle: Rectangle, val part: Part) {
+
+    val backgroundFile: URL?
+      get() = part.backgroundFile
+
+    fun createLayout(): SkinLayout {
+      val backgroundImages: List<AnchoredImage>
+      val maskImages: List<AnchoredImage>
+      val background = part.backgroundFile?.let { readImage(it) }
+
+      val mask = when {
+        background != null && isTransparentNearCenterOfDisplay(background, displaySize, frameRectangle) -> {
+          // The background image is transparent near the center of the display. Derive mask from the background image.
+          background.cropped(Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height)).apply {
+            // If running in a non-IDE environment and the mask file is specified in the layout but is absent on disk,
+            // create the missing mask file.
+            if (ApplicationManager.getApplication() == null && part.maskFile != null) {
+              val maskFile = Paths.get(part.maskFile.toURI())
+              if (Files.notExists(maskFile)) {
+                writeImage("WEBP", maskFile)
+              }
+            }
+          }
+        }
+        part.maskFile != null -> readImage(part.maskFile)
+        else -> null
+      }
+
+      backgroundImages = background?.let { disassembleFrame(it, frameRectangle, displaySize) } ?: emptyList()
+      maskImages = mask?.let { disassembleMask(it, displaySize) } ?: emptyList()
+
+      val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
+      return SkinLayout(displaySize, adjustedFrameRectangle, backgroundImages, maskImages)
+    }
+
+    private fun readImage(url: URL): BufferedImage? {
+      var image: BufferedImage? = null
+      try {
+        image = ImageIO.read(url)
+      }
+      catch (e: IOException) {
+        // Ignore to return null.
+      }
+
+      if (image == null) {
+        val file = Paths.get(url.toURI())
+        val detail = if (Files.notExists(file)) " - the file does not exist" else ""
+        thisLogger().warn("Failed to read Emulator skin image ${file}${detail}")
+      }
+      return image
+    }
+  }
+
+  internal data class Part(val backgroundFile: URL?, val maskFile: URL?)
+
   companion object {
     @Slow
     @JvmStatic
-    fun create(skinFolder: Path): SkinDefinition? {
+    fun createOrNull(skinFolder: Path): SkinDefinition? {
       try {
-        val layoutFile = skinFolder.resolve("layout")
-        val contents = Files.readAllBytes(layoutFile).toString(UTF_8)
-        val skin = SkinLayoutDefinition.parseString(contents)
-        var displayWidth = 0
-        var displayHeight = 0
-        // Process part nodes. The "onion" and "controls" nodes are ignored because they don't
-        // contribute to the device frame appearance.
-        val partsByName = hashMapOf<String, Part>()
-        val partNodes = skin.getNode("parts")?.children ?: return null
-        for ((name, node) in partNodes.entries) {
-          if (name == "onion" || name == "controls") {
-            continue
-          }
-          if (name == "device" || name == "primary" || displayWidth == 0 || displayHeight == 0) {
-            displayWidth = node.getValue("display.width")?.toInt() ?: 0
-            displayHeight = node.getValue("display.height")?.toInt() ?: 0
-          }
-          partsByName[name] = createPart(node, skinFolder)
-        }
-
-        if (displayWidth == 0 || displayHeight == 0) {
-          return null
-        }
-        // Process layout nodes.
-        var layout: SkinLayout? = null
-        val layoutNodes = skin.getNode("layouts")?.children ?: return null
-        layout@ for (layoutNode in layoutNodes.values) {
-          val width = layoutNode.getValue("width")?.toInt() ?: continue
-          val height = layoutNode.getValue("height")?.toInt() ?: continue
-          var part: Part? = null
-          var frameX = 0
-          var frameY = 0
-          var partX = 0
-          var partY = 0
-          for (subnode in layoutNode.children.values) {
-            val x = subnode.getValue("x")?.toInt() ?: 0
-            val y = subnode.getValue("y")?.toInt() ?: 0
-            val name = subnode.getValue("name") ?: continue
-            if (name == "device" || name == "primary") {
-              val rotation = subnode.getValue("rotation")?.toInt() ?: 0
-              if (rotation != 0) {
-                continue@layout // The layout is rotated - ignore it.
-              }
-              frameX = -x
-              frameY = -y
-            }
-            else {
-              if (part == null) {
-                part = partsByName[name]
-                if (part != null) {
-                  partX = x
-                  partY = y
-                }
-              }
-            }
-          }
-
-          if (part != null) {
-            val frameRectangle = Rectangle(frameX + partX, frameY + partY, width, height)
-            layout = createLayout(Dimension(displayWidth, displayHeight), frameRectangle, part)
-          }
-        }
-
-        if (layout != null) {
-          return SkinDefinition(layout)
-        }
+        return create(skinFolder)
       }
       catch (e: NoSuchFileException) {
         thisLogger().error("File not found: ${e.file}")
@@ -173,7 +163,86 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       catch (e: IOException) {
         thisLogger().error(e)
       }
+      catch (e: InvalidSkinException) {
+        thisLogger().error(e.message)
+      }
       return null
+    }
+
+    @Slow
+    @Throws(IOException::class, InvalidSkinException::class)
+    @JvmStatic
+    fun create(skinFolder: Path): SkinDefinition {
+      val layoutDescriptor = createLayoutDescriptor(skinFolder)
+      return SkinDefinition(layoutDescriptor.createLayout())
+    }
+
+    @Slow
+    @Throws(IOException::class, InvalidSkinException::class)
+    @JvmStatic
+    internal fun createLayoutDescriptor(skinFolder: Path): LayoutDescriptor {
+      val layoutFile = skinFolder.resolve("layout")
+      val contents = Files.readAllBytes(layoutFile).toString(UTF_8)
+      val skin = SkinLayoutDefinition.parseString(contents)
+      var displayWidth = 0
+      var displayHeight = 0
+      // Process part nodes. The "onion" and "controls" nodes are ignored because they don't
+      // contribute to the device frame appearance.
+      val partsByName = hashMapOf<String, Part>()
+      val partNodes = skin.getNode("parts")?.children ?: throw InvalidSkinException("Missing \"parts\" element")
+      for ((name, node) in partNodes.entries) {
+        if (name == "onion" || name == "controls") {
+          continue
+        }
+        if (name == "device" || name == "primary" || displayWidth == 0 || displayHeight == 0) {
+          displayWidth = node.getValue("display.width")?.toInt() ?: 0
+          displayHeight = node.getValue("display.height")?.toInt() ?: 0
+        }
+        partsByName[name] = createPart(node, skinFolder)
+      }
+
+      if (displayWidth == 0 || displayHeight == 0) {
+        throw InvalidSkinException("Missing or invalid display dimensions")
+      }
+      // Process layout nodes.
+      val layoutNodes = skin.getNode("layouts")?.children ?: throw InvalidSkinException("Missing \"layouts\" element")
+      layout@ for (layoutNode in layoutNodes.values) {
+        val width = layoutNode.getValue("width")?.toInt() ?: continue
+        val height = layoutNode.getValue("height")?.toInt() ?: continue
+        var part: Part? = null
+        var frameX = 0
+        var frameY = 0
+        var partX = 0
+        var partY = 0
+        for (subnode in layoutNode.children.values) {
+          val x = subnode.getValue("x")?.toInt() ?: 0
+          val y = subnode.getValue("y")?.toInt() ?: 0
+          val name = subnode.getValue("name") ?: continue
+          if (name == "device" || name == "primary") {
+            val rotation = subnode.getValue("rotation")?.toInt() ?: 0
+            if (rotation != 0) {
+              continue@layout // The layout is rotated - ignore it.
+            }
+            frameX = -x
+            frameY = -y
+          }
+          else {
+            if (part == null) {
+              part = partsByName[name]
+              if (part != null) {
+                partX = x
+                partY = y
+              }
+            }
+          }
+        }
+
+        if (part != null) {
+          val frameRectangle = Rectangle(frameX + partX, frameY + partY, width, height)
+          return LayoutDescriptor(Dimension(displayWidth, displayHeight), frameRectangle, part)
+        }
+      }
+      throw InvalidSkinException("Missing \"device\" part")
     }
 
     /**
@@ -203,37 +272,6 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     private fun getReferencedFile(node: SkinLayoutDefinition, propertyName: String, skinFolder: Path): URL? {
       val filename = node.getValue(propertyName) ?: return null
       return skinFolder.resolve(filename).toUri().toURL()
-    }
-
-    @JvmStatic
-    private fun createLayout(displaySize: Dimension, frameRectangle: Rectangle, part: Part): SkinLayout {
-      val backgroundImages: List<AnchoredImage>
-      val maskImages: List<AnchoredImage>
-      val background = part.backgroundFile?.let { readImage(it) }
-
-      val mask = when {
-        background != null && isTransparentNearCenterOfDisplay(background, displaySize, frameRectangle) -> {
-          // The background image is transparent near the center of the display. Derive mask from the background image.
-          background.cropped(Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height)).apply {
-            // If running in a non-IDE environment and the mask file is specified in the layout but is absent on disk,
-            // create the missing mask file.
-            if (ApplicationManager.getApplication() == null && part.maskFile != null) {
-              val maskFile = Paths.get(part.maskFile.toURI())
-              if (Files.notExists(maskFile)) {
-                writeImage("WEBP", maskFile)
-              }
-            }
-          }
-        }
-        part.maskFile != null -> readImage(part.maskFile)
-        else -> null
-      }
-
-      backgroundImages = background?.let { disassembleFrame(it, frameRectangle, displaySize) } ?: emptyList()
-      maskImages = mask?.let { disassembleMask(it, displaySize) } ?: emptyList()
-
-      val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
-      return SkinLayout(displaySize, adjustedFrameRectangle, backgroundImages, maskImages)
     }
 
     @JvmStatic
@@ -445,26 +483,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     private val Rectangle.bottom
       get() = y + height
 
-    @JvmStatic
-    private fun readImage(url: URL): BufferedImage? {
-      var image: BufferedImage? = null
-      try {
-        image = ImageIO.read(url)
-      }
-      catch (e: IOException) {
-        // Ignore to return null.
-      }
-
-      if (image == null) {
-        val file = Paths.get(url.toURI())
-        val detail = if (Files.notExists(file)) " - the file does not exist" else ""
-        thisLogger().warn("Failed to read Emulator skin image ${file}${detail}")
-      }
-      return image
-    }
-
     private const val ALPHA_MASK = 0xFF shl 24
   }
-
-  private data class Part(val backgroundFile: URL?, val maskFile: URL?)
 }
+
+class InvalidSkinException(message: String) : RuntimeException(message)
