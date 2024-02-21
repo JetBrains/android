@@ -319,7 +319,7 @@ class ComposePreviewRepresentation(
    * TODO(b/305011776): remove it to use the one in ComposePreviewFlowManager
    */
   override val allPreviewElementsInFileFlow
-    get() = composePreviewFlowManager.allPreviewElementsInFileFlow
+    get() = composePreviewFlowManager.allPreviewElementsFlow
 
   /**
    * Gives access to the filtered preview elements. For testing only. Users of this class should not
@@ -327,7 +327,7 @@ class ComposePreviewRepresentation(
    */
   @TestOnly
   fun filteredPreviewElementsInstancesFlowForTest() =
-    composePreviewFlowManager.filteredPreviewElementsInstancesFlow
+    composePreviewFlowManager.filteredPreviewElementsFlow
 
   private val projectBuildStatusManager =
     ProjectBuildStatusManager.create(
@@ -1285,7 +1285,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsInstancesFlow.value
+              composePreviewFlowManager.filteredPreviewElementsFlow.value
                 .asCollection()
                 .sortByDisplayAndSourcePosition()
             }
