@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.execution.common.deploy
 
-import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.InstallStatus
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.CantRunException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.notification.NotificationType
 import com.intellij.testFramework.RuleChain
@@ -32,7 +31,6 @@ import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assume.assumeThat
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 class DeployAndHandleErrorKtTest {
   private val ACTIVITY_NAME = "com.example.Activity"
@@ -66,6 +64,24 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+    }
+  }
+
+  @Test
+  fun deployWithException_message_details() {
+    val env = createFakeExecutionEnvironment(projectRule.project, "test")
+    val detailedReason = "very lengthy detailed reason"
+
+    val exception = DeployerException.installFailed(InstallStatus.UNKNOWN_ERROR, detailedReason)
+    assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.RETRY))
+
+    try {
+      deployAndHandleError(env, { throw exception })
+      fail()
+    }
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!.contains(detailedReason))
     }
   }
 
