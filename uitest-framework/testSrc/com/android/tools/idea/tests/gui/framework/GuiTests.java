@@ -264,6 +264,13 @@ public final class GuiTests {
   }
 
   @NotNull
+  public static File getFailedTestDiagnosticsDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "diagnostics");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
   public static File getGuiTestRootDirPath() throws IOException {
     String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
     if (isNotEmpty(guiTestRootDirPathProperty)) {
