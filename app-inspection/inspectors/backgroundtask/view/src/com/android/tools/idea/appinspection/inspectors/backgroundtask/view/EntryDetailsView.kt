@@ -254,11 +254,9 @@ class EntryDetailsView(
         intentPanel.add(buildKeyValuePair("Categories", intent.categoriesList.joinToString { it }))
       }
       if (intent.hasComponentName()) {
+        intentPanel.add(buildKeyValuePair("Component package", intent.componentName.packageName))
         intentPanel.add(
-          buildKeyValuePair(
-            "Component",
-            "${intent.componentName.packageName}.${intent.componentName.className}",
-          )
+          buildKeyValuePair("Component class", intent.componentName.className, classNameProvider)
         )
       }
       if (intent.hasIdentifier()) {
@@ -314,19 +312,15 @@ class EntryDetailsView(
     detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Acquired", "Released"))
   }
 
+  private val classNameProvider = ClassNameProvider(ideServices, client.scope, client.tracker)
+
   private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
     val job = jobEntry.jobInfo ?: return
 
     detailsPanel.add(
       buildCategoryPanel(
         "Description",
-        listOf(
-          buildKeyValuePair(
-            "Service",
-            job.serviceName,
-            ClassNameProvider(ideServices, client.scope, client.tracker),
-          )
-        ),
+        listOf(buildKeyValuePair("Service", job.serviceName, classNameProvider)),
       )
     )
 
@@ -391,11 +385,7 @@ class EntryDetailsView(
       buildCategoryPanel(
         "Description",
         listOf(
-          buildKeyValuePair(
-            "Class",
-            work.workerClassName,
-            ClassNameProvider(ideServices, client.scope, client.tracker),
-          ),
+          buildKeyValuePair("Class", work.workerClassName, classNameProvider),
           buildKeyValuePair("Tags", work.tagsList.toList(), StringListProvider),
           buildKeyValuePair("UUID", work.id),
         ),

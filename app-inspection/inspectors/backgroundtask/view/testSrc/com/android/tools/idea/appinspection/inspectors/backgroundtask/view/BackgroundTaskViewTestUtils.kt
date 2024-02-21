@@ -29,6 +29,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -76,5 +77,6 @@ object BackgroundTaskViewTestUtils {
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }
 
   inline fun <reified T : Component> JComponent.namedChild(name: String): T =
-    TreeWalker(this).descendants().filterIsInstance<T>().first { it.name == name }
+    TreeWalker(this).descendants().filterIsInstance<T>().find { it.name == name }
+      ?: fail("Failed to find a ${T::class.java.simpleName} named '$name'")
 }

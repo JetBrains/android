@@ -67,6 +67,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",

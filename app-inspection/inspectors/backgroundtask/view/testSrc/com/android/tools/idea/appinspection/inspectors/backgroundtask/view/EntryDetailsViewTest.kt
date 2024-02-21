@@ -274,8 +274,8 @@ class EntryDetailsViewTest {
               data = "data"
               addAllCategories(listOf("c1", "c2"))
               componentNameBuilder.apply {
-                packageName = "foo"
-                className = "Bar"
+                packageName = "component-package"
+                className = "component-class"
               }
               type = "type"
               flags = 0x8000
@@ -307,7 +307,8 @@ class EntryDetailsViewTest {
       assertThat(intent.getValueOf("Action")).isEqualTo("action")
       assertThat(intent.getValueOf("Data")).isEqualTo("data")
       assertThat(intent.getValueOf("Categories")).isEqualTo("c1, c2")
-      assertThat(intent.getValueOf("Component")).isEqualTo("foo.Bar")
+      assertThat(intent.getValueOf("Component package")).isEqualTo("component-package")
+      assertThat(intent.namedChild<ActionLink>("Component class").text).isEqualTo("component-class")
       assertThat(intent.getValueOf("Type")).isEqualTo("type")
       assertThat(intent.getValueOf("Flags")).isEqualTo("0x8000 (FLAG_ACTIVITY_CLEAR_TASK)")
       assertThat(intent.namedChild<JTextArea>("Extras").text).isEqualTo("extras")
