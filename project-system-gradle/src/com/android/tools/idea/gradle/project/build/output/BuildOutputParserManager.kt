@@ -40,7 +40,6 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       DataBindingOutputParser(),
                                                       JavacOutputParser(),
                                                       KotlincWithQuickFixesParser(),
-                                                      InstantExecutionReportParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
                                                       GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
