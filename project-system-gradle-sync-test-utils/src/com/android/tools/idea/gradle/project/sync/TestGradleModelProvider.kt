@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import org.gradle.api.Project
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
-import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.Message
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
@@ -32,12 +31,6 @@ enum class TestGradleModelProviderMode {
 }
 
 class TestGradleModelProvider(private val paramValue: String, val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
-  override fun populateBuildModels(
-    controller: BuildController,
-    buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer
-  ) {
-  }
 
   override fun populateProjectModels(
     controller: BuildController,
