@@ -315,15 +315,6 @@ class ComposePreviewRepresentation(
     )
 
   /**
-   * Flow containing all the [ComposePreviewElement]s available in the current file. This flow is
-   * only updated when this Compose Preview representation is active.
-   *
-   * TODO(b/305011776): remove it to use the one in ComposePreviewFlowManager
-   */
-  override val allPreviewElementsInFileFlow
-    get() = composePreviewFlowManager.allPreviewElementsFlow
-
-  /**
    * Gives access to the filtered preview elements. For testing only. Users of this class should not
    * use this method.
    */
@@ -427,7 +418,7 @@ class ComposePreviewRepresentation(
       // There is no need to switch back to Default mode as toolbar is available.
       // When exiting Essentials mode - preview will stay in Gallery mode.
     } else {
-      (allPreviewElementsInFileFlow.value as? FlowableCollection.Present)
+      (composePreviewFlowManager.allPreviewElementsFlow.value as? FlowableCollection.Present)
         ?.collection
         ?.firstOrNull()
         .let { previewModeManager.setMode(PreviewMode.Gallery(it)) }
@@ -931,7 +922,8 @@ class ComposePreviewRepresentation(
 
     lifecycleManager.executeIfActive {
       launch(uiThread) {
-        val filePreviewElements = withContext(workerThread) { allPreviewElementsInFileFlow.value }
+        val filePreviewElements =
+          withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
         // Workaround for b/238735830: The following withContext(uiThread) should not be needed but
         // the code below ends up being executed
         // in a worker thread under some circumstances so we need to prevent that from happening by
@@ -1407,9 +1399,12 @@ class ComposePreviewRepresentation(
         ?.let {
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
-            allPreviewElementsInFileFlow.value.asCollection().firstOrNull().let { previewElement ->
-              previewModeManager.setMode(PreviewMode.Gallery(previewElement))
-            }
+            composePreviewFlowManager.allPreviewElementsFlow.value
+              .asCollection()
+              .firstOrNull()
+              .let { previewElement ->
+                previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+              }
           } else {
             previewModeManager.setMode(PreviewMode.Default(it))
           }
@@ -1505,7 +1500,7 @@ class ComposePreviewRepresentation(
   /** Waits for any preview to be populated. */
   @TestOnly
   suspend fun waitForAnyPreviewToBeAvailable() {
-    allPreviewElementsInFileFlow
+    composePreviewFlowManager.allPreviewElementsFlow
       .filter { it is FlowableCollection.Present && it.collection.isNotEmpty() }
       .take(1)
       .collect()

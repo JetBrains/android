@@ -18,12 +18,15 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.error.DESIGNER_COMMON_ISSUE_PANEL
 import com.android.tools.idea.common.error.DesignToolsIssueProvider
+import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.uicheck.TAB_VIRTUAL_FILE
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -78,13 +81,16 @@ class ReRunUiCheckModeAction : AnAction() {
     if (relevantEditor.isTextMode()) {
       relevantEditor.selectSplitMode(false)
     }
-    val manager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
-    AndroidCoroutineScope(manager).launch {
-      manager.allPreviewElementsInFileFlow.collectLatest { flow ->
+    val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
+    val flowManager =
+      relevantEditor.getDesignSurface()?.getData(PreviewFlowManager.KEY.name)
+        as? PreviewFlowManager<*> ?: return
+    AndroidCoroutineScope(composeManager).launch {
+      flowManager.allPreviewElementsFlow.collectLatest { flow ->
         flow
           .asCollection()
-          .firstOrNull { it.instanceId == instanceId }
-          ?.let { manager.setMode(PreviewMode.UiCheck(it)) }
+          .firstOrNull { (it as? ComposePreviewElementInstance)?.instanceId == instanceId }
+          ?.let { composeManager.setMode(PreviewMode.UiCheck(it)) }
       }
     }
   }

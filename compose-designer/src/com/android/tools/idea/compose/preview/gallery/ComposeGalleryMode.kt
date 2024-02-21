@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.gallery
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
@@ -41,8 +42,8 @@ class ComposeGalleryMode(rootComponent: JComponent) {
 
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
     dataContext
-      .findPreviewManager(COMPOSE_PREVIEW_MANAGER)
-      ?.allPreviewElementsInFileFlow
+      .findPreviewManager(PreviewFlowManager.KEY)
+      ?.allPreviewElementsFlow
       ?.value
       ?.asCollection()
       ?.map { element -> PreviewElementKey(element) }

@@ -19,6 +19,8 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,21 +31,31 @@ import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
-import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 
 class ComposeGalleryModeTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private class TestManager : TestComposePreviewManager() {
-    override val allPreviewElementsInFileFlow:
-      MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+  private class TestManager :
+    TestComposePreviewManager(), PreviewFlowManager<ComposePreviewElementInstance> {
+    override val allPreviewElementsFlow =
+      MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>>(
+        FlowableCollection.Uninitialized
+      )
+    override val filteredPreviewElementsFlow =
+      MutableStateFlow<FlowableCollection<ComposePreviewElementInstance>>(
+        FlowableCollection.Uninitialized
+      )
+    override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(setOf())
+    override var groupFilter: PreviewGroup = PreviewGroup.All
+
+    override fun setSingleFilter(previewElement: ComposePreviewElementInstance?) {}
   }
 
   @Test
@@ -51,7 +63,7 @@ class ComposeGalleryModeTest {
     val firstElement = SingleComposePreviewElementInstance.forTesting("PreviewMethod1")
     val composePreviewManager =
       TestManager().apply {
-        allPreviewElementsInFileFlow.value =
+        allPreviewElementsFlow.value =
           FlowableCollection.Present(
             mutableListOf(
               firstElement,
@@ -72,9 +84,7 @@ class ComposeGalleryModeTest {
   @Test
   fun nothingSelectedInGallery() {
     val composePreviewManager =
-      TestManager().apply {
-        allPreviewElementsInFileFlow.value = FlowableCollection.Present(emptyList())
-      }
+      TestManager().apply { allPreviewElementsFlow.value = FlowableCollection.Present(emptyList()) }
     composePreviewManager.setMode(PreviewMode.Gallery(null))
     val (gallery, _) = setupGallery { composePreviewManager }
     assertNull(gallery.selectedKey)
@@ -87,7 +97,7 @@ class ComposeGalleryModeTest {
     val secondElement = SingleComposePreviewElementInstance.forTesting("PreviewMethod1")
     val composePreviewManager =
       TestManager().apply {
-        allPreviewElementsInFileFlow.value =
+        allPreviewElementsFlow.value =
           FlowableCollection.Present(
             mutableListOf(
               SingleComposePreviewElementInstance.forTesting("PreviewMethod2"),
@@ -109,7 +119,7 @@ class ComposeGalleryModeTest {
     val newSelected = SingleComposePreviewElementInstance.forTesting("PreviewMethod3")
     val composePreviewManager =
       TestManager().apply {
-        allPreviewElementsInFileFlow.value =
+        allPreviewElementsFlow.value =
           FlowableCollection.Present(
             mutableListOf(
               SingleComposePreviewElementInstance.forTesting("PreviewMethod2"),

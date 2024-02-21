@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
@@ -53,9 +50,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   }
 
   fun status(): Status
-
-  /** [StateFlow] of available elements in this preview with no filters applied. */
-  val allPreviewElementsInFileFlow: StateFlow<FlowableCollection<ComposePreviewElementInstance>>
 
   /**
    * The [PsiFile] that this preview is representing, if any. For cases where the preview is
@@ -97,9 +91,6 @@ class NopComposePreviewManager : ComposePreviewManager {
       isRefreshing = false,
     )
 
-  override val allPreviewElementsInFileFlow:
-    StateFlow<FlowableCollection<ComposePreviewElementInstance>> =
-    MutableStateFlow(FlowableCollection.Uninitialized)
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
