@@ -73,8 +73,11 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   }
 
   /**
-   * This method will be invoked by default during project loading and should return empty list, if not it would result in deserialization
+   * This method should ONLY be invoked automatically during project loading (without a written callsite, indirectly invoked by
+   * getInstance() method of this class). It should always return an empty list. Otherwise, it would result in deserialization
    * error while reading from xml (storage) file.
+   *
+   * To get task configs, the above getSavedTaskConfigsIfPresentOrDefault() method should be used and this method should be untouched.
    */
   @NotNull
   public List<CpuProfilerConfig> getTaskConfigs() {

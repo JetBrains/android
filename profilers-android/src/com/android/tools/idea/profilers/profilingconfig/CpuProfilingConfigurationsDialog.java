@@ -392,7 +392,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
         latestConfigs.add(CpuProfilerConfigConverter.fromProfilingConfiguration(myConfigurationsModel.getElementAt(i)));
       }
-      List<CpuProfilerConfig> existingConfigs = CpuProfilerConfigsState.getInstance(myProject).getTaskConfigs();
+      List<CpuProfilerConfig> existingConfigs = CpuProfilerConfigsState.getInstance(myProject).getSavedTaskConfigsIfPresentOrDefault();
       Map<String, List<CpuProfilerConfig>>
         existingConfigGrouped = existingConfigs.stream().collect(Collectors.groupingBy(CpuProfilerConfig::getName));
       Map<String, List<CpuProfilerConfig>>
