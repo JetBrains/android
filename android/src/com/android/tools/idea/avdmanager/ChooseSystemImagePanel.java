@@ -21,10 +21,10 @@ import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
-import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
+import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
 
 import com.android.repository.Revision;
@@ -53,15 +53,11 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ListTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.RowFilter;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * UI panel that presents the user with a list of {@link SystemImageDescription}s to choose from.
  *
- * You should register a listener via {@link #addSystemImageListener(Consumer)} to be notified of
+ * <p>You should register a listener via {@link #addSystemImageListener(Consumer)} to be notified of
  * when the user updates their choice.
  */
 public class ChooseSystemImagePanel extends JPanel
@@ -89,7 +85,7 @@ public class ChooseSystemImagePanel extends JPanel
   private JBLabel myStatusLabel;
   private JButton myRefreshButton;
   private AsyncProcessIcon myAsyncIcon;
-  private SystemImageListModel myListModel;
+  private final SystemImageListModel myListModel;
 
   @Nullable private Device myDevice;
   @Nullable private SystemImageDescription mySystemImage;
@@ -99,7 +95,9 @@ public class ChooseSystemImagePanel extends JPanel
     myListModel.refreshImages(false);
   }
 
-  public ChooseSystemImagePanel(@Nullable Project project, @Nullable Device initialDevice, @Nullable SystemImageDescription initialSystemImage) {
+  public ChooseSystemImagePanel(@Nullable Project project,
+                                @Nullable Device initialDevice,
+                                @Nullable SystemImageDescription initialSystemImage) {
     super(new BorderLayout());
     FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
 
@@ -109,12 +107,7 @@ public class ChooseSystemImagePanel extends JPanel
     myListModel = new SystemImageListModel(project, this);
     setupImageLists();
     myRefreshButton.setIcon(AllIcons.Actions.Refresh);
-    myRefreshButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myListModel.refreshImages(true);
-      }
-    });
+    myRefreshButton.addActionListener(event -> myListModel.refreshImages(true));
 
     // The center panel contains performant system images that are not recommended, therefore depending on the host system architecture, we
     // either provide x86 or ARM based images.
@@ -123,12 +116,7 @@ public class ChooseSystemImagePanel extends JPanel
                             ? AndroidBundle.message("avd.manager.arm.images")
                             : AndroidBundle.message("avd.manager.x86.images"));
 
-    myTabPane.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent changeEvent) {
-        previewCurrentTab();
-      }
-    });
+    myTabPane.addChangeListener(event -> previewCurrentTab());
 
     myRecommendedImageList.addSelectionListener(this);
     myRecommendedImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
@@ -146,6 +134,8 @@ public class ChooseSystemImagePanel extends JPanel
                                                               boolean isArm64HostOs) {
 
     Abi abi = Abi.getEnum(image.getAbiType());
+    assert abi != null;
+
     SystemImageClassification classification = getClassificationFromParts(abi,
                                                                           image.getVersion(),
                                                                           image.getTags(),
@@ -210,9 +200,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     if (SystemImageTags.isWearImage(tags)) {
       // For Wear, recommend based on API level (all Wear have Google APIs)
-      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || isAvdIntel))
-             ? SystemImageClassification.RECOMMENDED
-             : SystemImageClassification.PERFORMANT;
+      return apiLevel >= MIN_RECOMMENDED_WEAR_API ? SystemImageClassification.RECOMMENDED : SystemImageClassification.PERFORMANT;
     }
     if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.PERFORMANT;
@@ -227,7 +215,8 @@ public class ChooseSystemImagePanel extends JPanel
     if (SystemImageTags.isTvImage(tags)) {
       if (apiLevel == TIRAMISU) { // Tiramisu is an unsupported Android TV version.
         return SystemImageClassification.PERFORMANT;
-      } else {
+      }
+      else {
         return SystemImageClassification.RECOMMENDED;
       }
     }
@@ -240,7 +229,8 @@ public class ChooseSystemImagePanel extends JPanel
     // Only recommend 32-bit x86 images when API level < 31, or 64-bit x86 images when API level >= 31.
     if (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) {
       return SystemImageClassification.RECOMMENDED;
-    } else if (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64) {
+    }
+    else if (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64) {
       return SystemImageClassification.RECOMMENDED;
     }
 
@@ -259,12 +249,12 @@ public class ChooseSystemImagePanel extends JPanel
     // Foldable device requires Q preview or API29 and above.
     if (device.getDefaultHardware().getScreen().isFoldable() &&
         image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API) {
-        return false;
+      return false;
     }
 
     // Freeform display device requires R preview DP2 or API30 and above.
     if (deviceId.equals("13.5in Freeform")) {
-      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_FREEFORM_DEVICE_API) {
+      if (image.getVersion().getFeatureLevel() < MIN_FREEFORM_DEVICE_API) {
         return false;
       }
       if ("R".equals(image.getVersion().getCodename())) {
@@ -279,21 +269,21 @@ public class ChooseSystemImagePanel extends JPanel
         deviceId.equals("8in Foldable") ||
         deviceId.equals("6.7in Foldable") ||
         deviceId.equals("7.4in Rollable")) {
-      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
+      if (image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
         return false;
       }
     }
 
     // pixel 4a requires API30 and above
     if (deviceId.equals(("pixel_4a"))) {
-      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_PIXEL_4A_DEVICE_API) {
+      if (image.getVersion().getFeatureLevel() < MIN_PIXEL_4A_DEVICE_API) {
         return false;
       }
     }
 
     // Resizable requires API31 and above
     if (deviceId.equals(("resizable"))) {
-      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_RESIZABLE_DEVICE_API) {
+      if (image.getVersion().getFeatureLevel() < MIN_RESIZABLE_DEVICE_API) {
         return false;
       }
     }
@@ -313,7 +303,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     // 4K TV requires at least S (API 31)
     if (deviceId.equals("tv_4k")) {
-      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_4K_TV_API) {
+      if (image.getVersion().getFeatureLevel() < MIN_4K_TV_API) {
         return false;
       }
     }
@@ -414,9 +404,11 @@ public class ChooseSystemImagePanel extends JPanel
         myRecommendedImageList.makeListCurrent();
         if (myDevice != null && SystemImageTags.WEAR_TAG.getId().equals(myDevice.getTagId())) {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_WEAR);
-        } else if (myDevice != null && myDevice.hasPlayStore()) {
+        }
+        else if (myDevice != null && myDevice.hasPlayStore()) {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_GOOGLE_PLAY);
-        } else {
+        }
+        else {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_X86);
         }
         break;
