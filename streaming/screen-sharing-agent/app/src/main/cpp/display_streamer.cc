@@ -210,6 +210,12 @@ void DisplayStreamer::Run() {
   DisplayManager::AddDisplayListener(jni, this);
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
+  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
+  if (codec == nullptr) {
+    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
+               display_id_, codec_info_->name.c_str());
+  }
+
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
@@ -220,11 +226,6 @@ void DisplayStreamer::Run() {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
-    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
-    if (codec == nullptr) {
-      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
-                 display_id_, codec_info_->name.c_str());
-    }
     VirtualDisplay virtual_display;
     JObject display_token;
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
@@ -291,10 +292,10 @@ void DisplayStreamer::Run() {
     } else {
       SurfaceControl::DestroyDisplay(jni, display_token);
     }
-    AMediaCodec_delete(codec);
     ANativeWindow_release(surface);
   }
 
+  AMediaCodec_delete(codec);
   AMediaFormat_delete(media_format);
   WindowManager::RemoveRotationWatcher(jni, display_id_, &display_rotation_watcher_);
   DisplayManager::RemoveDisplayListener(this);
