@@ -457,7 +457,7 @@ class EntryDetailsView(
         "Results",
         listOf(
           buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
-          buildKeyValuePair("Retries", work.runAttemptCount),
+          buildKeyValuePair("Run count", work.runAttemptCount),
           buildKeyValuePair("Output data", work, OutputDataProvider),
         ),
       )

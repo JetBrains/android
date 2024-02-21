@@ -171,7 +171,7 @@ class EntryDetailsViewTest {
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
       assertThat(timeStartedComponent.text)
         .isEqualTo(workInfo.scheduleRequestedAt.toFormattedTimeString())
-      val retryCountComponent = resultsPanel.getValueComponent("Retries") as JLabel
+      val retryCountComponent = resultsPanel.getValueComponent("Run count") as JLabel
       assertThat(retryCountComponent.text).isEqualTo("1")
       val dataComponent = resultsPanel.getValueComponent("Output data") as HideablePanel
       val keyLabel =
