@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.intellij.configurationStore.serialize
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.diagnostic.Logger
@@ -117,7 +118,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       }
 
       // Persist the multi-preview state
-      XmlSerializer.serializeIfNotDefault(state.previewState, null)?.let {
+      serialize(state.previewState)?.let {
         targetElement.addContent(it)
       }
 
