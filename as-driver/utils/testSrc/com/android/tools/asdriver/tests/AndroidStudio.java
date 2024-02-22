@@ -343,11 +343,13 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  public void waitForIndex() {
+  public void waitForIndex() throws IOException, InterruptedException {
     benchmarkLog("calling_waitForIndex");
     System.out.println("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
+    install.getIdeaLog().reset(); //Log position can be moved past if used after waitForBuild
+    install.getIdeaLog().waitForMatchingLine(".*Unindexed files update took.*", 300, TimeUnit.SECONDS);
     benchmarkLog("after_waitForIndex");
   }
 
@@ -451,7 +453,7 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  public void waitForProjectInit(){
+  public void waitForProjectInit() throws InterruptedException {
     // Need to wait for the device selector to be ready
     System.out.println("Wait for ActionToolBar");
     this.waitForComponentByClass(true, "MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
