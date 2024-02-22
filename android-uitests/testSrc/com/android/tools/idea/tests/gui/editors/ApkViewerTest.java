@@ -56,7 +56,7 @@ public class ApkViewerTest {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build App Bundle(s) / APK(s)", "Build APK(s)");
     GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -91,7 +91,7 @@ public class ApkViewerTest {
       .enterText("\n" + "System.out.println(\"Hello.\");" + "\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build App Bundle(s) / APK(s)", "Build APK(s)");
     GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
