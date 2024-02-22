@@ -388,4 +388,65 @@ class VersionsTomlAnnotatorTest {
     fixture.checkHighlighting()
   }
 
+  @Test
+  fun checkDoubleUnderscore() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"al-_ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"al_-ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDoubleUnderscore2() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"al______ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"ali_-_-_-as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"ali------as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkTrailingUnderscore() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"alias_" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"alias-" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkGradleNamingConflict() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      bundles = "some:plugin"
+
+      [libraries]
+      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library"
+      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library"
+      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library"
+
+      [versions]
+      plugins = "some:plugin"
+
+      [bundles]
+      bundles = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
 }

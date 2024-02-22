@@ -45,16 +45,11 @@ class VersionsTomlAnnotator : Annotator {
     }
 
     // for aliases
-    if (element is TomlKey && element.parent is TomlKeyValue && grandParent is TomlTable && grandParent.parent is TomlFile) {
-      val text = element.firstSegmentNormalizedText()
-      if (text != null && !"[a-z]([a-zA-Z0-9_\\-])+".toRegex().matches(text)) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                               "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
-                               "and be made up of letters, digits and the symbols '-' or '_' only").create()
-      }
-      else {
-        checkAliasDuplication(element, holder)
-      }
+    if (element is TomlKey
+        && element.parent is TomlKeyValue
+        && grandParent is TomlTable
+        && grandParent.parent is TomlFile) {
+      checkDependencyAliases(element, grandParent, holder)
     }
 
     // table
@@ -62,14 +57,45 @@ class VersionsTomlAnnotator : Annotator {
         && element.parent is TomlTableHeader
         && grandParent is TomlTable
         && grandParent.parent is TomlFile) {
-      val text = element.segments.map { it.name }.joinToString ( "." )
-      if (text !in tables) {
+      checkTableAliases(element, grandParent, holder)
+    }
+  }
+
+  private fun checkDependencyAliases(element: TomlKey, table:TomlTable, holder: AnnotationHolder){
+      val text = element.firstSegmentNormalizedText() ?: return
+
+      if (!"[a-z]([a-zA-Z0-9_\\-])+".toRegex().matches(text)) {
         holder.newAnnotation(HighlightSeverity.ERROR,
-                             "Invalid table name `${text}`. It must be one of: ${tables.joinToString(", ")}").create()
+                             "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
+                             "and be made up of letters, digits and the symbols '-' or '_' only").create()
       }
-      else if (holder.currentAnnotationSession.getUserData(FILE_IS_GOOD_FOR_LONG_CHECKS) == true) {
-        checkTableDuplication(grandParent, holder)
+      else if ((text.endsWith("_") || text.endsWith("-"))) {
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Invalid alias `${text}`. It cannot end with '-' or '_'").create()
+      } else if ("[_\\-]{2,}".toRegex().find(text) != null) {
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Invalid alias `${text}`. Cannot have more than one consecutive '-' or '_'").create()
+      } else if (isInLibrariesTable(table) && "^((plugins)|(bundles)|(versions))[_\\-]?".toRegex().find(text) != null) {
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Invalid alias `${text}`. It cannot start with 'plugins', 'bundles' or 'versions' as will interfere " +
+                             "with gradle naming").create()
       }
+      else {
+        checkAliasDuplication(element, holder)
+      }
+  }
+
+  private fun isInLibrariesTable(element: TomlTable):Boolean =
+    element.header.key?.segments?.firstOrNull()?.name == "libraries"
+
+  private fun checkTableAliases(key: TomlKey, table:TomlTable, holder: AnnotationHolder){
+    val text = key.segments.map { it.name }.joinToString ( "." )
+    if (text !in tables) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid table name `${text}`. It must be one of: ${tables.joinToString(", ")}").create()
+    }
+    else if (holder.currentAnnotationSession.getUserData(FILE_IS_GOOD_FOR_LONG_CHECKS) == true) {
+      checkTableDuplication(table, holder)
     }
   }
 
