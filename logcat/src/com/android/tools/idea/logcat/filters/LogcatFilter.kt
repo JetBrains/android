@@ -241,6 +241,14 @@ internal data class LevelFilter(val level: LogLevel, override val textRange: Tex
     message.logcatMessage.header.logLevel >= level
 }
 
+internal data class ExactLevelFilter(val level: LogLevel, override val textRange: TextRange) :
+  LogcatFilter(textRange) {
+  override val displayText: String = message("logcat.filter.completion.hint.is.level", level.name)
+
+  override fun matches(message: LogcatMessageWrapper) =
+    message.logcatMessage.header.logLevel == level
+}
+
 internal data class AgeFilter(
   private val text: String,
   private val clock: Clock,

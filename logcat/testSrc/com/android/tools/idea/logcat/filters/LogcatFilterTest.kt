@@ -326,6 +326,16 @@ class LogcatFilterTest {
   }
 
   @Test
+  fun levelExactFilter() {
+    val levelFilter = ExactLevelFilter(INFO, EMPTY_RANGE)
+    for (logLevel in LogLevel.values()) {
+      assertThat(levelFilter.matches(logcatMessage(logLevel)))
+        .named(logLevel.name)
+        .isEqualTo(logLevel.ordinal == INFO.ordinal)
+    }
+  }
+
+  @Test
   fun ageFilter_parsing() {
     val clock = Clock.fixed(Instant.EPOCH, ZONE_ID)
     assertThat(AgeFilter("10s", clock, EMPTY_RANGE).age).isEqualTo(Duration.ofSeconds(10))

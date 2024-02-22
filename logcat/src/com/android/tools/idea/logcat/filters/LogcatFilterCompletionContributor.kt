@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
@@ -145,7 +144,10 @@ private val IS_VALUES =
     Pair("crash", message("logcat.filter.completion.hint.is.crash")),
     Pair("firebase", message("logcat.filter.completion.hint.is.firebase")),
     Pair("stacktrace", message("logcat.filter.completion.hint.is.stacktrace")),
-  )
+  ) +
+    LogLevel.values().map {
+      Pair(it.stringValue, message("logcat.filter.completion.hint.is.level", it.name))
+    }
 
 private val IS_LOOKUP
   get() = createLookupElement(IS_KEY, message("logcat.filter.completion.hint.is"))
@@ -292,8 +294,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
         ) {
           when {
             parameters.findPreviousText() == LEVEL_KEY -> result.addLevelLookups()
-            parameters.findPreviousText() == IS_KEY && StudioFlags.LOGCAT_IS_FILTER.get() ->
-              result.addAllElements(IS_VALUE_LOOKUPS)
+            parameters.findPreviousText() == IS_KEY -> result.addAllElements(IS_VALUE_LOOKUPS)
             parameters.findPreviousText() == AGE_KEY -> result.addAllElements(AGE_LOOKUPS)
           }
           result.addHints()

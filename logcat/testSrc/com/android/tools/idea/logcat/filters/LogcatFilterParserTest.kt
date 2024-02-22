@@ -289,6 +289,15 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
   }
 
   @Test
+  fun parse_isLevel() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    LogLevel.values().forEach {
+      assertThat(logcatFilterParser().parse("is:${it.stringValue}", matchCase))
+        .isEqualTo(ExactLevelFilter(it, "is:${it.stringValue}".asRange()))
+    }
+  }
+
+  @Test
   fun parse_is_invalid() {
     val query = "if:foo"
 

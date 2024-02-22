@@ -42,7 +42,8 @@ private val STRING_KEYS = listOf("line", "message", "package", "tag")
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val IS_VALUES = listOf("crash ", "firebase ", "stacktrace ")
+private val IS_VALUES =
+  listOf("crash ", "firebase ", "stacktrace ") + LogLevel.values().map { "${it.stringValue} " }
 
 /** Tests for [LogcatFilterCompletionContributor] */
 class LogcatFilterCompletionContributorTest {
@@ -314,8 +315,7 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly("is:crash ", "is:firebase ", "is:stacktrace ")
+    assertThat(fixture.lookupElementStrings).containsExactlyElementsIn(IS_VALUES.map { "is:$it" })
   }
 
   @Test
