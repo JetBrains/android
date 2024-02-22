@@ -22,6 +22,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,8 +34,6 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 import java.nio.file.Paths
 import java.util.function.Consumer
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 class TomlErrorParser : BuildOutputParser {
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
@@ -95,17 +94,24 @@ class TomlErrorParser : BuildOutputParser {
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = "Invalid TOML catalog definition."
 
+      private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+        val element = psiFile.childrenOfType<TomlTable>()
+                        .filter { it.header.key?.text == type }
+                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+                        .find { it.key.text == alias } ?: return fileDescriptor
+        val document = psiFile.viewProvider.document ?: return fileDescriptor
+        val lineNumber = document.getLineNumber(element.textOffset)
+        val columnNumber = element.textOffset - document.getLineStartOffset(lineNumber)
+        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+      }
+
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
-        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return null
-        val element = psiFile.childrenOfType<TomlTable>()
-          .filter { it.header.key?.text == type }
-          .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-          .find { it.key.text == alias } ?: return null
-        val document = psiFile.viewProvider.document
-        val lineNumber = document.getLineNumber(element.textOffset)
-        val column = element.textOffset - document.getLineStartOffset(lineNumber)
-        return OpenFileDescriptor(project, file, lineNumber, column)
+        return runReadAction {
+          computeNavigatable(project, file)
+        }
       }
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
