@@ -67,7 +67,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
   private suspend fun qualityRefresh() {
     val rng = Random(seed = System.currentTimeMillis())
     projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      previewView.mainSurface.setScale(
+      previewView.mainSurface.zoomController.setScale(
         rng.nextDouble(from = 0.01, until = 1.5)
       )
       // The zoom change above should usually trigger a quality refresh

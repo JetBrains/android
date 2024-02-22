@@ -537,7 +537,7 @@ class ComposePreviewRepresentationGradleTest {
 
       // Now zoom out a lot to go below the threshold (quality change refresh should happen)
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-        previewView.mainSurface.setScale(
+        previewView.mainSurface.zoomController.setScale(
           ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold / 2.0
         )
       }
@@ -554,7 +554,7 @@ class ComposePreviewRepresentationGradleTest {
 
       // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-        previewView.mainSurface.setScale(
+        previewView.mainSurface.zoomController.setScale(
           ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2.0
         )
       }

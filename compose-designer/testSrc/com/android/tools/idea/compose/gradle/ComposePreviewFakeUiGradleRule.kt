@@ -238,7 +238,7 @@ class ComposePreviewFakeUiGradleRule(
         fakeUi.root.validate()
         fakeUi.layoutAndDispatchEvents()
         if (zoomToFit) {
-          previewView.mainSurface.zoomToFit()
+          previewView.mainSurface.zoomController.zoomToFit()
           fakeUi.root.validate()
           fakeUi.layoutAndDispatchEvents()
         }

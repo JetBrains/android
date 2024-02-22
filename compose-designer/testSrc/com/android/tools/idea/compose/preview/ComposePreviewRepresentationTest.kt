@@ -252,7 +252,7 @@ class ComposePreviewRepresentationTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val originalScale = 0.6
-    mainSurface.setScale(originalScale)
+    mainSurface.zoomController.setScale(originalScale)
     val preview = createPreviewAndCompile()
     assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
@@ -365,7 +365,7 @@ class ComposePreviewRepresentationTest {
     )
 
     // Change the scale of the surface
-    mainSurface.setScale(originalScale + 0.5)
+    mainSurface.zoomController.setScale(originalScale + 0.5)
 
     // Check that the UI Check tab has been created
     assertEquals(2, contentManager.contents.size)
@@ -380,7 +380,7 @@ class ComposePreviewRepresentationTest {
     }
 
     // Check that the surface zooms to fit when exiting UI check mode.
-    assertEquals(1.0, mainSurface.scale, 0.001)
+    assertEquals(1.0, mainSurface.zoomController.scale, 0.001)
 
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",

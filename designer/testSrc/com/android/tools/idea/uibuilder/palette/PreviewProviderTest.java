@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,8 +77,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     ScreenView screenView = screen(model).getScreen();
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getFocusedSceneView()).thenReturn(screenView);
-    when(surface.getScale()).thenReturn(1.0);
-    when(surface.getScreenScalingFactor()).thenReturn(1.0);
+    when(surface.getZoomController()).thenReturn(createZoomControllerFake(1.0, null));
     LayoutlibSceneManager manager = (LayoutlibSceneManager)model.getSurface().getSceneManager();
     when(manager.getSceneScalingFactor()).thenReturn(1.0f);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);

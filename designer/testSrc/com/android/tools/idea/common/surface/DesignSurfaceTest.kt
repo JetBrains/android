@@ -76,11 +76,11 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model1)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
     assertEquals(0, surface.models.size)
   }
 
@@ -135,7 +135,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(0, surface.models.size)
 
     surface.removeModel(model1)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
@@ -143,20 +143,20 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
     assertEquals(1, surface.models.size)
   }
 
   fun testScale() {
     val surface = TestDesignSurface(myModule.project, myModule.project)
-    surface.setScale(0.66, -1, -1)
-    assertFalse(surface.setScale(0.663, -1, -1))
-    assertFalse(surface.setScale(0.664, -1, -1))
-    assertTrue(surface.setScale(0.665, -1, -1))
+    surface.zoomController.setScale(0.66, -1, -1)
+    assertFalse(surface.zoomController.setScale(0.663, -1, -1))
+    assertFalse(surface.zoomController.setScale(0.664, -1, -1))
+    assertTrue(surface.zoomController.setScale(0.665, -1, -1))
 
-    surface.setScale(0.33, -1, -1)
-    assertFalse(surface.setScale(0.332, -1, -1))
-    assertTrue(surface.setScale(0.335, -1, -1))
+    surface.zoomController.setScale(0.33, -1, -1)
+    assertFalse(surface.zoomController.setScale(0.332, -1, -1))
+    assertTrue(surface.zoomController.setScale(0.335, -1, -1))
   }
 
   fun testResizeSurfaceRebuildScene() {
@@ -206,12 +206,12 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     surface.setSize(1000, 1000)
     surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
-    val oldScale = surface.scale
+    val oldScale = surface.zoomController.scale
 
     surface.setSize(500, 500)
     surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
 
-    assertTrue(oldScale == surface.scale)
+    assertTrue(oldScale == surface.zoomController.scale)
   }
 
   fun testDesignSurfaceModelOrdering() {
@@ -248,111 +248,111 @@ class DesignSurfaceTest : LayoutTestCase() {
     AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 0.25
 
     // test positive magnifying with sensitivity 0.25
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(1.0)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.25, surface.scale)
+    TestCase.assertEquals(1.25, surface.zoomController.scale)
 
     // test negative magnifying with sensitivity 0.25
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-1.5)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.625, surface.scale)
+    TestCase.assertEquals(0.625, surface.zoomController.scale)
 
     // test sequential magnifying with sensitivity 0.25. The sequential magnifying should only take
     // last magnify value as result.
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(0.3)
     surface.magnify(-0.5)
     surface.magnify(0.7)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.175, surface.scale)
+    TestCase.assertEquals(1.175, surface.zoomController.scale)
 
     // Test magnifying when sensitivity is 1.5
     AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.5
 
     // test positive magnifying with sensitivity 1.5
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(1.0)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(2.5, surface.scale)
+    TestCase.assertEquals(2.5, surface.zoomController.scale)
 
     // test negative magnifying with sensitivity 1.5
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-0.5)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.25, surface.scale)
+    TestCase.assertEquals(0.25, surface.zoomController.scale)
 
     // test sequential magnifying with sensitivity 1.5
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-0.3)
     surface.magnify(1.4)
     surface.magnify(-0.1)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.85, surface.scale)
+    TestCase.assertEquals(0.85, surface.zoomController.scale)
 
     // Test magnifying is bounded by min and max scale allowances.
     AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.0
 
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-100000.0)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.1, surface.scale)
+    TestCase.assertEquals(0.1, surface.zoomController.scale)
 
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(100000.0)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(10.0, surface.scale)
+    TestCase.assertEquals(10.0, surface.zoomController.scale)
   }
 
   fun testCanZoom() {
     val surface = TestDesignSurface(project, testRootDisposable)
 
     // Test min
-    surface.setScale(0.104)
-    assertFalse(surface.canZoomOut())
-    surface.setScale(0.11)
-    assertTrue(surface.canZoomOut())
+    surface.zoomController.setScale(0.104)
+    assertFalse(surface.zoomController.canZoomOut())
+    surface.zoomController.setScale(0.11)
+    assertTrue(surface.zoomController.canZoomOut())
 
     // Test max
-    surface.setScale(9.996)
-    assertFalse(surface.canZoomIn())
-    surface.setScale(9.99)
-    assertTrue(surface.canZoomIn())
+    surface.zoomController.setScale(9.996)
+    assertFalse(surface.zoomController.canZoomIn())
+    surface.zoomController.setScale(9.99)
+    assertTrue(surface.zoomController.canZoomIn())
 
     // Test some normal cases.
-    surface.setScale(0.25)
-    surface.canZoomIn()
-    surface.canZoomOut()
-    surface.setScale(0.5)
-    surface.canZoomIn()
-    surface.canZoomOut()
-    surface.setScale(1.0)
-    surface.canZoomIn()
-    surface.canZoomOut()
-    surface.setScale(2.0)
-    surface.canZoomIn()
-    surface.canZoomOut()
+    surface.zoomController.setScale(0.25)
+    surface.zoomController.canZoomIn()
+    surface.zoomController.canZoomOut()
+    surface.zoomController.setScale(0.5)
+    surface.zoomController.canZoomIn()
+    surface.zoomController.canZoomOut()
+    surface.zoomController.setScale(1.0)
+    surface.zoomController.canZoomIn()
+    surface.zoomController.canZoomOut()
+    surface.zoomController.setScale(2.0)
+    surface.zoomController.canZoomIn()
+    surface.zoomController.canZoomOut()
   }
 
   fun testSetScale() {
     val surface = TestDesignSurface(project, testRootDisposable)
 
-    surface.setScale(1.0)
+    surface.zoomController.setScale(1.0)
 
     // Setting scale is restricted between min and max
-    surface.setScale(0.01)
-    assertEquals(0.1, surface.scale)
-    surface.setScale(20.0)
-    assertEquals(10.0, surface.scale)
+    surface.zoomController.setScale(0.01)
+    assertEquals(0.1, surface.zoomController.scale)
+    surface.zoomController.setScale(20.0)
+    assertEquals(10.0, surface.zoomController.scale)
   }
 }
 

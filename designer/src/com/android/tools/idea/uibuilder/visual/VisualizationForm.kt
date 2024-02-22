@@ -409,7 +409,7 @@ class VisualizationForm(
             surface.invalidate()
             val lastScaling =
               VisualizationToolProjectSettings.getInstance(project).projectState.scale
-            if (!surface.setScale(lastScaling)) {
+            if (!surface.zoomController.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll
               // area and may not suitable to new
               // configuration set.
@@ -675,7 +675,8 @@ class VisualizationForm(
   }
 
   override fun zoomChanged(previousScale: Double, newScale: Double) {
-    VisualizationToolProjectSettings.getInstance(project).projectState.scale = surface.scale
+    VisualizationToolProjectSettings.getInstance(project).projectState.scale =
+      surface.zoomController.scale
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent) = Unit

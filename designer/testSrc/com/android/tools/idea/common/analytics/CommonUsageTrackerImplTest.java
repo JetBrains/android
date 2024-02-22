@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.rendering.RenderLogger;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderResultStats;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +44,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   protected CommonUsageTracker getUsageTracker() {
     DesignSurface<?> surface = mock(DesignSurface.class);
     when(surface.getAnalyticsManager()).thenReturn(new DesignerAnalyticsManager(surface));
-    when(surface.getScale()).thenReturn(0.50);
+    when(surface.getZoomController()).thenReturn(createZoomControllerFake(0.5, null));
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
     when(surface.getConfiguration()).thenReturn(configuration);

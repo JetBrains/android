@@ -263,7 +263,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
     (surface.sceneManager as NavSceneManager).layout(false)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
 
     // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
     verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, 488, 514)

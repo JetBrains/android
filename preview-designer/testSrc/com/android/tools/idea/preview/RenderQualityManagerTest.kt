@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -109,7 +110,7 @@ class RenderQualityManagerTest {
     whenever(surfaceMock.currentScrollRectangle).then {
       return@then scrollRectangle
     }
-    whenever(surfaceMock.scale).thenReturn(1.0)
+    whenever(surfaceMock.zoomController).thenReturn(createZoomControllerFake(1.0))
 
     Disposer.register(projectRule.disposable, surfaceMock)
     Disposer.register(projectRule.disposable, sceneManagerMock)

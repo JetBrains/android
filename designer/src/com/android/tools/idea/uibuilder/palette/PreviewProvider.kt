@@ -201,7 +201,7 @@ class PreviewProvider(
     get() =
       myDesignSurfaceSupplier.get()?.let {
         val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
-        return it.scale * it.screenScalingFactor / sceneScale
+        return it.zoomController.scale * it.zoomController.screenScalingFactor / sceneScale
       }
 
   private val sceneView: SceneView?

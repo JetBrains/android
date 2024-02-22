@@ -154,7 +154,10 @@ class DefaultRenderQualityManager(
         isUiDataUpToDate = true
       }
     }
-    return myPolicy.getTargetQuality(mySurface.scale, isSceneManagerVisible(sceneManager))
+    return myPolicy.getTargetQuality(
+      mySurface.zoomController.scale,
+      isSceneManagerVisible(sceneManager),
+    )
   }
 
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =

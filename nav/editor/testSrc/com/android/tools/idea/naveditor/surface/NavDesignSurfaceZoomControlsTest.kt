@@ -242,18 +242,18 @@ class NavDesignSurfaceZoomControlsTest {
 
     val event = TestActionEvent { dataId -> surface.getData(dataId) }
     zoomToFitAction.actionPerformed(event)
-    val zoomToFitScale = surface.scale
+    val zoomToFitScale = surface.zoomController.scale
 
     // Verify zoom in
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       repeat(3) {
         zoomInAction.actionPerformed(event)
         UIUtil.invokeAndWaitIfNeeded(Runnable {
           fakeUi.layoutAndDispatchEvents()
         })
       }
-      Assert.assertTrue(surface.scale > originalScale)
+      Assert.assertTrue(surface.zoomController.scale > originalScale)
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), fakeUi.render(), 0.1, 1)
     }
 
@@ -263,20 +263,20 @@ class NavDesignSurfaceZoomControlsTest {
       UIUtil.invokeAndWaitIfNeeded(Runnable {
         fakeUi.layoutAndDispatchEvents()
       })
-      Assert.assertEquals(zoomToFitScale, surface.scale, 0.01)
+      Assert.assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), fakeUi.render(), 0.1, 1)
     }
 
     // Verify zoom out
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       repeat(3) {
         zoomOutAction.actionPerformed(event)
         UIUtil.invokeAndWaitIfNeeded(Runnable {
           fakeUi.layoutAndDispatchEvents()
         })
       }
-      Assert.assertTrue(surface.scale < originalScale)
+      Assert.assertTrue(surface.zoomController.scale < originalScale)
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), fakeUi.render(), 0.1, 1)
     }
   }

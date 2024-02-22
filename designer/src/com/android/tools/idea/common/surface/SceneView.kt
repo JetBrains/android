@@ -126,7 +126,7 @@ abstract class SceneView(
     get() = myShapePolicy.getShape(this)
 
   open val scale: Double
-    get() = surface.scale
+    get() = surface.zoomController.scale
 
   val sceneScalingFactor: Float
     get() = sceneManager.sceneScalingFactor

@@ -269,7 +269,7 @@ internal class ComposePreviewViewImpl(
       .apply {
         // Set the initial scale value to 0.25, so the preview is not large before first
         // zoom-to-fit is triggered.
-        setScale(0.25)
+        zoomController.setScale(0.25)
       }
 
   private fun getDataInBackground(dataId: String): Any? {

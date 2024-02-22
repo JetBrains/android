@@ -26,6 +26,7 @@ import static com.android.SdkConstants.PROGRESS_BAR;
 import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertEditTextViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertFilterMatches;
@@ -58,6 +59,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.tools.adtui.ZoomController;
 import com.android.tools.idea.common.analytics.BaseUsageTrackerImplTest;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.NlComponent;
@@ -208,7 +210,8 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
     analyticsManager.setEditorModeWithoutTracking(DesignerEditorPanel.State.SPLIT);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
-    when(surface.getScale()).thenReturn(0.50);
+    ZoomController zoomControllerFake = createZoomControllerFake(0.50, null);
+    when(surface.getZoomController()).thenReturn(zoomControllerFake);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
 

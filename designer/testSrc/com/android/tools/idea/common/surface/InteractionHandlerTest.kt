@@ -147,10 +147,6 @@ private class Surface(
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
-  override fun getMinScale() = 0.1
-
-  override fun getMaxScale() = 10.0
-
   override fun getScrollToVisibleOffset() = Dimension()
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
@@ -160,8 +156,10 @@ private class Surface(
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
 
+  private val zoomControllerFake = createZoomControllerFake()
+
   override val zoomController: ZoomController
-    get() = createZoomControllerFake()
+    get() = zoomControllerFake
 
   override fun isShowing(): Boolean = true
 

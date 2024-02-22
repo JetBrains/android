@@ -100,7 +100,7 @@ class VisualizationInteractionHandler(
       val configInLayoutEditor = surfaceInLayoutEditor?.models?.firstOrNull()?.configuration
       if (configInLayoutEditor != null) {
         applyConfiguration(configInLayoutEditor, view.configuration)
-        surfaceInLayoutEditor.zoomToFit()
+        surfaceInLayoutEditor.zoomController.zoomToFit()
       }
     } else {
       // Open another file, or switch to it if it has been open. Then, apply the config to it.
@@ -112,7 +112,7 @@ class VisualizationInteractionHandler(
           surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
         if (configInDestinationEditor != null) {
           applyConfiguration(configInDestinationEditor, view.configuration)
-          surfaceInDestinationEditor.zoomToFit()
+          surfaceInDestinationEditor.zoomController.zoomToFit()
         }
       }
     }

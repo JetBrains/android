@@ -18,6 +18,7 @@ package com.android.tools.idea.actions
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -135,6 +136,7 @@ class DrawableBackgroundMenuActionTest {
 
       val action = DrawableBackgroundMenuAction()
       val mockDesignSurface = mock<NlDesignSurface>()
+      whenever(mockDesignSurface.zoomController).thenReturn(createZoomControllerFake())
       Disposer.register(projectRule.testRootDisposable, mockDesignSurface)
 
       val mockLayoutlibSceneManager = mock<LayoutlibSceneManager>()

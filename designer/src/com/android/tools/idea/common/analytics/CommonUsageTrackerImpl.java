@@ -75,7 +75,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
       return builder.build();
     }
 
-    double scale = surface.getScale();
+    double scale = surface.getZoomController().getScale();
     if (SystemInfo.isMac && UIUtil.isRetina()) {
       scale *= 2;
     }

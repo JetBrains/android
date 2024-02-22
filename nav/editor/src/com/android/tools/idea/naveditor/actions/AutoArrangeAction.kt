@@ -39,7 +39,7 @@ class AutoArrangeAction private constructor(): AnAction() {
       surface.sceneManager?.requestRenderAsync()
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
     }
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
   }
 
   companion object {

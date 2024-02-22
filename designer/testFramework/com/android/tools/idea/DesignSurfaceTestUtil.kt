@@ -58,7 +58,7 @@ object DesignSurfaceTestUtil {
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)
     whenever(surface.size).thenReturn(Dimension(1000, 1000))
-    whenever(surface.scale).thenReturn(0.5)
+    whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
     val interactable = TestInteractable(surface, JPanel(), surface)
     whenever(surface.guiInputHandler)
@@ -123,21 +123,26 @@ object DesignSurfaceTestUtil {
     whenever(surface.scene).thenReturn(scene)
     whenever(surface.project).thenReturn(project)
     whenever(surface.layoutType).thenCallRealMethod()
-    val zoomController = createZoomControllerFake()
+    val zoomController = createZoomControllerFake(returnScale = 0.5)
     whenever(surface.zoomController).thenReturn(zoomController)
     return surface
   }
 
-  fun createZoomControllerFake(onZoom: () -> Unit = {}): ZoomController =
+  @JvmStatic
+  @JvmOverloads
+  fun createZoomControllerFake(
+    returnScale: Double = 1.0,
+    onZoom: ((ZoomType) -> Unit)? = null,
+  ): ZoomController =
     object : ZoomController {
       override val scale: Double
-        get() = 1.0
+        get() = returnScale
 
       override val screenScalingFactor: Double
         get() = 1.0
 
       override val minScale: Double
-        get() = 0.0
+        get() = 0.1
 
       override val maxScale: Double
         get() = 10.0
@@ -152,7 +157,7 @@ object DesignSurfaceTestUtil {
       override fun getFitScale(): Double = 1.0
 
       override fun zoom(type: ZoomType): Boolean {
-        onZoom()
+        onZoom?.invoke(type)
         return true
       }
 

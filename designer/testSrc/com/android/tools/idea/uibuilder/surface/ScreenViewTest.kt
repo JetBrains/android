@@ -24,6 +24,7 @@ import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.createDesignSurfaceZoomControllerFake
 import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -192,6 +193,8 @@ class ScreenViewTest {
     val layoutlibSceneManagerMock = mock(LayoutlibSceneManager::class.java)
     val screenViewProviderMock = mock(ScreenViewProvider::class.java)
     val designSurfaceMock = mock(NlDesignSurface::class.java)
+    whenever(designSurfaceMock.zoomController)
+      .thenReturn(createDesignSurfaceZoomControllerFake(projectRule))
     var colorBlindModeFilter = ColorBlindMode.NONE
 
     Disposer.register(projectRule.testRootDisposable, layoutlibSceneManagerMock)

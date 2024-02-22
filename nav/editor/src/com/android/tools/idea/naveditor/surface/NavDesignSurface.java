@@ -476,7 +476,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     getSceneManager().update();
     getSceneManager().layout(false);
-    zoomToFit();
+    myZoomController.zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
@@ -487,27 +487,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
-  public boolean setScale(double scale, int x, int y) {
-    return myZoomController.setScale(scale, x, y);
-  }
-
-  @Override
   protected boolean isKeepingScaleWhenReopen() {
     // TODO: Keeping same scale for Navigation Editor and remove this function from DesignSurface
     // Navigation Editors calls zoom-to-fit automatically when NlModel is set. Some zoom-to-fit functions is called when editor is empty,
     // which makes the scale value become 0%. We don't want to keep this 0% scale value here.
     // To resolve this issue, the zoomToFit() function should be removed from NavSceneManager.requestRender().
     return false;
-  }
-
-  @Override
-  protected double getMinScale() {
-    return myZoomController.getMinScale();
-  }
-
-  @Override
-  protected double getMaxScale() {
-    return myZoomController.getMaxScale();
   }
 
   private Dimension getSizeFromSceneView(SceneView view) {
@@ -650,7 +635,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
       setScrollPosition(targetSwingX - pointSwingValue.x, targetSwingY - pointSwingValue.y);
-      setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
+      getZoomController().setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
       if (lerpPoint.isComplete(time)) {
         getScheduleRef().get().cancel(false);
         getScheduleRef().set(null);

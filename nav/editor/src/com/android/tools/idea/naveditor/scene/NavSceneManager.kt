@@ -223,7 +223,7 @@ open class NavSceneManager(
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
-      designSurface.zoomToFit()
+      designSurface.zoomController.zoomToFit()
     }
 
     return CompletableFuture.completedFuture(null)

@@ -334,7 +334,7 @@ class ComposePreviewViewImplTest {
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
     ApplicationManager.getApplication().invokeAndWait {
-      previewView.mainSurface.zoomToFit()
+      previewView.mainSurface.zoomController.zoomToFit()
       fakeUi.root.validate()
     }
 

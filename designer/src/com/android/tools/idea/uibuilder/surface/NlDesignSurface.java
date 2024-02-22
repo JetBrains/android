@@ -29,6 +29,8 @@ import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueProvider;
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -75,11 +77,9 @@ import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
-import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
-import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider;
@@ -903,22 +903,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return Iterables.any(getSceneManagers(), (sceneManager) -> sceneManager.getRenderResult() != null);
   }
 
-  @Override
-  @SurfaceScale
-  protected double getMinScale() {
-    return myZoomController.getMinScale();
-  }
-
-  @Override
-  @SurfaceScale
-  protected double getMaxScale() {
-    return myZoomController.getMaxScale();
-  }
-
-  public boolean canZoomToFit() {
-    return myZoomController.canZoomToFit();
-  }
-
   /**
    * Returns all the {@link PositionableContent} in this surface.
    */
@@ -934,11 +918,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
     return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
-  }
-
-  @Override
-  public boolean setScale(double scale, int x, int y) {
-    return myZoomController.setScale(scale, x, y);
   }
 
   @Override
@@ -966,13 +945,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       if (x < 0 || y < 0) {
         // zoom with top-center of the visible area as anchor
         myViewportScroller = new TopBoundCenterScroller(
-          new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, getScale());
+          new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, myZoomController.getScale());
       }
       else {
         // zoom with mouse position as anchor, and considering its relative position to the existing scene views
         myViewportScroller = new ReferencePointScroller(
           new Dimension(port.getViewSize()), new Point(scrollPosition),
-          new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
+          new Point(x, y), previousScale, myZoomController.getScale(), findSceneViewRectangles(),
           (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
                                                                                    getExtentSize()));
       }
@@ -980,7 +959,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     else if (isGroupedGridLayout) { // new grid mode
       // zoom with top-left corner of the visible area as anchor
       myViewportScroller = new TopLeftCornerScroller(
-        new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());
+        new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, myZoomController.getScale());
     }
     else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
       Point zoomCenterInView;
@@ -1025,7 +1004,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       (availableSize.getHeight() - 2 * offset.height) / curSize.getHeight()
     );
     // Adjust the scale change to keep the new scale between the lower and upper bounds.
-    double curScale = getScale();
+    double curScale = myZoomController.getScale();
     double boundedNewScale = getBoundedScale(curScale * scaleChangeNeeded);
     scaleChangeNeeded = boundedNewScale / curScale;
     // The rectangle size and its coordinates relative to the sceneView have
@@ -1079,9 +1058,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
     @SurfaceScale double fitScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, areaToCenter.getSize());
 
-    if (getScale() > fitScale) {
+    if (myZoomController.getScale() > fitScale) {
       // Scale down to fit selection.
-      setScale(fitScale, targetSwingX, targetSwingY);
+      myZoomController.setScale(fitScale, targetSwingX, targetSwingY);
     }
   }
 

@@ -16,10 +16,13 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.layout.SKIP_PERSISTED_LAYOUT
+import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.intellij.openapi.actionSystem.AnActionEvent
 import junit.framework.TestCase
 import org.mockito.Mockito.doAnswer
@@ -49,6 +52,7 @@ class AutoArrangeActionTest : NavTestCase() {
     }.whenever(manager).requestRenderAsync()
 
     whenever(surface.sceneManager).thenReturn(manager)
+    whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())
     val actionEvent = mock(AnActionEvent::class.java)
     whenever(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
     AutoArrangeAction.instance.actionPerformed(actionEvent)
@@ -56,6 +60,6 @@ class AutoArrangeActionTest : NavTestCase() {
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
     }
     verify(manager).requestRenderAsync()
-    verify(surface).zoomToFit()
+    verify(surface.zoomController).zoomToFit()
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -22,11 +23,11 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
@@ -42,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class ScreenViewLayerTest {
@@ -93,33 +93,24 @@ public class ScreenViewLayerTest {
                                           @NotNull RenderResult firstResult,
                                           @NotNull RenderResult ...otherResults) {
     LayoutlibSceneManager sceneManager = mock(LayoutlibSceneManager.class, RETURNS_DEEP_STUBS);
+    NlDesignSurface designSurface = mock();
+    when(designSurface.getZoomController()).thenReturn(createZoomControllerFake());
     ScreenView screenView = Mockito.spy(
-      new ScreenView(mock(NlDesignSurface.class), sceneManager, new ScreenView.ContentSizePolicy() {
-        @Override
-        public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
-        }
+      new ScreenView(designSurface, sceneManager, (screenView1, outDimension) -> {
       }));
-    when(screenView.getScreenShape()).thenAnswer(new Answer<Shape>() {
-      @Override
-      public Shape answer(InvocationOnMock invocation) {
-        return screenViewLayerSize.get();
-      }
-    });
+    when(screenView.getScreenShape()).thenAnswer((Answer<Shape>)invocation -> screenViewLayerSize.get());
     when(screenView.getScale()).thenReturn(1.);
-    when(screenView.getContentSize(any(Dimension.class))).thenAnswer(new Answer<Dimension>() {
-      @Override
-      public Dimension answer(InvocationOnMock invocation) {
-        Dimension returnDimension = (Dimension)invocation.getArguments()[0];
+    when(screenView.getContentSize(any(Dimension.class))).thenAnswer((Answer<Dimension>)invocation -> {
+      Dimension returnDimension = (Dimension)invocation.getArguments()[0];
 
-        if (returnDimension != null) {
-          returnDimension.setSize(screenViewLayerSize.get().getSize());
-        }
-        else {
-          returnDimension = screenViewLayerSize.get().getSize();
-        }
-
-        return returnDimension;
+      if (returnDimension != null) {
+        returnDimension.setSize(screenViewLayerSize.get().getSize());
       }
+      else {
+        returnDimension = screenViewLayerSize.get().getSize();
+      }
+
+      return returnDimension;
     });
 
     when(screenView.getResult()).thenReturn(firstResult, otherResults);

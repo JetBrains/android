@@ -416,39 +416,39 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .build();
     mySurface.setModel(model);
     mySurface.setScrollViewSizeAndValidate(1000, 1000);
-    mySurface.zoomToFit();
-    double origScale = mySurface.getScale();
-    assertEquals(origScale, mySurface.getMinScale());
+    mySurface.getZoomController().zoomToFit();
+    double origScale = mySurface.getZoomController().getScale();
+    assertEquals(origScale, mySurface.getZoomController().getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.IN);
-    double scale = mySurface.getScale();
+    mySurface.getZoomController().zoom(ZoomType.IN);
+    double scale = mySurface.getZoomController().getScale();
     assertTrue(scale > origScale);
     assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.IN, 100, 100);
-    assertTrue(mySurface.getScale() > scale);
+    mySurface.getZoomController().zoom(ZoomType.IN, 100, 100);
+    assertTrue(mySurface.getZoomController().getScale() > scale);
     assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.OUT, 100, 100);
+    mySurface.getZoomController().zoom(ZoomType.OUT, 100, 100);
     assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
-    mySurface.zoom(ZoomType.OUT);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
-    mySurface.zoom(ZoomType.OUT);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
 
-    assertEquals(mySurface.getScale(), origScale);
-    mySurface.zoom(ZoomType.OUT);
-    assertEquals(mySurface.getScale(), origScale);
+    assertEquals(mySurface.getZoomController().getScale(), origScale);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
+    assertEquals(mySurface.getZoomController().getScale(), origScale);
 
     mySurface.setScrollViewSizeAndValidate(2000, 2000);
-    assertEquals(1.0, mySurface.getMinScale());
+    assertEquals(1.0, mySurface.getZoomController().getMinScale());
 
-    mySurface.setScale(1.099, 0, 0);
-    scale = mySurface.getScale();
-    mySurface.zoom(ZoomType.IN);
-    assertTrue(mySurface.getScale() > scale);
+    mySurface.getZoomController().setScale(1.099, 0, 0);
+    scale = mySurface.getZoomController().getScale();
+    mySurface.getZoomController().zoom(ZoomType.IN);
+    assertTrue(mySurface.getZoomController().getScale() > scale);
   }
 
   public void testZoomHiDPIScreen() {
@@ -469,39 +469,39 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     assertEquals(2.f, mySurface.getSceneManager(model).getSceneScalingFactor());
     mySurface.setScrollViewSizeAndValidate(1000, 1000);
-    mySurface.zoomToFit();
-    double origScale = mySurface.getScale();
-    assertEquals(origScale, mySurface.getMinScale());
+    mySurface.getZoomController().zoomToFit();
+    double origScale = mySurface.getZoomController().getScale();
+    assertEquals(origScale, mySurface.getZoomController().getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.IN);
-    double scale = mySurface.getScale();
+    mySurface.getZoomController().zoom(ZoomType.IN);
+    double scale = mySurface.getZoomController().getScale();
     assertTrue(scale > origScale);
     assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.IN, 100, 100);
-    assertTrue(mySurface.getScale() > scale);
+    mySurface.getZoomController().zoom(ZoomType.IN, 100, 100);
+    assertTrue(mySurface.getZoomController().getScale() > scale);
     assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
-    mySurface.zoom(ZoomType.OUT, 100, 100);
+    mySurface.getZoomController().zoom(ZoomType.OUT, 100, 100);
     assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
-    mySurface.zoom(ZoomType.OUT);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
-    mySurface.zoom(ZoomType.OUT);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
 
-    assertEquals(mySurface.getScale(), origScale);
-    mySurface.zoom(ZoomType.OUT);
-    assertEquals(mySurface.getScale(), origScale);
+    assertEquals(mySurface.getZoomController().getScale(), origScale);
+    mySurface.getZoomController().zoom(ZoomType.OUT);
+    assertEquals(mySurface.getZoomController().getScale(), origScale);
 
     mySurface.setScrollViewSizeAndValidate(2000, 2000);
-    assertEquals(1.0, mySurface.getMinScale());
+    assertEquals(1.0, mySurface.getZoomController().getMinScale());
 
-    mySurface.setScale(1.099, 0, 0);
-    scale = mySurface.getScale();
-    mySurface.zoom(ZoomType.IN);
-    assertTrue(mySurface.getScale() > scale);
+    mySurface.getZoomController().setScale(1.099, 0, 0);
+    scale = mySurface.getZoomController().getScale();
+    mySurface.getZoomController().zoom(ZoomType.IN);
+    assertTrue(mySurface.getZoomController().getScale() > scale);
   }
 
   private static void assertComponentWithId(@NotNull NlModel model, @NotNull String expectedId) {
@@ -526,16 +526,16 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setSize(1000, 1000);
     mySurface.doLayout();
 
-    mySurface.zoom(ZoomType.IN);
-    assertTrue(mySurface.canZoomOut());
-    assertTrue(mySurface.canZoomIn());
-    mySurface.setScale(mySurface.getMinScale(), -1, -1);
-    assertTrue(mySurface.canZoomIn());
-    assertFalse(mySurface.canZoomOut());
-    mySurface.zoomToFit();
-    assertFalse(mySurface.canZoomToFit());
-    assertTrue(mySurface.canZoomIn());
-    assertFalse(mySurface.canZoomOut());
+    mySurface.getZoomController().zoom(ZoomType.IN);
+    assertTrue(mySurface.getZoomController().canZoomOut());
+    assertTrue(mySurface.getZoomController().canZoomIn());
+    mySurface.getZoomController().setScale(mySurface.getZoomController().getMinScale(), -1, -1);
+    assertTrue(mySurface.getZoomController().canZoomIn());
+    assertFalse(mySurface.getZoomController().canZoomOut());
+    mySurface.getZoomController().zoomToFit();
+    assertFalse(mySurface.getZoomController().canZoomToFit());
+    assertTrue(mySurface.getZoomController().canZoomIn());
+    assertFalse(mySurface.getZoomController().canZoomOut());
   }
 
   public void testCannotZoomToFit() {
@@ -554,8 +554,8 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
-    surface.zoomToFit();
-    double fitScale = surface.getScale();
+    surface.getZoomController().zoomToFit();
+    double fitScale = surface.getZoomController().getScale();
     surface.removeModel(model);
 
     // Create another surface which the minimum scale is larger than fitScale.
@@ -566,9 +566,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
     // Cannot zoom lower than min scale.
-    surface.zoomToFit();
-    assertEquals(fitScale * 2, surface.getScale(), 0.01);
-    assertFalse(surface.canZoomToFit());
+    surface.getZoomController().zoomToFit();
+    assertEquals(fitScale * 2, surface.getZoomController().getScale(), 0.01);
+    assertFalse(surface.getZoomController().canZoomToFit());
     surface.removeModel(model);
 
     // Create another surface which the maximum scale is lower than fitScale.
@@ -579,9 +579,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
     // Cannot zoom larger than max scale.
-    surface.zoomToFit();
-    assertEquals(fitScale / 2 , surface.getScale(), 0.01);
-    assertFalse(surface.canZoomToFit());
+    surface.getZoomController().zoomToFit();
+    assertEquals(fitScale / 2 , surface.getZoomController().getScale(), 0.01);
+    assertFalse(surface.getZoomController().canZoomToFit());
     surface.removeModel(model);
   }
 
@@ -600,15 +600,15 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.validate();
     surface.getLayout().layoutContainer(surface);
     surface.validateScrollArea();
-    surface.zoomToFit();
-    assertEquals(0.5, surface.getScale(), 0.1);
+    surface.getZoomController().zoomToFit();
+    assertEquals(0.5, surface.getZoomController().getScale(), 0.1);
 
     surface.setBounds(0, 0, 1, 1);
     surface.revalidateScrollArea();
     surface.validate();
     surface.getLayout().layoutContainer(surface);
-    surface.zoomToFit();
-    assertEquals(0.01, surface.getScale());
+    surface.getZoomController().zoomToFit();
+    assertEquals(0.01, surface.getZoomController().getScale());
   }
 
   public void testNlSupportedActions() {

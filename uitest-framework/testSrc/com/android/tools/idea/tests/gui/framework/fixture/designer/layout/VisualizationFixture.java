@@ -75,8 +75,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * Zoom to fit the screen
    */
   public void zoomToFit() {
-    myDesignSurfaceFixture.target()
-      .zoomToFit();
+    myDesignSurfaceFixture.target().getZoomController().zoomToFit();
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -84,8 +83,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To use the Zoom In feature from the Pan button
    */
   public void zoomIn() {
-    myDesignSurfaceFixture.target()
-      .zoom(ZoomType.IN);
+    myDesignSurfaceFixture.target().getZoomController().zoom(ZoomType.IN);
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -93,8 +91,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To use the Zoom out feature from the Pan button
    */
   public void zoomOut() {
-    myDesignSurfaceFixture.target()
-      .zoom((ZoomType.OUT));
+    myDesignSurfaceFixture.target().getZoomController().zoom((ZoomType.OUT));
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -102,8 +99,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To zoom to the 100% or 1:1
    */
   public  void zoomToActual() {
-    myDesignSurfaceFixture.target()
-      .zoom(ZoomType.ACTUAL);
+    myDesignSurfaceFixture.target().getZoomController().zoom(ZoomType.ACTUAL);
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 

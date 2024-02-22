@@ -460,7 +460,7 @@ class ComposePreviewRepresentation(
             }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
-            surface.zoomToFit()
+            surface.zoomController.zoomToFit()
             surface.repaint()
           }
         } else {
@@ -686,7 +686,9 @@ class ComposePreviewRepresentation(
     get() = composeWorkBench.mainSurface
 
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
-  private val qualityPolicy = ComposePreviewRenderQualityPolicy { surface.screenScalingFactor }
+  private val qualityPolicy = ComposePreviewRenderQualityPolicy {
+    surface.zoomController.screenScalingFactor
+  }
   private val qualityManager: RenderQualityManager =
     if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
       DefaultRenderQualityManager(surface, qualityPolicy) {
@@ -1467,7 +1469,7 @@ class ComposePreviewRepresentation(
         invalidateAndRefresh()
         withContext(uiThread) {
           surface.repaint()
-          surface.zoomToFit()
+          surface.zoomController.zoomToFit()
         }
       }
       is PreviewMode.Interactive -> {
