@@ -25,6 +25,7 @@ import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.lint.checks.ApiDetector
 import com.android.tools.lint.checks.DuplicateResourceDetector
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.DefaultPosition
@@ -456,6 +457,39 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           <string name="test">Test</string>
           <string name="test" tools:ignore="DuplicateDefinition">Duplicate</string>
       </resources>
+      """
+        .trimIndent()
+    )
+  }
+
+  fun testIntentionPreviewXMLFormatting() {
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/layout.xml", /* language=XML */
+        """
+        <Grid<caret>Layout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnCount="2"/>
+        """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+
+    val intention = SuppressLintIntentionAction(ApiDetector.UNSUPPORTED, myFixture.elementAtCaret)
+
+    myFixture.checkPreviewAndLaunchAction(intention)
+    myFixture.checkResult(
+      /* language=XML */
+      """
+      <GridLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:columnCount="2"
+          tools:ignore="NewApi" />
       """
         .trimIndent()
     )
