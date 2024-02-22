@@ -46,17 +46,16 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -113,51 +112,56 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.surface.getData(PreviewModeManager.KEY.name)).isInstanceOf(PreviewModeManager::class.java)
-      assertThat(preview.previewView.surface.getData(PREVIEW_VIEW_MODEL_STATUS.name)).isInstanceOf(PreviewViewModelStatus::class.java)
-      assertThat(preview.previewView.surface.getData(PreviewGroupManager.KEY.name)).isInstanceOf(PreviewGroupManager::class.java)
+      assertThat(preview.previewView.surface.getData(PreviewModeManager.KEY.name))
+        .isInstanceOf(PreviewModeManager::class.java)
+      assertThat(preview.previewView.surface.getData(PREVIEW_VIEW_MODEL_STATUS.name))
+        .isInstanceOf(PreviewViewModelStatus::class.java)
+      assertThat(preview.previewView.surface.getData(PreviewGroupManager.KEY.name))
+        .isInstanceOf(PreviewGroupManager::class.java)
 
       preview.onDeactivate()
     }
 
   @Test
-  fun testGroupFilteringIsSupported() = runBlocking(workerThread) {
-    val preview = createWearTilePreviewRepresentation()
+  fun testGroupFilteringIsSupported() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
 
-    assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
-    assertThat(preview.previewView.surface.models).hasSize(2)
+      assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
+      assertThat(preview.previewView.surface.models).hasSize(2)
 
-    val dataContext = DataContext {
-      preview.previewView.surface.getData(it)
-    }
+      val dataContext = DataContext { preview.previewView.surface.getData(it) }
 
-    // Select preview group "groupA"
-    run {
-      val groupSwitchAction = GroupSwitchAction()
-      val actionEvent = TestActionEvent.createTestEvent(dataContext)
+      // Select preview group "groupA"
+      run {
+        val groupSwitchAction = GroupSwitchAction()
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
 
-      groupSwitchAction.actionPerformed(actionEvent)
-      groupSwitchAction.update(actionEvent)
-      assertTrue(actionEvent.presentation.isEnabled)
-      assertTrue(actionEvent.presentation.isVisible)
+        groupSwitchAction.actionPerformed(actionEvent)
+        groupSwitchAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isEnabled)
+        assertTrue(actionEvent.presentation.isVisible)
 
-      val selectGroupAAction = groupSwitchAction.childActionsOrStubs.single { it.templateText == "groupA" }
-      selectGroupAAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
-    }
-
-    // Ensure that the preview group was selected
-    run {
-      delayUntilCondition(250) {
-        preview.previewView.surface.models.size == 1
+        val selectGroupAAction =
+          groupSwitchAction.childActionsOrStubs.single { it.templateText == "groupA" }
+        selectGroupAAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
       }
 
-      val previewElements = preview.previewView.surface.models.mapNotNull { it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement }
-      assertThat(previewElements).hasSize(1)
-      assertThat(previewElements.map { it.methodFqn }).containsExactly("com.android.test.TestKt.tilePreview2")
-    }
+      // Ensure that the preview group was selected
+      run {
+        delayUntilCondition(250) { preview.previewView.surface.models.size == 1 }
 
-    preview.onDeactivate()
-  }
+        val previewElements =
+          preview.previewView.surface.models.mapNotNull {
+            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
+          }
+        assertThat(previewElements).hasSize(1)
+        assertThat(previewElements.map { it.methodFqn })
+          .containsExactly("com.android.test.TestKt.tilePreview2")
+      }
+
+      preview.onDeactivate()
+    }
 
   private suspend fun createWearTilePreviewRepresentation(): WearTilePreviewRepresentation {
     val wearTileTestFile = createWearTilePreviewTestFile()
@@ -180,14 +184,16 @@ class WearTilePreviewRepresentationTest {
     )
 
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
-    project.runWhenSmartAndSyncedOnEdt(callback = {
-      runBlocking(Dispatchers.IO) {
-        logger.info("compile")
-        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-        logger.info("activate")
-        previewRepresentation.onActivate()
+    project.runWhenSmartAndSyncedOnEdt(
+      callback = {
+        runBlocking(Dispatchers.IO) {
+          logger.info("compile")
+          ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+          logger.info("activate")
+          previewRepresentation.onActivate()
+        }
       }
-    })
+    )
 
     withContext(Dispatchers.IO) {
       modelRenderedLatch.await()
