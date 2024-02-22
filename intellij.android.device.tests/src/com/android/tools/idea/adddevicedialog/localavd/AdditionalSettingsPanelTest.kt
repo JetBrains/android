@@ -101,7 +101,7 @@ class AdditionalSettingsPanelTest {
             AdditionalSettingsPanelState(device),
             onDeviceChange,
             onImportButtonClick = {},
-            fileSystem,
+            Context(fileSystem),
           )
         }
       }

@@ -30,10 +30,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -52,7 +49,7 @@ internal fun AdditionalSettingsPanel(
   state: AdditionalSettingsPanelState,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
-  fileSystem: FileSystem = FileSystems.getDefault(),
+  context: Context = Context(),
 ) {
   Row {
     Text("Device skin")
@@ -63,7 +60,7 @@ internal fun AdditionalSettingsPanel(
   CameraGroup(device, onDeviceChange)
   NetworkGroup(device, onDeviceChange)
   StartupGroup(device, onDeviceChange)
-  StorageGroup(device, state.storageGroupState, onDeviceChange, fileSystem)
+  StorageGroup(device, state.storageGroupState, onDeviceChange, context)
   EmulatedPerformanceGroup(device, onDeviceChange)
 }
 
@@ -169,7 +166,7 @@ private fun StorageGroup(
   device: VirtualDevice,
   storageGroupState: StorageGroupState,
   onDeviceChange: (VirtualDevice) -> Unit,
-  fileSystem: FileSystem,
+  context: Context,
 ) {
   GroupHeader("Storage")
 
@@ -212,7 +209,7 @@ private fun StorageGroup(
           storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
 
           if (existingImageFieldState.valid) {
-            val image: Path = fileSystem.getPath(existingImageFieldState.value)
+            val image = context.getPath(existingImageFieldState.value)
             onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
           }
         },
@@ -239,7 +236,7 @@ private fun StorageGroup(
       TextField(
         existingImageFieldState.value,
         onValueChange = {
-          val image: Path = fileSystem.getPath(it)
+          val image = context.getPath(it)
           val valid = Files.isRegularFile(image)
 
           storageGroupState.existingImageFieldState = ExistingImageFieldState(it, valid)
