@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
@@ -28,7 +29,6 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
-import com.android.tools.idea.preview.GroupFilteredPreviewElementProvider
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -36,7 +36,8 @@ import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.groups.PreviewGroup
+import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
@@ -87,7 +88,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -122,8 +122,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   PreviewRepresentation,
   AndroidCoroutinesAware,
   UserDataHolderEx by UserDataHolderBase(),
-  PreviewModeManager,
-  PreviewGroupManager {
+  PreviewModeManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -192,8 +191,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         .setDelegateDataProvider {
           when (it) {
             PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
-            PreviewModeManager.KEY.name,
-            PreviewGroupManager.KEY.name -> this@CommonPreviewRepresentation
+            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+            PreviewGroupManager.KEY.name,
+            PreviewFlowManager.KEY.name -> previewFlowManager
             else -> null
           }
         }
@@ -225,24 +225,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
 
-  private val singleElementFlow = MutableStateFlow<T?>(null)
-
-  private val memoizedPreviewElementProvider: PreviewElementProvider<T> =
-    MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker)
-
-  private val groupFilteredPreviewElementProvider =
-    GroupFilteredPreviewElementProvider(
-      previewGroupManager = this,
-      delegate = memoizedPreviewElementProvider,
+  private val previewFlowManager =
+    CommonPreviewFlowManager(
+      filePreviewElementProvider =
+        MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker),
+      requestRefresh = ::requestRefresh,
     )
 
-  private val previewElementProvider: PreviewElementProvider<T> =
-    object : PreviewElementProvider<T> {
-      override suspend fun previewElements(): Sequence<T> {
-        return singleElementFlow.value?.let { sequenceOf(it) }
-          ?: groupFilteredPreviewElementProvider.previewElements()
-      }
-    }
   private var renderedElements: List<T> = emptyList()
 
   private val previewElementModelAdapter =
@@ -254,19 +243,12 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           when (dataId) {
             PREVIEW_ELEMENT_INSTANCE.name -> previewElement
             CommonDataKeys.PROJECT.name -> project
-            PreviewModeManager.KEY.name,
-            PreviewGroupManager.KEY.name -> this@CommonPreviewRepresentation
+            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+            PreviewGroupManager.KEY.name,
+            PreviewFlowManager.KEY.name -> previewFlowManager
             else -> null
           }
         }
-    }
-
-  override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(emptySet())
-
-  override var groupFilter: PreviewGroup = PreviewGroup.All
-    set(value) {
-      field = value
-      requestRefresh()
     }
 
   private fun onInit() {
@@ -357,10 +339,11 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
       try {
         refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
+        withContext(workerThread) { previewFlowManager.updateFlows() }
         val filePreviewElements =
-          withContext(workerThread) {
-            previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
-          }
+          previewFlowManager.filteredPreviewElementsFlow.value
+            .asCollection()
+            .sortByDisplayAndSourcePosition()
 
         val needsFullRefresh =
           invalidated.getAndSet(false) || renderedElements != filePreviewElements
@@ -504,18 +487,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           lastMode = it
         }
       }
-
-      launch(workerThread) {
-        refreshManager.refreshingTypeFlow.collectLatest {
-          availableGroupsFlow.value =
-            memoizedPreviewElementProvider
-              .previewElements()
-              .mapNotNull {
-                it.displaySettings.group?.let { groupName -> PreviewGroup.namedGroup(groupName) }
-              }
-              .toSet()
-        }
-      }
     }
   }
 
@@ -577,7 +548,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private suspend fun startInteractivePreview(element: PreviewElement) {
     LOG.debug("Starting interactive preview mode on: $element")
-    singleElementFlow.value = element as T
+    previewFlowManager.setSingleFilter(element as T)
     invalidateAndRefresh()
     interactiveManager.start()
     ActivityTracker.getInstance().inc()
@@ -585,7 +556,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private suspend fun stopInteractivePreview() {
     LOG.debug("Stopping interactive preview mode")
-    singleElementFlow.value = null
+    previewFlowManager.setSingleFilter(null)
     interactiveManager.stop()
     invalidateAndRefresh()
   }

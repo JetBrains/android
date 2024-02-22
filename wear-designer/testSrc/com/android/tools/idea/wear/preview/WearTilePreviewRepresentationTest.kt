@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.actions.GroupSwitchAction
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -118,6 +119,8 @@ class WearTilePreviewRepresentationTest {
         .isInstanceOf(PreviewViewModelStatus::class.java)
       assertThat(preview.previewView.surface.getData(PreviewGroupManager.KEY.name))
         .isInstanceOf(PreviewGroupManager::class.java)
+      assertThat(preview.previewView.surface.getData(PreviewFlowManager.KEY.name))
+        .isInstanceOf(PreviewFlowManager::class.java)
 
       preview.onDeactivate()
     }
@@ -126,8 +129,11 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
+      val previewGroupManager =
+        preview.previewView.surface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
 
-      assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
+      assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
+        .containsExactly("groupA")
       assertThat(preview.previewView.surface.models).hasSize(2)
 
       val dataContext = DataContext { preview.previewView.surface.getData(it) }
