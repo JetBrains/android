@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabe
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -29,7 +30,7 @@ class UnsupportedAnimationManagerTest {
   val animation = TestUtils.createComposeAnimation("Label")
 
   @Test
-  fun `default states`() {
+  fun `default states`() = runBlocking {
     val manager = UnsupportedAnimationManager(animation, "Label")
     assertNotNull(manager.elementState)
     assertNotNull(manager.card)

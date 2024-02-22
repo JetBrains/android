@@ -998,7 +998,7 @@ class ComposePreviewRepresentation(
     // controlled by the Compose clock. For that reason, we need to call
     // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
     // and displayed in static preview.
-    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender(null) }
+    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
     // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens

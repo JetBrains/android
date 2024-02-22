@@ -150,11 +150,13 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       assertEquals(1, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
+      delayUntilCondition(200) { transitionCalls == 2 }
       assertEquals(2, transitionCalls)
       assertEquals(2, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
       assertEquals(2, transitionCalls)
+      delayUntilCondition(200) { stateCalls == 3 }
       assertEquals(3, stateCalls)
     }
   }
@@ -188,17 +190,18 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
+      // both calls from SupportedAnimationManager.setup
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
-      assertEquals(2, numberOfCalls)
-      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
+      timelineSlider.value = 200
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
+      assertEquals(4, numberOfCalls)
     }
   }
 

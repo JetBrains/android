@@ -113,6 +113,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -1548,14 +1549,20 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Executes the given block under a {@link RenderSession}. This allows the given block to access resources since they are set up
    * before executing it.
+   *
+   * @param block the {@link Callable} to be executed in the Render thread.
+   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
+   *                 (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   * @param timeUnit   the {@link TimeUnit} for the timeout.
+   *
    * @return A {@link CompletableFuture} that completes when the block finalizes.
-   * @see RenderTask#runAsyncRenderActionWithSession(Runnable) 
+   * @see RenderTask#runAsyncRenderActionWithSession(Runnable, long, TimeUnit)
    */
   @NotNull
-  public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block) {
+  public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block, long timeout, TimeUnit timeUnit) {
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null) {
-        return myRenderTask.runAsyncRenderActionWithSession(block);
+        return myRenderTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
       }
       else {
         return CompletableFuture.completedFuture(null);
@@ -1636,8 +1643,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * Executes the given {@link Runnable} callback synchronously with a 30ms timeout.
    */
   @Override
-  public boolean executeCallbacksAndRequestRender(@Nullable Runnable callback) {
-    return executeCallbacksAndRequestRender(30, TimeUnit.MILLISECONDS, callback);
+  public @NotNull CompletableFuture<Void> executeCallbacksAndRequestRender() {
+    return executeCallbacksAsync().thenCompose(b -> requestRenderAsync());
   }
 
   /**

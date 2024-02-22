@@ -58,6 +58,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.io.await
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
@@ -278,7 +279,11 @@ class AnimationPreview(
    * @param longTimeout set true to use a long timeout.
    * @param makeCopy set true to create a copy of the animation list while loading properties.
    */
-  private fun setClockTime(newValue: Int, longTimeout: Boolean = false, makeCopy: Boolean = false) {
+  private suspend fun setClockTime(
+    newValue: Int,
+    longTimeout: Boolean = false,
+    makeCopy: Boolean = false,
+  ) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
       if (
@@ -318,7 +323,7 @@ class AnimationPreview(
       updateTimelineElements()
     }
 
-  private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
+  private suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
     // Set the timeline to 0
     setClockTime(0, longTimeout, makeCopy = true)
     updateMaxDuration(longTimeout)
@@ -546,9 +551,11 @@ class AnimationPreview(
         // will be written, when setting the clock,
         // and read, when getting its duration. These operations take longer than the default 30ms
         // timeout the first time they're executed.
-        updateAnimatedVisibility(longTimeout = true)
-        loadTransitionFromCacheOrLib(longTimeout = true)
-        loadProperties()
+        scope.launch {
+          updateAnimatedVisibility(longTimeout = true)
+          loadTransitionFromCacheOrLib(longTimeout = true)
+          loadProperties()
+        }
         // Set up the combo box listener so further changes to the selected state will trigger a
         // call to updateAnimatedVisibility.
         stateComboBox.callbackEnabled = true
@@ -644,8 +651,10 @@ class AnimationPreview(
         // written, when setting the clock, and
         // read, when getting its duration. These operations take longer than the default 30ms
         // timeout the first time they're executed.
-        updateAnimationStartAndEndStates(longTimeout = true)
-        loadTransitionFromCacheOrLib(longTimeout = true)
+        scope.launch {
+          updateAnimationStartAndEndStates(longTimeout = true)
+          loadTransitionFromCacheOrLib(longTimeout = true)
+        }
         // Set up the state listeners so further changes to the selected state will trigger a
         // call to updateAnimationStartAndEndStates.
         stateComboBox.callbackEnabled = true
@@ -675,14 +684,18 @@ class AnimationPreview(
         ComposeAnimationType.TRANSITION_ANIMATION,
         ComposeAnimationType.ANIMATE_X_AS_STATE,
         ComposeAnimationType.ANIMATED_CONTENT -> { ->
-            updateAnimationStartAndEndStates()
-            loadTransitionFromCacheOrLib()
-            loadProperties()
+            scope.launch {
+              updateAnimationStartAndEndStates()
+              loadTransitionFromCacheOrLib()
+              loadProperties()
+            }
           }
         ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
-            updateAnimatedVisibility()
-            loadTransitionFromCacheOrLib()
-            loadProperties()
+            scope.launch {
+              updateAnimatedVisibility()
+              loadTransitionFromCacheOrLib()
+              loadProperties()
+            }
           }
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
@@ -698,7 +711,7 @@ class AnimationPreview(
      * Updates the actual animation in Compose to set its start and end states to the ones selected
      * in the respective combo boxes.
      */
-    fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
+    suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
       animationClock?.apply {
         val startState = stateComboBox.getState(0)
         val toState = stateComboBox.getState(1)
@@ -719,7 +732,7 @@ class AnimationPreview(
      * Updates the actual animation in Compose to set its state based on the selected value of
      * [stateComboBox].
      */
-    fun updateAnimatedVisibility(longTimeout: Boolean = false) {
+    suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
       animationClock?.apply {
         if (
           !executeOnRenderThread(longTimeout) {
@@ -798,18 +811,16 @@ class AnimationPreview(
         }
     }
 
-    override fun loadProperties() {
-      sceneManagerProvider()?.apply {
+    override suspend fun loadProperties() {
+      executeInRenderSessionAsync {
         animationClock?.apply {
-          executeInRenderSessionAsync {
-            try {
-              selectedProperties =
-                getAnimatedProperties(animation).map {
-                  ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
-                }
-            } catch (e: Exception) {
-              LOG.warn("Failed to get the Compose Animation properties", e)
-            }
+          try {
+            selectedProperties =
+              getAnimatedProperties(animation).map {
+                ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+              }
+          } catch (e: Exception) {
+            LOG.warn("Failed to get the Compose Animation properties", e)
           }
         }
       }
@@ -872,7 +883,7 @@ class AnimationPreview(
       addChangeListener {
         if (value == cachedVal) return@addChangeListener // Ignore repeated values
         cachedVal = value
-        setClockTime(value)
+        scope.launch { setClockTime(value) }
       }
       addComponentListener(
         object : ComponentAdapter() {
@@ -903,5 +914,18 @@ class AnimationPreview(
       }
     return sceneManagerProvider()?.executeCallbacksAndRequestRender(time, timeUnit) { callback() }
       ?: false
+  }
+
+  private suspend fun executeInRenderSessionAsync(
+    useLongTimeout: Boolean = false,
+    callback: () -> Unit,
+  ) {
+    sceneManagerProvider()
+      ?.executeInRenderSessionAsync(
+        { callback() },
+        if (useLongTimeout) 5L else 0L,
+        TimeUnit.SECONDS,
+      )
+      ?.await()
   }
 }

@@ -36,6 +36,7 @@ import icons.StudioIcons
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.util.concurrent.TimeUnit
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
@@ -194,15 +195,21 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
       sceneManager
-        .executeInRenderSessionAsync {
-          image.setImageState(ArrayUtil.append(states, stateValue), false)
-        }
+        .executeInRenderSessionAsync(
+          { image.setImageState(ArrayUtil.append(states, stateValue), false) },
+          0,
+          TimeUnit.SECONDS,
+        )
         .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
     }
   } else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
     sceneManager
-      .executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
+      .executeInRenderSessionAsync(
+        { image.setImageState(ArrayUtil.remove(states, i), false) },
+        0,
+        TimeUnit.SECONDS,
+      )
       .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
   }
 }

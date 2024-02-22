@@ -38,7 +38,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
     MutableStateFlow(ElementState(title)).asStateFlow()
   override val card = LabelCard(elementState)
 
-  override fun loadProperties() {}
+  override suspend fun loadProperties() {}
 
   override fun setup() {}
 

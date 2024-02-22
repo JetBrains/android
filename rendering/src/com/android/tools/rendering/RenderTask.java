@@ -1406,10 +1406,17 @@ public class RenderTask {
   /**
    * Similar to {@link #runAsyncRenderAction(Callable)} but executes it under a {@link RenderSession}. This allows the
    * given block to access resources since they are setup before executing it.
+   *
+   *
+   * @param block the {@link Callable} to be executed in the Render thread.
+   * @param timeout  maximum time to wait for the action to execute. If <= 0, the default timeout
+   *                (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   * @param unit    the {@link TimeUnit} for the timeout.
+   *
    * @return A {@link CompletableFuture} that completes when the block finalizes.
    */
   @NotNull
-  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block) {
+  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block, long timeout, @NotNull TimeUnit unit) {
     if (isDisposed.get()) {
       return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
@@ -1419,9 +1426,8 @@ public class RenderTask {
     }
     return runAsyncRenderAction(() -> {
       renderSession.execute(block);
-
       return null;
-    });
+    }, timeout, unit);
   }
 
   @VisibleForTesting

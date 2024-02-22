@@ -926,7 +926,7 @@ public class RenderTaskTest extends AndroidTestCase {
       // When running under a session, mSystem will be initialized.
       task.runAsyncRenderActionWithSession(() -> {
         assertNotNull(getMSystemValue(task));
-      }).join();
+      }, 0, TimeUnit.SECONDS).join();
     });
   }
 
