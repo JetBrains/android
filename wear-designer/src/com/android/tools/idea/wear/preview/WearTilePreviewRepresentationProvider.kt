@@ -26,6 +26,7 @@ import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
@@ -56,8 +57,9 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
     return DefaultActionGroup(
       StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
       StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+      // TODO(b/292057010) Enable group filtering for Gallery mode.
       GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
-        .visibleOnlyInStaticPreview(),
+        .visibleOnlyInDefaultPreview(),
       WearTileViewControlAction(
           layoutOptions =
             listOf(

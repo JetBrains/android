@@ -170,3 +170,22 @@ private class EnableUnderConditionWrapper(
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(delegate, presentation, place)
 }
+
+// TODO(b/292057010) Enable group filtering for Gallery mode.
+private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.getData(PreviewModeManager.KEY)?.let {
+      e.presentation.isVisible = it.mode.value is PreviewMode.Default
+    }
+  }
+}
+
+/**
+ * Makes the given action only visible when the preview is in the [PreviewMode.Default] mode.
+ * Returns an [ActionGroup] that handles the visibility.
+ */
+fun AnAction.visibleOnlyInDefaultPreview(): ActionGroup = PreviewDefaultWrapper(listOf(this))

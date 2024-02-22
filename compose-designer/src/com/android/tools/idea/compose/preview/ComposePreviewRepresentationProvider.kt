@@ -30,7 +30,6 @@ import com.android.tools.idea.compose.preview.actions.ComposeViewSingleWordFilte
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
-import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
@@ -39,6 +38,7 @@ import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
@@ -91,7 +91,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
               it.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.isFilterEnabled != true
             },
           )
-          .visibleOnlyInComposeDefaultPreview(),
+          .visibleOnlyInDefaultPreview(),
         ComposeViewControlAction(
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {
