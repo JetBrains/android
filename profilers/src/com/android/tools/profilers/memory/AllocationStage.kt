@@ -42,6 +42,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   private val allocationDurationData = makeModel(CaptureDataSeries::ofAllocationInfos)
   override val captureSeries get() = listOf(allocationDurationData)
 
+  var hasAgentError = false
+
   private fun setupTrackingEventListener() {
     if (studioProfilers.sessionsManager.isSessionAlive && isLiveAllocationTrackingSupported) {
       // Note the max of current data range which is the current timestamp on device
@@ -121,7 +123,18 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
   val isAgentAttached get() = studioProfilers.isAgentAttached
 
+  fun setAllocationTrackingError() {
+    stopTracking()
+    hasAgentError = true
+    aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
+  }
+
   fun startTracking() {
+    if (Common.AgentData.Status.UNATTACHABLE == studioProfilers.agentData.status) {
+      setAllocationTrackingError()
+      return
+    }
+
     // In the regular session based, there is slim to no chance of agent being Unspecified when J/K Allocation stage is entered.
     // This is because session is created way before we come to the J/K allocation stage.
     if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled && !isAgentAttached) return

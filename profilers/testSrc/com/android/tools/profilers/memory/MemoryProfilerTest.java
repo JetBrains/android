@@ -224,6 +224,33 @@ public final class MemoryProfilerTest {
   }
 
   @Test
+  public void testAllocationTrackingWhenAgentUnAttached() {
+    Common.Session session = Common.Session.newBuilder()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build();
+    // Setting to Long.Max_Value so the session is still active
+    Common.SessionMetaData sessionOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build();
+    myTransportService.addSession(session, sessionOMetadata);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Agent status is unspecified
+    assertEquals(Common.AgentData.Status.UNSPECIFIED, myStudioProfiler.getAgentData().getStatus());
+
+    myTransportService.addEventToStream(session.getStreamId(), Common.Event.newBuilder()
+      .setKind(Common.Event.Kind.AGENT)
+      .setPid(session.getPid())
+      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
+      .build());
+    AllocationStage allocationStage = spy(AllocationStage.makeLiveStage(myStudioProfiler, new FakeCaptureObjectLoader()));
+    myStudioProfiler.getSessionsManager().setSession(session);
+    myStudioProfiler.setStage(allocationStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(Common.AgentData.Status.UNATTACHABLE, myStudioProfiler.getAgentData().getStatus());
+    // If Stage is AllocationStage and agent status is un-attachable, it will mark as AgentError
+    assertTrue(allocationStage.getHasAgentError());
+    assertTrue(allocationStage.getHasEndedTracking());
+  }
+
+  @Test
   public void testLiveAllocationTrackingStoppedAndNotStartedOnAgentAttach() {
     setupODeviceAndProcess();
     // Verify start and stop allocation tracking commands are handled by the same handler.
