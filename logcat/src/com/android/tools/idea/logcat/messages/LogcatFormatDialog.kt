@@ -555,7 +555,7 @@ internal class LogcatFormatDialog(
    * and `Cancel` buttons. There seems to be no way to reuse them.
    */
   private inner class MyDialogWrapper(project: Project, private val panel: JComponent) :
-    DialogWrapper(project, null, true, IdeModalityType.PROJECT) {
+    DialogWrapper(project, null, true, IdeModalityType.IDE) {
     override fun createCenterPanel(): JComponent = panel
 
     init {

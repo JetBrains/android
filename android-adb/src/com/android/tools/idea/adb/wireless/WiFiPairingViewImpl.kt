@@ -35,7 +35,7 @@ class WiFiPairingViewImpl(project: Project,
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
-    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT, hyperlinkListener)
+    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.IDE, hyperlinkListener)
     dlg.pairingCodePairInvoked = { service ->
       listeners.forEach { it.onPairingCodePairAction(service) }
     }

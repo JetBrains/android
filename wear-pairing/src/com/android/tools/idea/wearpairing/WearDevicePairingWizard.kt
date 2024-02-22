@@ -34,8 +34,8 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
+import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.IDE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
-import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.net.URL
@@ -95,7 +95,7 @@ class WearDevicePairingWizard {
 
     WearPairingManager.getInstance().setDeviceListListener(model, wizardAction)
 
-    val modality = if (EmulatorSettings.getInstance().launchInToolWindow) MODELESS else PROJECT
+    val modality = if (EmulatorSettings.getInstance().launchInToolWindow) MODELESS else IDE
     wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
       .setProject(project)
       .setHelpUrl(URL(WEAR_DOCS_LINK))

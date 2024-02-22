@@ -35,7 +35,7 @@ class PairingCodePairingDialog(project: Project) {
   init {
     val options = SimpleDialogOptions(project,
                                       true,
-                                      DialogWrapper.IdeModalityType.PROJECT,
+                                      DialogWrapper.IdeModalityType.IDE,
                                       title = "Enter pairing code",
                                       isModal = true,
                                       okButtonText = "Pair",
