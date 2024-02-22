@@ -17,8 +17,11 @@ package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.prompts.impl.SafePromptBuilderImpl
 import com.intellij.lang.Language
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 
 /**
  * Use this builder to construct prompts for Studio Bot APIs by specifying
@@ -100,9 +103,26 @@ interface SafePromptBuilder {
     fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>)
   }
 
+  interface UserMessageBuilder : MessageBuilder {
+    /** Adds information about [file], including its contents. */
+    fun fileContents(file: VirtualFile)
+
+    /** Adds information about [file], including its contents. */
+    fun fileContents(file: PsiFile)
+
+    /** Starts a read action allowing further query elements that require read access. */
+    fun withReadAction(block: ReadActionUserMessageBuilder.() -> Unit)
+  }
+
+  interface ReadActionUserMessageBuilder : UserMessageBuilder {
+    /** Adds the contents from the file currently open in [editor] to the query. */
+    @RequiresReadLock
+    fun openFileContents(editor: Editor)
+  }
+
   fun systemMessage(builderAction: MessageBuilder.() -> Unit)
 
-  fun userMessage(builderAction: MessageBuilder.() -> Unit)
+  fun userMessage(builderAction: UserMessageBuilder.() -> Unit)
 
   fun modelMessage(builderAction: MessageBuilder.() -> Unit)
 }
