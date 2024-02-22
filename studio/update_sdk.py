@@ -362,6 +362,12 @@ def extract(workspace, dir, delete_after, metadata):
     os.system(f"jar uf {app_jar_path} __index__")
     os.remove("__index__")
 
+  # TODO(b/328622823): IntelliJ normally loads plugins by consulting plugin-classpath.txt, but
+  # this does not work for Android Studio because plugin-classpath.txt is missing our Android
+  # plugins (which we bundle later during the Bazel build).
+  for platform in PLATFORMS:
+    os.remove(path + HOME_PATHS[platform] + "/plugins/plugin-classpath.txt")
+
   if manifest:
     xml = ET.parse(dir + "/" + manifest)
     for project in xml.getroot().findall("project"):
