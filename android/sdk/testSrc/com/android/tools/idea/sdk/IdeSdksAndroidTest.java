@@ -32,7 +32,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersionUtil;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -182,7 +181,6 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   public void testRecreateJdkInTableSameClassRoots() {
     Sdk originalJdk = myIdeSdks.getJdk();
     assertThat(originalJdk).isNotNull();
-    assertThat(originalJdk).isInstanceOf(ProjectJdkImpl.class);
 
     VirtualFile[] originalClassRoots = originalJdk.getRootProvider().getFiles(OrderRootType.CLASSES);
     SdkTypeId sdkType = originalJdk.getSdkType();
@@ -219,7 +217,6 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     Sdk originalJdk = myIdeSdks.getJdk();
     assertThat(originalJdk).isNotNull();
 
-    assertThat(originalJdk).isInstanceOf(ProjectJdkImpl.class);
     VirtualFile[] originalClassRoots = originalJdk.getRootProvider().getFiles(OrderRootType.CLASSES);
     assertThat(originalClassRoots).isNotEmpty();
 
@@ -241,7 +238,6 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     // Verify a root was removed
     Sdk modifiedJdk = myIdeSdks.getJdk();
     assertThat(modifiedJdk).isNotNull();
-    assertThat(modifiedJdk).isInstanceOf(ProjectJdkImpl.class);
     VirtualFile[] modifiedClassRoots = modifiedJdk.getRootProvider().getFiles(OrderRootType.CLASSES);
     assertThat(modifiedClassRoots).hasLength(originalClassRoots.length - 1);
 
@@ -251,7 +247,6 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     // Jdk roots should be the same as original after recreating
     Sdk recreatedJdk = myIdeSdks.getJdk();
     assertThat(recreatedJdk).isNotNull();
-    assertThat(recreatedJdk).isInstanceOf(ProjectJdkImpl.class);
     VirtualFile[] recreatedClassRoots = recreatedJdk.getRootProvider().getFiles(OrderRootType.CLASSES);
     assertThat(recreatedClassRoots).isEqualTo(originalClassRoots);
   }
