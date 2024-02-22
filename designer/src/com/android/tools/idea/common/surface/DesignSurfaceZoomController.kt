@@ -77,8 +77,8 @@ abstract class DesignSurfaceZoomController(
    */
   @SurfaceScale private var currentScale: Double = 1.0
 
-  /** A listener that calls a callback whenever zoom changes. */
-  private var myScaleListener: ScaleListener? = null
+  /** A listener that calls a callback whenever scale changes. */
+  private var scaleListener: ScaleListener? = null
 
   /** Returns the current scale of [DesignSurface]. */
   @SurfaceScale
@@ -110,7 +110,7 @@ abstract class DesignSurfaceZoomController(
     }
     val previewsScale = currentScale
     currentScale = newScale
-    myScaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
+    scaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
     return true
   }
 
@@ -181,7 +181,7 @@ abstract class DesignSurfaceZoomController(
 
   /** Sets a [ScaleListener] used by [DesignSurface] to interact with zoom changes. */
   fun setOnScaleListener(listener: ScaleListener) {
-    myScaleListener = listener
+    scaleListener = listener
   }
 
   /**
