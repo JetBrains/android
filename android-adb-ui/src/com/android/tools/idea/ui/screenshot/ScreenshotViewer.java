@@ -226,11 +226,11 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     if (myPersistentStorage.frameScreenshot && myDecorationComboBox.getItemCount() > defaultFramingOption + frameOptionStartIndex) {
       myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
     }
-    else if (canClipDeviceMask) {
-      myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP);
-    }
     else if (isPlayCompatibleWearScreenshot) {
       myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE);
+    }
+    else if (canClipDeviceMask) {
+      myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP);
     }
     else {
       myDecorationComboBox.setSelectedItem(ScreenshotDecorationOption.RECTANGULAR);

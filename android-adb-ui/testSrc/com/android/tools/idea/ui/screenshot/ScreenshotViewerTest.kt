@@ -257,6 +257,26 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  fun testPlayStoreCompatibleOptionIsSetByDefaultForWearDevices() {
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Play Store Compatible")
+  }
+
+  @Test
+  fun testPlayStoreCompatibleOptionIsNotSetByDefaultForNonWearDevices() {
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isNotEqualTo("Play Store Compatible")
+  }
+
+  @Test
   fun testPlayCompatibleScreenshotIsNotAvailableWhenScreenshotIsNot1to1Ratio() {
     val screenshotImage = ScreenshotImage(createImage(384, 500), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
