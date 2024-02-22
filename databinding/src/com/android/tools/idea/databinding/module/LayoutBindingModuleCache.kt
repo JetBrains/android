@@ -47,6 +47,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.indexing.FileBasedIndex
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
@@ -183,8 +184,13 @@ class LayoutBindingModuleCache(private val module: Module) : Disposable {
 
       // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
       // fail with an exception. To prevent this, we abort early with what we have.
+      // As of 2023.3, indexes can sometimes be accessed in dumb mode if some DumbModeAccessType is
+      // set. Allow execution to continue in those cases as well.
       val project = module.project
-      if (DumbService.isDumb(project)) {
+      if (
+        DumbService.isDumb(project) &&
+          FileBasedIndex.getInstance().currentDumbModeAccessType == null
+      ) {
         // TODO(b/322209412): Remove this error and instead throw an exception, after it's verified
         // that end users are no longer running into this log line.
         thisLogger()
