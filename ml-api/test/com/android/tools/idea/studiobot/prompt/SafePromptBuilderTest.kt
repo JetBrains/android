@@ -24,15 +24,16 @@ import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.SafePrompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.studiobot.prompts.impl.SafePromptImpl
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
+import kotlin.test.assertFailsWith
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.spy
 
 @RunWith(JUnit4::class)
 class SafePromptBuilderTest : BasePlatformTestCase() {
@@ -48,139 +49,121 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
 
   @Test
   fun buildPrompt_completePrompt() {
-    val prompt = buildPrompt(project) {
-      systemMessage {
-        text("You are Studio Bot, an AI assistant for Android Studio.", emptyList())
+    val prompt =
+      buildPrompt(project) {
+        systemMessage {
+          text("You are Studio Bot, an AI assistant for Android Studio.", emptyList())
+        }
+        userMessage { text("Hello Studio Bot!", emptyList()) }
+        modelMessage { text("Hello! How are you?", emptyList()) }
+        userMessage { text("I am doing well, how about you?", emptyList()) }
       }
-      userMessage {
-        text("Hello Studio Bot!", emptyList())
-      }
-      modelMessage {
-        text("Hello! How are you?", emptyList())
-      }
-      userMessage {
-        text("I am doing well, how about you?", emptyList())
-      }
-    }
-    assertEquals(
-      SafePromptImpl(
-        listOf(
-          SafePrompt.SystemMessage(
-            listOf(
-              SafePrompt.Message.TextChunk("You are Studio Bot, an AI assistant for Android Studio.", emptyList())
-            )
-          ),
-          SafePrompt.UserMessage(
-            listOf(
-              SafePrompt.Message.TextChunk("Hello Studio Bot!", emptyList())
-            )
-          ),
-          SafePrompt.ModelMessage(
-            listOf(
-              SafePrompt.Message.TextChunk("Hello! How are you?", emptyList())
-            )
-          ),
-          SafePrompt.UserMessage(
-            listOf(
-              SafePrompt.Message.TextChunk("I am doing well, how about you?", emptyList())
-            )
+    assertThat(prompt)
+      .isEqualTo(
+        SafePromptImpl(
+          listOf(
+            SafePrompt.SystemMessage(
+              listOf(
+                SafePrompt.Message.TextChunk(
+                  "You are Studio Bot, an AI assistant for Android Studio.",
+                  emptyList(),
+                )
+              )
+            ),
+            SafePrompt.UserMessage(
+              listOf(SafePrompt.Message.TextChunk("Hello Studio Bot!", emptyList()))
+            ),
+            SafePrompt.ModelMessage(
+              listOf(SafePrompt.Message.TextChunk("Hello! How are you?", emptyList()))
+            ),
+            SafePrompt.UserMessage(
+              listOf(SafePrompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
+            ),
           )
         )
-      ),
-      prompt
-    )
+      )
   }
 
   @Test
   fun buildPrompt_promptWithCode() {
-    val prompt = buildPrompt(project) {
-      userMessage {
-        text("Write some Kotlin code.", emptyList())
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Write some Kotlin code.", emptyList()) }
+        modelMessage {
+          code(
+            """
+            fun f(): Int {
+              return 5
+            }
+            """
+              .trimIndent(),
+            KotlinLanguage.INSTANCE,
+            emptyList(),
+          )
+        }
+        userMessage {
+          text("Does this Java code do the same thing?", emptyList())
+          code(
+            """
+            int f() {
+              return 5;
+            }
+            """
+              .trimIndent(),
+            JavaLanguage.INSTANCE,
+            emptyList(),
+          )
+        }
       }
-      modelMessage {
-        code(
-          """
-          fun f(): Int {
-            return 5
-          }
-        """.trimIndent(),
-          KotlinLanguage.INSTANCE,
-          emptyList()
-        )
-      }
-      userMessage {
-        text("Does this Java code do the same thing?", emptyList())
-        code(
-          """
-          int f() {
-            return 5;
-          }
-        """.trimIndent(),
-          JavaLanguage.INSTANCE,
-          emptyList()
-        )
-      }
-    }
-    assertEquals(
-      SafePromptImpl(
-        listOf(
-          SafePrompt.UserMessage(
-            listOf(
-              SafePrompt.Message.TextChunk(
-                "Write some Kotlin code.",
-                emptyList()
-              )
-            )
-          ),
-          SafePrompt.ModelMessage(
-            listOf(
-              SafePrompt.Message.CodeChunk(
-                """
+    assertThat(prompt)
+      .isEqualTo(
+        SafePromptImpl(
+          listOf(
+            SafePrompt.UserMessage(
+              listOf(SafePrompt.Message.TextChunk("Write some Kotlin code.", emptyList()))
+            ),
+            SafePrompt.ModelMessage(
+              listOf(
+                SafePrompt.Message.CodeChunk(
+                  """
                   fun f(): Int {
                     return 5
                   }
-                """.trimIndent(),
-                KotlinLanguage.INSTANCE,
-                emptyList()
+                  """
+                    .trimIndent(),
+                  KotlinLanguage.INSTANCE,
+                  emptyList(),
+                )
               )
-            )
-          ),
-          SafePrompt.UserMessage(
-            listOf(
-              SafePrompt.Message.TextChunk(
-                "Does this Java code do the same thing?", emptyList()
-              ),
-              SafePrompt.Message.CodeChunk(
-                """
+            ),
+            SafePrompt.UserMessage(
+              listOf(
+                SafePrompt.Message.TextChunk("Does this Java code do the same thing?", emptyList()),
+                SafePrompt.Message.CodeChunk(
+                  """
                   int f() {
                     return 5;
                   }
-                """.trimIndent(),
-                JavaLanguage.INSTANCE,
-                emptyList()
+                  """
+                    .trimIndent(),
+                  JavaLanguage.INSTANCE,
+                  emptyList(),
+                ),
               )
-            )
+            ),
           )
         )
-      ),
-      prompt
-    )
+      )
   }
 
   @Test
   fun buildPrompt_noMessagesThrowsError() {
-    assertThrows(
-      MalformedPromptException::class.java
-    ) {
-      buildPrompt(project) { }
-    }
+    assertFailsWith<MalformedPromptException> { buildPrompt(project) {} }
   }
 
   @Test
   fun buildPrompt_wrongLastMessageThrowsError() {
-    assertThrows(
-      MalformedPromptException::class.java
-    ) {
+    assertFailsWith<MalformedPromptException> {
       buildPrompt(project) {
         systemMessage { text("preamble", emptyList()) }
         userMessage { text("user", emptyList()) }
@@ -192,9 +175,7 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
 
   @Test
   fun buildPrompt_wrongSystemMessageThrowsError() {
-    assertThrows(
-      MalformedPromptException::class.java
-    ) {
+    assertFailsWith<MalformedPromptException> {
       buildPrompt(project) {
         userMessage { text("user", emptyList()) }
         modelMessage { text("model", emptyList()) }
@@ -207,9 +188,7 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
 
   @Test
   fun buildPrompt_twoSystemMessagesThrowsError() {
-    assertThrows(
-      MalformedPromptException::class.java
-    ) {
+    assertFailsWith<MalformedPromptException> {
       buildPrompt(project) {
         // Only one system message is allowed
         systemMessage { text("preamble", emptyList()) }
@@ -234,9 +213,7 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
     }
 
     whenever(mockAiExcludeService.isFileExcluded(project, file)).thenReturn(true)
-    assertThrows(
-      AiExcludeException::class.java
-    ) {
+    assertFailsWith<AiExcludeException> {
       buildPrompt(project) {
         systemMessage { text("preamble", emptyList()) }
         userMessage { text("user", emptyList()) }
@@ -245,9 +222,7 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
       }
     }
 
-    assertThrows(
-      AiExcludeException::class.java
-    ) {
+    assertFailsWith<AiExcludeException> {
       buildPrompt(project) {
         systemMessage { text("preamble", emptyList()) }
         userMessage { text("user", emptyList()) }
