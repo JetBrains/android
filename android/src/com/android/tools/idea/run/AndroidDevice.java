@@ -76,7 +76,9 @@ public interface AndroidDevice {
   String getAppPreferredAbi();
 
   /**
-   * Returns a unique serial number
+   * Returns a unique, opaque, identifier for the device, which should be constant even when starting and stopping the underlying device.
+   *
+   * Note this may not be equal to the adb serial for devices that can be started.
    */
   @NotNull
   String getSerial();

@@ -340,23 +340,32 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
 
   }
 
+  private fun runningDeviceWithSerial(version: AndroidVersion, adbSerial: String): AndroidDevice {
+    val launchedDevice = mock(IDevice::class.java).also {
+      whenever(it.serialNumber).thenReturn(adbSerial)
+    }
+    return mock(AndroidDevice::class.java).also {
+      whenever(it.version).thenReturn(version)
+      whenever(it.serial).thenReturn("Mock running device, version=$version serial=$adbSerial")
+      whenever(it.isRunning).thenReturn(true)
+      whenever(it.launchedDevice).thenReturn(Futures.immediateFuture(launchedDevice))
+    }
+  }
+
   fun `test when device serials injection`() {
     StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.override(true)
     setUpTestProject()
-    whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
-    whenever(myDevice.serial).thenReturn("device_1")
-    val device2 = mock(AndroidDevice::class.java)
-    whenever(device2.version).thenReturn(AndroidVersion(20, null))
-    whenever(device2.serial).thenReturn("device_2")
+    val device1 = runningDeviceWithSerial(AndroidVersion(20), "device_1")
+    val device2 = runningDeviceWithSerial(AndroidVersion(20), "device_2")
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(myDevice, device2))
+                                                                         deviceSpec(device1, device2))
     assertThat(arguments).contains("-Pinternal.android.inject.device.serials=device_1,device_2")
     StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.clearOverride()
 
     val argumentsWithDisabledFlag = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                                          myRunConfiguration,
-                                                                                         deviceSpec(myDevice, device2))
+                                                                                         deviceSpec(device1, device2))
     assertThat(argumentsWithDisabledFlag).doesNotContain("-Pinternal.android.inject.device.serials=device_1,device_2")
   }
 

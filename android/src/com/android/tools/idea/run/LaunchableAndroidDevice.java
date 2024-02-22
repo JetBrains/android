@@ -118,7 +118,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public String getSerial() {
-    return myAvdInfo.getId();
+    return "AVD: " +  myAvdInfo.getId();
   }
 
   @Override

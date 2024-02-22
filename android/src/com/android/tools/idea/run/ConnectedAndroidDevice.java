@@ -129,11 +129,11 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     if (myDevice.isEmulator()) {
       String avdName = myDevice.getAvdName();
       if (avdName != null) {
-        return avdName;
+        return "AVD: " + avdName;
       }
     }
 
-    return myDevice.getSerialNumber();
+    return "Connected Device: " +  myDevice.getSerialNumber();
   }
 
   @Override
@@ -154,7 +154,14 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     }
 
     if (isVirtual()) {
-      return getDeviceName() + " [" + getSerial() + "]";
+      String virtualIdentifier = null;
+      if (myDevice.isEmulator()) {
+        virtualIdentifier = myDevice.getAvdName();
+      }
+      if (virtualIdentifier == null) {
+        virtualIdentifier = myDevice.getSerialNumber();
+      }
+      return getDeviceName() + " [" + virtualIdentifier + "]";
     }
     return getDeviceName();
   }

@@ -90,11 +90,12 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
       ?: throw IllegalStateException("Attempt to get device that hasn't been launched yet.")
   }
 
-  override fun getSerial(): String {
-    // The only real use of this is by AndroidDeviceSpecUtil to pass the ADB serial number to gradle
-    // to identify the device (b/234033515), so there's no need to support this for non-running
-    // devices.
-    return runBlocking { launchDeviceTask.get()?.getCompletedOrNull()?.serialNumber ?: "" }
+  override fun getSerial(): String = buildString {
+    append("DeviceProvisionerAndroidDevice pluginId=")
+    append(id.pluginId)
+    if (id.isTemplate) append(" isTemplate=true")
+    append(" identifier=")
+    append(id.identifier)
   }
 
   override fun isVirtual() = properties.isVirtual == true

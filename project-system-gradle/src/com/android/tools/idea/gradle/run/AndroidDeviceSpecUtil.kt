@@ -117,7 +117,7 @@ fun createSpec(
     log.info("Creating spec for multiple devices")
   }
 
-  val deviceSerials = devices.map { it.serial }
+  val deviceSerials = devices.mapNotNull { if (it.isRunning) it.launchedDevice.get().serialNumber else null }
   val allDevicesSupportSdkRuntime =  devices.all { it.supportsSdkRuntime }
   if (allDevicesSupportSdkRuntime) {
     log.info("Creating spec for privacy sandbox enabled device.")
