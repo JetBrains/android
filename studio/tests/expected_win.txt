@@ -159,6 +159,7 @@ android-studio/jbr/bin/jrunscript.exe
 android-studio/jbr/bin/jsound.dll
 android-studio/jbr/bin/jstack.exe
 android-studio/jbr/bin/jstat.exe
+android-studio/jbr/bin/jwebserver.exe
 android-studio/jbr/bin/keytool.exe
 android-studio/jbr/bin/kinit.exe
 android-studio/jbr/bin/klist.exe
@@ -180,6 +181,7 @@ android-studio/jbr/bin/serialver.exe
 android-studio/jbr/bin/server/jvm.dll
 android-studio/jbr/bin/splashscreen.dll
 android-studio/jbr/bin/sspi_bridge.dll
+android-studio/jbr/bin/syslookup.dll
 android-studio/jbr/bin/ucrtbase.dll
 android-studio/jbr/bin/vcruntime140.dll
 android-studio/jbr/bin/vcruntime140_1.dll
@@ -187,6 +189,7 @@ android-studio/jbr/bin/verify.dll
 android-studio/jbr/bin/w2k_lsa_auth.dll
 android-studio/jbr/bin/windowsaccessbridge-64.dll
 android-studio/jbr/bin/zip.dll
+android-studio/jbr/conf/jaxp.properties
 android-studio/jbr/conf/logging.properties
 android-studio/jbr/conf/management/jmxremote.access
 android-studio/jbr/conf/management/jmxremote.password.template
@@ -337,12 +340,6 @@ android-studio/jbr/legal/jdk.internal.opt/jopt-simple.md
 android-studio/jbr/legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION
 android-studio/jbr/legal/jdk.internal.vm.ci/LICENSE
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/ADDITIONAL_LICENSE_INFO
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/ASSEMBLY_EXCEPTION
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/LICENSE
-android-studio/jbr/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
-android-studio/jbr/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
-android-studio/jbr/legal/jdk.internal.vm.compiler/LICENSE
 android-studio/jbr/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/jdk.jartool/ASSEMBLY_EXCEPTION
 android-studio/jbr/legal/jdk.jartool/LICENSE
