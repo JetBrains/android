@@ -71,9 +71,11 @@ android-studio/jbr/bin/jps
 android-studio/jbr/bin/jrunscript
 android-studio/jbr/bin/jstack
 android-studio/jbr/bin/jstat
+android-studio/jbr/bin/jwebserver
 android-studio/jbr/bin/keytool
 android-studio/jbr/bin/rmiregistry
 android-studio/jbr/bin/serialver
+android-studio/jbr/conf/jaxp.properties
 android-studio/jbr/conf/logging.properties
 android-studio/jbr/conf/management/jmxremote.access
 android-studio/jbr/conf/management/jmxremote.password.template
@@ -116,6 +118,7 @@ android-studio/jbr/legal/java.desktop/jpeg.md
 android-studio/jbr/legal/java.desktop/lcms.md
 android-studio/jbr/legal/java.desktop/libpng.md
 android-studio/jbr/legal/java.desktop/mesa3d.md
+android-studio/jbr/legal/java.desktop/pipewire.md
 android-studio/jbr/legal/java.desktop/xwd.md
 android-studio/jbr/legal/java.instrument/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/java.instrument/ASSEMBLY_EXCEPTION
@@ -225,12 +228,6 @@ android-studio/jbr/legal/jdk.internal.opt/jopt-simple.md
 android-studio/jbr/legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION
 android-studio/jbr/legal/jdk.internal.vm.ci/LICENSE
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/ADDITIONAL_LICENSE_INFO
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/ASSEMBLY_EXCEPTION
-android-studio/jbr/legal/jdk.internal.vm.compiler.management/LICENSE
-android-studio/jbr/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
-android-studio/jbr/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
-android-studio/jbr/legal/jdk.internal.vm.compiler/LICENSE
 android-studio/jbr/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/jdk.jartool/ASSEMBLY_EXCEPTION
 android-studio/jbr/legal/jdk.jartool/LICENSE
@@ -358,10 +355,12 @@ android-studio/jbr/lib/jvm.cfg
 android-studio/jbr/lib/libattach.so
 android-studio/jbr/lib/libawt.so
 android-studio/jbr/lib/libawt_headless.so
+android-studio/jbr/lib/libawt_wlawt.so
 android-studio/jbr/lib/libawt_xawt.so
 android-studio/jbr/lib/libdt_socket.so
 android-studio/jbr/lib/libextnet.so
 android-studio/jbr/lib/libfontmanager.so
+android-studio/jbr/lib/libfontmanager_xawt.so
 android-studio/jbr/lib/libinstrument.so
 android-studio/jbr/lib/libj2gss.so
 android-studio/jbr/lib/libj2pcsc.so
@@ -376,6 +375,7 @@ android-studio/jbr/lib/libjli.so
 android-studio/jbr/lib/libjsig.so
 android-studio/jbr/lib/libjsound.so
 android-studio/jbr/lib/liblcms.so
+android-studio/jbr/lib/lible.so
 android-studio/jbr/lib/libmanagement.so
 android-studio/jbr/lib/libmanagement_agent.so
 android-studio/jbr/lib/libmanagement_ext.so
@@ -387,7 +387,9 @@ android-studio/jbr/lib/librmi.so
 android-studio/jbr/lib/libsaproc.so
 android-studio/jbr/lib/libsctp.so
 android-studio/jbr/lib/libsplashscreen.so
+android-studio/jbr/lib/libsyslookup.so
 android-studio/jbr/lib/libverify.so
+android-studio/jbr/lib/libwlsplashscreen.so
 android-studio/jbr/lib/libzip.so
 android-studio/jbr/lib/modules
 android-studio/jbr/lib/psfont.properties.ja
