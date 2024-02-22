@@ -81,7 +81,6 @@ class InstantAppDynamicModuleOnDemandTest {
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
-
     guiTest.getProjectFileText("dynamic_module/src/main/AndroidManifest.xml").run {
       Truth.assertThat(this).contains("""<dist:delivery>""")
       Truth.assertThat(this).doesNotContain("""<dist:install-time />""")
@@ -89,6 +88,12 @@ class InstantAppDynamicModuleOnDemandTest {
       Truth.assertThat(this).contains("""</dist:delivery>""")
       Truth.assertThat(this).contains("""<dist:fusing dist:include="false" />""")
     }
+    // Adding an extra step to sync the project to reduce the flakiness during
+    // make project. Without extra sync, make project steps fails intermittently
+    // with project indexing in progress.
+    ideFrame.requestProjectSync()
+    ideFrame.waitForGradleSyncToFinish(Wait.seconds(300))
+
     Truth.assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(500))
                        .isBuildSuccessful).isTrue()
   }
