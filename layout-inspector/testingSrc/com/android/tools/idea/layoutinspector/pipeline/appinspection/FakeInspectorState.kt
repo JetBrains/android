@@ -128,6 +128,8 @@ class FakeInspectorState(
       ViewString(230, "Widget.Material.TextView"),
       ViewString(231, "secondaryValue"),
       ViewString(232, "tertiaryValue"),
+      ViewString(233, "bottomText"),
+      ViewString(234, "Previous"),
 
       // class names
       ViewString(301, "android.graphics.drawable.VectorDrawable"),
@@ -160,6 +162,12 @@ class FakeInspectorState(
             packageName = 9
             className = 10
             resource = ViewResource(206, 209, 211)
+          }
+          ViewNode {
+            id = 11
+            packageName = 5
+            className = 6
+            resource = ViewResource(206, 209, 233)
           }
         }
         ViewNode {
@@ -338,6 +346,39 @@ class FakeInspectorState(
                   ViewResource(208, 100, 230),
                 )
               )
+            }
+          },
+          PropertyGroup {
+            viewId = 11
+            Property {
+              name = 115
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
+              resourceValue = ViewResource(206, 210, 233)
+            }
+            Property {
+              name = 101
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.STRING
+              int32Value = 234
+            }
+            Property {
+              name = 102
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.BOOLEAN
+              int32Value = 0
+            }
+            Property {
+              name = 106
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.FLOAT
+              floatValue = 2.0f
+            }
+            Property {
+              name = 120
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.INT32
+              int32Value = 400
             }
           },
         )

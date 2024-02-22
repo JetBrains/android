@@ -772,6 +772,40 @@ class AppInspectionPropertiesProviderTest {
     assertThat(valuesChanged).isEqualTo(1)
   }
 
+  @Test
+  fun testSwitchBetweenSimilarNodes() {
+    val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
+    propertiesModel.layoutInspector = inspectorRule.inspector
+
+    var generatedCount = 0
+    var valuesChanged = 0
+    propertiesModel.addListener(
+      object : PropertiesModelListener<InspectorPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
+          generatedCount++
+        }
+
+        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+          valuesChanged++
+        }
+      }
+    )
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 2 }
+    assertThat(valuesChanged).isEqualTo(0)
+
+    val text1 = inspectorRule.inspectorModel[3]!!
+    val text2 = inspectorRule.inspectorModel[11]!!
+    inspectorRule.inspectorModel.setSelection(text1, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
+
+    inspectorRule.inspectorModel.setSelection(text2, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 4 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Previous"))
+  }
+
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
     ResourceReference(ResourceNamespace.fromNamespaceUri(namespace)!!, ResourceType.LAYOUT, name)
 
