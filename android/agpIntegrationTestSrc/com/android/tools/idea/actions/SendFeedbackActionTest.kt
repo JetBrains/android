@@ -39,7 +39,9 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: ${jdk.versionString}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")
-    Disposer.dispose(jdk as Disposable)
+    if (jdk is Disposable) {
+      Disposer.dispose(jdk)
+    }
   }
 
   /**

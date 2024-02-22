@@ -23,6 +23,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdkVersion
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.plugins.gradle.GradleManager
@@ -57,7 +58,7 @@ object JdkUtils {
     }
   }
 
-  fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): ProjectJdkImpl {
+  fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): Sdk {
     val gradleExecutionSettings =
       (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager).executionSettingsProvider.`fun`(
         com.intellij.openapi.util.Pair(
