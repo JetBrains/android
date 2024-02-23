@@ -99,9 +99,9 @@ class AdditionalSettingsPanelTest {
             device,
             emptyList<Skin>().toImmutableList(),
             AdditionalSettingsPanelState(device),
+            Context(MockitoKt.mock(), null, fileSystem),
             onDeviceChange,
             onImportButtonClick = {},
-            Context(fileSystem),
           )
         }
       }
@@ -109,7 +109,7 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
-    rule.onNodeWithTag("ExistingImageTextField").performTextReplacement(mySdCardFileImg.toString())
+    rule.onNodeWithTag("ExistingImageField").performTextReplacement(mySdCardFileImg.toString())
     rule.onNodeWithTag("CustomRadioButton").performClick()
 
     // Assert

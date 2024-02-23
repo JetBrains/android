@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
@@ -22,6 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
@@ -30,6 +33,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.intellij.icons.AllIcons
 import java.nio.file.Files
 import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
@@ -37,6 +41,7 @@ import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
@@ -47,9 +52,9 @@ internal fun AdditionalSettingsPanel(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   state: AdditionalSettingsPanelState,
+  context: Context,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
-  context: Context = Context(),
 ) {
   Row {
     Text("Device skin")
@@ -229,31 +234,62 @@ private fun StorageGroup(
         )
       }
 
-      if (existingImageRadioButtonSelected && !existingImageFieldState.valid) {
-        Text("The specified image must be a valid file")
-      }
+      ExistingImageField(
+        existingImageFieldState,
+        existingImageRadioButtonSelected,
+        context,
+        onStateChange = {
+          storageGroupState.existingImageFieldState = it
 
-      TextField(
-        existingImageFieldState.value,
-        onValueChange = {
-          val image = context.getPath(it)
-          val valid = Files.isRegularFile(image)
-
-          storageGroupState.existingImageFieldState = ExistingImageFieldState(it, valid)
-
-          if (valid) {
-            onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
+          if (it.valid) {
+            onDeviceChange(device.copy(expandedStorage = ExistingImage(context.getPath(it.value))))
           }
 
           // TODO Else image is not valid. Disable the Add button.
         },
-        Modifier.testTag("ExistingImageTextField"),
-        existingImageRadioButtonSelected,
       )
-
-      // TODO Add the file dialog button
     }
   }
+}
+
+@Composable
+private fun ExistingImageField(
+  state: ExistingImageFieldState,
+  enabled: Boolean,
+  context: Context,
+  onStateChange: (ExistingImageFieldState) -> Unit,
+) {
+  if (enabled && !state.valid) {
+    Text("The specified image must be a valid file")
+  }
+
+  TextField(
+    state.value,
+    onValueChange = {
+      onStateChange(ExistingImageFieldState(it, Files.isRegularFile(context.getPath(it))))
+    },
+    Modifier.testTag("ExistingImageField"),
+    enabled,
+    trailingIcon = {
+      Icon(
+        "general/openDisk.svg",
+        null,
+        AllIcons::class.java,
+        Modifier.clickable(
+            enabled,
+            onClick = {
+              context.chooseFile(
+                onFileChosen = {
+                  assert(Files.isRegularFile(it))
+                  onStateChange(ExistingImageFieldState(it.toString(), true))
+                }
+              )
+            },
+          )
+          .pointerHoverIcon(PointerIcon.Default),
+      )
+    },
+  )
 }
 
 @Composable

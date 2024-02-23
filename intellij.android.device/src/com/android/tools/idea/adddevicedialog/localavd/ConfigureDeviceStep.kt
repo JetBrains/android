@@ -39,6 +39,7 @@ internal constructor(model: AddDeviceWizardModel, private val project: Project?)
         model.device,
         model.systemImages,
         model.skins,
+        Context(component, project),
         { model.device = it },
         ::importSkin,
       )
