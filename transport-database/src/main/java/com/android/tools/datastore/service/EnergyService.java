@@ -31,7 +31,6 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySamplesResponse;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
@@ -78,7 +77,6 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     long streamId = request.getSession().getStreamId();
     EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(streamId);
     CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(streamId);
-    NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(streamId);
     TransportServiceGrpc.TransportServiceBlockingStub transportClient = myService.getTransportClient(streamId);
 
     if (energyClient != null && transportClient != null) {
@@ -86,7 +84,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
       responseObserver.onCompleted();
       long sessionId = request.getSession().getSessionId();
       myRunners
-        .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, transportClient, cpuClient, networkClient,
+        .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, transportClient, cpuClient,
                                              energyClient, myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }

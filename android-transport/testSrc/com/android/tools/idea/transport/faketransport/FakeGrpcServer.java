@@ -47,13 +47,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartResponse;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.idea.io.grpc.BindableService;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Trace;
@@ -67,9 +60,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * Mapping from sessions being profiled to the number of profilers that are monitoring it.
    */
-  private Map<Long, Integer> myProfiledProcesses;
-
-  private CpuService myCpuService;
+  private final Map<Long, Integer> myProfiledProcesses;
 
   /**
    * A test should use createFakeGrpcServer() to obtain an instance of FakeGrpcServer, not calling the constructor directly.
@@ -86,18 +77,15 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService, BindableService profilerService) {
     EventService eventService = new EventService();
     MemoryService memoryService = new MemoryService();
-    NetworkService networkService = new NetworkService();
     CpuService cpuService = new CpuService();
     EnergyService energyService = new EnergyService();
     FakeGrpcServer server =
-      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, networkService, cpuService, energyService);
+      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, cpuService, energyService);
     // Set the links between the services and the server.
     eventService.myServer = server;
     memoryService.myServer = server;
-    networkService.myServer = server;
     cpuService.myServer = server;
     energyService.myServer = server;
-    server.myCpuService = cpuService;
     TransportService.setTestChannelName(server.getName());
     return server;
   }
@@ -105,7 +93,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * A convenience method for creating a fake GRPC server when you don't care about
    * profiler-specific services.
-   *
+   * <p>
    * Note: The transport service was refactored out of the profiler service, which is why many
    * original tests use them, but they are not required.
    */
@@ -121,13 +109,6 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     return myProfiledProcesses.keySet().size();
   }
 
-  /**
-   * @return the reference to the CPU service.
-   */
-  public CpuService getCpuService() {
-    return myCpuService;
-  }
-
   private synchronized void addProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
     int profilerCount = myProfiledProcesses.getOrDefault(sessionId, 0);
@@ -138,8 +119,8 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     long sessionId = session.getSessionId();
     Integer profilerCount = myProfiledProcesses.get(sessionId);
     if (profilerCount != null) {
-      if (profilerCount.intValue() > 1) {
-        myProfiledProcesses.replace(sessionId, profilerCount.intValue() - 1);
+      if (profilerCount > 1) {
+        myProfiledProcesses.replace(sessionId, profilerCount - 1);
       }
       else {
         myProfiledProcesses.remove(sessionId);
@@ -214,38 +195,9 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
   }
 
-  private static class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
-    private FakeGrpcServer myServer;
-
-    @Override
-    public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
-      myServer.addProfiledProcess(request.getSession());
-      response.onNext(NetworkStartResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
-      myServer.removeProfiledProcess(request.getSession());
-      response.onNext(NetworkStopResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getData(NetworkDataRequest request, StreamObserver<NetworkDataResponse> response) {
-      response.onNext(NetworkDataResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-  }
-
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
-    private Trace.TraceConfiguration myTraceConfiguration = Trace.TraceConfiguration.getDefaultInstance();
-    private List<Trace.TraceInfo> myTraceInfos = new ArrayList<>();
+    private final List<Trace.TraceInfo> myTraceInfos = new ArrayList<>();
     private FakeGrpcServer myServer;
-
-    public void addTraceInfo(@NotNull Trace.TraceInfo info) {
-      myTraceInfos.add(info);
-    }
 
     @Override
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {

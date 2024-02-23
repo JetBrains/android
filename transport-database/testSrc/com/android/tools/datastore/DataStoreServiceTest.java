@@ -29,14 +29,12 @@ import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
-import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -93,7 +91,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       .addService(new EventServiceStub().bindService())
       .addService(new CpuServiceStub().bindService())
       .addService(new MemoryServiceStub().bindService())
-      .addService(new NetworkServiceStub().bindService())
       .build();
     myService.start();
   }
@@ -117,7 +114,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(ProfilerService.class);
     expectedServices.add(EventService.class);
     expectedServices.add(CpuService.class);
-    expectedServices.add(NetworkService.class);
     expectedServices.add(MemoryService.class);
     expectedServices.add(EnergyService.class);
 
@@ -196,9 +192,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   private static class CpuServiceStub extends CpuServiceGrpc.CpuServiceImplBase {
   }
 
-  private static class NetworkServiceStub extends NetworkServiceGrpc.NetworkServiceImplBase {
-  }
-
   private static class ProfilerServiceStub extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   }
 
@@ -229,7 +222,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   }
 
   private static class FakeDataStoreService extends DataStoreService {
-    private String myDatastoreDirectory;
+    private final String myDatastoreDirectory;
     private FakeServicePassThrough myPassthrough;
     private List<String> myCreatedDbPaths;
     private List<DataStoreDatabase.Characteristic> myCreatedCharacteristics;

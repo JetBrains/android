@@ -24,7 +24,6 @@ import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
-import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
@@ -32,7 +31,6 @@ import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -119,7 +117,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private final Server myServer;
   private final List<ServicePassThrough> myServices = new ArrayList<>();
   private final Consumer<Runnable> myFetchExecutor;
-  @NotNull
   private Consumer<Throwable> myNoPiiExceptionHandler;
   private TransportService myTransportService;
   private final ServerInterceptor myInterceptor;
@@ -201,7 +198,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor, myLogService));
     registerService(new MemoryService(this, unifiedTable, myFetchExecutor, myLogService));
-    registerService(new NetworkService(this, myFetchExecutor));
     registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }
 
@@ -292,10 +288,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(long streamId) {
-    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getNetworkClient() : null;
-  }
-
   public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getMemoryClient() : null;
   }
@@ -364,15 +356,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
       return null;
     }
-
-    @Nullable
-    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
-      return null;
-    }
   }
 
   private final class ReportTimerTask extends TimerTask {
-    private long myStartTime = System.nanoTime();
+    private final long myStartTime = System.nanoTime();
 
     @Override
     public void run() {

@@ -27,8 +27,6 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
@@ -56,7 +54,6 @@ public final class EnergyDataPoller extends PollRunner {
 
   @NotNull private TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
-  @NotNull private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private long myLastRetryTime = 0;
   private int myCpuConfigRetries = 5; // Initial value is maximum number of retries.
@@ -68,7 +65,6 @@ public final class EnergyDataPoller extends PollRunner {
                           @NotNull EnergyTable eventTable,
                           @NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                           @NotNull CpuServiceGrpc.CpuServiceBlockingStub cpuService,
-                          @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
                           @NotNull EnergyServiceGrpc.EnergyServiceBlockingStub energyService,
                           @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
@@ -76,7 +72,6 @@ public final class EnergyDataPoller extends PollRunner {
     myEnergyTable = eventTable;
     myTransportService = transportService;
     myCpuService = cpuService;
-    myNetworkService = networkService;
     myEnergyService = energyService;
     mySession = session;
     myLogService = logService;
@@ -148,32 +143,6 @@ public final class EnergyDataPoller extends PollRunner {
   }
 
   private void addLatestSamples(@NotNull EnergyProfiler.EnergyRequest request) {
-    // Network-related samples
-    {
-      NetworkProfiler.NetworkDataRequest networkDataRequest =
-        NetworkProfiler.NetworkDataRequest
-          .newBuilder().setSession(request.getSession()).setStartTimestamp(request.getStartTimestamp())
-          .setEndTimestamp(request.getEndTimestamp()).setType(NetworkProfiler.NetworkDataRequest.Type.ALL).build();
-
-      NetworkProfiler.NetworkDataResponse networkDataResponse = myNetworkService.getData(networkDataRequest);
-      for (NetworkProfiler.NetworkProfilerData networkData : networkDataResponse.getDataList()) {
-        switch (networkData.getDataCase()) {
-          case CONNECTIVITY_DATA:
-            // Don't send an event for connection change. Leave it for the next speed data.
-            myLastKnownNetworkType = PowerProfile.NetworkType.from(networkData.getConnectivityData().getNetworkType());
-            break;
-          case SPEED_DATA:
-            NetworkProfiler.SpeedData speedData = networkData.getSpeedData();
-            myBatteryModel.handleEvent(networkData.getEndTimestamp(),
-                                       BatteryModel.Event.NETWORK_USAGE,
-                                       new PowerProfile.NetworkStats(myLastKnownNetworkType, speedData.getReceived(), speedData.getSent()));
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
     // CPU-related samples
     {
       // Try to retrieve the CPU min/max frequency files again if there was a parsing error.

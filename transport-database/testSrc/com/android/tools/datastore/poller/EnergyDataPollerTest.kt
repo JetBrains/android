@@ -30,9 +30,6 @@ import com.android.tools.profiler.proto.CpuServiceGrpc
 import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyServiceGrpc
-import com.android.tools.profiler.proto.Network
-import com.android.tools.profiler.proto.NetworkProfiler
-import com.android.tools.profiler.proto.NetworkServiceGrpc
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
 import com.android.tools.profiler.proto.Transport.TimeRequest
 import com.android.tools.profiler.proto.Transport.TimeResponse
@@ -62,14 +59,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     private val ONE_FOURTH_SEC_MS = ONE_SEC_MS / 4
     private val ONE_HALF_SEC_MS = ONE_SEC_MS / 2
     private val THREE_FOURTH_SEC_MS = ONE_SEC_MS * 3 / 4
-
-    private val NETWORK_WIFI_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setNetworkType(Network.NetworkTypeData.NetworkType.WIFI)
-      .build()
-
-    private val NETWORK_RADIO_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setNetworkType(Network.NetworkTypeData.NetworkType.MOBILE)
-      .build()
   }
 
   private class TestPowerProfile : PowerProfile {
@@ -147,18 +136,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     }
   }
 
-  private class FakeNetworkService : NetworkServiceGrpc.NetworkServiceImplBase() {
-    var dataList = ArrayList<NetworkProfiler.NetworkProfilerData>()
-
-    override fun getData(
-      request: NetworkProfiler.NetworkDataRequest,
-      responseObserver: StreamObserver<NetworkProfiler.NetworkDataResponse>
-    ) {
-      responseObserver.onNext(NetworkProfiler.NetworkDataResponse.newBuilder().addAllData(dataList).build())
-      responseObserver.onCompleted()
-    }
-  }
-
   private class FakeEnergyService : EnergyServiceGrpc.EnergyServiceImplBase() {
     var eventList = ArrayList<Common.Event>()
 
@@ -190,7 +167,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   private val fakeTransportService = FakeTransportService() // Used to provide timestamp
   private val fakeCpuService = FakeCpuService() // Used to provide cpu data that affects energy usage
-  private val fakeNetworkService = FakeNetworkService() // Used to provide test network data that affects energy usage
   private val fakeEnergyService = FakeEnergyService() // Host-side service calls fake device-side start/stop
 
   private val testName = TestName()
@@ -201,7 +177,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     energyService,
     fakeTransportService,
     fakeCpuService,
-    fakeNetworkService,
     fakeEnergyService
   )
 
@@ -215,8 +190,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     whenever(dataStoreService.getProfilerClient(ArgumentMatchers.anyLong())).thenReturn(
       ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
     whenever(dataStoreService.getCpuClient(ArgumentMatchers.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
-    whenever(dataStoreService.getNetworkClient(ArgumentMatchers.anyLong())).thenReturn(
-      NetworkServiceGrpc.newBlockingStub(grpcService.channel))
     whenever(dataStoreService.getEnergyClient(ArgumentMatchers.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
 
     energyService.startMonitoringApp(
@@ -321,120 +294,6 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       EnergyProfiler.EnergySample.newBuilder()
         .setTimestamp(4 * SAMPLE_INTERVAL_NS)
         .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(TestPowerProfile.CPU_USAGE / 2))
-    )
-
-    val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
-    energyService.getSamples(request, responseObserver)
-    validateResponse(responseObserver, responseBuilder.build())
-  }
-
-  @Test
-  fun wifiNetworkEventsAffectEnergySamples() {
-    val speedDataTx = NetworkProfiler.SpeedData.newBuilder().setSent(1234).build()
-    val speedDataRx = NetworkProfiler.SpeedData.newBuilder().setReceived(4321).build()
-    val speedDataIdle = NetworkProfiler.SpeedData.getDefaultInstance()
-
-    fakeNetworkService.dataList = Lists.newArrayList(
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_WIFI_STATE).build(),
-      // Timestamp rounds from 250ms to nearest bucket, 200ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
-      // Timestamp rounds from 500ms to nearest bucket, 600ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
-      // Timestamp rounds from 750ms to nearest bucket, 800ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
-    )
-
-    fastForward(ONE_SEC_NS)
-
-    val request = EnergyProfiler.EnergyRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(0)
-      .setEndTimestamp(ONE_SEC_NS)
-      .build()
-
-    val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
-
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
-    )
-
-    val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
-    energyService.getSamples(request, responseObserver)
-    validateResponse(responseObserver, responseBuilder.build())
-  }
-
-  @Test
-  fun radioNetworkEventsAffectEnergySamples() {
-    val speedDataTx = NetworkProfiler.SpeedData.newBuilder().setSent(1234).build()
-    val speedDataRx = NetworkProfiler.SpeedData.newBuilder().setReceived(4321).build()
-    val speedDataIdle = NetworkProfiler.SpeedData.getDefaultInstance()
-
-    fakeNetworkService.dataList = Lists.newArrayList(
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_RADIO_STATE).build(),
-      // Timestamp rounds from 250ms to nearest bucket, 200ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
-      // Timestamp rounds from 500ms to nearest bucket, 600ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
-      // Timestamp rounds from 750ms to nearest bucket, 800ms.
-      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
-    )
-
-    fastForward(ONE_SEC_NS)
-
-    val request = EnergyProfiler.EnergyRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(0)
-      .setEndTimestamp(ONE_SEC_NS)
-      .build()
-
-    val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
-
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
-    )
-    responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
     )
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
