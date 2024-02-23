@@ -175,10 +175,8 @@ object AndroidStudioUsageTracker {
     subscribeToEvents()
     setupMetricsListener()
 
-    // Studio ping is called immediately without scheduler to make sure
-    // ping is not delayed based on scheduler logic, then it is scheduled
+    // Studio ping is called in the appStarted event below, then it is scheduled
     // daily moving forward.
-    studioPing()
     scheduler.scheduleWithFixedDelay({ studioPing() }, 1, 1, TimeUnit.DAYS)
 
     updateNewUISettings()
@@ -488,6 +486,11 @@ object AndroidStudioUsageTracker {
     override fun appFrameCreated(commandLineArgs: MutableList<String>) {
       showConsentDialogIfNeeded()
     }
+
+    override fun appStarted() {
+      studioPing()
+    }
+
     override fun appWillBeClosed(isRestart: Boolean) {
       runShutdownReports()
     }
