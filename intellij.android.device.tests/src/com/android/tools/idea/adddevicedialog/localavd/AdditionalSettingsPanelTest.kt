@@ -90,6 +90,7 @@ class AdditionalSettingsPanelTest {
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         GpuMode.AUTO,
+        simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
       )
 
     rule.setContent {

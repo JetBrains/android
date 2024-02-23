@@ -351,6 +351,15 @@ private fun EmulatedPerformanceGroup(
       onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
     )
   }
+
+  Row {
+    Text("Simulated RAM")
+
+    StorageCapacityField(
+      device.simulatedRam,
+      onValueChange = { onDeviceChange(device.copy(simulatedRam = it)) },
+    )
+  }
 }
 
 // TODO The third item depends on the system image

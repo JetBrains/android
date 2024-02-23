@@ -68,7 +68,7 @@ internal object VirtualDevices {
         "hw.lcd.height" to "2400",
         "hw.lcd.width" to "1080",
         "hw.mainKeys" to "no",
-        "hw.ramSize" to "2048",
+        "hw.ramSize" to device.simulatedRam.valueIn(StorageCapacity.Unit.MB).toString(),
         "hw.sdCard" to if (device.expandedStorage == None) "no" else "yes",
         "hw.sensors.orientation" to "yes",
         "hw.sensors.proximity" to "yes",
