@@ -486,6 +486,38 @@ class ComposableCompileTest {
     assertTrue(onlyComposeDebugConstantChanges(firstMethod.instructions, secondMethod.instructions))
   }
 
+  // Check for b/326306840
+  @Test
+  fun doNotIgnoreLdcChanges() {
+    val file = projectRule.createKtFile("A.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun method() {
+        val color = method(0xFFFFFFFF)
+      }
+      fun method(a: Long) {
+      }
+    """.trimIndent())
+    val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+    val apk = projectRule.directApiCompileIr(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+    projectRule.modifyKtFile(file,  """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun method() {
+        val color = method(0xFF00FFFF)
+      }
+      fun method(a: Long) {
+      }
+    """.trimIndent())
+    val output = compile(listOf(LiveEditCompilerInput(file, fileState)), compiler)
+    assertTrue(output.groupIds.isNotEmpty())
+  }
+
   @Test
   fun mutableState() {
     val fileName = "Test.kt"
