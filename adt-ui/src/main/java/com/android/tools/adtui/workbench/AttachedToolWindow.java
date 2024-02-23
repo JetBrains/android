@@ -733,6 +733,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent event) {
       Presentation presentation = event.getPresentation();
       presentation.setVisible(!myShowSearchField);

@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -612,10 +613,15 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assertThat(panel).isNotNull();
     panel.setFilteringActive(false);
-    button.update();
+    ActionToolbar toolbar = ActionToolbar.findToolbarBy(button);
+    if (toolbar != null) {
+      toolbar.updateActionsImmediately();
+    }
     assertThat(button.isEnabled()).isFalse();
     panel.setFilteringActive(true);
-    button.update();
+    if (toolbar != null) {
+      toolbar.updateActionsImmediately();
+    }
     assertThat(button.isEnabled()).isTrue();
 
     button.click();
