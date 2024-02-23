@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -36,11 +35,6 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public boolean ENABLE_PARALLEL_SYNC = true;
 
   public boolean ENABLE_GRADLE_API_OPTIMIZATION = true;
-
-  // Settings related to Gradle sync tracer.
-  public boolean TRACE_GRADLE_SYNC = false;
-  public TraceProfileItem TRACE_PROFILE_SELECTION = TraceProfileItem.DEFAULT;
-  public String TRACE_PROFILE_LOCATION = "";
 
   public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
 

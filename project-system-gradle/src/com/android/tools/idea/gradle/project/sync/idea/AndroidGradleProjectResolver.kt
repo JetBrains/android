@@ -56,7 +56,6 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
 import com.android.tools.idea.gradle.project.sync.errors.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.addTraceJvmArgs
 import com.android.tools.idea.gradle.project.sync.idea.VariantProjectDataNodes.Companion.collectCurrentAndPreviouslyCachedVariants
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel
@@ -80,10 +79,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
-import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
 import com.intellij.notification.Notification
@@ -673,10 +669,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   override fun getExtraJvmArgs(): List<Pair<String, String>> {
     if (ExternalSystemApiUtil.isInProcessMode(GradleProjectSystemUtil.GRADLE_SYSTEM_ID)) {
       val args: MutableList<Pair<String, String>> = ArrayList()
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        // Inject javaagent args.
-        addTraceJvmArgs(args)
-      } else {
+      if (!IdeInfo.getInstance().isAndroidStudio) {
         val localProperties = localProperties
         if (localProperties.androidSdkPath == null) {
           val androidHomePath = IdeSdks.getInstance().androidSdkPath
