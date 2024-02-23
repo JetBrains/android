@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
@@ -77,6 +78,10 @@ public class CreateXmlResourceSubdirPanel {
 
     final AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+      @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
       }
@@ -84,6 +89,10 @@ public class CreateXmlResourceSubdirPanel {
     decorator.addExtraAction(selectAll);
 
     final AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+      @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doUnselectAllDirs();
