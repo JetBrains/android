@@ -2140,7 +2140,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -2158,7 +2158,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2176,7 +2176,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2673,7 +2673,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : module2_debug
                     noReflect                     : true
                     noStdlib                      : true
@@ -2744,7 +2744,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -2817,7 +2817,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true

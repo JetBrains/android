@@ -2456,7 +2456,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_localDebug
                     noJdk                         : true
                     noReflect                     : true
@@ -2475,7 +2475,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_localDebugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2494,7 +2494,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : app_localDebugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2570,7 +2570,7 @@ MODULE                        : MainActivity.javaLib
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : javaLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -2595,7 +2595,7 @@ MODULE                        : MainActivity.javaLib
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : javaLib_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3687,7 +3687,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -3705,7 +3705,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3723,7 +3723,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

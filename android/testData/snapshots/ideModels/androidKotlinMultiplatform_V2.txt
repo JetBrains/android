@@ -2849,7 +2849,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpJvmOnly
                     noReflect                     : true
                     noStdlib                      : true
@@ -2928,7 +2928,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpJvmOnly_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3219,7 +3219,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3298,7 +3298,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true

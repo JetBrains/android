@@ -3383,7 +3383,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : common
                     noReflect                     : true
                     noStdlib                      : true
@@ -3462,7 +3462,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : common_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3534,7 +3534,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : desktop
                     noReflect                     : true
                     noStdlib                      : true
@@ -3558,7 +3558,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : desktop_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -4591,7 +4591,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-a_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -4609,7 +4609,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-a_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -4627,7 +4627,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-a_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5115,7 +5115,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-b_debug
                     noReflect                     : true
                     noStdlib                      : true
@@ -5186,7 +5186,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-b_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -5259,7 +5259,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature-b_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -5341,7 +5341,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
@@ -5365,7 +5365,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : javaLibrary_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -5389,7 +5389,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/testEnv
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
@@ -5509,7 +5509,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : sample
                     noReflect                     : true
                     noStdlib                      : true
@@ -5591,7 +5591,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : sample_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -6399,7 +6399,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -6417,7 +6417,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -6435,7 +6435,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
