@@ -43,6 +43,7 @@ internal constructor(
   internal val cpuCoreCount: Int?,
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
+  internal val vmHeapSize: StorageCapacity,
 )
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :

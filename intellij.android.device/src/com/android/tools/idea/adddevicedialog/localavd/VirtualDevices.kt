@@ -78,7 +78,7 @@ internal object VirtualDevices {
         "showDeviceFrame" to "yes",
         "skin.dynamic" to "yes",
         "skin.path" to skin.toString(),
-        "vm.heapSize" to "256",
+        "vm.heapSize" to device.vmHeapSize.valueIn(StorageCapacity.Unit.MB).toString(),
       )
 
     properties.putAll(device.defaultBoot.properties)

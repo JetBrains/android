@@ -360,6 +360,15 @@ private fun EmulatedPerformanceGroup(
       onValueChange = { onDeviceChange(device.copy(simulatedRam = it)) },
     )
   }
+
+  Row {
+    Text("VM heap size")
+
+    StorageCapacityField(
+      device.vmHeapSize,
+      onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
+    )
+  }
 }
 
 // TODO The third item depends on the system image

@@ -91,6 +91,7 @@ class AdditionalSettingsPanelTest {
         EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         GpuMode.AUTO,
         simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )
 
     rule.setContent {
