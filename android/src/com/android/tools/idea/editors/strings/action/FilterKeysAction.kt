@@ -40,7 +40,7 @@ class FilterKeysAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
-
+  override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.rowFilter

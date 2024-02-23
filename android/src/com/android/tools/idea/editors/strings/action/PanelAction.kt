@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings.action
 
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -47,6 +48,7 @@ abstract class PanelAction(
   private fun AnActionEvent.hasRequiredData(): Boolean =
       (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   final override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.hasRequiredData() && doUpdate(e)
   }
