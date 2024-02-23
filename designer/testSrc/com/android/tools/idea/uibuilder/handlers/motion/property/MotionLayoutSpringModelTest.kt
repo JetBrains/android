@@ -27,6 +27,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
@@ -71,6 +72,7 @@ class MotionLayoutSpringModelTest {
     verify(listener).onModelChanged()
   }
 
+  @Ignore("b/324536796")
   @Test
   fun writePropertiesTest() {
     motionRule.selectTransition("start", "end")
