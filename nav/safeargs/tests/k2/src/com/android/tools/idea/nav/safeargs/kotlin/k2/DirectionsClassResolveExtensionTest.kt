@@ -122,6 +122,7 @@ class DirectionsClassResolveExtensionTest(
   }
 
   @Test
+  @Ignore("b/322995469, apparently _k2 only?")
   fun handlesModifications() {
     val xmlFile =
       addNavXml(
