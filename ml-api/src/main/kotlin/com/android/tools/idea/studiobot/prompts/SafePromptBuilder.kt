@@ -24,39 +24,35 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
 /**
- * Use this builder to construct prompts for Studio Bot APIs by specifying
- * a series of messages. Each part of the prompt must declare which files
- * from the user's project, if any, it uses.
+ * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
+ * Each part of the prompt must declare which files from the user's project, if any, it uses.
  *
- * No files may be used if the context sharing setting is disabled:
- * check it with StudioBot.isContextAllowed()
+ * No files may be used if the context sharing setting is disabled: check it with
+ * StudioBot.isContextAllowed()
  *
  * Additionally, Each file must be allowed by aiexclude. Check files using
- * AiExcludeService.isFileExcluded. If a file is not allowed, an
- * AiExcludeException will be thrown.
+ * AiExcludeService.isFileExcluded. If a file is not allowed, an AiExcludeException will be thrown.
  *
- * A prompt consists of a series of messages.
- * There are three types of messages currently: system, user, and model.
+ * A prompt consists of a series of messages. There are three types of messages currently: system,
+ * user, and model.
  *
- * A system message at the start of the prompt can be used to provide
- * a preamble - a set of instructions that the model is supposed to
- * follow in the conversation.
+ * A system message at the start of the prompt can be used to provide a preamble - a set of
+ * instructions that the model is supposed to follow in the conversation.
  *
- * A user message is a message sent by the user, while a model message
- * is one that the model responded with.
+ * A user message is a message sent by the user, while a model message is one that the model
+ * responded with.
  *
- * The last user message is what the model is supposed to respond to
- * for this prompt/turn of conversation.
+ * The last user message is what the model is supposed to respond to for this prompt/turn of
+ * conversation.
  *
- * Prompts are subject the following constraints; a [MalformedPromptException]
- * will be thrown if any aren't followed:
- *  * Prompts must contain at least one message.
- *  * The last message must be a user message.
- *  * There can be at most one system message, and it must be the first message.
+ * Prompts are subject the following constraints; a [MalformedPromptException] will be thrown if any
+ * aren't followed:
+ * * Prompts must contain at least one message.
+ * * The last message must be a user message.
+ * * There can be at most one system message, and it must be the first message.
  *
- * Use [SafePromptBuilder.MessageBuilder.text] to add plaintext to a message,
- * and [SafePromptBuilder.MessageBuilder.code] to add a formatted
- * code block with the given language.
+ * Use [SafePromptBuilder.MessageBuilder.text] to add plaintext to a message, and
+ * [SafePromptBuilder.MessageBuilder.code] to add a formatted code block with the given language.
  *
  * Example usage:
  * ```
@@ -84,30 +80,39 @@ inline fun buildPrompt(project: Project, builderAction: SafePromptBuilder.() -> 
   return SafePromptBuilderImpl(project).apply(builderAction).build()
 }
 
-/**
- * Utility for constructing prompts for Studio Bot.
- */
+/** Utility for constructing prompts for Studio Bot. */
 interface SafePromptBuilder {
   val messages: List<SafePrompt.Message>
 
   interface MessageBuilder {
-    /**
-     * Adds [str] as text in the message.
-     */
+    /** Adds [str] as text in the message. */
     fun text(str: String, filesUsed: Collection<VirtualFile>)
 
     /**
-     * Adds [code] as a Markdown formatted code block in the message,
-     * with optional [language] specified if it has a Markdown representation.
+     * Adds [code] as a Markdown formatted code block in the message, with optional [language]
+     * specified if it has a Markdown representation.
      */
     fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>)
   }
 
+  /**
+   * This interface contains some convenience methods for adding higher-level context to user
+   * messages. You should not view the low-level formatting of these messages as authoritative in
+   * any way, they are simply _one_ way to do it. If you care about your prompts performing
+   * optimally, you should build and evaluate for your use case, potentially using the lower-level
+   * APIs in [MessageBuilder] directly instead.
+   */
   interface UserMessageBuilder : MessageBuilder {
-    /** Adds information about [file], including its contents. */
+    /**
+     * Adds information about [file], including its contents. See the disclaimer on
+     * [UserMessageBuilder] before using this method.
+     */
     fun fileContents(file: VirtualFile)
 
-    /** Adds information about [file], including its contents. */
+    /**
+     * Adds information about [file], including its contents. See the disclaimer on
+     * [UserMessageBuilder] before using this method.
+     */
     fun fileContents(file: PsiFile)
 
     /** Starts a read action allowing further query elements that require read access. */
@@ -115,9 +120,11 @@ interface SafePromptBuilder {
   }
 
   interface ReadActionUserMessageBuilder : UserMessageBuilder {
-    /** Adds the contents from the file currently open in [editor] to the query. */
-    @RequiresReadLock
-    fun openFileContents(editor: Editor)
+    /**
+     * Adds the contents from the file currently open in [editor] to the query. See the disclaimer
+     * on [UserMessageBuilder] before using this method.
+     */
+    @RequiresReadLock fun openFileContents(editor: Editor)
   }
 
   fun systemMessage(builderAction: MessageBuilder.() -> Unit)
@@ -127,4 +134,4 @@ interface SafePromptBuilder {
   fun modelMessage(builderAction: MessageBuilder.() -> Unit)
 }
 
-class MalformedPromptException(message: String): RuntimeException(message)
+class MalformedPromptException(message: String) : RuntimeException(message)
