@@ -186,18 +186,12 @@ private fun StorageGroup(
 
   Row {
     Text("Expanded storage")
-
-    val customRadioButtonSelected = storageGroupState.selectedRadioButton == RadioButton.CUSTOM
-
-    val existingImageRadioButtonSelected =
-      storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE
-
     val existingImageFieldState = storageGroupState.existingImageFieldState
 
     Column {
       RadioButtonRow(
-        "Custom",
-        customRadioButtonSelected,
+        RadioButton.CUSTOM,
+        storageGroupState.selectedRadioButton,
         onClick = {
           storageGroupState.selectedRadioButton = RadioButton.CUSTOM
 
@@ -208,8 +202,8 @@ private fun StorageGroup(
       )
 
       RadioButtonRow(
-        "Existing image",
-        existingImageRadioButtonSelected,
+        RadioButton.EXISTING_IMAGE,
+        storageGroupState.selectedRadioButton,
         onClick = {
           storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
 
@@ -222,8 +216,8 @@ private fun StorageGroup(
       )
 
       RadioButtonRow(
-        "None",
-        storageGroupState.selectedRadioButton == RadioButton.NONE,
+        RadioButton.NONE,
+        storageGroupState.selectedRadioButton,
         onClick = {
           storageGroupState.selectedRadioButton = RadioButton.NONE
           onDeviceChange(device.copy(expandedStorage = None))
@@ -239,13 +233,13 @@ private fun StorageGroup(
             storageGroupState.custom = it
             onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
           },
-          customRadioButtonSelected,
+          storageGroupState.selectedRadioButton == RadioButton.CUSTOM,
         )
       }
 
       ExistingImageField(
         existingImageFieldState,
-        existingImageRadioButtonSelected,
+        storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
         context,
         onStateChange = {
           storageGroupState.existingImageFieldState = it
@@ -259,6 +253,16 @@ private fun StorageGroup(
       )
     }
   }
+}
+
+@Composable
+private fun <E : Enum<E>> RadioButtonRow(
+  value: Enum<E>,
+  selectedValue: Enum<E>,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier)
 }
 
 @Composable
@@ -375,9 +379,15 @@ internal class StorageGroupState internal constructor(device: VirtualDevice) {
 }
 
 internal enum class RadioButton {
-  CUSTOM,
-  EXISTING_IMAGE,
-  NONE;
+  CUSTOM {
+    override fun toString() = "Custom"
+  },
+  EXISTING_IMAGE {
+    override fun toString() = "Existing image"
+  },
+  NONE {
+    override fun toString() = "None"
+  };
 
   internal companion object {
     internal fun valueOf(storage: ExpandedStorage) =
