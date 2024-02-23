@@ -211,8 +211,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
-    // TODO (b/306638551): temporarily here, to be refactored
-    SyncFailureUsageReporter.getInstance().onSyncStart(rootProjectPath)
+    // TODO (b/306638551): temporarily here, to be refactored. Can be moved to GRADLE_SYNC_TOPIC listener
+    SyncFailureUsageReporter.getInstance().onSyncStart(externalSystemTaskId, project, rootProjectPath)
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
     reportGradleJdkConfiguration(project, rootProjectPath)
     project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
@@ -280,7 +280,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-    SyncFailureUsageReporter.getInstance().reportFailure(this, project, rootProjectPath, error)
+    SyncFailureUsageReporter.getInstance().collectProcessedError(externalSystemTaskId, project, rootProjectPath, error)
     syncFinished(LastSyncState.FAILED, rootProjectPath)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
