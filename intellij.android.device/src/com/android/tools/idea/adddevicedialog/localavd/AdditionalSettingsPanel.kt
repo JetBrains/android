@@ -220,6 +220,15 @@ private fun StorageGroup(
         },
         Modifier.testTag("ExistingImageRadioButton"),
       )
+
+      RadioButtonRow(
+        "None",
+        storageGroupState.selectedRadioButton == RadioButton.NONE,
+        onClick = {
+          storageGroupState.selectedRadioButton = RadioButton.NONE
+          onDeviceChange(device.copy(expandedStorage = None))
+        },
+      )
     }
 
     Column {
@@ -367,13 +376,15 @@ internal class StorageGroupState internal constructor(device: VirtualDevice) {
 
 internal enum class RadioButton {
   CUSTOM,
-  EXISTING_IMAGE;
+  EXISTING_IMAGE,
+  NONE;
 
   internal companion object {
     internal fun valueOf(storage: ExpandedStorage) =
       when (storage) {
         is Custom -> CUSTOM
         is ExistingImage -> EXISTING_IMAGE
+        is None -> NONE
       }
   }
 }

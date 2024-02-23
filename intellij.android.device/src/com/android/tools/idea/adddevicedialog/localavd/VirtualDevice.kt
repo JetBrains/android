@@ -60,4 +60,8 @@ internal data class ExistingImage internal constructor(private val value: Path) 
   override fun toString() = value.toString()
 }
 
+internal object None : ExpandedStorage() {
+  override fun toString() = ""
+}
+
 internal sealed class ExpandedStorage
