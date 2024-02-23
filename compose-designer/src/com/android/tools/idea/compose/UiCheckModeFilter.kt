@@ -32,7 +32,6 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.annotations.VisibleForTesting

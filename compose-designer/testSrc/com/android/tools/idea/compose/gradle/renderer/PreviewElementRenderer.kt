@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.RenderResult

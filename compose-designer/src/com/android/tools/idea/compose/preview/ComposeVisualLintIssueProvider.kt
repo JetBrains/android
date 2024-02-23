@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.compose.preview.util.previewElement
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSuppressTask
-import com.android.tools.preview.PsiComposePreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction

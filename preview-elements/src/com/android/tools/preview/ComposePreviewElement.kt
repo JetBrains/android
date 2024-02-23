@@ -27,9 +27,6 @@ import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPsiElementPointer
 import java.util.Objects
 import kotlin.math.min
 import org.jetbrains.annotations.TestOnly
@@ -89,8 +86,6 @@ interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePrevie
   fun resolve(): Sequence<ComposePreviewElementInstance<T>>
 }
 
-typealias PsiComposePreviewElement = ComposePreviewElement<SmartPsiElementPointer<PsiElement>>
-
 /** Definition of a preview element */
 abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlSerializable {
   /** Unique identifier that can be used for filtering. */
@@ -145,8 +140,6 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
 
   override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId)
 }
-
-typealias PsiComposePreviewElementInstance = ComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>
 
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.

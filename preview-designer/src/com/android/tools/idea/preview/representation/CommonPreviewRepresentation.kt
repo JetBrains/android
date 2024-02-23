@@ -35,6 +35,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
+import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -62,7 +63,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
-import com.android.tools.preview.PsiPreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable

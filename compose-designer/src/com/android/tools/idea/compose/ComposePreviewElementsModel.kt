@@ -21,11 +21,16 @@ import com.android.tools.idea.concurrency.flatMap
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.PsiComposePreviewElement
-import com.android.tools.preview.PsiComposePreviewElementInstance
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+
+typealias PsiComposePreviewElement = ComposePreviewElement<SmartPsiElementPointer<PsiElement>>
+
+typealias PsiComposePreviewElementInstance =
+  ComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>
 
 /**
  * Class containing all the support methods that provide the model for the [ComposePreviewMananger].

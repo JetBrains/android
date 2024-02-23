@@ -27,6 +27,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
+import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -46,8 +48,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PsiComposePreviewElement
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys

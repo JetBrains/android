@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.pickers.preview
 
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
@@ -29,7 +30,6 @@ import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
-import com.android.tools.preview.PsiComposePreviewElement
 import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener

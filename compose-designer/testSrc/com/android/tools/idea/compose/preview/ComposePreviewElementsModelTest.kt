@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
+import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.groups.PreviewGroup.Companion.namedGroup
-import com.android.tools.preview.PsiComposePreviewElement
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement

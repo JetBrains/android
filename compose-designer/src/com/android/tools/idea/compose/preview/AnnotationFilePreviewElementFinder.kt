@@ -20,13 +20,13 @@ import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.AndroidPsiUtils.getPsiFileSafely
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.annotations.hasAnnotation
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.preview.PsiComposePreviewElement
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile

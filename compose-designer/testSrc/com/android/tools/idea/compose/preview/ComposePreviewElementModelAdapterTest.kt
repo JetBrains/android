@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement

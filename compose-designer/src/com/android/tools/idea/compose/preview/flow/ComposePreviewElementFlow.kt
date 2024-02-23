@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.flow
 
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.PsiComposePreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project

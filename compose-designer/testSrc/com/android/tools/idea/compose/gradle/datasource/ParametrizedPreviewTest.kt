@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
@@ -44,7 +45,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
-import com.android.tools.preview.PsiComposePreviewElement
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderService
 import com.google.common.truth.Truth.assertThat

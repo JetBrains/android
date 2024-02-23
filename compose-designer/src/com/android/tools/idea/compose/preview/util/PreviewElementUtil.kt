@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.preview.PsiPreviewElement
+import com.android.tools.idea.preview.PsiPreviewElement
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiFile
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.buildlisteners.PreviewBuildListenersManager
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
@@ -89,7 +90,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent

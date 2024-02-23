@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.uicheck
 
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.createNlModelForCompose
@@ -25,7 +26,6 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer

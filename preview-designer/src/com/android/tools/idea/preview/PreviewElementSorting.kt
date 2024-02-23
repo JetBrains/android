@@ -16,11 +16,13 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.preview.PreviewElement
-import com.android.tools.preview.PsiPreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
+typealias PsiPreviewElement = PreviewElement<SmartPsiElementPointer<PsiElement>>
 /**
  * Returns the source offset within the file of the [PreviewElement]. We try to read the position of
  * the method but fallback to the position of the annotation if the method body is not valid

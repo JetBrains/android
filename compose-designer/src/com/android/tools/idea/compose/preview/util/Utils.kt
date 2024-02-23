@@ -19,12 +19,12 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.isTestFile
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment

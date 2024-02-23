@@ -21,6 +21,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
@@ -48,7 +49,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread

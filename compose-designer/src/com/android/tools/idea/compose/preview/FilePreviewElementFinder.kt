@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.preview.PsiComposePreviewElement
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 

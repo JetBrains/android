@@ -35,7 +35,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
-import com.android.tools.preview.PsiPreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger

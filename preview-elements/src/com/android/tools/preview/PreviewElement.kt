@@ -15,9 +15,6 @@
  */
 package com.android.tools.preview
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
-
 enum class DisplayPositioning {
   TOP, // Previews with this priority will be displayed at the top
   NORMAL
@@ -76,5 +73,3 @@ interface PreviewElement<T> : PreviewNode {
    */
   val previewBody: T?
 }
-
-typealias PsiPreviewElement = PreviewElement<SmartPsiElementPointer<PsiElement>>

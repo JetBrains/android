@@ -17,11 +17,11 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.openapi.vfs.VirtualFile

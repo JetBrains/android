@@ -24,6 +24,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -43,7 +44,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PsiComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
