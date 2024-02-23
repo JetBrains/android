@@ -466,7 +466,6 @@ android-studio/jbr/lib/security/public_suffix_list.dat
 android-studio/jbr/lib/tzdb.dat
 android-studio/jbr/lib/tzmappings
 android-studio/jbr/release
-android-studio/jre/bin/.marker
 android-studio/lib/annotations.jar
 android-studio/lib/ant/CONTRIBUTORS
 android-studio/lib/ant/INSTALL

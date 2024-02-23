@@ -732,13 +732,6 @@ def _android_studio_os(ctx, platform, out):
         jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre).to_list()]
         all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
-        # b/235325129 workaround: keep `jre\` directory for windows patcher
-        # TODO remove after no more patches from Dolphin
-        if platform == WIN and platform.jre != "jre":
-            jre_bin = ctx.actions.declare_file(ctx.attr.name + ".jre.marker")
-            ctx.actions.write(jre_bin, "")
-            files += [(platform.base_path + "jre/bin/.marker", jre_bin)]
-
     # Stamp the platform and its plugins
     platform_files = _stamp_platform(ctx, platform, platform_files)
     all_files.update({platform_prefix + k: v for k, v in platform_files.items()})
