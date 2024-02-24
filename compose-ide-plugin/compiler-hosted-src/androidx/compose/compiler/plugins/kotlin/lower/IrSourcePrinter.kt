@@ -85,7 +85,6 @@ import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
 import org.jetbrains.kotlin.ir.types.IrDynamicType
 import org.jetbrains.kotlin.ir.types.IrErrorType
@@ -675,7 +674,7 @@ class IrSourcePrinterVisitor(
     }
 
     override fun visitWhen(expression: IrWhen) {
-        val isIf = expression.origin == IrStatementOrigin.IF || expression is IrIfThenElseImpl
+        val isIf = expression.origin == IrStatementOrigin.IF
         when {
             expression.origin == IrStatementOrigin.OROR -> {
                 val lhs = expression.branches[0].condition
