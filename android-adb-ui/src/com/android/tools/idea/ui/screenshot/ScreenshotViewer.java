@@ -67,6 +67,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -353,16 +354,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
     // such as: Right click image -> Open in external editor
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      Path file = VfsUtilCore.virtualToIoFile(myBackingFile).toPath();
-        try {
-          writePng(processedImage, file);
-          myBackingFile.refresh(false, false);
-        }
-        catch (IOException e) {
-          logger().error("Unexpected error while writing to " + file, e);
-        }
-      });
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try (OutputStream stream = myBackingFile.getOutputStream(this)) {
+        writePng(processedImage, stream);
+      }
+      catch (IOException e) {
+        logger().error("Unexpected error while writing to " + VfsUtilCore.virtualToIoFile(myBackingFile).toPath(), e);
+      }
+    });
     mySourceImageRef.set(rotatedImage);
     myDisplayedImageRef.set(processedImage);
     updateEditorImage();
@@ -465,6 +464,16 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private static void writePng(@NotNull BufferedImage image, @NotNull Path outFile) throws IOException {
+    try (OutputStream stream = Files.newOutputStream(outFile)) {
+      writePng(image, stream);
+    }
+    catch (IOException e) {
+      Files.deleteIfExists(outFile);
+      throw e;
+    }
+  }
+
+  private static void writePng(@NotNull BufferedImage image, @NotNull OutputStream outputStream) throws IOException {
     ImageWriter pngWriter = null;
     ImageTypeSpecifier imageType = ImageTypeSpecifier.createFromRenderedImage(image);
     Iterator<ImageWriter> iterator = ImageIO.getImageWriters(imageType, EXT_PNG);
@@ -475,7 +484,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       throw new IOException("Failed to find PNG writer");
     }
 
-    try (ImageOutputStream stream = ImageIO.createImageOutputStream(Files.newOutputStream(outFile))) {
+    try (ImageOutputStream stream = ImageIO.createImageOutputStream(outputStream)) {
       pngWriter.setOutput(stream);
 
       if (image.getColorModel().getColorSpace() instanceof ICC_ColorSpace colorSpace) {
@@ -496,9 +505,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         pngWriter.write(image);
       }
       pngWriter.dispose();
-    }
-    catch (IOException e) {
-      Files.deleteIfExists(outFile);
     }
   }
 
