@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering.classloading.loaders
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.util.SlowOperations
 import com.intellij.util.SofterReference
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
@@ -62,11 +64,11 @@ class ProjectSystemClassLoader(
     val cachedContent = classCache[fqcn]?.get()
 
     if (cachedContent?.isUpToDate() == true) return cachedContent
-    val classContent = findClassContent(fqcn)?.also {
-      val newRef = SofterReference(it)
-      classCache[fqcn] = newRef
-    }
-
+    val classContent =
+      SlowOperations.allowSlowOperations(ThrowableComputable { findClassContent(fqcn) })?.also {
+        val newRef = SofterReference(it)
+        classCache[fqcn] = newRef
+      }
     return classContent
   }
 
@@ -84,10 +86,10 @@ class ProjectSystemClassLoader(
     null
   }
 
-  /**
+                                         /**
    * Injects the given [classContent] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
    */
-  @TestOnly
+                                         @TestOnly
   fun injectClassFile(fqcn: String, classContent: ClassContent) {
     classCache[fqcn] = SofterReference(classContent)
   }
