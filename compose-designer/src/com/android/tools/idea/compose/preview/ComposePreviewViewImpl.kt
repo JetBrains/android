@@ -38,7 +38,6 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
@@ -98,12 +97,6 @@ interface ComposePreviewView : PreviewRepresentationView {
 
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
-
-  /**
-   * If Gallery Mode is enabled, null if mode is disabled. In Gallery Mode only one preview at a
-   * time is rendered. It is always on for Essentials Mode.
-   */
-  var galleryMode: GalleryMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)

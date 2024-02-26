@@ -22,6 +22,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -44,6 +45,8 @@ class CommonNlDesignSurfacePreviewView(
 
   private val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
 
+  private val galleryModeProperty: GalleryModeProperty
+
   private val editorPanel =
     JPanel(BorderLayout()).apply {
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
@@ -62,6 +65,8 @@ class CommonNlDesignSurfacePreviewView(
       }
 
       add(overlayPanel, BorderLayout.CENTER)
+
+      galleryModeProperty = GalleryModeProperty(overlayPanel, mainSurface)
     }
 
   private val workbench: WorkBench<DesignSurface<*>> =
@@ -100,4 +105,6 @@ class CommonNlDesignSurfacePreviewView(
 
   override val component: JComponent
     get() = workbench
+
+  override var galleryMode by galleryModeProperty
 }
