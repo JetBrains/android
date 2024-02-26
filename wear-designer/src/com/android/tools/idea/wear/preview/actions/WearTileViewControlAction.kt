@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.wear.preview.actions
 
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 
 class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
   ViewControlAction(
     isEnabled = { !isPreviewRefreshing(it.dataContext) },
-    isEssentialsModeEnabled = EssentialsMode::isEnabled,
+    isEssentialsModeEnabled = WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled,
   ) {
 
   init {
@@ -34,7 +34,7 @@ class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
           isActionEnabled = {
             !isPreviewRefreshing(it.dataContext) &&
               // If Essentials Mode is enabled, it should not be possible to switch layout.
-              !EssentialsMode.isEnabled()
+              !WearTilePreviewEssentialsModeManager.isEssentialsModeEnabled
           },
         )
         .apply {

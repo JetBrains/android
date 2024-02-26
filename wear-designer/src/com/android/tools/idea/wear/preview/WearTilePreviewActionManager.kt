@@ -18,7 +18,6 @@ package com.android.tools.idea.wear.preview
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.PreviewStatusIcon
@@ -28,13 +27,15 @@ import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
 
 /** Wear tile specific [ActionManager] for the [DesignSurface]. */
-internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
+  ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   override fun registerActionsShortcuts(component: JComponent) {}
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
@@ -46,8 +47,12 @@ internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibScen
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
-        AnimationInspectorAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
-        EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
+          AnimationInspectorAction(
+            isEssentialsModeEnabled = WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled
+          ),
+          EnableInteractiveAction(
+            isEssentialsModeEnabled = WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled
+          ),
         )
         .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
         .hideIfRenderErrors()
