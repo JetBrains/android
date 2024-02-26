@@ -17,6 +17,7 @@ package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -37,6 +38,8 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
     presentation.description = "Current Zoom Level"
     updatePresentation(presentation, null)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     event.getData(ZOOMABLE_KEY)?.let { updatePresentation(event.presentation, it) }
