@@ -47,7 +47,13 @@ class HostPanelTest : NavTestCase() {
       model.activate(this)
       waitFor("list expected to be empty") { listModel.isEmpty }
     }
-    waitFor("list was never populated") { !listModel.isEmpty }
+
+    // This forces the listModel to be loaded on the next model activation. Without this call, the panel will
+    // detect that no changes have happened and ignore the changes.
+    panel.resetCachedVersionCount()
+    model.deactivate(this)
+    model.activate(this)
+    waitFor("list should be re-populated") { !listModel.isEmpty }
   }
 
   fun testFindReferences() {

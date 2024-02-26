@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
+import com.android.annotations.TestOnly
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
@@ -200,6 +201,14 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
     })
 
     startLoading()
+  }
+
+  /**
+   * Resets the internal cached version number. This ensures that a future [NlModel] activation will re-load the information immediately.
+   */
+  @TestOnly
+  internal fun resetCachedVersionCount() {
+    resourceVersion = -1
   }
 
   private fun activate(index: Int) {
