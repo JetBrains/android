@@ -504,6 +504,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
       // Unfortunately, the action event we're fed here does *not* have the correct
       // current modifier state; there are code paths which just feed in a value of 0
@@ -605,6 +610,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
 
       mySurface.repaint();
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override
@@ -733,6 +743,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override
