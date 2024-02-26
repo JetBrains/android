@@ -51,10 +51,11 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
-import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
@@ -70,6 +71,7 @@ import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
+import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
@@ -98,7 +100,6 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -106,7 +107,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -281,7 +281,13 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
-  private val previewBuildListenersManager: PreviewBuildListenersManager
+  private val previewBuildListenersManager =
+    PreviewBuildListenersManager(
+      { psiFilePointer },
+      ::invalidate,
+      ::requestRefresh,
+      { requestVisibilityAndNotificationsUpdate() },
+    )
 
   private val refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
@@ -356,42 +362,7 @@ class ComposePreviewRepresentation(
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
-  @VisibleForTesting internal val composePreviewFlowManager: ComposePreviewFlowManager
-
-  init {
-    val project = psiFile.project
-
-    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
-    project.messageBus
-      .connect(this as Disposable)
-      .subscribe(
-        essentialsModeMessagingService.TOPIC,
-        EssentialsModeMessenger.Listener {
-          updateFpsForCurrentMode()
-          // When getting out of Essentials Mode, request a refresh
-          if (!EssentialsMode.isEnabled()) requestRefresh()
-        },
-      )
-
-    composePreviewFlowManager = ComposePreviewFlowManager()
-
-    previewBuildListenersManager =
-      PreviewBuildListenersManager(
-        { psiFilePointer },
-        ::invalidate,
-        ::requestRefresh,
-        { requestVisibilityAndNotificationsUpdate() },
-      )
-  }
-
-  private fun updateFpsForCurrentMode() {
-    interactiveManager.fpsLimit =
-      if (EssentialsMode.isEnabled()) {
-        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
-      } else {
-        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
-      }
-  }
+  @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
@@ -709,20 +680,19 @@ class ComposePreviewRepresentation(
       )
       .also { delegateInteractionHandler.delegate = it }
 
+  private val fpsLimitFlow =
+    essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
+
   @VisibleForTesting
   val interactiveManager =
     InteractivePreviewManager(
         composeWorkBench.mainSurface,
-        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get(),
+        fpsLimitFlow.value,
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
         delegateInteractionHandler,
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
-
-  init {
-    updateFpsForCurrentMode()
-  }
 
   @get:VisibleForTesting
   val surface: NlDesignSurface
@@ -790,6 +760,14 @@ class ComposePreviewRepresentation(
           updateLayoutManager(it)
         }
         lastMode = it
+      }
+    }
+
+    launch {
+      fpsLimitFlow.collect {
+        interactiveManager.fpsLimit = it
+        // When getting out of Essentials Mode, request a refresh
+        if (!EssentialsMode.isEnabled()) requestRefresh()
       }
     }
   }
