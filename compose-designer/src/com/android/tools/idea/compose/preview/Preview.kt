@@ -64,6 +64,7 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -81,7 +82,6 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
-import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -368,23 +368,8 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
-          updateGalleryMode(
-            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
-              .STUDIO_ESSENTIALS_MODE_SWITCH
-          )
           // When getting out of Essentials Mode, request a refresh
           if (!EssentialsMode.isEnabled()) requestRefresh()
-        },
-      )
-
-    project.messageBus
-      .connect(this as Disposable)
-      .subscribe(
-        NlOptionsConfigurable.Listener.TOPIC,
-        NlOptionsConfigurable.Listener {
-          updateGalleryMode(
-            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
-          )
         },
       )
 
@@ -398,37 +383,6 @@ class ComposePreviewRepresentation(
         { requestVisibilityAndNotificationsUpdate() },
       )
   }
-
-  /**
-   * Updates the [composeWorkBench]'s [GalleryMode] according to the state of Android Studio (and/or
-   * Compose Preview) Essentials Mode.
-   *
-   * @param sourceEventType type of the event that triggered the update
-   */
-  private fun updateGalleryMode(
-    sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
-  ) {
-    // If Preview is inactive - don't update Gallery.
-    if (!lifecycleManager.isActive()) return
-    val essentialsModeIsEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-    val galleryModeIsSet = previewModeManager.mode.value is PreviewMode.Gallery
-    // Only update gallery mode if needed
-    if (essentialsModeIsEnabled == galleryModeIsSet) return
-
-    if (galleryModeIsSet) {
-      // There is no need to switch back to Default mode as toolbar is available.
-      // When exiting Essentials mode - preview will stay in Gallery mode.
-    } else {
-      (composePreviewFlowManager.allPreviewElementsFlow.value as? FlowableCollection.Present)
-        ?.collection
-        ?.firstOrNull()
-        .let { previewModeManager.setMode(PreviewMode.Gallery(it)) }
-    }
-    logComposePreviewLiteModeEvent(sourceEventType)
-    requestRefresh()
-  }
-
-  @TestOnly fun updateGalleryModeForTest() = updateGalleryMode()
 
   private fun updateFpsForCurrentMode() {
     interactiveManager.fpsLimit =
@@ -789,6 +743,28 @@ class ComposePreviewRepresentation(
 
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
+  private val galleryEssentialsModeManager =
+    CommonGalleryEssentialsModeManager(
+        project = psiFile.project,
+        lifecycleManager = lifecycleManager,
+        previewFlowManager = composePreviewFlowManager,
+        previewModeManager = previewModeManager,
+        isEssentialsModeEnabled = ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
+        onUpdatedFromStudioEssentialsMode = {
+          logComposePreviewLiteModeEvent(
+            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
+              .STUDIO_ESSENTIALS_MODE_SWITCH
+          )
+        },
+        onUpdatedFromPreviewEssentialsMode = {
+          logComposePreviewLiteModeEvent(
+            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
+          )
+        },
+        requestRefresh = ::requestRefresh,
+      )
+      .also { Disposer.register(this@ComposePreviewRepresentation, it) }
+
   init {
     launch {
       // Keep track of the last mode that was set to ensure it is correctly disposed
@@ -811,7 +787,6 @@ class ComposePreviewRepresentation(
         lastMode = it
       }
     }
-    updateGalleryMode()
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
@@ -848,10 +823,6 @@ class ComposePreviewRepresentation(
 
   override fun onActivate() {
     lifecycleManager.activate()
-    // Gallery mode should be updated only if Preview is active / in foreground.
-    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
-    // this state for later to restore.
-    updateGalleryMode()
   }
 
   private fun CoroutineScope.activate(resume: Boolean) {
@@ -902,6 +873,11 @@ class ComposePreviewRepresentation(
       // the annotations have changed.
       launch { requestFastPreviewRefreshAndTrack() }
     } else if (invalidated.get()) requestRefresh()
+
+    // Gallery mode should be updated only if Preview is active / in foreground.
+    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
+    // this state for later to restore.
+    galleryEssentialsModeManager.activate()
   }
 
   override fun onDeactivate() {

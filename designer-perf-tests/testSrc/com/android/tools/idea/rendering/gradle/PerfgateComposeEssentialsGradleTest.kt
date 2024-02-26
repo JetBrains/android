@@ -20,7 +20,9 @@ import com.android.tools.idea.compose.preview.getComposePreviewManagerKeyForTest
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.perflogger.Metric
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.testFramework.MapDataContext
 import kotlin.time.Duration.Companion.seconds
@@ -167,7 +169,10 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     projectRule.runAndWaitForRefresh {
       runWriteActionAndWait {
         AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
-        composePreviewRepresentation.updateGalleryModeForTest()
+        ApplicationManager.getApplication()
+          .messageBus
+          .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
+          .onOptionsChanged()
       }
       delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
       previewView.galleryMode!!.triggerTabChange(
