@@ -40,7 +40,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 private const val LEARN_MORE_LINK =
-  "https://developer.android.com/jetpack/compose/tooling#animations"
+  "https://developer.android.com/jetpack/compose/tooling/animation-preview"
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
 class UnsupportedLabel(parent: JComponent, private val rowMinY: Int, positionProxy: PositionProxy) :
