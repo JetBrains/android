@@ -1104,7 +1104,8 @@ internal fun isUpdatablePluginDependency(toVersion: AgpVersion, model: ArtifactD
   if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
     return ThreeState.UNSURE
   }
-  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  @Suppress("UNNECESSARY_SAFE_CALL") // until GradlePropertyModel.toString() is fixed not to be nullable
+  val versionValue = model.version().toString()?.let { AgpVersion.tryParse(it) } ?: return ThreeState.UNSURE
   return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
@@ -1115,7 +1116,8 @@ internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: Ar
     return ThreeState.UNSURE
   }
 
-  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  @Suppress("UNNECESSARY_SAFE_CALL") // until GradlePropertyModel.toString() is fixed not to be nullable
+  val versionValue = model.version().toString()?.let { AgpVersion.tryParse(it) } ?: return ThreeState.UNSURE
   return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
