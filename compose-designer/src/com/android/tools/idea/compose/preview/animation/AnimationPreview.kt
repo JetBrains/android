@@ -49,7 +49,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.launchChildOnUi
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
@@ -178,7 +177,7 @@ class AnimationPreview(
 
   private val bottomPanel =
     BottomPanel(previewState, rootComponent, tracker).apply {
-      timeline.addChangeListener { scope.launchChildOnUi { clockTimeMs = timeline.value } }
+      timeline.addChangeListener { scope.launch(uiThread) { clockTimeMs = timeline.value } }
       addResetListener {
         timeline.sliderUI.elements.forEach { it.reset() }
         if (previewState.isCoordinationPanelOpened()) {
@@ -235,9 +234,7 @@ class AnimationPreview(
           AndroidCoroutineScope(curve).launch {
             curve.offsetPx.collect {
               selected.elementState.value =
-                selected.elementState.value.copy(
-                  valueOffset = curve.getValueOffset(it)
-                )
+                selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
             }
           }
           listOf(curve)
@@ -252,9 +249,7 @@ class AnimationPreview(
                 AndroidCoroutineScope(this).launch {
                   offsetPx.collect {
                     tab.elementState.value =
-                      tab.elementState.value.copy(
-                        valueOffset = getValueOffset(it)
-                      )
+                      tab.elementState.value.copy(valueOffset = getValueOffset(it))
                   }
                 }
               }
