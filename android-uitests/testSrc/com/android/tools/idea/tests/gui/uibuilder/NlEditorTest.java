@@ -593,4 +593,24 @@ public class NlEditorTest {
       0f
     );
   }
+
+  @Test
+  public void switchTheme() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/linear_layout.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
+    nlEditorFixture
+      .waitForRenderToFinish()
+      .collapseToolWindows()
+      .showOnlyDesignView()
+      .zoomToFit();
+
+    nlEditorFixture
+      .getConfigToolbar()
+      .setTheme("AppCompat.NoActionBar")
+      .requireTheme("NoActionBar");
+  }
 }
