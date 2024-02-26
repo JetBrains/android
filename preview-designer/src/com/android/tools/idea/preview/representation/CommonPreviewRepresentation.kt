@@ -40,6 +40,7 @@ import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -121,6 +122,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   renderingTopic: RenderingTopic,
+  isEssentialsModeEnabled: () -> Boolean,
   useCustomInflater: Boolean = true,
 ) :
   PreviewRepresentation,
@@ -139,20 +141,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
     PreviewLifecycleManager(
       project,
       parentScope = this,
-      onInitActivate = {
-        initializeFlows()
-        onInit()
-        if (mode.value is PreviewMode.Interactive) {
-          interactiveManager.resume()
-        }
-      },
-      onResumeActivate = {
-        initializeFlows()
-        surface.activate()
-        if (mode.value is PreviewMode.Interactive) {
-          interactiveManager.resume()
-        }
-      },
+      onInitActivate = { activate(isResuming = false) },
+      onResumeActivate = { activate(isResuming = true) },
       onDeactivate = {
         LOG.debug("onDeactivate")
         if (mode.value is PreviewMode.Interactive) {
@@ -469,6 +459,20 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   override fun onDeactivate() = lifecycleManager.deactivate()
 
+  private fun activate(isResuming: Boolean) {
+    initializeFlows()
+    if (isResuming) {
+      surface.activate()
+    } else {
+      onInit()
+    }
+
+    galleryEssentialsModeManager.activate()
+    if (mode.value is PreviewMode.Interactive) {
+      interactiveManager.resume()
+    }
+  }
+
   private fun CoroutineScope.initializeFlows() {
     with(this@initializeFlows) {
       // Initialize flows
@@ -525,6 +529,19 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
         delegateInteractionHandler,
+      )
+      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
+
+  private val galleryEssentialsModeManager =
+    CommonGalleryEssentialsModeManager(
+        project = psiFile.project,
+        lifecycleManager = lifecycleManager,
+        previewFlowManager = previewFlowManager,
+        previewModeManager = previewModeManager,
+        isEssentialsModeEnabled = isEssentialsModeEnabled,
+        onUpdatedFromStudioEssentialsMode = {},
+        onUpdatedFromPreviewEssentialsMode = {},
+        requestRefresh = ::requestRefresh,
       )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 

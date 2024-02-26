@@ -35,12 +35,15 @@ import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -51,9 +54,13 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -61,15 +68,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
 
-  @get:Rule
-  val projectRule = WearTileProjectRule()
+  @get:Rule val projectRule = WearTileProjectRule()
 
   private val project
     get() = projectRule.project
@@ -98,6 +101,7 @@ class WearTilePreviewRepresentationTest {
   @After
   fun tearDown() {
     EssentialsMode.setEnabled(false, project)
+    wearTilePreviewEssentialsModeEnabled = false
   }
 
   @Test
@@ -187,11 +191,6 @@ class WearTilePreviewRepresentationTest {
   fun testGalleryMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val previewModeManager =
-        preview.previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
-      val previewFlowManager =
-        preview.previewView.mainSurface.getData(PreviewFlowManager.KEY.name)
-          as PreviewFlowManager<*>
 
       assertThat(preview.previewView.mainSurface.models).hasSize(2)
       assertThat(preview.previewView.galleryMode).isNull()
@@ -199,22 +198,52 @@ class WearTilePreviewRepresentationTest {
       // go into gallery mode
       run {
         val previewElement =
-          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
-        previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+        preview.previewModeManager.setMode(PreviewMode.Gallery(previewElement))
 
-        delayUntilCondition(250) {
-          preview.previewView.mainSurface.models.size == 1 && preview.previewView.galleryMode != null
-        }
+        expectGalleryModeIsSet(preview, previewElement)
+      }
 
-        val previewElements =
-          preview.previewView.mainSurface.models.mapNotNull {
-            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
-          }
-        assertThat(previewElements).containsExactly(previewElement)
-        assertThat(previewElements.map { it.methodFqn })
-          .containsExactly("com.android.test.TestKt.tilePreview2")
+      preview.onDeactivate()
+    }
 
-        assertThat(preview.previewView.galleryMode).isNotNull()
+  @Test
+  fun testGalleryModeIsEnabledWhenEnablingStudioEssentialsMode() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.galleryMode).isNull()
+
+      // enable studio essentials mode
+      run {
+        EssentialsMode.setEnabled(true, project)
+
+        val previewElement =
+          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
+
+        expectGalleryModeIsSet(preview, previewElement)
+      }
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testGalleryModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.galleryMode).isNull()
+
+      // enable tile preview essentials mode
+      run {
+        wearTilePreviewEssentialsModeEnabled = true
+
+        val previewElement =
+          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
+
+        expectGalleryModeIsSet(preview, previewElement)
       }
 
       preview.onDeactivate()
@@ -249,16 +278,47 @@ class WearTilePreviewRepresentationTest {
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
       EssentialsMode.setEnabled(true, project)
-      retryUntilPassing(5.seconds) {
-        assertEquals(10, preview.interactiveManager.fpsLimit)
-      }
+      retryUntilPassing(5.seconds) { assertEquals(10, preview.interactiveManager.fpsLimit) }
 
       EssentialsMode.setEnabled(false, project)
-      retryUntilPassing(5.seconds) {
-        assertEquals(30, preview.interactiveManager.fpsLimit)
-      }
+      retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
 
       preview.onDeactivate()
+    }
+
+  private suspend fun expectGalleryModeIsSet(
+    preview: WearTilePreviewRepresentation,
+    previewElement: PreviewElement<*>,
+  ) {
+    delayUntilCondition(250) {
+      preview.previewView.mainSurface.models.size == 1 && preview.previewView.galleryMode != null
+    }
+
+    val previewElements =
+      preview.previewView.mainSurface.models.mapNotNull {
+        it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
+      }
+    assertThat(previewElements).containsExactly(previewElement)
+    assertThat(preview.previewView.galleryMode).isNotNull()
+  }
+
+  private val WearTilePreviewRepresentation.previewModeManager
+    get() = previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
+
+  private val WearTilePreviewRepresentation.previewFlowManager
+    get() = previewView.mainSurface.getData(PreviewFlowManager.KEY.name) as PreviewFlowManager<*>
+
+  private var wearTilePreviewEssentialsModeEnabled: Boolean = false
+    set(value) {
+      runWriteActionAndWait {
+        AndroidEditorSettings.getInstance().globalState.isWearTilePreviewEssentialsModeEnabled =
+          value
+        ApplicationManager.getApplication()
+          .messageBus
+          .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
+          .onOptionsChanged()
+      }
+      field = value
     }
 
   private suspend fun createWearTilePreviewRepresentation(): WearTilePreviewRepresentation {

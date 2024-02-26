@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.psi.PsiFile
 
@@ -31,7 +32,7 @@ internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<PsiWearTilePreviewElement>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>,
 ) :
   CommonPreviewRepresentation<PsiWearTilePreviewElement>(
     adapterViewFqcn,
@@ -42,6 +43,7 @@ internal class WearTilePreviewRepresentation(
     ::WearTilePreviewViewModel,
     NlDesignSurface.Builder::configureDesignSurface,
     renderingTopic = RenderAsyncActionExecutor.RenderingTopic.WEAR_TILE_PREVIEW,
+    isEssentialsModeEnabled = WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled,
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {
