@@ -68,7 +68,6 @@ private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
   }.toInt()
 
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
-  // FIXME(b/258718991): we decide not group the previews for now.
   listOf(PositionableGroup(it.toList()))
 }
 
@@ -142,7 +141,7 @@ private val organizationGridPadding =
     ORGANIZATION_PREVIEW_BOTTOM_PADDING,
   )
 
-/** Toolbar option to select [PreviewMode.Gallery] layout. */
+/** [PreviewMode.Gallery] layout option which shows once centered element. */
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
@@ -150,6 +149,27 @@ val GALLERY_LAYOUT_OPTION =
     DesignSurface.SceneViewAlignment.LEFT,
   )
 
+/** List layout option which doesn't group elements. */
+val LIST_NO_GROUP_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.list.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      ListLayoutManager(organizationListPadding, NO_GROUP_TRANSFORM)
+    else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )
+
+/** Grid layout option which doesn't group elements. */
+val GRID_NO_GROUP_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.grid.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      GridLayoutManager(organizationGridPadding, NO_GROUP_TRANSFORM)
+    else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )
+
+/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
 val LIST_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.list.layout.title"),
@@ -159,6 +179,7 @@ val LIST_LAYOUT_OPTION =
     DesignSurface.SceneViewAlignment.LEFT,
   )
 
+/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
 val GRID_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.grid.layout.title"),

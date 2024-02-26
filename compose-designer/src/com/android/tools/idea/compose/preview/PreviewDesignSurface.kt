@@ -38,10 +38,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-internal val BASE_LAYOUT_OPTIONS = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION)
-
 /** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_OPTIONS = BASE_LAYOUT_OPTIONS + GALLERY_LAYOUT_OPTION
+internal val PREVIEW_LAYOUT_OPTIONS =
+  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
 
 /** Default layout option selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_OPTION = PREVIEW_LAYOUT_OPTIONS.first()

@@ -45,7 +45,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -269,7 +269,7 @@ class ComposePreviewRepresentationTest {
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
-      GRID_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     assertTrue(preview.atfChecksEnabled)
@@ -407,7 +407,7 @@ class ComposePreviewRepresentationTest {
 
     // Restart UI Check mode on the same preview
     setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement)) {
-      GRID_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the UI Check tab is being reused

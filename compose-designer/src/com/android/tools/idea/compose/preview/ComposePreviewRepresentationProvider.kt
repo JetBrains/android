@@ -41,6 +41,8 @@ import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -105,7 +107,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
-            layoutOptions = BASE_LAYOUT_OPTIONS,
+            layoutOptions = listOf(LIST_NO_GROUP_LAYOUT_OPTION, GRID_NO_GROUP_LAYOUT_OPTION),
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(it.dataContext) &&
                 // If Essentials Mode is enabled, it should not be possible to switch layout.

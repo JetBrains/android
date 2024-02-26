@@ -107,7 +107,7 @@ sealed class PreviewMode {
 
   class UiCheck(
     val baseElement: PreviewElement<*>,
-    override val layoutOption: SurfaceLayoutOption = GRID_LAYOUT_OPTION,
+    override val layoutOption: SurfaceLayoutOption = GRID_NO_GROUP_LAYOUT_OPTION,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get(),
   ) : PreviewMode() {
@@ -163,9 +163,11 @@ sealed class PreviewMode {
 
   class Interactive(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+    override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
   }
 
   class AnimationInspection(selected: PreviewElement<*>) : Focus<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+    override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
   }
 }
