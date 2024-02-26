@@ -19,9 +19,13 @@ import com.android.SdkConstants
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.PreviewXmlBuilder
+import com.android.tools.preview.applyTo
+import com.android.tools.preview.config.getDefaultPreviewDevice
+import com.android.tools.preview.dimensionToString
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -32,6 +36,7 @@ private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE =
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
 abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
+  ConfigurablePreviewElementModelAdapter<PsiGlancePreviewElement, M>,
   MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(
     PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE
   ) {
@@ -39,21 +44,25 @@ abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
   override fun applyToConfiguration(
     previewElement: PsiGlancePreviewElement,
     configuration: Configuration,
-  ) {
-    configuration.target = configuration.settings.highestApiTarget
-  }
+  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 }
 
 internal const val APP_WIDGET_VIEW_ADAPTER =
   "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
 object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
-  override fun toXml(previewElement: PsiGlancePreviewElement) =
-    PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
+  override fun toXml(previewElement: PsiGlancePreviewElement): String {
+    val configuration = previewElement.configuration
+    val width = dimensionToString(configuration.width, SdkConstants.VALUE_WRAP_CONTENT)
+    val height = dimensionToString(configuration.height, SdkConstants.VALUE_WRAP_CONTENT)
+    return PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, width)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, height)
+      .androidAttribute(SdkConstants.ATTR_MIN_WIDTH, "1px")
+      .androidAttribute(SdkConstants.ATTR_MIN_HEIGHT, "1px")
       .toolsAttribute("composableName", previewElement.methodFqn)
       .buildString()
+  }
 
   override fun createLightVirtualFile(
     content: String,

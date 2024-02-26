@@ -17,6 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager
@@ -56,6 +57,7 @@ class GlancePreviewElementTest {
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
         hasAnimations = true,
+        configuration = PreviewConfiguration.cleanAndGet(),
       )
 
     val previewElement2 =
@@ -66,6 +68,7 @@ class GlancePreviewElementTest {
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
         hasAnimations = true,
+        configuration = PreviewConfiguration.cleanAndGet(),
       )
 
     assertEquals(previewElement1, previewElement2)

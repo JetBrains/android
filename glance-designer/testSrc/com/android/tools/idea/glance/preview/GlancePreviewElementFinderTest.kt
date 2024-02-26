@@ -34,6 +34,7 @@ class GlancePreviewElementFinderTest {
     get() = projectRule.fixture
 
   private lateinit var sourceFileAppWidgets: PsiFile
+  private lateinit var sourceFileAppWidgetsWithSize: PsiFile
   private lateinit var sourceFileNone: PsiFile
 
   @Before
@@ -64,6 +65,21 @@ class GlancePreviewElementFinderTest {
           .trimIndent(),
       )
 
+    sourceFileAppWidgetsWithSize =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFileWidgetWithSize.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+
+        @Preview("AppWidget", widthDp = 1234, heightDp = 5678)
+        fun Foo41() { }
+        """
+          .trimIndent(),
+      )
+
     sourceFileNone =
       fixture.addFileToProjectAndInvalidate(
         "com/android/test/SourceFileNone.kt",
@@ -73,7 +89,7 @@ class GlancePreviewElementFinderTest {
 
         import androidx.glance.preview.Preview
 
-        fun Foo41() { }
+        fun Foo51() { }
         """
           .trimIndent(),
       )
@@ -84,6 +100,12 @@ class GlancePreviewElementFinderTest {
     Assert.assertTrue(
       AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
     )
+    Assert.assertTrue(
+      AppWidgetPreviewElementFinder.hasPreviewElements(
+        project,
+        sourceFileAppWidgetsWithSize.virtualFile,
+      )
+    )
     Assert.assertFalse(
       AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
     )
@@ -92,6 +114,14 @@ class GlancePreviewElementFinderTest {
       Assert.assertEquals(
         listOf("com.android.test.SourceFileWidgetKt.Foo31"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
+          .map { it.methodFqn },
+      )
+      Assert.assertEquals(
+        listOf("com.android.test.SourceFileWidgetWithSizeKt.Foo41"),
+        AppWidgetPreviewElementFinder.findPreviewElements(
+            project,
+            sourceFileAppWidgetsWithSize.virtualFile,
+          )
           .map { it.methodFqn },
       )
     }
