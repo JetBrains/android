@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
@@ -31,7 +30,7 @@ import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 data class SurfaceLayoutOption(
   val displayName: String,
   val layoutManager: SurfaceLayoutManager,
-  val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER,
+  val sceneViewAlignment: SceneViewAlignment = SceneViewAlignment.CENTER,
 ) {
   companion object {
 

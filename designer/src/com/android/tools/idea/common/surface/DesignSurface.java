@@ -32,6 +32,7 @@ import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.LintIssueProvider;
+import com.android.tools.idea.common.layout.SceneViewAlignment;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -133,36 +134,6 @@ import org.jetbrains.annotations.TestOnly;
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
   implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport, ScaleListener {
-  /**
-   * Alignment for the {@link SceneView} when its size is less than the minimum size.
-   * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
-   * the rectangle formed by the minimum size.
-   */
-  public enum SceneViewAlignment {
-    /**
-     * Align content to the left within the minimum size bounds.
-     */
-    LEFT(LEFT_ALIGNMENT),
-    /**
-     * Align content to the right within the minimum size bounds.
-     */
-    RIGHT(RIGHT_ALIGNMENT),
-    /**
-     * Center contents within the minimum size bounds.
-     */
-    CENTER(CENTER_ALIGNMENT);
-
-    /**
-     * The Swing alignment value equivalent to this alignment setting. See
-     * {@link java.awt.Component#LEFT_ALIGNMENT}, {@link java.awt.Component#RIGHT_ALIGNMENT}
-     * and {@link java.awt.Component#CENTER_ALIGNMENT}.
-     */
-    private final float mySwingAlignmentXValue;
-
-    SceneViewAlignment(float swingValue) {
-      mySwingAlignmentXValue = swingValue;
-    }
-  }
 
   /**
    * Determines the visibility of the zoom controls in this surface.
@@ -1935,7 +1906,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
    */
   public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
-    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.mySwingAlignmentXValue);
+    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
   }
 
   /**

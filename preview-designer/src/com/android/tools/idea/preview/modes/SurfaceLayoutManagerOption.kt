@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.modes
 
+import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager
@@ -146,7 +146,7 @@ val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
     GroupedGridSurfaceLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+    SceneViewAlignment.LEFT,
   )
 
 /** List layout option which doesn't group elements. */
@@ -156,7 +156,7 @@ val LIST_NO_GROUP_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       ListLayoutManager(organizationListPadding, NO_GROUP_TRANSFORM)
     else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+    SceneViewAlignment.LEFT,
   )
 
 /** Grid layout option which doesn't group elements. */
@@ -166,7 +166,7 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       GridLayoutManager(organizationGridPadding, NO_GROUP_TRANSFORM)
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+    SceneViewAlignment.LEFT,
   )
 
 /** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
@@ -176,7 +176,7 @@ val LIST_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT)
     else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+    SceneViewAlignment.LEFT,
   )
 
 /** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
@@ -186,5 +186,5 @@ val GRID_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT)
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+    SceneViewAlignment.LEFT,
   )

@@ -28,6 +28,7 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -128,7 +129,7 @@ class VisualizationForm(
         VERTICAL_SCREEN_DELTA,
         false,
       ),
-      DesignSurface.SceneViewAlignment.LEFT,
+      SceneViewAlignment.LEFT,
     )
   private val myUpdateQueue: MergingUpdateQueue
 
@@ -193,7 +194,7 @@ class VisualizationForm(
           }
         }
         .build()
-    surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
+    surface.setSceneViewAlignment(SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
     updateScreenMode()
