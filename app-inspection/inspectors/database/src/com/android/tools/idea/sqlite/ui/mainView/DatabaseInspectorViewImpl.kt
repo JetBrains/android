@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -229,6 +230,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
         override fun actionPerformed(e: AnActionEvent) {
           listeners.forEach { it.closeTabActionInvoked(tabId) }
         }
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
         override fun update(e: AnActionEvent) {
           e.presentation.hoveredIcon = AllIcons.Actions.CloseHovered
