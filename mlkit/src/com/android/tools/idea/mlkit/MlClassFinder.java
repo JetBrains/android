@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.android.tools.mlkit.MlNames;
@@ -50,7 +49,7 @@ public class MlClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!StudioFlags.ML_MODEL_BINDING.get() || !qualifiedName.contains(MlNames.PACKAGE_SUFFIX)) {
+    if (!qualifiedName.contains(MlNames.PACKAGE_SUFFIX)) {
       return PsiClass.EMPTY_ARRAY;
     }
 
@@ -64,7 +63,7 @@ public class MlClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String packageName) {
-    if (!StudioFlags.ML_MODEL_BINDING.get() || !packageName.endsWith(MlNames.PACKAGE_SUFFIX)) {
+    if (!packageName.endsWith(MlNames.PACKAGE_SUFFIX)) {
       return null;
     }
 

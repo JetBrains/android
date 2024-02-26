@@ -208,15 +208,6 @@ public final class StudioFlags {
     Flag.create(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
   //endregion
 
-  //region ML
-  private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");
-  public static final Flag<Boolean> ML_MODEL_BINDING = Flag.create(
-    ML, "modelbinding", "Enable ML model binding",
-    "When enabled, TFLite model file will be recognized and indexed. Please invalidates file caches after enabling " +
-    "(File -> Invalidate Caches...) in order to reindex model files.",
-    true);
-  //endregion
-
   //region Design Tools
   private static final FlagGroup DESIGN_TOOLS = new FlagGroup(FLAGS, "design.tools", "Design Tools");
 

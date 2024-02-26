@@ -17,7 +17,6 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wizard.template.Category;
 import com.intellij.openapi.actionSystem.AnAction;
 import java.util.List;
@@ -32,37 +31,16 @@ public class ImportMlModelActionProviderTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.ML_MODEL_BINDING.override(true);
     myImportMlModelActionsProvider = new ImportMlModelActionsProvider();
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.ML_MODEL_BINDING.clearOverride();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testGetAdditionalActions_categoryOtherWithFlag_returnAction() {
-    StudioFlags.ML_MODEL_BINDING.override(true);
     List<AnAction> actions = myImportMlModelActionsProvider.getAdditionalActions(Category.Other);
     assertThat(actions).hasSize(1);
     assertThat(actions.get(0)).isInstanceOf(ImportMlModelAction.class);
   }
 
-  public void testGetAdditionalActions_flagOff_returnEmpty() {
-    StudioFlags.ML_MODEL_BINDING.override(false);
-    assertThat(myImportMlModelActionsProvider.getAdditionalActions(Category.Other)).isEmpty();
-  }
-
   public void testGetAdditionalActions_categoryNotOther_returnEmpty() {
-    StudioFlags.ML_MODEL_BINDING.override(true);
     assertThat(myImportMlModelActionsProvider.getAdditionalActions(Category.Activity)).isEmpty();
   }
 }

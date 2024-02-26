@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.mlmodels;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.FileSubject;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.mlmodels.ImportMlModelWizardFixture;
@@ -26,8 +25,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,17 +33,6 @@ import org.junit.runner.RunWith;
 public class ImportMlModelTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-
-
-  @Before
-  public void setUp() {
-    StudioFlags.ML_MODEL_BINDING.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.ML_MODEL_BINDING.clearOverride();
-  }
 
   @Test
   public void testImportMlModel_flavorMain() throws IOException {

@@ -24,7 +24,6 @@ import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.project.DefaultModuleSystem;
@@ -32,7 +31,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.JavaLibraryDependency;
 import com.android.tools.tests.AdtTestKotlinArtifacts;
-import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
@@ -68,7 +66,6 @@ public class MlLightClassTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.ML_MODEL_BINDING.override(true);
 
     // ML model size is over default 2.5 MiB
     PersistentFSConstants.setMaxIntellisenseFileSize(100_000_000);
@@ -97,19 +94,6 @@ public class MlLightClassTest extends AndroidTestCase {
     JavaLibraryDependency kotlinStdlib =
       JavaLibraryDependency.Companion.forJar(AdtTestKotlinArtifacts.INSTANCE.getKotlinStdlib());
     myFixture = setupTestMlProject(myFixture, version, 28, ImmutableList.of(kotlinStdlib));
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.ML_MODEL_BINDING.clearOverride();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testHighlighting_java() {

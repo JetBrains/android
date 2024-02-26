@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -40,10 +39,6 @@ public class MlShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
-    if (!StudioFlags.ML_MODEL_BINDING.get()) {
-      return PsiClass.EMPTY_ARRAY;
-    }
-
     return MlProjectService.getInstance(myProject).getLightClassListByClassName(name).stream()
       .filter(lightClass -> PsiSearchScopeUtil.isInScope(scope, lightClass))
       .toArray(PsiClass[]::new);
@@ -52,10 +47,6 @@ public class MlShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    if (!StudioFlags.ML_MODEL_BINDING.get()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
-    }
-
     return ArrayUtil.toStringArray(MlProjectService.getInstance(myProject).getAllClassNames());
   }
 
