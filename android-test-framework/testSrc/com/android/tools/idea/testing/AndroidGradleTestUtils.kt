@@ -2475,14 +2475,26 @@ fun injectBuildOutputDumpingBuildViewManager(
   disposable: Disposable,
   eventHandler: (BuildEvent) -> Unit = {}
 ) {
+  val listeners = CopyOnWriteArrayList<BuildProgressListener>()
   project.replaceService(
     BuildViewManager::class.java,
     object : BuildViewManager(project) {
+
+      override fun addListener(listener: BuildProgressListener, disposable: Disposable) {
+        listeners.add(listener)
+        Disposer.register(disposable) {
+          listeners.remove(listener)
+        }
+      }
+
       override fun onEvent(buildId: Any, event: BuildEvent) {
         if (event is MessageEvent) {
           println(event.result.details)
         }
         eventHandler(event)
+        listeners.forEach {
+          it.onEvent(buildId, event)
+        }
       }
     },
     disposable
