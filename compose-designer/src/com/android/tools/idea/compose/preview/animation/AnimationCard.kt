@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -131,6 +132,8 @@ class AnimationCard(
 
   private inner class ExpandAction :
     AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       state.value = state.value.copy(expanded = !state.value.expanded)
