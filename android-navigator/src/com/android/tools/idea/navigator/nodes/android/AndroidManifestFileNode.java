@@ -56,7 +56,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     // could be null if the file was deleted.
     if (file != null) {
       // if it is not part of the main source set, then append the provider name
-      NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+      NamedIdeaSourceProvider sourceProvider = getSourceProvider(file);
       if (sourceProvider != null && !FD_MAIN.equals(sourceProvider.getName())) {
         data.addText(file.getName(), REGULAR_ATTRIBUTES);
         String name = sourceProvider.getName();
@@ -69,8 +69,8 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
   }
 
   @Nullable
-  static NamedIdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-    return findByFile(AndroidViewNodes.getSourceProviders(facet), file.getVirtualFile());
+  public NamedIdeaSourceProvider getSourceProvider(@NotNull PsiFile file) {
+    return findByFile(AndroidViewNodes.getSourceProviders(myAndroidFacet), file.getVirtualFile());
   }
 
   @Override
@@ -81,7 +81,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
       return "";
     }
 
-    NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+    NamedIdeaSourceProvider sourceProvider = getSourceProvider(file);
     if (sourceProvider == null || FD_MAIN.equals(sourceProvider.getName())) {
       return "";
     }
@@ -111,7 +111,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     }
     StringBuilder buffer = new StringBuilder();
     buffer.append(file.getName());
-    NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+    NamedIdeaSourceProvider sourceProvider = getSourceProvider(file);
     assert sourceProvider != null;
     String name = sourceProvider.getName();
     if (isNotEmpty(name)) {
