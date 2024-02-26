@@ -16,8 +16,8 @@
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-  id("sml.kotlin-conventions")
-  id("sml.ijplugin-conventions")
+  kotlin("jvm")
+  id("org.jetbrains.intellij")
 }
 
 version = properties("pluginVersion")
@@ -36,4 +36,3 @@ intellij {
   plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 
 }
-
