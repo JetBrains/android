@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.insights.Selection
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -48,6 +49,8 @@ open class AppInsightsDropDownAction<T>(
     }
     return true
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(getDisplayTitle(flow.value.selected), false)
