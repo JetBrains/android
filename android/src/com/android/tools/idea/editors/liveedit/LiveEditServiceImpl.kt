@@ -61,6 +61,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -74,6 +75,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
@@ -373,6 +375,6 @@ class LiveEditServiceImpl(val project: Project,
 
     // Filter to only files from this project.
     val index = ProjectFileIndex.getInstance(project)
-    return index.isInProject(file)
+    return SlowOperations.allowSlowOperations(ThrowableComputable { index.isInProject(file) })
   }
 }
