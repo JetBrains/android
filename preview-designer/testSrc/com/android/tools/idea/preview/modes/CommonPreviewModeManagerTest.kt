@@ -40,11 +40,11 @@ class CommonPreviewModeManagerTest {
     manager.restorePrevious()
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
-    manager.setMode(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
-    manager.setMode(PreviewMode.UiCheck(previewElement, GRID_LAYOUT_MANAGER_OPTIONS))
-    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_MANAGER_OPTION))
+    manager.setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
+    manager.setMode(PreviewMode.UiCheck(previewElement, GRID_LAYOUT_OPTION))
+    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_OPTION))
     manager.restorePrevious()
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
+    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(GRID_LAYOUT_OPTION))
   }
 
   @Test
@@ -55,12 +55,12 @@ class CommonPreviewModeManagerTest {
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
     manager.setMode(PreviewMode.Gallery(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(PREVIEW_LAYOUT_GALLERY_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GALLERY_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.UiCheck(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_MANAGER_OPTIONS)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_OPTION)
 
-    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_MANAGER_OPTION))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_LAYOUT_MANAGER_OPTION)
+    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_OPTION))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_LAYOUT_OPTION)
   }
 }

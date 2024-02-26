@@ -143,41 +143,27 @@ private val organizationGridPadding =
   )
 
 /** Toolbar option to select [PreviewMode.Gallery] layout. */
-val PREVIEW_LAYOUT_GALLERY_OPTION =
+val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
     GroupedGridSurfaceLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
     DesignSurface.SceneViewAlignment.LEFT,
   )
 
-val LIST_LAYOUT_MANAGER_OPTION =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutOption(
-      // TODO(b/289994157) Change name to "List"
-      message("vertical.groups"),
-      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
-      DesignSurface.SceneViewAlignment.LEFT,
-    )
-  } else {
-    SurfaceLayoutOption(
-      message("new.list.layout.title"),
-      GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-      DesignSurface.SceneViewAlignment.LEFT,
-    )
-  }
+val LIST_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.list.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT)
+    else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )
 
-val GRID_LAYOUT_MANAGER_OPTIONS =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutOption(
-      // TODO(b/289994157) Change name to "Grid"
-      message("grid.groups"),
-      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
-      DesignSurface.SceneViewAlignment.LEFT,
-    )
-  } else {
-    SurfaceLayoutOption(
-      message("new.grid.layout.title"),
-      GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
-      DesignSurface.SceneViewAlignment.LEFT,
-    )
-  }
+val GRID_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.grid.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT)
+    else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )

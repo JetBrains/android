@@ -22,9 +22,9 @@ import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -83,15 +83,11 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     val actionWithGalleryModeOption =
       SwitchSurfaceLayoutManagerAction(
-        listOf(
-          LIST_LAYOUT_MANAGER_OPTION,
-          GRID_LAYOUT_MANAGER_OPTIONS,
-          PREVIEW_LAYOUT_GALLERY_OPTION,
-        )
+        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
       )
 
     val setGalleryOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(PREVIEW_LAYOUT_GALLERY_OPTION)
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GALLERY_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -110,12 +106,10 @@ class SwitchSurfaceLayoutManagerActionTest {
   fun testPreviewModeIsUpdatedWithoutGalleryModeOption() {
     val (dataContext, previewModeManager, _) = setupTestData()
     val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(
-        listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
-      )
+      SwitchSurfaceLayoutManagerAction(listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION))
 
     val setGridOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_MANAGER_OPTIONS)
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -126,7 +120,7 @@ class SwitchSurfaceLayoutManagerActionTest {
     // check that the gallery mode is set with the first preview element
     run {
       setGridOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
+      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
     }
   }
 
@@ -142,17 +136,13 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     val actionWithGalleryModeOption =
       SwitchSurfaceLayoutManagerAction(
-        listOf(
-          LIST_LAYOUT_MANAGER_OPTION,
-          GRID_LAYOUT_MANAGER_OPTIONS,
-          PREVIEW_LAYOUT_GALLERY_OPTION,
-        )
+        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
       )
 
     val setListLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_MANAGER_OPTION)
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_OPTION)
     val setGridLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_MANAGER_OPTIONS)
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -164,13 +154,13 @@ class SwitchSurfaceLayoutManagerActionTest {
     // check that the default mode is set with the list layout option
     run {
       setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(LIST_LAYOUT_MANAGER_OPTION))
+      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(LIST_LAYOUT_OPTION))
     }
 
     // check that the default mode is set with the grid layout option
     run {
       setGridLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
+      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
     }
   }
 
@@ -178,22 +168,17 @@ class SwitchSurfaceLayoutManagerActionTest {
   fun testPreviewModeDerivesCurrentModeWithLayoutWithGalleryOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
-    val uiCheckMode =
-      PreviewMode.UiCheck(previewElement2, layoutOption = GRID_LAYOUT_MANAGER_OPTIONS)
+    val uiCheckMode = PreviewMode.UiCheck(previewElement2, layoutOption = GRID_LAYOUT_OPTION)
     val (dataContext, previewModeManager, _) =
       setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
 
     val actionWithGalleryModeOption =
       SwitchSurfaceLayoutManagerAction(
-        listOf(
-          LIST_LAYOUT_MANAGER_OPTION,
-          GRID_LAYOUT_MANAGER_OPTIONS,
-          PREVIEW_LAYOUT_GALLERY_OPTION,
-        )
+        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
       )
 
     val setListLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_MANAGER_OPTION)
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -204,7 +189,7 @@ class SwitchSurfaceLayoutManagerActionTest {
     // check that the current mode is derived with the selected layout option
     run {
       setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      val derivedOption = uiCheckMode.deriveWithLayout(LIST_LAYOUT_MANAGER_OPTION)
+      val derivedOption = uiCheckMode.deriveWithLayout(LIST_LAYOUT_OPTION)
       verify(previewModeManager, times(1)).setMode(derivedOption)
     }
   }

@@ -71,7 +71,7 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -1392,7 +1392,7 @@ class ComposePreviewRepresentation(
       PREVIEW_LAYOUT_OPTIONS.find { it.displayName == previewLayoutName }
         ?.let {
           // If gallery mode was selected before - need to restore this type of layout.
-          if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
+          if (it == GALLERY_LAYOUT_OPTION) {
             composePreviewFlowManager.allPreviewElementsFlow.value
               .asCollection()
               .firstOrNull()

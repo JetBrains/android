@@ -42,8 +42,8 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -260,7 +260,7 @@ class ComposePreviewRepresentationTest {
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
-      GRID_LAYOUT_MANAGER_OPTIONS == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      GRID_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     assertTrue(preview.atfChecksEnabled)
@@ -363,7 +363,7 @@ class ComposePreviewRepresentationTest {
 
     assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
-      LIST_LAYOUT_MANAGER_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      LIST_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the surface zooms to fit when exiting UI check mode.
@@ -398,7 +398,7 @@ class ComposePreviewRepresentationTest {
 
     // Restart UI Check mode on the same preview
     setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement)) {
-      GRID_LAYOUT_MANAGER_OPTIONS == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      GRID_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the UI Check tab is being reused
@@ -457,7 +457,7 @@ class ComposePreviewRepresentationTest {
     }
 
     setModeAndWaitForRefresh(PreviewMode.Default()) {
-      LIST_LAYOUT_MANAGER_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      LIST_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
   }
 

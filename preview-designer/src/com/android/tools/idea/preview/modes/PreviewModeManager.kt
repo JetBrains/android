@@ -66,7 +66,7 @@ sealed class PreviewMode {
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
 
-  open val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_MANAGER_OPTION
+  open val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_OPTION
 
   open val selected: PreviewElement<*>? = null
 
@@ -93,7 +93,7 @@ sealed class PreviewMode {
     return Objects.hashCode(backgroundColor, layoutOption, selected)
   }
 
-  class Default(override val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_MANAGER_OPTION) :
+  class Default(override val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_OPTION) :
     RestorePreviewMode() {
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
       return Default(layoutOption)
@@ -107,7 +107,7 @@ sealed class PreviewMode {
 
   class UiCheck(
     val baseElement: PreviewElement<*>,
-    override val layoutOption: SurfaceLayoutOption = GRID_LAYOUT_MANAGER_OPTIONS,
+    override val layoutOption: SurfaceLayoutOption = GRID_LAYOUT_OPTION,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get(),
   ) : PreviewMode() {
@@ -127,7 +127,7 @@ sealed class PreviewMode {
   }
 
   class Gallery(override val selected: PreviewElement<*>?) : RestorePreviewMode() {
-    override val layoutOption: SurfaceLayoutOption = PREVIEW_LAYOUT_GALLERY_OPTION
+    override val layoutOption: SurfaceLayoutOption = GALLERY_LAYOUT_OPTION
 
     /**
      * If list of previews is updated while [PreviewMode.Gallery] is selected - [selected] element

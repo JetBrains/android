@@ -28,9 +28,9 @@ import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -63,9 +63,9 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
       WearTileViewControlAction(
           layoutOptions =
             listOf(
-              LIST_LAYOUT_MANAGER_OPTION,
-              GRID_LAYOUT_MANAGER_OPTIONS,
-              PREVIEW_LAYOUT_GALLERY_OPTION,
+              LIST_LAYOUT_OPTION,
+              GRID_LAYOUT_OPTION,
+              GALLERY_LAYOUT_OPTION,
             )
         )
         .visibleOnlyInStaticPreview(),

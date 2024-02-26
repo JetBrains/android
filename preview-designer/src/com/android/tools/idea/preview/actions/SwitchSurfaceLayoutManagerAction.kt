@@ -22,7 +22,7 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.icons.AllIcons
@@ -74,7 +74,7 @@ class SwitchSurfaceLayoutManagerAction(
       PreviewCanvasTracker.getInstance().logSwitchLayout(option.layoutManager)
       val manager = dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return
 
-      if (option == PREVIEW_LAYOUT_GALLERY_OPTION) {
+      if (option == GALLERY_LAYOUT_OPTION) {
         // If turning on Gallery layout option - it should be set in preview.
         // TODO (b/292057010) If group filtering is enabled - first element in this group
         // should be selected.

@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -59,7 +59,7 @@ class GalleryModeTest {
     val (gallery, _) = setupGallery { previewFlowManager }
     assertEquals(firstElement, gallery.selectedKey!!.element)
     assertInstanceOf<PreviewMode.Gallery>(previewModeManager.mode.value)
-    assertEquals(PREVIEW_LAYOUT_GALLERY_OPTION, previewModeManager.mode.value.layoutOption)
+    assertEquals(GALLERY_LAYOUT_OPTION, previewModeManager.mode.value.layoutOption)
     assertEquals(firstElement, (previewModeManager.mode.value as PreviewMode.Gallery).selected)
   }
 

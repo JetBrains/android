@@ -23,9 +23,9 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -38,11 +38,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-internal val BASE_LAYOUT_MANAGER_OPTIONS =
-  listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
+internal val BASE_LAYOUT_OPTIONS = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION)
 
 /** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_OPTIONS = BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
+internal val PREVIEW_LAYOUT_OPTIONS = BASE_LAYOUT_OPTIONS + GALLERY_LAYOUT_OPTION
 
 /** Default layout option selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_OPTION = PREVIEW_LAYOUT_OPTIONS.first()
