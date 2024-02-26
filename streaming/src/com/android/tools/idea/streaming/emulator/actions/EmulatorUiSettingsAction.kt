@@ -51,7 +51,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
     val config = getEmulatorConfig(event) ?: return
     val model = UiSettingsModel(config.displaySize, config.density)
-    val controller = EmulatorUiSettingsController(project, serialNumber, model, emulatorView)
+    val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {

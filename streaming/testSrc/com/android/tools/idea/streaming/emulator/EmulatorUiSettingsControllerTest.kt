@@ -17,10 +17,16 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.testutils.waitForCondition
+import com.android.tools.analytics.LoggedUsage
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
+import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType
+import com.google.wireless.android.sdk.stats.UiDeviceSettingsEvent.OperationKind
 import com.intellij.openapi.Disposable
+import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -30,45 +36,51 @@ import kotlin.time.Duration.Companion.seconds
 
 class EmulatorUiSettingsControllerTest {
 
+  private val uiRule = UiSettingsRule()
+  private val usageRule = UsageTrackerRule()
+
   @get:Rule
-  val rule = UiSettingsRule(emulatorPort = 4445)
+  val chain = RuleChain(uiRule, usageRule)
 
   private val testRootDisposable: Disposable
-    get() = rule.testRootDisposable
+    get() = uiRule.testRootDisposable
 
   private val adb: FakeAdbDeviceServices
-    get() = rule.adb
+    get() = uiRule.adb
 
   private val lastIssuedChangeCommand: String?
-    get() = rule.issuedChangeCommands.lastOrNull()
+    get() = uiRule.issuedChangeCommands.lastOrNull()
 
   private val antepenultimateChangeCommand: String?
-    get() = rule.issuedChangeCommands.let { if (it.size > 2) it[it.size - 3] else null }
+    get() = uiRule.issuedChangeCommands.let { if (it.size > 2) it[it.size - 3] else null }
+
+  private val usages: List<LoggedUsage>
+    get() = usageRule.usages
 
   private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
 
   @Before
   fun before() {
-    adb.configureShellCommand(rule.deviceSelector, "cmd uimode night yes", "Night mode: yes")
-    adb.configureShellCommand(rule.deviceSelector, "cmd uimode night no", "Night mode: no")
-    adb.configureShellCommand(rule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
-    adb.configureShellCommand(rule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 2", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 0.75", "")
-    adb.configureShellCommand(rule.deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
-    adb.configureShellCommand(rule.deviceSelector, "wm density 480", "Physical density: 480")
-    adb.configureShellCommand(rule.deviceSelector, "wm density 544", "Physical density: 480\nOverride density: 544")
-    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings delete secure enabled_accessibility_services", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings delete secure accessibility_button_targets", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services " +
-                                                   "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
-    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services " +
-                                                   "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
-    adb.configureShellCommand(rule.deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
+    adb.configureShellCommand(uiRule.deviceSelector, "cmd uimode night yes", "Night mode: yes")
+    adb.configureShellCommand(uiRule.deviceSelector, "cmd uimode night no", "Night mode: no")
+    adb.configureShellCommand(uiRule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put system font_scale 2", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put system font_scale 0.75", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
+    adb.configureShellCommand(uiRule.deviceSelector, "wm density 480", "Physical density: 480")
+    adb.configureShellCommand(uiRule.deviceSelector, "wm density 544", "Physical density: 480\nOverride density: 544")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings delete secure enabled_accessibility_services", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings delete secure accessibility_button_targets", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services " +
+                                                     "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
+    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services " +
+                                                     "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
+    adb.configureShellCommand(uiRule.deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
   }
 
   @Test
@@ -87,7 +99,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadCustomValue() {
-    rule.configureUiSettings(
+    uiRule.configureUiSettings(
       darkMode = true,
       applicationId = APPLICATION_ID1,
       appLocales = "da",
@@ -108,14 +120,16 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     model.inDarkMode.setFromUi(true)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night yes" }
+    assertUsageEvent(OperationKind.DARK_THEME)
   }
 
   @Test
   fun testSetNightOff() {
-    rule.configureUiSettings(darkMode = true)
+    uiRule.configureUiSettings(darkMode = true)
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+    assertUsageEvent(OperationKind.DARK_THEME)
   }
 
   @Test
@@ -126,69 +140,76 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales da" }
     appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
+    assertUsageEvent(OperationKind.APP_LANGUAGE, OperationKind.APP_LANGUAGE)
   }
 
   @Test
   fun testSetTalkBackOn() {
-    rule.configureUiSettings(talkBackInstalled = true)
+    uiRule.configureUiSettings(talkBackInstalled = true)
     controller.initAndWait()
     model.talkBackOn.setFromUi(true)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" }
+    assertUsageEvent(OperationKind.TALKBACK)
   }
 
   @Test
   fun testSetTalkBackOff() {
-    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
     controller.initAndWait()
     model.talkBackOn.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings delete secure enabled_accessibility_services" }
+    assertUsageEvent(OperationKind.TALKBACK)
   }
 
   @Test
   fun testSetTalkBackOnWithSelectToSpeakOn() {
-    rule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
     controller.initAndWait()
     model.talkBackOn.setFromUi(true)
     waitForCondition(10.seconds) {
       lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME"
     }
+    assertUsageEvent(OperationKind.TALKBACK)
   }
 
   @Test
   fun testSetTalkBackOffWithSelectToSpeakOn() {
-    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
     controller.initAndWait()
     model.talkBackOn.setFromUi(false)
     waitForCondition(10.seconds) {
       lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME"
     }
+    assertUsageEvent(OperationKind.TALKBACK)
   }
 
   @Test
   fun testSetSelectToSpeakOn() {
-    rule.configureUiSettings(talkBackInstalled = true)
+    uiRule.configureUiSettings(talkBackInstalled = true)
     controller.initAndWait()
     model.selectToSpeakOn.setFromUi(true)
     waitForCondition(10.seconds) {
       antepenultimateChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME" &&
       lastIssuedChangeCommand == "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME"
     }
+    assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
   }
 
   @Test
   fun testSetSelectToSpeakOff() {
-    rule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
     controller.initAndWait()
     model.selectToSpeakOn.setFromUi(false)
     waitForCondition(10.seconds) {
       antepenultimateChangeCommand == "settings delete secure enabled_accessibility_services" &&
       lastIssuedChangeCommand == "settings delete secure accessibility_button_targets"
     }
+    assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
   }
 
   @Test
   fun testSetSelectToSpeakOnWithTalkBackOn() {
-    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
     controller.initAndWait()
     model.selectToSpeakOn.setFromUi(true)
     waitForCondition(10.seconds) {
@@ -196,17 +217,19 @@ class EmulatorUiSettingsControllerTest {
                                       "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME" &&
       lastIssuedChangeCommand == "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME"
     }
+    assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
   }
 
   @Test
   fun testSetSelectToSpeakOffWithTalkBackOn() {
-    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
+    uiRule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
     controller.initAndWait()
     model.selectToSpeakOn.setFromUi(false)
     waitForCondition(10.seconds) {
       antepenultimateChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" &&
       lastIssuedChangeCommand == "settings delete secure accessibility_button_targets"
     }
+    assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
   }
 
   @Test
@@ -216,6 +239,7 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 2" }
     model.fontSizeInPercent.setFromUi(75)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 0.75" }
+    assertUsageEvent(OperationKind.FONT_SIZE, OperationKind.FONT_SIZE)
   }
 
   @Test
@@ -227,11 +251,12 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 480" }
     model.screenDensity.setFromUi(544)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 544" }
+    assertUsageEvent(OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY)
   }
 
   @Test
   fun testReset() {
-    rule.configureUiSettings(
+    uiRule.configureUiSettings(
       darkMode = true,
       applicationId = APPLICATION_ID1,
       appLocales = "da",
@@ -251,12 +276,24 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[0]).isEqualTo(FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY))
     assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
     assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertUsageEvent(OperationKind.RESET)
   }
 
   private fun createController() =
-    EmulatorUiSettingsController(rule.project, rule.emulatorSerialNumber, model, testRootDisposable)
+    EmulatorUiSettingsController(uiRule.project, uiRule.emulator.serialNumber, model, uiRule.emulatorConfiguration, testRootDisposable)
 
   private fun EmulatorUiSettingsController.initAndWait() = runBlocking {
     populateModel()
+  }
+
+  private fun assertUsageEvent(vararg operations: OperationKind) {
+    for ((index, expected) in operations.withIndex()) {
+      val event = usages[index].studioEvent
+      assertThat(event.kind).isEqualTo(EventKind.UI_DEVICE_SETTINGS_EVENT)
+      assertThat(event.deviceInfo.deviceType).isEqualTo(DeviceType.LOCAL_EMULATOR)
+      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("34")
+      assertThat(event.uiDeviceSettingsEvent.operation).isEqualTo(expected)
+    }
+    assertThat(usages).hasSize(operations.size)
   }
 }

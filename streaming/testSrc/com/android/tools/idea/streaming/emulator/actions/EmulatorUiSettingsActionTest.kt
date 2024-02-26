@@ -22,9 +22,6 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.android.tools.idea.streaming.emulator.FakeEmulator
-import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
-import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.UiSettingsRule
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
@@ -45,19 +42,12 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.concurrent.TimeUnit
 
-const val EMULATOR_PORT = 5554
-
 class EmulatorUiSettingsActionTest {
   private val popupRule = JBPopupRule()
-  private val uiRule = UiSettingsRule(EMULATOR_PORT)
-  private val emulatorRule = FakeEmulatorRule()
+  private val uiRule = UiSettingsRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(
-    uiRule,
-    emulatorRule,
-    popupRule
-  )
+  val ruleChain: RuleChain = RuleChain(uiRule, popupRule)
 
   private val popupFactory
     get() = popupRule.fakePopupFactory
@@ -68,7 +58,7 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testUpdateWhenUnused() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(false, testRootDisposable)
-    val controller = createEmulator(34)
+    val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -79,7 +69,7 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testActionOnApi33Emulator() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
-    val controller = createEmulator(33)
+    val controller = uiRule.getControllerOf(uiRule.createAndStartEmulator(api = 33))
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -91,7 +81,7 @@ class EmulatorUiSettingsActionTest {
   fun testActiveAction() {
     simulateDarkTheme(false)
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
-    val controller = createEmulator(34)
+    val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -110,7 +100,7 @@ class EmulatorUiSettingsActionTest {
     simulateDarkTheme(true)
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true)
     val action = EmulatorUiSettingsAction()
-    val controller = createEmulator(34)
+    val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val event = createTestKeyEvent(action, controller, view)
     action.update(event)
@@ -147,14 +137,6 @@ class EmulatorUiSettingsActionTest {
     ActionPlaces.TOOLBAR,
     Dimension(16, 16)
   )
-
-  private fun createEmulator(api: Int): EmulatorController {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = api)
-    emulatorRule.newEmulator(avdFolder).apply { start() }
-    val emulatorController = RunningEmulatorCatalog.getInstance().apply { updateNow().get() }.emulators.single()
-    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    return emulatorController
-  }
 
   private fun createEmulatorView(controller: EmulatorController): EmulatorView =
     EmulatorView(testRootDisposable, controller, displayId = 1, Dimension(600, 800), deviceFrameVisible = false)

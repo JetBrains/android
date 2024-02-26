@@ -16,10 +16,11 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.ide.common.resources.configuration.LocaleQualifier
-import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.data.convertFromLocaleConfig
+import com.android.tools.idea.streaming.uisettings.stats.LoggingChangeListener
+import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 
 /**
  * A controller for the [UiSettingsPanel] that populates the model and reacts to changes to the model initiated by the UI.
@@ -28,16 +29,21 @@ internal abstract class UiSettingsController(
   /**
    * The model that this controller is interacting with.
    */
-  protected val model: UiSettingsModel
+  protected val model: UiSettingsModel,
+
+  /**
+   * Logger for statistics
+   */
+  private val stats: UiSettingsStats
 ) {
 
   init {
-    model.inDarkMode.uiChangeListener = ChangeListener(::setDarkMode)
-    model.talkBackOn.uiChangeListener = ChangeListener(::setTalkBack)
-    model.selectToSpeakOn.uiChangeListener = ChangeListener(::setSelectToSpeak)
-    model.fontSizeInPercent.uiChangeListener = ChangeListener(::setFontSize)
-    model.screenDensity.uiChangeListener = ChangeListener(::setScreenDensity)
-    model.resetAction = ::reset
+    model.inDarkMode.uiChangeListener = LoggingChangeListener(::setDarkMode, stats::setDarkMode)
+    model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
+    model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
+    model.fontSizeInPercent.uiChangeListener = LoggingChangeListener(::setFontSize, stats::setFontSize)
+    model.screenDensity.uiChangeListener = LoggingChangeListener(::setScreenDensity, stats::setScreenDensity)
+    model.resetAction = { reset(); stats.reset() }
   }
 
   /**
@@ -54,7 +60,7 @@ internal abstract class UiSettingsController(
     model.appLanguage.addAll(languages)
     model.appLanguage.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
     model.appLanguage.selection.clearUiChangeListener()
-    model.appLanguage.selection.uiChangeListener = ChangeListener { setAppLanguage(applicationId, it) }
+    model.appLanguage.selection.uiChangeListener = LoggingChangeListener({setAppLanguage(applicationId, it)}, stats::setAppLanguage)
     return true
   }
 

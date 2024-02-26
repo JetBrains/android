@@ -18,13 +18,17 @@ package com.android.tools.idea.streaming.emulator
 import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.filterIsInstance
@@ -85,6 +89,14 @@ internal const val FACTORY_RESET_COMMAND =
   "settings put system font_scale 1; " +
   "wm density %d; "  // Parameters: applicationId, density
 
+private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
+  return DeviceInfo.newBuilder()
+    .setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR)
+    .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
+    .setBuildApiLevelFull(AndroidVersion(api, null).apiStringWithExtension)
+    .build()
+}
+
 /**
  * A controller for the UI settings for an Emulator,
  * that populates the model and reacts to changes to the model initiated by the UI.
@@ -93,8 +105,9 @@ internal class EmulatorUiSettingsController(
   private val project: Project,
   private val deviceSerialNumber: String,
   model: UiSettingsModel,
+  emulatorConfig: EmulatorConfiguration,
   parentDisposable: Disposable,
-) : UiSettingsController(model) {
+) : UiSettingsController(model, UiSettingsStats(emulatorConfig.toDeviceInfo(deviceSerialNumber))) {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US))
   private var readApplicationId = ""

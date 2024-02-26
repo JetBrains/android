@@ -56,7 +56,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
     val density = config.deviceProperties.density ?: return
     val model = UiSettingsModel(screenSize, density)
-    val controller = DeviceUiSettingsController(deviceController, project, model)
+    val controller = DeviceUiSettingsController(deviceController, config, project, model)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {

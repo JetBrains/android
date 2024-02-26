@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.intellij.openapi.project.Project
@@ -27,9 +28,10 @@ import com.intellij.openapi.project.Project
  */
 internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
+  deviceConfig: DeviceConfiguration,
   private val project: Project,
   model: UiSettingsModel
-) : UiSettingsController(model) {
+) : UiSettingsController(model, UiSettingsStats(deviceConfig.deviceProperties.deviceInfoProto)) {
 
   override suspend fun populateModel() {
     val response = deviceController.getUiSettings()
