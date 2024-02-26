@@ -40,9 +40,9 @@ class CommonNlDesignSurfacePreviewView(
   parentDisposable: Disposable,
 ) : PreviewView, PreviewRepresentationView {
 
-  override val surface = surfaceBuilder.build()
+  override val mainSurface = surfaceBuilder.build()
 
-  private val actionsToolbar = ActionsToolbar(parentDisposable, surface)
+  private val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
 
   private val editorPanel =
     JPanel(BorderLayout()).apply {
@@ -58,7 +58,7 @@ class CommonNlDesignSurfacePreviewView(
       overlayPanel.apply {
         layout = OverlayLayout(this)
 
-        add(surface)
+        add(mainSurface)
       }
 
       add(overlayPanel, BorderLayout.CENTER)
@@ -68,9 +68,9 @@ class CommonNlDesignSurfacePreviewView(
     object :
         WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
         override fun getData(dataId: String): Any? =
-          if (DESIGN_SURFACE.`is`(dataId)) surface else null
+          if (DESIGN_SURFACE.`is`(dataId)) mainSurface else null
       }
-      .apply { init(editorPanel, surface, listOf(), false) }
+      .apply { init(editorPanel, mainSurface, listOf(), false) }
 
   @UiThread
   override fun showErrorMessage(

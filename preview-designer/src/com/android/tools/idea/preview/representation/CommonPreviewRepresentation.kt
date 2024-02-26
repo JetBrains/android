@@ -204,7 +204,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   }
 
   private val surface: NlDesignSurface
-    get() = previewView.surface
+    get() = previewView.mainSurface
 
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)

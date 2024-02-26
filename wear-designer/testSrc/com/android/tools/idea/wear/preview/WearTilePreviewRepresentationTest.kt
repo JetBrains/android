@@ -92,13 +92,13 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      preview.previewView.surface.models.forEach {
+      preview.previewView.mainSurface.models.forEach {
         assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
       }
 
       val status = preview.previewViewModel
       assertFalse(status.isOutOfDate)
-      val renderResults = preview.previewView.surface.sceneManagers.mapNotNull { it.renderResult }
+      val renderResults = preview.previewView.mainSurface.sceneManagers.mapNotNull { it.renderResult }
       // Ensure the only warning message is the missing Android SDK message
       assertTrue(
         renderResults
@@ -113,13 +113,13 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.surface.getData(PreviewModeManager.KEY.name))
+      assertThat(preview.previewView.mainSurface.getData(PreviewModeManager.KEY.name))
         .isInstanceOf(PreviewModeManager::class.java)
-      assertThat(preview.previewView.surface.getData(PREVIEW_VIEW_MODEL_STATUS.name))
+      assertThat(preview.previewView.mainSurface.getData(PREVIEW_VIEW_MODEL_STATUS.name))
         .isInstanceOf(PreviewViewModelStatus::class.java)
-      assertThat(preview.previewView.surface.getData(PreviewGroupManager.KEY.name))
+      assertThat(preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name))
         .isInstanceOf(PreviewGroupManager::class.java)
-      assertThat(preview.previewView.surface.getData(PreviewFlowManager.KEY.name))
+      assertThat(preview.previewView.mainSurface.getData(PreviewFlowManager.KEY.name))
         .isInstanceOf(PreviewFlowManager::class.java)
 
       preview.onDeactivate()
@@ -130,13 +130,13 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
       val previewGroupManager =
-        preview.previewView.surface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
+        preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("groupA")
-      assertThat(preview.previewView.surface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(2)
 
-      val dataContext = DataContext { preview.previewView.surface.getData(it) }
+      val dataContext = DataContext { preview.previewView.mainSurface.getData(it) }
 
       // Select preview group "groupA"
       run {
@@ -155,10 +155,10 @@ class WearTilePreviewRepresentationTest {
 
       // Ensure that the preview group was selected
       run {
-        delayUntilCondition(250) { preview.previewView.surface.models.size == 1 }
+        delayUntilCondition(250) { preview.previewView.mainSurface.models.size == 1 }
 
         val previewElements =
-          preview.previewView.surface.models.mapNotNull {
+          preview.previewView.mainSurface.models.mapNotNull {
             it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
           }
         assertThat(previewElements).hasSize(1)
@@ -176,7 +176,7 @@ class WearTilePreviewRepresentationTest {
       WearTilePreviewRepresentationProvider().createRepresentation(wearTileTestFile)
         as WearTilePreviewRepresentation
 
-    previewRepresentation.previewView.surface.addListener(
+    previewRepresentation.previewView.mainSurface.addListener(
       object : DesignSurfaceListener {
         override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
           val id = UUID.randomUUID().toString().substring(0, 5)

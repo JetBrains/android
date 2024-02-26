@@ -24,7 +24,11 @@ import javax.swing.JComponent
  * is to bypass the [PreviewViewModel] and use the [PreviewView] directly.
  */
 interface PreviewRepresentationView {
+  /**
+   * Returns the [JComponent] containing this [PreviewRepresentationView] that can be used to embed
+   * its other panels.
+   */
   val component: JComponent
 
-  val surface: NlDesignSurface
+  val mainSurface: NlDesignSurface
 }

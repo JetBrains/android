@@ -40,6 +40,7 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.gallery.GalleryModeWrapperPanel
+import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -79,16 +80,7 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
-interface ComposePreviewView {
-
-  val mainSurface: NlDesignSurface
-
-  /**
-   * Returns the [JComponent] containing this [ComposePreviewView] that can be used to embed it
-   * other panels.
-   */
-  val component: JComponent
-
+interface ComposePreviewView : PreviewRepresentationView {
   /**
    * Allows replacing the bottom panel in the [ComposePreviewView]. Used to display the animations
    * component.
