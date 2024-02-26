@@ -240,5 +240,8 @@
     <option name="resource" hit="Resource Usage:" />
     <option name="usage" hit="Resource Usage:" />
     <option name="split" hit="Split" />
+    <option name="preview" hit="Wear Tile Preview" />
+    <option name="tile" hit="Wear Tile Preview" />
+    <option name="wear" hit="Wear Tile Preview" />
   </configurable>
 </options>

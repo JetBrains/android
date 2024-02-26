@@ -5,6 +5,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.uibuilder.options.AndroidDesignerBundle.message
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.application.ApplicationManager
@@ -160,23 +161,21 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       val essentialsModeObservable = createEssentialsModeObservable()
       group("Compose Preview") {
         if (StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get()) {
-          buttonsGroup("Resource Usage:") {
-            row {
-                comment(
-                  "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
-                    "resource usage will be overridden to Essentials."
-                )
-              }
+          buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
+            row { comment(message("essentials.mode.resource.usage", "Compose Preview")) }
               .visibleIf(essentialsModeObservable)
 
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
                 defaultModeRadioButton =
-                  radioButton("Default").bindSelected({
-                    !state.isComposePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
-                  }) {
-                    state.isComposePreviewEssentialsModeEnabled = !it
-                  }
+                  radioButton(
+                      message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
+                    )
+                    .bindSelected({
+                      !state.isComposePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
+                    }) {
+                      state.isComposePreviewEssentialsModeEnabled = !it
+                    }
               }
               .enabledIf(essentialsModeObservable.not())
             indent {
@@ -188,15 +187,16 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               }
               .enabledIf(essentialsModeObservable.not())
             row {
-                // TODO(b/327343295) add "Learn More" link when the DAC page is live
-                val essentialsModeHint =
-                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes."
-
-                radioButton("Essentials").comment(essentialsModeHint).bindSelected({
-                  state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
-                }) {
-                  state.isComposePreviewEssentialsModeEnabled = it
-                }
+                radioButton(
+                    message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
+                  )
+                  // TODO(b/327343295) add "Learn More" link when the DAC page is live
+                  .comment(message("essentials.mode.hint"))
+                  .bindSelected({
+                    state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
+                  }) {
+                    state.isComposePreviewEssentialsModeEnabled = it
+                  }
               }
               .enabledIf(essentialsModeObservable.not())
           }
@@ -205,6 +205,39 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             checkBox("Enable live updates").bindSelected(fastPreviewState::isEnabled) {
               fastPreviewState.isEnabled = it
             }
+          }
+        }
+      }
+
+      if (StudioFlags.WEAR_TILE_PREVIEW.get()) {
+        group("Wear Tile Preview") {
+          buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
+            row { comment(message("essentials.mode.resource.usage", "Wear Tile Preview")) }
+              .visibleIf(essentialsModeObservable)
+
+            row {
+                radioButton(
+                    message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
+                  )
+                  .bindSelected({
+                    !state.isWearTilePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
+                  }) {
+                    state.isWearTilePreviewEssentialsModeEnabled = !it
+                  }
+              }
+              .enabledIf(essentialsModeObservable.not())
+            row {
+                radioButton(
+                    message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
+                  )
+                  .comment(message("essentials.mode.hint"))
+                  .bindSelected({
+                    state.isWearTilePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
+                  }) {
+                    state.isWearTilePreviewEssentialsModeEnabled = it
+                  }
+              }
+              .enabledIf(essentialsModeObservable.not())
           }
         }
       }
