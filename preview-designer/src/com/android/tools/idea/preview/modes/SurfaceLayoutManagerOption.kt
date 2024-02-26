@@ -146,6 +146,7 @@ val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
     GroupedGridSurfaceLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
+    false,
     SceneViewAlignment.LEFT,
   )
 
@@ -156,6 +157,7 @@ val LIST_NO_GROUP_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       ListLayoutManager(organizationListPadding, NO_GROUP_TRANSFORM)
     else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+    false,
     SceneViewAlignment.LEFT,
   )
 
@@ -166,25 +168,40 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
       GridLayoutManager(organizationGridPadding, NO_GROUP_TRANSFORM)
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+    false,
     SceneViewAlignment.LEFT,
   )
 
-/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+/** List layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
 val LIST_LAYOUT_OPTION =
-  SurfaceLayoutOption(
-    message("new.list.layout.title"),
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT)
-    else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-    SceneViewAlignment.LEFT,
-  )
+  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+    SurfaceLayoutOption(
+      message("new.list.layout.title"),
+      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
+      true,
+      SceneViewAlignment.LEFT,
+    )
+  else
+    SurfaceLayoutOption(
+      message("new.list.layout.title"),
+      GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+      false,
+      SceneViewAlignment.LEFT,
+    )
 
 /** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
 val GRID_LAYOUT_OPTION =
-  SurfaceLayoutOption(
-    message("new.grid.layout.title"),
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT)
-    else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
-    SceneViewAlignment.LEFT,
-  )
+  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+    SurfaceLayoutOption(
+      message("new.grid.layout.title"),
+      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
+      true,
+      SceneViewAlignment.LEFT,
+    )
+  else
+    SurfaceLayoutOption(
+      message("new.grid.layout.title"),
+      GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+      false,
+      SceneViewAlignment.LEFT,
+    )

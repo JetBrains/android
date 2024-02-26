@@ -24,11 +24,9 @@ import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.paintLines
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -157,13 +155,12 @@ internal class SceneViewPanel(
     }
   }
 
-  /** @return true if Organization feature is enabled and layout supports groups. */
+  /** @return true if Organization feature is enabled and layout supports it. */
   private fun organizationIsEnabled() =
-    StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get() &&
-      ((layout as? NlDesignSurfacePositionableContentLayoutManager)
-        ?.currentLayout
-        ?.value
-        ?.layoutManager is GroupedSurfaceLayoutManager)
+    (layout as? NlDesignSurfacePositionableContentLayoutManager)
+      ?.currentLayout
+      ?.value
+      ?.organizationEnabled == true
 
   override fun doLayout() {
     revalidateSceneViews()

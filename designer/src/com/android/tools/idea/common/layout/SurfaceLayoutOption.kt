@@ -25,11 +25,13 @@ import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
  *
  * @param displayName Name to be shown for this option.
  * @param layoutManager [SurfaceLayoutManager] to switch to when this option is selected.
+ * @param organizationEnabled if layout has organization
  * @param sceneViewAlignment scenes alignment
  */
 data class SurfaceLayoutOption(
   val displayName: String,
   val layoutManager: SurfaceLayoutManager,
+  val organizationEnabled: Boolean = false,
   val sceneViewAlignment: SceneViewAlignment = SceneViewAlignment.CENTER,
 ) {
   companion object {

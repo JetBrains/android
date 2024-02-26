@@ -129,6 +129,7 @@ class VisualizationForm(
         VERTICAL_SCREEN_DELTA,
         false,
       ),
+      false,
       SceneViewAlignment.LEFT,
     )
   private val myUpdateQueue: MergingUpdateQueue
