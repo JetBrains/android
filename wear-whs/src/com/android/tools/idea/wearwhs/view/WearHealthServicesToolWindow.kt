@@ -58,8 +58,10 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
+private const val MAX_OVERRIDE_VALUE_LENGTH = 50
 private const val PADDING = 15
-private val floatPattern = Regex("([0-9]*[.])?[0-9]*")
+// Allows only one leading zero
+private val floatPattern = Regex("^(0|0?[1-9]\\d*)?(\\.[0-9]*)?\$")
 
 private val horizontalBorders = Borders.empty(0, PADDING)
 
@@ -281,7 +283,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             add(JTextField().also { textField ->
               (textField.document as AbstractDocument).documentFilter = object : DocumentFilter() {
                 fun validate(string: String): Boolean {
-                  if (!floatPattern.matches(string)) {
+                  if (!floatPattern.matches(string) || string.length > MAX_OVERRIDE_VALUE_LENGTH) {
                     return false
                   }
                   workerScope.launch {

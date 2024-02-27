@@ -149,27 +149,64 @@ class WearHealthServicesToolWindowTest {
   }
 
   @Test
-  fun `test override value rejects invalid text`() = runBlocking {
+  fun `test override value allows numbers and decimals and rejects invalid text`() = runBlocking {
     val fakeUi = FakeUi(toolWindow)
 
     deviceManager.activeExercise = true
 
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
 
-    textField.text = "50f"
-    assertThat(textField.text).isEmpty()
-
+    // ALLOW: Numbers
     textField.text = "50"
     assertThat(textField.text).isEqualTo("50")
 
+    // ALLOW: Decimal number
     textField.text = "50.0"
     assertThat(textField.text).isEqualTo("50.0")
 
-    textField.text = "50.0a"
-    assertThat(textField.text).isEqualTo("50.0")
+    // ALLOW: Decimal number
+    textField.text = "50.00123"
+    assertThat(textField.text).isEqualTo("50.00123")
 
+    // ALLOW: Decimal with leading zero
+    textField.text = "0.5"
+    assertThat(textField.text).isEqualTo("0.5")
+
+    // ALLOW: Decimal without leading zero
+    textField.text = ".5"
+    assertThat(textField.text).isEqualTo(".5")
+
+    // ALLOW: One leading zero
+    textField.text = "01"
+    assertThat(textField.text).isEqualTo("01")
+
+    // ALLOW: Dot after number
+    textField.text = "50."
+    assertThat(textField.text).isEqualTo("50.")
+
+    // ALLOW: Empty
+    textField.text = ""
+    assertThat(textField.text).isEmpty()
+
+    // DISALLOW: Number with letters
+    textField.text = "50f"
+    assertThat(textField.text).isEmpty()
+
+    // DISALLOW: Decimal number with letters
+    textField.text = "50.0a"
+    assertThat(textField.text).isEmpty()
+
+    // DISALLOW: Letters
     textField.text = "test"
-    assertThat(textField.text).isEqualTo("50.0")
+    assertThat(textField.text).isEmpty()
+
+    // DISALLOW: >50 characters
+    textField.text = "012345678901234567890123456789012345678901234567890123456789"
+    assertThat(textField.text).isEmpty()
+
+    // DISALLOW: Too many leading zeros
+    textField.text = "005"
+    assertThat(textField.text).isEmpty()
   }
 
   @Test
