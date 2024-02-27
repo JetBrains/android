@@ -29,8 +29,10 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore("b/328075538")
 class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   @Test
   fun testDependencyLibraryLambdaCausesBuildIssue() {
