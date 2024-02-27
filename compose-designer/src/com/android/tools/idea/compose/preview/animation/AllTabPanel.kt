@@ -75,16 +75,6 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     onUserScaleChange()
   }
 
-  private fun updateDimension() {
-    val preferredHeight =
-      InspectorLayout.timelineHeaderHeightScaled() +
-        JBUI.scale(cards.sumOf { it.getCurrentHeight() })
-    splitter.firstComponent.preferredSize =
-      Dimension(splitter.firstComponent.width, preferredHeight)
-    splitter.secondComponent.preferredSize =
-      Dimension(splitter.secondComponent.width, preferredHeight)
-  }
-
   private val cardsLayout
     get() = splitter.firstComponent.layout as TabularLayout
 
@@ -94,6 +84,26 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     }
 
   @VisibleForTesting val cards = mutableListOf<Card>()
+
+  constructor(parentDisposable: Disposable) : this(parentDisposable, {})
+
+  init {
+    Disposer.register(parentDisposable, this)
+    add(scrollPane, TabularLayout.Constraint(1, 0, 2))
+    isFocusable = false
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    JBUIScale.addUserScaleChangeListener(userScaleChangeListener)
+  }
+
+  private fun updateDimension() {
+    val preferredHeight =
+      InspectorLayout.timelineHeaderHeightScaled() +
+        JBUI.scale(cards.sumOf { it.getCurrentHeight() })
+    splitter.firstComponent.preferredSize =
+      Dimension(splitter.firstComponent.width, preferredHeight)
+    splitter.secondComponent.preferredSize =
+      Dimension(splitter.secondComponent.width, preferredHeight)
+  }
 
   fun addTimeline(timeline: JComponent) {
     splitter.secondComponent.add(timeline, BorderLayout.CENTER)
@@ -137,16 +147,6 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.TIMELINE_HEADER_HEIGHT)
-
-  constructor(parentDisposable: Disposable) : this(parentDisposable, {})
-
-  init {
-    Disposer.register(parentDisposable, this)
-    add(scrollPane, TabularLayout.Constraint(1, 0, 2))
-    isFocusable = false
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    JBUIScale.addUserScaleChangeListener(userScaleChangeListener)
-  }
 
   override fun dispose() {
     JBUIScale.removeUserScaleChangeListener(userScaleChangeListener)
