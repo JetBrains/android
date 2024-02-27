@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.AnActionButton;
@@ -98,6 +99,12 @@ public class MotionEditor extends JPanel {
   PanelAction createTransition = new PanelAction(new CreateTransition(), this);
   AnActionButton clickOrSwipe = new ClickOrSwipeAction(this);
   AnActionButton cycleAction = new AnActionButton("Cycle between layouts", MEIcons.CYCLE_LAYOUT) {
+
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       layoutTop();

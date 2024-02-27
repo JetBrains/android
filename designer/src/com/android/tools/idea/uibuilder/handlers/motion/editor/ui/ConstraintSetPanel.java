@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.AnActionButton;
@@ -99,6 +100,10 @@ class ConstraintSetPanel extends JPanel {
 
   AnActionButton createConstraint = new AnActionButton("Create Constraint") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.createConstraint(mSelectedTag, mConstraintSet);
@@ -107,6 +112,10 @@ class ConstraintSetPanel extends JPanel {
   };
 
   AnActionButton createAllConstraints = new AnActionButton("Create All Constraints") {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
@@ -117,6 +126,10 @@ class ConstraintSetPanel extends JPanel {
 
   AnActionButton createSectionedConstraint = new AnActionButton("Create Sectioned Constraint") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.createSectionedConstraint(mMultiSelectedTag, mConstraintSet);
       buildTable();
@@ -124,6 +137,10 @@ class ConstraintSetPanel extends JPanel {
   };
 
   AnActionButton clearConstraint = new AnActionButton("Clear Constraint") {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.clearConstraint(mMeModel.myTrack);
@@ -133,6 +150,10 @@ class ConstraintSetPanel extends JPanel {
   };
   AnActionButton moveConstraint = new AnActionButton("Move Constraints to layout") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.moveConstraint(mSelectedTag, mConstraintSet);
     }
@@ -140,12 +161,20 @@ class ConstraintSetPanel extends JPanel {
 
   AnActionButton overrideConstraint = new AnActionButton("Convert from sectioned constraints") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e)  {
       ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
     }
   };
 
   ModifyMenuAction mModifyMenu = new ModifyMenuAction() {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @org.jetbrains.annotations.NotNull
     @Override
     public List<AnAction> getActions() {
