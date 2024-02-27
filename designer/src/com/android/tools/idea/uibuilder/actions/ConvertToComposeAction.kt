@@ -94,6 +94,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
   ) : DialogWrapper(project) {
     private val displayDependencies = JBCheckBox("Display dependencies", false)
     private val useViewModel = JBCheckBox("Use ViewModel", false)
+    private val useCustomView = JBCheckBox("Has Custom Views", false)
     private val dataTypeGroup = ButtonGroup()
     private val dataTypeButtons: List<JBRadioButton>
 
@@ -119,6 +120,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
       return Box.createVerticalBox().apply {
         add(displayDependencies)
         add(useViewModel)
+        add(useCustomView)
         add(dataTypePanel)
         preferredSize = JBUI.size(300, 300)
       }
@@ -141,6 +143,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     private fun convertXmlToCompose(dataType: ComposeConverterDataType) {
       NShotXmlToComposeConverter.Builder(project)
         .useViewModel(useViewModel.isSelected)
+        .useCustomView(useCustomView.isSelected)
         .displayDependencies(displayDependencies.isSelected)
         .withDataType(dataType)
         .build()
