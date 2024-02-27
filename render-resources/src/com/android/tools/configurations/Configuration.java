@@ -63,7 +63,6 @@ import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.UserDataHolderBase;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +75,7 @@ import org.jetbrains.annotations.Nullable;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration extends UserDataHolderBase implements ModificationTracker {
+public class Configuration implements ModificationTracker {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
