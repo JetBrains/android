@@ -593,6 +593,10 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void update(@NotNull AnActionEvent event) {
       event.getPresentation().setEnabled(addComponentToModel(true /* checkOnly */));
     }
@@ -649,6 +653,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public boolean isSelected(@NotNull AnActionEvent event) {
       Palette.Item item = myItemList.getSelectedValue();
       return item != null && myDataModel.isFavoriteItem(item);
@@ -681,6 +690,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (!reference.isEmpty()) {
         BrowserUtil.browse(reference);
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override
