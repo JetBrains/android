@@ -28,11 +28,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler-src.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

@@ -1,0 +1,221 @@
+diff --git androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
+index 9ffd47dce..92e2ef407 100644
+--- androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
++++ androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
+@@ -39,7 +39,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.decoys.SubstituteDecoyCall
+ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
+ import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
+ import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
+@@ -148,7 +148,7 @@ class ComposeIrGenerationExtension(
+         }
+ 
+         val idSignatureBuilder = when {
+-            pluginContext.platform.isJs() -> IdSignatureSerializer(
++            pluginContext.platform.isJs() -> IdSignatureFactory(
+                 PublicIdSignatureComputer(mangler!!),
+                 DeclarationTable(JsGlobalDeclarationTable(pluginContext.irBuiltIns))
+             )
+diff --git androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
+index f7aa35c41..c961ccf0d 100644
+--- androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
++++ androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
+@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.diagnostics.reportOn
+ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
+ import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirCallableReferenceAccessChecker
+ import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
+-import org.jetbrains.kotlin.fir.types.coneType
+ import org.jetbrains.kotlin.fir.types.functionTypeKind
++import org.jetbrains.kotlin.fir.types.resolvedType
+ 
+ /**
+  * Report an error on composable function references.
+@@ -41,7 +41,7 @@ object ComposableCallableReferenceChecker : FirCallableReferenceAccessChecker()
+         // The type of a function reference depends on the context where it is used.
+         // We could allow non-reflective composable function references, but this would be fragile
+         // and depend on details of the frontend resolution.
+-        val kind = expression.typeRef.coneType.functionTypeKind(context.session)
++        val kind = expression.resolvedType.functionTypeKind(context.session)
+         if (kind == ComposableFunction || kind == KComposableFunction) {
+             reporter.reportOn(
+                 expression.source,
+diff --git androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
+index a84412599..6da081065 100644
+--- androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
++++ androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
+@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.fir.types.isArrayType
+ import org.jetbrains.kotlin.fir.types.isString
+ import org.jetbrains.kotlin.fir.types.isUnit
+ import org.jetbrains.kotlin.fir.types.type
+-import org.jetbrains.kotlin.name.StandardClassIds
++import org.jetbrains.kotlin.name.JvmStandardClassIds
+ 
+ fun FirAnnotationContainer.hasComposableAnnotation(session: FirSession): Boolean =
+     hasAnnotation(ComposeClassIds.Composable, session)
+@@ -165,7 +165,7 @@ fun FirFunctionSymbol<*>.isMain(session: FirSession): Boolean {
+ }
+ 
+ private fun FirNamedFunctionSymbol.jvmNameAsString(session: FirSession): String =
+-    getAnnotationStringParameter(StandardClassIds.Annotations.JvmName, session)
++    getAnnotationStringParameter(JvmStandardClassIds.Annotations.JvmName, session)
+         ?: name.asString()
+ 
+ private val FirFunctionSymbol<*>.explicitParameterTypes: List<ConeKotlinType>
+diff --git androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
+index 8644e5150..8d8e5a705 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
+@@ -80,7 +80,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+ import org.jetbrains.kotlin.ir.visitors.acceptVoid
+ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+ import org.jetbrains.kotlin.load.java.JvmAbi
+-import org.jetbrains.kotlin.name.StandardClassIds
++import org.jetbrains.kotlin.name.JvmStandardClassIds
+ import org.jetbrains.kotlin.platform.isJs
+ import org.jetbrains.kotlin.platform.jvm.isJvm
+ import org.jetbrains.kotlin.resolve.DescriptorUtils
+@@ -441,7 +441,7 @@ class ComposerParamTransformer(
+     }
+ 
+     private fun jvmNameAnnotation(name: String): IrConstructorCall {
+-        val jvmName = getTopLevelClass(StandardClassIds.Annotations.JvmName)
++        val jvmName = getTopLevelClass(JvmStandardClassIds.Annotations.JvmName)
+         val ctor = jvmName.constructors.first { it.owner.isPrimary }
+         val type = jvmName.createType(false, emptyList())
+         return IrConstructorCallImpl(
+diff --git androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
+index 27386ba53..eeb3ba88a 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
+@@ -24,7 +24,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.decoys.AbstractDecoysLower
+ import androidx.compose.compiler.plugins.kotlin.lower.decoys.CreateDecoysTransformer
+ import androidx.compose.compiler.plugins.kotlin.lower.decoys.isDecoy
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+ import org.jetbrains.kotlin.descriptors.Modality
+ import org.jetbrains.kotlin.ir.IrStatement
+@@ -85,7 +85,7 @@ class WrapJsComposableLambdaLowering(
+     context: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+     metrics: ModuleMetrics,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     private val decoysEnabled: Boolean
+ ) : AbstractDecoysLowering(
+diff --git androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
+index f232b69ec..72c773976 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
+@@ -22,7 +22,7 @@ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.AbstractComposeLowering
+ import androidx.compose.compiler.plugins.kotlin.lower.includeFileNameInExceptionTrace
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.declarations.IrConstructor
+ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+ import org.jetbrains.kotlin.ir.declarations.IrFile
+@@ -41,7 +41,7 @@ abstract class AbstractDecoysLowering(
+     symbolRemapper: DeepCopySymbolRemapper,
+     metrics: ModuleMetrics,
+     stabilityInferencer: StabilityInferencer,
+-    override val signatureBuilder: IdSignatureSerializer,
++    override val signatureBuilder: IdSignatureFactory,
+ ) : AbstractComposeLowering(
+     context = pluginContext,
+     symbolRemapper = symbolRemapper,
+diff --git androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
+index df2db0c80..8d8c85f57 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
+@@ -22,7 +22,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
+ import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
+ import org.jetbrains.kotlin.ir.builders.declarations.buildConstructor
+@@ -81,7 +81,7 @@ import org.jetbrains.kotlin.name.Name
+ class CreateDecoysTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     metrics: ModuleMetrics,
+ ) : AbstractDecoysLowering(
+diff --git androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
+index c73f49b46..a3bf67542 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
+@@ -20,7 +20,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.DeepCopyPreservingMetadata
+ import androidx.compose.compiler.plugins.kotlin.lower.hasAnnotationSafe
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+ import org.jetbrains.kotlin.ir.IrElement
+ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+@@ -54,7 +54,7 @@ import org.jetbrains.kotlin.ir.util.toIrConst
+ @JvmDefaultWithCompatibility
+ internal interface DecoyTransformBase {
+     val context: IrPluginContext
+-    val signatureBuilder: IdSignatureSerializer
++    val signatureBuilder: IdSignatureFactory
+ 
+     fun IrFunction.getSignatureId(): Long {
+         val signature = symbol.signature
+diff --git androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
+index 6b40aaa1d..448be8105 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
+@@ -22,7 +22,7 @@ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
+@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.ir.util.getAnnotation
+ class RecordDecoySignaturesTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    override val signatureBuilder: IdSignatureSerializer,
++    override val signatureBuilder: IdSignatureFactory,
+     metrics: ModuleMetrics,
+     val mangler: KotlinMangler.IrMangler,
+     stabilityInferencer: StabilityInferencer
+diff --git androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
+index 72a2809d2..3b022d3c3 100644
+--- androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
++++ androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
+@@ -21,7 +21,7 @@ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.ComposerParamTransformer
+ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.declarations.IrConstructor
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
+@@ -54,7 +54,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+ class SubstituteDecoyCallsTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     metrics: ModuleMetrics,
+ ) : AbstractDecoysLowering(
