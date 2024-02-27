@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.intellij.facet.FacetManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -130,18 +128,5 @@ class TopLevelModuleFactory() {
       model.inheritSdk()
     }
     model.commit()
-    val facetManager = FacetManager.getInstance(module)
-    val facetModel = facetManager.createModifiableModel()
-    try {
-      var gradleFacet = GradleFacet.getInstance(module)
-      if (gradleFacet == null) {
-        // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-        gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
-        @Suppress("UnstableApiUsage")
-        facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
-      }
-    } finally {
-      facetModel.commit()
-    }
   }
 }
