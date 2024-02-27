@@ -18,9 +18,6 @@
 
 #include <android/keycodes.h>
 #include <sys/socket.h>
-#include <unistd.h>
-
-#include <cassert>
 
 #include "accessors/device_state_manager.h"
 #include "accessors/input_manager.h"
@@ -119,7 +116,7 @@ void InjectKeyEvent(Jni jni, const KeyEvent& event, InputEventInjectionSync mode
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(socket_fd, BUFFER_SIZE),
-      output_stream_(socket_fd, BUFFER_SIZE),
+      output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
@@ -129,8 +126,14 @@ Controller::Controller(int socket_fd)
       device_state_listener_(this),
       ui_settings_() {
   assert(socket_fd > 0);
-  char channel_marker = 'C';
-  write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
+  try {
+    output_stream_.WriteByte('C');
+    output_stream_.Flush();
+  } catch (EndOfFile& e) {
+    Log::D("Disconnected while writing command channel marker");
+  } catch (IoException& e) {
+    Log::Fatal(SOCKET_IO_ERROR, "%s", "Timed out while writing command channel marker");
+  }
 }
 
 Controller::~Controller() {

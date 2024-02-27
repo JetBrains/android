@@ -28,6 +28,7 @@
 #include "common.h"
 #include "geom.h"
 #include "jvm.h"
+#include "socket_writer.h"
 #include "video_packet_header.h"
 
 namespace screensharing {
@@ -105,7 +106,7 @@ private:
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
   const CodecInfo* codec_info_ = nullptr;  // Not owned.
-  int socket_fd_;
+  SocketWriter writer_;
   int64_t presentation_timestamp_offset_ = 0;
   int32_t bit_rate_;
   bool bit_rate_reduced_ = false;

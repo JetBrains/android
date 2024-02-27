@@ -46,6 +46,7 @@ add_library(
         shell_command_executor.cc
         session_environment.cc
         settings.cc
+        socket_writer.cc
         string_printf.cc
         string_util.cc
         surface.cc

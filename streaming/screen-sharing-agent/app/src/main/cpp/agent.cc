@@ -31,6 +31,7 @@
 #include "flags.h"
 #include "log.h"
 #include "session_environment.h"
+#include "socket_writer.h"
 
 namespace screensharing {
 
@@ -48,6 +49,9 @@ int CreateAndConnectSocket(const string& socket_name) {
   if (socket_fd < 0) {
     Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Failed to create a socket");
   }
+  int old_flags = fcntl(socket_fd, F_GETFL);
+  fcntl(socket_fd, F_SETFL, old_flags | O_NONBLOCK);
+
   sockaddr_un address = { AF_UNIX, "" };
   // An abstract socket address is distinguished by a null byte in front of the socket name
   // and doesn't need a null terminator. See https://man7.org/linux/man-pages/man7/unix.7.html.
@@ -101,11 +105,12 @@ void WriteVideoChannelHeader(const string& codec_name, int socket_fd) {
   while (buf.length() < buf_size) {
     buf.insert(buf.end(), ' ');
   }
-  if (write(socket_fd, buf.c_str(), buf_size) != buf_size) {
-    if (errno != EBADF && errno != EPIPE) {
-      Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
-    }
-    Agent::Shutdown();
+  SocketWriter writer(socket_fd, "video");
+  auto res = writer.Write(buf.c_str(), buf_size, /*timout_micros=*/ 10000000);
+  if (res == SocketWriter::Result::TIMEOUT) {
+    Log::Fatal(SOCKET_IO_ERROR, "Timed out writing video channel header");
+  } else if (res == SocketWriter::Result::DISCONNECTED) {
+    Log::Fatal(SOCKET_IO_ERROR, "Disconnected while writing video channel header");
   }
 }
 
@@ -224,8 +229,9 @@ void Agent::Run(const vector<string>& args) {
   video_socket_fd_ = CreateAndConnectSocket(socket_name_);
   if (feature_level_ >= 31 && (flags_ & AUDIO_STREAMING_SUPPORTED) != 0) {
     audio_socket_fd_ = CreateAndConnectSocket(socket_name_);
+    SocketWriter writer(audio_socket_fd_, "audio");
     char channel_marker = 'A';
-    write(audio_socket_fd_, &channel_marker, sizeof(channel_marker));  // Audio channel marker.
+    writer.Write(&channel_marker, sizeof(channel_marker), /*timeout_micros=*/10000000);  // Audio channel marker.
   }
   control_socket_fd_ = CreateAndConnectSocket(socket_name_);
   Log::D("Agent::Run: video_socket_fd_=%d audio_socket_fd_=%d control_socket_fd_=%d", video_socket_fd_, audio_socket_fd_, control_socket_fd_);

@@ -20,12 +20,14 @@
 #include <media/NdkMediaCodec.h>
 
 #include <atomic>
+#include <cstddef>
 #include <mutex>
 #include <thread>
 
 #include "common.h"
 #include "geom.h"
 #include "jvm.h"
+#include "socket_writer.h"
 
 namespace screensharing {
 
@@ -52,7 +54,7 @@ private:
   static aaudio_data_callback_result_t AudioDataCallback(AAudioStream* stream, void* user_data, void* audio_data, int32_t num_frames);
 
   std::thread thread_;
-  int socket_fd_;
+  SocketWriter writer_;
   std::atomic_bool streamer_stopped_ = true;
   AAudioStreamBuilder* stream_builder_ = nullptr;
   AAudioStream* stream_ = nullptr;

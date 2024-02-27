@@ -23,6 +23,7 @@
 #include <string>
 
 #include "common.h"
+#include "socket_writer.h"
 
 namespace screensharing {
 
@@ -31,7 +32,7 @@ namespace screensharing {
 // See Base128InputStream.
 class Base128OutputStream {
 public:
-  Base128OutputStream(int fd, size_t buffer_size);
+  Base128OutputStream(SocketWriter&& writer, size_t buffer_size);
   ~Base128OutputStream();
 
   // Shuts down the socket file descriptor for writing but doesn't close it.
@@ -48,7 +49,7 @@ public:
   void WriteBool(bool value);
 
 private:
-  int fd_;
+  SocketWriter writer_;
   uint8_t* buffer_;
   size_t buffer_capacity_;
   size_t offset_;

@@ -16,14 +16,6 @@
 
 #include "audio_streamer.h"
 
-#include <sys/uio.h>
-#include <unistd.h>
-
-#include <algorithm>
-#include <cassert>
-#include <cerrno>
-#include <chrono>
-
 #include "accessors/audio_manager.h"
 #include "agent.h"
 #include "codec_output_buffer.h"
@@ -34,7 +26,6 @@
 namespace screensharing {
 
 using namespace std;
-using namespace std::chrono;
 
 namespace {
 
@@ -56,6 +47,7 @@ constexpr int BYTES_PER_FRAME = BYTES_PER_SAMPLE * CHANNEL_COUNT;
 constexpr int BIT_RATE = 128000;
 constexpr char MIME_TYPE[] = "audio/opus";
 const char* CODEC_NAME = MIME_TYPE + sizeof("audio/") - 1;
+constexpr int SOCKET_TIMEOUT_MICROS = 10000000;
 
 static AMediaFormat* CreateMediaFormat() {
   AMediaFormat* media_format = AMediaFormat_new();
@@ -130,8 +122,7 @@ struct CodecInputBuffer {
 }  // namespace
 
 AudioStreamer::AudioStreamer(int socket_fd)
-    : socket_fd_(socket_fd) {
-  assert(socket_fd > 0);
+    : writer_(socket_fd, "audio") {
 }
 
 AudioStreamer::~AudioStreamer() {
@@ -177,11 +168,8 @@ void AudioStreamer::Run() {
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Audio: writing %s", packet_header.ToDebugString().c_str());
     }
-    iovec buffers[] = { { &packet_header, AudioPacketHeader::SIZE }, { codec_buffer.buffer(), static_cast<size_t>(codec_buffer.size()) } };
-    if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
-      if (errno != EBADF && errno != EPIPE) {
-        Log::Fatal(SOCKET_IO_ERROR, "Error writing to audio socket - %s", strerror(errno));
-      }
+    auto res = writer_.Write(&packet_header, AudioPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MICROS);
+    if (res != SocketWriter::Result::SUCCESS && res != SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       continue_streaming = false;
     }
   }

@@ -29,8 +29,8 @@ namespace screensharing {
 
 using namespace std;
 
-Base128OutputStream::Base128OutputStream(int fd, size_t buffer_size)
-    : fd_(fd),
+Base128OutputStream::Base128OutputStream(SocketWriter&& writer, size_t buffer_size)
+    : writer_(writer),
       buffer_(new uint8_t[buffer_size]),
       buffer_capacity_(buffer_size),
       offset_(0) {
@@ -47,23 +47,19 @@ void Base128OutputStream::Close() {
   } catch (const IoException& e) {
     Log::E("Unable to flush Base128OutputStream");
   }
-  shutdown(fd_, SHUT_WR);
+  shutdown(writer_.socket_fd(), SHUT_WR);
 }
 
 void Base128OutputStream::Flush() {
-  while (offset_ > 0) {
-    auto n = write(fd_, buffer_, offset_);
-    if (n < 0) {
-      if (errno == EBADFD || errno == EPIPE) {
-        throw EndOfFile();
-      }
+  if (offset_ > 0) {
+    auto res = writer_.Write(buffer_, offset_, /*timeout_micros=*/10000000);
+    if (res == SocketWriter::Result::DISCONNECTED) {
+      throw EndOfFile();
+    }
+    if (res == SocketWriter::Result::TIMEOUT) {
       throw IoException();
     }
-    assert(n <= offset_);  // By contract of the write function.
-    offset_ -= n;
-    if (offset_ > 0) {
-      memcpy(buffer_, buffer_ + n, offset_);
-    }
+    offset_ = 0;
   }
 }
 

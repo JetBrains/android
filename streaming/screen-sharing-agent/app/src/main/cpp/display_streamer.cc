@@ -16,11 +16,6 @@
 
 #include "display_streamer.h"
 
-#include <sys/uio.h>
-#include <unistd.h>
-
-#include <cassert>
-#include <cerrno>
 #include <chrono>
 #include <cmath>
 
@@ -52,6 +47,7 @@ constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // In
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 constexpr double SQRT_2 = 1.41421356237;
 constexpr double SQRT_10 = 3.16227766017;
+constexpr int SOCKET_TIMEOUT_MICROS = 10000000;
 
 // Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
 // where n is one of 1, 2 or 5 and k is integer number.
@@ -156,11 +152,10 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info
     : display_rotation_watcher_(this),
       display_id_(display_id),
       codec_info_(codec_info),
-      socket_fd_(socket_fd),
+      writer_(socket_fd, "video"),
       bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
-  assert(socket_fd > 0);
 }
 
 DisplayStreamer::~DisplayStreamer() {
@@ -308,7 +303,7 @@ void DisplayStreamer::Run() {
 bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
                                                      const AMediaFormat* sync_frame_request) {
   bool continue_streaming = true;
-  bool first_frame_after_start = true;
+  bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec, StringPrintf("Display %d: ", display_id_));
     if (!codec_buffer.Deque(-1)) {
@@ -331,14 +326,14 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
       continue;
     }
 
-    if (first_frame_after_start) {
+    if (request_sync_frame) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
       media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
       if (status != AMEDIA_OK) {
         Log::E("Display %d: AMediaCodec_setParameters returned %d", display_id_, status);
       }
-      first_frame_after_start = false;
+      request_sync_frame = false;
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
@@ -357,11 +352,10 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Display %d: writing video packet: %s", display_id_, packet_header->ToDebugString().c_str());
     }
-    iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer(), static_cast<size_t>(codec_buffer.size()) } };
-    if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
-      if (errno != EBADF && errno != EPIPE) {
-        Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
-      }
+    auto res = writer_.Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MICROS);
+    if (res == SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
+      request_sync_frame = true;
+    } else if (res != SocketWriter::Result::SUCCESS) {
       continue_streaming = false;
     }
     if (!codec_buffer.IsConfig()) {
