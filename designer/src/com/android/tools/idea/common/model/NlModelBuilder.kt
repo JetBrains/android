@@ -26,7 +26,6 @@ import com.intellij.psi.xml.XmlFile
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Interface to be implemented by factories that can produce {@link NlModel}s from {@link
@@ -72,15 +71,6 @@ class NlModelBuilder(
   private var modelUpdater: NlModel.NlModelUpdaterInterface? = null
   private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
 
-  /**
-   * Method to be used to customize the instantiation of [NlModel]. Used for testing to allow
-   * creating subclasses of NlModel.
-   */
-  @TestOnly
-  fun useNlModelFactory(modelFactory: NlModelFactoryInterface): NlModelBuilder = also {
-    this.modelFactory = modelFactory
-  }
-
   fun withModelTooltip(modelTooltip: String): NlModelBuilder = also { this.tooltip = modelTooltip }
 
   fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): NlModelBuilder = also {
@@ -103,7 +93,7 @@ class NlModelBuilder(
   @Slow fun build(): NlModel = modelFactory.build(this)
 
   companion object {
-    public fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
+    fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
       AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
   }
 }
