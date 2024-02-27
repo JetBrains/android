@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -49,17 +50,19 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -88,6 +91,11 @@ class WearTilePreviewRepresentationTest {
     )
     ToolWindowManager.getInstance(project)
       .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+  }
+
+  @After
+  fun tearDown() {
+    EssentialsMode.setEnabled(false, project)
   }
 
   @Test
@@ -205,6 +213,43 @@ class WearTilePreviewRepresentationTest {
 
         assertThat(preview.previewView.galleryMode).isNotNull()
       }
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsDisabled() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertEquals(30, preview.interactiveManager.fpsLimit)
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsEnabled() =
+    runBlocking(workerThread) {
+      EssentialsMode.setEnabled(true, project)
+      val preview = createWearTilePreviewRepresentation()
+
+      assertEquals(10, preview.interactiveManager.fpsLimit)
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertEquals(30, preview.interactiveManager.fpsLimit)
+
+      EssentialsMode.setEnabled(true, project)
+      assertEquals(10, preview.interactiveManager.fpsLimit)
+
+      EssentialsMode.setEnabled(false, project)
+      assertEquals(30, preview.interactiveManager.fpsLimit)
 
       preview.onDeactivate()
     }

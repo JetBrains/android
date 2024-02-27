@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
@@ -43,6 +44,7 @@ import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
+import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -491,6 +493,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
           lastMode = it
         }
       }
+      launch { fpsLimitFlow.collect { interactiveManager.fpsLimit = it } }
     }
   }
 
@@ -508,10 +511,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   private val previewModeManager = CommonPreviewModeManager()
 
-  private val interactiveManager =
+  private val fpsLimitFlow =
+    essentialsModeFlow(project, this).fpsLimitFlow(this, standardFpsLimit = 30)
+
+  @VisibleForTesting
+  val interactiveManager =
     InteractivePreviewManager(
         surface,
-        initialFpsLimit = 30,
+        fpsLimitFlow.value,
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
         delegateInteractionHandler,
