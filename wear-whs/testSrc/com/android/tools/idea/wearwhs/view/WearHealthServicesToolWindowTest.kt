@@ -23,7 +23,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
-import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
+import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
@@ -38,7 +38,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -81,10 +80,15 @@ class WearHealthServicesToolWindowTest {
     Disposer.register(projectRule.testRootDisposable, toolWindow)
   }
 
-  @Ignore("b/326061638")
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
     val fakeUi = FakeUi(toolWindow)
+
+    deviceManager.setCapabilities(mapOf(
+      WhsDataType.HEART_RATE_BPM to true,
+      WhsDataType.LOCATION to true,
+      WhsDataType.STEPS to true
+    ))
 
     fakeUi.waitForCheckbox("Heart rate", true)
     fakeUi.waitForCheckbox("Location", true)

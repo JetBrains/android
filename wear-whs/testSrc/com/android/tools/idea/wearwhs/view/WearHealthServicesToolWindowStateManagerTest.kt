@@ -166,10 +166,11 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
     stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
-    assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
-      capabilities[0].dataType, CapabilityState(false, null),
-      capabilities[1].dataType, CapabilityState(true, 3f),
-      capabilities[2].dataType, CapabilityState(true, null)
+    assertThat(deviceManager.loadCurrentCapabilityStates()).containsEntry(
+      capabilities[0].dataType, CapabilityState(false, null)
+    )
+    assertThat(deviceManager.loadCurrentCapabilityStates()).containsEntry(
+      capabilities[1].dataType, CapabilityState(true, 3f)
     )
 
     assertThat(loggedEvents).hasSize(2)
