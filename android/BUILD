@@ -404,6 +404,7 @@ filegroup(
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/adblib:adb-server-proto",
+        "//tools/base/adblib-tools:adblib-tools-proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/bazel:utp-core-proto-jarjar",

@@ -309,3 +309,10 @@ jvm_import(
     jars = ["//tools/base/app-inspection/inspectors/database:database_inspector_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libadblib-tools-proto",
+    jars = ["//tools/base/adblib-tools:libadblib-tools-proto.jar"],
+    visibility = ["//visibility:public"],
+)

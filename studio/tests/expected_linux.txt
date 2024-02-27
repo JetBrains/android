@@ -1992,6 +1992,7 @@ android-studio/plugins/android/lib/layout_inspector_view_java_proto.jar
 android-studio/plugins/android/lib/layoutlib-api.jar
 android-studio/plugins/android/lib/layoutlib-loader.jar
 android-studio/plugins/android/lib/libadb-server-proto.jar
+android-studio/plugins/android/lib/libadblib-tools-proto.jar
 android-studio/plugins/android/lib/libagp-version.jar
 android-studio/plugins/android/lib/libam-instrumentation-data-proto.jar
 android-studio/plugins/android/lib/libandroid-core-proto.jar
