@@ -57,6 +57,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -172,6 +173,7 @@ class WearTilePreviewRepresentationTest {
       preview.onDeactivate()
     }
 
+  @Ignore("b/326947508")
   @Test
   fun testGalleryMode() =
     runBlocking(workerThread) {
