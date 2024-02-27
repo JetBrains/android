@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.project.upgrade.ui
 
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.project.Project
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.SimpleTextAttributes
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class UpgradeAssistantTreeCellRenderer : CheckboxTree.CheckboxTreeCellRenderer(true, true) {
+class UpgradeAssistantTreeCellRenderer(val project: Project) : CheckboxTree.CheckboxTreeCellRenderer(true, true) {
   override fun customizeRenderer(tree: JTree?,
                                  value: Any?,
                                  selected: Boolean,
@@ -30,6 +31,7 @@ class UpgradeAssistantTreeCellRenderer : CheckboxTree.CheckboxTreeCellRenderer(t
                                  leaf: Boolean,
                                  row: Int,
                                  hasFocus: Boolean) {
+    if (project.isDisposed) return super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     if (value is DefaultMutableTreeNode) {
       when (val o = value.userObject) {
         is AgpUpgradeComponentNecessity -> {
