@@ -469,11 +469,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected String requestSyncAndGetExpectedFailure() throws Exception {
-    return requestSyncAndGetExpectedFailure(request -> { });
-  }
-
-  @NotNull
   protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
     try {
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
