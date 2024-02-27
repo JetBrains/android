@@ -127,7 +127,14 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   }
 
   private fun createStopRecordingButton(): CommonButton {
-    val button = CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply {
+    val button = CommonButton(
+      if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        StudioIcons.Profiler.Toolbar.STOP_SESSION
+      }
+      else {
+        StudioIcons.Profiler.Toolbar.STOP_RECORDING
+      }
+    ).apply {
       toolTipText = Companion.stopRecordingTooltip
       addActionListener {
         onStopRecordingClick()

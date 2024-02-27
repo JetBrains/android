@@ -68,7 +68,14 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   }
 
   @VisibleForTesting
-  val stopButton = CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply {
+  val stopButton = CommonButton(
+    if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      StudioIcons.Profiler.Toolbar.STOP_SESSION
+    }
+    else {
+      StudioIcons.Profiler.Toolbar.STOP_RECORDING
+    }
+  ).apply {
     disabledIcon = IconLoader.getDisabledIcon(icon)
     toolTipText = "Stop recording Java / Kotlin allocations"
     addActionListener {
