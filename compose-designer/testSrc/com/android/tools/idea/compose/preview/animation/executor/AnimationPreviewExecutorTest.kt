@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.compose.preview.animation.executor
 
+import com.android.tools.idea.compose.preview.animation.AnimationPreview
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlin.test.assertEquals
 import org.junit.Test
 
-class AnimationPreviewTest : InspectorTests() {
+class AnimationPreviewExecutorTest {
   /**
    * [AnimationPreview] uses [MoreExecutors.directExecutor] instead of
    * [AppExecutorUtil.createBoundedApplicationPoolExecutor] in unit tests (see
