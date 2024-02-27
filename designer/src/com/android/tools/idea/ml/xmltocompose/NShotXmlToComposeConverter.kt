@@ -45,6 +45,10 @@ private const val customViewPrompt = "Wrap any Custom Views in an AndroidView co
 
 private const val errorToGenerateComposeCode = "A valid compose code could not be generated."
 
+private const val contextSharingNeedsToBeEnabled =
+  "Please follow the Studio Bot onboarding and " +
+    "enable context sharing if you want to use this feature."
+
 /**
  * The [NShotXmlToComposeConverter] uses the n-shot prompt technique when querying Studio Bot. The
  * prompts in [nShotPrompts] are always used, while additional prompts can be used depending on the
@@ -59,10 +63,12 @@ private constructor(private val project: Project, private val nShots: List<Strin
   override suspend fun convertToCompose(xml: String): String {
     val prompt = getPrompt(xml)
     val studioBot = StudioBot.getInstance()
+    // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
+    // can't use the sendQuery API.
+    if (!studioBot.isContextAllowed()) {
+      return contextSharingNeedsToBeEnabled
+    }
     try {
-      // Note: you must complete the Studio Bot onboarding and enable context sharing,
-      // otherwise the following call will fail.
-      // TODO(b/322759144): Guard against context sharing.
       val response =
         studioBot.model().sendQuery(prompt, StudioBot.RequestSource.DESIGN_TOOLS).toList()
       return response.parseCode()
