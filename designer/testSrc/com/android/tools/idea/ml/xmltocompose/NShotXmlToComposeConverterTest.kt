@@ -156,6 +156,31 @@ class NShotXmlToComposeConverterTest {
   }
 
   @Test
+  fun testDataTypesWithCustomViews() {
+    val nShotXmlToComposeConverter =
+      NShotXmlToComposeConverter.Builder(projectRule.project).useCustomView(true).build()
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
+    assertTrue(
+      query.messages
+        .flatMap { it.chunks }
+        .any { it.text.contains("Wrap any Custom Views in an AndroidView composable.") }
+    )
+  }
+
+  @Test
+  fun testDataTypesWithoutCustomViews() {
+    val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).build()
+    val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
+    // If not querying about a Custom View, we shouldn't include an additional prompt about it in
+    // the query.
+    assertTrue(
+      query.messages
+        .flatMap { it.chunks }
+        .none { it.text.contains("Wrap any Custom Views in an AndroidView composable") }
+    )
+  }
+
+  @Test
   fun testStudioBotResponse() {
     val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).build()
     val response = runBlocking { nShotXmlToComposeConverter.convertToCompose(simpleXmlLayout()) }

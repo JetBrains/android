@@ -41,6 +41,8 @@ private const val displayDependenciesPrompt =
   "After the Kotlin code, display all the dependencies that are required to be added to" +
     " build.gradle.kts for this code to compile."
 
+private const val customViewPrompt = "Wrap any Custom Views in an AndroidView composable."
+
 private const val errorToGenerateComposeCode = "A valid compose code could not be generated."
 
 /**
@@ -84,6 +86,9 @@ private constructor(private val project: Project, private val nShots: List<Strin
     /** If set to true, [viewModelPrompt] will be included in the query. */
     private var _useViewModel = false
 
+    /** If set to true, [customViewPrompt] will be included in the query. */
+    private var _useCustomView = false
+
     /** If set to true, [displayDependenciesPrompt] will be included in the query. */
     private var _displayDependencies = false
 
@@ -117,6 +122,11 @@ private constructor(private val project: Project, private val nShots: List<Strin
       return this
     }
 
+    fun useCustomView(useCustomView: Boolean): Builder {
+      _useCustomView = useCustomView
+      return this
+    }
+
     fun displayDependencies(displayDependencies: Boolean): Builder {
       _displayDependencies = displayDependencies
       return this
@@ -128,6 +138,9 @@ private constructor(private val project: Project, private val nShots: List<Strin
     }
 
     fun build(): NShotXmlToComposeConverter {
+      if (_useCustomView) {
+        nShots.add(customViewPrompt)
+      }
       if (_useViewModel) {
         nShots.add(viewModelPrompt)
         generateDataTypePrompts()
