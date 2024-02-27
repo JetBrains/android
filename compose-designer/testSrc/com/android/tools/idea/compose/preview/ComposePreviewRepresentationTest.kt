@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
@@ -36,6 +37,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
@@ -136,6 +138,9 @@ class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
 
   @get:Rule val projectRule = ComposeProjectRule()
+
+  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT, 30)
+
   private val project
     get() = projectRule.project
 
@@ -168,6 +173,7 @@ class ComposePreviewRepresentationTest {
   fun tearDown() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.clearOverride()
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
+    EssentialsMode.setEnabled(false, project)
   }
 
   @Test
@@ -767,6 +773,38 @@ class ComposePreviewRepresentationTest {
       withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
     }
   }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsDisabled() =
+    runComposePreviewRepresentationTest {
+      val preview = createPreviewAndCompile()
+
+      assertEquals(30, preview.interactiveManager.fpsLimit)
+    }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsEnabled() =
+    runComposePreviewRepresentationTest {
+      EssentialsMode.setEnabled(true, project)
+
+      val preview = createPreviewAndCompile()
+
+      assertEquals(10, preview.interactiveManager.fpsLimit)
+    }
+
+  @Test
+  fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() =
+    runComposePreviewRepresentationTest {
+      val preview = createPreviewAndCompile()
+
+      assertEquals(30, preview.interactiveManager.fpsLimit)
+
+      EssentialsMode.setEnabled(true, project)
+      assertEquals(10, preview.interactiveManager.fpsLimit)
+
+      EssentialsMode.setEnabled(false, project)
+      assertEquals(30, preview.interactiveManager.fpsLimit)
+    }
 
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),

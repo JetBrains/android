@@ -28,7 +28,7 @@ import java.time.Duration
 
 class InteractivePreviewManager(
   private val surface: DesignSurface<*>,
-  fpsLimit: Int,
+  initialFpsLimit: Int,
   private val interactiveScenesProvider: () -> Collection<InteractiveSceneManager>,
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
   private val delegateInteractionHandler: DelegateInteractionHandler,
@@ -39,7 +39,7 @@ class InteractivePreviewManager(
   private val originalInteractionHandler = delegateInteractionHandler.delegate
   private val interactiveInteractionHandler = LayoutlibInteractionHandler(surface)
 
-  var fpsLimit = fpsLimit
+  var fpsLimit = initialFpsLimit
     set(value) {
       field = value
       fpsCounter.resetAndStart()

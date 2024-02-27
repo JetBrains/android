@@ -709,7 +709,8 @@ class ComposePreviewRepresentation(
       )
       .also { delegateInteractionHandler.delegate = it }
 
-  private val interactiveManager =
+  @VisibleForTesting
+  val interactiveManager =
     InteractivePreviewManager(
         composeWorkBench.mainSurface,
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get(),
@@ -718,6 +719,10 @@ class ComposePreviewRepresentation(
         delegateInteractionHandler,
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
+
+  init {
+    updateFpsForCurrentMode()
+  }
 
   @get:VisibleForTesting
   val surface: NlDesignSurface

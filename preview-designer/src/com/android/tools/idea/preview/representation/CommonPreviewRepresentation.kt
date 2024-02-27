@@ -511,7 +511,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   private val interactiveManager =
     InteractivePreviewManager(
         surface,
-        fpsLimit = 30,
+        initialFpsLimit = 30,
         { surface.sceneManagers },
         { InteractivePreviewUsageTracker.getInstance(surface) },
         delegateInteractionHandler,
