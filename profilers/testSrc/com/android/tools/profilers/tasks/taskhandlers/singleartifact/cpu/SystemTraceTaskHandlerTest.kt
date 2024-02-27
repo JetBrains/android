@@ -389,7 +389,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     MockitoKt.whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
     val sessionManagerNow = spy(profilersNow.sessionsManager)
     MockitoKt.whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
-    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(device?.let { ProfilerDeviceSelection(device.model, true, device) })
+    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(device?.let { ProfilerDeviceSelection(device.model, 30, true, device) })
     return SystemTraceTaskHandler(sessionManagerNow, taskBasedUxEnabled);
   }
 

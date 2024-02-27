@@ -18,6 +18,7 @@ package com.android.tools.profilers.tasks.taskhandlers
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 
 object TaskModelTestUtils {
   fun addDeviceWithProcess(device: Common.Device, process: Common.Process, transportService: FakeTransportService, timer: FakeTimer) {
@@ -32,8 +33,13 @@ object TaskModelTestUtils {
     deviceName.hashCode().toLong()).setSerial(serial).setState(deviceState).build()
 
   fun createProcess(pid: Int,
-                            processName: String,
-                            processState: Common.Process.State,
-                            deviceId: Long) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(
+                    processName: String,
+                    processState: Common.Process.State,
+                    deviceId: Long) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(
     processState).setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build()
+
+  fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) = ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning,
+                                                                                                     Common.Device.newBuilder().setModel(
+                                                                                                       "FakeDevice").setFeatureLevel(
+                                                                                                       featureLevel).build())
 }

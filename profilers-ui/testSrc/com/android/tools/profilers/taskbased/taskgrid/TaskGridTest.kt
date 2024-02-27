@@ -75,7 +75,7 @@ class TaskGridTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    taskGridModel = TaskGridModel()
+    taskGridModel = TaskGridModel {}
     ideProfilerServices.enableTaskBasedUx(true)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
@@ -88,7 +88,7 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
+        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
   }
@@ -116,7 +116,7 @@ class TaskGridTest {
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = true) {
-        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
+        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
   }
@@ -142,7 +142,7 @@ class TaskGridTest {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
+        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
 
@@ -162,7 +162,7 @@ class TaskGridTest {
   fun `clicking task registers task type selection in model`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskGrid(taskGridModel, {}, myProfilers.taskHandlers.keys.toList(), myProfilers)
+        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
 

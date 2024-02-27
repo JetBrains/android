@@ -40,7 +40,6 @@ import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
-import com.android.tools.profilers.taskbased.tabs.pastrecordings.TaskPastRecordingsTab
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat

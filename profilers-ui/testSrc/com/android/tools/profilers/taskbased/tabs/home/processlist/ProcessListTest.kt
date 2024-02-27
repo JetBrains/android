@@ -21,7 +21,6 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
@@ -39,9 +38,7 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.selections.deviceprocesses.ProcessListModelTest
-import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -74,7 +71,7 @@ class ProcessListTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    processListModel = ProcessListModel(myProfilers, MutableStateFlow(false), {}) {}
+    processListModel = ProcessListModel(myProfilers) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
 

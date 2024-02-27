@@ -21,6 +21,7 @@ import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,16 +33,55 @@ import kotlinx.coroutines.flow.asStateFlow
  * reading the process and Profiler task selection and using such values to launch the Profiler task.
  */
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  private val _isProfilingFromProcessStart = MutableStateFlow(false)
-  val isProfilingFromProcessStart = _isProfilingFromProcessStart.asStateFlow()
+  private val _profilingProcessStartingPoint = MutableStateFlow(ProfilingProcessStartingPoint.UNSPECIFIED)
+  val profilingProcessStartingPoint = _profilingProcessStartingPoint.asStateFlow()
+  private val _isProfilingFromNowOptionEnabled = MutableStateFlow(false)
+  val isProfilingFromNowOptionEnabled = _isProfilingFromNowOptionEnabled.asStateFlow()
+  private val _isProfilingFromProcessStartOptionEnabled = MutableStateFlow(false)
+  val isProfilingFromProcessStartOptionEnabled = _isProfilingFromProcessStartOptionEnabled.asStateFlow()
 
-  var selectionStateOnTaskEnter = SelectionStateOnTaskEnter(false, ProfilerTaskType.UNSPECIFIED)
+  var selectionStateOnTaskEnter = SelectionStateOnTaskEnter(ProfilingProcessStartingPoint.UNSPECIFIED, ProfilerTaskType.UNSPECIFIED)
 
-  val processListModel = ProcessListModel(profilers, isProfilingFromProcessStart, this::setIsProfilingFromProcessStart,
-                                          taskGridModel::resetTaskSelection)
+  val processListModel = ProcessListModel(profilers, this::updateProfilingProcessStartingPointDropdown)
 
-  fun setIsProfilingFromProcessStart(isProfilingFromProcessStart: Boolean) {
-    _isProfilingFromProcessStart.value = isProfilingFromProcessStart
+  /**
+   * Updated the TaskStartingPointDropdown options availability, and performs auto-selection of options in certain scenarios as a
+   * convenience to the user.
+   *
+   * To be called on process and task selection as both selections can influence the dropdown state.
+   */
+  override fun updateProfilingProcessStartingPointDropdown() {
+    val isNowOptionEnabled = isTaskStartFromNowEnabled(selectedProcess)
+    val isProcessStartOptionEnabled = isTaskStartFromProcessStartEnabled(selectedTaskType, selectedProcess)
+
+    // Update the options' availability
+    _isProfilingFromNowOptionEnabled.value = isNowOptionEnabled
+    _isProfilingFromProcessStartOptionEnabled.value = isProcessStartOptionEnabled
+
+    // Perform auto-selection of starting point dropdown options in two scenarios:
+    // Scenario 1: If no selection has been made yet (such as on initial opening of the Profiler) as indicated by the UNSPECIFIED
+    // selection value, then prefer selection of NOW option if its enabled (a running process is selected), otherwise choose PROCESS_START.
+    if (_profilingProcessStartingPoint.value == ProfilingProcessStartingPoint.UNSPECIFIED) {
+      if (isNowOptionEnabled) {
+        setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.NOW)
+      }
+      else {
+        setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.PROCESS_START)
+      }
+    }
+    // Scenario 2: If a selection has already been made prior, then auto-select an option if it is the only one enabled.
+    else {
+      if (isNowOptionEnabled && !isProcessStartOptionEnabled) {
+        setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.NOW)
+      }
+      else if (!isNowOptionEnabled && isProcessStartOptionEnabled) {
+        setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.PROCESS_START)
+      }
+    }
+  }
+
+  fun setProfilingProcessStartingPoint(profilingProcessStartingPoint: ProfilingProcessStartingPoint) {
+    _profilingProcessStartingPoint.value = profilingProcessStartingPoint
   }
 
   fun onStartupTaskStart() {
@@ -51,19 +91,75 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     setSelectionState()
   }
 
-  fun isSelectedDeviceProcessTaskValid() = selectedTaskType != ProfilerTaskType.UNSPECIFIED &&
-                                           selectedDevice != null &&
-                                           selectedDevice!!.device != Common.Device.getDefaultInstance() &&
-                                           selectedProcess.state == Common.Process.State.ALIVE &&
-                                           taskHandlers[selectedTaskType]!!.supportsDeviceAndProcess(selectedDevice!!.device,
-                                                                                                     selectedProcess)
-
   private fun setSelectionState() {
-    selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_isProfilingFromProcessStart.value, selectedTaskType)
+    selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_profilingProcessStartingPoint.value, selectedTaskType)
   }
+
+  /**
+   * Determines if starting a task from process start is enabled. This method is utilized to determine whether the PROCESS_START option is
+   * enabled and selectable in the task starting point dropdown. It is also used to determine whether the user is able to start the task
+   * from process start.
+   */
+  private fun isTaskStartFromProcessStartEnabled(selectedTaskType: ProfilerTaskType, selectedProcess: Common.Process) =
+    selectedProcess.name == profilers.preferredProcessName && profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
+
+  /**
+   * Determines if starting a task from now is enabled. This method is utilized to determine whether the NOW option is enabled and
+   * selectable in the task starting point dropdown. It is also used to determine whether the user is able to start the task from now.
+   */
+  private fun isTaskStartFromNowEnabled(selectedProcess: Common.Process) = selectedProcess.state == Common.Process.State.ALIVE
+
+  /**
+   * Determines whether the user can start the task from process start, considering if the PROCESS_START dropdown option is currently
+   * enabled (see isTaskStartFromProcessStartEnabled), and if the user selected the preferred process and startup-capable task.
+   *
+   * Note: This method sets the criteria for enabling the start profiler task button and is invoked only if the user has selected
+   * PROCESS_START from the task starting point dropdown. The criteria for enabling the PROCESS_START option
+   * (see TaskHomeTabModel.isTaskStartFromProcessStartEnabled) is a subset of the criteria needed to enable the start profiler task button.
+   * Thus, the user can have the PROCESS_START option enabled and/or selected, but the start profiler task button may be disabled.
+   */
+  @VisibleForTesting
+  fun canTaskStartFromProcessStart(selectedTaskType: ProfilerTaskType,
+                                   selectedDevice: ProfilerDeviceSelection?,
+                                   selectedProcess: Common.Process) =
+    isTaskStartFromProcessStartEnabled(selectedTaskType, selectedProcess) &&
+    selectedDevice?.let { doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, it.featureLevel) } ?: false
+
+  /**
+   * Determines whether the user can start the task from now, considering if the NOW dropdown option is currently enabled (see
+   * isTaskStartFromNowEnabled), and if the user selected a running device and device-compatible task.
+   *
+   * Note: This method sets the criteria for enabling the start profiler task button and is invoked only if the user has selected NOW from
+   * the task starting point dropdown. The criteria for enabling the NOW option (see TaskHomeTabModel.isTaskStartFromNowEnabled) is a
+   * subset of the criteria needed to enable the start profiler task button. Thus, the user can have the NOW option enabled and/or selected,
+   * but the start profiler task button may be disabled.
+   */
+  @VisibleForTesting
+  fun canTaskStartFromNow(selectedTaskType: ProfilerTaskType,
+                          selectedDevice: ProfilerDeviceSelection?,
+                          selectedProcess: Common.Process) =
+    isTaskStartFromNowEnabled(selectedProcess) &&
+    selectedTaskType != ProfilerTaskType.UNSPECIFIED &&
+    selectedDevice != null && selectedDevice.device != Common.Device.getDefaultInstance() &&
+    taskHandlers[selectedTaskType]!!.supportsDeviceAndProcess(selectedDevice.device, selectedProcess)
+
+  /**
+   * Based on the user's task starting point dropdown selection, returns whether the task can start. This method controls the enablement
+   * of the start profiler task button.
+   */
+  fun canStartTask(selectedTaskType: ProfilerTaskType,
+                   selectedDevice: ProfilerDeviceSelection?,
+                   selectedProcess: Common.Process,
+                   profilingProcessStartingPoint: ProfilingProcessStartingPoint): Boolean =
+    when (profilingProcessStartingPoint) {
+      ProfilingProcessStartingPoint.NOW -> canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess)
+      ProfilingProcessStartingPoint.PROCESS_START -> canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess)
+      else -> false
+    }
 
   @VisibleForTesting
   val selectedDevice: ProfilerDeviceSelection? get() = processListModel.selectedDevice.value
+
   @VisibleForTesting
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
@@ -72,29 +168,44 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     // of the selection state.
     setSelectionState()
 
-    if (_isProfilingFromProcessStart.value) {
-      // The only way the user would be able to set `isProfilingFromProcessStart` to be true is if they already selected a startup-capable
-      // task. Thus, it is safe to enable the corresponding startup config for the selected task.
-      profilers.ideServices.enableStartupTask(selectedTaskType)
+    val profilingProcessStartingPoint = _profilingProcessStartingPoint.value
 
-      val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
-      profilers.ideServices.buildAndLaunchAction(prefersProfileable)
+    when (profilingProcessStartingPoint) {
+      ProfilingProcessStartingPoint.PROCESS_START -> {
+        assert(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
 
-      // Reset process selection as process will be recreated and thus the original selection will be lost.
-      processListModel.resetProcessSelection()
-    }
-    else if (isSelectedDeviceProcessTaskValid()) {
-      // If the user clicks to enter the task with startup profiling disabled, startup config selections should be reset.
-      profilers.ideServices.disableStartupTasks()
-      profilers.setProcess(selectedDevice!!.device, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
-    }
-    else {
-      throw IllegalStateException("Non-startup tasks require a device selection. No device is currently selected.")
+        // The only way the user would be able to set `isProfilingFromProcessStart` to be true is if they already selected a startup-capable
+        // task. Thus, it is safe to enable the corresponding startup config for the selected task.
+        profilers.ideServices.enableStartupTask(selectedTaskType)
+
+        val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
+        profilers.ideServices.buildAndLaunchAction(prefersProfileable)
+
+        // Reset process selection as process will be recreated and thus the original selection will be lost.
+        processListModel.resetProcessSelection()
+      }
+
+      ProfilingProcessStartingPoint.NOW -> {
+        assert(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+        // If the user clicks to enter the task with startup profiling disabled, startup config selections should be reset.
+        profilers.ideServices.disableStartupTasks()
+        profilers.setProcess(selectedDevice!!.device, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
+      }
+
+      else -> {
+        throw IllegalStateException("Could not start profiler task with the current selections made.")
+      }
     }
   }
 
   data class SelectionStateOnTaskEnter(
-    val isProfilingFromProcessStart: Boolean,
+    val profilingProcessStartingPoint: ProfilingProcessStartingPoint,
     val selectedStartupTaskType: ProfilerTaskType
   )
+
+  enum class ProfilingProcessStartingPoint {
+    UNSPECIFIED,
+    NOW,
+    PROCESS_START
+  }
 }

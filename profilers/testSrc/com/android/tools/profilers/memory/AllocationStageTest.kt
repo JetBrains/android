@@ -17,6 +17,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.ProfilingProcessStartingPoint
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.SelectionStateOnTaskEnter
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler
@@ -99,8 +100,8 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     MockitoKt.whenever(stage.isAgentAttached).thenReturn(false)
     ideProfilerServices.enableTaskBasedUx(true)
     // For taskBasedUx, set the current selected task, so the process is set
-    profilers.taskHomeTabModel.selectionStateOnTaskEnter = SelectionStateOnTaskEnter(true,
-                                                                                     ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    profilers.taskHomeTabModel.selectionStateOnTaskEnter = SelectionStateOnTaskEnter(
+      ProfilingProcessStartingPoint.PROCESS_START, ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
     profilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
                              JavaKotlinAllocationsTaskHandler(profilers.sessionsManager))
 

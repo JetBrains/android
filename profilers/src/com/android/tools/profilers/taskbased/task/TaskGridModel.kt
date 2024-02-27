@@ -23,12 +23,13 @@ import kotlinx.coroutines.flow.asStateFlow
  * This class serves as the model for the list/grid of Profiler tasks a user can select from. Each task is represented via a TaskGridItem
  * which shows the name and icon of the respective task.
  */
-class TaskGridModel {
+class TaskGridModel(private val updateProfilingProcessStartingPoint: () -> Unit) {
   private val _selectedTaskType = MutableStateFlow(ProfilerTaskType.UNSPECIFIED)
   val selectedTaskType = _selectedTaskType.asStateFlow()
 
   fun onTaskSelection(taskType: ProfilerTaskType) {
     _selectedTaskType.value = taskType
+    updateProfilingProcessStartingPoint()
   }
 
   fun resetTaskSelection() {

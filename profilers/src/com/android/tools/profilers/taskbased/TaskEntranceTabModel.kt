@@ -22,10 +22,12 @@ import com.android.tools.profilers.taskbased.task.TaskGridModel
  * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.
  */
 abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
-  val taskGridModel: TaskGridModel = TaskGridModel()
+  val taskGridModel: TaskGridModel = TaskGridModel(::updateProfilingProcessStartingPointDropdown)
 
   val selectedTaskType get() = taskGridModel.selectedTaskType.value
   val taskHandlers get() = profilers.taskHandlers
+
+  open fun updateProfilingProcessStartingPointDropdown() {}
 
   /**
    * Handles click of start or open Profiler task button.

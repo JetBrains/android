@@ -41,6 +41,7 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.ProfilingProcessStartingPoint;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler;
 import com.google.common.collect.ImmutableList;
@@ -1717,7 +1718,7 @@ public final class StudioProfilersTest {
     // task feature, setting a selected task handler (and supplying its corresponding task handler), and providing a preferred device.
     myIdeProfilerServices.enableTaskBasedUx(true);
     myProfilers.getTaskHomeTabModel().setSelectionStateOnTaskEnter(
-      new TaskHomeTabModel.SelectionStateOnTaskEnter(true, ProfilerTaskType.SYSTEM_TRACE));
+      new TaskHomeTabModel.SelectionStateOnTaskEnter(ProfilingProcessStartingPoint.PROCESS_START, ProfilerTaskType.SYSTEM_TRACE));
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(), false));
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);

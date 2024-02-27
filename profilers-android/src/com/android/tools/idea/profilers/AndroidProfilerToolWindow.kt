@@ -135,7 +135,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
     try {
       val selections = devices.map {
-        ToolbarDeviceSelection(it.name, it.isRunning, if (it.isRunning) it.launchedDevice.get().serialNumber else "")
+        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning,
+                               if (it.isRunning) it.launchedDevice.get().serialNumber else "")
       }
       return selections
     }

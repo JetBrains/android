@@ -33,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
 import com.android.tools.profilers.taskbased.task.TaskGridModel
@@ -66,25 +65,16 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
 }
 
 @Composable
-fun TaskGrid(taskGridModel: TaskGridModel,
-             setIsProfilingFromProcessStart: (Boolean) -> Unit,
-             taskTypes: List<ProfilerTaskType>,
-             profilers: StudioProfilers) {
+fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
   TaskGridContainer(taskGridModel) { selectedTask: ProfilerTaskType, lazyGridScope: LazyGridScope ->
     with(lazyGridScope) {
       items(taskTypes) { taskType ->
-        val isTaskSupportedOnStartup = profilers.ideServices.isTaskSupportedOnStartup(taskType)
         taskType.let { task ->
           TaskGridItem(
             task = task,
             isSelectedTask = task == selectedTask,
             onTaskSelection = {
               taskGridModel.onTaskSelection(it)
-
-              // Reset startup task dropdown selection to the 'now' option if a non-startup task is selected.
-              if (!isTaskSupportedOnStartup) {
-                setIsProfilingFromProcessStart(false)
-              }
             },
           )
         }

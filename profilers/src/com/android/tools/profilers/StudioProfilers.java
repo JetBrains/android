@@ -569,7 +569,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     // Update the task home tab model state after confirmation that the startup task has already started (the task is alive/ongoing).
     if (getSessionsManager().isSessionAlive() && getSessionsManager().isCurrentTaskStartup() &&
-        getTaskHomeTabModel().getSelectionStateOnTaskEnter().isProfilingFromProcessStart()) {
+        getTaskHomeTabModel().getSelectionStateOnTaskEnter().getProfilingProcessStartingPoint().equals(
+          TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START)) {
       getTaskHomeTabModel().onStartupTaskStart();
     }
   }
@@ -631,7 +632,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           TaskHomeTabModel.SelectionStateOnTaskEnter selectionStateOnTaskEnter = getTaskHomeTabModel().getSelectionStateOnTaskEnter();
-          boolean isProfilingFromProcessStart = selectionStateOnTaskEnter.isProfilingFromProcessStart();
+          boolean isProfilingFromProcessStart =
+            selectionStateOnTaskEnter.getProfilingProcessStartingPoint() == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START;
           ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
           // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
           // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
