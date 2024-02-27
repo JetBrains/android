@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
@@ -38,20 +40,16 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectForFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.util.io.HttpRequests
 import java.io.File
-import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 
 object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   val logger = Logger.getInstance(this::class.java)
 
-  override fun readUrlData(url: String, timeout: Int): ByteArray? = HttpRequests
-    .request(URL(url).toExternalForm())
-    .connectTimeout(timeout)
-    .readTimeout(timeout)
-    .readBytes(null)
+  @Slow
+  override fun readUrlData(url: String, timeout: Int): ByteArray? =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout)
 
   override fun error(throwable: Throwable, message: String?) =
     logger.error(message, throwable)

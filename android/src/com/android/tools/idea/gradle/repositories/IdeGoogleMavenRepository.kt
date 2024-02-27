@@ -17,24 +17,20 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.HttpRequests
-import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 
 /** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
 object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
   @Slow
-  override fun readUrlData(url: String, timeout: Int) = HttpRequests
-    .request(URL(url).toExternalForm())
-    .connectTimeout(timeout)
-    .readTimeout(timeout)
-    .readBytes(null)
+  override fun readUrlData(url: String, timeout: Int) =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout)
 
   override fun error(throwable: Throwable, message: String?) {
     Logger.getInstance(IdeGoogleMavenRepository::class.java).warn(message, throwable)
