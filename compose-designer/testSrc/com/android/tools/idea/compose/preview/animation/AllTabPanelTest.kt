@@ -19,8 +19,8 @@ import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -32,6 +32,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.scale.JBUIScale
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
@@ -65,7 +66,7 @@ class AllTabPanelTest {
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
-    panel = AllTabPanel(AndroidCoroutineScope(parentDisposable))
+    panel = AllTabPanel(parentDisposable)
   }
 
   @After
@@ -354,6 +355,33 @@ class AllTabPanelTest {
       // TODO Check if scroll works properly
       ui.render()
     }
+  }
+
+  @Test
+  fun `userScaleChangeListener cleared on disposal`() {
+    val originalFactor = JBUIScale.scale(1f) // 1 * userScaleFactor
+    var listenerTriggeredCount = 0
+    val disposable = Disposer.newDisposable()
+
+    panel = createAllTabPanelForTest(disposable) { listenerTriggeredCount++ }
+    assertEquals(0, listenerTriggeredCount)
+
+    // Change the user scale factor and make sure the listener is triggered
+    JBUIScale.setUserScaleFactorForTest(2f)
+    assertEquals(1, listenerTriggeredCount)
+
+    // Change the user scale factor again to double-check the listener is triggered multiple times
+    JBUIScale.setUserScaleFactorForTest(3f)
+    assertEquals(2, listenerTriggeredCount)
+
+    // Dispose the AllTabsPanel parent
+    Disposer.dispose(disposable)
+    // Change the user scale factor again, but at this point the listener should have been removed,
+    // so it's not expected to be triggered again.
+    JBUIScale.setUserScaleFactorForTest(4f)
+    assertEquals(2, listenerTriggeredCount)
+
+    JBUIScale.setUserScaleFactorForTest(originalFactor)
   }
 
   private fun JPanel.getNumberOfCards() =

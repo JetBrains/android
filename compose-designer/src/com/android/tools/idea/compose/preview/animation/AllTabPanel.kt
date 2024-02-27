@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.annotations.TestOnly
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBScrollPane
@@ -27,17 +31,19 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
+import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel(private val scope: CoroutineScope) : JPanel(TabularLayout("6px,*", "32px,*")) {
+class AllTabPanel
+private constructor(parentDisposable: Disposable, private val onUserScaleChange: () -> Unit) :
+  JPanel(TabularLayout("6px,*", "32px,*")), Disposable {
 
   //   ________________________________________________
   //   | [Playback control]                            |
@@ -61,6 +67,13 @@ class AllTabPanel(private val scope: CoroutineScope) : JPanel(TabularLayout("6px
         JPanel(BorderLayout()).apply { this.border = MatteBorder(0, 1, 0, 0, JBColor.border()) }
       this.setBlindZone { Insets(0, 1, 0, 1) }
     }
+
+  private val scope = AndroidCoroutineScope(parentDisposable)
+
+  private val userScaleChangeListener = PropertyChangeListener {
+    splitter.firstComponent.border = getCardsBorder()
+    onUserScaleChange()
+  }
 
   private fun updateDimension() {
     val preferredHeight =
@@ -125,10 +138,23 @@ class AllTabPanel(private val scope: CoroutineScope) : JPanel(TabularLayout("6px
 
   private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.TIMELINE_HEADER_HEIGHT)
 
+  constructor(parentDisposable: Disposable) : this(parentDisposable, {})
+
   init {
+    Disposer.register(parentDisposable, this)
     add(scrollPane, TabularLayout.Constraint(1, 0, 2))
     isFocusable = false
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    JBUIScale.addUserScaleChangeListener { splitter.firstComponent.border = getCardsBorder() }
+    JBUIScale.addUserScaleChangeListener(userScaleChangeListener)
+  }
+
+  override fun dispose() {
+    JBUIScale.removeUserScaleChangeListener(userScaleChangeListener)
+  }
+
+  companion object {
+    @TestOnly
+    fun createAllTabPanelForTest(parentDisposable: Disposable, onUserScaleChange: () -> Unit) =
+      AllTabPanel(parentDisposable, onUserScaleChange)
   }
 }

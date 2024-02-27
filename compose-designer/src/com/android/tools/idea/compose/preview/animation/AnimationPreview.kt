@@ -190,7 +190,7 @@ class AnimationPreview(
     }
 
   @VisibleForTesting
-  val coordinationTab = AllTabPanel(scope).apply { addPlayback(playbackControls.createToolbar()) }
+  val coordinationTab = AllTabPanel(this).apply { addPlayback(playbackControls.createToolbar()) }
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
