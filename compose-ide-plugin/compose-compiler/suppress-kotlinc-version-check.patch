@@ -1,8 +1,8 @@
 diff --git androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-index 9911b1ba6..426b4ee3a 100644
+index dc070b3..e14c8b0 100644
 --- androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
 +++ androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-@@ -265,6 +265,9 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+@@ -301,6 +301,9 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
  
      companion object {
          fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
@@ -10,5 +10,5 @@ index 9911b1ba6..426b4ee3a 100644
 +            // sources directly against the Kotlin compiler bundled in IntelliJ.
 +            return true
              try {
-                 val KOTLIN_VERSION_EXPECTATION = "1.9.22"
+                 val KOTLIN_VERSION_EXPECTATION = "2.0.0-Beta4"
                  KotlinCompilerVersion.getVersion()?.let { version ->

@@ -1,15 +1,15 @@
 diff --git META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 new file mode 100644
-index 000000000..275b2959d
+index 0000000..275b295
 --- /dev/null
 +++ META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 @@ -0,0 +1 @@
 +androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrarForK2
 diff --git androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-index 426b4ee3a..8f9c9c4e7 100644
+index 581b526..dc070b3 100644
 --- androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
 +++ androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
-@@ -243,6 +243,26 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+@@ -259,6 +259,26 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
      }
  }
  

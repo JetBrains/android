@@ -367,7 +367,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       """
             import androidx.compose.runtime.Composable
             interface A {
-                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
             }
         """
     )
@@ -379,7 +379,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       """
             import androidx.compose.runtime.Composable
             abstract class A {
-                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
             }
         """
     )
