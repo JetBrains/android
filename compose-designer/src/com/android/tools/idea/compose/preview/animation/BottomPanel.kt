@@ -99,6 +99,8 @@ class BottomPanel(
       tracker.resetTimeline()
     }
 
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
       if (e.presentation.isEnabled != previewState.isCoordinationAvailable()) {

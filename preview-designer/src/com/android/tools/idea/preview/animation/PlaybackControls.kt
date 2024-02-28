@@ -120,6 +120,8 @@ class PlaybackControls(
         if (!playPauseAction.isPlaying) playPauseComponent?.requestFocus()
       }
 
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
       override fun updateButton(e: AnActionEvent) {
         super.updateButton(e)
         e.presentation.isEnabled = !clockControl.isAtStart()
@@ -141,6 +143,8 @@ class PlaybackControls(
         if (!playPauseAction.isPlaying || !clockControl.playInLoop)
           playPauseComponent?.requestFocus()
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
       override fun updateButton(e: AnActionEvent) {
         super.updateButton(e)
@@ -194,6 +198,7 @@ class PlaybackControls(
         tracker.triggerPlayAction()
       }
 
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
       e.presentation.isEnabled = true
@@ -265,6 +270,8 @@ class PlaybackControls(
       ToggleAction(speed.displayText, speed.displayText, null) {
       override fun isSelected(e: AnActionEvent) = clockControl.speed == speed
 
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
       override fun setSelected(e: AnActionEvent, state: Boolean) {
         clockControl.speed = speed
         tracker.changeAnimationSpeed(speed.speedMultiplier)
@@ -286,6 +293,7 @@ class PlaybackControls(
       message("animation.inspector.action.loop"),
       StudioIcons.LayoutEditor.Motion.LOOP,
     ) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun isSelected(e: AnActionEvent) = clockControl.playInLoop
 

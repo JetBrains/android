@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 import com.intellij.testFramework.runInEdtAndGet
@@ -67,6 +68,7 @@ class PlaybackControlsTest {
   private val minimumSize = Dimension(10, 10)
 
   private class TestAction : ToolbarLabelAction() {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.presentation.text = "Label"
