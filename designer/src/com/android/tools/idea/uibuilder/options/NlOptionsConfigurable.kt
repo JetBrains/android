@@ -188,9 +188,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               }
               .enabledIf(essentialsModeObservable.not())
             row {
+                // TODO(b/327343295) add "Learn More" link when the DAC page is live
                 val essentialsModeHint =
-                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
-                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews#essentials\">Learn more</a>"
+                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes."
 
                 radioButton("Essentials").comment(essentialsModeHint).bindSelected({
                   state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
