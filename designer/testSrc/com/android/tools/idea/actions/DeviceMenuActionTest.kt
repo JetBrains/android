@@ -155,8 +155,8 @@ class DeviceMenuActionTest {
               Automotive (1080p landscape) (1440 × 800 dp, ldpi)
               Automotive Portrait (1067 × 1707 dp, ldpi)
               Automotive Distant Display (1440 × 800 dp, ldpi)
-              Automotive Ultrawide (5205 × 1760 dp, ldpi)
-              Automotive Large Portrait (1707 × 2141 dp, ldpi)
+              Automotive Ultrawide (2603 × 880 dp, hdpi)
+              Automotive Large Portrait (1280 × 1606 dp, mdpi)
               ------------------------------------------------------
               Custom
               ------------------------------------------------------
