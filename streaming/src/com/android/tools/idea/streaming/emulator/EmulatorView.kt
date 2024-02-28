@@ -1294,8 +1294,6 @@ class EmulatorView(
 
     @UiThread
     private fun updateDisplayImage() {
-      hideLongRunningOperationIndicatorInstantly()
-
       val screenshot = screenshotForDisplay.getAndSet(null)
       if (screenshot == null) {
         stats?.recordDroppedFrame()

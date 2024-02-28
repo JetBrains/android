@@ -289,8 +289,8 @@ internal class DeviceView(
   }
 
   private fun connected() {
-    hideLongRunningOperationIndicatorInstantly()
     if (connectionState == ConnectionState.CONNECTING) {
+      hideLongRunningOperationIndicatorInstantly()
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
       if (displayId == PRIMARY_DISPLAY_ID) {
