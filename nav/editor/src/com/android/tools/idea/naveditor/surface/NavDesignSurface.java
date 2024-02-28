@@ -572,10 +572,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   @Override
   public void onZoomChange(@NotNull ZoomChange update) {
-    boolean isFitZoom = update.getZoomType() == ZoomType.FIT;
+    boolean shouldRecenter = update.getZoomType() == ZoomType.FIT || update.getZoomType() == ZoomType.ACTUAL;
     boolean scaled = update.getHasScaleChanged();
 
-    if (scaled || isFitZoom) {
+    if (scaled || shouldRecenter) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
       // or we will re-center the area, we need to re-calculate the bounding box.
       NavSceneManager sceneManager = getSceneManager();
@@ -587,7 +587,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       }
     }
 
-    if (isFitZoom) {
+    if (shouldRecenter) {
       // The navigation design surface differs from the other design surfaces in that there are
       // still scroll bars visible after doing a zoom to fit. As a result we need to explicitly
       // center the viewport.
