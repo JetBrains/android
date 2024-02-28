@@ -58,7 +58,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
@@ -181,7 +180,6 @@ class WearTilePreviewRepresentationTest {
       preview.onDeactivate()
     }
 
-  @Ignore("b/326947508")
   @Test
   fun testGalleryMode() =
     runBlocking(workerThread) {
@@ -201,7 +199,9 @@ class WearTilePreviewRepresentationTest {
           previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
         previewModeManager.setMode(PreviewMode.Gallery(previewElement))
 
-        delayUntilCondition(250) { preview.previewView.mainSurface.models.size == 1 }
+        delayUntilCondition(250) {
+          preview.previewView.mainSurface.models.size == 1 && preview.previewView.galleryMode != null
+        }
 
         val previewElements =
           preview.previewView.mainSurface.models.mapNotNull {

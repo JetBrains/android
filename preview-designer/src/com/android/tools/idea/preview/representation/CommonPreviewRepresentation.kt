@@ -471,6 +471,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
 
   private fun CoroutineScope.initializeFlows() {
     with(this@initializeFlows) {
+      // Initialize flows
+      launch(workerThread) { previewFlowManager.updateFlows() }
+
       // Launch all the listeners that are bound to the current activation.
       launch(workerThread) {
         smartModeFlow(project, this@CommonPreviewRepresentation, LOG).collectLatest {
