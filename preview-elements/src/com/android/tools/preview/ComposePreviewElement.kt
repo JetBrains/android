@@ -22,14 +22,14 @@ import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.annotations.TestOnly
+import com.android.tools.environment.Logger
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.diagnostic.Logger
 import java.util.Objects
 import kotlin.math.min
-import org.jetbrains.annotations.TestOnly
 
 /** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"

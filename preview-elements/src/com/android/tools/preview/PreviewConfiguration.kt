@@ -15,6 +15,7 @@
  */
 package com.android.tools.preview
 
+import com.android.annotations.TestOnly
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
 import com.android.sdklib.AndroidDpCoordinate
@@ -25,7 +26,6 @@ import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.preview.config.findOrParseFromDefinition
 import com.android.tools.sdk.CompatibilityRenderTarget
-import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.function.Consumer

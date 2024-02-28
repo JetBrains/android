@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.pickers.preview.property
 import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.environment.Logger
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.MemoryParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
@@ -51,7 +52,6 @@ import com.android.tools.preview.config.toDeviceConfig
 import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression

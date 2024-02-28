@@ -27,7 +27,7 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationSettings
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.environment.Logger
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 

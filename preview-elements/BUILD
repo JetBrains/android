@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
     ],
 )
 
@@ -32,6 +33,7 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
     ],
 )
 
@@ -44,7 +46,6 @@ kotlin_library(
     ]),
     visibility = ["//visibility:public"],
     deps = [
-        "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/adt/idea/rendering:tools.rendering",
         "//tools/base/common:tools.common",
