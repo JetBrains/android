@@ -55,7 +55,7 @@ private fun Tabs(
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
+  var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
 
   TabStrip(
     Tab.values().map { tab ->
@@ -66,13 +66,13 @@ private fun Tabs(
   val state = remember { AdditionalSettingsPanelState(device) }
 
   when (selectedTab) {
-    Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
+    Tab.DEVICE -> DevicePanel(device, images, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)
   }
 }
 
 private enum class Tab(val text: String) {
-  DEVICE_AND_API("Device and API"),
+  DEVICE("Device"),
   ADDITIONAL_SETTINGS("Additional settings")
 }

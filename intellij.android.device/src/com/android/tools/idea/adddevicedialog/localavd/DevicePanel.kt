@@ -21,7 +21,7 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
-internal fun DeviceAndApiPanel(
+internal fun DevicePanel(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
   onDeviceChange: (VirtualDevice) -> Unit,
