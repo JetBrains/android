@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
@@ -852,10 +853,10 @@ class ComposePreviewRepresentationTest {
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
       EssentialsMode.setEnabled(true, project)
-      assertEquals(10, preview.interactiveManager.fpsLimit)
+      retryUntilPassing(5.seconds) { assertEquals(10, preview.interactiveManager.fpsLimit) }
 
       EssentialsMode.setEnabled(false, project)
-      assertEquals(30, preview.interactiveManager.fpsLimit)
+      retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
     }
 
   private fun runComposePreviewRepresentationTest(

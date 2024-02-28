@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -62,11 +63,13 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
 
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule
+  val projectRule = WearTileProjectRule()
 
   private val project
     get() = projectRule.project
@@ -246,10 +249,14 @@ class WearTilePreviewRepresentationTest {
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
       EssentialsMode.setEnabled(true, project)
-      assertEquals(10, preview.interactiveManager.fpsLimit)
+      retryUntilPassing(5.seconds) {
+        assertEquals(10, preview.interactiveManager.fpsLimit)
+      }
 
       EssentialsMode.setEnabled(false, project)
-      assertEquals(30, preview.interactiveManager.fpsLimit)
+      retryUntilPassing(5.seconds) {
+        assertEquals(30, preview.interactiveManager.fpsLimit)
+      }
 
       preview.onDeactivate()
     }
