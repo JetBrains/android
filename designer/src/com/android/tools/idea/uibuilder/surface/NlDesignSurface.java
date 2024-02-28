@@ -104,6 +104,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -919,6 +920,14 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return myZoomController.canZoomToFit();
   }
 
+  /**
+   * Returns all the {@link PositionableContent} in this surface.
+   */
+  @NotNull
+  protected Collection<PositionableContent> getPositionableContent() {
+    return mySceneViewPanel.getPositionableContent();
+  }
+
   @Override
   public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
     return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
@@ -962,7 +971,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           new Dimension(port.getViewSize()), new Point(scrollPosition),
           new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
           (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
-                                                                                   getPositionableContent(),
                                                                                    getExtentSize()));
       }
     }

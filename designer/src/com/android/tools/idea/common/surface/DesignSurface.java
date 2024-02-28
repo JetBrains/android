@@ -976,7 +976,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     Dimension availableSpace = getExtentSize();
     Rectangle sceneViewRectangle =
       mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
-                                                      getPositionableContent(),
                                                       availableSpace);
     if (sceneViewRectangle != null) {
       Point topLeftCorner = new Point(sceneViewRectangle.x + rectangle.x,
@@ -1413,14 +1412,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   public boolean isEditable() {
     return getLayoutType().isEditable();
-  }
-
-  /**
-   * Returns all the {@link PositionableContent} in this surface.
-   */
-  @NotNull
-  protected Collection<PositionableContent> getPositionableContent() {
-    return mySceneViewPanel.getPositionableContent();
   }
 
   private final Set<ProgressIndicator> myProgressIndicators = new HashSet<>();

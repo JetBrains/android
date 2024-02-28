@@ -282,13 +282,9 @@ internal class SceneViewPanel(
 
   /**
    * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with
-   * the given [content] and [availableSize].
+   * the given [availableSize].
    */
-  fun findMeasuredSceneViewRectangle(
-    sceneView: SceneView,
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Rectangle? {
+  fun findMeasuredSceneViewRectangle(sceneView: SceneView, availableSize: Dimension): Rectangle? {
     val panel =
       components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView }
         ?: return null
@@ -296,7 +292,7 @@ internal class SceneViewPanel(
     val layoutManager = layout as PositionableContentLayoutManager ?: return null
     val positions =
       layoutManager.getMeasuredPositionableContentPosition(
-        content,
+        positionableContent,
         availableSize.width,
         availableSize.height,
       )
