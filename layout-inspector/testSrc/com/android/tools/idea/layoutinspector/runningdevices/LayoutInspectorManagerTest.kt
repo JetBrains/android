@@ -170,7 +170,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testHideToolWindow() = withEmbeddedLayoutInspector {
+  fun testHideToolWindowDoesNotRemoveUi() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.addContent(tab1)
@@ -189,7 +189,7 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.toolWindow.hide()
     waitForCondition(2, TimeUnit.SECONDS) { !fakeToolWindowManager.toolWindow.isVisible }
 
-    verifyUiRemoved(tab1)
+    verifyUiInjected(tab1)
 
     fakeToolWindowManager.toolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindowManager.toolWindow.isVisible }

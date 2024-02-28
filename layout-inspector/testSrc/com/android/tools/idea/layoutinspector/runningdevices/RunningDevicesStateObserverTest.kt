@@ -91,10 +91,6 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
-
-        override fun onToolWindowHidden() {}
-
-        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -124,10 +120,6 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
-
-        override fun onToolWindowHidden() {}
-
-        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -172,10 +164,6 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
-
-        override fun onToolWindowHidden() {}
-
-        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -214,22 +202,15 @@ class RunningDevicesStateObserverTest {
       newContentManager = fakeToolWindowManager.toolWindow.contentManager,
     )
 
-    val toolWindowOpenDeviceIds = mutableListOf<DeviceId?>()
-    var toolWindowClosedCount = 0
+    val selectedDeviceIds = mutableListOf<DeviceId?>()
 
     val listener =
       object : RunningDevicesStateObserver.Listener {
-        override fun onSelectedTabChanged(deviceId: DeviceId?) {}
+        override fun onSelectedTabChanged(deviceId: DeviceId?) {
+          selectedDeviceIds.add(deviceId)
+        }
 
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {}
-
-        override fun onToolWindowHidden() {
-          toolWindowClosedCount += 1
-        }
-
-        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {
-          toolWindowOpenDeviceIds.add(selectedDeviceId)
-        }
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -237,8 +218,7 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.toolWindow.show()
     fakeToolWindowManager.toolWindow.hide()
 
-    assertThat(toolWindowOpenDeviceIds).containsExactly(null)
-    assertThat(toolWindowClosedCount).isEqualTo(1)
+    assertThat(selectedDeviceIds).containsExactly(null)
 
     fakeToolWindowManager.addContent(tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -247,7 +227,6 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.toolWindow.show()
     fakeToolWindowManager.toolWindow.hide()
 
-    assertThat(toolWindowOpenDeviceIds).containsExactly(null, tab1.deviceId)
-    assertThat(toolWindowClosedCount).isEqualTo(2)
+    assertThat(selectedDeviceIds).containsExactly(null, tab1.deviceId)
   }
 }

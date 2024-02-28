@@ -43,10 +43,6 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
     fun onSelectedTabChanged(deviceId: DeviceId?)
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<DeviceId>)
-
-    fun onToolWindowHidden()
-
-    fun onToolWindowShown(selectedDeviceId: DeviceId?)
   }
 
   companion object {
@@ -94,12 +90,8 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
 
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
-              if (toolWindow.isVisible) {
-                val deviceId = getSelectedTabDeviceId()
-                listeners.forEach { it.onToolWindowShown(deviceId) }
-              } else {
-                listeners.forEach { it.onToolWindowHidden() }
-              }
+              // Restore selected tabs in case they are removed when the tool window is hidden.
+              updateSelectedTab()
             }
           }
         }
