@@ -23,6 +23,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
+import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
@@ -45,6 +46,7 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JLabel
 import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
 
@@ -265,6 +267,38 @@ class WearHealthServicesToolWindowTest {
     applyButton.doClick()
 
     fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+  }
+
+  @Test
+  fun `test enabled sensors have enabled override value fields and units during exercise`() = runBlocking<Unit> {
+    val fakeUi = FakeUi(toolWindow)
+
+    // Heart Rate
+    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
+    stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+    stateManager.applyChanges()
+
+    deviceManager.activeExercise = true
+
+    fakeUi.waitForCheckbox("Heart rate", true)
+    fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && it.isEnabled }
+    fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
+  }
+
+  @Test
+  fun `test disabled sensors have disabled override value fields and units during exercise`() = runBlocking<Unit> {
+    // Heart Rate
+    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+    stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+    stateManager.applyChanges()
+
+    deviceManager.activeExercise = true
+
+    val fakeUi = FakeUi(toolWindow)
+
+    fakeUi.waitForCheckbox("Heart rate", false)
+    fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }
+    fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
   }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {

@@ -333,6 +333,9 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
               textField.isVisible = capability.isOverrideable
             })
             add(JLabel(message(capability.unit)).also { label ->
+              checkBox.selected.addListener {
+                label.isEnabled = it
+              }
               label.isVisible = capability.isOverrideable
               label.preferredSize = JBUI.size(75, 25)
             })
