@@ -97,6 +97,8 @@ private class ToggleRenderSettingsAction(
   private val renderSettingsProvider: () -> RenderSettings,
   private val property: KMutableProperty1<RenderSettings, Boolean>,
 ) : ToggleAction(actionName) {
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun isSelected(event: AnActionEvent): Boolean {
     return property.get(renderSettingsProvider())
   }
