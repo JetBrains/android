@@ -229,7 +229,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRepository", 1);
   @GuardedBy("updateQueue")
   private final @NotNull Deque<Runnable> updateQueue = new ArrayDeque<>();
-
+  /**
+   * {@link WolfTheProblemSolver} updates need to be executed in a background thread. This queue is used to process
+   * those updates.
+   */
+  private final @NotNull ExecutorService wolfQueue =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRepositoryWolfQueue", 1);
   private final @NotNull Object scanLock = new Object();
   @GuardedBy("scanLock")
   private final @NotNull Set<VirtualFile> pendingScans = new HashSet<>();
@@ -298,6 +303,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     myLoader = new Loader(this, cachingData);
 
     Disposer.register(myFacet, updateExecutor::shutdownNow);
+    Disposer.register(myFacet, wolfQueue::shutdownNow);
     ResourceUpdateTracer.logDirect(() ->
       TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
     );
@@ -661,7 +667,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
+        wolfQueue.submit(() -> {
+          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
+        });
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getFileName()));
@@ -671,7 +679,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
+        wolfQueue.submit(() -> {
+          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
+        });
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
@@ -2037,7 +2047,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       if (source != null) {
         removeSource(file, source);
       }
-      WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this);
+      wolfQueue.submit(() -> {
+        WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this);
+      });
     }
   }
 
