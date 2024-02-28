@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
@@ -30,6 +31,8 @@ sealed class LogcatFormatPresetAction(
 ) :
   SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)),
   DumbAware {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun actionPerformed(e: AnActionEvent) {
     if (!isSelected()) {
       logcatPresenter.formattingOptions = style.formattingOptions
