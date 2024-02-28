@@ -24,7 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -68,7 +67,9 @@ object JdkUtils {
       )
     @Suppress("UnstableApiUsage")
     val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
-    Disposer.register(parent, sdk as Disposable)
-    return sdk as ProjectJdkImpl
+    if (sdk is Disposable) {
+      Disposer.register(parent, sdk)
+    }
+    return sdk
   }
 }
