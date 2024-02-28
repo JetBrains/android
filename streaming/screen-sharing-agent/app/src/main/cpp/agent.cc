@@ -118,9 +118,12 @@ int GetFeatureLevel() {
   int api_level = android_get_device_api_level();
   char codename[PROP_VALUE_MAX] = { 0 };
   if (__system_property_get("ro.build.version.codename", codename) < 1) {
+    Log::I("API level: %d, feature level: %d", api_level, api_level);
     return api_level;
   }
-  return *codename == '\0' || strcmp(codename, "REL") == 0 ? api_level : api_level + 1;
+  int feature_level =  *codename == '\0' || strcmp(codename, "REL") == 0 ? api_level : api_level + 1;
+  Log::I("API level: %d, feature level: %d, codename: \"%s\"", api_level, feature_level, codename);
+  return feature_level;
 }
 
 string GetSystemProperty(const char* property) {
