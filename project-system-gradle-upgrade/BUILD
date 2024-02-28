@@ -92,6 +92,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//tools/adt/idea/analytics[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 

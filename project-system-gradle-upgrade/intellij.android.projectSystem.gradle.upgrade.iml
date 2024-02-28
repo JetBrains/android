@@ -26,5 +26,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>
 </module>
