@@ -16,7 +16,8 @@
 package com.android.tools.compose.analysis
 
 import androidx.compose.compiler.plugins.kotlin.ComposeCommandLineProcessor
-import com.android.testutils.TestUtils
+import androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrar
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
@@ -30,7 +31,7 @@ internal val suppressAnnotation: String
   get() = SUPPRESSION.joinToString(prefix = "@file:Suppress(", postfix = ")") { "\"$it\"" }
 
 private val composeCompilerPluginPath by lazy {
-  TestUtils.resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/lib/compiler-hosted.jar")
+  PathManager.getJarForClass(ComposePluginRegistrar::class.java)
 }
 
 private val suppressKotlinVersionCheckOption =
