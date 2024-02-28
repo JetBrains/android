@@ -22,10 +22,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.concurrent.Future;
 import org.jetbrains.android.AndroidTestCase;
 
 public class GutterIconCacheTest extends AndroidTestCase {
@@ -51,15 +53,28 @@ public class GutterIconCacheTest extends AndroidTestCase {
     assertThat(cache.isIconUpToDate(mySampleSvgFile)).isFalse();
   }
 
+  private void loadGutterIcon() {
+    // We must execute GutterIconCache.getIcon in background thread, otherwise imageFuture.get inside GutterIconFactory.createXmlIcon
+    // will block EDT thread, and the future itself will never finish, because it invokes DumbService.runReadActionInSmartMode which
+    // needs EDT to finish dumb mode (if any).
+    // Alternatively, we could wait for indexes to be ready before invoking GutterIconCache.getIcon.
+    // Alternatively, we could move all these tests outside the EDT thread.
+    // Either way is good.
+    Future<?> future = ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
+    });
+    PlatformTestUtil.waitForFuture(future);
+  }
+
   public void testIsIconUpToDate_entryValid() {
-    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
+    loadGutterIcon();
 
     // If we haven't modified the image since creating an Icon, the cache entry is still valid
     assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgFile)).isTrue();
   }
 
   public void testIsIconUpToDate_entryInvalidUnsavedChanges() {
-    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
+    loadGutterIcon();
 
     // "Modify" Document by rewriting its contents
     Document document = FileDocumentManager.getInstance().getDocument(mySampleSvgFile);
@@ -70,7 +85,7 @@ public class GutterIconCacheTest extends AndroidTestCase {
   }
 
   public void testIconUpToDate_entryInvalidSavedChanges() throws Exception {
-    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
+    loadGutterIcon();
 
     // Modify image resource by adding an empty comment and then save
     Document document = FileDocumentManager.getInstance().getDocument(mySampleSvgFile);
@@ -84,7 +99,7 @@ public class GutterIconCacheTest extends AndroidTestCase {
   }
 
   public void testIconUpToDate_entryInvalidDiskChanges() throws Exception {
-    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
+    loadGutterIcon();
 
     FileTime previousTimestamp = Files.getLastModifiedTime(mySampleSvgPath);
 
