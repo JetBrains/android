@@ -11,6 +11,8 @@
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
     <option name="bot" path="ActionManager" hit="Studio Bot" />
     <option name="studio" path="ActionManager" hit="Studio Bot" />
+    <option name="improvements" path="ActionManager" hit="Suggest Improvements" />
+    <option name="suggest" path="ActionManager" hit="Suggest Improvements" />
     <option name="transform" path="ActionManager" hit="Transform..." />
   </configurable>
   <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
