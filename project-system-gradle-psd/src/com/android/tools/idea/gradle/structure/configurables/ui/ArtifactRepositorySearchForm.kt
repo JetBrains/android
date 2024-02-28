@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.gradle.Version
 import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchByModuleQuery
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
@@ -303,8 +304,9 @@ data class ArtifactSearchQuery(
   val groupId: String? = null,
   val artifactName: String? = null,
   val version: String? = null,
-  val gradleCoordinates: GradleCoordinate? = null
-)
+  val gradleCoordinates: GradleCoordinate? = null,
+  val id: String? = null
+  )
 
 @VisibleForTesting
 fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
@@ -312,7 +314,7 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
   return when {
     split.isEmpty() -> ArtifactSearchQuery()
     split.size == 1 && split[0]?.contains('.') == true -> ArtifactSearchQuery(groupId = split[0])
-    split.size == 1 -> ArtifactSearchQuery(artifactName = split[0])
+    split.size == 1 -> ArtifactSearchQuery(id = "*" + split[0] + "*")
     split.size == 2 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1])
     split.size >= 3 ->
       ArtifactSearchQuery(
@@ -324,4 +326,7 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
   }
 }
 
-private fun ArtifactSearchQuery.toSearchQuery() = ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)
+private fun ArtifactSearchQuery.toSearchQuery() =
+  if (id?.isNotEmpty() == true) ArbitraryModulesSearchByModuleQuery(id)
+  else
+    ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)

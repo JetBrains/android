@@ -32,7 +32,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
 
   override fun doSearch(request: SearchRequest): SearchResult =
     when (val query = request.query) {
-      is ArbitraryModulesSearchQuery ->
+      is ArbitraryModulesSearchByModuleQuery, is ArbitraryModulesSearchQuery  ->
         HttpRequests
           .request(createArbitraryModulesRequestUrl(request))
           .accept("application/xml")
@@ -46,7 +46,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
           }
       is SingleModuleSearchQuery ->
         HttpRequests
-          .request(createSingleModuleRequestUrl(request, query))
+          .request(createSingleModuleRequestUrl(query))
           .accept("application/xml")
           .connect {
             try {
@@ -114,13 +114,20 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
   fun createArbitraryModulesRequestUrl(request: SearchRequest): String = buildString {
     fun String.escapeQueryExpression() = this
 
-    val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
-    val queryArtifactId = request.query.artifactName?.takeUnless { it.isBlank() }
-    val query = URLEncoder.encode(
-      listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" }, queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })
-        .joinToString(separator = " AND "),
-      Charsets.UTF_8)!!
+    val query = when (request.query) {
+      is GroupArtifactQuery -> {
+        val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
+        val queryArtifactId = request.query.artifactName?.takeUnless { it.isBlank() }
+        URLEncoder.encode(
+          listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" }, queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })
+            .joinToString(separator = " AND "),
+          Charsets.UTF_8)!!
+      }
 
+      is ModuleQuery ->
+        URLEncoder.encode(request.query.module.let { "id:${it.escapeQueryExpression()}" }, Charsets.UTF_8)!!
+
+    }
     append("https://search.maven.org/solrsearch/select?")
     append("rows=${request.rowCount}&")
     append("start=${request.start}&")
@@ -145,7 +152,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
   }
 
   @VisibleForTesting
-  fun createSingleModuleRequestUrl(request: SearchRequest, query: SingleModuleSearchQuery): String = buildString {
+  fun createSingleModuleRequestUrl(query: SingleModuleSearchQuery): String = buildString {
     append("https://repo.maven.apache.org/maven2/")
     append(query.groupId.replace('.', '/'))
     append("/")

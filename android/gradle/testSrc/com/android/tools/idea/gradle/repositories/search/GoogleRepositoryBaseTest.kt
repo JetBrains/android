@@ -130,6 +130,25 @@ class GoogleRepositoryBaseTest {
   }
 
   @Test
+  fun searchByModule() {
+    // search in name
+    Assert.assertThat(
+      repository
+        .search(SearchRequest(ArbitraryModulesSearchByModuleQuery("*common*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
+      CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON, COMMON_JAVA8))))
+
+    // search in group
+    Assert.assertThat(
+      repository
+        .search(SearchRequest(ArbitraryModulesSearchByModuleQuery("*support*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
+      CoreMatchers.equalTo(SearchResult(artifacts = listOf(LEANBACK, RECOMMENDATION, RECYCLER_VIEW_V7, SUPPORT_COMPAT, SUPPORT_VECTOR_DRAWABLE))))
+  }
+
+  @Test
   fun searchByGroupId() {
     Assert.assertThat(
       repository

@@ -94,6 +94,23 @@ class LocalMavenRepositoryTest {
   }
 
   @Test
+  fun searchByModule() {
+    assertThat(
+      repository
+        .search(SearchRequest(ArbitraryModulesSearchByModuleQuery("*jlib*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
+      equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4))))
+
+    assertThat(
+      repository
+        .search(SearchRequest(ArbitraryModulesSearchByModuleQuery("*lib1*"), 50, 0))
+        .get(10, TimeUnit.SECONDS)
+        .clearStats(),
+      equalTo(SearchResult(artifacts = listOf(LIB1))))
+  }
+
+  @Test
   fun searchByExactMatch() {
     assertThat(
       repository

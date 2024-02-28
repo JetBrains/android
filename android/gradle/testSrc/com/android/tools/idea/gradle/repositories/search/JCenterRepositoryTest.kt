@@ -40,6 +40,13 @@ class JCenterRepositoryTest {
   }
 
   @Test
+  fun testCreateUrlWithoutModuleName() {
+    val request = SearchRequest(ArbitraryModulesSearchByModuleQuery("guava"), 20, 1)
+    val url = JCenterRepository.createRequestUrl(request)
+    assertEquals("https://api.bintray.com/search/packages/maven?a=guava&subject=bintray&repo=jcenter", url)
+  }
+
+  @Test
   fun testParse() {
     @Language("JSON")
     val response = """

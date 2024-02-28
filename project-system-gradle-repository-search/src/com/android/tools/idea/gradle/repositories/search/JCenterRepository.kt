@@ -170,17 +170,29 @@ object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITOR
   @VisibleForTesting
   fun createRequestUrl(request: SearchRequest): String = buildString {
     append("https://api.bintray.com/search/packages/maven?")
-    val groupId = request.query.groupId
-    if (!groupId.isNullOrEmpty()) {
-      append("g=")
-      append(groupId)
-      append("&")
-    }
-    val artifactName = request.query.artifactName
-    if (!artifactName.isNullOrEmpty()) {
-      append("a=")
-      append(artifactName)
-      append("&")
+     when(val query = request.query){
+      is GroupArtifactQuery -> {
+        val groupId = query.groupId
+        if (!groupId.isNullOrEmpty()) {
+          append("g=")
+          append(groupId)
+          append("&")
+        }
+        val artifactName = query.artifactName
+        if (!artifactName.isNullOrEmpty()) {
+          append("a=")
+          append(artifactName)
+          append("&")
+        }
+      }
+      is ModuleQuery -> {
+        val artifactName = query.module
+        if (!artifactName.isNullOrEmpty()) {
+          append("a=") // can only search module as artifact name
+          append(artifactName)
+          append("&")
+        }
+      }
     }
     append("subject=bintray&repo=jcenter")
   }

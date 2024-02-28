@@ -54,6 +54,13 @@ class MavenCentralRepositoryTest {
   }
 
   @Test
+  fun testCreateUrlWithId() {
+    val request = SearchRequest(ArbitraryModulesSearchByModuleQuery("guava"), 20, 1)
+    val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=id%3Aguava", url)
+  }
+
+  @Test
   @Throws(Exception::class)
   fun testParseArbitraryModulesResponse() {
     @Language("XML")
@@ -209,16 +216,14 @@ class MavenCentralRepositoryTest {
   @Test
   fun testCreateSingleModuleUrl() {
     val query = SingleModuleSearchQuery("com.google.guava", "guava")
-    val request = SearchRequest(query, 20, 1)
-    val url = MavenCentralRepository.createSingleModuleRequestUrl(request, query)
+    val url = MavenCentralRepository.createSingleModuleRequestUrl(query)
     assertEquals("https://repo.maven.apache.org/maven2/com/google/guava/guava/maven-metadata.xml", url)
   }
 
   @Test
   fun testCreateSingleModuleUrlWithDotsInArtifactId() {
     val query = SingleModuleSearchQuery("ai.agnos", "reactive-sparql_2.12")
-    val request = SearchRequest(query, 20, 1)
-    val url = MavenCentralRepository.createSingleModuleRequestUrl(request, query)
+    val url = MavenCentralRepository.createSingleModuleRequestUrl(query)
     assertEquals("https://repo.maven.apache.org/maven2/ai/agnos/reactive-sparql_2.12/maven-metadata.xml", url)
   }
 
