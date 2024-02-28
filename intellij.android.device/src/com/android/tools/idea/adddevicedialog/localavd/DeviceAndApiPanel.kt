@@ -16,14 +16,7 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.getApiNameAndDetails
 import kotlinx.collections.immutable.ImmutableCollection
-import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -35,52 +28,4 @@ internal fun DeviceAndApiPanel(
 ) {
   Text("Name")
   TextField(device.name, { onDeviceChange(device.copy(name = it)) })
-
-  Text("API level")
-  ApiLevelDropdown(images)
-}
-
-@Composable
-private fun ApiLevelDropdown(images: ImmutableCollection<SystemImage>) {
-  if (images.isEmpty()) {
-    Dropdown(menuContent = {}, content = {})
-    return
-  }
-
-  val levels =
-    images //
-      .map(SystemImage::apiLevel)
-      .distinct()
-      .sortedDescending()
-
-  var selectedLevel by remember { mutableStateOf(levels.first()) }
-
-  Dropdown(
-    menuContent = {
-      levels.forEach {
-        selectableItem(
-          selected = selectedLevel == it,
-          onClick = { selectedLevel = it },
-          content = { ApiLevelText(it) },
-        )
-      }
-    },
-    content = { ApiLevelText(selectedLevel) },
-  )
-}
-
-@Composable
-private fun ApiLevelText(level: AndroidVersion) {
-  val nameAndDetails = level.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
-
-  val string = buildString {
-    append(nameAndDetails.name)
-
-    nameAndDetails.details?.let {
-      append(' ')
-      append(it)
-    }
-  }
-
-  Text(string)
 }
