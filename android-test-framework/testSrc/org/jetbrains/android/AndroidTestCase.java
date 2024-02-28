@@ -4,6 +4,7 @@ package org.jetbrains.android;
 
 import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheckThreadingAgentIsRunning;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.workspaceModel.ide.legacyBridge.impl.java.JavaModuleTypeUtils.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
@@ -31,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
@@ -567,7 +567,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       // the (unnamed) root module will be app.iml
       String moduleFilePath =
         myModuleRoot + (myModuleName == null ? "/app" : "/" + myModuleName) + ModuleFileType.DOT_DEFAULT_EXTENSION;
-      return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE);
+      return ModuleManager.getInstance(project).newModule(moduleFilePath, JAVA_MODULE_ENTITY_TYPE_ID_NAME);
     }
 
     @NotNull

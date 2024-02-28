@@ -17,13 +17,13 @@
 package org.jetbrains.kotlin.android
 
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.NewLibraryEditor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightProjectDescriptor
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import org.jetbrains.kotlin.utils.KotlinPaths
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
@@ -33,7 +33,7 @@ open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
     val INSTANCE = KotlinLightProjectDescriptor()
   }
 
-  override fun getModuleTypeId(): String = ModuleTypeId.JAVA_MODULE
+  override fun getModuleTypeId(): String = JAVA_MODULE_ENTITY_TYPE_ID_NAME
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
     val editor = NewLibraryEditor()

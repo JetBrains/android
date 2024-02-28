@@ -32,7 +32,6 @@ import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -42,6 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -87,7 +87,7 @@ fun addAndroidModule(moduleName: String, project: Project, packageName: String, 
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
   createAndroidManifest(moduleDir, packageName)
-  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
+  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, JAVA_MODULE_ENTITY_TYPE_ID_NAME) }
   Facets.createAndAddAndroidFacet(module)
 
   val moduleResDir = moduleDir.resolve(SdkConstants.FD_RES)
