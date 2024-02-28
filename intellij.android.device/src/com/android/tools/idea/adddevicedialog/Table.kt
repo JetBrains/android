@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,11 +70,16 @@ internal fun SortOrder.icon() =
     SortOrder.DESCENDING -> Icon("general/arrowDown.svg", null, AllIcons::General::class.java)
   }
 
-internal data class TableState<T>(
-  val sortColumn: TableColumn<T>? = null,
-  val sortOrder: SortOrder = SortOrder.ASCENDING,
-  val selection: T? = null,
-) {
+@Stable
+internal class TableSelectionState<T> {
+  var selection: T? by mutableStateOf(null)
+}
+
+@Stable
+internal class TableSortState<T> {
+  var sortColumn: TableColumn<T>? by mutableStateOf(null)
+  var sortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
+
   val comparator: Comparator<T>?
     get() =
       sortColumn?.comparator?.let {
@@ -89,7 +95,7 @@ internal fun <T> TableHeader(
   sortColumn: TableColumn<T>?,
   sortOrder: SortOrder,
   onClick: (TableColumn<T>) -> Unit,
-  columns: List<TableColumn<T>>
+  columns: List<TableColumn<T>>,
 ) {
   Row(Modifier.fillMaxWidth()) {
     columns.forEach {
@@ -108,12 +114,12 @@ internal fun <T> TableRow(
   value: T,
   selected: Boolean,
   onClick: (T) -> Unit = {},
-  columns: List<TableColumn<T>>
+  columns: List<TableColumn<T>>,
 ) {
   Row(
     Modifier.fillMaxWidth()
       .clickable { onClick(value) }
-      .thenIf(selected) { background(JBColor.BLUE.toComposeColor()) },
+      .thenIf(selected) { background(JBColor.BLUE.toComposeColor()) }
   ) {
     columns.forEach { Box(Modifier.weight(it.weight, fill = true)) { it.rowContent(value) } }
   }
@@ -124,36 +130,32 @@ internal fun <T> Table(
   columns: List<TableColumn<T>>,
   rows: List<T>,
   rowId: (T) -> Any,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
+  tableSortState: TableSortState<T> = remember { TableSortState<T>() },
 ) {
   Column(modifier) {
-    var tableState by remember { mutableStateOf(TableState<T>()) }
     TableHeader(
-      tableState.sortColumn,
-      tableState.sortOrder,
+      tableSortState.sortColumn,
+      tableSortState.sortOrder,
       onClick = { column ->
         if (column.comparator != null) {
-          val state = tableState
-          tableState =
-            state.copy(
-              sortColumn = column,
-              sortOrder =
-                if (state.sortColumn == column) state.sortOrder.opposite else SortOrder.ASCENDING,
-            )
+          tableSortState.sortOrder = if (tableSortState.sortColumn == column) tableSortState.sortOrder.opposite else SortOrder.ASCENDING
+          tableSortState.sortColumn = column
         }
       },
-      columns
+      columns,
     )
     Divider(Orientation.Horizontal)
     LazyColumn {
-      val sortedRows = tableState.comparator?.let { rows.sortedWith(it) } ?: rows
+      val sortedRows = tableSortState.comparator?.let { rows.sortedWith(it) } ?: rows
 
       items(sortedRows.size, { index -> rowId(sortedRows[index]) }) { index ->
         TableRow(
           sortedRows[index],
-          selected = sortedRows[index] == tableState.selection,
-          onClick = { row -> tableState = tableState.copy(selection = row) },
-          columns
+          selected = sortedRows[index] == tableSelectionState.selection,
+          onClick = { row -> tableSelectionState.selection = row },
+          columns,
         )
       }
     }

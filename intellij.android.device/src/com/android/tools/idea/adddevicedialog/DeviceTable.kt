@@ -25,7 +25,10 @@ import org.jetbrains.jewel.ui.component.Icon
 
 // TODO: Generalize to device types other than AVDs
 @Composable
-internal fun DeviceTable(modifier: Modifier = Modifier) {
+internal fun DeviceTable(
+  modifier: Modifier = Modifier,
+  tableSelectionState: TableSelectionState<Device> = remember { TableSelectionState() },
+) {
   val columns: List<TableColumn<Device>> = remember {
     listOf(
       TableColumn("", 0.5f) {
@@ -48,5 +51,5 @@ internal fun DeviceTable(modifier: Modifier = Modifier) {
   val devices = remember {
     DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList()
   }
-  Table(columns, devices, { it.id }, modifier)
+  Table(columns, devices, { it.id }, tableSelectionState = tableSelectionState, modifier = modifier)
 }
