@@ -27,7 +27,6 @@ import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.wizard.model.WizardModel
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -36,7 +35,7 @@ internal class LocalAvdConfigurationState
 internal constructor(
   internal val systemImages: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
-) : WizardModel() {
+) {
   internal var device by initDevice()
   internal var skins by mutableStateOf(skins)
 
@@ -75,9 +74,5 @@ internal constructor(
     }
 
     device = device.copy(skin = skin)
-  }
-
-  override fun handleFinished() {
-    VirtualDevices.add(device)
   }
 }

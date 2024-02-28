@@ -15,23 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import androidx.compose.runtime.Composable
-
-/** All DeviceSources should implement [SimpleDeviceSource] or [ConfigurableDeviceSource]. */
 interface DeviceSource {
   val profiles: List<DeviceProfile>
-}
 
-/**
- * A [DeviceSource] that does not have a configuration page. The device will be created immediately
- * from the Device Grid based on the [DeviceProfile].
- */
-interface SimpleDeviceSource : DeviceSource {
-  fun createDevice(device: DeviceProfile)
-}
-
-/** A [DeviceSource] that has a configuration page. */
-interface ConfigurableDeviceSource : DeviceSource {
-  @Composable
-  fun WizardPageScope.configurationPage(device: DeviceProfile)
+  fun WizardPageScope.selectionUpdated(profile: DeviceProfile)
 }

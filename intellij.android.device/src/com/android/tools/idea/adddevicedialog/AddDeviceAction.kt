@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.android.tools.idea.adddevicedialog.localavd.SystemImage
-import com.android.tools.idea.avdmanager.skincombobox.NoSkin
-import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
-import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
@@ -37,14 +33,10 @@ private class AddDeviceAction private constructor() : DumbAwareAction() {
       else AndroidPluginDisposable.getProjectInstance(project)
 
     AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
-      val images = SystemImage.getSystemImages().toImmutableList()
-
-      val skins =
-        SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
-          .toImmutableList()
+      val sources = service<DeviceSourceService>().createSources()
 
       withContext(AndroidDispatchers.uiThread) {
-        AddDeviceDialog.build(images, skins, project).show()
+        AddDeviceWizard(sources, project).createDialog().show()
       }
     }
   }

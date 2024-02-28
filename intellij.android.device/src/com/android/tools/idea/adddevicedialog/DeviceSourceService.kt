@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.adddevicedialog.localavd.LocalVirtualDeviceSource
 import com.intellij.openapi.components.Service
 
 @Service(Service.Level.APP)
 class DeviceSourceService {
   fun createSources(): List<DeviceSource> {
-    return listOf()
+    return listOf(LocalVirtualDeviceSource.create())
   }
 }
