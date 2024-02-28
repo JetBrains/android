@@ -18,13 +18,14 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.uicheck.TAB_IS_WEAR_PREVIEW
 import com.android.tools.idea.compose.preview.uicheck.TAB_PREVIEW_DEFINITION
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -72,11 +73,9 @@ class ReRunUiCheckModeAction : AnAction() {
     val project = e.project ?: return
 
     // Gets the preview pointer associated with this UI Check
-    val uiCheckInstancePreviewDef =
-      ProblemsView.getToolWindow(project)
-        ?.contentManager
-        ?.selectedContent
-        ?.getUserData(TAB_PREVIEW_DEFINITION) ?: return
+    val selectedContent = ProblemsView.getToolWindow(project)?.contentManager?.selectedContent
+    val uiCheckInstancePreviewDef = selectedContent?.getUserData(TAB_PREVIEW_DEFINITION) ?: return
+    val isWearPreview = selectedContent.getUserData(TAB_IS_WEAR_PREVIEW) ?: return
 
     // Selects or reopens the file containing the preview
     val editors =
@@ -98,18 +97,12 @@ class ReRunUiCheckModeAction : AnAction() {
       // Waits for the correct preview to be recreated, and starts UI Check on it
       val previewElements =
         flowManager.allPreviewElementsFlow.firstOrNull { flow ->
-          flow.asCollection().any {
-            (it as? ComposePreviewElementInstance)?.previewElementDefinition ==
-              uiCheckInstancePreviewDef
-          }
+          flow.asCollection().any { it.previewElementDefinition == uiCheckInstancePreviewDef }
         }
       previewElements
         ?.asCollection()
-        ?.firstOrNull {
-          (it as? ComposePreviewElementInstance)?.previewElementDefinition ==
-            uiCheckInstancePreviewDef
-        }
-        ?.let { composeManager.setMode(PreviewMode.UiCheck(it)) }
+        ?.firstOrNull { it.previewElementDefinition == uiCheckInstancePreviewDef }
+        ?.let { composeManager.setMode(PreviewMode.UiCheck(UiCheckInstance(it, isWearPreview))) }
     }
   }
 

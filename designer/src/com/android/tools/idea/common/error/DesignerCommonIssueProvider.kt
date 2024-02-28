@@ -78,7 +78,7 @@ class DesignToolsIssueProvider(
   parentDisposable: Disposable,
   project: Project,
   private val issueFilter: DesignerCommonIssueProvider.Filter,
-  val instanceId: String,
+  instanceId: String,
 ) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
 

@@ -31,8 +31,12 @@ import com.intellij.psi.SmartPsiElementPointer
 val TAB_PREVIEW_DEFINITION: Key<SmartPsiElementPointer<*>> =
   Key.create(IssuePanelService::class.java.name + "_UiCheckPreviewDef")
 
+val TAB_IS_WEAR_PREVIEW: Key<Boolean> =
+  Key.create(IssuePanelService::class.java.name + "_UiCheckWearPreview")
+
 class UiCheckPanelProvider(
   private val instance: ComposePreviewElementInstance<*>,
+  private val isWearPreview: Boolean,
   private val project: Project,
 ) : ProblemsViewPanelProvider {
   override fun create(): ProblemsViewTab? {
@@ -50,6 +54,7 @@ class UiCheckPanelProvider(
       (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let {
         content.putUserData(TAB_PREVIEW_DEFINITION, it)
       }
+      content.putUserData(TAB_IS_WEAR_PREVIEW, isWearPreview)
       content.isPinnable = true
       content.isCloseable = true
     }

@@ -271,6 +271,11 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
     true);
 
+  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
+    NELE, "compose.ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
+    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
+    false);
+
   public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
     NELE, "compose.ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
     "Enable colorblind Check mode in UI Check Mode for Compose preview",

@@ -49,6 +49,7 @@ import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.configuration.execution.findElementByText
@@ -176,6 +177,7 @@ class ComposePreviewRepresentationTest {
   fun tearDown() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.clearOverride()
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
+    StudioFlags.NELE_COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     EssentialsMode.setEnabled(false, project)
   }
 
@@ -265,7 +267,9 @@ class ComposePreviewRepresentationTest {
     }
 
     // Start UI Check mode
-    setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement))
+    setModeAndWaitForRefresh(
+      PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
+    )
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
     delayUntilCondition(250) {
@@ -406,7 +410,9 @@ class ComposePreviewRepresentationTest {
     assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
 
     // Restart UI Check mode on the same preview
-    setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement)) {
+    setModeAndWaitForRefresh(
+      PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
+    ) {
       GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
@@ -486,7 +492,9 @@ class ComposePreviewRepresentationTest {
     assertEquals(1, contentManager.contents.size)
 
     // Start UI Check mode
-    setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement))
+    setModeAndWaitForRefresh(
+      PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
+    )
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
     assertTrue(preview.atfChecksEnabled)
@@ -613,7 +621,9 @@ class ComposePreviewRepresentationTest {
     assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
 
     // Restart UI Check mode on the same preview
-    setModeAndWaitForRefresh(PreviewMode.UiCheck(uiCheckElement))
+    setModeAndWaitForRefresh(
+      PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
+    )
 
     // Check that the UI Check tab is being reused
     assertEquals(2, contentManager.contents.size)
@@ -736,7 +746,7 @@ class ComposePreviewRepresentationTest {
 
       run {
         waitForAllRefreshesToFinish(30.seconds)
-        preview.setMode(PreviewMode.UiCheck(uiCheckElement))
+        preview.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
         delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Enabled }
       }
 
@@ -858,6 +868,102 @@ class ComposePreviewRepresentationTest {
       EssentialsMode.setEnabled(false, project)
       retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
     }
+
+  @Test
+  fun testWearUiCheckMode() {
+    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.NELE_COMPOSE_UI_CHECK_FOR_WEAR.override(true)
+
+    val testPsiFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview(device = "id:wearos_square")
+            fun Preview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+
+    runComposePreviewRepresentationTest(testPsiFile) {
+      val preview = createPreviewAndCompile()
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+
+      val uiCheckElement = mainSurface.models.mapNotNull { it.dataContext.previewElement() }[0]
+      val problemsView = ProblemsView.getToolWindow(project)!!
+
+      val contentManager = problemsView.contentManager
+      withContext(uiThread) {
+        ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
+        assertEquals(1, contentManager.contents.size)
+      }
+
+      // Start UI Check mode
+      setModeAndWaitForRefresh(
+        PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = true))
+      )
+
+      assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
+      delayUntilCondition(250) {
+        GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      }
+
+      assertTrue(preview.atfChecksEnabled)
+      assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
+        .containsExactly("Wear OS Devices")
+      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+        "Failed set uiCheckMode",
+        25.seconds,
+      ) {
+        it.asCollection().size > 2
+      }
+      assertEquals(
+        """
+          TestKt.Preview
+          id:wearos_large_round
+          PreviewDisplaySettings(name=Wear OS Large Round - Preview, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Wear OS Small Round - Preview, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview
+          id:wearos_square
+          PreviewDisplaySettings(name=Wear OS Square - Preview, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview
+          id:wearos_rect
+          PreviewDisplaySettings(name=Wear OS Rectangular - Preview, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+        """
+          .trimIndent(),
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
+          val configurationDeviceSpecText =
+            "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
+          "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
+        },
+      )
+
+      // Check that the UI Check tab has been created
+      assertEquals(2, contentManager.contents.size)
+      assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
+
+      // Stop UI Check mode
+      setModeAndWaitForRefresh(PreviewMode.Default())
+
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+    }
+  }
 
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),

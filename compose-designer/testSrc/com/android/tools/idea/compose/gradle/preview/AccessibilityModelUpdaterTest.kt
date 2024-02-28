@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
@@ -117,7 +118,10 @@ class AccessibilityModelUpdaterTest {
       waitForAllRefreshesToFinish(30.seconds)
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
       composePreviewRepresentation.setMode(
-        PreviewMode.UiCheck(uiCheckElement, atfChecksEnabled = true)
+        PreviewMode.UiCheck(
+          UiCheckInstance(uiCheckElement, isWearPreview = false),
+          atfChecksEnabled = true,
+        )
       )
       onRefreshCompletable.join()
     }

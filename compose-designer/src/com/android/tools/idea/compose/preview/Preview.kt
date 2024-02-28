@@ -526,13 +526,16 @@ class ComposePreviewRepresentation(
     ActivityTracker.getInstance().inc()
   }
 
-  private suspend fun startUiCheckPreview(instance: PsiComposePreviewElementInstance) {
+  private suspend fun startUiCheckPreview(
+    instance: PsiComposePreviewElementInstance,
+    isWearPreview: Boolean,
+  ) {
     log.debug(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
     val startTime = System.currentTimeMillis()
     qualityManager.pause()
-    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
+    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, isWearPreview)
     withContext(uiThread) {
       emptyUiCheckPanel.apply {
         isVisible = true
@@ -540,7 +543,7 @@ class ComposePreviewRepresentation(
         // including the zoom toolbar.
         surface.layeredPane.add(this, JLayeredPane.DRAG_LAYER, 0)
       }
-      createUiCheckTab(instance)
+      createUiCheckTab(instance, isWearPreview)
       ProblemsViewToolWindowUtils.selectTab(project, instance.instanceId)
     }
     val completableDeferred =
@@ -559,8 +562,8 @@ class ComposePreviewRepresentation(
     completableDeferred.join()
   }
 
-  fun createUiCheckTab(instance: ComposePreviewElementInstance<*>) {
-    val uiCheckIssuePanel = UiCheckPanelProvider(instance, project).getPanel()
+  fun createUiCheckTab(instance: ComposePreviewElementInstance<*>, isWearPreview: Boolean) {
+    val uiCheckIssuePanel = UiCheckPanelProvider(instance, isWearPreview, project).getPanel()
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
     uiCheckIssuePanel.issueProvider.activate()
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)
@@ -1482,7 +1485,11 @@ class ComposePreviewRepresentation(
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)
       }
       is PreviewMode.UiCheck -> {
-        startUiCheckPreview(mode.baseElement as PsiComposePreviewElementInstance)
+        val uiCheckInstance = mode.baseInstance
+        startUiCheckPreview(
+          uiCheckInstance.baseElement as PsiComposePreviewElementInstance,
+          uiCheckInstance.isWearPreview,
+        )
       }
       is PreviewMode.AnimationInspection -> {
         ComposePreviewAnimationManager.onAnimationInspectorOpened()

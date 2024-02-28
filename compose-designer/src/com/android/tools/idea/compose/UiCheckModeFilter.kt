@@ -45,6 +45,13 @@ private val idToName =
     DEVICE_CLASS_DESKTOP_ID to "Desktop",
     DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape",
   )
+private val wearSpecToName =
+  mapOf(
+    "id:wearos_large_round" to "Wear OS Large Round",
+    "id:wearos_small_round" to "Wear OS Small Round",
+    "id:wearos_square" to "Wear OS Square",
+    "id:wearos_rect" to "Wear OS Rectangular",
+  )
 private val fontScales =
   mapOf(
     0.85f to "85%",
@@ -81,11 +88,12 @@ sealed class UiCheckModeFilter {
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
   }
 
-  class Enabled(selected: PsiComposePreviewElementInstance) : UiCheckModeFilter() {
+  class Enabled(selected: PsiComposePreviewElementInstance, isWearPreview: Boolean) :
+    UiCheckModeFilter() {
     override val basePreviewInstance = selected
 
     private val uiCheckPreviews: Collection<PsiComposePreviewElementInstance> =
-      calculatePreviews(selected)
+      calculatePreviews(selected, isWearPreview)
 
     /** Calculate the groups. This will be all the groups available in [uiCheckPreviews] if any. */
     private val uiCheckPreviewGroups =
@@ -110,21 +118,47 @@ sealed class UiCheckModeFilter {
     @VisibleForTesting
     companion object {
       fun calculatePreviews(
-        base: PsiComposePreviewElementInstance
+        base: PsiComposePreviewElementInstance?,
+        isWearPreview: Boolean,
       ): Collection<PsiComposePreviewElementInstance> {
 
+        if (base == null) {
+          return emptyList()
+        }
         val composePreviewInstances = mutableListOf<PsiComposePreviewElementInstance>()
-        composePreviewInstances.addAll(deviceSizePreviews(base))
-        composePreviewInstances.addAll(fontSizePreviews(base))
-        composePreviewInstances.addAll(lightDarkPreviews(base))
+        if (isWearPreview) {
+          composePreviewInstances.addAll(wearPreviews(base))
+        } else {
+          composePreviewInstances.addAll(deviceSizePreviews(base))
+          composePreviewInstances.addAll(fontSizePreviews(base))
+          composePreviewInstances.addAll(lightDarkPreviews(base))
 
-        val isColorBlindModeUICheckEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
-        if (isColorBlindModeUICheckEnabled) {
-          composePreviewInstances.addAll(colorBlindPreviews(base))
+          val isColorBlindModeUICheckEnabled =
+            StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
+          if (isColorBlindModeUICheckEnabled) {
+            composePreviewInstances.addAll(colorBlindPreviews(base))
+          }
         }
         return composePreviewInstances
       }
     }
+  }
+}
+
+private fun wearPreviews(
+  baseInstance: PsiComposePreviewElementInstance
+): List<PsiComposePreviewElementInstance> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  return wearSpecToName.map { (deviceSpec, name) ->
+    val config = baseConfig.copy(deviceSpec = deviceSpec)
+    val displaySettings =
+      baseDisplaySettings.copy(
+        name = "$name - ${baseDisplaySettings.name}",
+        group = message("ui.check.mode.wear.group"),
+        showDecoration = true,
+      )
+    baseInstance.createDerivedInstance(displaySettings, config)
   }
 }
 

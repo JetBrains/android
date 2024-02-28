@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,25 +41,28 @@ class EnableUiCheckAction :
     super.updateButton(e)
     val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-    val isWearPreview =
-      HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.sceneManager?.model?.configuration?.device)
+    val disableForWear =
+      HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
+        !StudioFlags.NELE_COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = isUiCheckModeEnabled
-    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !isWearPreview
+    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !disableForWear
     e.presentation.text =
-      if (isEssentialsModeEnabled || isWearPreview) null else message("action.uicheck.title")
+      if (isEssentialsModeEnabled || disableForWear) null else message("action.uicheck.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
-      else if (isWearPreview) message("action.uicheck.wear.description")
+      else if (disableForWear) message("action.uicheck.wear.description")
       else message("action.uicheck.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = e.dataContext
     val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
-    val instanceId = modelDataContext.previewElement() ?: return
-    manager.setMode(PreviewMode.UiCheck(baseElement = instanceId))
+    val instance = modelDataContext.previewElement() ?: return
+    val device = modelDataContext.getData(SCENE_VIEW)?.configuration?.device
+    val isWearDevice = HardwareConfigHelper.isWear(device)
+    manager.setMode(PreviewMode.UiCheck(baseInstance = UiCheckInstance(instance, isWearDevice)))
 
-    e.project?.let { ProblemsViewToolWindowUtils.selectTab(it, instanceId.instanceId) }
+    e.project?.let { ProblemsViewToolWindowUtils.selectTab(it, instance.instanceId) }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

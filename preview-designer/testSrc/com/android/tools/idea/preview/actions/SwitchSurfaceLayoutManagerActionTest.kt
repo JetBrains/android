@@ -27,6 +27,7 @@ import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
@@ -168,7 +169,11 @@ class SwitchSurfaceLayoutManagerActionTest {
   fun testPreviewModeDerivesCurrentModeWithLayoutWithGalleryOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
-    val uiCheckMode = PreviewMode.UiCheck(previewElement2, layoutOption = GRID_LAYOUT_OPTION)
+    val uiCheckMode =
+      PreviewMode.UiCheck(
+        UiCheckInstance(previewElement2, isWearPreview = false),
+        layoutOption = GRID_LAYOUT_OPTION,
+      )
     val (dataContext, previewModeManager, _) =
       setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
 

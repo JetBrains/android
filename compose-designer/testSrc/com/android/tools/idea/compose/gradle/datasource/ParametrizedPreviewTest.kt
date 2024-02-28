@@ -34,6 +34,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -294,7 +295,7 @@ class ParametrizedPreviewTest {
     run {
       var refreshCompleted = false
       composeView.refreshCompletedListeners.add { refreshCompleted = true }
-      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
+      preview.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
       delayUntilCondition(250) { refreshCompleted }
     }
 

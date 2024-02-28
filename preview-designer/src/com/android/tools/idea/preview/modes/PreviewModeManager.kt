@@ -106,7 +106,7 @@ sealed class PreviewMode {
   sealed class RestorePreviewMode : PreviewMode()
 
   class UiCheck(
-    val baseElement: PreviewElement<*>,
+    val baseInstance: UiCheckInstance,
     override val layoutOption: SurfaceLayoutOption = GRID_NO_GROUP_LAYOUT_OPTION,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get(),
@@ -114,15 +114,15 @@ sealed class PreviewMode {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
-      return UiCheck(baseElement, layoutOption, atfChecksEnabled, visualLintingEnabled)
+      return UiCheck(baseInstance, layoutOption, atfChecksEnabled, visualLintingEnabled)
     }
 
     override fun equals(other: Any?): Boolean {
-      return super.equals(other) && baseElement == (other as UiCheck).baseElement
+      return super.equals(other) && baseInstance == (other as UiCheck).baseInstance
     }
 
     override fun hashCode(): Int {
-      return Objects.hashCode(super.hashCode(), baseElement)
+      return Objects.hashCode(super.hashCode(), baseInstance)
     }
   }
 
@@ -171,3 +171,11 @@ sealed class PreviewMode {
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
   }
 }
+
+/**
+ * Characteristic information of a UI Check instance
+ *
+ * @param baseElement The preview element from which the UI Check mode is launched
+ * @param isWearPreview Whether the preview element is a Wear preview
+ */
+data class UiCheckInstance(val baseElement: PreviewElement<*>, val isWearPreview: Boolean)

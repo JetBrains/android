@@ -53,7 +53,8 @@ class AtfAnalyzerComposeTest {
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
 
@@ -72,7 +73,8 @@ class AtfAnalyzerComposeTest {
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
 
@@ -95,7 +97,8 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
@@ -112,7 +115,8 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
@@ -145,7 +149,8 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
@@ -179,7 +184,8 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet)

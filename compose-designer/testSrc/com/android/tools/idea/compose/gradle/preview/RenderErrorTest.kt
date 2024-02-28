@@ -33,6 +33,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -349,7 +350,7 @@ class RenderErrorTest {
 
     composePreviewRepresentation.setMode(
       PreviewMode.UiCheck(
-        baseElement = uiCheckElement,
+        baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false),
         atfChecksEnabled = true,
         visualLintingEnabled = true,
       )
