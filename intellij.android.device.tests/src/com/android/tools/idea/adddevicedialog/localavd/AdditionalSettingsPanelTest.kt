@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -32,6 +33,8 @@ import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -96,15 +99,20 @@ class AdditionalSettingsPanelTest {
 
     rule.setContent {
       IntUiTheme {
-        Column {
-          AdditionalSettingsPanel(
-            device,
-            emptyList<Skin>().toImmutableList(),
-            AdditionalSettingsPanelState(device),
-            Context(MockitoKt.mock(), null, fileSystem),
-            onDeviceChange,
-            onImportButtonClick = {},
-          )
+        CompositionLocalProvider(
+          LocalFileSystem provides fileSystem,
+          @OptIn(ExperimentalJewelApi::class) LocalComponent provides MockitoKt.mock(),
+          LocalProject provides null,
+        ) {
+          Column {
+            AdditionalSettingsPanel(
+              device,
+              emptyList<Skin>().toImmutableList(),
+              AdditionalSettingsPanelState(device),
+              onDeviceChange,
+              onImportButtonClick = {},
+            )
+          }
         }
       }
     }

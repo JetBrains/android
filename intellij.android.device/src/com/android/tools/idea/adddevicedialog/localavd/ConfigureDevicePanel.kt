@@ -34,7 +34,6 @@ internal fun ConfigureDevicePanel(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
-  context: Context,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -43,7 +42,7 @@ internal fun ConfigureDevicePanel(
     Column {
       Text("Configure device")
       Text("Add a device to device manager")
-      Tabs(device, images, skins, context, onDeviceChange, onImportButtonClick)
+      Tabs(device, images, skins, onDeviceChange, onImportButtonClick)
     }
   }
 }
@@ -53,7 +52,6 @@ private fun Tabs(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
-  context: Context,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -70,7 +68,7 @@ private fun Tabs(
   when (selectedTab) {
     Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(device, skins, state, context, onDeviceChange, onImportButtonClick)
+      AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)
   }
 }
 

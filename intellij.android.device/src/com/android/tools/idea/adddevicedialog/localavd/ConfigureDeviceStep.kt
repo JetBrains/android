@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
-import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import javax.swing.JComponent
+import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
@@ -32,20 +36,18 @@ internal constructor(model: AddDeviceWizardModel, private val project: Project?)
 
   private fun initComponent(): JComponent {
     @OptIn(ExperimentalJewelApi::class) enableNewSwingCompositing()
-    val component = ComposePanel()
 
-    component.setContent {
-      ConfigureDevicePanel(
-        model.device,
-        model.systemImages,
-        model.skins,
-        Context(component, project),
-        { model.device = it },
-        ::importSkin,
-      )
+    return JewelComposePanel {
+      CompositionLocalProvider(LocalProject provides project) {
+        ConfigureDevicePanel(
+          model.device,
+          model.systemImages,
+          model.skins,
+          { model.device = it },
+          ::importSkin,
+        )
+      }
     }
-
-    return component
   }
 
   private fun importSkin() {
@@ -66,3 +68,6 @@ internal constructor(model: AddDeviceWizardModel, private val project: Project?)
 
   public override fun getComponent() = component
 }
+
+internal val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
+internal val LocalProject = staticCompositionLocalOf<Project?> { throw AssertionError() }
