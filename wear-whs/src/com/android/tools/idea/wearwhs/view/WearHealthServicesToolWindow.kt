@@ -189,25 +189,18 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       border = horizontalBorders
       // Display current state e.g. we encountered an error or if there's work in progress
       add(JLabel().apply {
-        stateManager.getStatus().onEach {
-          when (it) {
-            is WhsStateManagerStatus.Ready -> {
-              text = ""
-            }
+        stateManager.status.onEach {
+          text = when (it) {
+            is WhsStateManagerStatus.Syncing ->
+              message("wear.whs.panel.capabilities.syncing")
 
-            is WhsStateManagerStatus.Syncing -> {
-              text = message("wear.whs.panel.capabilities.syncing")
-            }
+            is WhsStateManagerStatus.Timeout ->
+              message("wear.whs.panel.connection.timeout")
 
-            is WhsStateManagerStatus.ConnectionLost -> {
-              text = message("wear.whs.panel.connection.lost")
-            }
+            is WhsStateManagerStatus.ConnectionLost ->
+              message("wear.whs.panel.connection.lost")
 
-            is WhsStateManagerStatus.Idle -> {
-              text = ""
-            }
-
-            else -> {}
+            else -> ""
           }
         }.launchIn(uiScope)
       })

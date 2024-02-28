@@ -54,7 +54,7 @@ internal interface WearHealthServicesToolWindowStateManager {
 
   fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 
-    /**
+  /**
    * Applies the changes on current device.
    */
   suspend fun applyChanges()
@@ -69,7 +69,7 @@ internal interface WearHealthServicesToolWindowStateManager {
    * which could be the syncing state, containing the capability that is currently being synced
    * across to the device, an error state, or an idle state.
    */
-  fun getStatus(): StateFlow<WhsStateManagerStatus?>
+  val status: StateFlow<WhsStateManagerStatus>
 
   /**
    * Returns if the current WHS version is supported or not, so an error can be displayed by
@@ -110,7 +110,7 @@ internal interface WearHealthServicesToolWindowStateManager {
 internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelKey: String) {
   STANDARD("wear.whs.panel.capabilities.standard"),
   ALL("wear.whs.panel.capabilities.all"),
-  CUSTOM( "wear.whs.panel.capabilities.custom");
+  CUSTOM("wear.whs.panel.capabilities.custom");
 
   override fun toString() = message(labelKey)
 }
@@ -119,11 +119,38 @@ internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelK
  * Progress state of the Wear Health Services tool window, tells the user what is currently
  * being synced across to the device, if there's an error, or if the state is idle.
  */
-internal sealed class WhsStateManagerStatus {
-  object Ready : WhsStateManagerStatus()
-  object Syncing : WhsStateManagerStatus()
-  object ConnectionLost : WhsStateManagerStatus()
-  object Idle : WhsStateManagerStatus()
+internal sealed class WhsStateManagerStatus(val idle: Boolean) {
+  /**
+   * Initial state, when the tool window is first opened. State manager will wait until
+   * it's idle to execute commands.
+   */
+  object Initializing : WhsStateManagerStatus(idle = false)
+
+  /**
+   * Busy state, non-user action is currently being performed. This could be connecting to the
+   * device, loading values from the device.
+   */
+  object Busy : WhsStateManagerStatus(idle = false)
+
+  /**
+   * User action is currently being performed, such as applying changes to the device.
+   */
+  object Syncing : WhsStateManagerStatus(idle = false)
+
+  /**
+   * Connection is lost, this should be shown to the user if any of the actions fail.
+   */
+  object ConnectionLost : WhsStateManagerStatus(idle = true)
+
+  /**
+   * Last action had a timeout, this should be shown to the user if any action times out.
+   */
+  object Timeout: WhsStateManagerStatus(idle = true)
+
+  /**
+   * Panel is idle, ready to accept user input and/or execute the next task.
+   */
+  object Idle : WhsStateManagerStatus(idle = true)
 }
 
 /**
