@@ -60,7 +60,7 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
   abstract suspend fun loadProperties()
 
   /** Initial setup for this animation before adding it to the panel. */
-  abstract fun setup()
+  abstract suspend fun setup()
 
   /** Maximum ms for [currentTransition] required in the timeline. */
   abstract val timelineMaximumMs: Int

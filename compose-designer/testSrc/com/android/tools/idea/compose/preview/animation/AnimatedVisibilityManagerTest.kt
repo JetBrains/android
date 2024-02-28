@@ -21,6 +21,7 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
@@ -173,18 +174,18 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { _, ui ->
-      // both calls from SupportedAnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      // call from SupportedAnimationManager.setup
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      assertEquals(2, numberOfCalls)
+      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
-      timelineSlider.value = 200
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
-      assertEquals(4, numberOfCalls)
     }
   }
 
@@ -203,6 +204,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     runBlocking {
+      surface.sceneManagers.forEach { it.render() }
       ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
 
       withContext(uiThread) {

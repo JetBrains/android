@@ -40,7 +40,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
 
   override suspend fun loadProperties() {}
 
-  override fun setup() {}
+  override suspend fun setup() {}
 
   override val timelineMaximumMs = 0
 

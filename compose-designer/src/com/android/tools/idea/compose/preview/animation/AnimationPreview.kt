@@ -21,7 +21,6 @@ import androidx.compose.animation.tooling.TransitionInfo
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
@@ -44,9 +43,7 @@ import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -57,9 +54,7 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.await
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -259,7 +254,6 @@ class AnimationPreview(
       }
     }
     timeline.repaint()
-    sceneManagerProvider()?.render()
     timeline.revalidate()
     coordinationTab.revalidate()
   }
@@ -286,27 +280,29 @@ class AnimationPreview(
   ) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
-      if (
-        !executeOnRenderThread(longTimeout) {
-          if (coordinationIsSupported())
-            setClockTimes(
-              animations.associate {
-                val newTime =
-                  (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
-                  else clockTimeMs) - it.elementState.value.valueOffset
-                it.animation to newTime
-              }
-            )
-          // Fall back to `setClockTime` if coordination is nor available.
-          else setClockTime(clockTimeMs)
-        }
-      )
-        return
+      executeInRenderSessionAsync(longTimeout) {
+        if (coordinationIsSupported())
+          setClockTimes(
+            animations.associate {
+              val newTime =
+                (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
+                else clockTimeMs) - it.elementState.value.valueOffset
+              it.animation to newTime
+            }
+          )
+        // Fall back to `setClockTime` if coordination is nor available.
+        else setClockTime(clockTimeMs)
+      }
 
       // Load all properties.
       // Make a copy of the list to prevent ConcurrentModificationException
       (if (makeCopy) animations.toList() else animations).forEach { it.loadProperties() }
+      renderAnimation()
     }
+  }
+
+  private suspend fun renderAnimation() {
+    sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
   }
 
   /**
@@ -331,12 +327,15 @@ class AnimationPreview(
     // short timeout.
     timeline.cachedVal = 0
     // Move the timeline slider to 0.
-    UIUtil.invokeLaterIfNeeded { clockControl.jumpToStart() }
+    withContext(uiThread) { clockControl.jumpToStart() }
   }
 
   private fun updateTimelineMaximum() {
     val timelineMax =
-      max(animations.maxOf { it.timelineMaximumMs }.toLong(), maxDurationPerIteration)
+      max(
+        animations.maxOfOrNull { it.timelineMaximumMs }?.toLong() ?: maxDurationPerIteration,
+        maxDurationPerIteration,
+      )
     scope.launch {
       withContext(uiThread) {
         clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
@@ -352,15 +351,12 @@ class AnimationPreview(
    * iteration instead to represent the window size and set the timeline max loop count to be large
    * enough to display all the iterations.
    */
-  private fun updateMaxDuration(longTimeout: Boolean = false) {
+  private suspend fun updateMaxDuration(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
-    if (
-      !executeOnRenderThread(longTimeout) {
-        maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
-      }
-    )
-      return
+    executeInRenderSessionAsync(longTimeout) {
+      maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
+    }
   }
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
@@ -524,42 +520,39 @@ class AnimationPreview(
      * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation,
      * and resets the timeline
      */
-    override fun setup() {
+    override suspend fun setup() {
       stateComboBox.updateStates(animation.states)
-      updateAnimationStatesExecutor.execute {
-        // Update the animated visibility combo box with the correct initial state, obtained from
-        // PreviewAnimationClock.
-        var state: Any? = null
-        executeOnRenderThread(useLongTimeout = true) {
-          val clock = animationClock ?: return@executeOnRenderThread
-          // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
-          // calling `getAnimatedVisibilityState`
-          // via reflection will return a String rather than an AnimatedVisibilityState. To work
-          // around that, we select the initial combo
-          // box item by checking the display value.
-          state =
-            clock.getAnimatedVisibilityState(animation).let { loadedState ->
-              animation.states.firstOrNull { it.toString() == loadedState.toString() }
-            }
-        }
-
-        stateComboBox.setStartState(state ?: animation.states.firstOrNull())
-
-        // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
-        // we're running off EDT, the UI will not
-        // freeze. This is necessary here because it's the first time the animation mutable states
-        // will be written, when setting the clock,
-        // and read, when getting its duration. These operations take longer than the default 30ms
-        // timeout the first time they're executed.
-        scope.launch {
-          updateAnimatedVisibility(longTimeout = true)
-          loadTransitionFromCacheOrLib(longTimeout = true)
-          loadProperties()
-        }
-        // Set up the combo box listener so further changes to the selected state will trigger a
-        // call to updateAnimatedVisibility.
-        stateComboBox.callbackEnabled = true
+      // Update the animated visibility combo box with the correct initial state, obtained from
+      // PreviewAnimationClock.
+      var state: Any? = null
+      executeInRenderSessionAsync(useLongTimeout = true) {
+        val clock = animationClock ?: return@executeInRenderSessionAsync
+        // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
+        // calling `getAnimatedVisibilityState`
+        // via reflection will return a String rather than an AnimatedVisibilityState. To work
+        // around that, we select the initial combo
+        // box item by checking the display value.
+        state =
+          clock.getAnimatedVisibilityState(animation).let { loadedState ->
+            animation.states.firstOrNull { it.toString() == loadedState.toString() }
+          }
       }
+
+      stateComboBox.setStartState(state ?: animation.states.firstOrNull())
+
+      // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
+      // we're running off EDT, the UI will not
+      // freeze. This is necessary here because it's the first time the animation mutable states
+      // will be written, when setting the clock,
+      // and read, when getting its duration. These operations take longer than the default 30ms
+      // timeout the first time they're executed.
+      updateAnimatedVisibility(longTimeout = true)
+      loadTransitionFromCacheOrLib(longTimeout = true)
+      loadProperties()
+
+      // Set up the combo box listener so further changes to the selected state will trigger a
+      // call to updateAnimatedVisibility.
+      stateComboBox.callbackEnabled = true
     }
   }
 
@@ -636,29 +629,25 @@ class AnimationPreview(
      * Updates the `initial` and `target` state combo boxes to display the states of the given
      * animation, and resets the timeline.
      */
-    override fun setup() {
+    override suspend fun setup() {
       val states: Set<Any> = handleKnownStateTypes(animation.states)
       val currentState = animation.getCurrentState()
       stateComboBox.updateStates(states)
       stateComboBox.setStartState(currentState)
 
-      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in
-      // PreviewAnimationClock
-      updateAnimationStatesExecutor.execute {
-        // Use a longer timeout the first time we're updating the start and end states. Since we're
-        // running off EDT, the UI will not freeze.
-        // This is necessary here because it's the first time the animation mutable states will be
-        // written, when setting the clock, and
-        // read, when getting its duration. These operations take longer than the default 30ms
-        // timeout the first time they're executed.
-        scope.launch {
-          updateAnimationStartAndEndStates(longTimeout = true)
-          loadTransitionFromCacheOrLib(longTimeout = true)
-        }
-        // Set up the state listeners so further changes to the selected state will trigger a
-        // call to updateAnimationStartAndEndStates.
-        stateComboBox.callbackEnabled = true
-      }
+      // Use a longer timeout the first time we're updating the start and end states. Since we're
+      // running off EDT, the UI will not freeze.
+      // This is necessary here because it's the first time the animation mutable states will be
+      // written, when setting the clock, and
+      // read, when getting its duration. These operations take longer than the default 30ms
+      // timeout the first time they're executed.
+      updateAnimationStartAndEndStates(longTimeout = true)
+      loadTransitionFromCacheOrLib(longTimeout = true)
+
+      // Set up the state listeners so further changes to the selected state will trigger a
+      // call to updateAnimationStartAndEndStates.
+      stateComboBox.callbackEnabled = true
+
       scope.launch {
         elementState.collect {
           loadProperties()
@@ -713,17 +702,13 @@ class AnimationPreview(
      */
     suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
       animationClock?.apply {
-        val startState = stateComboBox.getState(0)
-        val toState = stateComboBox.getState(1)
+        val startState = stateComboBox.getState(0) ?: return
+        val toState = stateComboBox.getState(1) ?: return
 
-        if (
-          !executeOnRenderThread(longTimeout) {
-            startState ?: return@executeOnRenderThread
-            toState ?: return@executeOnRenderThread
-            updateFromAndToStates(animation, startState, toState)
-          }
-        )
-          return
+        executeInRenderSessionAsync(longTimeout) {
+          updateFromAndToStates(animation, startState, toState)
+        }
+
         resetTimelineAndUpdateWindowSize(longTimeout)
       }
     }
@@ -734,13 +719,8 @@ class AnimationPreview(
      */
     suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
       animationClock?.apply {
-        if (
-          !executeOnRenderThread(longTimeout) {
-            val state = stateComboBox.getState(0) ?: return@executeOnRenderThread
-            updateAnimatedVisibilityState(animation, state)
-          }
-        )
-          return
+        val state = stateComboBox.getState(0) ?: return
+        executeInRenderSessionAsync(longTimeout) { updateAnimatedVisibilityState(animation, state) }
         resetTimelineAndUpdateWindowSize(longTimeout)
       }
     }
@@ -749,7 +729,7 @@ class AnimationPreview(
      * Load transition for current start and end state. If transition was loaded before, the cached
      * result is used.
      */
-    fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
+    suspend fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
       val stateHash = stateComboBox.stateHashCode()
 
       cachedTransitions[stateHash]?.let {
@@ -759,7 +739,7 @@ class AnimationPreview(
 
       val clock = animationClock ?: return
 
-      executeOnRenderThread(longTimeout) {
+      executeInRenderSessionAsync(longTimeout) {
         val transition = loadTransitionsFromLib(clock)
         cachedTransitions[stateHash] = transition
         currentTransition = transition
@@ -894,26 +874,6 @@ class AnimationPreview(
       )
       dragEndListeners.add { updateTimelineMaximum() }
     }
-  }
-
-  /** Executor responsible for updating animation states off EDT. */
-  private val updateAnimationStatesExecutor =
-    if (ApplicationManager.getApplication().isUnitTestMode) MoreExecutors.directExecutor()
-    else AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation States Updater", 1)
-
-  private fun executeOnRenderThread(useLongTimeout: Boolean, callback: () -> Unit): Boolean {
-    val (time, timeUnit) =
-      if (useLongTimeout) {
-        // Make sure we don't block the UI thread when setting a large timeout
-        // See b/278929658 for more details about extra isUnitTestMode check.
-        if (!ApplicationManager.getApplication().isUnitTestMode)
-          ApplicationManager.getApplication().assertIsNonDispatchThread()
-        5L to TimeUnit.SECONDS
-      } else {
-        30L to TimeUnit.MILLISECONDS
-      }
-    return sceneManagerProvider()?.executeCallbacksAndRequestRender(time, timeUnit) { callback() }
-      ?: false
   }
 
   private suspend fun executeInRenderSessionAsync(

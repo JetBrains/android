@@ -21,6 +21,7 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
@@ -31,6 +32,8 @@ import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JSlider
+import junit.framework.TestCase.assertTrue
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -147,6 +150,7 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
       assertEquals(1, transitionCalls)
+      delayUntilCondition(200) { stateCalls == 1 }
       assertEquals(1, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
@@ -170,13 +174,12 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
           fromState: Any,
           toState: Any,
         ) {
-          throw ClassCastException("")
+          throw ClassCastException("updateFromAndToStates fails")
         }
       }
 
-    setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
-      // updateFromAndToStates will be called with Swapt
-      ui.clickOn(toolbar.components[1])
+    assertFailsWith<AssertionError>("No animation is added") {
+      setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui -> }
     }
   }
 
@@ -190,18 +193,18 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
-      // both calls from SupportedAnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      // one from AnimationManager.setup
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      assertEquals(2, numberOfCalls)
+      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
-      timelineSlider.value = 200
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
-      assertEquals(4, numberOfCalls)
     }
   }
 
@@ -220,10 +223,11 @@ class AnimationManagerTests(private val animationType: ComposeAnimationType) : I
         override val states = states
       }
 
-    val job = ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
     val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
     runBlocking {
-      job.join()
+      surface.sceneManagers.forEach { it.render() }
+      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
+      assertTrue("No animation is added", 1 == inspector.animations.size)
       withContext(uiThread) {
         ui.updateToolbars()
         ui.layout()
