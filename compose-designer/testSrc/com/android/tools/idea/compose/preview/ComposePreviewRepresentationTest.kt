@@ -50,6 +50,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
@@ -68,6 +69,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -688,7 +690,24 @@ class ComposePreviewRepresentationTest {
 
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
 
-    val testPsiFile = createPreviewPsiFile()
+    val testPsiFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
+            fun Preview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
     testPsiFile.putUserData(FileEditorProvider.KEY, SourceCodeEditorProvider())
 
     val editor =
@@ -712,7 +731,7 @@ class ComposePreviewRepresentationTest {
 
       // Start UI Check mode
       val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
-      val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
+      val uiCheckElement = previewElements[1]
 
       run {
         waitForAllRefreshesToFinish(30.seconds)
@@ -759,7 +778,10 @@ class ComposePreviewRepresentationTest {
       withContext(uiThread) {
         rerunAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
       }
-      delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Enabled }
+      delayUntilCondition(250) {
+        (preview.uiCheckFilterFlow.value as? UiCheckModeFilter.Enabled)?.basePreviewInstance ==
+          uiCheckElement
+      }
 
       // Check that the rerun action is disabled
       run {
@@ -767,6 +789,36 @@ class ComposePreviewRepresentationTest {
         rerunAction.update(actionEvent)
         assertTrue(actionEvent.presentation.isVisible)
         assertFalse(actionEvent.presentation.isEnabled)
+      }
+
+      // Stop UI Check mode
+      run {
+        waitForAllRefreshesToFinish(30.seconds)
+        preview.setMode(PreviewMode.Default())
+        delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Disabled }
+      }
+
+      // Check that the rerun action is enabled
+      run {
+        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        rerunAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isEnabledAndVisible)
+      }
+
+      // Delete the preview annotation that is linked with the UI check
+      runWriteCommandAction(project) {
+        testPsiFile
+          .findElementByText(
+            "@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)"
+          )
+          .delete()
+      }
+
+      // Check that the rerun action is hidden
+      run {
+        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        rerunAction.update(actionEvent)
+        assertFalse(actionEvent.presentation.isVisible)
       }
 
       waitForAllRefreshesToFinish(30.seconds)

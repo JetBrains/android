@@ -560,7 +560,7 @@ class ComposePreviewRepresentation(
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance<*>) {
-    val uiCheckIssuePanel = UiCheckPanelProvider(instance, psiFilePointer).getPanel()
+    val uiCheckIssuePanel = UiCheckPanelProvider(instance, project).getPanel()
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
     uiCheckIssuePanel.issueProvider.activate()
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)

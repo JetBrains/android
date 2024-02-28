@@ -24,20 +24,18 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 
-val TAB_VIRTUAL_FILE: Key<VirtualFile> =
-  Key.create(IssuePanelService::class.java.name + "_VirtualFile")
+val TAB_PREVIEW_DEFINITION: Key<SmartPsiElementPointer<*>> =
+  Key.create(IssuePanelService::class.java.name + "_UiCheckPreviewDef")
 
 class UiCheckPanelProvider(
   private val instance: ComposePreviewElementInstance<*>,
-  private val psiPointer: SmartPsiElementPointer<PsiFile>,
+  private val project: Project,
 ) : ProblemsViewPanelProvider {
   override fun create(): ProblemsViewTab? {
-    val project = psiPointer.project
     val problemsViewWindow = ProblemsView.getToolWindow(project) ?: return null
     return DesignerCommonIssuePanel(
       problemsViewWindow.disposable,
@@ -49,7 +47,9 @@ class UiCheckPanelProvider(
       NotSuppressedFilter,
       { "UI Check did not find any issues to report" },
     ) { content ->
-      content.putUserData(TAB_VIRTUAL_FILE, psiPointer.virtualFile)
+      (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let {
+        content.putUserData(TAB_PREVIEW_DEFINITION, it)
+      }
       content.isPinnable = true
       content.isCloseable = true
     }
@@ -57,7 +57,6 @@ class UiCheckPanelProvider(
 
   fun getPanel(): DesignerCommonIssuePanel {
     val id = instance.instanceId
-    val project = psiPointer.project
     val existingTab =
       ProblemsViewToolWindowUtils.getTabById(project, id) as? DesignerCommonIssuePanel
     if (existingTab != null) {
