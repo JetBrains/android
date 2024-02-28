@@ -59,7 +59,7 @@ class GlancePreviewElementFinderTest {
 
         import androidx.glance.preview.Preview
 
-        @Preview("AppWidget")
+        @Preview
         fun Foo31() { }
         """
           .trimIndent(),
@@ -74,7 +74,7 @@ class GlancePreviewElementFinderTest {
 
         import androidx.glance.preview.Preview
 
-        @Preview("AppWidget", widthDp = 1234, heightDp = 5678)
+        @Preview(widthDp = 1234, heightDp = 5678)
         fun Foo41() { }
         """
           .trimIndent(),

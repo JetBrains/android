@@ -43,7 +43,7 @@ class GlancePreviewElementTest {
 
         import androidx.glance.preview.Preview
 
-        @Preview("AppWidget")
+        @Preview
         fun SomePreview() { }
         """
           .trimIndent(),

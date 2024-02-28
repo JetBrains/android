@@ -38,39 +38,20 @@ private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val GLANCE_PREVIEW_ANNOTATION_FQN =
   "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 
-private const val SURFACE_PARAM_NAME = "surface"
-private const val APP_WIDGET_SURFACE = "AppWidget"
-
-/**
- * Returns true if the [annotationEntry] annotation has [SURFACE_PARAM_NAME] parameter of
- * [surfaceName] value, false otherwise.
- */
-private fun surfaceFilter(annotationEntry: UAnnotation?, surfaceName: String) =
+/** Returns true if this [UAnnotation] is a Glance @Preview annotation. */
+private fun isGlancePreview(annotation: UAnnotation) =
   ReadAction.compute<Boolean, Throwable> {
-    annotationEntry?.findAttributeValue(SURFACE_PARAM_NAME)?.evaluate() == surfaceName
+    GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
   }
 
-/**
- * Returns true if this [UAnnotation] is a @GlancePreview annotation for the [surfaceName] surface.
- */
-private fun UAnnotation.isGlancePreview(surfaceName: String) =
-  ReadAction.compute<Boolean, Throwable> {
-    GLANCE_PREVIEW_ANNOTATION_FQN == qualifiedName && surfaceFilter(this, surfaceName)
-  }
-
-/**
- * Returns the sequence of the Glance preview elements for [surfaceName] surface from the [methods].
- */
-private fun toGlancePreviewElements(
-  methods: List<UMethod>,
-  surfaceName: String,
-): Sequence<PsiGlancePreviewElement> =
+/** Returns the sequence of Glance preview elements for the given [methods]. */
+private fun toGlancePreviewElements(methods: List<UMethod>): Sequence<PsiGlancePreviewElement> =
   methods
     .flatMap { method ->
       val uClass = method.uastParent as UClass
       val methodFqn = "${uClass.qualifiedName}.${method.name}"
       method.uAnnotations
-        .filter { it.isGlancePreview(surfaceName) }
+        .filter { isGlancePreview(it) }
         .map {
           val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
           val defaultValues = runReadAction { it.findPreviewDefaultValues() }
@@ -91,15 +72,10 @@ private fun toGlancePreviewElements(
     }
     .asSequence()
 
-/** Common class to find Glance preview elements for [surfaceName] surface. */
-open class GlancePreviewElementFinder(private val surfaceName: String) :
-  FilePreviewElementFinder<PsiGlancePreviewElement> {
-  private val glanceSurfaceUAnnotationFilter: (UAnnotation?) -> Boolean = {
-    surfaceFilter(it, surfaceName)
-  }
-
+/** Common class to find Glance preview elements. */
+open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePreviewElement> {
   private val methodsToElements: (List<UMethod>) -> Sequence<PsiGlancePreviewElement> = {
-    toGlancePreviewElements(it, surfaceName)
+    toGlancePreviewElements(it)
   }
 
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile) =
@@ -108,7 +84,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       vFile,
       GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceUAnnotationFilter,
+      ::isGlancePreview,
       methodsToElements,
     )
 
@@ -125,10 +101,10 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       vFile,
       GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceUAnnotationFilter,
+      ::isGlancePreview,
     )
   }
 }
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
-object AppWidgetPreviewElementFinder : GlancePreviewElementFinder(APP_WIDGET_SURFACE)
+object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
