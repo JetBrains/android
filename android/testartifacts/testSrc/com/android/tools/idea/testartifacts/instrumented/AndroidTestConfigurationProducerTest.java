@@ -47,6 +47,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
@@ -277,6 +278,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       StandardCharsets.UTF_8);
 
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.SomeTest.InnerClassTest");
     assertEquals("google.simpleapplication.SomeTest$InnerClassTest", runConfig.CLASS_NAME);

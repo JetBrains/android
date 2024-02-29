@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
@@ -131,6 +132,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     List<AndroidFacet> libraries = AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     Disposer.register(getTestRootDisposable(), repository);
@@ -409,6 +411,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
     model.addModuleOrderEntry(to);
     ApplicationManager.getApplication().runWriteAction(model::commit);
+    IndexingTestUtil.waitUntilIndexesAreReady(model.getProject());
   }
 
   private static void removeModuleDependency(Module from, String name) {
@@ -426,6 +429,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     }
     assertTrue(found);
     ApplicationManager.getApplication().runWriteAction(model::commit);
+    IndexingTestUtil.waitUntilIndexesAreReady(model.getProject());
   }
 
   // Note that the project resource repository is also tested in the app resource repository test,
