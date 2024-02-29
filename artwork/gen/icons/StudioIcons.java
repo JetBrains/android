@@ -110,6 +110,8 @@ public final class StudioIcons {
     /** 17x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", -1580146156, 2);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE_SELECTED = load("studio/icons/common/locked-inline-selected.svg", 147020694, 0);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE = load("studio/icons/common/locked-inline.svg", 2129025715, 2);
+    /** 16x16 */ public static final @NotNull Icon LOGIN = load("studio/icons/common/login.svg", -152184853, 2);
+    /** 16x16 */ public static final @NotNull Icon LOGOUT = load("studio/icons/common/logout.svg", -377217031, 2);
     /** 16x16 */ public static final @NotNull Icon MISSING = load("studio/icons/common/missing.svg", -514092134, 2);
     /** 14x14 */ public static final @NotNull Icon MOVE_DOWN_SELECTED = load("studio/icons/common/move-down-selected.svg", -1222863025, 0);
     /** 16x16 */ public static final @NotNull Icon OVERFLOW = load("studio/icons/common/overflow.svg", -189393049, 2);

@@ -67,6 +67,8 @@
         "link.svg": "studio/icons/common/link.svg",
         "list-view.svg": "studio/icons/common/list-view.svg",
         "locked-inline.svg": "studio/icons/common/locked-inline.svg",
+        "login.svg": "studio/icons/common/login.svg",
+        "logout.svg": "studio/icons/common/logout.svg",
         "missing.svg": "studio/icons/common/missing.svg",
         "navigate-to-source.svg": "studio/icons/common/navigate-to-source.svg",
         "overflow.svg": "studio/icons/common/overflow.svg",
