@@ -189,13 +189,19 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun showSearchStopped() {
-    mySearchButton.isEnabled = getQuery().let { (it.artifactName?.length ?: 0) + (it.groupId?.length ?: 0) >= 3 }
+    mySearchButton.isEnabled = getQuery().calculateQueryLength() >= 3
 
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT
 
     versionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT)
   }
+
+  private fun ArtifactSearchQuery.calculateQueryLength() =
+    normalizedLength(artifactName) + normalizedLength(groupId) + normalizedLength(id)
+
+  private fun normalizedLength(str: String?): Int =
+     str?.replace("*", "")?.length ?: 0
 
   fun add(listener: SelectionChangeListener<ParsedValue<String>>, parentDisposable: Disposable) {
     eventDispatcher.addListener(listener, parentDisposable)
