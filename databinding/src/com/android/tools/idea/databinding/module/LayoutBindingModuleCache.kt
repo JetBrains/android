@@ -56,7 +56,7 @@ private val LIGHT_BINDING_CLASSES_KEY =
   Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
 @ThreadSafe
-class LayoutBindingModuleCache(private val module: Module) : Disposable {
+class LayoutBindingModuleCache(val module: Module) : Disposable {
   companion object {
     // We are using facet.mainModule as a temporary workaround. This is needed because main,
     // unitTest and androidTest modules all access the same resources (all the resources). Ideally,

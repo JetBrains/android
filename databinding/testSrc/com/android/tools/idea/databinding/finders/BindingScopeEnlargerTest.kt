@@ -249,9 +249,10 @@ class BindingScopeEnlargerMultiModuleTest {
       fixture.addFileToProject("app/src/main/res/layout/activity2_app.xml", EMPTY_LAYOUT_FILE)
       fixture.addFileToProject("lib/src/main/res/layout/activity2_lib.xml", EMPTY_LAYOUT_FILE)
 
-      // TODO(b/327677623): Uncomment this assertion when the bug is fixed.
-      // assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope,
-      // appActivity1LightClass)).isTrue()
+      assertThat(
+          PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appActivity1LightClass)
+        )
+        .isTrue()
       assertThat(
           PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appActivity1LightClass)
         )
