@@ -245,6 +245,58 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
         }
     }
 
+  private val previewModeManager = CommonPreviewModeManager()
+
+  private val fpsLimitFlow =
+    essentialsModeFlow(project, this).fpsLimitFlow(this, standardFpsLimit = 30)
+
+  @VisibleForTesting
+  val interactiveManager =
+    InteractivePreviewManager(
+        surface,
+        fpsLimitFlow.value,
+        { surface.sceneManagers },
+        { InteractivePreviewUsageTracker.getInstance(surface) },
+        delegateInteractionHandler,
+      )
+      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
+
+  private val galleryEssentialsModeManager =
+    CommonGalleryEssentialsModeManager(
+        project = psiFile.project,
+        lifecycleManager = lifecycleManager,
+        previewFlowManager = previewFlowManager,
+        previewModeManager = previewModeManager,
+        isEssentialsModeEnabled = isEssentialsModeEnabled,
+        onUpdatedFromStudioEssentialsMode = {},
+        onUpdatedFromPreviewEssentialsMode = {},
+        requestRefresh = ::requestRefresh,
+      )
+      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
+
+  override val component: JComponent
+    get() = previewView.component
+
+  override val preferredInitialVisibility: PreferredVisibility? = null
+
+  override val mode = previewModeManager.mode
+
+  override fun dispose() {
+    if (mode.value is PreviewMode.Interactive) {
+      interactiveManager.stop()
+    }
+  }
+
+  override fun onActivate() = lifecycleManager.activate()
+
+  override fun onDeactivate() = lifecycleManager.deactivate()
+
+  override fun restorePrevious() = previewModeManager.restorePrevious()
+
+  override fun setMode(mode: PreviewMode) {
+    previewModeManager.setMode(mode)
+  }
+
   private fun onInit() {
     LOG.debug("onInit")
     if (Disposer.isDisposed(this)) {
@@ -431,11 +483,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
     invalidated.set(true)
   }
 
-  override val component: JComponent
-    get() = previewView.component
-
-  override val preferredInitialVisibility: PreferredVisibility? = null
-
   private fun onAfterRender() {
     previewViewModel.afterPreviewsRefreshed()
   }
@@ -448,16 +495,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
       interactive = mode.value is PreviewMode.Interactive
       isUsePrivateClassLoader = mode.value is PreviewMode.Interactive
     }
-
-  override fun dispose() {
-    if (mode.value is PreviewMode.Interactive) {
-      interactiveManager.stop()
-    }
-  }
-
-  override fun onActivate() = lifecycleManager.activate()
-
-  override fun onDeactivate() = lifecycleManager.deactivate()
 
   private fun activate(isResuming: Boolean) {
     initializeFlows()
@@ -514,43 +551,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
       // might not have been built, but it's worth to try.
       else -> requestRefresh()
     }
-  }
-
-  private val previewModeManager = CommonPreviewModeManager()
-
-  private val fpsLimitFlow =
-    essentialsModeFlow(project, this).fpsLimitFlow(this, standardFpsLimit = 30)
-
-  @VisibleForTesting
-  val interactiveManager =
-    InteractivePreviewManager(
-        surface,
-        fpsLimitFlow.value,
-        { surface.sceneManagers },
-        { InteractivePreviewUsageTracker.getInstance(surface) },
-        delegateInteractionHandler,
-      )
-      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
-
-  private val galleryEssentialsModeManager =
-    CommonGalleryEssentialsModeManager(
-        project = psiFile.project,
-        lifecycleManager = lifecycleManager,
-        previewFlowManager = previewFlowManager,
-        previewModeManager = previewModeManager,
-        isEssentialsModeEnabled = isEssentialsModeEnabled,
-        onUpdatedFromStudioEssentialsMode = {},
-        onUpdatedFromPreviewEssentialsMode = {},
-        requestRefresh = ::requestRefresh,
-      )
-      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
-
-  override val mode = previewModeManager.mode
-
-  override fun restorePrevious() = previewModeManager.restorePrevious()
-
-  override fun setMode(mode: PreviewMode) {
-    previewModeManager.setMode(mode)
   }
 
   private suspend fun onExit(mode: PreviewMode) {
