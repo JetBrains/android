@@ -1657,6 +1657,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> IMPACT_TRACKING =
     Flag.create(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
                 "Impact tracking for the App Links Assistant", false);
+  public static final Flag<Boolean> WEB_CHECKS =
+    Flag.create(APP_LINKS_ASSISTANT, "app.links.assistant.web.checks", "App Links Assistant web checks",
+                "Web checks (i.e. domain-side validation) for the App Links Assistant", true);
   // endregion App Links Assistant
 
   // region GOOGLE_PLAY_SDK_INDEX
