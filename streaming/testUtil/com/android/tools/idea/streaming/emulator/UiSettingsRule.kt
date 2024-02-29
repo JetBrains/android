@@ -122,7 +122,7 @@ class UiSettingsRule : ExternalResource() {
                               formatAccessibilityServices(talkBackOn = false, selectToSpeakOn))
   }
 
-  fun createAndStartEmulator(api: Int = 34): FakeEmulator {
+  fun createAndStartEmulator(api: Int = 33): FakeEmulator {
     val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = api)
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()

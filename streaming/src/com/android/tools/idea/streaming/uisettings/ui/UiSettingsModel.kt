@@ -30,15 +30,15 @@ internal enum class FontSize(val percent: Int) {
   NORMAL(100),
   LARGE_115(115),
   LARGE_130(130),
-  LARGE_150(150),
-  LARGE_180(180),
-  LARGE_200(200);
+  LARGE_150(150),  // Added in API 34
+  LARGE_180(180),  // Added in API 34
+  LARGE_200(200);  // Added in API 34
 }
 
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel(screenSize: Dimension, private val physicalDensity: Int) {
+internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
@@ -48,11 +48,18 @@ internal class UiSettingsModel(screenSize: Dimension, private val physicalDensit
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
   val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
-  val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(FontSize.values().size - 1)
+  val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(numberOfFontSizes(api) - 1)
   val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
   var resetAction: () -> Unit = {}
+
+  /**
+   * The font size settings for API 33 has 4 possible values, and for API 34+ there are 7 possible values.
+   * See [FontSize]
+   */
+  private fun numberOfFontSizes(api: Int): Int =
+    if (api > 33) FontSize.values().size else 4
 
   private fun toFontSizeInPercent(fontIndex: Int): Int =
     FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent

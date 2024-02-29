@@ -36,7 +36,7 @@ private val isSettingsPickerEnabled: Boolean
 /**
  * Opens a picker with UI settings of an emulator.
  */
-internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = { it.api >= 34 && isSettingsPickerEnabled }) {
+internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = { it.api >= 33 && isSettingsPickerEnabled }) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -50,7 +50,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val project = event.project ?: return
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
     val config = getEmulatorConfig(event) ?: return
-    val model = UiSettingsModel(config.displaySize, config.density)
+    val model = UiSettingsModel(config.displaySize, config.density, config.api)
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()

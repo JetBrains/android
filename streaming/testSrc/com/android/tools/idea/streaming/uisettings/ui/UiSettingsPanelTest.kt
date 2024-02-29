@@ -62,7 +62,7 @@ class UiSettingsPanelTest {
 
   @Before
   fun before() {
-    model = UiSettingsModel(Dimension(1344, 2992), 480)
+    model = UiSettingsModel(Dimension(1344, 2992), 480, 34)
     model.appLanguage.addElement(DEFAULT_LANGUAGE)
     model.appLanguage.addElement(DANISH_LANGUAGE)
     model.appLanguage.addElement(RUSSIAN_LANGUAGE)

@@ -65,17 +65,17 @@ class DeviceUiSettingsActionTest {
   fun testUpdateWhenUnused() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(false, testRootDisposable)
     val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView(34)
+    val view = connectDeviceAndCreateView()
     val event = createTestKeyEvent(view)
     action.update(event)
     assertThat(event.presentation.isVisible).isFalse()
   }
 
   @Test
-  fun testActionOnApi33Device() {
+  fun testActionOnApi32Device() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView(33)
+    val view = connectDeviceAndCreateView(32)
     val event = createTestKeyEvent(view)
     action.update(event)
     assertThat(event.presentation.isVisible).isFalse()
@@ -85,7 +85,7 @@ class DeviceUiSettingsActionTest {
   fun testActiveAction() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView(34)
+    val view = connectDeviceAndCreateView()
     val event = createTestMouseEvent(action, view)
     action.update(event)
     assertThat(event.presentation.isVisible).isTrue()
@@ -101,7 +101,7 @@ class DeviceUiSettingsActionTest {
   fun testActiveActionViaKeyboard() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true)
     val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView(34)
+    val view = connectDeviceAndCreateView()
     val event = createTestKeyEvent(view)
     action.update(event)
     assertThat(event.presentation.isVisible).isTrue()
@@ -123,7 +123,7 @@ class DeviceUiSettingsActionTest {
   private fun createTestKeyEvent(view: DeviceView): AnActionEvent =
     createTestEvent(view, project)
 
-  private fun connectDeviceAndCreateView(apiLevel: Int): DeviceView {
+  private fun connectDeviceAndCreateView(apiLevel: Int = 33): DeviceView {
     val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1344, 2992), screenDensity = 480)
     val view = createDeviceView(device)
     view.setBounds(0, 0, 600, 800)

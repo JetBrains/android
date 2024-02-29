@@ -57,7 +57,7 @@ class EmulatorUiSettingsControllerTest {
   private val usages: List<LoggedUsage>
     get() = usageRule.usages
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY) } // Pixel 8 Pro
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY, 33) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
 
   @Before
@@ -291,7 +291,7 @@ class EmulatorUiSettingsControllerTest {
       val event = usages[index].studioEvent
       assertThat(event.kind).isEqualTo(EventKind.UI_DEVICE_SETTINGS_EVENT)
       assertThat(event.deviceInfo.deviceType).isEqualTo(DeviceType.LOCAL_EMULATOR)
-      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("34")
+      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("33")
       assertThat(event.uiDeviceSettingsEvent.operation).isEqualTo(expected)
     }
     assertThat(usages).hasSize(operations.size)

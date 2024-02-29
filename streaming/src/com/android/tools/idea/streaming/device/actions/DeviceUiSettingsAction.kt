@@ -39,7 +39,7 @@ private val isSettingsPickerEnabled: Boolean
  */
 internal class DeviceUiSettingsAction : AbstractDeviceAction(
   configFilter = {
-    it.apiLevel >= 34
+    it.apiLevel >= 33
     && isSettingsPickerEnabled
     && it.deviceProperties.resolution != null
     && it.deviceProperties.density != null
@@ -55,7 +55,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val config = getDeviceConfig(event) ?: return
     val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
     val density = config.deviceProperties.density ?: return
-    val model = UiSettingsModel(screenSize, density)
+    val model = UiSettingsModel(screenSize, density, config.apiLevel)
     val controller = DeviceUiSettingsController(deviceController, config, project, model)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()

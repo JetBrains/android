@@ -67,9 +67,9 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testActionOnApi33Emulator() {
+  fun testActionOnApi32Emulator() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
-    val controller = uiRule.getControllerOf(uiRule.createAndStartEmulator(api = 33))
+    val controller = uiRule.getControllerOf(uiRule.createAndStartEmulator(api = 32))
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)

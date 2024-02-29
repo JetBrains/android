@@ -38,6 +38,8 @@ import org.junit.Test
 import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 
+private const val API_LEVEL = 33
+
 class DeviceUiSettingsControllerTest {
   @get:Rule
   val agentRule = FakeScreenSharingAgentRule()
@@ -48,8 +50,8 @@ class DeviceUiSettingsControllerTest {
   private val testRootDisposable
     get() = agentRule.disposable
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480) }
-  private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", 34, Dimension(1080, 2280)) }
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480, API_LEVEL) }
+  private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", API_LEVEL, Dimension(1080, 2280)) }
   private val agent: FakeScreenSharingAgent by lazy { device.agent }
   private val controller: DeviceUiSettingsController by lazy { createUiSettingsController() }
 
@@ -155,8 +157,8 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     model.fontSizeIndex.setFromUi(0)
     waitForCondition(10.seconds) { agent.fontSize == 85 }
-    model.fontSizeIndex.setFromUi(FontSize.values().size - 1)
-    waitForCondition(10.seconds) { agent.fontSize == FontSize.values().last().percent }
+    model.fontSizeIndex.setFromUi(3)
+    waitForCondition(10.seconds) { agent.fontSize == FontSize.LARGE_130.percent }
   }
 
   @Test
