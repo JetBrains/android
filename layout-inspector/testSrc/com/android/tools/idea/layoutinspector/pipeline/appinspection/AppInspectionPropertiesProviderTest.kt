@@ -66,7 +66,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -714,7 +713,6 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
-  @Ignore("b/324465557")
   @Test
   fun testPropertiesModelNotifications() {
     projectRule.fixture.addFileToProject(
@@ -761,7 +759,7 @@ class AppInspectionPropertiesProviderTest {
     inspectorState.triggerLayoutCapture(rootId = 1)
 
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
-      propertiesModel.properties[ANDROID_URI, "text"].value == "secondaryValue"
+      propertiesModel.properties[ANDROID_URI, "text"].value == "secondaryValue" && valuesChanged > 0
     }
     assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
     assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "4.0"))
