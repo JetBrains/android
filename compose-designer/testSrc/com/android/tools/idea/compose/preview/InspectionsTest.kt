@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import org.intellij.lang.annotations.Language
@@ -26,7 +27,7 @@ import org.junit.Test
 
 class InspectionsTest {
 
-  @get:Rule val projectRule = ComposeProjectRule()
+  @get:Rule val projectRule = ComposeProjectRule(AndroidProjectRule.inMemory().withKotlin())
   private val fixture
     get() = projectRule.fixture
 
