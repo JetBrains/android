@@ -283,10 +283,11 @@ class ComposePreviewRepresentation(
 
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
-      { psiFilePointer },
+      isFastPreviewSupported = true,
+      ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
       ::invalidate,
       ::requestRefresh,
-      { requestVisibilityAndNotificationsUpdate() },
+      ::requestVisibilityAndNotificationsUpdate,
     )
 
   private val refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
@@ -799,8 +800,16 @@ class ComposePreviewRepresentation(
     // want that to happen if the animation inspection was open at the beginning of the build. This
     // ensures the animations panel is showed again after the build completes
     val shouldRefreshAfterBuildFailed = { mode.value is PreviewMode.AnimationInspection }
-    previewBuildListenersManager.setupPreviewBuildListeners(this, shouldRefreshAfterBuildFailed) {
+    previewBuildListenersManager.setupPreviewBuildListeners(
+      disposable = this,
+      psiFilePointer,
+      shouldRefreshAfterBuildFailed,
+    ) {
       composeWorkBench.updateProgress(message("panel.building"))
+      // When building, invalidate the Animation Preview, since the animations are now obsolete and
+      // new ones will be subscribed once build is complete and refresh is triggered.
+      ComposePreviewAnimationManager.invalidate(psiFilePointer)
+      requestVisibilityAndNotificationsUpdate()
     }
   }
 

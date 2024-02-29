@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.buildlisteners
 
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.BuildListener
@@ -33,11 +31,14 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.util.module
 
 /**
- * Class responsible for setting up build (both Fast Preview and Project System builds) listeners
- * that will update the preview state according to the build events.
+ * Class responsible for setting up a Project System build listener, and also a fast preview
+ * compilation listener when [isFastPreviewSupported] is true, that will update the preview state
+ * according to the build events by calling [invalidate], [refresh] and
+ * [requestVisibilityAndNotificationsUpdate].
  */
 class PreviewBuildListenersManager(
-  private val psiFilePointerProvider: () -> SmartPsiElementPointer<PsiFile>,
+  private val isFastPreviewSupported: Boolean,
+  private val isEssentialsModeEnabled: () -> Boolean,
   private val invalidate: () -> Unit,
   private val refresh: () -> Unit,
   private val requestVisibilityAndNotificationsUpdate: () -> Unit,
@@ -51,22 +52,17 @@ class PreviewBuildListenersManager(
 
   fun setupPreviewBuildListeners(
     disposable: Disposable,
-    shouldRefreshAfterBuildFailed: () -> Boolean,
-    onBuildStarted: () -> Unit,
+    psiFilePointer: SmartPsiElementPointer<PsiFile>,
+    shouldRefreshAfterBuildFailed: () -> Boolean = { false },
+    onBuildStarted: () -> Unit = {},
   ) {
-    val psiFile = psiFilePointerProvider().element
+    val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val module = runReadAction {
-      SlowOperations.allowSlowOperations(ThrowableComputable { psiFile.module })
-    }
-    val project =
-      module?.project
-        ?: run {
-          return@setupPreviewBuildListeners
-        }
-
+    val module =
+      runReadAction { SlowOperations.allowSlowOperations(ThrowableComputable { psiFile.module }) }
+        ?: return
     setupBuildListener(
-      project,
+      module.project,
       object : BuildListener {
         private var refreshAfterBuildFailed = false
 
@@ -76,25 +72,19 @@ class PreviewBuildListenersManager(
 
         override fun buildSucceeded() {
           log.debug("buildSucceeded")
-          module.let {
+          if (isFastPreviewSupported && !module.isDisposed) {
             // When the build completes successfully, we do not need the overlay until a new
             // modification happens. But invalidation should not be done when this listener is
             // called during setup, as a consequence of an old build (see startedListening)
             if (buildListenerSetupFinished) {
-              ModuleClassLoaderOverlays.getInstance(it).invalidateOverlayPaths()
+              ModuleClassLoaderOverlays.getInstance(module).invalidateOverlayPaths()
+            }
+            // If Fast Preview is enabled, prefetch the daemon for the current configuration.
+            // This should not happen when essentials mode is enabled.
+            FastPreviewManager.getInstance(module.project).let {
+              if (it.isEnabled && !isEssentialsModeEnabled()) it.preStartDaemon(module)
             }
           }
-
-          // If Fast Preview is enabled, prefetch the daemon for the current configuration.
-          // This should not happen when essentials mode is enabled.
-          if (
-            !module.isDisposed &&
-              FastPreviewManager.getInstance(project).isEnabled &&
-              !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-          ) {
-            FastPreviewManager.getInstance(project).preStartDaemon(module)
-          }
-
           afterBuildComplete(isSuccessful = true)
         }
 
@@ -110,34 +100,35 @@ class PreviewBuildListenersManager(
 
         override fun buildStarted() {
           log.debug("buildStarted")
-          onBuildStarted()
           refreshAfterBuildFailed = shouldRefreshAfterBuildFailed()
-          afterBuildStarted()
+          onBuildStarted()
         }
       },
       disposable,
     )
 
-    FastPreviewManager.getInstance(project)
-      .addListener(
-        disposable,
-        object : FastPreviewManager.Companion.FastPreviewManagerListener {
-          override fun onCompilationStarted(files: Collection<PsiFile>) {
-            psiFile.let { editorFile ->
-              if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
+    if (isFastPreviewSupported) {
+      FastPreviewManager.getInstance(module.project)
+        .addListener(
+          disposable,
+          object : FastPreviewManager.Companion.FastPreviewManagerListener {
+            override fun onCompilationStarted(files: Collection<PsiFile>) {
+              psiFile.let { editorFile ->
+                if (files.any { it.isEquivalentTo(editorFile) }) onBuildStarted()
+              }
             }
-          }
 
-          override fun onCompilationComplete(
-            result: CompilationResult,
-            files: Collection<PsiFile>,
-          ) {
-            // Notify on any Fast Preview compilation to ensure we refresh all the previews
-            // correctly.
-            afterBuildComplete(result == CompilationResult.Success)
-          }
-        },
-      )
+            override fun onCompilationComplete(
+              result: CompilationResult,
+              files: Collection<PsiFile>,
+            ) {
+              // Notify on any Fast Preview compilation to ensure we refresh all the previews
+              // correctly.
+              afterBuildComplete(result == CompilationResult.Success)
+            }
+          },
+        )
+    }
   }
 
   /** Called after a project build has completed. */
@@ -151,12 +142,5 @@ class PreviewBuildListenersManager(
         refresh()
       }
     }
-  }
-
-  private fun afterBuildStarted() {
-    // When building, invalidate the Animation Preview, since the animations are now obsolete and
-    // new ones will be subscribed once build is complete and refresh is triggered.
-    ComposePreviewAnimationManager.invalidate(psiFilePointerProvider())
-    requestVisibilityAndNotificationsUpdate()
   }
 }
