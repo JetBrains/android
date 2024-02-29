@@ -145,12 +145,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode)
       alignProjectJdkWithGradleSyncJdk(project, projectDataNode)
     }
-    val buildMap = resolverCtx.models.getModel(IdeCompositeBuildMap::class.java)
+    val buildMap = resolverCtx.getRootModel(IdeCompositeBuildMap::class.java)
     if (buildMap != null) {
       projectDataNode.createChild(AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP, buildMap)
     }
 
-    val syncError = resolverCtx.models.getModel(IdeAndroidSyncError::class.java)
+    val syncError = resolverCtx.getRootModel(IdeAndroidSyncError::class.java)
     if (syncError != null) {
       throw syncError.toException()
     }
@@ -171,7 +171,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         )
       }
     }
-    val syncExecutionReport = resolverCtx.models.getModel(IdeSyncExecutionReport::class.java)
+    val syncExecutionReport = resolverCtx.getRootModel(IdeSyncExecutionReport::class.java)
     if (syncExecutionReport != null) {
       projectDataNode.createChild(AndroidProjectKeys.SYNC_EXECUTION_REPORT, syncExecutionReport)
     }
@@ -226,7 +226,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   private fun printDebugInfo() {
-    val debugInfo = resolverCtx.models.getModel(IdeDebugInfo::class.java)
+    val debugInfo = resolverCtx.getRootModel(IdeDebugInfo::class.java)
     debugInfo?.projectImportModelProviderClasspath?.entries?.forEach { (key, value) ->
       // Integration test searches for this string pattern in idea log file.
       LOG.debug("ModelProvider $key Classpath: $value")
@@ -451,9 +451,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
 
     if (myResolvedLibraryTable == null) {
-      val ideLibraryTable = resolverCtx.models.getModel(
-        IdeUnresolvedLibraryTableImpl::class.java
-      )
+      val ideLibraryTable = resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
         ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
       myResolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
       ideProject.createChild(
@@ -555,9 +553,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    */
   private fun removeExternalSourceSetsAndReportWarnings(project: Project, mainGradleBuild: IdeaProject) {
     // We also need to process composite builds
-    val models = resolverCtx.models
-    val compositeProjects: Collection<IdeaProject?> =
-      models.includedBuilds.map { build: Build -> models.getModel(build, IdeaProject::class.java) }
+    val compositeProjects: Collection<IdeaProject?> = resolverCtx.nestedBuilds.map { build: Build ->
+      resolverCtx.getBuildModel(build, IdeaProject::class.java)
+    }
     val gradleProjects =
       compositeProjects.flatMap { gradleBuild: IdeaProject? -> gradleBuild!!.modules } +
       mainGradleBuild.modules
@@ -710,7 +708,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         rootCause.reportFailureTypeIfNecessary(projectPath)
         val ideSyncIssues = rootCause.mySyncIssues
         if (ideSyncIssues?.isNotEmpty() == true) {
-          val ideaProject = resolverCtx.models.getModel(IdeaProject::class.java)
+          val ideaProject = resolverCtx.getRootModel(IdeaProject::class.java)
           val ideaModule = ideaProject?.modules?.firstOrNull {
             it.matchesPath(rootCause.myBuildPath, rootCause.myModulePath)
           }
