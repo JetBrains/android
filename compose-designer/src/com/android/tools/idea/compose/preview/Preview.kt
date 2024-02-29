@@ -26,7 +26,6 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.UiCheckModeFilter
-import com.android.tools.idea.compose.buildlisteners.PreviewBuildListenersManager
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
@@ -59,6 +58,7 @@ import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
+import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
