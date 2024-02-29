@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.classloading
 
 import android.util.TypedValue
-import com.intellij.testFramework.UsefulTestCase.assertThrows
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.StringWriter
 import java.lang.RuntimeException
