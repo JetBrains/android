@@ -159,18 +159,6 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
   }
 
   @Test
-  fun buildPrompt_wrongLastMessageThrowsError() {
-    assertFailsWith<MalformedPromptException> {
-      buildPrompt(project) {
-        systemMessage { text("preamble", emptyList()) }
-        userMessage { text("user", emptyList()) }
-        // The last message should be a user message
-        modelMessage { text("model", emptyList()) }
-      }
-    }
-  }
-
-  @Test
   fun buildPrompt_wrongSystemMessageThrowsError() {
     assertFailsWith<MalformedPromptException> {
       buildPrompt(project) {
@@ -227,5 +215,38 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
         userMessage { text("user", emptyList()) }
       }
     }
+  }
+
+  @Test
+  fun appendPrompt_addsToPrompt() {
+    val basePrompt =
+      buildPrompt(project) {
+        systemMessage { text("You are Studio Bot", emptyList()) }
+        userMessage { text("Hello Studio Bot!", emptyList()) }
+        modelMessage { text("Hello! How are you?", emptyList()) }
+      }
+    val prompt = appendToPrompt(project, basePrompt) {
+      userMessage { text("I am doing well, how about you?", emptyList()) }
+    }
+    assertThat(prompt)
+      .isEqualTo(
+        SafePromptImpl(
+          listOf(
+            SafePrompt.SystemMessage(
+              listOf(SafePrompt.Message.TextChunk("You are Studio Bot", emptyList()))
+            ),
+            SafePrompt.UserMessage(
+              listOf(SafePrompt.Message.TextChunk("Hello Studio Bot!", emptyList()))
+            ),
+            SafePrompt.ModelMessage(
+              listOf(SafePrompt.Message.TextChunk("Hello! How are you?", emptyList()))
+            ),
+            SafePrompt.UserMessage(
+              listOf(SafePrompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
+            ),
+          )
+        )
+      )
+
   }
 }

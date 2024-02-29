@@ -72,6 +72,11 @@ class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
     messages.add(MessageBuilderImpl { SafePrompt.ModelMessage(it) }.apply(builderAction).build())
   }
 
+  fun addAll(prompt: SafePrompt): SafePromptBuilderImpl {
+    messages.addAll(prompt.messages)
+    return this
+  }
+
   private fun checkPromptFormat(condition: Boolean, message: String) {
     if (!condition) throw MalformedPromptException(message)
   }
@@ -85,10 +90,7 @@ class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
   fun build(): SafePrompt {
     // Verify that the prompt is well-formed
     checkPromptFormat(messages.isNotEmpty(), "Prompt has no messages.")
-    checkPromptFormat(
-      messages.last() is SafePrompt.UserMessage,
-      "Last message in prompt must be a user message.",
-    )
+
     // Check aiexclude rules
     val excludedFiles = excludedFiles()
     if (excludedFiles.isNotEmpty()) {

@@ -40,12 +40,12 @@ import com.intellij.openapi.vfs.VirtualFile
  * responded with.
  *
  * The last user message is what the model is supposed to respond to for this prompt/turn of
- * conversation.
+ * conversation. But this builder doesn't enforce this as a requirement to allow for partially
+ * constructed prompts that are later updated before being sent to the model.
  *
  * Prompts are subject the following constraints; a [MalformedPromptException] will be thrown if any
  * aren't followed:
  * * Prompts must contain at least one message.
- * * The last message must be a user message.
  * * There can be at most one system message, and it must be the first message.
  *
  * Use [SafePromptBuilder.MessageBuilder.text] to add plaintext to a message, and
@@ -53,7 +53,7 @@ import com.intellij.openapi.vfs.VirtualFile
  *
  * Example usage:
  * ```
- * buildPrompt {
+ * buildPrompt(project) {
  *    systemMessage {
  *      text("You are Studio Bot", filesUsed = emptyList())
  *    }
@@ -76,6 +76,15 @@ import com.intellij.openapi.vfs.VirtualFile
 inline fun buildPrompt(project: Project, builderAction: SafePromptBuilder.() -> Unit): SafePrompt {
   return SafePromptBuilderImpl(project).apply(builderAction).build()
 }
+
+/** Appends messages to an existing prompt built using [buildPrompt]. */
+inline fun appendToPrompt(project: Project, prompt: SafePrompt, builderAction: SafePromptBuilder.() -> Unit): SafePrompt {
+  return SafePromptBuilderImpl(project)
+    .addAll(prompt)
+    .apply(builderAction)
+    .build()
+}
+
 
 /** Utility for constructing prompts for Studio Bot. */
 interface SafePromptBuilder {
