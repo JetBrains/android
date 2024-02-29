@@ -22,8 +22,11 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.common.surface.organization.SceneViewHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.paintLines
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
@@ -38,6 +41,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.launch
 
 /**
  * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
@@ -99,6 +103,25 @@ internal class SceneViewPanel(
 
   val groups = mutableMapOf<String, MutableList<JComponent>>()
 
+  private val scope = AndroidCoroutineScope(disposable)
+
+  init {
+    (layoutManager as? NlDesignSurfacePositionableContentLayoutManager)?.let {
+      scope.launch(uiThread) {
+        it.currentLayout.collect { layoutOption ->
+          if (layoutOption.organizationEnabled) {
+            // TODO(b/289994157) Add headers if layout supports it
+          } else {
+            // Remove existing groups.
+            val headers = components.filterIsInstance<SceneViewHeader>()
+            headers.forEach { remove(it) }
+            groups.clear()
+          }
+        }
+      }
+    }
+  }
+
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
@@ -155,7 +178,7 @@ internal class SceneViewPanel(
     }
   }
 
-  /** @return true if Organization feature is enabled and layout supports it. */
+  /** @return true if layout supports organization. */
   private fun organizationIsEnabled() =
     (layout as? NlDesignSurfacePositionableContentLayoutManager)
       ?.currentLayout
