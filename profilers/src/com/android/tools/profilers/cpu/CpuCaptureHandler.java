@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,27 +46,27 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
 
 
   @VisibleForTesting
-  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    this(services, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
+    this(profilers, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
          captureProcessIdHint);
   }
 
-  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    myCaptureParser = new CpuCaptureParser(services);
+    myCaptureParser = new CpuCaptureParser(profilers);
     myCaptureFile = captureFile;
     myTraceId = traceId;
-    myServices = services;
+    myServices = profilers.getIdeServices();
     myConfiguration = configuration;
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;

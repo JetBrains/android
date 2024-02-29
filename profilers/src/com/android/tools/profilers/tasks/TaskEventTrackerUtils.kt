@@ -17,11 +17,18 @@ package com.android.tools.profilers.tasks
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Memory.TrackStatus
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceStopStatus.Status.*
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata.TraceStopStatus
 
 object TaskEventTrackerUtils {
 
@@ -94,6 +101,120 @@ object TaskEventTrackerUtils {
     val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
     profilers.ideServices.featureTracker.trackTaskFinished(taskMetadata, taskFinishedState)
   }
+
+  /**
+   * Overload of trackTaskEnter to take in whether the session is alive or not. This is useful for when trackTaskFailed is called in
+   * a future callback. The value of isSessionsAlive at the time of callback registration is what is wanted, not by the time it is called.
+   * As, by the time the callback is called, SessionsManager.isSessionAlive might return a different value.
+   */
+  @JvmStatic
+  fun trackStartTaskFailed(profilers: StudioProfilers, isNewlyRecordedTask: Boolean,
+                           taskStartFailedMetadata: TaskStartFailedMetadata) {
+    val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
+    profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, taskStartFailedMetadata)
+  }
+
+  @JvmStatic
+  fun trackStopTaskFailed(profilers: StudioProfilers, isNewlyRecordedTask: Boolean,
+                           taskStopFailedMetadata: TaskStopFailedMetadata) {
+    val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
+    profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, taskStopFailedMetadata)
+  }
+
+  @JvmStatic
+  fun trackProcessingTaskFailed(profilers: StudioProfilers, isNewlyRecordedTask: Boolean,
+                                taskProcessingFailedMetadata: TaskProcessingFailedMetadata) {
+    val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
+    profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, taskProcessingFailedMetadata)
+  }
+}
+
+class TaskMetadataStatus {
+  companion object  {
+    fun getTaskFailedAllocationTrackStatus(status: TrackStatus?): TaskFailedMetadata.AllocationTrackStatus? {
+
+      if (status == null) {
+        return null
+      }
+
+      val trackStatus: TaskFailedMetadata.AllocationTrackStatus.Status = when(status!!.status) {
+        TrackStatus.Status.SUCCESS -> TaskFailedMetadata.AllocationTrackStatus.Status.SUCCESS
+        TrackStatus.Status.UNSPECIFIED -> TaskFailedMetadata.AllocationTrackStatus.Status.STATUS_UNSPECIFIED
+        TrackStatus.Status.IN_PROGRESS -> TaskFailedMetadata.AllocationTrackStatus.Status.IN_PROGRESS
+        TrackStatus.Status.NOT_ENABLED -> TaskFailedMetadata.AllocationTrackStatus.Status.NOT_ENABLED
+        TrackStatus.Status.NOT_PROFILING -> TaskFailedMetadata.AllocationTrackStatus.Status.NOT_PROFILING
+        TrackStatus.Status.FAILURE_UNKNOWN -> TaskFailedMetadata.AllocationTrackStatus.Status.FAILURE_UNKNOWN
+        TrackStatus.Status.UNRECOGNIZED -> TaskFailedMetadata.AllocationTrackStatus.Status.UNRECOGNIZED
+      }
+
+      return TaskFailedMetadata.AllocationTrackStatus.newBuilder()
+        .setStartTimeNs(status.startTime).setStatus(trackStatus).build()
+    }
+
+    fun getTaskFailedTraceStopStatus(status: Trace.TraceStopStatus?): TraceStopStatus? {
+      return if (status == null) {
+        null
+      } else {
+        val trackStatus = when (status.status) {
+          UNSPECIFIED -> TraceStopStatus.Status.STATUS_UNSPECIFIED
+          SUCCESS -> TraceStopStatus.Status.SUCCESS
+          NO_ONGOING_PROFILING -> TraceStopStatus.Status.NO_ONGOING_PROFILING
+          APP_PROCESS_DIED -> TraceStopStatus.Status.APP_PROCESS_DIED
+          APP_PID_CHANGED -> TraceStopStatus.Status.APP_PID_CHANGED
+          PROFILER_PROCESS_DIED -> TraceStopStatus.Status.PROFILER_PROCESS_DIED
+          STOP_COMMAND_FAILED -> TraceStopStatus.Status.STOP_COMMAND_FAILED
+          STILL_PROFILING_AFTER_STOP -> TraceStopStatus.Status.STILL_PROFILING_AFTER_STOP
+          CANNOT_START_WAITING -> TraceStopStatus.Status.CANNOT_START_WAITING
+          WAIT_TIMEOUT -> TraceStopStatus.Status.WAIT_TIMEOUT
+          WAIT_FAILED -> TraceStopStatus.Status.WAIT_FAILED
+          CANNOT_READ_WAIT_EVENT -> TraceStopStatus.Status.CANNOT_READ_WAIT_EVENT
+          CANNOT_COPY_FILE -> TraceStopStatus.Status.CANNOT_COPY_FILE
+          CANNOT_FORM_FILE -> TraceStopStatus.Status.CANNOT_FORM_FILE
+          CANNOT_READ_FILE -> TraceStopStatus.Status.CANNOT_READ_FILE
+          OTHER_FAILURE -> TraceStopStatus.Status.OTHER_FAILURE
+          UNRECOGNIZED -> TraceStopStatus.Status.UNRECOGNIZED
+        }
+        TraceStopStatus.newBuilder().setStatus(trackStatus)
+          .apply { if(status.errorCode != 0L) errorCode = status.errorCode }
+          .setStoppingDurationNs(status.stoppingDurationNs).build()
+      }
+    }
+
+    fun getTaskFailedTraceStartStatus(status: Trace.TraceStartStatus?): TaskFailedMetadata.TraceStartStatus? {
+      return if (status == null) {
+        null
+      } else {
+        val trackStatus = when (status.status) {
+          Trace.TraceStartStatus.Status.SUCCESS -> TaskFailedMetadata.TraceStartStatus.Status.SUCCESS
+          Trace.TraceStartStatus.Status.UNSPECIFIED -> TaskFailedMetadata.TraceStartStatus.Status.STATUS_UNSPECIFIED
+          Trace.TraceStartStatus.Status.FAILURE -> TaskFailedMetadata.TraceStartStatus.Status.FAILURE
+          Trace.TraceStartStatus.Status.UNRECOGNIZED -> TaskFailedMetadata.TraceStartStatus.Status.UNRECOGNIZED
+        }
+        val result = TaskFailedMetadata.TraceStartStatus.newBuilder().setStatus(trackStatus)
+          .apply { if(status.errorCode != 0L) errorCode = status.errorCode }
+          .setStartTimeNs(status.startTimeNs)
+
+        result.build()
+      }
+    }
+
+    fun getTaskFailedHeapDumpStatus(status: Memory.HeapDumpStatus?): TaskFailedMetadata.HeapDumpStatus? {
+      return if (status == null) {
+        null
+      } else {
+        val trackStatus = when (status.status) {
+          Memory.HeapDumpStatus.Status.UNSPECIFIED -> TaskFailedMetadata.HeapDumpStatus.Status.STATUS_UNSPECIFIED
+          Memory.HeapDumpStatus.Status.SUCCESS -> TaskFailedMetadata.HeapDumpStatus.Status.SUCCESS
+          Memory.HeapDumpStatus.Status.IN_PROGRESS -> TaskFailedMetadata.HeapDumpStatus.Status.IN_PROGRESS
+          Memory.HeapDumpStatus.Status.NOT_PROFILING -> TaskFailedMetadata.HeapDumpStatus.Status.NOT_PROFILING
+          Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN -> TaskFailedMetadata.HeapDumpStatus.Status.FAILURE_UNKNOWN
+          Memory.HeapDumpStatus.Status.UNRECOGNIZED -> TaskFailedMetadata.HeapDumpStatus.Status.UNRECOGNIZED
+        }
+        TaskFailedMetadata.HeapDumpStatus.newBuilder().setStatus(trackStatus)
+          .setStartTimeNs(status.startTime).build()
+      }
+    }
+  }
 }
 
 data class TaskMetadata(
@@ -103,6 +224,22 @@ data class TaskMetadata(
   val taskAttachmentPoint: TaskAttachmentPoint,
   val exposureLevel: ExposureLevel,
   val taskConfigs: List<ProfilingConfiguration>
+)
+
+data class TaskStartFailedMetadata(
+  val traceStartStatus: Trace.TraceStartStatus?,
+  val allocationTrackStatus: TrackStatus?,
+  val heapDumpStatus: Memory.HeapDumpStatus?
+)
+
+data class TaskStopFailedMetadata(
+  val traceStopStatus: Trace.TraceStopStatus?,
+  val allocationTrackStatus: TrackStatus?,
+  val cpuCaptureMetadata: CpuCaptureMetadata?
+)
+
+data class TaskProcessingFailedMetadata(
+  val cpuCaptureMetadata: CpuCaptureMetadata?
 )
 
 enum class TaskDataOrigin {

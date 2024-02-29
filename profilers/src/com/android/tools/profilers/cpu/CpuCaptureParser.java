@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished;
+import static com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus.*;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS;
 
@@ -33,7 +33,9 @@ import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
 import com.android.tools.profilers.tasks.TaskFinishedState;
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.diagnostic.Logger;
@@ -81,6 +83,9 @@ public class CpuCaptureParser {
   @NotNull
   private final IdeProfilerServices myServices;
 
+  @NotNull
+  private final StudioProfilers myProfilers;
+
   private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
 
   /**
@@ -108,8 +113,9 @@ public class CpuCaptureParser {
 
   private static final Logger LOGGER = Logger.getInstance(CpuCaptureParser.class);
 
-  public CpuCaptureParser(@NotNull IdeProfilerServices services) {
-    myServices = services;
+  public CpuCaptureParser(@NotNull StudioProfilers profilers) {
+    myProfilers = profilers;
+    myServices = profilers.getIdeServices();
     myCaptures = new HashMap<>();
   }
 
@@ -212,6 +218,32 @@ public class CpuCaptureParser {
         .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, trackTaskFinished), myServices.getMainExecutor());
     myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
+  }
+
+  // Added this method in this class (outside TraceResultHandler) to also be accessible in CpuProfilerStage
+  public static com.google.wireless.android.sdk.stats.CpuCaptureMetadata getCpuCaptureMetadata(CpuCaptureMetadata metadata) {
+    if (metadata == null) {
+      return  null;
+    }
+
+    com.google.wireless.android.sdk.stats.CpuCaptureMetadata.Builder result =
+      com.google.wireless.android.sdk.stats.CpuCaptureMetadata.newBuilder()
+        .setCaptureStatus(metadata.getStatus() != null ? valueOf(metadata.getStatus().name()): UNKNOWN_STATUS)
+        .setCaptureDurationMs(metadata.getCaptureDurationMs())
+        .setParsingTimeMs(metadata.getParsingTimeMs())
+        .setRecordDurationMs(metadata.getRecordDurationMs())
+        .setStoppingTimeMs(metadata.getStoppingTimeMs())
+        .setHasComposeTracingNodes(Boolean.TRUE.equals(metadata.getHasComposeTracingNodes()))
+        .setTraceFileSizeBytes(metadata.getTraceFileSizeBytes())
+        .setArtStopTimeoutSec(metadata.getArtStopTimeoutSec());
+
+    if (metadata.getCpuProfilerEntryPoint() != null) {
+      result.setCpuProfilerEntryPoint(
+        com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CpuProfilerEntryPoint.valueOf(metadata.getCpuProfilerEntryPoint().name()));
+    }
+
+    com.google.wireless.android.sdk.stats.CpuCaptureMetadata cpuCaptureMetadata = result.build();
+    return cpuCaptureMetadata;
   }
 
   /**
@@ -478,6 +510,10 @@ public class CpuCaptureParser {
           new UnspecifiedConfiguration(ProfilingConfiguration.DEFAULT_CONFIGURATION_NAME)));
       metadata.setTraceFileSizeBytes((int)traceFile.length());
 
+      if (metadata.getProfilingConfiguration().getTraceType() == TraceType.ART) {
+        metadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
+      }
+
       if (capture != null) {
         metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
         // Set the parsing time at least 1 millisecond, to make it easy to verify in tests.
@@ -497,7 +533,10 @@ public class CpuCaptureParser {
         else if (throwable.getCause() instanceof PreProcessorFailureException) {
           myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
           // More granular preprocess failures are logged by preprocessors. Skip logging here.
-          return;
+          if (!myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+            return;
+          }
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
         }
         else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
@@ -540,8 +579,13 @@ public class CpuCaptureParser {
                      ? capture.getType() // get info from capture
                      : metadata.getProfilingConfiguration().getTraceType(); // best effort to get info
           var isSuccess = capture != null;
-          myServices.getFeatureTracker()
-            .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
+          if (myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+            TaskEventTrackerUtils.trackProcessingTaskFailed(myProfilers, myProfilers.getSessionsManager().isSessionAlive(),
+                                                            new TaskProcessingFailedMetadata(metadata));
+          } else {
+            myServices.getFeatureTracker()
+              .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
+          }
         }
         myCaptureMetadataMap.remove(traceId);
       }

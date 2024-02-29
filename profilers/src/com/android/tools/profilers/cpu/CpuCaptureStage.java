@@ -284,7 +284,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                          int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
-      profilers.getIdeServices(), captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
+      profilers, captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
 
     getMultiSelectionModel().addDependency(this)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)

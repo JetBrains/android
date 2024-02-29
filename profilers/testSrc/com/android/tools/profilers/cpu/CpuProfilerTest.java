@@ -318,7 +318,7 @@ public final class CpuProfilerTest {
 
     // Insert a stop status.
     Trace.TraceStatusData status2 = Trace.TraceStatusData.newBuilder()
-      .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
+      .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorCode(123))
       .build();
     Common.Event event2 =
       Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(5)

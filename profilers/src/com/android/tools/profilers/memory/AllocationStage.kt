@@ -4,11 +4,15 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Memory.TrackStatus
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
 import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
@@ -126,6 +130,13 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   fun setAllocationTrackingError() {
     stopTracking()
     hasAgentError = true
+    TaskEventTrackerUtils.trackStartTaskFailed(
+      studioProfilers,
+      studioProfilers.sessionsManager.isSessionAlive,
+      TaskStartFailedMetadata(
+        allocationTrackStatus = TrackStatus.newBuilder().setStatus(
+          // TODO(b/331311303): Add an enum for agent error in base for use in below case (rather than UNSPECIFIED)
+          TrackStatus.Status.UNSPECIFIED).build(), traceStartStatus = null, heapDumpStatus = null))
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
   }
 
@@ -145,7 +156,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
        if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
     }
     setupTrackingEventListener()
-    MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, false, null);
+    trackAllocations(true, false)
     // Prevent selecting outside of range
     timeline.selectionRange.apply {
       addDependency(this@AllocationStage).onChange(Range.Aspect.RANGE) {
@@ -158,15 +169,56 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     }
   }
 
+  /**
+   * Responsible for tracking allocations and sends metric based on the status being returned.
+   * enable: Boolean which indicates if tracking should be started or not.
+   * endSession: Boolean which indicates if current session should be ended or not.
+   */
+  private fun trackAllocations(enable: Boolean, endSession: Boolean) {
+    MemoryProfiler.trackAllocations(
+      profilers = studioProfilers,
+      session = sessionData,
+      enable = enable,
+      endSession = endSession,
+    ) { status ->
+      when (status?.status) {
+        TrackStatus.Status.SUCCESS -> {
+          // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
+          if (!enable) trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+        }
+        TrackStatus.Status.IN_PROGRESS, TrackStatus.Status.NOT_ENABLED -> {
+          // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
+        }
+        else -> {
+          // TrackStatus.Status.UNSPECIFIED, TrackStatus.Status.NOT_PROFILING,
+          // TrackStatus.Status.FAILURE_UNKNOWN, TrackStatus.Status.UNRECOGNIZED, status is null
+          // All these cases denotes there is failure.
+          if (enable) {
+            // start task failure
+            TaskEventTrackerUtils.trackStartTaskFailed(
+              studioProfilers,
+              studioProfilers.sessionsManager.isSessionAlive,
+              TaskStartFailedMetadata(allocationTrackStatus = status, traceStartStatus = null, heapDumpStatus = null))
+          }
+          else {
+            // stop task failure
+            TaskEventTrackerUtils.trackStopTaskFailed(
+              studioProfilers,
+              studioProfilers.sessionsManager.isSessionAlive,
+              TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+          }
+        }
+      }
+    }
+  }
+
   fun stopTracking() {
     if (!hasEndedTracking) {
       aspect.removeDependencies(this)
       timeline.dataRange.removeDependencies(this)
       maxTrackingTimeUs = timeline.dataRange.max
-      // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
-      trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
     }
-    MemoryProfiler.trackAllocations(studioProfilers, sessionData, false, true, null);
+    trackAllocations(false, true)
   }
 
   private fun onNewData() = with(timeline) {

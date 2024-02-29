@@ -41,6 +41,7 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -51,11 +52,8 @@ class CaptureDetailsTest {
   @get:Rule
   val disposableRule = DisposableRule()
 
-  private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer, false)
-
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", transportService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", FakeTransportService(FakeTimer(), false))
 
   private fun benchmarkInit(prefix: String) =
     benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
@@ -63,15 +61,28 @@ class CaptureDetailsTest {
     benchmarkMemoryAndTime("$prefix Range Change", "Range-Change", memUnit = MemoryUnit.KB)
   private fun benchmarkFilterChange(prefix: String) =
     benchmarkMemoryAndTime("$prefix Filter Change", "Filter-Change", memUnit = MemoryUnit.KB)
-  private val benchmarkTopDownInit = benchmarkInit("Top-Down")
-  private val benchmarkBottomUpInit = benchmarkInit("Bottom-Up")
-  private val benchmarkFlameChartInit = benchmarkInit("Flame-Chart")
-  private val benchmarkTopDownRangeChange = benchmarkRangeChange("Top-Down")
-  private val benchmarkBottomUpRangeChange = benchmarkRangeChange("Bottom-Up")
-  private val benchmarkFlameChartRangeChange = benchmarkRangeChange("Flame-Chart")
-  private val benchmarkTopDownFilterChange = benchmarkFilterChange("Top-Down")
-  private val benchmarkBottomUpFilterChange = benchmarkFilterChange("Bottom-Up")
-  private val benchmarkFlameChartFilterChange = benchmarkFilterChange("Flame-Chart")
+  private lateinit var benchmarkTopDownInit: BenchmarkRunner
+  private lateinit var benchmarkBottomUpInit: BenchmarkRunner
+  private lateinit var benchmarkFlameChartInit: BenchmarkRunner
+  private lateinit var benchmarkTopDownRangeChange: BenchmarkRunner
+  private lateinit var benchmarkBottomUpRangeChange: BenchmarkRunner
+  private lateinit var benchmarkFlameChartRangeChange: BenchmarkRunner
+  private lateinit var benchmarkTopDownFilterChange: BenchmarkRunner
+  private lateinit var benchmarkBottomUpFilterChange: BenchmarkRunner
+  private lateinit var benchmarkFlameChartFilterChange: BenchmarkRunner
+
+  @Before
+  fun setUp() {
+    benchmarkTopDownInit = benchmarkInit("Top-Down")
+    benchmarkBottomUpInit = benchmarkInit("Bottom-Up")
+    benchmarkFlameChartInit = benchmarkInit("Flame-Chart")
+    benchmarkTopDownRangeChange = benchmarkRangeChange("Top-Down")
+    benchmarkBottomUpRangeChange = benchmarkRangeChange("Bottom-Up")
+    benchmarkFlameChartRangeChange = benchmarkRangeChange("Flame-Chart")
+    benchmarkTopDownFilterChange = benchmarkFilterChange("Top-Down")
+    benchmarkBottomUpFilterChange = benchmarkFilterChange("Bottom-Up")
+    benchmarkFlameChartFilterChange = benchmarkFilterChange("Flame-Chart")
+  }
 
   @Test
   fun benchmarkTopDown() = benchmarkInitAndUpdate(benchmarkTopDownInit,

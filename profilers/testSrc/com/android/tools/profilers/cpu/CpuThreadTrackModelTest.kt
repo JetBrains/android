@@ -17,21 +17,41 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class CpuThreadTrackModelTest {
+  private lateinit var myProfilers: StudioProfilers
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("CpuCaptureParserTest", transportService)
+
+  @Before
+  fun setUp() {
+    val ideServices = FakeIdeProfilerServices()
+    myProfilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
+  }
 
   @Test
   fun noThreadStatesFromArtTrace() {
-    val capture = CpuProfilerTestUtils.getValidCapture()
+    val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
     val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(),
                                                Utils::runOnUi)
     assertThat(threadTrackModel.threadStateChartModel.series).isEmpty()
@@ -50,7 +70,7 @@ class CpuThreadTrackModelTest {
 
   @Test
   fun testNameToNodes() {
-    val capture = CpuProfilerTestUtils.getValidCapture()
+    val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
     val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(),
                                                Utils::runOnUi)
     val node = threadTrackModel.callChartModel.node

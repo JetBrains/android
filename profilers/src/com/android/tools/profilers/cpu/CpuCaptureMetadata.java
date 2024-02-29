@@ -170,6 +170,11 @@ public class CpuCaptureMetadata {
   private long myParsingTimeMs;
 
   /**
+   * Timeout set by user for system "profiler.cpu.art.stop.timeout.sec" property.
+   */
+  private int myArtStopTimeoutSec;
+
+  /**
    * How much time (in milliseconds) taken to stop the recording.
    */
   private int myStoppingTimeMs;
@@ -211,6 +216,14 @@ public class CpuCaptureMetadata {
 
   public void setCaptureDurationMs(long captureDurationMs) {
     myCaptureDurationMs = captureDurationMs;
+  }
+
+  public int getArtStopTimeoutSec() {
+    return myArtStopTimeoutSec;
+  }
+
+  public void setArtStopTimeoutSec(int artStopTimeoutSec) {
+    myArtStopTimeoutSec = artStopTimeoutSec;
   }
 
   public int getStoppingTimeMs() {

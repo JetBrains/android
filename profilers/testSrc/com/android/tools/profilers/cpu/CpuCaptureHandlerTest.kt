@@ -15,18 +15,30 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 
 class CpuCaptureHandlerTest {
+  private lateinit var myProfilers: StudioProfilers
+
+  @Before
+  fun setUp() {
+    myProfilers = Mockito.mock(StudioProfilers::class.java, Mockito.RETURNS_DEEP_STUBS)
+    Mockito.`when`(myProfilers.ideServices).thenReturn(FakeIdeProfilerServices())
+  }
+
   @Test
   fun updateUpdatesRange() {
-    val model = CpuCaptureHandler(FakeIdeProfilerServices(), CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123,
+    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123,
                                   ProfilersTestData.DEFAULT_CONFIG, null, 0)
     assertThat(model.range.isEmpty).isTrue()
     model.update(1234L)
@@ -43,7 +55,7 @@ class CpuCaptureHandlerTest {
     val config = PerfettoSystemTraceConfiguration("Test", false)
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
+    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
     model.parse({
                   assertThat(it).isNull()
                   assertThat(services.notification).isNotNull()
@@ -57,7 +69,7 @@ class CpuCaptureHandlerTest {
     val config = SimpleperfConfiguration("Test")
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
+    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
     model.parse({
                   assertThat(it).isNotNull()
                   assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)

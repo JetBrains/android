@@ -17,13 +17,24 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 
 class CpuAnalysisChartModelTest {
+  private lateinit var myProfilers: StudioProfilers
+
+  @Before
+  fun setUp() {
+    myProfilers = Mockito.mock(StudioProfilers::class.java, Mockito.RETURNS_DEEP_STUBS)
+    Mockito.`when`(myProfilers.ideServices).thenReturn(FakeIdeProfilerServices())
+  }
 
   @Test
   fun selectionRangeDecoupledFromAxisComponentModel() {
@@ -33,7 +44,7 @@ class CpuAnalysisChartModelTest {
     val maxRange = 2930531342743.0
     val delta = 80000.0
     val selectionRange = Range(minRange, maxRange)
-    val capture = CpuProfilerTestUtils.getValidCapture()
+    val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
     val model = CpuAnalysisChartModel<CaptureNodeAnalysisModel>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture,
                                                                 { listOf() }, Utils::runOnUi)
     selectionRange.set(minRange+delta, maxRange)
@@ -48,7 +59,7 @@ class CpuAnalysisChartModelTest {
     val minRange = 2930527342743.0
     val maxRange = 2930531342743.0
     val selectionRange = Range(minRange, maxRange)
-    val capture = CpuProfilerTestUtils.getValidCapture()
+    val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
     val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture,
                                                   { capture.captureNodes }, Utils::runOnUi)
     model.dataSeries.add(capture)

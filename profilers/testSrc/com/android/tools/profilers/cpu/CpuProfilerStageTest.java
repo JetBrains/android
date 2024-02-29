@@ -846,7 +846,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void exitStageShouldCallParserAbort() {
     StudioProfilers profilers = myStage.getStudioProfilers();
 
-    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
+    FakeParserCancelParsing parser = new FakeParserCancelParsing(profilers);
     CpuProfilerStage stage = new CpuProfilerStage(profilers, parser);
     stage.enter();
     assertThat(parser.isAbortParsingCalled()).isFalse();
@@ -939,8 +939,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     private boolean myAbortParsingCalled = false;
 
-    FakeParserCancelParsing(@NotNull IdeProfilerServices services) {
-      super(services);
+    FakeParserCancelParsing(@NotNull StudioProfilers profilers) {
+      super(profilers);
     }
 
     @Override

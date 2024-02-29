@@ -27,12 +27,17 @@ import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObject
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.TaskFinishedState;
+import com.android.tools.profilers.tasks.TaskMetadata;
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
 import java.util.List;
@@ -576,4 +581,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackTaskFinished(@NotNull com.android.tools.profilers.tasks.TaskMetadata taskMetadata,
                                 @NotNull TaskFinishedState taskFinishedState) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskStartFailedMetadata taskStartFailedMetadata) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskStopFailedMetadata taskStopFailedMetadata) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskProcessingFailedMetadata taskProcessingFailedMetadata) { }
 }

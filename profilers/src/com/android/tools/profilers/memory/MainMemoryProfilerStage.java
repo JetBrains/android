@@ -46,7 +46,12 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCapture
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
+import com.android.tools.profilers.tasks.TaskMetadataStatus;
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -414,7 +419,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         getTimeline().setStreaming(true);
         break;
       case FAILURE:
-        getLogger().error(status.getErrorMessage());
+        getLogger().error("Failure with error code " + status.getErrorCode());
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(),
+                                                   getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(status, null, null)
+        );
         break;
       case UNSPECIFIED:
         break;
@@ -437,39 +446,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         myNativeAllocationTracking = false;
         setTrackingAllocations(false);
         break;
-      case OTHER_FAILURE:
-        // other_failure encompasses all non-explicit defined failure statuses
-        getLogger().error(status.getErrorMessage());
-        break;
       case NO_ONGOING_PROFILING:
         // TODO: Integrate the ongoing profile detection cpu profiler has with memory profiler
         break;
       default:
-        // handle explicitly defined failure statuses
-        handleNativeAllocationStopFailures(status);
-        break;
-    }
-  }
-
-  /**
-   * Placeholder method to handle failure statuses that will be reported as metadata.
-   * TODO: Merge this method with "fromStopStatus" in CpuCaptureMetadata.java
-   */
-  private void handleNativeAllocationStopFailures(@NotNull Trace.TraceStopStatus status) {
-    switch (status.getStatus()) {
-      case UNSPECIFIED:
-      case APP_PROCESS_DIED:
-      case APP_PID_CHANGED:
-      case PROFILER_PROCESS_DIED:
-      case STOP_COMMAND_FAILED:
-      case STILL_PROFILING_AFTER_STOP:
-      case CANNOT_START_WAITING:
-      case WAIT_TIMEOUT:
-      case WAIT_FAILED:
-      case CANNOT_READ_WAIT_EVENT:
-      case CANNOT_COPY_FILE:
-      case CANNOT_FORM_FILE:
-      case CANNOT_READ_FILE:
+        getLogger().error(status.getErrorMessage());
+        TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                  new TaskStopFailedMetadata(status, null, null));
         break;
     }
   }
@@ -525,6 +508,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case NOT_PROFILING:
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(null, null, status));
         break;
     }
   }
@@ -551,10 +536,20 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         case NOT_ENABLED:
           setTrackingAllocations(false);
           break;
-        case UNSPECIFIED:
-        case NOT_PROFILING:
-        case FAILURE_UNKNOWN:
-        case UNRECOGNIZED:
+        default:
+          if (enable) {
+            // Start task failure
+            TaskEventTrackerUtils.trackStartTaskFailed(
+              getStudioProfilers(),
+              getStudioProfilers().getSessionsManager().isSessionAlive(),
+              new TaskStartFailedMetadata(null, status, null));
+          } else {
+            // Stop task failure
+            TaskEventTrackerUtils.trackStopTaskFailed(
+              getStudioProfilers(),
+              getStudioProfilers().getSessionsManager().isSessionAlive(),
+              new TaskStopFailedMetadata(null, status, null));
+          }
           break;
       }
       getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);

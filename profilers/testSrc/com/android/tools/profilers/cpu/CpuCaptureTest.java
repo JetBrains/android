@@ -17,28 +17,40 @@ package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
-import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import org.junit.Before;
 import org.junit.Test;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
+  private StudioProfilers myProfilers;
+
+  @Before
+  public void setup() {
+    myProfilers = mock(StudioProfilers.class);
+    when(myProfilers.getIdeServices()).thenReturn(new FakeIdeProfilerServices());
+  }
 
   @Test
   public void validCapture() throws ExecutionException, InterruptedException {
-    CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
+    CpuCapture capture = CpuProfilerTestUtils.getValidCapture(myProfilers);
     assertThat(capture).isNotNull();
 
     Range captureRange = capture.getRange();
@@ -113,7 +125,7 @@ public class CpuCaptureTest {
   @Test
   public void corruptedTraceFileThrowsException() throws InterruptedException {
     File corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"); // Malformed trace file.
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(corruptedTrace, TraceType.ART);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(myProfilers, corruptedTrace, TraceType.ART);
     try {
       future.get();
       fail();
@@ -133,7 +145,7 @@ public class CpuCaptureTest {
   @Test
   public void emptyTraceFileThrowsException() throws InterruptedException {
     File emptyTrace = CpuProfilerTestUtils.getTraceFile("empty_trace.trace");
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(emptyTrace, TraceType.ART);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(myProfilers, emptyTrace, TraceType.ART);
     assertThat(future).isNotNull();
 
     try {
@@ -162,7 +174,7 @@ public class CpuCaptureTest {
   public void parsingTraceWithWrongProfilerTypeShouldFail() throws InterruptedException {
     // Try to create a capture by passing an ART trace and simpleperf profiler type
     File artTrace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace"); /* Valid ART trace */
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(artTrace, TraceType.SIMPLEPERF);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(myProfilers, artTrace, TraceType.SIMPLEPERF);
 
     try {
       future.get();

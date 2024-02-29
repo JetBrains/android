@@ -21,8 +21,10 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackProcessingTaskFailed
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
 import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -115,6 +117,8 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
               // Capture loading failed.
               // TODO: loading has somehow failed - we need to inform users about the error status.
               doSelectCaptureDuration(null, null)
+              trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
+                                        TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
             }
             // Triggers the aspect to inform listeners that the heap content/filter has changed.
             captureSelection.refreshSelectedHeap()
@@ -122,10 +126,14 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
           catch (exception: InterruptedException) {
             Thread.currentThread().interrupt()
             doSelectCaptureDuration(null, null)
+            trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
+                                      TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
           }
           catch (exception: ExecutionException) {
             doSelectCaptureDuration(null, null)
             logger.error(exception)
+            trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
+                                      TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
           }
           catch (ignored: CancellationException) {
             // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
