@@ -26,5 +26,7 @@
     <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" />
     <orderEntry type="module" module-name="android.sdktools.jdwptracer" />
     <orderEntry type="module" module-name="android.sdktools.jdwpscache" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
