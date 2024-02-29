@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.android.tools.rendering.classloading.CooperativeInterruptTransform
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail

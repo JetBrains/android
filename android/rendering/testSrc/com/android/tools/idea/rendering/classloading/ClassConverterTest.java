@@ -46,6 +46,8 @@ import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider;
 import com.android.tools.rendering.classloading.NopClassLocator;
 import com.android.tools.rendering.classloading.PseudoClassLocator;
 import com.android.tools.rendering.classloading.UtilKt;
+import com.android.tools.rendering.classloading.VersionClassTransform;
+import com.android.tools.rendering.classloading.ViewMethodWrapperTransform;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;

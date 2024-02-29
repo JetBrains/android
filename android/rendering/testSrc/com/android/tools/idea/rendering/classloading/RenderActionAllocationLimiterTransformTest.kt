@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.rendering.RenderService
+import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform
+import com.android.tools.rendering.classloading.TooManyAllocationsException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail

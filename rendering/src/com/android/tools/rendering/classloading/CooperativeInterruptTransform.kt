@@ -1,6 +1,20 @@
-package com.android.tools.idea.rendering.classloading
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.rendering.classloading
 
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.GeneratorAdapter
 import org.objectweb.asm.commons.Method
@@ -18,7 +32,7 @@ object CooperativeInterruptTransformThreadLocalRandom {
   fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
 
-private fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.getMethodDescriptor(this))
+fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.getMethodDescriptor(this))
 
 /**
  * Class transformation that inserts checks of [Thread#isInterrupted] into the loops, allowing the thread to be interrupted even in cases

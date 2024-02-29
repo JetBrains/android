@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading
 
 import org.junit.Assert.assertThrows
+import com.android.tools.rendering.classloading.RequestExecutorTransform
 import org.junit.Test
 import java.io.StringWriter
 import java.lang.RuntimeException

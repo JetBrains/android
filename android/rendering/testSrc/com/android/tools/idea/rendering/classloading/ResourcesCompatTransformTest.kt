@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.classloading
 
 import android.util.TypedValue
 import org.junit.Assert.assertThrows
+import com.android.tools.rendering.classloading.ResourcesCompatTransform
 import org.junit.Test
 import java.io.StringWriter
 import java.lang.RuntimeException

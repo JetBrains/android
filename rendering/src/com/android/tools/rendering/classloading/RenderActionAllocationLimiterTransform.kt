@@ -1,14 +1,27 @@
-package com.android.tools.idea.rendering.classloading
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.RenderService
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.GeneratorAdapter
-import org.objectweb.asm.commons.Method
 import kotlin.reflect.jvm.javaMethod
 
 class TooManyAllocationsException(message: String) : RuntimeException(message)
@@ -32,7 +45,7 @@ object AllocationLimiterTransformChecker {
 
     val accumulator = if (lastRenderActionsCount != currentRenderActionsCount) {
       // A new action has started, reset the counter
-      this.lastRenderActionsExecutedCount.set(currentRenderActionsCount)
+      lastRenderActionsExecutedCount.set(currentRenderActionsCount)
       0L
     }
     else accumulator.get()
@@ -48,8 +61,6 @@ object AllocationLimiterTransformThreadLocalRandom {
   @JvmStatic
   fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
-
-private fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.getMethodDescriptor(this))
 
 /**
  * Class transformation that inserts checks of the number of allocations in a single render action (see [RenderService]).

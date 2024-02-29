@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading
 
 import com.android.layoutlib.bridge.impl.RenderAction
+import com.android.tools.rendering.classloading.StaticFieldReplacer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.StringWriter

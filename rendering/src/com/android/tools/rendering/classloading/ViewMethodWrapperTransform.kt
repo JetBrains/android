@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import com.android.ide.common.rendering.api.ILayoutLog
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -85,7 +84,7 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
       mw.visitVarInsn(argType.getOpcode(Opcodes.ILOAD), nLocals++)
     }
     mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, currentClassName,
-                       name + ORIGINAL_SUFFIX, desc, false)
+      name + ORIGINAL_SUFFIX, desc, false)
     mw.visitLabel(tryEnd)
     val exit = Label()
     mw.visitJumpInsn(Opcodes.GOTO, exit)
@@ -96,15 +95,15 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
     mw.visitVarInsn(Opcodes.ASTORE, throwableIndex)
     //  Bridge.getLog().warning()
     mw.visitMethodInsn(Opcodes.INVOKESTATIC, "com/android/layoutlib/bridge/Bridge", "getLog",
-                       "()Lcom/android/ide/common/rendering/api/ILayoutLog;", false)
+      "()Lcom/android/ide/common/rendering/api/ILayoutLog;", false)
     mw.visitLdcInsn(ILayoutLog.TAG_BROKEN)
     mw.visitLdcInsn("$name error")
     mw.visitVarInsn(Opcodes.ALOAD, throwableIndex)
     mw.visitInsn(Opcodes.ACONST_NULL)
     mw.visitInsn(Opcodes.ACONST_NULL)
     mw.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/android/ide/common/rendering/api/ILayoutLog", "error",
-                       ERROR_METHOD_DESCRIPTION,
-                       true)
+      ERROR_METHOD_DESCRIPTION,
+      true)
     if ("onMeasure" == name) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
       mw.visitVarInsn(Opcodes.ALOAD, 0) // this
       mw.visitInsn(Opcodes.ICONST_0) // measuredWidth
@@ -123,11 +122,11 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
                            signature: String?,
                            exceptions: Array<String>?): MethodVisitor {
     if (("onLayout" == name && "(ZIIII)V" == desc ||
-         "onMeasure" == name && "(II)V" == desc ||
-         "onDraw" == name && "(Landroid/graphics/Canvas;)V" == desc ||
-         "onFinishInflate" == name && "()V" == desc) &&
-        access and (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED) != 0 &&
-        access and Opcodes.ACC_ABSTRACT == 0) {
+        "onMeasure" == name && "(II)V" == desc ||
+        "onDraw" == name && "(Landroid/graphics/Canvas;)V" == desc ||
+        "onFinishInflate" == name && "()V" == desc) &&
+      access and (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED) != 0 &&
+      access and Opcodes.ACC_ABSTRACT == 0) {
       wrapMethod(access, name, desc, signature, exceptions)
       // Make the Original method private so that it does not end up calling the inherited method.
       val modifiedAccess = access and Opcodes.ACC_PUBLIC.inv() and Opcodes.ACC_PROTECTED.inv() or Opcodes.ACC_PRIVATE

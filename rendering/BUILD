@@ -71,6 +71,7 @@ kotlin_library(
         "//tools/base/sdklib:tools.sdklib",
         "@maven//:net.sf.kxml.kxml2",
         "@maven//:org.ow2.asm.asm",
+        "@maven//:org.ow2.asm.asm-commons",
     ],
 )
 
