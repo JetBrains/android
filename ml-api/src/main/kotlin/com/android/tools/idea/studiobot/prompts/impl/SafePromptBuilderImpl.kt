@@ -21,17 +21,8 @@ import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.SafePrompt
 import com.android.tools.idea.studiobot.prompts.SafePromptBuilder
 import com.intellij.lang.Language
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.readText
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting
@@ -61,62 +52,7 @@ class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
   inner class UserMessageBuilderImpl(
     makeMessage: (List<SafePrompt.Message.Chunk>) -> SafePrompt.Message
   ) : MessageBuilderImpl(makeMessage), SafePromptBuilder.UserMessageBuilder {
-    override fun fileContents(file: VirtualFile) {
-      val usedFiles = listOf(file)
-      text("The contents of the file \"${file.projectRelativePath()}\" are:", usedFiles)
-      val language = (file.fileType as? LanguageFileType)?.language
-      code(file.readText(), language, usedFiles)
-    }
-
-    override fun fileContents(file: PsiFile) {
-      val virtualFile = file.viewProvider.virtualFile
-      val usedFiles = listOf(virtualFile)
-      text("The contents of the file \"${virtualFile.projectRelativePath()}\" are:", usedFiles)
-      code(file.text, file.language, usedFiles)
-    }
-
-    override fun withReadAction(
-      block: SafePromptBuilder.ReadActionUserMessageBuilder.() -> Unit
-    ) {
-      ReadActionUserMessageBuilderImpl().apply {
-        if (ApplicationManager.getApplication().isReadAccessAllowed) block()
-        else ReadAction.run<Throwable> { block() }
-      }
-    }
-
-    private fun VirtualFile.projectRelativePath() = path.removePrefix(project.basePath ?: "")
-
-    inner class ReadActionUserMessageBuilderImpl :
-      SafePromptBuilder.UserMessageBuilder by this@UserMessageBuilderImpl,
-      SafePromptBuilder.ReadActionUserMessageBuilder {
-      @RequiresReadLock
-      override fun openFileContents(editor: Editor) {
-        val openFile = editor.virtualFile ?: return
-        val usedFiles = listOf(openFile)
-        val caret = editor.caretModel.primaryCaret
-        val filename = openFile.projectRelativePath()
-        text("The file \"$filename\" is open.", usedFiles)
-        val contents = FileDocumentManager.getInstance().getDocument(openFile)?.text ?: return
-        val language = PsiManager.getInstance(project).findFile(openFile)?.language
-
-        val before = contents.subSequence(0, caret.selectionStart).toString()
-        val after = contents.subSequence(caret.selectionEnd, contents.length).toString()
-        val selectedText = caret.selectedText
-        if (selectedText == null) {
-          text("The contents before the caret are:", usedFiles)
-          code(before, language, usedFiles)
-          text("The contents after the caret are:", usedFiles)
-          code(after, language, usedFiles)
-        } else {
-          text("The contents before the selected text are:", usedFiles)
-          code(before, language, usedFiles)
-          text("The selected text is:", usedFiles)
-          code(selectedText, language, usedFiles)
-          text("The contents after the selected text are:", usedFiles)
-          code(after, language, usedFiles)
-        }
-      }
-    }
+    override val project: Project = this@SafePromptBuilderImpl.project
   }
 
   override fun systemMessage(builderAction: SafePromptBuilder.MessageBuilder.() -> Unit) {
