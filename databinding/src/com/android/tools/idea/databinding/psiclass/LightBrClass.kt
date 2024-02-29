@@ -160,7 +160,7 @@ class LightBrClass(
     PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true)
     PsiUtil.setModifierProperty(field, PsiModifier.STATIC, true)
     PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true)
-    return LightBRField(PsiManager.getInstance(project), field, this)
+    return LightBRField(PsiManager.getInstance(project), field, this, containingFile)
   }
 
   override fun getQualifiedName(): String {
@@ -208,8 +208,12 @@ class LightBrClass(
   }
 
   /** The light field representing elements of BR class */
-  internal class LightBRField(manager: PsiManager, field: PsiField, containingClass: PsiClass) :
-    LightField(manager, field, containingClass), ModificationTracker {
+  internal class LightBRField(
+    manager: PsiManager,
+    field: PsiField,
+    containingClass: PsiClass,
+    private val containingFile: PsiFile,
+  ) : LightField(manager, field, containingClass), ModificationTracker {
 
     override fun getModificationCount(): Long {
       // See http://b.android.com/212766
@@ -217,5 +221,7 @@ class LightBrClass(
       // Needed by the LightBrClass field cache.
       return 0
     }
+
+    override fun getContainingFile(): PsiFile = containingFile
   }
 }
