@@ -23,6 +23,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
@@ -30,8 +32,10 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.idea.adddevicedialog.TestDeviceSource
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.google.common.collect.Range
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.toImmutableList
@@ -82,21 +86,27 @@ class AdditionalSettingsPanelTest {
 
     val device =
       VirtualDevice(
-        "Pixel 6 API 34",
-        AndroidVersion(34, null, 7, true),
-        DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_6")),
+        source = TestDeviceSource(),
+        name = "Pixel 6 API 34",
+        manufacturer = "Google",
+        apiRange = Range.closed(21, 34),
+        sdkExtensionLevel = AndroidVersion(34, null, 7, true),
+        skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_6")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
-        EmulatedProperties.DEFAULT_NETWORK_SPEED,
-        EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-        ScreenOrientation.PORTRAIT,
-        Boot.QUICK,
+        speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
+        latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
+        orientation = ScreenOrientation.PORTRAIT,
+        defaultBoot = Boot.QUICK,
         internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-        EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        GpuMode.AUTO,
+        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
+        graphicAcceleration = GpuMode.AUTO,
         simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
+        abis = listOf(Abi.ARM64_V8A),
+        resolution = Resolution(1200, 800),
+        displayDensity = 200,
       )
 
     rule.setContent {

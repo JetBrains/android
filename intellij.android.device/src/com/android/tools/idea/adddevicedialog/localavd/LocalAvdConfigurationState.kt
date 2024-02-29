@@ -15,18 +15,11 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.android.resources.ScreenOrientation
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import com.android.tools.idea.sdk.AndroidSdks
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -35,35 +28,10 @@ internal class LocalAvdConfigurationState
 internal constructor(
   internal val systemImages: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
+  device: VirtualDevice,
 ) {
-  internal var device by initDevice()
+  internal var device by mutableStateOf(device)
   internal var skins by mutableStateOf(skins)
-
-  private fun initDevice(): MutableState<VirtualDevice> {
-    // TODO Stop hard coding these defaults and use the values from the selected device definition
-    val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
-
-    return mutableStateOf(
-      VirtualDevice(
-        "Pixel 6 API 34",
-        AndroidVersion(34, null, 7, true),
-        DefaultSkin(Path.of(sdk, "skins", "pixel_6")),
-        frontCamera = AvdCamera.EMULATED,
-        // TODO We're assuming the emulator supports this feature
-        rearCamera = AvdCamera.VIRTUAL_SCENE,
-        EmulatedProperties.DEFAULT_NETWORK_SPEED,
-        EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-        ScreenOrientation.PORTRAIT,
-        Boot.QUICK,
-        internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-        EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        GpuMode.AUTO,
-        simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-      )
-    )
-  }
 
   internal fun importSkin(path: Path) {
     var skin = skins.find { it.path() == path }

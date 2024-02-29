@@ -18,18 +18,29 @@ package com.android.tools.idea.adddevicedialog.localavd
 import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.GpuMode
+import com.android.tools.idea.adddevicedialog.DeviceProfile
+import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.google.common.collect.Range
 import java.nio.file.Files
 import java.nio.file.Path
 
 @Immutable
 internal data class VirtualDevice
 internal constructor(
-  internal val name: String,
+  override val source: DeviceSource,
+  override val apiRange: Range<Int>,
+  override val manufacturer: String,
+  override val name: String,
+  override val resolution: Resolution,
+  override val displayDensity: Int,
+  override val abis: List<Abi>,
   internal val sdkExtensionLevel: AndroidVersion,
   internal val skin: Skin,
   internal val frontCamera: AvdCamera,
@@ -44,7 +55,13 @@ internal constructor(
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
-)
+) : DeviceProfile {
+  override val isVirtual
+    get() = true
+
+  override val isRemote
+    get() = false
+}
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {

@@ -17,5 +17,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/intellij.android.device[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
 )

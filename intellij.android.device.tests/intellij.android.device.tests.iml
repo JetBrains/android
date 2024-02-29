@@ -23,7 +23,6 @@
       </configuration>
     </facet>
   </component>
-
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -38,7 +37,7 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
   </component>
-
   <component name="TestModuleProperties" production-module="intellij.android.device" />
 </module>
