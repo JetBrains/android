@@ -47,6 +47,26 @@
     </action>
     <action id="Android.StopNativeAllocations" class="com.android.tools.idea.profilers.StopNativeAllocationsAction">
     </action>
+    <action id="Android.ProfilerSelectDevice" class="com.android.tools.idea.profilers.actions.ProfilerSelectDeviceAction">
+    </action>
+    <action id="Android.ProfilerSelectProcess" class="com.android.tools.idea.profilers.actions.ProfilerSelectProcessAction">
+    </action>
+    <action id="Android.StartProfilerTask" class="com.android.tools.idea.profilers.actions.StartProfilerTaskAction">
+    </action>
+    <action id="Android.SetProfilingStartingPointToNow" class="com.android.tools.idea.profilers.actions.SetProfilingStartingPointToNowAction">
+    </action>
+    <action id="Android.SetProfilingStartingPointToProcessStart" class="com.android.tools.idea.profilers.actions.SetProfilingStartingPointToProcessStartAction">
+    </action>
+    <action id="Android.StopProfilerTask" class="com.android.tools.idea.profilers.actions.StopProfilerTaskAction">
+    </action>
+    <action id="Android.SelectSystemTraceTask" class="com.android.tools.idea.profilers.actions.SelectSystemTraceTaskAction">
+    </action>
+    <action id="Android.SelectHeapDumpTask" class="com.android.tools.idea.profilers.actions.SelectHeapDumpTaskAction">
+    </action>
+    <action id="Android.SelectCallstackSampleTask" class="com.android.tools.idea.profilers.actions.SelectCallstackSampleTaskAction">
+    </action>
+    <action id="Android.SelectNativeAllocationsTask" class="com.android.tools.idea.profilers.actions.SelectNativeAllocationsTaskAction">
+    </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor" />

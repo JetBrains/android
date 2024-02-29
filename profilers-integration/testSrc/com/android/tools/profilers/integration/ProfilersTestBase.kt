@@ -38,7 +38,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 open class ProfilersTestBase {
 
-  private fun getLogger(): Logger {
+  protected fun getLogger(): Logger {
     return Logger.getLogger(ProfilersTestBase::class.java.getName())
   }
 
@@ -53,9 +53,10 @@ open class ProfilersTestBase {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
-  protected fun profileApp(systemImage: Emulator.SystemImage,
-                 testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
-    // Enabling profiler verbose logs behind the flag.
+  protected fun sessionBasedProfiling(systemImage: Emulator.SystemImage,
+                                      testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
+    // Disabling the profiler task-based ux and verbose logs behind the flag.
+    system.installation.addVmOption("-Dprofiler.task.based.ux=false")
     system.installation.addVmOption("-Dprofiler.testing.mode=true")
 
     // Open android project, and set a fixed distribution
@@ -76,7 +77,46 @@ open class ProfilersTestBase {
           adb.waitForDevice(emulator)
 
           getLogger().info("Test set-up completed, invoking the test function.")
+          // Test Function or test steps to be executed.
+          testFunction.invoke(studio, adb)
+        }
+      }
+    }
+  }
 
+  protected fun taskBasedProfiling(systemImage: Emulator.SystemImage,
+                                   deployApp: Boolean,
+                                   testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
+    // Enabling profiler task-based ux and verbose logs behind the flag.
+    system.installation.addVmOption("-Dprofiler.task.based.ux=true")
+    system.installation.addVmOption("-Dprofiler.testing.mode=true")
+
+    // Open android project, and set a fixed distribution
+    val project = AndroidProject(testProjectMinAppPath)
+
+    // Create a maven repo and set it up in the installation and environment
+    system.installRepo(MavenRepo(testMinAppRepoManifest))
+
+    system.runAdb { adb ->
+      system.runEmulator(systemImage) { emulator ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
+          // Waiting for sync and build.
+          studio.waitForSync()
+          studio.waitForIndex()
+          // Assume project build will be triggered by `testFunction` if needed.
+          // Waiting for emulator to boot up.
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
+
+          if (deployApp) {
+            deployApp(studio, adb)
+            invokeProfilerToolWindow(studio)
+            waitForProfilerDeviceConnection()
+            getLogger().info("App Deployment is completed. Profiler tool window opened. Transport Pipeline is successful")
+          }
+
+          getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+          Thread.sleep(2000)
           // Test Function or test steps to be executed.
           testFunction.invoke(studio, adb)
         }
@@ -91,11 +131,28 @@ open class ProfilersTestBase {
       TimeUnit.SECONDS)
   }
 
+  protected fun invokeProfilerToolWindow(studio: AndroidStudio) {
+    studio.showToolWindow("Android Profiler")
+    studio.waitForComponentByClass("TaskHomeTabComponent")
+  }
+
+  protected fun waitForProfilerDeviceConnection() {
+    verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 60)
+  }
+
+  protected fun deployApp(studio: AndroidStudio, adb: Adb) {
+    studio.executeAction("Run")
+
+    adb.runCommand("logcat") {
+      waitForLog(".*Hello Minimal World!.*", 300.seconds);
+    }
+  }
+
   protected fun profileWithCompleteData(studio: AndroidStudio, adb:Adb) {
     studio.executeAction("Android.ProfileWithCompleteData")
 
     adb.runCommand("logcat") {
-      waitForLog(".*Hello Minimal World!.*", 180.seconds);
+      waitForLog(".*Hello Minimal World!.*", 300.seconds);
     }
   }
 
@@ -134,5 +191,45 @@ open class ProfilersTestBase {
 
   protected fun stopNativeAllocations(studio: AndroidStudio) {
     studio.executeAction("Android.StopNativeAllocations")
+  }
+
+  protected fun selectSystemTraceTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectSystemTraceTask")
+  }
+
+  protected fun selectHeapDumpTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectHeapDumpTask")
+  }
+
+  protected fun selectCallstackSampleTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectCallstackSampleTask")
+  }
+
+  protected fun selectNativeAllocationsTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectNativeAllocationsTask")
+  }
+
+  protected fun selectDevice(studio: AndroidStudio) {
+    studio.executeAction("Android.ProfilerSelectDevice")
+  }
+
+  protected fun selectProcess(studio: AndroidStudio) {
+    studio.executeAction("Android.ProfilerSelectProcess")
+  }
+
+  protected fun startTask(studio: AndroidStudio) {
+    studio.executeAction("Android.StartProfilerTask")
+  }
+
+  protected fun stopTask(studio: AndroidStudio) {
+    studio.executeAction("Android.StopProfilerTask")
+  }
+
+  protected fun setProfilingStartingPointToNow(studio: AndroidStudio) {
+    studio.executeAction("Android.SetProfilingStartingPointToNow")
+  }
+
+  protected fun setProfilingStartingPointToProcessStart(studio: AndroidStudio) {
+    studio.executeAction("Android.SetProfilingStartingPointToProcessStart")
   }
 }

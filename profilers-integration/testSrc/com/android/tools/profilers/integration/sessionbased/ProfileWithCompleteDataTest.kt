@@ -42,7 +42,7 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
    */
   @Test
   fun testProfileAppWithComplete() {
-    profileApp(
+    sessionBasedProfiling(
       systemImage = Emulator.SystemImage.API_31,
       testFunction = { studio, adb ->
         profileWithCompleteData(studio, adb)

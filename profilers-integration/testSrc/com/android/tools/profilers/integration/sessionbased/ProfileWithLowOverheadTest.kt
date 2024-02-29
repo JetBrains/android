@@ -42,7 +42,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
    */
   @Test
   fun testLowOverheadSession() {
-    profileApp(
+    sessionBasedProfiling(
       systemImage = Emulator.SystemImage.API_33_PlayStore,
       testFunction = { studio, adb ->
         // Since there is no definitive way to tell that the emulator is ready

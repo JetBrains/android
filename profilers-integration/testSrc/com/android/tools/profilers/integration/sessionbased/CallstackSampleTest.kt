@@ -46,7 +46,7 @@ class CallstackSampleTest : ProfilersTestBase() {
    */
   @Test
   fun testRecordCallstackSample() {
-    profileApp(
+    sessionBasedProfiling(
       systemImage = Emulator.SystemImage.API_31, // Provides more stability than API 29
       testFunction = { studio, adb ->
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.

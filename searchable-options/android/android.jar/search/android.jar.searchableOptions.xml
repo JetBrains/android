@@ -732,11 +732,87 @@
     <option name="build" path="ActionManager" hit="Select Build Variant..." />
     <option name="select" path="ActionManager" hit="Select Build Variant..." />
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />
+    <option name="callstack" path="ActionManager" hit="Select Callstack Sample Task" />
+    <option name="sample" path="ActionManager" hit="Select Callstack Sample Task" />
+    <option name="select" path="ActionManager" hit="Select Callstack Sample Task" />
+    <option name="task" path="ActionManager" hit="Select Callstack Sample Task" />
     <option name="device" path="ActionManager" hit="Select Device" />
     <option name="select" path="ActionManager" hit="Select Device" />
+    <option name="device" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="first" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="for" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="profiler" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="select" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="task" path="ActionManager" hit="Select First Device for Profiler Task" />
+    <option name="dump" path="ActionManager" hit="Select Heap Dump Task" />
+    <option name="heap" path="ActionManager" hit="Select Heap Dump Task" />
+    <option name="select" path="ActionManager" hit="Select Heap Dump Task" />
+    <option name="task" path="ActionManager" hit="Select Heap Dump Task" />
     <option name="devices" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="multiple" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="select" path="ActionManager" hit="Select Multiple Devices..." />
+    <option name="allocations" path="ActionManager" hit="Select Native Allocations Task" />
+    <option name="native" path="ActionManager" hit="Select Native Allocations Task" />
+    <option name="select" path="ActionManager" hit="Select Native Allocations Task" />
+    <option name="task" path="ActionManager" hit="Select Native Allocations Task" />
+    <option name="for" path="ActionManager" hit="Select Process for Profiler Task" />
+    <option name="process" path="ActionManager" hit="Select Process for Profiler Task" />
+    <option name="profiler" path="ActionManager" hit="Select Process for Profiler Task" />
+    <option name="select" path="ActionManager" hit="Select Process for Profiler Task" />
+    <option name="task" path="ActionManager" hit="Select Process for Profiler Task" />
+    <option name="select" path="ActionManager" hit="Select System Trace Task" />
+    <option name="system" path="ActionManager" hit="Select System Trace Task" />
+    <option name="task" path="ActionManager" hit="Select System Trace Task" />
+    <option name="trace" path="ActionManager" hit="Select System Trace Task" />
+    <option name="a" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="callstack" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="sample" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="select" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Select a callstack sample task in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="dump" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="heap" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="select" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Select a heap dump task in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="allocations" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="native" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="select" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Select a native allocations task in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="based" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="in" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="process" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="profiler" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="select" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="task" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="tool" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="window" path="ActionManager" hit="Select a process in Task based profiler tool window" />
+    <option name="a" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="select" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="system" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Select a system trace task in the current profiling session" />
+    <option name="trace" path="ActionManager" hit="Select a system trace task in the current profiling session" />
     <option name="display" path="ActionManager" hit="Select display mode" />
     <option name="mode" path="ActionManager" hit="Select display mode" />
     <option name="select" path="ActionManager" hit="Select display mode" />
@@ -754,6 +830,52 @@
     <option name="them" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
     <option name="to" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
     <option name="your" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="based" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="device" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="first" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="in" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="profiler" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="select" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="task" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="the" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="tool" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="window" path="ActionManager" hit="Select the first device in Task based profiler tool window" />
+    <option name="now" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="point" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="process" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="profiling" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="set" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="starting" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="to" path="ActionManager" hit="Set Profiling Process Starting Point To Now" />
+    <option name="point" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="process" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="profiling" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="set" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="start" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="starting" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="to" path="ActionManager" hit="Set Profiling Process Starting Point To Process Start" />
+    <option name="a" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="for" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="now" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="point" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="process" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="profiling" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="set" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="starting" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="task" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="the" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="to" path="ActionManager" hit="Set a profiling process starting point for the task to now" />
+    <option name="a" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="for" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="point" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="process" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="profiling" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="set" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="start" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="starting" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="task" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="the" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
+    <option name="to" path="ActionManager" hit="Set a profiling process starting point for the task to process start" />
     <option name="android" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="common" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="settings" path="ActionManager" hit="Shortcuts to common Android settings" />
@@ -805,6 +927,9 @@
     <option name="allocations" path="ActionManager" hit="Start Native Allocations" />
     <option name="native" path="ActionManager" hit="Start Native Allocations" />
     <option name="start" path="ActionManager" hit="Start Native Allocations" />
+    <option name="profiler" path="ActionManager" hit="Start Profiler Task" />
+    <option name="start" path="ActionManager" hit="Start Profiler Task" />
+    <option name="task" path="ActionManager" hit="Start Profiler Task" />
     <option name="start" path="ActionManager" hit="Start System Trace" />
     <option name="system" path="ActionManager" hit="Start System Trace" />
     <option name="trace" path="ActionManager" hit="Start System Trace" />
@@ -844,12 +969,23 @@
     <option name="system" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="the" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="trace" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="start" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Start a task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Start a task in the current profiling session" />
     <option name="capture" path="ActionManager" hit="Stop CPU Capture" />
     <option name="cpu" path="ActionManager" hit="Stop CPU Capture" />
     <option name="stop" path="ActionManager" hit="Stop CPU Capture" />
     <option name="allocations" path="ActionManager" hit="Stop Native Allocations" />
     <option name="native" path="ActionManager" hit="Stop Native Allocations" />
     <option name="stop" path="ActionManager" hit="Stop Native Allocations" />
+    <option name="profiler" path="ActionManager" hit="Stop Profiler Task" />
+    <option name="stop" path="ActionManager" hit="Stop Profiler Task" />
+    <option name="task" path="ActionManager" hit="Stop Profiler Task" />
     <option name="profiling" path="ActionManager" hit="Stop Profiling Session" />
     <option name="session" path="ActionManager" hit="Stop Profiling Session" />
     <option name="stop" path="ActionManager" hit="Stop Profiling Session" />
@@ -871,6 +1007,14 @@
     <option name="session" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
     <option name="stop" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
     <option name="the" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="stop" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="task" path="ActionManager" hit="Stop a task in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Stop a task in the current profiling session" />
     <option name="current" path="ActionManager" hit="Stop the current profiling session" />
     <option name="profiling" path="ActionManager" hit="Stop the current profiling session" />
     <option name="session" path="ActionManager" hit="Stop the current profiling session" />

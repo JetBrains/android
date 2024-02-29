@@ -46,7 +46,7 @@ class NativeAllocationsTest : ProfilersTestBase() {
    */
   @Test
   fun testRecordNativeAllocation() {
-    profileApp(
+    sessionBasedProfiling(
       systemImage = Emulator.SystemImage.API_31, // Provides more stability than API 29
       testFunction = { studio, adb ->
         profileWithCompleteData(studio, adb)
