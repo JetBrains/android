@@ -16,42 +16,48 @@
 package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.RenderService
+import kotlin.reflect.jvm.javaMethod
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.GeneratorAdapter
-import kotlin.reflect.jvm.javaMethod
 
 class TooManyAllocationsException(message: String) : RuntimeException(message)
 
 /**
- * Static class invoked from user code to check the number of allocations per render action. Every new render action will increment
- * `RenderAsyncActionExecutor#executedRenderActionCount` so this class can check if a new action has started executing.
+ * Static class invoked from user code to check the number of allocations per render action. Every
+ * new render action will increment `RenderAsyncActionExecutor#executedRenderActionCount` so this
+ * class can check if a new action has started executing.
  */
 object AllocationLimiterTransformChecker {
-  private val accumulator = object : ThreadLocal<Long>() {
-    override fun initialValue(): Long = 0L
-  }
-  private val lastRenderActionsExecutedCount = object : ThreadLocal<Long>() {
-    override fun initialValue(): Long = 0L
-  }
+  private val accumulator =
+    object : ThreadLocal<Long>() {
+      override fun initialValue(): Long = 0L
+    }
+  private val lastRenderActionsExecutedCount =
+    object : ThreadLocal<Long>() {
+      override fun initialValue(): Long = 0L
+    }
 
   @JvmStatic
   fun checkAllocation(maxAllocations: Long) {
     val lastRenderActionsCount = lastRenderActionsExecutedCount.get()
-    val currentRenderActionsCount = RenderService.getRenderAsyncActionExecutor().executedRenderActionCount
+    val currentRenderActionsCount =
+      RenderService.getRenderAsyncActionExecutor().executedRenderActionCount
 
-    val accumulator = if (lastRenderActionsCount != currentRenderActionsCount) {
-      // A new action has started, reset the counter
-      lastRenderActionsExecutedCount.set(currentRenderActionsCount)
-      0L
-    }
-    else accumulator.get()
+    val accumulator =
+      if (lastRenderActionsCount != currentRenderActionsCount) {
+        // A new action has started, reset the counter
+        lastRenderActionsExecutedCount.set(currentRenderActionsCount)
+        0L
+      } else accumulator.get()
 
     if (accumulator > maxAllocations)
-      throw TooManyAllocationsException("$maxAllocations allocations exceeded in a single render action")
+      throw TooManyAllocationsException(
+        "$maxAllocations allocations exceeded in a single render action"
+      )
 
     this.accumulator.set(accumulator + 1)
   }
@@ -59,47 +65,71 @@ object AllocationLimiterTransformChecker {
 
 object AllocationLimiterTransformThreadLocalRandom {
   @JvmStatic
-  fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
+  fun nextInt(min: Int, max: Int): Int =
+    java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
 
 /**
- * Class transformation that inserts checks of the number of allocations in a single render action (see [RenderService]).
+ * Class transformation that inserts checks of the number of allocations in a single render action
+ * (see [RenderService]).
  *
  * @param delegate the [ClassVisitor] to generate the output of this transformation.
- * @param checkPercentage the percentage in the [1, 100] range to do interrupt checks. The interrupt condition will only be checked in 1%
- * of the loops.
- * @param maxAllocationsPerRenderAction number of allocations allowed in a single render action. If this number is exceeded, the user code
- * will throw [TooManyAllocationsException]. The allocations are sampled, so this number refers to the sampled number of allocations. If
- * `checkPercentage` is 1% and this parameter is 100, the number of actual allocations might reach 10_000.
- * @param shouldInstrument callback that receives class and method name determines whether it should be transformed.
+ * @param checkPercentage the percentage in the [1, 100] range to do interrupt checks. The interrupt
+ *   condition will only be checked in 1% of the loops.
+ * @param maxAllocationsPerRenderAction number of allocations allowed in a single render action. If
+ *   this number is exceeded, the user code will throw [TooManyAllocationsException]. The
+ *   allocations are sampled, so this number refers to the sampled number of allocations. If
+ *   `checkPercentage` is 1% and this parameter is 100, the number of actual allocations might reach
+ *   10_000.
+ * @param shouldInstrument callback that receives class and method name determines whether it should
+ *   be transformed.
  */
-class RenderActionAllocationLimiterTransform @JvmOverloads constructor(
+class RenderActionAllocationLimiterTransform
+@JvmOverloads
+constructor(
   delegate: ClassVisitor,
   private val checkPercentage: Int = 1,
-  private val maxAllocationsPerRenderAction: Long = java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 100_000),
-  private val shouldInstrument: (String, String) -> Boolean = { className, _ -> !className.startsWith("androidx/") }) :
-  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+  private val maxAllocationsPerRenderAction: Long =
+    java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 100_000),
+  private val shouldInstrument: (String, String) -> Boolean = { className, _ ->
+    !className.startsWith("androidx/")
+  },
+) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   init {
-    if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")
+    if (checkPercentage !in 1..100)
+      throw IllegalArgumentException("checkPercentage must be in [1, 100]")
   }
 
-  override val uniqueId: String = "${RenderActionAllocationLimiterTransform::className},$checkPercentage,$shouldInstrument"
+  override val uniqueId: String =
+    "${RenderActionAllocationLimiterTransform::className},$checkPercentage,$shouldInstrument"
   private val allocationCheckerType = Type.getType(AllocationLimiterTransformChecker::class.java)
-  private val allocationCheckMethod = AllocationLimiterTransformChecker::checkAllocation.javaMethod!!.toMethodType()
-  private val threadLocalRandomType = Type.getType(AllocationLimiterTransformThreadLocalRandom::class.java)
-  private val threadLocalRandomNextIntMethod = AllocationLimiterTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
+  private val allocationCheckMethod =
+    AllocationLimiterTransformChecker::checkAllocation.javaMethod!!.toMethodType()
+  private val threadLocalRandomType =
+    Type.getType(AllocationLimiterTransformThreadLocalRandom::class.java)
+  private val threadLocalRandomNextIntMethod =
+    AllocationLimiterTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
   private var className = ""
 
-  override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
+  override fun visit(
+    version: Int,
+    access: Int,
+    name: String?,
+    signature: String?,
+    superName: String?,
+    interfaces: Array<out String>?,
+  ) {
     className = name ?: ""
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitMethod(access: Int,
-                           name: String?,
-                           descriptor: String?,
-                           signature: String?,
-                           exceptions: Array<out String>?): MethodVisitor {
+  override fun visitMethod(
+    access: Int,
+    name: String?,
+    descriptor: String?,
+    signature: String?,
+    exceptions: Array<out String>?,
+  ): MethodVisitor {
     val delegate = super.visitMethod(access, name, descriptor, signature, exceptions)
     return if (shouldInstrument(className, name ?: "")) {
       object : GeneratorAdapter(Opcodes.ASM9, delegate, access, name, descriptor) {
@@ -121,8 +151,7 @@ class RenderActionAllocationLimiterTransform @JvmOverloads constructor(
           super.visitTypeInsn(opcode, type)
         }
       }
-    }
-    else {
+    } else {
       delegate
     }
   }

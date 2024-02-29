@@ -19,41 +19,57 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
-class SdkIntReplacer(delegate: ClassVisitor) : StaticFieldReplacer(delegate, "android/os/Build\$VERSION", "SDK_INT",
-                                                                   "com/android/layoutlib/bridge/impl/RenderAction",
-                                                                   "sSimulatedSdk"), ClassVisitorUniqueIdProvider {
+class SdkIntReplacer(delegate: ClassVisitor) :
+  StaticFieldReplacer(
+    delegate,
+    "android/os/Build\$VERSION",
+    "SDK_INT",
+    "com/android/layoutlib/bridge/impl/RenderAction",
+    "sSimulatedSdk",
+  ),
+  ClassVisitorUniqueIdProvider {
   override val uniqueId: String = SdkIntReplacer::class.qualifiedName!!
 }
 
 /**
- * Replaces all calls to the static field [originalOwner]#[originalName] with calls to another static field [newOwner]#[newName].
- * The two fields need to be of the same type.
+ * Replaces all calls to the static field [originalOwner]#[originalName] with calls to another
+ * static field [newOwner]#[newName]. The two fields need to be of the same type.
  */
-open class StaticFieldReplacer(delegate: ClassVisitor,
-                               private val originalOwner: String,
-                               private val originalName: String,
-                               private val newOwner: String,
-                               private val newName: String) : ClassVisitor(Opcodes.ASM9, delegate) {
+open class StaticFieldReplacer(
+  delegate: ClassVisitor,
+  private val originalOwner: String,
+  private val originalName: String,
+  private val newOwner: String,
+  private val newName: String,
+) : ClassVisitor(Opcodes.ASM9, delegate) {
 
-  override fun visitMethod(access: Int,
-                           name: String?,
-                           descriptor: String?,
-                           signature: String?,
-                           exceptions: Array<out String>?): MethodVisitor {
-    return StaticFieldMethodVisitor(super.visitMethod(access, name, descriptor, signature, exceptions), originalOwner, originalName,
-                                    newOwner, newName)
+  override fun visitMethod(
+    access: Int,
+    name: String?,
+    descriptor: String?,
+    signature: String?,
+    exceptions: Array<out String>?,
+  ): MethodVisitor {
+    return StaticFieldMethodVisitor(
+      super.visitMethod(access, name, descriptor, signature, exceptions),
+      originalOwner,
+      originalName,
+      newOwner,
+      newName,
+    )
   }
 
-  private class StaticFieldMethodVisitor(delegate: MethodVisitor,
-                                         private val originalOwner: String,
-                                         private val originalName: String,
-                                         private val newOwner: String,
-                                         private val newName: String) : MethodVisitor(Opcodes.ASM9, delegate) {
+  private class StaticFieldMethodVisitor(
+    delegate: MethodVisitor,
+    private val originalOwner: String,
+    private val originalName: String,
+    private val newOwner: String,
+    private val newName: String,
+  ) : MethodVisitor(Opcodes.ASM9, delegate) {
     override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
       if (opcode == Opcodes.GETSTATIC && name == originalName && owner == originalOwner) {
         super.visitFieldInsn(Opcodes.GETSTATIC, newOwner, newName, descriptor)
-      }
-      else {
+      } else {
         super.visitFieldInsn(opcode, owner, name, descriptor)
       }
     }

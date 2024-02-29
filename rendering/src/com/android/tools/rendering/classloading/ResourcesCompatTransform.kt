@@ -20,44 +20,58 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * [ClassVisitor] that fixes a hardcoded path in ResourcesCompat.loadFont.
- * In this method, there is a check that font files have a path that starts with res/.
- * This is not the case in Studio. This replaces the check with one that verifies that the path contains res/.
+ * [ClassVisitor] that fixes a hardcoded path in ResourcesCompat.loadFont. In this method, there is
+ * a check that font files have a path that starts with res/. This is not the case in Studio. This
+ * replaces the check with one that verifies that the path contains res/.
  */
-class ResourcesCompatTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+class ResourcesCompatTransform(delegate: ClassVisitor) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isResourcesCompatClass: Boolean = false
   override val uniqueId: String = ResourcesCompatTransform::class.qualifiedName!!
 
-  override fun visit(version: Int,
-                     access: Int,
-                     name: String,
-                     signature: String?,
-                     superName: String,
-                     interfaces: Array<String>) {
+  override fun visit(
+    version: Int,
+    access: Int,
+    name: String,
+    signature: String?,
+    superName: String,
+    interfaces: Array<String>,
+  ) {
     isResourcesCompatClass = name == "androidx/core/content/res/ResourcesCompat"
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitMethod(access: Int,
-                           name: String,
-                           desc: String,
-                           signature: String?,
-                           exceptions: Array<String>?): MethodVisitor {
+  override fun visitMethod(
+    access: Int,
+    name: String,
+    desc: String,
+    signature: String?,
+    exceptions: Array<String>?,
+  ): MethodVisitor {
     val mv = super.visitMethod(access, name, desc, signature, exceptions)
-    if (isResourcesCompatClass && name == "loadFont"
-        && desc == "(Landroid/content/Context;Landroid/content/res/Resources;Landroid/util/TypedValue;II" +
-        "Landroidx/core/content/res/ResourcesCompat\$FontCallback;Landroid/os/Handler;ZZ)Landroid/graphics/Typeface;") {
+    if (
+      isResourcesCompatClass &&
+        name == "loadFont" &&
+        desc ==
+          "(Landroid/content/Context;Landroid/content/res/Resources;Landroid/util/TypedValue;II" +
+            "Landroidx/core/content/res/ResourcesCompat\$FontCallback;Landroid/os/Handler;ZZ)Landroid/graphics/Typeface;"
+    ) {
       return LoadFontVisitor(mv)
     }
-    return mv;
+    return mv
   }
 
   private class LoadFontVisitor(delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, delegate) {
-    override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+    override fun visitMethodInsn(
+      opcode: Int,
+      owner: String?,
+      name: String?,
+      descriptor: String?,
+      isInterface: Boolean,
+    ) {
       if ("startsWith" == name) {
         super.visitMethodInsn(opcode, owner, "contains", "(Ljava/lang/CharSequence;)Z", isInterface)
-      }
-      else {
+      } else {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
       }
     }

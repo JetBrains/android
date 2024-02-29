@@ -20,30 +20,35 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * [ClassVisitor] that makes androidx.core.provider.RequestExecutor#execute a no-op method.
- * This method is used by the AndroidX support library to go fetch downloadable fonts in a separate thread.
- * This should simply be ignored when running in Studio, as it doesn't allow the creation of new threads during rendering,
- * and it has its own way of getting downloadable fonts.
+ * [ClassVisitor] that makes androidx.core.provider.RequestExecutor#execute a no-op method. This
+ * method is used by the AndroidX support library to go fetch downloadable fonts in a separate
+ * thread. This should simply be ignored when running in Studio, as it doesn't allow the creation of
+ * new threads during rendering, and it has its own way of getting downloadable fonts.
  */
-class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+class RequestExecutorTransform(delegate: ClassVisitor) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isRequestExecutorClass: Boolean = false
   override val uniqueId: String = RequestExecutorTransform::class.qualifiedName!!
 
-  override fun visit(version: Int,
-                     access: Int,
-                     name: String,
-                     signature: String?,
-                     superName: String,
-                     interfaces: Array<String>) {
+  override fun visit(
+    version: Int,
+    access: Int,
+    name: String,
+    signature: String?,
+    superName: String,
+    interfaces: Array<String>,
+  ) {
     isRequestExecutorClass = name == "androidx/core/provider/RequestExecutor"
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitMethod(access: Int,
-                           name: String,
-                           desc: String,
-                           signature: String?,
-                           exceptions: Array<String>?): MethodVisitor? {
+  override fun visitMethod(
+    access: Int,
+    name: String,
+    desc: String,
+    signature: String?,
+    exceptions: Array<String>?,
+  ): MethodVisitor? {
     val mv = super.visitMethod(access, name, desc, signature, exceptions) ?: return null
     if (isRequestExecutorClass && name == "execute") {
       return NoOpMethodVisitor(mv)
