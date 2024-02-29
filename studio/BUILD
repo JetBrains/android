@@ -543,7 +543,7 @@ studio_plugin(
     directory = "firebase-testing",
     libs = [
         "//prebuilts/tools/common/m2:JSch",
-        "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
+        "//prebuilts/tools/common/m2:google_api_services_testing",
     ],
     modules = {
         "firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"],
