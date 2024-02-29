@@ -211,7 +211,12 @@ fun backendCodeGenForK2(file: KtFile, module: Module?): KtCompilationResult.Succ
   ProgressManager.checkCanceled()
 
   analyze(file) {
-    val result = this@analyze.compile(file, configuration, KtCompilerTarget.Jvm(ClassBuilderFactories.BINARIES)) { true }
+    val result = this@analyze.compile(file, configuration, KtCompilerTarget.Jvm(ClassBuilderFactories.BINARIES)) {
+      // This is a lambda for `allowedErrorFilter` parameter. `compiler` API internally filters diagnostic errors with
+      // `allowedErrorFilter`. If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
+      // Since we want to always report the diagnostic errors, we just return `false` here.
+      false
+    }
     when (result) {
       is KtCompilationResult.Success -> return result
       is KtCompilationResult.Failure -> throw compilationError(result.errors.joinToString { it.getDefaultMessageWithFactoryName() })
