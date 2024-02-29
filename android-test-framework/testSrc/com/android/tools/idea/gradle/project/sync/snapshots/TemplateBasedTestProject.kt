@@ -23,15 +23,14 @@ import com.android.tools.idea.testing.JdkUtils.getEmbeddedJdkPathWithVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
-import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
-import kotlin.io.path.exists
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Document
 import java.io.File
@@ -42,6 +41,7 @@ import javax.xml.transform.Transformer
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import kotlin.io.path.exists
 import kotlin.streams.asSequence
 
 /**
@@ -188,6 +188,9 @@ private class PreparedTemplateBasedTestProject(
       name = "$name${templateBasedTestProject.pathToOpen}",
       options = options
     ) { project ->
+      invokeAndWaitIfNeeded {
+        AndroidGradleTests.waitForCreateRunConfigurations(project)
+      }
       invokeAndWaitIfNeeded {
         AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
       }

@@ -40,10 +40,11 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
-import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
@@ -90,7 +91,7 @@ class AndroidRunConfigurations {
       // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
       return
     }
-    ApplicationManager.getApplication().invokeAndWait { addAndroidRunConfiguration(facet) }
+    addAndroidRunConfiguration(facet)
   }
 
   @Slow
@@ -179,16 +180,15 @@ class AndroidRunConfigurations {
   @Slow
   @WorkerThread
   private fun extractWearComponents(module: Module): List<WearComponent> {
-    // TODO(b/330573052): this should be DumbService.runReadActionInSmartMode(), but it causes deadlocks when called during Gradle sync.
-    return runReadAction {
+    return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
           val primaryManifest = it.primaryManifest
             ?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-            ?: return@runReadAction emptyList()
+            ?: return@Computable emptyList()
 
           if (!isWatchFeatureRequired(primaryManifest)) {
-            return@runReadAction emptyList()
+            return@Computable emptyList()
           }
 
           val libraryManifests = it.libraryManifests.mapNotNull { file ->
@@ -204,7 +204,7 @@ class AndroidRunConfigurations {
         val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
         WearComponent(qualifiedName, configurationFactory)
       }
-    }
+    })
   }
 
   private fun wearConfigurationFactory(psiClass: PsiClass): ConfigurationFactory? {

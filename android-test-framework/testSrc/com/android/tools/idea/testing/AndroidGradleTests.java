@@ -56,6 +56,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.project.AndroidRunConfigurationsManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -118,7 +119,9 @@ public class AndroidGradleTests {
    * Property name that allows adding multiple local repositories via JVM properties
    */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
-  private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
+  private static final long DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS = 1000;
+
+  private static final long DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS = 120000;
   private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
@@ -126,8 +129,20 @@ public class AndroidGradleTests {
   }
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
-    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_MILLIS : timeoutMillis;
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS : timeoutMillis;
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
+      PlatformTestUtil.waitForFuture(future, timeout);
+      return null;
+    });
+  }
+
+  public static void waitForCreateRunConfigurations(@NotNull Project project) throws Exception {
+    waitForCreateRunConfigurations(project, null);
+  }
+
+  public static void waitForCreateRunConfigurations(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS : timeoutMillis;
+    AndroidRunConfigurationsManager.getInstance(project).consumeBulkOperationsState(future -> {
       PlatformTestUtil.waitForFuture(future, timeout);
       return null;
     });

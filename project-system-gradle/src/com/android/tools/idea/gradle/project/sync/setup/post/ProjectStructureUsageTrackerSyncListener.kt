@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
-import com.android.tools.idea.project.AndroidRunConfigurationsManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 
+/**
+ * Tracks, using [UsageTracker], the structure of a project.
+ */
+class ProjectStructureUsageTrackerSyncListener : GradleSyncListenerWithRoot {
 
-class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-    AndroidRunConfigurationsManager.getInstance(project).createProjectRunConfigurations()
+    ProjectStructureUsageTrackerManager.getInstance(project).trackProjectStructure()
+  }
+
+  override fun syncSkipped(project: Project) {
+    ProjectStructureUsageTrackerManager.getInstance(project).trackProjectStructure()
   }
 }
-

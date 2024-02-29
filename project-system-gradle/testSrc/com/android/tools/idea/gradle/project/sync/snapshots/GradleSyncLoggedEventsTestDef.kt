@@ -22,10 +22,10 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.ModelVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.Locale
@@ -73,7 +73,7 @@ data class GradleSyncLoggedEventsTestDef(
         namePrefix = "logged_events",
         testProject = TestProject.SIMPLE_APPLICATION
       ) { events ->
-        assertThat(events.dumpSyncEvents()).isEqualTo(
+        assertThat(events.dumpGradleSyncEvents()).isEqualTo(
           buildString {
             val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
             appendLine(
@@ -81,13 +81,17 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_PARALLEL
               |GRADLE_SYNC_SETUP_STARTED
-              |  USER_REQUESTED_PARALLEL""".trim()
-            )
-            appendLine(
-              """
+              |  USER_REQUESTED_PARALLEL
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
-              |  STUDIO_REQUESTD_$expectedMode
+              |  STUDIO_REQUESTD_$expectedMode""".trim()
+            )
+          }.trimMargin()
+        )
+        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
+          buildString {
+            appendLine(
+              """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
@@ -103,20 +107,24 @@ data class GradleSyncLoggedEventsTestDef(
         namePrefix = "logged_events",
         testProject = TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC
       ) { events ->
-        assertThat(events.dumpSyncEvents()).isEqualTo(
+        assertThat(events.dumpGradleSyncEvents()).isEqualTo(
           buildString {
             appendLine(
               """
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_SEQUENTIAL
               |GRADLE_SYNC_SETUP_STARTED
-              |  USER_REQUESTED_SEQUENTIAL""".trim()
-            )
-            appendLine(
-              """
+              |  USER_REQUESTED_SEQUENTIAL
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
-              |  STUDIO_REQUESTD_SEQUENTIAL
+              |  STUDIO_REQUESTD_SEQUENTIAL""".trim()
+            )
+          }.trimMargin()
+        )
+        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
+          buildString {
+            appendLine(
+              """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
@@ -181,9 +189,22 @@ data class GradleSyncLoggedEventsTestDef(
       }
     )
 
-    private fun List<LoggedUsage>.dumpSyncEvents(): String {
+    private fun List<LoggedUsage>.dumpGradleSyncEvents() = dumpEvents(
+      filterBy = { hasGradleSyncStats() },
+    )
+
+    private fun List<LoggedUsage>.dumpGradleDetailEvents() = dumpEvents(
+      filterBy = { hasGradleBuildDetails() || intellijProjectSizeStatsCount > 0 },
+      sortedBy = { kind.name }
+    )
+
+    private fun List<LoggedUsage>.dumpEvents(
+      filterBy: AndroidStudioEvent.() -> Boolean,
+      sortedBy: AndroidStudioEvent.() -> String? = { null }
+    ): String {
       return map { it.studioEvent }
-        .filter { it.hasGradleSyncStats() || it.hasGradleBuildDetails() || it.intellijProjectSizeStatsCount > 0 }
+        .filter { filterBy(it) }
+        .sortedBy { sortedBy(it) }
         .joinToString("") {
           buildString {
             appendLine(it.kind.toString())

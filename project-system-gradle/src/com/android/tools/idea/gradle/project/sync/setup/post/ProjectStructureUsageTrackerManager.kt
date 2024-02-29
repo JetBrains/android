@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post
 
-import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel.Companion.get
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.model.queryUsedFeaturesFromManifestIndex
@@ -29,9 +30,6 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.stats.AnonymizerUtil
-import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleAndroidModule
@@ -41,51 +39,44 @@ import com.google.wireless.android.sdk.stats.GradleModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Ref
+import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.Future
 
-/**
- * Tracks, using [UsageTracker], the structure of a project.
- */
-class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncListenerWithRoot {
-  override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-    trackProjectStructure()
-  }
+class ProjectStructureUsageTrackerManager(private val project: Project) {
 
-  override fun syncSkipped(project: Project) {
-    trackProjectStructure()
-  }
+  private val operationsStates = mutableListOf<Future<*>>()
 
-  private fun trackProjectStructure() {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      // Run synchronously in unit tests as it is difficult to wait for a pooled thread in unit tests.
-      doTrackProjectStructure()
-      return
-    }
-    ApplicationManager.getApplication().executeOnPooledThread {
+  fun trackProjectStructure() {
+    val futureTaskOperation = ApplicationManager.getApplication().executeOnPooledThread {
       try {
         doTrackProjectStructure()
       } catch(e: ProcessCanceledException) {
-        throw e;
+        throw e
       } catch (e: Throwable) {
         // Any errors in project tracking should not be displayed to the user.
         LOG.warn("Failed to track project structure", e)
       }
     }
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      operationsStates.removeIf { it.isDone }
+      operationsStates.add(futureTaskOperation)
+    }
   }
 
   private fun doTrackProjectStructure() {
     val allModules = ModuleManager
-      .getInstance(myProject)
+      .getInstance(project)
       .modules
       .filter { it.getGradleProjectPath() != null }
 
@@ -97,8 +88,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       val allLibraries = hashSetOf<Library>()
       allModules.asSequence()
         .map { ModuleRootManagerEx.getInstanceEx(it) }
-        .forEach {
-          it
+        .forEach { module ->
+          module
             .orderEntries()
             .withoutSdk()
             .withoutModuleSourceEntries()
@@ -120,8 +111,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     var testCount = 0
     var kmpCount = 0
     val gradleLibraries: MutableList<GradleLibrary> = ArrayList()
-    for (facet in myProject.getAndroidFacets()) {
-      val androidModel = get(facet)
+    for (facet in project.getAndroidFacets()) {
+      val androidModel = GradleAndroidModel.get(facet)
       if (androidModel != null) {
         when (androidModel.androidProject.projectType) {
           IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> {
@@ -153,7 +144,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     val gradleNativeAndroidModules: MutableList<GradleNativeAndroidModule> = ArrayList()
     val appId = AnonymizerUtil.anonymizeUtf8(model.applicationId)
     val androidProject = model.androidProject
-    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject)?.version
+    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(project)?.version
     if (gradleVersionString == null) {
       gradleVersionString = "0.0.0"
     }
@@ -167,8 +158,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       .setKotlinMultiplatformModuleCount(kmpCount.toLong())
       .build()
 
-    for (facet in myProject.getAndroidFacets()) {
-      val androidModel = get(facet)
+    for (facet in project.getAndroidFacets()) {
+      val androidModel = GradleAndroidModel.get(facet)
       if (androidModel != null) {
         val moduleAndroidProject = androidModel.androidProject
         val androidModule = GradleAndroidModule.newBuilder()
@@ -228,13 +219,12 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
         .setGradleBuildDetails(gradleBuild)
 
-    log(event.withProjectId(myProject))
+    UsageTracker.log(event.withProjectId(project))
   }
 
   private fun isWatchHardwareRequired(facet: AndroidFacet): Boolean {
     try {
-      // TODO(b/330573052): this should be DumbService.runReadActionInSmartMode(), but it causes deadlocks when called during Gradle sync.
-      return runReadAction {
+      return DumbService.getInstance(project).runReadActionInSmartMode<Boolean> {
         val usedFeatures = facet.queryUsedFeaturesFromManifestIndex()
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
           || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
@@ -248,8 +238,13 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
   }
 
   companion object {
+    @JvmStatic
+    fun getInstance(project: Project): ProjectStructureUsageTrackerManager {
+      return project.getService(ProjectStructureUsageTrackerManager::class.java)
+    }
+
     private val LOG = Logger.getInstance(
-      ProjectStructureUsageTracker::class.java
+      ProjectStructureUsageTrackerSyncListener::class.java
     )
 
     @VisibleForTesting
@@ -283,6 +278,16 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         .setAarDependencyCount(dependencies.libraries.count { it is IdeAndroidLibrary }.toLong())
         .setJarDependencyCount(dependencies.libraries.count { it is IdeJavaLibrary }.toLong())
         .build()
+    }
+  }
+
+  @TestOnly
+  @Throws(Exception::class)
+  fun consumeBulkOperationsState(stateConsumer: (Future<*>) -> Unit) {
+    ThreadingAssertions.assertEventDispatchThread()
+    assert(ApplicationManager.getApplication().isUnitTestMode)
+    for (operationsState in operationsStates) {
+      stateConsumer.invoke(operationsState)
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ import com.google.wireless.android.sdk.stats.GradleBuildDetails;
 import com.google.wireless.android.sdk.stats.GradleLibrary;
 import com.google.wireless.android.sdk.stats.GradleModule;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,13 +51,15 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Tests for {@link ProjectStructureUsageTracker}.
+ * Tests for {@link ProjectStructureUsageTrackerSyncListener}.
  */
 @RunsInEdt
-public class ProjectStructureUsageTrackerTest {
+public class ProjectStructureUsageTrackerSyncListenerTest {
   @Rule public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
   // A UsageTracker implementation that allows introspection of logged metrics in tests.
   private TestUsageTracker myUsageTracker;
+
+  private static final long DEFAULT_TIMEOUT_PROJECT_STRUCTURE_TRACKER_MILLIS = 10000;
 
   @Before
   public void setUp() throws Exception {
@@ -164,15 +168,15 @@ public class ProjectStructureUsageTrackerTest {
 
   @Test
   public void testStringToBuildSystemType() {
-    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild")).isEqualTo(
+    assertThat(ProjectStructureUsageTrackerManager.stringToBuildSystemType("ndkBuild")).isEqualTo(
       GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD);
-    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("cmake")).isEqualTo(
+    assertThat(ProjectStructureUsageTrackerManager.stringToBuildSystemType("cmake")).isEqualTo(
       GradleNativeAndroidModule.NativeBuildSystemType.CMAKE);
-    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("ndkCompile")).isEqualTo(
+    assertThat(ProjectStructureUsageTrackerManager.stringToBuildSystemType("ndkCompile")).isEqualTo(
       GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE);
-    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("gradle")).isEqualTo(
+    assertThat(ProjectStructureUsageTrackerManager.stringToBuildSystemType("gradle")).isEqualTo(
       GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL);
-    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("blaze")).isEqualTo(
+    assertThat(ProjectStructureUsageTrackerManager.stringToBuildSystemType("blaze")).isEqualTo(
       GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE);
   }
 
@@ -190,6 +194,7 @@ public class ProjectStructureUsageTrackerTest {
     });
     preparedProject.open(it -> it, project -> {
       verifySyncSkipped(project, projectRule.getTestRootDisposable());
+      waitForProjectStructureUsageTracker(project);
       List<LoggedUsage> usages =
         myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
           .toList();
@@ -258,5 +263,18 @@ public class ProjectStructureUsageTrackerTest {
     assertThat(buildDetails.getModuleCount()).isEqualTo(3);
     assertThat(buildDetails.getLibCount()).isEqualTo(79);
     assertThat(buildDetails.getAppId()).isEqualTo(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"));
+  }
+
+  private void waitForProjectStructureUsageTracker(Project project) {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        ProjectStructureUsageTrackerManager.getInstance(project).consumeBulkOperationsState(future -> {
+          PlatformTestUtil.waitForFuture(future, DEFAULT_TIMEOUT_PROJECT_STRUCTURE_TRACKER_MILLIS);
+          return null;
+        });
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 }
