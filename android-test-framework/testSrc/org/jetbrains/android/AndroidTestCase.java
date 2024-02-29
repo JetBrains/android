@@ -7,8 +7,6 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -40,7 +38,6 @@ import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -49,6 +46,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.common.ThreadLeakTracker;
@@ -139,10 +137,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
-      LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
-      if (extension != null) {
-        extension.setLanguageLevel(languageLevel);
-      }
+      IdeaTestUtil.setProjectLanguageLevel(myModule.getProject(), languageLevel);
     }
 
     myFixture.copyDirectoryToProject(getResDir(), "res");

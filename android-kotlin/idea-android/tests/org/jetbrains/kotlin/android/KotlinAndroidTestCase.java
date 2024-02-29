@@ -25,12 +25,12 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -96,10 +96,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
 
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
-      LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
-      if (extension != null) {
-        extension.setLanguageLevel(languageLevel);
-      }
+        IdeaTestUtil.setProjectLanguageLevel(getProject(), languageLevel);
     }
 
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
