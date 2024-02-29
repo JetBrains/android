@@ -41,10 +41,10 @@ import com.google.wireless.android.sdk.stats.GradleModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
@@ -233,7 +233,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
 
   private fun isWatchHardwareRequired(facet: AndroidFacet): Boolean {
     try {
-      return DumbService.getInstance(myProject).runReadActionInSmartMode<Boolean> {
+      // TODO(b/330573052): this should be DumbService.runReadActionInSmartMode(), but it causes deadlocks when called during Gradle sync.
+      return runReadAction {
         val usedFeatures = facet.queryUsedFeaturesFromManifestIndex()
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
           || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))

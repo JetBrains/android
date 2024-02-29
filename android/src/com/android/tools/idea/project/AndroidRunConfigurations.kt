@@ -40,9 +40,7 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
@@ -181,15 +179,16 @@ class AndroidRunConfigurations {
   @Slow
   @WorkerThread
   private fun extractWearComponents(module: Module): List<WearComponent> {
-    return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
+    // TODO(b/330573052): this should be DumbService.runReadActionInSmartMode(), but it causes deadlocks when called during Gradle sync.
+    return runReadAction {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
           val primaryManifest = it.primaryManifest
             ?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-            ?: return@Computable emptyList()
+            ?: return@runReadAction emptyList()
 
           if (!isWatchFeatureRequired(primaryManifest)) {
-            return@Computable emptyList()
+            return@runReadAction emptyList()
           }
 
           val libraryManifests = it.libraryManifests.mapNotNull { file ->
@@ -205,7 +204,7 @@ class AndroidRunConfigurations {
         val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
         WearComponent(qualifiedName, configurationFactory)
       }
-    })
+    }
   }
 
   private fun wearConfigurationFactory(psiClass: PsiClass): ConfigurationFactory? {
