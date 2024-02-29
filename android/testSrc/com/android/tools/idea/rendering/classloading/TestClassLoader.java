@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.rendering.classloading.loaders.StaticLoader;
-import com.intellij.openapi.module.Module;
 import java.util.Map;
-import org.jetbrains.android.uipreview.ModuleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Class loader that stores a number of .class files loaded in memory and loads the classes.
  */
-public class TestClassLoader extends DelegatingClassLoader implements ModuleProvider {
-  private Module myModule;
-
+public class TestClassLoader extends DelegatingClassLoader {
   /**
    * Creates a new {@link TestClassLoader}.
    * @param parent the parent {@link ClassLoader} or null if no parent class loader is defined.
@@ -45,15 +40,5 @@ public class TestClassLoader extends DelegatingClassLoader implements ModuleProv
    */
   TestClassLoader(@NotNull Map<String, byte[]> definedClasses) {
     this(null, definedClasses);
-  }
-
-  public void setModule(@NotNull Module module) {
-    myModule = module;
-  }
-
-  @Nullable
-  @Override
-  public Module getModule() {
-    return myModule;
   }
 }
