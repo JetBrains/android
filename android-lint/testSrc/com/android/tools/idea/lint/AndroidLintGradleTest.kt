@@ -18,6 +18,7 @@ package com.android.tools.idea.lint
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
@@ -208,6 +209,20 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Fix: Replace with new library catalog declaration for appcompat-v7
             Fix: Suppress UseTomlInstead with a comment
+      """
+        .trimIndent(),
+    )
+  }
+
+  fun testVersionCatalogForSimilarDependencies() {
+    loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
+    val appBuildFile = myFixture.loadFile("gradle/libs.versions.toml")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintSimilarGradleDependencyInspection(),
+      "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
+      """
+        No warnings.
       """
         .trimIndent(),
     )

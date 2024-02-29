@@ -23,6 +23,7 @@ import com.android.tools.idea.lint.common.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidLintJavaPluginLanguageLevelInspection;
 import com.android.tools.idea.lint.common.AndroidLintJcenterRepositoryObsoleteInspection;
+import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintDataBindingWithoutKaptInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintGradleCompatibleInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintGradleDeprecatedInspection;
