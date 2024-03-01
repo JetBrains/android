@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_gravity="center_horizontal"
+              android:orientation="vertical">
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="45dp" />
+
+  <TextView
+      android:id="@+id/hello"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:text="@string/hello_world"
+      android:textSize="24sp" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/english"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switchToEnglish"
+      android:text="@string/english" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/danish"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switchToDanish"
+      android:text="@string/danish" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/italian"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switchToItalian"
+      android:text="@string/italian" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/spanish"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switch_to_spanish"
+      android:text="@string/spanish" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/button_pseudo_english"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switch_to_pseudo_english"
+      android:text="@string/pseudo_english" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <Button
+      android:id="@+id/button_pseudo_arabic"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:onClick="switch_to_pseudo_arabic"
+      android:text="@string/pseudo_arabic" />
+
+  <Space
+      android:layout_width="match_parent"
+      android:layout_height="15dp" />
+
+  <TextView
+      android:id="@+id/year"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:text="2024"
+      android:textSize="20sp" />
+
+</LinearLayout>

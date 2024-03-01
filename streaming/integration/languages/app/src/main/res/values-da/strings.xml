@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LanguageSelector</string>
+    <string name="hello_world" note="Explanation" default="Hello World" translator="XLIFF">Hej Verden</string>
+    <string name="english">Engelsk</string>
+    <string name="danish">Dansk</string>
+    <string name="italian">Italiensk</string>
+    <string name="spanish">Spansk</string>
+    <string name="pseudo_english">Falsk Engelsk</string>
+    <string name="pseudo_arabic">Falsk Arabisk</string>
+</resources>
