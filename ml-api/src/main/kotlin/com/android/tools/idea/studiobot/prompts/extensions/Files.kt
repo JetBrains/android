@@ -16,6 +16,7 @@
 package com.android.tools.idea.studiobot.prompts.extensions
 
 import com.android.tools.idea.studiobot.prompts.SafePromptBuilder.UserMessageBuilder
+import com.intellij.lang.Language
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
@@ -40,10 +41,10 @@ private fun VirtualFile.projectRelativePath(project: Project) =
  * and evaluate for your use case, potentially using the lower-level APIs in
  * [com.android.tools.idea.studiobot.prompts.SafePromptBuilder.MessageBuilder] directly instead.
  */
-fun UserMessageBuilder.fileContents(file: VirtualFile) {
+fun UserMessageBuilder.fileContents(file: VirtualFile, lang: Language? = null) {
   val usedFiles = listOf(file)
   text("The contents of the file \"${file.projectRelativePath(project)}\" are:", usedFiles)
-  val language = (file.fileType as? LanguageFileType)?.language
+  val language = lang ?: (file.fileType as? LanguageFileType)?.language
   code(file.readText(), language, usedFiles)
 }
 
@@ -57,10 +58,7 @@ fun UserMessageBuilder.fileContents(file: VirtualFile) {
  * [com.android.tools.idea.studiobot.prompts.SafePromptBuilder.MessageBuilder] directly instead.
  */
 fun UserMessageBuilder.fileContents(file: PsiFile) {
-  val virtualFile = file.viewProvider.virtualFile
-  val usedFiles = listOf(virtualFile)
-  text("The contents of the file \"${virtualFile.projectRelativePath(project)}\" are:", usedFiles)
-  code(file.text, file.language, usedFiles)
+  fileContents(file.viewProvider.virtualFile, file.language)
 }
 
 /** Starts a read action allowing further query elements that require read access. */
