@@ -34,6 +34,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -202,6 +203,10 @@ class LiveEditIssueNotificationAction(
     } else {
       return false
     }
+  }
+
+  override fun getDisposableParentForPopup(e: AnActionEvent): Disposable? {
+    return e.project?.let { LiveEditService.getInstance(it) }
   }
 }
 

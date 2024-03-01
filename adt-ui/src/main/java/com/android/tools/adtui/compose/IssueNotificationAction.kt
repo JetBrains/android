@@ -227,9 +227,11 @@ open class IssueNotificationAction(
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       // Whenever the mouse is inside the popup we cancel the existing alarms via callback
       newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
-      newPopup.showPopup(this, e.inputEvent!!)
+      getDisposableParentForPopup(e)?.let { newPopup.showPopup(it, e.inputEvent!!) } ?: newPopup.showPopup(this, e.inputEvent!!)
     }
   }
+
+  protected open fun getDisposableParentForPopup(e: AnActionEvent): Disposable? = null
 
   override fun actionPerformed(e: AnActionEvent) {
     showPopup(e)
