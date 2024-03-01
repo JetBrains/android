@@ -117,6 +117,9 @@ private val LAST_RETURNED_LAYOUT_GROUPS_KEY =
     "com.android.tools.idea.databinding.finders.lastReturnedLayoutGroups"
   )
 
+private val LAYOUT_GROUPS_FETCHED_WHILE_DUMB_KEY =
+  Key.create<Boolean>("com.android.tools.idea.databinding.finders.layoutGroupsFetchedWhileDumb")
+
 @RequiresReadLock
 private fun LayoutBindingModuleCache.getBindingLayoutGroupsDumbAware(
   project: Project
@@ -127,12 +130,21 @@ private fun LayoutBindingModuleCache.getBindingLayoutGroupsDumbAware(
 
   if (DumbService.isDumb(project)) {
     val lastLayoutGroups = module.getUserData(LAST_RETURNED_LAYOUT_GROUPS_KEY) ?: emptyList()
+    module.putUserData(LAYOUT_GROUPS_FETCHED_WHILE_DUMB_KEY, true)
     thisLogger()
       .info(
         "Binding scope may be temporarily stale due fetching in dumb mode." +
-          " ${lastLayoutGroups.size} groups returned."
+          " ${lastLayoutGroups.size} groups returned ($module)"
       )
     return lastLayoutGroups
+  }
+
+  if (module.getUserData(LAYOUT_GROUPS_FETCHED_WHILE_DUMB_KEY) != null) {
+    // This access is not locked, which makes it susceptible to race conditions; but the worst that
+    // happens is that two threads end up writing the same log line, so avoiding the perf hit of a
+    // lock is okay.
+    module.putUserData(LAYOUT_GROUPS_FETCHED_WHILE_DUMB_KEY, null)
+    thisLogger().info("Binding scope refetched after dumb mode. ($module)")
   }
 
   // Not in dumb mode; fetch the latest, store it, and return it. This is done without a lock while
