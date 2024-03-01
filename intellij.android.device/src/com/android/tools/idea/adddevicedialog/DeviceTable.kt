@@ -18,38 +18,33 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.android.sdklib.devices.Device
-import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import icons.StudioIcons
 import org.jetbrains.jewel.ui.component.Icon
 
-// TODO: Generalize to device types other than AVDs
 @Composable
 internal fun DeviceTable(
+  devices: List<DeviceProfile>,
   modifier: Modifier = Modifier,
-  tableSelectionState: TableSelectionState<Device> = remember { TableSelectionState() },
+  tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
 ) {
-  val columns: List<TableColumn<Device>> = remember {
+  val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
       TableColumn("", 0.5f) {
         // TODO: Represent actual device type
         Icon("studio/icons/avd/device-mobile.svg", "", StudioIcons::class.java)
       },
       TableTextColumn("Brand") { it.manufacturer },
-      TableTextColumn("Name", 2f) { it.displayName },
+      TableTextColumn("Name", 2f) { it.name },
       TableTextColumn("API") {
         // TODO: Use latest API level supported or chosen API level
         "27"
       },
-      TableTextColumn("Width") { it.defaultHardware.screen.xDimension.toString() },
-      TableTextColumn("Height") { it.defaultHardware.screen.yDimension.toString() },
-      TableTextColumn("Density") { it.defaultHardware.screen.pixelDensity.toString() },
-      TableTextColumn("Type") { "Virtual" },
-      TableTextColumn("Source") { "Local" },
+      TableTextColumn("Width") { it.resolution.width.toString() },
+      TableTextColumn("Height") { it.resolution.height.toString() },
+      TableTextColumn("Density") { "${it.displayDensity} dpi" },
+      TableTextColumn("Type") { if (it.isVirtual) "Virtual" else "Physical" },
+      TableTextColumn("Source") { if (it.isRemote) "Remote" else "Local" },
     )
   }
-  val devices = remember {
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList()
-  }
-  Table(columns, devices, { it.id }, tableSelectionState = tableSelectionState, modifier = modifier)
+  Table(columns, devices, { it }, tableSelectionState = tableSelectionState, modifier = modifier)
 }

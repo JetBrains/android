@@ -28,7 +28,7 @@ internal class ChooseDeviceStep(val model: LocalAvdConfigurationState) :
   @OptIn(ExperimentalJewelApi::class)
   private val component: ComposePanel = run {
     enableNewSwingCompositing()
-    ComposePanel().apply { setContent { SwingBridgeTheme { DeviceTable() } } }
+    ComposePanel().apply { setContent { SwingBridgeTheme { DeviceTable(emptyList()) } } }
   }
 
   override fun getComponent() = component

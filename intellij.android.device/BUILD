@@ -17,5 +17,6 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
