@@ -120,21 +120,28 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android/integration:intellij.android.core.integration[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "@intellij//:intellij-sdk[test]",
-        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.java[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )
 
@@ -152,11 +159,57 @@ iml_test(
     module = ":intellij.android.streaming.integration",
     tags = [
         "noci:studio-win",
-        "very_flaky",  # b/271008444
+        "very_flaky",  # b/303195243
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.streaming.device.ScreenSharingAgentTestSuite",
+)
+
+iml_test(
+    name = "EmulatorUiSettingsIntegrationTest",
+    size = "large",  # Involves starting an emulator, and running a test on that emulator
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/streaming/integration/languages",
+        "//tools/adt/idea/streaming/integration/languages:resource-files",
+        "//tools/adt/idea/streaming/screen-sharing-agent",
+        "//tools/adt/idea/streaming/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
+        "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
+    ],
+    module = ":intellij.android.streaming.integration",
+    tags = [
+        "noci:studio-win",
+        "very_flaky",  # b/303195243
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.streaming.uisettings.EmulatorUiSettingsIntegrationTestSuite",
+)
+
+iml_test(
+    name = "DeviceUiSettingsIntegrationTest",
+    size = "large",  # Involves starting an emulator, and running a test on that emulator
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/streaming/integration/languages",
+        "//tools/adt/idea/streaming/integration/languages:resource-files",
+        "//tools/adt/idea/streaming/screen-sharing-agent",
+        "//tools/adt/idea/streaming/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
+        "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
+    ],
+    module = ":intellij.android.streaming.integration",
+    tags = [
+        "noci:studio-win",
+        "very_flaky",  # b/271008444
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.streaming.uisettings.DeviceUiSettingsIntegrationTestSuite",
 )
 
 # managed by go/iml_to_build
