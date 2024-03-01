@@ -97,6 +97,9 @@ private:
   bool IsCodecRunning();
   // Returns true if the bit rate was deduced, false if it already reached allowed minimum.
   bool ReduceBitRate();
+  // Deletes the underlying OS display if the virtual_display_ or display_token_ refer to it.
+  // Safe to call multiple times.
+  void ReleaseVirtualDisplay(Jni jni);
 
   virtual void OnDisplayAdded(int32_t display_id);
   virtual void OnDisplayRemoved(int32_t display_id);
@@ -112,6 +115,8 @@ private:
   bool bit_rate_reduced_ = false;
   int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
+  VirtualDisplay virtual_display_;
+  JObject display_token_;
 
   std::recursive_mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)

@@ -23,37 +23,26 @@
 
 namespace screensharing {
 
-class VirtualDisplay {
+class VirtualDisplay : private JObject {
 public:
-  VirtualDisplay()
-      : jni_(nullptr),
-        virtual_display_() {
-  }
-  VirtualDisplay(VirtualDisplay&& other) noexcept
-      : jni_(other.jni_),
-        virtual_display_(std::move(other).virtual_display_) {
-  }
-  VirtualDisplay(Jni jni, JObject&& virtual_display);
+  using JObject::JObject;
+  VirtualDisplay(JObject&& virtual_display);
 
   ~VirtualDisplay();
 
+  VirtualDisplay& operator=(VirtualDisplay&& other);
+
   void Resize(int32_t width, int32_t height, int32_t density_dpi);
   void SetSurface(ANativeWindow* surface);
-  void Release();
-
-  void operator=(VirtualDisplay&& other) {
-    jni_ = other.jni_;
-    virtual_display_ = std::move(other).virtual_display_;
-  }
-
-  bool HasDisplay() const { return virtual_display_.IsNotNull(); }
+  void ReleaseDisplay();
+  void ReleaseDisplay(Jni jni);
 
 private:
-  Jni jni_;
-  JObject virtual_display_;
   static jmethodID set_surface_method_;
   static jmethodID resize_method_;
   static jmethodID release_method_;
+
+  DISALLOW_COPY_AND_ASSIGN(VirtualDisplay);
 };
 
 }  // namespace screensharing
