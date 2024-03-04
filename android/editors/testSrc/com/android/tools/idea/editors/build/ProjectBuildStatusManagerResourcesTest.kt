@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.editors.fast.simulateResourcesChange
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -22,14 +23,15 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
-import junit.framework.Assert
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Executor
+import kotlin.time.Duration.Companion.seconds
 
 class ProjectBuildStatusManagerResourcesTest {
   @get:Rule
@@ -38,7 +40,7 @@ class ProjectBuildStatusManagerResourcesTest {
     get() = projectRule.project
 
   @Test
-  fun testResourcesMakeTheProjectOutOfDate() {
+  fun testResourcesMakeTheProjectOutOfDate() = runBlocking {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
@@ -48,7 +50,10 @@ class ProjectBuildStatusManagerResourcesTest {
     // Simulate a successful build
     (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
       buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    Assert.assertEquals(ProjectStatus.Ready, statusManager.status)
+    statusManager.statusFlow.awaitStatus(
+      "Ready state expected",
+      5.seconds
+    ) { it == ProjectStatus.Ready }
 
     ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
       projectRule.fixture.openFileInEditor(psiFile.virtualFile)
@@ -56,11 +61,17 @@ class ProjectBuildStatusManagerResourcesTest {
 
     // Simulate a resources change
     (statusManager as ProjectBuildStatusManagerForTests).simulateResourcesChange()
-    assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
+    statusManager.statusFlow.awaitStatus(
+      "OutOfDate expected after a resource change",
+      5.seconds
+    ) { it is ProjectStatus.OutOfDate }
 
     // A build should restore the ready state
     (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
       buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    Assert.assertEquals(ProjectStatus.Ready, statusManager.status)
+    statusManager.statusFlow.awaitStatus(
+      "Ready state expected",
+      5.seconds
+    ) { it == ProjectStatus.Ready }
   }
 }

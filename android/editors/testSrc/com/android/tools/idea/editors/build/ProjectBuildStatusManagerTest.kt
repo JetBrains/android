@@ -34,15 +34,20 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 private fun ProjectBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
@@ -73,9 +78,19 @@ class ProjectBuildStatusManagerTest {
   val project: Project
     get() = projectRule.project
 
+  private val execution = AppExecutorUtil.createBoundedApplicationPoolExecutor("Test", 1)
+  private lateinit var dispatcher: CoroutineDispatcher
+
   @Before
   fun setUp() {
     Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    dispatcher = execution.asCoroutineDispatcher()
+  }
+
+  @After
+  fun tearDown() {
+    execution.shutdown()
+    execution.awaitTermination(1, TimeUnit.MINUTES)
   }
 
   @Test
@@ -132,6 +147,7 @@ class ProjectBuildStatusManagerTest {
         ProjectBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
+            dispatcher = dispatcher,
         )
 
     try {
@@ -159,6 +175,7 @@ class ProjectBuildStatusManagerTest {
         ProjectBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
+            dispatcher = dispatcher,
         )
 
     try {
@@ -186,6 +203,7 @@ class ProjectBuildStatusManagerTest {
         ProjectBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
+            dispatcher = dispatcher,
         )
 
     try {
