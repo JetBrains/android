@@ -202,8 +202,8 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   private val _refreshingTypeFlow = MutableStateFlow<RefreshType?>(null)
 
   /**
-   * Flow that indicates if there are any requests being processed. This flow will become true if
-   * any requests are being processed for the project.
+   * This flow indicates the [RefreshType] of the request that is being processed, or it indicates
+   * that no request is being processed when its value is null.
    */
   val refreshingTypeFlow: StateFlow<RefreshType?> = _refreshingTypeFlow
 
