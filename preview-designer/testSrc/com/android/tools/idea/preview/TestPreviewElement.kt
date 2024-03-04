@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PreviewElement
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 
-internal class TestPreviewElement(
+internal class TestBasePreviewElement<T>(
   displayName: String = "",
   groupName: String? = null,
   showDecorations: Boolean = false,
   showBackground: Boolean = false,
   backgroundColor: String? = null,
   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-) : PreviewElement<Unit> {
+) : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
+  override val methodFqn: String = "TestMethod"
+  override val configuration = PreviewConfiguration.cleanAndGet()
   override val hasAnimations = false
-
   override val displaySettings =
     PreviewDisplaySettings(
       displayName,
@@ -41,3 +46,8 @@ internal class TestPreviewElement(
   override val previewElementDefinition = null
   override val previewBody = null
 }
+
+internal typealias PsiTestPreviewElement =
+  TestBasePreviewElement<SmartPsiElementPointer<PsiElement>>
+
+internal typealias TestPreviewElement = TestBasePreviewElement<Unit>

@@ -32,6 +32,7 @@ import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
+import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -96,6 +97,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
@@ -136,6 +138,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
   private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile)
+
+  @TestOnly internal fun getProjectBuildStatusForTest() = projectBuildStatusManager.status
 
   private val lifecycleManager =
     PreviewLifecycleManager(
@@ -202,6 +206,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
 
+  @TestOnly internal fun isInvalidatedForTest() = invalidated.get()
+
   private val refreshManager = PreviewRefreshManager.getInstance(renderingTopic)
 
   @VisibleForTesting
@@ -215,6 +221,18 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
     ) {
       surface.sceneManagers.any { it.renderResult.isErrorResult(adapterViewFqcn) }
     }
+
+  private val previewBuildListenersManager =
+    PreviewBuildListenersManager(
+      isFastPreviewSupported = false,
+      isEssentialsModeEnabled,
+      ::invalidate,
+      ::requestRefresh,
+    )
+
+  @TestOnly
+  internal fun hasBuildListenerSetupFinishedForTest() =
+    previewBuildListenersManager.buildListenerSetupFinished
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
@@ -306,6 +324,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
     setupBuildListener(project, previewViewModel, this)
+    previewBuildListenersManager.setupPreviewBuildListeners(disposable = this, psiFilePointer)
 
     project.runWhenSmartAndSyncedOnEdt(this, { onEnterSmartMode() })
   }

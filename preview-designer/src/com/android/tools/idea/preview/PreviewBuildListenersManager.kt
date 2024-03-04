@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.intellij.openapi.Disposable
@@ -35,13 +36,16 @@ import org.jetbrains.kotlin.idea.base.util.module
  * compilation listener when [isFastPreviewSupported] is true, that will update the preview state
  * according to the build events by calling [invalidate], [refresh] and
  * [requestVisibilityAndNotificationsUpdate].
+ *
+ * TODO(b/328056861): remove [requestVisibilityAndNotificationsUpdate] once Compose Preview starts
+ *   using [PreviewViewModel].
  */
 class PreviewBuildListenersManager(
   private val isFastPreviewSupported: Boolean,
   private val isEssentialsModeEnabled: () -> Boolean,
   private val invalidate: () -> Unit,
   private val refresh: () -> Unit,
-  private val requestVisibilityAndNotificationsUpdate: () -> Unit,
+  private val requestVisibilityAndNotificationsUpdate: () -> Unit = {},
 ) {
 
   private val log = Logger.getInstance(PreviewBuildListenersManager::class.java)
