@@ -25,6 +25,8 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorLoadingObserver
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.htmlComponent
@@ -139,9 +141,10 @@ class RootPanel(
    * Update the state of the UI. Each time this method is called, all components are removed from
    * the UI and the desired component is added. Only one component at a time should be visible.
    */
-  private fun updateUiState(newUiState: UiState) {
+  private fun updateUiState(newUiState: UiState) = invokeLater {
+    ApplicationManager.getApplication().assertIsDispatchThread()
     if (uiState == newUiState) {
-      return
+      return@invokeLater
     }
     uiState = newUiState
 
