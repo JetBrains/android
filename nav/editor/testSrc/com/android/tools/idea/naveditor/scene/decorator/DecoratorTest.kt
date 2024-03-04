@@ -58,7 +58,7 @@ private const val NESTED_ID = "nested1"
 private const val ACTIVITY_PADDING = 8f
 private const val ACTIVITY_TEXT_HEIGHT = 26f
 
-private val ACTION_COLOR = Color(-0x4d585859, true)
+private val ACTION_COLOR = Color(0xdfe1e5)
 
 class DecoratorTest : NavTestCase() {
   private lateinit var surface: DesignSurface<*>
