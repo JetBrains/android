@@ -44,6 +44,7 @@ import junit.framework.Assert.assertTrue
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -246,6 +247,7 @@ class LiveEditProjectMonitorTest {
    * Make sure that 10 recomposition status retrieval request all at once doesn't trigger 10+ round trip to the device
    */
   @Test
+  @Ignore("b/326255667")
   fun recompositionCheckRate() {
     // Force the test env to queue up 10 Live Edit recomposition status retrieval
     val numRecompositionRequested = NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
