@@ -33,7 +33,7 @@ public final class SkinUtils {
   }
 
   @NotNull
-  static Path noSkin(@NotNull FileSystem fileSystem) {
+  public static Path noSkin(@NotNull FileSystem fileSystem) {
     return fileSystem.getPath("_no_skin");
   }
 }

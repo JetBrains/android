@@ -146,7 +146,7 @@ public final class SystemImageDescription {
     return SystemImageTags.isWearImage(getTags());
   }
 
-  boolean isTvImage() {
+  public boolean isTvImage() {
     return SystemImageTags.isTvImage(getTags());
   }
 
@@ -167,7 +167,7 @@ public final class SystemImageDescription {
   }
 
   @Nullable
-  Revision getRevision() {
+  public Revision getRevision() {
     return mySystemImage.getRevision();
   }
 

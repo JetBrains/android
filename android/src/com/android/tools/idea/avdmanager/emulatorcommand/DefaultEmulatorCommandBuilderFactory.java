@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;

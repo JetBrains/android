@@ -16,8 +16,8 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdOptionsModel;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ui.AvdOptionsModel;
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.Key;
 import com.google.common.util.concurrent.Futures;

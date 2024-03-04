@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.analytics.CommonMetricsData;
 import com.google.common.annotations.VisibleForTesting;
@@ -91,8 +90,8 @@ public class HaxmAlert extends JPanel {
   }
 
   @VisibleForTesting
-  static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
-                                                          ProductDetails.CpuArchitecture arch) {
+  public static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
+                                                                 ProductDetails.CpuArchitecture arch) {
     Abi abi = Abi.getEnum(description.getAbiType());
     boolean isX86Host = arch == ProductDetails.CpuArchitecture.X86 || arch == ProductDetails.CpuArchitecture.X86_64;
     if (isX86Host && abi != Abi.X86 && abi != Abi.X86_64) {
