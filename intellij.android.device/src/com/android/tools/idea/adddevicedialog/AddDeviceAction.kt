@@ -18,7 +18,6 @@ package com.android.tools.idea.adddevicedialog
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,7 +32,8 @@ private class AddDeviceAction private constructor() : DumbAwareAction() {
       else AndroidPluginDisposable.getProjectInstance(project)
 
     AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
-      val sources = service<DeviceSourceService>().createSources()
+      val sources =
+        DeviceSourceProvider.deviceSourceProviders.mapNotNull { it.createDeviceSource(project) }
 
       withContext(AndroidDispatchers.uiThread) {
         AddDeviceWizard(sources, project).createDialog().show()

@@ -20,12 +20,13 @@ import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
   fun createDialog(): ComposeWizard {
+    val profiles = sources.flatMap { it.profiles }
     return ComposeWizard(project, "Add Device") {
       nextActionName = "Configure"
       finishActionName = "Add"
 
       val selectionState = remember { TableSelectionState<DeviceProfile>() }
-      DeviceTable(sources.flatMap { it.profiles }, tableSelectionState = selectionState)
+      DeviceTable(profiles, tableSelectionState = selectionState)
 
       val selection = selectionState.selection
       val source = selection?.source

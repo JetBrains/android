@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.idea.adddevicedialog.localavd
 
-import com.android.tools.idea.adddevicedialog.localavd.LocalVirtualDeviceSource
-import com.intellij.openapi.components.Service
+import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.DeviceSourceProvider
+import com.intellij.openapi.project.Project
 
-@Service(Service.Level.APP)
-class DeviceSourceService {
-  fun createSources(): List<DeviceSource> {
-    return listOf(LocalVirtualDeviceSource.create())
+class LocalVirtualDeviceSourceProvider : DeviceSourceProvider {
+  override fun createDeviceSource(project: Project?): DeviceSource {
+    return LocalVirtualDeviceSource.create()
   }
 }

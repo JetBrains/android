@@ -61,6 +61,12 @@ internal constructor(
 
   override val isRemote
     get() = false
+
+  override val isAlreadyPresent: Boolean
+    get() = false
+
+  override val availabilityEstimateSeconds: Int
+    get() = 0
 }
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :

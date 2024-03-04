@@ -33,4 +33,9 @@ interface DeviceProfile {
   val isVirtual: Boolean
   val isRemote: Boolean
   val abis: List<Abi>
+
+  /** Indicates that the device already exists, and we cannot create another. */
+  val isAlreadyPresent: Boolean
+  /** An estimate of how many seconds it will take to acquire the device. */
+  val availabilityEstimateSeconds: Int
 }
