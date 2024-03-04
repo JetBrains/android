@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -61,18 +62,14 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
       GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
         .visibleOnlyInDefaultPreview(),
       WearTileViewControlAction(
-          layoutOptions =
-            listOf(
-              LIST_LAYOUT_OPTION,
-              GRID_LAYOUT_OPTION,
-              GALLERY_LAYOUT_OPTION,
-            )
+          layoutOptions = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
         )
         .visibleOnlyInStaticPreview(),
     )
   }
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf())
+  override fun getNorthEastGroup(): ActionGroup =
+    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
 }
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
