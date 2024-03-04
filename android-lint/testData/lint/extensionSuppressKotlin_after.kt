@@ -6,7 +6,8 @@ import android.os.ext.SdkExtensions
 annotation class RequiresExtension(val extension: Int, val version: Int)
 internal class SdkExtensionsTest {
     fun test() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && SdkExtensions.getExtensionVersion(
+                Build.VERSION_CODES.R) >= 1) {
             requiresExtRv4()
         }
     }

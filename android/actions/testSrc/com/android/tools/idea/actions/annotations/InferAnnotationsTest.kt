@@ -129,11 +129,11 @@ class InferAnnotationsTest {
         -         var arg3: Int,
         -         internal val arg4: Int,
         -         private var arg5: Int
-        +         @ColorRes arg1: Int,
-        +         @get:ColorRes @param:ColorRes val arg2: Int,
-        +         @get:ColorRes @set:ColorRes @param:ColorRes var arg3: Int,
-        +         @get:ColorRes @param:ColorRes internal val arg4: Int,
-        +         @ColorRes private var arg5: Int
+        +     @ColorRes arg1: Int,
+        +     @get:ColorRes @param:ColorRes val arg2: Int,
+        +     @get:ColorRes @set:ColorRes @param:ColorRes var arg3: Int,
+        +     @get:ColorRes @param:ColorRes internal val arg4: Int,
+        +     @ColorRes private var arg5: Int
           ) {
         @@ -16 +16
         +   @get:ColorRes

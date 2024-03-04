@@ -13,8 +13,8 @@ class DetailsActivity : FragmentActivity() {
         setContentView(R.layout.details)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(R.id.details_fragment, VideoDetailsFragment())
-                    .commitNow()
+                .replace(R.id.details_fragment, VideoDetailsFragment())
+                .commitNow()
         }
     }
 

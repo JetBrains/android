@@ -75,21 +75,21 @@ class WalletActivity : AppCompatActivity() {
      */
     private fun fetchCanUseGoogleWalletApi() {
         walletClient
-                .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
-                .addOnSuccessListener { status ->
-                    // Display the "Add to Wallet" button if the wallet API is available on this device.
-                    addToGoogleWalletButton.isVisible = (status == PayApiAvailabilityStatus.AVAILABLE)
-                }
-                .addOnFailureListener {
-                    // Hide the button and optionally show an error message
-                    addToGoogleWalletButton.isVisible = false
+            .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
+            .addOnSuccessListener { status ->
+                // Display the "Add to Wallet" button if the wallet API is available on this device.
+                addToGoogleWalletButton.isVisible = (status == PayApiAvailabilityStatus.AVAILABLE)
+            }
+            .addOnFailureListener {
+                // Hide the button and optionally show an error message
+                addToGoogleWalletButton.isVisible = false
 
-                    Toast.makeText(
-                            this,
-                            R.string.google_wallet_status_unavailable,
-                            Toast.LENGTH_SHORT
-                    ).show()
-                }
+                Toast.makeText(
+                    this,
+                    R.string.google_wallet_status_unavailable,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 
     /**
@@ -101,10 +101,10 @@ class WalletActivity : AppCompatActivity() {
     private fun onAddToWalletClicked() {
         // Create a SamplePass object with your unique fields
         val samplePass = SamplePass(
-                issuerEmail = "",   // TODO(you) – Enter issuer email address,
-                issuerId = "",      // TODO(you) – Enter issuer ID
-                passClass = "",     // TODO(you) – Enter pass class
-                passId = UUID.randomUUID().toString()
+            issuerEmail = "",   // TODO(you) – Enter issuer email address,
+            issuerId = "",      // TODO(you) – Enter issuer ID
+            passClass = "",     // TODO(you) – Enter pass class
+            passId = UUID.randomUUID().toString()
         )
 
         // Call to the Wallet API to save the pass to the user's wallet.
@@ -128,17 +128,17 @@ class WalletActivity : AppCompatActivity() {
             // We successfully added the pass to Google Wallet!
             RESULT_OK -> {
                 Toast.makeText(
-                        this,
-                        R.string.add_google_wallet_success,
-                        Toast.LENGTH_SHORT
+                    this,
+                    R.string.add_google_wallet_success,
+                    Toast.LENGTH_SHORT
                 ).show()
             }
             // Occurs when the user cancelled the flow.
             RESULT_CANCELED -> {
                 Toast.makeText(
-                        this,
-                        R.string.add_google_wallet_cancelled,
-                        Toast.LENGTH_SHORT
+                    this,
+                    R.string.add_google_wallet_cancelled,
+                    Toast.LENGTH_SHORT
                 ).show()
             }
             // A known error occurred when attempting to save the pass to Google Wallet.
@@ -146,17 +146,17 @@ class WalletActivity : AppCompatActivity() {
                 // Handle the error message and optionally display it to the user.
                 val errorMessage = intentData.getStringExtra(PayClient.EXTRA_API_ERROR_MESSAGE)
                 Toast.makeText(
-                        this,
-                        errorMessage,
-                        Toast.LENGTH_SHORT
+                    this,
+                    errorMessage,
+                    Toast.LENGTH_SHORT
                 )
             }
             // An unknown error occurred when attempting to add to Google Wallet.
             else -> {
                 Toast.makeText(
-                        this,
-                        R.string.add_google_wallet_unknown_error,
-                        Toast.LENGTH_SHORT
+                    this,
+                    R.string.add_google_wallet_unknown_error,
+                    Toast.LENGTH_SHORT
                 ).show()
             }
         }

@@ -11,5 +11,5 @@ import android.util.AttributeSet
 import android.view.View
 
 class Foo @JvmOverloads constructor(
-        context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View<caret>(context, attrs, defStyleAttr)

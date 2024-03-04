@@ -36,24 +36,25 @@ class ItemListFragment : Fragment() {
      * Currently provides a toast when Ctrl + Z and Ctrl + F
      * are triggered
      */
-    private val unhandledKeyEventListenerCompat = ViewCompat.OnUnhandledKeyEventListenerCompat { v, event ->
-        if (event.keyCode == KeyEvent.KEYCODE_Z && event.isCtrlPressed) {
-            Toast.makeText(
+    private val unhandledKeyEventListenerCompat =
+        ViewCompat.OnUnhandledKeyEventListenerCompat { v, event ->
+            if (event.keyCode == KeyEvent.KEYCODE_Z && event.isCtrlPressed) {
+                Toast.makeText(
                     v.context,
                     "Undo (Ctrl + Z) shortcut triggered",
                     Toast.LENGTH_LONG
-            ).show()
-            true
-        } else if (event.keyCode == KeyEvent.KEYCODE_F && event.isCtrlPressed) {
-            Toast.makeText(
+                ).show()
+                true
+            } else if (event.keyCode == KeyEvent.KEYCODE_F && event.isCtrlPressed) {
+                Toast.makeText(
                     v.context,
                     "Find (Ctrl + F) shortcut triggered",
                     Toast.LENGTH_LONG
-            ).show()
-            true
+                ).show()
+                true
+            }
+            false
         }
-        false
-    }
 
     private var _binding: FragmentItemListBinding? = null
 
@@ -62,8 +63,8 @@ class ItemListFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
 
         _binding = FragmentItemListBinding.inflate(inflater, container, false)
@@ -86,24 +87,25 @@ class ItemListFragment : Fragment() {
     }
 
     private fun setupRecyclerView(
-            recyclerView: RecyclerView,
-            itemDetailFragmentContainer: View?
+        recyclerView: RecyclerView,
+        itemDetailFragmentContainer: View?
     ) {
 
         recyclerView.adapter = SimpleItemRecyclerViewAdapter(
-                PlaceholderContent.ITEMS, itemDetailFragmentContainer
+            PlaceholderContent.ITEMS, itemDetailFragmentContainer
         )
     }
 
     class SimpleItemRecyclerViewAdapter(
-            private val values: List<PlaceholderContent.PlaceholderItem>,
-            private val itemDetailFragmentContainer: View?
+        private val values: List<PlaceholderContent.PlaceholderItem>,
+        private val itemDetailFragmentContainer: View?
     ) :
-            RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+        RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
-            val binding = ItemListContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            val binding =
+                ItemListContentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             return ViewHolder(binding)
 
         }
@@ -119,12 +121,12 @@ class ItemListFragment : Fragment() {
                     val item = itemView.tag as PlaceholderContent.PlaceholderItem
                     val bundle = Bundle()
                     bundle.putString(
-                            ItemDetailFragment.ARG_ITEM_ID,
-                            item.id
+                        ItemDetailFragment.ARG_ITEM_ID,
+                        item.id
                     )
                     if (itemDetailFragmentContainer != null) {
                         itemDetailFragmentContainer.findNavController()
-                                .navigate(R.id.fragment_item_detail, bundle)
+                            .navigate(R.id.fragment_item_detail, bundle)
                     } else {
                         itemView.findNavController().navigate(R.id.show_item_detail, bundle)
                     }
@@ -138,9 +140,9 @@ class ItemListFragment : Fragment() {
                     setOnContextClickListener { v ->
                         val item = v.tag as PlaceholderContent.PlaceholderItem
                         Toast.makeText(
-                                v.context,
-                                "Context click of item " + item.id,
-                                Toast.LENGTH_LONG
+                            v.context,
+                            "Context click of item " + item.id,
+                            Toast.LENGTH_LONG
                         ).show()
                         true
                     }
@@ -151,24 +153,24 @@ class ItemListFragment : Fragment() {
                     // identify the id of the content
                     val clipItem = ClipData.Item(item.id)
                     val dragData = ClipData(
-                            v.tag as? CharSequence,
-                            arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
-                            clipItem
+                        v.tag as? CharSequence,
+                        arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
+                        clipItem
                     )
 
                     if (Build.VERSION.SDK_INT >= 24) {
                         v.startDragAndDrop(
-                                dragData,
-                                View.DragShadowBuilder(v),
-                                null,
-                                0
+                            dragData,
+                            View.DragShadowBuilder(v),
+                            null,
+                            0
                         )
                     } else {
                         v.startDrag(
-                                dragData,
-                                View.DragShadowBuilder(v),
-                                null,
-                                0
+                            dragData,
+                            View.DragShadowBuilder(v),
+                            null,
+                            0
                         )
                     }
                 }
@@ -177,7 +179,8 @@ class ItemListFragment : Fragment() {
 
         override fun getItemCount() = values.size
 
-        inner class ViewHolder(binding: ItemListContentBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class ViewHolder(binding: ItemListContentBinding) :
+            RecyclerView.ViewHolder(binding.root) {
             val idView: TextView = binding.idText
             val contentView: TextView = binding.content
         }

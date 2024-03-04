@@ -42,7 +42,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/ItemListFragment.kt"
-            line="132"
+            line="134"
             column="21"/>
     </issue>
 

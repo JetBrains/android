@@ -45,10 +45,10 @@ class MainActivity : ComponentActivity() {
 fun WearApp(greetingName: String) {
     AppTheme {
         Box(
-                modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colors.background),
-                contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background),
+            contentAlignment = Alignment.Center
         ) {
             TimeText()
             Greeting(greetingName = greetingName)
@@ -59,10 +59,10 @@ fun WearApp(greetingName: String) {
 @Composable
 fun Greeting(greetingName: String) {
     Text(
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.primary,
-            text = stringResource(R.string.hello_world, greetingName)
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colors.primary,
+        text = stringResource(R.string.hello_world, greetingName)
     )
 }
 

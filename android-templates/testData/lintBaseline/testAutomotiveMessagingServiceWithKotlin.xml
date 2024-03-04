@@ -8,7 +8,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MyMessagingService.kt"
-            line="89"
+            line="97"
             column="9"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MyMessagingService.kt"
-            line="89"
+            line="97"
             column="9"/>
     </issue>
 
@@ -74,22 +74,22 @@
         errorLine2="                         ~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MyMessagingService.kt"
-            line="95"
+            line="103"
             column="26"/>
     </issue>
 
     <issue
         id="LaunchActivityFromNotification"
         message="Notifications should only launch a `BroadcastReceiver` from notification actions (`addAction`)"
-        errorLine1="                .setContentIntent(readPendingIntent)"
-        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            .setContentIntent(readPendingIntent)"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MyMessagingService.kt"
-            line="85"
-            column="18"/>
+            line="91"
+            column="14"/>
         <location
             file="src/main/java/template/test/pkg/MyMessagingService.kt"
-            line="52"
+            line="54"
             column="33"
             message="This `BroadcastReceiver` intent is launched from a notification; this is discouraged except as notification actions"/>
     </issue>

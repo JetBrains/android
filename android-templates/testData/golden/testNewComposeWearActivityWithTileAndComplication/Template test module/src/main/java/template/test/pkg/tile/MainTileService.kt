@@ -29,40 +29,40 @@ private const val RESOURCES_VERSION = "0"
 class MainTileService : SuspendingTileService() {
 
     override suspend fun resourcesRequest(
-            requestParams: RequestBuilders.ResourcesRequest
+        requestParams: RequestBuilders.ResourcesRequest
     ): ResourceBuilders.Resources {
         return ResourceBuilders.Resources.Builder().setVersion(RESOURCES_VERSION).build()
     }
 
     override suspend fun tileRequest(
-            requestParams: RequestBuilders.TileRequest
+        requestParams: RequestBuilders.TileRequest
     ): TileBuilders.Tile {
         val singleTileTimeline = TimelineBuilders.Timeline.Builder().addTimelineEntry(
-                TimelineBuilders.TimelineEntry.Builder().setLayout(
-                        LayoutElementBuilders.Layout.Builder().setRoot(tileLayout(this)).build()
-                ).build()
+            TimelineBuilders.TimelineEntry.Builder().setLayout(
+                LayoutElementBuilders.Layout.Builder().setRoot(tileLayout(this)).build()
+            ).build()
         ).build()
 
         return TileBuilders.Tile.Builder().setResourcesVersion(RESOURCES_VERSION)
-                .setTileTimeline(singleTileTimeline).build()
+            .setTileTimeline(singleTileTimeline).build()
     }
 }
 
 private fun tileLayout(context: Context): LayoutElementBuilders.LayoutElement {
     return PrimaryLayout.Builder(buildDeviceParameters(context.resources))
-            .setContent(
-                    Text.Builder(context, "Hello World!")
-                            .setColor(argb(Colors.DEFAULT.onSurface))
-                            .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                            .build()
-            ).build()
+        .setContent(
+            Text.Builder(context, "Hello World!")
+                .setColor(argb(Colors.DEFAULT.onSurface))
+                .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                .build()
+        ).build()
 }
 
 @Preview(
-        device = Devices.WEAR_OS_SMALL_ROUND,
-        showSystemUi = true,
-        backgroundColor = 0xff000000,
-        showBackground = true
+    device = Devices.WEAR_OS_SMALL_ROUND,
+    showSystemUi = true,
+    backgroundColor = 0xff000000,
+    showBackground = true
 )
 @Composable
 fun TilePreview() {

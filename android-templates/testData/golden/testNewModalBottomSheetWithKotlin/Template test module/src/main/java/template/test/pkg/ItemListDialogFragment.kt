@@ -32,8 +32,10 @@ class ItemListDialogFragment : BottomSheetDialogFragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
 
         _binding = FragmentItemListDialogBinding.inflate(inflater, container, false)
         return binding.root
@@ -41,21 +43,30 @@ class ItemListDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        activity?.findViewById<RecyclerView>(R.id.list)?.layoutManager = LinearLayoutManager(context)
-        activity?.findViewById<RecyclerView>(R.id.list)?.adapter = arguments?.getInt(ARG_ITEM_COUNT)?.let { ItemAdapter(it) }
+        activity?.findViewById<RecyclerView>(R.id.list)?.layoutManager =
+            LinearLayoutManager(context)
+        activity?.findViewById<RecyclerView>(R.id.list)?.adapter =
+            arguments?.getInt(ARG_ITEM_COUNT)?.let { ItemAdapter(it) }
     }
 
-    private inner class ViewHolder internal constructor(binding: FragmentItemListDialogItemBinding)
-        : RecyclerView.ViewHolder(binding.root) {
+    private inner class ViewHolder internal constructor(binding: FragmentItemListDialogItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         internal val text: TextView = binding.text
     }
 
-    private inner class ItemAdapter internal constructor(private val mItemCount: Int) : RecyclerView.Adapter<ViewHolder>() {
+    private inner class ItemAdapter internal constructor(private val mItemCount: Int) :
+        RecyclerView.Adapter<ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
-            return ViewHolder(FragmentItemListDialogItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            return ViewHolder(
+                FragmentItemListDialogItemBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+            )
 
         }
 
@@ -72,11 +83,11 @@ class ItemListDialogFragment : BottomSheetDialogFragment() {
 
         // TODO: Customize parameters
         fun newInstance(itemCount: Int): ItemListDialogFragment =
-                ItemListDialogFragment().apply {
-                    arguments = Bundle().apply {
-                        putInt(ARG_ITEM_COUNT, itemCount)
-                    }
+            ItemListDialogFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(ARG_ITEM_COUNT, itemCount)
                 }
+            }
 
     }
 

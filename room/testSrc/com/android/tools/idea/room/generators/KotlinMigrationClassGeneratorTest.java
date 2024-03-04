@@ -82,8 +82,8 @@ public class KotlinMigrationClassGeneratorTest extends AndroidTestCase {
                  "\n" +
                  "object Migration_1_2 : Migration(1, 2) {\n" +
                  "    override fun migrate(database: SupportSQLiteDatabase) {\n" +
-                 "        database.execSQL(\"\"\"CREATE TABLE table3 (column1 TEXT, column3 TEXT, PRIMARY KEY (column1));\"\"\"\n" +
-                 "                .trimIndent())\n" +
+                 "        database.execSQL(\n            \"\"\"CREATE TABLE table3 (column1 TEXT, column3 TEXT, PRIMARY KEY (column1));\"\"\"\n" +
+                 "                .trimIndent()\n        )\n" +
                  "    }\n" +
                  "}",
                  migrationClass.getContainingFile().getText());

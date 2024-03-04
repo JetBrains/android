@@ -145,7 +145,7 @@ object PaymentsUtil {
      * See [MerchantInfo](https://developers.google.com/pay/api/android/reference/object.MerchantInfo)
      */
     private val merchantInfo: JSONObject =
-            JSONObject().put("merchantName", "Example Merchant")
+        JSONObject().put("merchantName", "Example Merchant")
 
     /**
      * Creates an instance of [PaymentsClient] for use in an [Context] using the
@@ -155,8 +155,8 @@ object PaymentsUtil {
      */
     fun createPaymentsClient(context: Context): PaymentsClient {
         val walletOptions = Wallet.WalletOptions.Builder()
-                .setEnvironment(Constants.PAYMENTS_ENVIRONMENT)
-                .build()
+            .setEnvironment(Constants.PAYMENTS_ENVIRONMENT)
+            .build()
 
         return Wallet.getPaymentsClient(context, walletOptions)
     }
@@ -206,6 +206,6 @@ object PaymentsUtil {
  * Converts cents to a string format accepted by [PaymentsUtil.getPaymentDataRequest].
  */
 fun Long.centsToString() = BigDecimal(this)
-        .divide(PaymentsUtil.CENTS)
-        .setScale(2, RoundingMode.HALF_EVEN)
-        .toString()
+    .divide(PaymentsUtil.CENTS)
+    .setScale(2, RoundingMode.HALF_EVEN)
+    .toString()

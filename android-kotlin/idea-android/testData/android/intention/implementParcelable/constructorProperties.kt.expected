@@ -8,9 +8,10 @@ class MyData(val number: Int, val text: String, val flag: Boolean) : Parcelable 
     var count = 0
 
     constructor(parcel: Parcel) : this(
-            parcel.readInt(),
-            parcel.readString(),
-            parcel.readByte() != 0.toByte()) {
+        parcel.readInt(),
+        parcel.readString(),
+        parcel.readByte() != 0.toByte()
+    ) {
         count = parcel.readInt()
     }
 

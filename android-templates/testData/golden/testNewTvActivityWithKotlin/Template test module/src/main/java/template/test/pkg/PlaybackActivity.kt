@@ -10,8 +10,8 @@ class PlaybackActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(android.R.id.content, PlaybackVideoFragment())
-                    .commit()
+                .replace(android.R.id.content, PlaybackVideoFragment())
+                .commit()
         }
     }
 }

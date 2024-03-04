@@ -29,9 +29,9 @@ class AdMobFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
 
         _binding = FragmentAdmobBinding.inflate(inflater, container, false)
@@ -68,56 +68,56 @@ class AdMobFragment : Fragment() {
     private fun loadInterstitialAd(context: Context) {
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(context, getString(R.string.interstitial_ad_unit_id), adRequest,
-                object : InterstitialAdLoadCallback() {
-                    override fun onAdLoaded(ad: InterstitialAd) {
-                        // The mInterstitialAd reference will be null until
-                        // an ad is loaded.
-                        interstitialAd = ad
-                        nextLevelButton.isEnabled = true
-                        Toast.makeText(context, "onAdLoaded()", Toast.LENGTH_SHORT).show()
-                        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                            override fun onAdDismissedFullScreenContent() {
-                                // Called when fullscreen content is dismissed.
-                                // Make sure to set your reference to null so you don't
-                                // show it a second time.
-                                interstitialAd = null
-                                Log.d(TAG, "The ad was dismissed.")
-                            }
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    // The mInterstitialAd reference will be null until
+                    // an ad is loaded.
+                    interstitialAd = ad
+                    nextLevelButton.isEnabled = true
+                    Toast.makeText(context, "onAdLoaded()", Toast.LENGTH_SHORT).show()
+                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdDismissedFullScreenContent() {
+                            // Called when fullscreen content is dismissed.
+                            // Make sure to set your reference to null so you don't
+                            // show it a second time.
+                            interstitialAd = null
+                            Log.d(TAG, "The ad was dismissed.")
+                        }
 
-                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                                // Called when fullscreen content failed to show.
-                                // Make sure to set your reference to null so you don't
-                                // show it a second time.
-                                interstitialAd = null
-                                Log.d(TAG, "The ad failed to show.")
-                            }
+                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                            // Called when fullscreen content failed to show.
+                            // Make sure to set your reference to null so you don't
+                            // show it a second time.
+                            interstitialAd = null
+                            Log.d(TAG, "The ad failed to show.")
+                        }
 
-                            override fun onAdShowedFullScreenContent() {
-                                // Called when fullscreen content is shown.
-                                Log.d(TAG, "The ad was shown.")
-                            }
+                        override fun onAdShowedFullScreenContent() {
+                            // Called when fullscreen content is shown.
+                            Log.d(TAG, "The ad was shown.")
                         }
                     }
+                }
 
-                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                        // Handle the error
-                        Log.i(TAG, loadAdError.message)
-                        interstitialAd = null
-                        nextLevelButton.isEnabled = true
-                        val error = String.format(
-                                Locale.ENGLISH,
-                                "domain: %s, code: %d, message: %s",
-                                loadAdError.domain,
-                                loadAdError.code,
-                                loadAdError.message
-                        )
-                        Toast.makeText(
-                                getContext(),
-                                "onAdFailedToLoad() with error: $error", Toast.LENGTH_SHORT
-                        )
-                                .show()
-                    }
-                })
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    // Handle the error
+                    Log.i(TAG, loadAdError.message)
+                    interstitialAd = null
+                    nextLevelButton.isEnabled = true
+                    val error = String.format(
+                        Locale.ENGLISH,
+                        "domain: %s, code: %d, message: %s",
+                        loadAdError.domain,
+                        loadAdError.code,
+                        loadAdError.message
+                    )
+                    Toast.makeText(
+                        getContext(),
+                        "onAdFailedToLoad() with error: $error", Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
+            })
     }
 
     private fun showInterstitial(context: Context) {
@@ -141,7 +141,7 @@ class AdMobFragment : Fragment() {
     companion object {
         // Remove the below line after defining your own ad unit ID.
         private const val TOAST_TEXT =
-                "Test ads are being shown. " + "To show live ads, replace the ad unit ID in res/values/strings.xml with your own ad unit ID."
+            "Test ads are being shown. " + "To show live ads, replace the ad unit ID in res/values/strings.xml with your own ad unit ID."
         private const val START_LEVEL = 1
     }
 

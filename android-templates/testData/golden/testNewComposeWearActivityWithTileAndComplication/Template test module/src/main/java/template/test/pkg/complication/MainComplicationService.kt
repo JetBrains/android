@@ -34,8 +34,8 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
     }
 
     private fun createComplicationData(text: String, contentDescription: String) =
-            ShortTextComplicationData.Builder(
-                    text = PlainComplicationText.Builder(text).build(),
-                    contentDescription = PlainComplicationText.Builder(contentDescription).build()
-            ).build()
+        ShortTextComplicationData.Builder(
+            text = PlainComplicationText.Builder(text).build(),
+            contentDescription = PlainComplicationText.Builder(contentDescription).build()
+        ).build()
 }

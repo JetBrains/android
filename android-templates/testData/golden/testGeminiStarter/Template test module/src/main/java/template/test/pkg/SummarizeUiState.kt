@@ -19,13 +19,13 @@ sealed interface SummarizeUiState {
      * Text has been generated
      */
     data class Success(
-            val outputText: String
+        val outputText: String
     ) : SummarizeUiState
 
     /**
      * There was an error generating text
      */
     data class Error(
-            val errorMessage: String
+        val errorMessage: String
     ) : SummarizeUiState
 }

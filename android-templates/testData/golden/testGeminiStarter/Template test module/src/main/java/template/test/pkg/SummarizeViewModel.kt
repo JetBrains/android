@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SummarizeViewModel(
-        private val generativeModel: GenerativeModel
+    private val generativeModel: GenerativeModel
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<SummarizeUiState> =
-            MutableStateFlow(SummarizeUiState.Initial)
+        MutableStateFlow(SummarizeUiState.Initial)
     val uiState: StateFlow<SummarizeUiState> =
-            _uiState.asStateFlow()
+        _uiState.asStateFlow()
 
     fun summarize(inputText: String) {
         _uiState.value = SummarizeUiState.Loading

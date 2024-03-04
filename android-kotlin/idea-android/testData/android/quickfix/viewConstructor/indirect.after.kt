@@ -11,5 +11,5 @@ import android.util.AttributeSet
 import android.view.TextView
 
 class Foo @JvmOverloads constructor(
-        context: Context, attrs: AttributeSet? = null
+    context: Context, attrs: AttributeSet? = null
 ) : TextView<caret>(context, attrs)

@@ -42,12 +42,12 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     val generativeModel = GenerativeModel(
-                            modelName = "gemini-pro",
-                            apiKey = BuildConfig.apiKey
+                        modelName = "gemini-pro",
+                        apiKey = BuildConfig.apiKey
                     )
                     val viewModel = SummarizeViewModel(generativeModel)
                     SummarizeRoute(viewModel)
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 internal fun SummarizeRoute(
-        summarizeViewModel: SummarizeViewModel = viewModel()
+    summarizeViewModel: SummarizeViewModel = viewModel()
 ) {
     val summarizeUiState by summarizeViewModel.uiState.collectAsState()
 
@@ -70,35 +70,35 @@ internal fun SummarizeRoute(
 
 @Composable
 fun SummarizeScreen(
-        uiState: SummarizeUiState = SummarizeUiState.Initial,
-        onSummarizeClicked: (String) -> Unit = {}
+    uiState: SummarizeUiState = SummarizeUiState.Initial,
+    onSummarizeClicked: (String) -> Unit = {}
 ) {
     var prompt by remember { mutableStateOf("") }
     Column(
-            modifier = Modifier
-                    .padding(all = 8.dp)
-                    .verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .padding(all = 8.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         Row {
             TextField(
-                    value = prompt,
-                    label = { Text(stringResource(R.string.summarize_label)) },
-                    placeholder = { Text(stringResource(R.string.summarize_hint)) },
-                    onValueChange = { prompt = it },
-                    modifier = Modifier
-                            .weight(8f)
+                value = prompt,
+                label = { Text(stringResource(R.string.summarize_label)) },
+                placeholder = { Text(stringResource(R.string.summarize_hint)) },
+                onValueChange = { prompt = it },
+                modifier = Modifier
+                    .weight(8f)
             )
             TextButton(
-                    onClick = {
-                        if (prompt.isNotBlank()) {
-                            onSummarizeClicked(prompt)
-                        }
-                    },
+                onClick = {
+                    if (prompt.isNotBlank()) {
+                        onSummarizeClicked(prompt)
+                    }
+                },
 
-                    modifier = Modifier
-                            .weight(2f)
-                            .padding(all = 4.dp)
-                            .align(Alignment.CenterVertically)
+                modifier = Modifier
+                    .weight(2f)
+                    .padding(all = 4.dp)
+                    .align(Alignment.CenterVertically)
             ) {
                 Text(stringResource(R.string.action_go))
             }
@@ -110,10 +110,10 @@ fun SummarizeScreen(
 
             SummarizeUiState.Loading -> {
                 Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                                .padding(all = 8.dp)
-                                .align(Alignment.CenterHorizontally)
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .padding(all = 8.dp)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     CircularProgressIndicator()
                 }
@@ -122,21 +122,21 @@ fun SummarizeScreen(
             is SummarizeUiState.Success -> {
                 Row(modifier = Modifier.padding(all = 8.dp)) {
                     Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = "Person Icon"
+                        Icons.Outlined.Person,
+                        contentDescription = "Person Icon"
                     )
                     Text(
-                            text = uiState.outputText,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                        text = uiState.outputText,
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
             }
 
             is SummarizeUiState.Error -> {
                 Text(
-                        text = uiState.errorMessage,
-                        color = Color.Red,
-                        modifier = Modifier.padding(all = 8.dp)
+                    text = uiState.errorMessage,
+                    color = Color.Red,
+                    modifier = Modifier.padding(all = 8.dp)
                 )
             }
         }
