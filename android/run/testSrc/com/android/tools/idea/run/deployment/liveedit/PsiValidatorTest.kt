@@ -56,13 +56,13 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x = 999
       val y = 100
     """.trimIndent())
 
-    monitor.processChanges(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified property"))
@@ -83,14 +83,14 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x: Int by lazy {
         999
       }
     """.trimIndent())
 
-    monitor.processChanges(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified property"))
@@ -112,7 +112,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {}
@@ -121,7 +121,7 @@ class PsiValidatorTest {
 
     """.trimIndent())
 
-    monitor.processChanges(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified constructor"))
@@ -145,7 +145,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {
@@ -160,7 +160,7 @@ class PsiValidatorTest {
 
     """.trimIndent())
 
-    monitor.processChanges(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Loading", status.title)
   }

@@ -34,7 +34,9 @@ import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -60,6 +62,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.annotations.RequiresReadLock;
 import java.io.IOException;
 import com.intellij.psi.PsiFile;
@@ -85,7 +88,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.psi.KtFile;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -359,7 +362,7 @@ public class LiveEditProjectMonitor implements Disposable {
   public boolean notifyAppDeploy(String applicationId,
                                  IDevice device,
                                  @NotNull LiveEditApp app,
-                                 List<KtFile> openKtFiles,
+                                 List<VirtualFile> openFiles,
                                  @NotNull Supplier<Boolean> isLiveEditable) throws ExecutionException, InterruptedException {
     if (!isLiveEditable.get()) {
       LOGGER.info("Can not live edit the app due to either non-debuggability or does not use Compose");
@@ -400,38 +403,80 @@ public class LiveEditProjectMonitor implements Disposable {
       }
       deviceWatcher.setApplicationId(applicationId);
 
-      ReadAction.run(() -> openKtFiles.forEach(this::fileEditorOpened));
+      updatePsiSnapshots(openFiles);
       irClassCache.clear();
     }).get();
 
     return true;
   }
 
-  // Called when a new file is open in the editor. Only called on the class-differ code path.
-  @RequiresReadLock
-  public void fileEditorOpened(PsiFile psiFile) {
-    if (shouldLiveEdit() && !psiSnapshots.containsKey(psiFile)) {
-      psiSnapshots.put(psiFile, getPsiValidationState(psiFile));
-    }
-  }
 
-  // Called when a file is modified. Only called on the class-differ code path.
-  public void fileChanged(PsiFile psiFile) {
+  // Called when a new file is open in the editor. Only called on the class-differ code path.
+  public void updatePsiSnapshot(VirtualFile file) {
     if (!shouldLiveEdit()) {
       return;
     }
 
-    // Add this while we're still inside a write action, so that no compile can be running while we queue this. This minimizes the risk of a
-    // race condition between any retried compilations and this newly queued event.
-    changedMethodQueue.add(new EditEvent(psiFile, null, new ArrayList<>(), new ArrayList<>()));
+    mainThreadExecutor.submit(() -> updatePsiSnapshots(List.of(file)));
+  }
+
+  private void updatePsiSnapshots(List<VirtualFile> files) {
+    ReadAction.run(() -> {
+      for (VirtualFile file : files) {
+        PsiFile psiFile = getPsiInProject(file);
+
+        // We don't care about PSI validation for non-Kotlin files. The errors displayed for editing
+        // non-Kotlin files during a Live Edit session are thrown later in the pipeline.
+        if (psiFile == null || psiFile.getFileType() != KotlinFileType.INSTANCE || psiSnapshots.containsKey(psiFile)) {
+          continue;
+        }
+
+        psiSnapshots.put(psiFile, getPsiValidationState(psiFile));
+      }
+    });
+  }
+
+  // Called when a file is modified. Only called on the class-differ code path.
+  public void fileChanged(VirtualFile file) {
+    if (!shouldLiveEdit()) {
+      return;
+    }
 
     mainThreadExecutor.schedule(() -> {
+      PsiFile psiFile = ReadAction.compute(() -> getPsiInProject(file));
+      if (psiFile == null) {
+        return;
+      }
+
+      changedMethodQueue.add(new EditEvent(psiFile, null, new ArrayList<>(), new ArrayList<>()));
+
       if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
         updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
         return;
       }
       processQueuedChanges();
     }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+  }
+
+  @RequiresReadLock
+  private @Nullable PsiFile getPsiInProject(VirtualFile file) {
+    // Ignore files in closed projects, deleted files, or read-only files.
+    if (project.isDisposed() || !file.isValid() || !file.isWritable()) {
+      return null;
+    }
+
+    if (!ProjectFileIndex.getInstance(project).isInProject(file)) {
+      return null;
+    }
+
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    if (psiFile != null) {
+      // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes
+      // an event is generated with a non-physical version of a given file, which will cause some
+      // Live Edit checks that assume a non-null VirtualFile to fail.
+      return psiFile.getOriginalFile();
+    }
+    return null;
   }
 
   private boolean shouldLiveEdit() {
@@ -491,12 +536,18 @@ public class LiveEditProjectMonitor implements Disposable {
     return processChanges(project, changes, LiveEditEvent.Mode.AUTO);
   }
 
-  @Trace
+  // Allows calling processChanges correctly on the main thread executor from a test context, to prevent hacks/concurrency bugs
+  // that only appear in tests due to incorrectly calling processChanges on a thread other than the executor.
   @VisibleForTesting
+  boolean processChangesForTest(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) throws Exception {
+    return mainThreadExecutor.submit(() -> processChanges(project, changes, mode)).get();
+  }
+
+  @Trace
   /**
    * @return true is the changes were successfully processed (without being interrupted). Otherwise, false.
    */
-  boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
+  private boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
     long start = System.nanoTime();

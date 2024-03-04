@@ -49,7 +49,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -60,10 +59,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
@@ -71,16 +67,12 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.Executor
 
 /**
@@ -124,14 +116,14 @@ class LiveEditServiceImpl(val project: Project,
     project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun selectionChanged(event: FileEditorManagerEvent) {
         val file = event.newFile ?: return
-        file.letIfLiveEditable { deployMonitor.fileEditorOpened(it) }
+        deployMonitor.updatePsiSnapshot(file)
       }
     })
 
     project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
       override fun before(events: MutableList<out VFileEvent>) {
         for (event in events.filterIsInstance<VFileDeleteEvent>()) {
-          event.file.letIfLiveEditable { deployMonitor.fileChanged(it) }
+          deployMonitor.fileChanged(event.file)
         }
       }
     })
@@ -140,7 +132,7 @@ class LiveEditServiceImpl(val project: Project,
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
       override fun documentChanged(event: DocumentEvent) {
         val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
-        file.letIfLiveEditable { deployMonitor.fileChanged(it) }
+        deployMonitor.fileChanged(file)
       }
     }, this)
 
@@ -218,16 +210,11 @@ class LiveEditServiceImpl(val project: Project,
                                packageName: String,
                                device: IDevice,
                                app: LiveEditApp): Boolean {
-    // Obtain the list of Kotlin files open and focused in the editor. This will be a single file unless the user has a split view.
+    // Obtain the list of files open and focused in the editor. This will be a single file unless the user has a split view.
     // When Live Edit is active, the first time a file is focused in the editor, we take a snapshot of the PSI. We pass the list of
     // currently focused files when a deployment occurs to ensure that we also take a PSI snapshot of them.
-    val openKtFiles = mutableListOf<KtFile>()
-    for(file in FileEditorManager.getInstance(project).selectedFiles) {
-      file.letIfLiveEditable {
-        (it as? KtFile)?.let(openKtFiles::add)
-      }
-    }
-    return deployMonitor.notifyAppDeploy(packageName, device, app, openKtFiles) { isLiveEditable(runProfile, executor) }
+    val openFiles = FileEditorManager.getInstance(project).selectedFiles.toList()
+    return deployMonitor.notifyAppDeploy(packageName, device, app, openFiles) { isLiveEditable(runProfile, executor) }
   }
 
   override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
@@ -345,36 +332,5 @@ class LiveEditServiceImpl(val project: Project,
       val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
       serial?.let { s -> adapter.register(s) }
     }
-  }
-
-  private fun VirtualFile.letIfLiveEditable(block: (PsiFile) -> Unit) {
-    val psiFile = ReadAction.compute<PsiFile?, Throwable> {
-      if (!shouldHandleFile(this)) {
-        return@compute null
-      }
-
-      // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes
-      // an event is generated with a non-physical version of a given file, which will cause some
-      // Live Edit checks that assume a non-null VirtualFile to fail.
-      PsiManager.getInstance(project).findFile(this)?.originalFile
-    }
-    if (psiFile != null) {
-      block(psiFile)
-    }
-  }
-
-  @RequiresReadLock
-  private fun shouldHandleFile(file: VirtualFile): Boolean {
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-      return false
-    }
-
-    if (project.isDisposed || !file.isValid || !file.isWritable) {
-      return false
-    }
-
-    // Filter to only files from this project.
-    val index = ProjectFileIndex.getInstance(project)
-    return SlowOperations.allowSlowOperations(ThrowableComputable { index.isInProject(file) })
   }
 }

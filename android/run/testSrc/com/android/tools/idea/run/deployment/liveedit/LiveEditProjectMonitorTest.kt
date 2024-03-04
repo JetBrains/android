@@ -92,7 +92,7 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     var foo = findFunction(file, "foo")
     monitor.handleChangedMethods(myProject, listOf(EditEvent(file, foo)))
@@ -110,13 +110,13 @@ class LiveEditProjectMonitorTest {
     val device1: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device1.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device1, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device1, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     // Push A.class into the class cache and pretend we already modified it once already.
     monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
     monitor.liveEditDevices.update(device1, LiveEditStatus.UpToDate)
 
-    monitor.processChanges(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(0, monitor.numFilesWithCompilationErrors())
 
     val hasPhysicalDevice = usageTracker.usages.any() {
@@ -135,9 +135,9 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
-    monitor.processChanges(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
@@ -150,16 +150,16 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file)) { true }
+    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     var foo = findFunction(file, "foo")
-    monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file, foo))
 
     var file2 = projectRule.fixture.configureByText("B.kt", "fun foo2() {}")
-    ReadAction.run<Throwable>{ monitor.fileEditorOpened(file2) }
+    monitor.updatePsiSnapshot(file2.virtualFile)
     var foo2 = findFunction(file2, "foo2")
-    monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file2, foo2))
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
@@ -210,7 +210,7 @@ class LiveEditProjectMonitorTest {
     var file = projectRule.fixture.configureByText("A.java", "class A() { }")
     var event = EditEvent(file)
     event.unsupportedPsiEvents.add(UnsupportedPsiEvent.NON_KOTLIN)
-    monitor.processChanges(myProject, listOf(event), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(event), LiveEditEvent.Mode.AUTO)
     Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_KOTLIN))
   }
 
@@ -358,7 +358,7 @@ class LiveEditProjectMonitorTest {
     assertTrue(ready.await(5000, TimeUnit.MILLISECONDS))
 
     ReadAction.run<Throwable> {
-      monitor.fileChanged(file)
+      monitor.fileChanged(file.virtualFile)
     }
 
     assertTrue(needUpdate.await(5000, TimeUnit.MILLISECONDS))
