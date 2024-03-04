@@ -32,6 +32,7 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.nav.editor" />
 </module>

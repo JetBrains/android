@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.idea.common.surface.DesignSurfaceZoomController
+import com.android.tools.idea.common.surface.createNlDesignSurfaceZoomController
 import com.android.tools.idea.uibuilder.editor.multirepresentation.any
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import junit.framework.TestCase.assertEquals
@@ -173,7 +173,7 @@ class NlDesignSurfaceZoomControllerTest {
   fun `can zoom to fit`() {
     val zoomController = createNlDesignSurfaceZoomController()
 
-    repeat((0..4).count()) { zoomController.zoom(ZoomType.IN) }
+    repeat(5) { zoomController.zoom(ZoomType.IN) }
 
     val zoomInScale = zoomController.scale
     Assert.assertTrue(zoomController.canZoomToFit())
@@ -189,7 +189,7 @@ class NlDesignSurfaceZoomControllerTest {
   fun `can zoom to the actual sizes`() {
     val zoomController = createNlDesignSurfaceZoomController()
 
-    repeat((0..4).count()) { zoomController.zoom(ZoomType.IN) }
+    repeat(5) { zoomController.zoom(ZoomType.IN) }
 
     val zoomInScale = zoomController.scale
     Assert.assertTrue(zoomController.canZoomToActual())
@@ -205,7 +205,7 @@ class NlDesignSurfaceZoomControllerTest {
   fun `test can zoom to fit`() {
     val zoomController = createNlDesignSurfaceZoomController()
 
-    repeat((0..3).count()) { zoomController.zoom(ZoomType.OUT) }
+    repeat(4) { zoomController.zoom(ZoomType.OUT) }
 
     Assert.assertTrue(zoomController.canZoomToFit())
     Assert.assertTrue(zoomController.zoom(ZoomType.FIT))
@@ -216,7 +216,7 @@ class NlDesignSurfaceZoomControllerTest {
     Assert.assertFalse(zoomController.canZoomToFit())
 
     // We now zoom in
-    repeat((0..2).count()) { zoomController.zoom(ZoomType.IN) }
+    repeat(3) { zoomController.zoom(ZoomType.IN) }
 
     // We can apply zoom to fit again.
     Assert.assertTrue(zoomController.canZoomToFit())
@@ -224,17 +224,21 @@ class NlDesignSurfaceZoomControllerTest {
     Assert.assertFalse(zoomController.canZoomToFit())
   }
 
-  private fun createNlDesignSurfaceZoomController(
-    layoutManager: NlDesignSurfacePositionableContentLayoutManager = mock(),
-    sceneViewPanelComponents: Collection<PositionableContent> = emptyList(),
-  ): DesignSurfaceZoomController {
-    return NlDesignSurfaceZoomController(
-      viewPort = mock(),
-      sceneViewLayoutManagerProvider = { layoutManager },
-      sceneViewPeerPanelsProvider = { sceneViewPanelComponents },
-      designerAnalyticsManager = null,
-      selectionModel = null,
-      scenesOwner = null,
-    )
+  @Test
+  fun `can track zoom`() {
+    var zoomTypeToTrack: ZoomType? = null
+    val zoomController = createNlDesignSurfaceZoomController { zoomTypeToTrack = it }
+
+    zoomController.zoom(ZoomType.IN)
+    Assert.assertEquals(zoomTypeToTrack, ZoomType.IN)
+
+    zoomController.zoom(ZoomType.OUT)
+    Assert.assertEquals(zoomTypeToTrack, ZoomType.OUT)
+
+    zoomController.zoom(ZoomType.FIT)
+    Assert.assertEquals(zoomTypeToTrack, ZoomType.FIT)
+
+    zoomController.zoom(ZoomType.ACTUAL)
+    Assert.assertEquals(zoomTypeToTrack, ZoomType.ACTUAL)
   }
 }

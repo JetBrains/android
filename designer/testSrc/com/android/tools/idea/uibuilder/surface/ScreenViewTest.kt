@@ -194,7 +194,9 @@ class ScreenViewTest {
     val screenViewProviderMock = mock(ScreenViewProvider::class.java)
     val designSurfaceMock = mock(NlDesignSurface::class.java)
     whenever(designSurfaceMock.zoomController)
-      .thenReturn(createDesignSurfaceZoomControllerFake(projectRule))
+      .thenReturn(
+        createDesignSurfaceZoomControllerFake(projectRule.project, projectRule.testRootDisposable)
+      )
     var colorBlindModeFilter = ColorBlindMode.NONE
 
     Disposer.register(projectRule.testRootDisposable, layoutlibSceneManagerMock)

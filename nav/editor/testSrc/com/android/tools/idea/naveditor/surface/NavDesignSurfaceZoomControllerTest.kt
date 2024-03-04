@@ -18,9 +18,6 @@ package com.android.tools.idea.naveditor.surface
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.testing.mockStatic
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.assertEquals
@@ -33,9 +30,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
-import java.awt.Component
 import java.awt.Dimension
-import java.awt.Point
 
 class NavDesignSurfaceZoomControllerTest {
 
@@ -51,7 +46,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { Dimension() }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { Dimension() })
 
     assertEquals(1.0, zoomController.getFitScale(), 0.01)
     assertFalse(zoomController.canZoomToFit())
@@ -71,7 +66,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
     assertEquals(1.0, zoomController.getFitScale(), 0.01)
   }
@@ -84,13 +79,13 @@ class NavDesignSurfaceZoomControllerTest {
     // The dimension of NavDesignSurface.
     val surfaceDimension = Dimension(100, 500)
 
-    val navDesignSurfaceMock = this.mockNavDesignSurface(
+    val navDesignSurfaceMock = mockNavDesignSurface(
       focusedSceneView = mock(),
       surfaceSize = surfaceDimension,
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
     assertEquals(0.5, zoomController.getFitScale(), 0.01)
   }
@@ -102,13 +97,13 @@ class NavDesignSurfaceZoomControllerTest {
 
     // The dimension of NavDesignSurface.
     val surfaceDimension = Dimension(100, 500)
-    val navDesignSurfaceMock = this.mockNavDesignSurface(
+    val navDesignSurfaceMock = mockNavDesignSurface(
       mock(),
       surfaceSize = surfaceDimension,
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
     assertEquals(0.5, zoomController.getFitScale(), 0.01)
   }
@@ -120,13 +115,13 @@ class NavDesignSurfaceZoomControllerTest {
 
     // The dimension of NavDesignSurface.
     val surfaceDimension = Dimension(100, 500)
-    val navDesignSurfaceMock = this.mockNavDesignSurface(
+    val navDesignSurfaceMock = mockNavDesignSurface(
       mock(),
       surfaceSize = surfaceDimension,
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
     assertEquals(0.005, zoomController.getFitScale(), 0.01)
   }
@@ -145,7 +140,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
     assertEquals(0.5, zoomController.getFitScale(), 0.01)
   }
@@ -164,7 +159,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
     zoomController.setScale(1.0)
 
     assertTrue(zoomController.setScale(0.5))
@@ -204,7 +199,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
     zoomController.setScale(1.0)
 
     assertTrue(zoomController.setScale(0.5, 2, 4))
@@ -244,7 +239,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
     zoomController.setScale(1.0)
     do {
       assertTrue(zoomController.zoom(ZoomType.IN, 3, 3))
@@ -268,7 +263,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
     zoomController.setScale(10.0)
     do {
       assertTrue(zoomController.zoom(ZoomType.OUT, 2, 3))
@@ -292,7 +287,7 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
     val initialScale = 1.0
     zoomController.setScale(initialScale)
 
@@ -330,8 +325,8 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
-    repeat((0..4).count()) { zoomController.zoom(ZoomType.IN) }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
+    repeat(5) { zoomController.zoom(ZoomType.IN) }
 
     val zoomInScale = zoomController.scale
     assertTrue(zoomController.canZoomToActual())
@@ -357,9 +352,9 @@ class NavDesignSurfaceZoomControllerTest {
     )
 
     // Create the [ZoomController].
-    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock) { contentDimension }
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
 
-    repeat((0..3).count()) { zoomController.zoom(ZoomType.OUT) }
+    repeat(4) { zoomController.zoom(ZoomType.OUT) }
 
     assertTrue(zoomController.canZoomToFit())
     assertTrue(zoomController.zoom(ZoomType.FIT))
@@ -370,7 +365,7 @@ class NavDesignSurfaceZoomControllerTest {
     assertFalse(zoomController.canZoomToActual())
 
     // We now zoom in
-    repeat((0..2).count()) { zoomController.zoom(ZoomType.IN) }
+    repeat(3) { zoomController.zoom(ZoomType.IN) }
 
     // We can apply zoom to fit again.
     assertTrue(zoomController.canZoomToFit())
@@ -378,48 +373,63 @@ class NavDesignSurfaceZoomControllerTest {
     assertFalse(zoomController.canZoomToFit())
   }
 
+  @Test
+  fun `can zoom to fit`() {
+    // The content we want to show and the size of [NavDesignSurface] are the same.
+    val contentDimension = Dimension(100, 500)
 
-  private fun createNavDesignSurfaceZoomController(navDesignSurface: NavDesignSurface,
-                                                   dimension: (SceneView) -> Dimension): NavDesignSurfaceZoomController {
-    return NavDesignSurfaceZoomController(
-      navSelectionModel = null,
-      viewPort = navDesignSurface.viewport,
-      sceneManager = { navDesignSurface.sceneManager },
-      sceneViewDimensionProvider = dimension,
-      analyticsManager = null,
-      scenesOwner = navDesignSurface,
-      surfaceSize = navDesignSurface.size
+    // The dimension of NavDesignSurface.
+    val surfaceDimension = Dimension(100, 500)
+
+    val navDesignSurfaceMock = mockNavDesignSurface(
+      focusedSceneView = mock(),
+      surfaceSize = surfaceDimension,
     )
+
+    // Create the [ZoomController].
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
+
+    repeat(5) { zoomController.zoom(ZoomType.IN) }
+
+    val zoomInScale = zoomController.scale
+    assertTrue(zoomController.canZoomToFit())
+    assertTrue(zoomController.zoomToFit())
+
+    assertTrue(zoomController.scale < zoomInScale)
+
+    // We can't zoom to fit as we are already in the zoom to fit scale
+    assertFalse(zoomController.canZoomToFit())
   }
 
-  private fun mockNavDesignSurface(
-    focusedSceneView: SceneView?,
-    surfaceSize: Dimension = Dimension(),
-  ): NavDesignSurface {
-    val width = 100
-    val height = 500
+  @Test
+  fun `can track zoom`() {
+    var zoomTypeToTrack: ZoomType? = null
 
-    val sceneManager = mock<NavSceneManager>().apply {
-      whenever(this.isEmpty).thenReturn(false)
-    }
+    // The content we want to show and the size of [NavDesignSurface] are the same.
+    val contentDimension = Dimension(100, 500)
 
-    val viewportMock = mock<DesignSurfaceViewport>().apply {
-      whenever(this.viewPosition).thenReturn(Point(1, 1))
-      whenever(this.extentSize).thenReturn(surfaceSize)
-      whenever(this.viewportComponent).thenReturn(object : Component() {
-        override fun getWidth() = width
-        override fun getHeight() = height
-      })
-    }
+    // The dimension of NavDesignSurface.
+    val surfaceDimension = Dimension(100, 500)
 
-    val navDesignSurface = mock<NavDesignSurface>().apply {
-      whenever(this.viewport).thenReturn(viewportMock)
-      whenever(this.size).thenReturn(Dimension(1, 1))
-      whenever(this.focusedSceneView).thenReturn(focusedSceneView)
-      whenever(this.sceneManager).thenReturn(sceneManager)
-    }
+    val navDesignSurfaceMock = mockNavDesignSurface(
+      focusedSceneView = mock(),
+      surfaceSize = surfaceDimension,
+    )
 
-    return navDesignSurface
+    // Create the [ZoomController].
+    val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension }, { zoomTypeToTrack = it })
+
+    zoomController.zoom(ZoomType.IN)
+    assertEquals(zoomTypeToTrack, ZoomType.IN)
+
+    zoomController.zoom(ZoomType.OUT)
+    assertEquals(zoomTypeToTrack, ZoomType.OUT)
+
+    zoomController.zoom(ZoomType.FIT)
+    assertEquals(zoomTypeToTrack, ZoomType.FIT)
+
+    zoomController.zoom(ZoomType.ACTUAL)
+    assertEquals(zoomTypeToTrack, ZoomType.ACTUAL)
   }
 
   companion object {
