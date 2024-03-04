@@ -228,11 +228,15 @@ ParametrizedComposePreviewElementInstance<T>(
 
 /**
  * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
- * parameters.
+ * parameters. [ModuleClassLoader] constructed with the provided [parentClassLoader] should be able
+ * to load classes of [PreviewParameter.providerClassFqn] and create instances of those. Therefore,
+ * the caller should make sure [parentClassLoader] is aware of Android platform classes as those
+ * might be referenced by [parameterProviders]s.
  */
 open class ParametrizedComposePreviewElementTemplate<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
   val parameterProviders: Collection<PreviewParameter>,
+  private val parentClassLoader: ClassLoader = ParametrizedComposePreviewElementTemplate::class.java.classLoader,
   private val renderContextFactory: (ComposePreviewElement<T>) -> ModuleRenderContext?,
 ) : ComposePreviewElement<T> by basePreviewElement {
   /**
@@ -250,7 +254,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     val moduleRenderContext = renderContextFactory(basePreviewElement) ?: return sequenceOf()
     ModuleClassLoaderManager.get()
       .getPrivate(
-        ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+        parentClassLoader,
         moduleRenderContext
       )
       .useWithClassLoader { classLoader ->

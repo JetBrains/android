@@ -34,5 +34,6 @@ class StudioParametrizedComposePreviewElementTemplate(
   ParametrizedComposePreviewElementTemplate<SmartPsiElementPointer<PsiElement>>(
     basePreviewElement,
     parameterProviders,
+    StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
     { element -> element.containingFile?.let { StudioModuleRenderContext.forFile(it) } },
   )
