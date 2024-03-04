@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -31,7 +30,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class GlanceIssueNotificationActionTest {
+class CommonIssueNotificationActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var buildManager: TestProjectSystemBuildManager

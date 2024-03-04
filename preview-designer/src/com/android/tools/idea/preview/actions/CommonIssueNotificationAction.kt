@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
@@ -21,11 +21,9 @@ import com.android.tools.adtui.compose.IssueNotificationAction
 import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
-import com.android.tools.idea.preview.actions.BuildAndRefresh
-import com.android.tools.idea.preview.actions.PreviewStatus
-import com.android.tools.idea.preview.actions.ShowProblemsPanel
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.needsBuild
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
@@ -86,7 +84,7 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
 }
 
 /** [IssueNotificationAction] for Glance previews. */
-class GlanceIssueNotificationAction :
+class CommonIssueNotificationAction :
   IssueNotificationAction(::getStatusInfo, ::createInformationPopup), RightAlignedToolbarAction {
   override fun margins(): Insets {
     return JBUI.insets(3)
