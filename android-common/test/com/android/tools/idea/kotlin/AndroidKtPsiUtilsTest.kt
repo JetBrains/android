@@ -115,7 +115,7 @@ class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
   fun testKtClass_className_kotlinBuiltin() {
     val file = setFileContents("""
       class <caret>Foo
-    """.trimIndent(), packageName = "kotlin.some.package")
+    """.trimIndent(), packageName = "kotlin.some.`package`")
 
     assertThat(file.getElementAtCaret<KtClass>().getQualifiedName()).isNull()
   }
