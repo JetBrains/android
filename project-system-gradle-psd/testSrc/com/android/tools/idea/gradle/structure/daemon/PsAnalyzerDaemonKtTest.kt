@@ -93,9 +93,7 @@ class PsAnalyzerDaemonKtTest {
       private val critical: Boolean,
       private val violations: List<SdkPolicy>,
     ) : GooglePlaySdkIndex(null) {
-      override fun readUrlData(url: String, timeout: Int): ByteArray? {
-        return null
-      }
+      override fun readUrlData(url: String, timeout: Int, lastModified: Long) = ReadUrlDataResult(null, true)
 
       override fun error(throwable: Throwable, message: String?) {
       }
