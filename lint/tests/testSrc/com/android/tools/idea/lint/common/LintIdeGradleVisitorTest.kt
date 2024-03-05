@@ -30,6 +30,9 @@ import org.mockito.Mockito
 
 class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
   // Keep in sync with GroovyGradleVisitorTest#testBasic!
+  // Also keep this test, and other applicable ones, in sync with
+  // UastGradleVisitorTest#testBasic (with adaptations for the
+  // differences between Kotlin and Groovy).
   fun testBasic() {
     check(
       """
