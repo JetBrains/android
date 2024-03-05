@@ -49,9 +49,10 @@ fun baselineProfilesBuildGradle(
 
       androidComponents {
           onVariants${if (useGradleKts) "" else "(selector().all())"} {  v ->
+              ${if (useGradleKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
               v.instrumentationRunnerArguments.put(
                   "targetAppId",
-                  v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+                  v.testedApks.map { artifactsLoader.load(it)?.applicationId }
               )
           }
       }

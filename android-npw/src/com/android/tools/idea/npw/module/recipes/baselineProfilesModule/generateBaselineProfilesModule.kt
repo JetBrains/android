@@ -55,7 +55,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean = true
+  useVersionCatalog: Boolean = true,
+  useConfigurationCaching: Boolean = true
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
 
@@ -70,6 +71,10 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
+
+  if (useConfigurationCaching) {
+    append("org.gradle.configuration-cache=true", newModule.projectTemplateData.rootDir.resolve("gradle.properties"))
+  }
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
 

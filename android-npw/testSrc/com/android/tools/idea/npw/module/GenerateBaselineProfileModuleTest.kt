@@ -261,9 +261,10 @@ dependencies {
 
 androidComponents {
     onVariants(selector().all()) {  v ->
+        def artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
@@ -321,9 +322,10 @@ dependencies {
 
 androidComponents {
     onVariants {  v ->
+        val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
