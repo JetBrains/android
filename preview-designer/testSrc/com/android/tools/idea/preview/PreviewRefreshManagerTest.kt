@@ -514,6 +514,7 @@ class PreviewRefreshManagerTest {
     // wait for refresh to start and then cancel its "internal" job
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    waitForCondition(5.seconds) { refreshRequest.runningRefreshJob != null }
     refreshRequest.runningRefreshJob!!.cancel()
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
     assertEquals(
@@ -564,6 +565,7 @@ class PreviewRefreshManagerTest {
     // wait for refresh to start and then cancel its "internal" job
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    waitForCondition(5.seconds) { refreshRequest.runningRefreshJob != null }
     refreshRequest.runningRefreshJob!!.cancel()
 
     // wait for the cancel to complete
