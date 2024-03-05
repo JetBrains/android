@@ -47,9 +47,11 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
+  val fontSizeSettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
   val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
   val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(numberOfFontSizes(api) - 1)
   val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
+  val screenDensitySettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
   var resetAction: () -> Unit = {}

@@ -213,7 +213,11 @@ class FakeScreenSharingAgent(
   @Volatile
   var selectToSpeakOn = false
   @Volatile
+  var fontSizeSettable = true
+  @Volatile
   var fontSize = 100
+  @Volatile
+  var screenDensitySettable = true
   @Volatile
   var screenDensity = 480
 
@@ -603,7 +607,7 @@ class FakeScreenSharingAgent(
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
     sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, darkMode, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSize, screenDensity))
+      UiSettingsResponse(message.requestId, darkMode, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSizeSettable, fontSize, screenDensitySettable, screenDensity))
   }
 
   private fun setDarkMode(message: SetDarkModeMessage) {

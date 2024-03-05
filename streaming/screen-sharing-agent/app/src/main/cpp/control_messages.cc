@@ -286,7 +286,9 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   stream.WriteBool(talkback_installed_);
   stream.WriteBool(talkback_on_);
   stream.WriteBool(select_to_speak_on_);
+  stream.WriteBool(font_size_settable_);
   stream.WriteInt32(font_size_);
+  stream.WriteBool(density_settable_);
   stream.WriteInt32(density_);
 }
 

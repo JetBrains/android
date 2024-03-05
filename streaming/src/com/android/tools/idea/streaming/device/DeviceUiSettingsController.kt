@@ -39,7 +39,9 @@ internal class DeviceUiSettingsController(
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
+    model.fontSizeSettable.setFromController(response.fontSizeSettable)
     model.fontSizeInPercent.setFromController(response.fontSize)
+    model.screenDensitySettable.setFromController(response.densitySettable)
     model.screenDensity.setFromController(response.density)
     val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
     languageInfo[response.foregroundApplicationId]?.localeConfig?.let { config ->

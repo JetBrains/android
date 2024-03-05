@@ -685,12 +685,20 @@ public:
     return select_to_speak_on_;
   }
 
+  void set_font_size_settable(bool settable) {
+    font_size_settable_ = settable;
+  }
+
   void set_font_size(int32_t font_size) {
     font_size_ = font_size;
   }
 
   int32_t font_size() {
     return font_size_;
+  }
+
+  void set_density_settable(bool settable) {
+    density_settable_ = settable;
   }
 
   void set_density(int32_t density) {
@@ -712,7 +720,9 @@ private:
   bool talkback_installed_;
   bool talkback_on_;
   bool select_to_speak_on_;
+  bool font_size_settable_;
   int32_t font_size_;
+  bool density_settable_;
   int32_t density_;
 
   DISALLOW_COPY_AND_ASSIGN(UiSettingsResponse);

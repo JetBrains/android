@@ -688,7 +688,9 @@ internal data class UiSettingsResponse(
   val tackBackInstalled: Boolean,
   val talkBackOn: Boolean,
   val selectToSpeakOn: Boolean,
+  val fontSizeSettable: Boolean,
   val fontSize: Int,
+  val densitySettable: Boolean,
   val density: Int
 ) : CorrelatedMessage(TYPE) {
 
@@ -700,7 +702,9 @@ internal data class UiSettingsResponse(
     stream.writeBoolean(tackBackInstalled)
     stream.writeBoolean(talkBackOn)
     stream.writeBoolean(selectToSpeakOn)
+    stream.writeBoolean(fontSizeSettable)
     stream.writeInt(fontSize)
+    stream.writeBoolean(densitySettable)
     stream.writeInt(density)
   }
 
@@ -727,7 +731,9 @@ internal data class UiSettingsResponse(
       val tackBackInstalled = stream.readBoolean()
       val talkBackOn = stream.readBoolean()
       val selectToSpeakOn = stream.readBoolean()
+      val fontSizeSettable = stream.readBoolean()
       val fontSize = stream.readInt()
+      val densitySettable = stream.readBoolean()
       val density = stream.readInt()
       return UiSettingsResponse(
         requestId,
@@ -737,7 +743,9 @@ internal data class UiSettingsResponse(
         tackBackInstalled,
         talkBackOn,
         selectToSpeakOn,
+        fontSizeSettable,
         fontSize,
+        densitySettable,
         density
       )
     }

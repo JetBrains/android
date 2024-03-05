@@ -121,6 +121,11 @@ internal class EmulatorUiSettingsController(
       executeCommand(POPULATE_LANGUAGE_COMMAND.format(context.applicationId), context)
     }
     processAccessibility(context.enabled, context.buttons)
+
+    // Assume all emulators have settable font size and density.
+    // We do not have any OEM system images for our emulators.
+    model.fontSizeSettable.setFromController(true)
+    model.screenDensitySettable.setFromController(true)
   }
 
   private suspend fun executeCommand(command: String, context: CommandContext) {

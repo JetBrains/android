@@ -36,13 +36,15 @@ internal val RUSSIAN_LANGUAGE = AppLanguage("ru", "Russian")
  * - a default value if customValues is false
  * - a predefined custom value different from the default value if customValues is true
  */
-internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean) {
+internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean, settable: Boolean) {
   val darkMode = createAndAddListener(model.inDarkMode, customValues)
   val appLanguage = createAndAddListener(model.appLanguage.selection, if (customValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE)
   val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
   val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
   val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues)
+  val fontSizeSettable = createAndAddListener(model.fontSizeSettable, settable)
   val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+  val densitySettable = createAndAddListener(model.screenDensitySettable, settable)
   val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
 
   /**
@@ -52,7 +54,7 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
    * - a default value if [expectedCustomValues] is false
    * - a predefined custom value different from the default value if [expectedCustomValues] is true
    */
-  fun checkValues(expectedChanges: Int, expectedCustomValues: Boolean) {
+  fun checkValues(expectedChanges: Int, expectedCustomValues: Boolean, expectedSettable: Boolean) {
     assertThat(model.inDarkMode.value).isEqualTo(expectedCustomValues)
     assertThat(darkMode.changes).isEqualTo(expectedChanges)
     assertThat(darkMode.lastValue).isEqualTo(expectedCustomValues)
@@ -72,9 +74,15 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.selectToSpeakOn.value).isEqualTo(expectedCustomValues)
     assertThat(selectToSpeakOn.changes).isEqualTo(expectedChanges)
     assertThat(selectToSpeakOn.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(model.fontSizeSettable.value).isEqualTo(expectedSettable)
+    assertThat(fontSizeSettable.changes).isEqualTo(expectedChanges)
+    assertThat(fontSizeSettable.lastValue).isEqualTo(expectedSettable)
     assertThat(model.fontSizeInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
     assertThat(fontSize.changes).isEqualTo(expectedChanges)
     assertThat(fontSize.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+    assertThat(model.screenDensitySettable.value).isEqualTo(expectedSettable)
+    assertThat(densitySettable.changes).isEqualTo(expectedChanges)
+    assertThat(densitySettable.lastValue).isEqualTo(expectedSettable)
     assertThat(model.screenDensity.value).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
     assertThat(density.changes).isEqualTo(expectedChanges)
     assertThat(density.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)

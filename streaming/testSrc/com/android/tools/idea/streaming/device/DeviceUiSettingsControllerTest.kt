@@ -68,15 +68,15 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = true)
-    listeners.checkValues(expectedChanges = 1, expectedCustomValues = false)
+    val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val listeners = UiControllerListenerValidator(model, customValues = true)
+    val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
-    listeners.checkValues(expectedChanges = 2, expectedCustomValues = false)
+    listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
   }
 
   @Test
@@ -89,8 +89,24 @@ class DeviceUiSettingsControllerTest {
     agent.fontSize = CUSTOM_FONT_SIZE
     agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = false)
-    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true)
+    val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
+  }
+
+  @Test
+  fun testReadCustomValueWithoutFontSizeAndDensity() {
+    agent.darkMode = true
+    agent.appLocales = "da"
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    agent.selectToSpeakOn = true
+    agent.fontSizeSettable = false
+    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.screenDensitySettable = false
+    agent.screenDensity = CUSTOM_DENSITY
+    controller.initAndWait()
+    val listeners = UiControllerListenerValidator(model, customValues = false, settable = true)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = false)
   }
 
   @Test

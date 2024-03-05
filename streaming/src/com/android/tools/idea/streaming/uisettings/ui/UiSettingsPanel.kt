@@ -98,7 +98,7 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButt
             .bindSliderPosition(model.fontSizeIndex)
             .bindSliderMaximum(model.fontSizeMaxIndex)
             .apply { component.name = FONT_SIZE_TITLE }
-        }
+        }.visibleIf(model.fontSizeSettable)
 
         row(label(DENSITY_TITLE)) {
           slider(0, model.screenDensityIndex.value, 1, 1)
@@ -106,7 +106,7 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButt
             .bindSliderPosition(model.screenDensityIndex)
             .bindSliderMaximum(model.screenDensityMaxIndex)
             .apply { component.name = DENSITY_TITLE }
-        }
+        }.visibleIf(model.screenDensitySettable)
 
         if (showResetButton) {
           row(label(RESET_TITLE)) {

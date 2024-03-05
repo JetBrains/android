@@ -273,6 +273,18 @@ void GetApplicationLocales(const vector<string>& application_ids, UiSettingsStat
   ProcessAdbOutput(TrimEnd(output), state, nullptr);
 }
 
+bool IsFontSizeSettable(int32_t font_size) {
+  string command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_size / 100.0f);
+  string error = ExecuteShellCommand(command);
+  return error.empty();
+}
+
+bool IsScreenDensitySettable(int32_t density) {
+  string command = StringPrintf("wm density %d 2>&1 >/dev/null", density);
+  string error = ExecuteShellCommand(command);
+  return error.empty();
+}
+
 } // namespace
 
 void UiSettings::Get(UiSettingsResponse* response) {
@@ -284,6 +296,8 @@ void UiSettings::Get(UiSettingsResponse* response) {
   string foreground_application_id = application_ids.size() == 1 ? application_ids.at(0) : "";
   response->set_foreground_application_id(foreground_application_id);
   response->set_app_locale(state.app_locale_of(foreground_application_id));
+  response->set_font_size_settable(IsFontSizeSettable(state.font_size()));
+  response->set_density_settable(IsScreenDensitySettable(state.density()));
 }
 
 void UiSettings::Get(UiSettingsState* state) {
