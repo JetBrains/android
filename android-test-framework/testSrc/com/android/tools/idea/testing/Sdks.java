@@ -76,7 +76,11 @@ public final class Sdks {
 
   @NotNull
   public static Sdk addAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull AndroidVersion androidPlatformVersion) {
-    Sdk androidSdk = createAndroidSdk(parentDisposable, "SDK", true, androidPlatformVersion);
+    String name = "SDK - " + androidPlatformVersion;
+    Sdk androidSdk = ProjectJdkTable.getInstance().findJdk(name);
+    if (androidSdk == null) {
+      androidSdk = createAndroidSdk(parentDisposable, name, true, androidPlatformVersion);
+    }
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
     return androidSdk;
   }
