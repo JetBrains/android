@@ -64,3 +64,12 @@ object TestUtils {
       minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height
     )
 }
+
+/**
+ * Send the [request] to the refresh manager and wait for it to be actually enqueued.
+ *
+ * Note that it doesn't wait for the request to be actually processed.
+ */
+internal suspend fun PreviewRefreshManager.requestRefreshSync(request: PreviewRefreshRequest) {
+  this.requestRefreshForTest(request).join()
+}
