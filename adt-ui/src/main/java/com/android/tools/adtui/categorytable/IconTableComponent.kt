@@ -16,6 +16,7 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
 import com.intellij.ui.NewUI
@@ -128,7 +129,7 @@ open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
 
   override fun updateIcon() {
     super.updateIcon()
-    disabledIcon = baseIcon?.applyColor(JBColor.namedColor("disabledForeground", JBColor.GRAY))
+    disabledIcon = baseIcon?.let { IconLoader.getDisabledIcon(it) }
   }
 
   fun updateBorder() {
