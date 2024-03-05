@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -52,7 +51,6 @@ import org.jetbrains.annotations.TestOnly;
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
 public class StudioAndroidModuleInfo extends AndroidFacetScopedService implements AndroidModuleInfo {
-  private static final Logger LOG = Logger.getInstance(StudioAndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
