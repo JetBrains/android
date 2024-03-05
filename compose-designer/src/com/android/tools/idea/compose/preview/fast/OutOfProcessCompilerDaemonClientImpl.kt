@@ -137,6 +137,63 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   private val moduleDependenciesClassPathLocator: (Module) -> List<String> =
     ::defaultModuleDependenciesCompileClassPathLocator,
 ) : CompilerDaemonClient {
+  private val daemonClient =
+    OutOfProcessCompilerDaemonClient(
+      version,
+      scope,
+      IdeSdks.getInstance().jdk?.homePath?.let { javaHomePath -> "$javaHomePath/bin/java" }
+        ?: throw IllegalStateException("No SDK found"),
+      ::findDaemonPath,
+      log,
+      StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get(),
+    )
+
+  override val isRunning: Boolean
+    get() = daemonClient.isRunning
+
+  override fun dispose() {
+    daemonClient.destroy()
+  }
+
+  override suspend fun compileRequest(
+    files: Collection<PsiFile>,
+    module: Module,
+    outputDirectory: Path,
+    indicator: ProgressIndicator,
+  ): CompilationResult {
+    indicator.text = "Building classpath"
+    val moduleClassPath = moduleClassPathLocator(module)
+    val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
+
+    return daemonClient.compile(
+      files.map { it.virtualFile.path }.toList(),
+      moduleClassPath,
+      moduleClassPath + moduleDependenciesClassPath,
+      outputDirectory,
+    )
+  }
+}
+
+/**
+ * Kotlin compiler daemon that can be used outside of Android studio for compiling Kotlin source
+ * file on the fly. Can be used for the fast compilation (and afterwards execution) of a small
+ * portion of changing source code in big project.
+ *
+ * @param version the version of the kotlin compiler daemon
+ * @param scope the [CoroutineScope] to be used by the coroutines in the daemon client
+ * @param javaCommand the path to the java executable (e.g. /usr/bin/java)
+ * @param findDaemonPath constructor of the path to the daemon jar accepting daemon version
+ * @param log logger
+ * @param isDebug flag to pass additional command line parameters to make daemon debuggable
+ */
+internal class OutOfProcessCompilerDaemonClient(
+  version: String,
+  private val scope: CoroutineScope,
+  private val javaCommand: String,
+  private val findDaemonPath: (String) -> String,
+  private val log: Logger,
+  private val isDebug: Boolean,
+) {
   private fun getDaemonPath(version: String): String =
     // Prepare fallback versions
     linkedSetOf(
@@ -159,16 +216,13 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   /** Starts the daemon in the given [daemonPath]. */
   private fun startDaemon(daemonPath: String): Process {
     log.info("Starting daemon $daemonPath")
-    val javaCommand =
-      IdeSdks.getInstance().jdk?.homePath?.let { javaHomePath -> "$javaHomePath/bin/java" }
-        ?: throw IllegalStateException("No SDK found")
     return ProcessBuilder()
       .command(
         listOfNotNull(
           javaCommand,
           // This flag can be used to start the daemon in debug mode and debug issues on the daemon
           // JVM.
-          if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
+          if (isDebug) DAEMON_DEBUG_SETTINGS else null,
           "-jar",
           daemonPath,
         )
@@ -241,38 +295,37 @@ internal class OutOfProcessCompilerDaemonClientImpl(
       .apply { start() }
   }
 
-  override suspend fun compileRequest(
-    files: Collection<PsiFile>,
-    module: Module,
+  /**
+   * Method to perform the actual compilation of the files specified by the list of paths with
+   * [inputFilesArgs] using [classPath] jars/classes and with [friendPaths] (classes with visible
+   * internal methods) with the result written to [outputDirectory].
+   */
+  suspend fun compile(
+    inputFilesArgs: List<String>,
+    friendPaths: List<String>,
+    classPath: List<String>,
     outputDirectory: Path,
-    indicator: ProgressIndicator,
   ): CompilationResult {
-    indicator.text = "Building classpath"
-    val moduleClassPath = moduleClassPathLocator(module)
-    val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
-    val classPathString =
-      (moduleClassPath + moduleDependenciesClassPath).joinToString(File.pathSeparator)
+    val classPathString = classPath.joinToString(File.pathSeparator)
     val classPathArgs =
       if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
-
-    val inputFilesArgs = files.map { it.virtualFile.path }.toList()
-    val friendPaths = listOf("-Xfriend-paths=${moduleClassPath.joinToString(",")}")
+    val friendPathsArgs = listOf("-Xfriend-paths=${friendPaths.joinToString(",")}")
     val outputAbsolutePath = outputDirectory.toAbsolutePath().toString()
     val args =
       FIXED_COMPILER_ARGS +
         classPathArgs +
-        friendPaths +
+        friendPathsArgs +
         listOf("-d", outputAbsolutePath) +
         inputFilesArgs
     return compile(args)
   }
 
-  override fun dispose() {
+  fun destroy() {
     channel.close()
     process.destroyForcibly()
   }
 
-  override val isRunning: Boolean
+  val isRunning: Boolean
     get() = !channel.isClosedForSend && process.isAlive
 
   private suspend fun compile(args: List<String>): CompilationResult =
