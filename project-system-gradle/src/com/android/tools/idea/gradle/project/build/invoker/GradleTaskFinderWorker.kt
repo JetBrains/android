@@ -372,7 +372,7 @@ private fun ModuleAndMode.getTasksBy(
     val artifacts =
       mutableListOf<IdeBaseArtifact>().apply {
         addIfNotNull(variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) })
-        // TODO(karimai): Add support ofr Screenshot testCompileType.
+        // TODO(karimai): Add support for Screenshot test.
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { testCompileMode.compileUnitTests })
         addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { testCompileMode.compileAndroidTests })
       }
