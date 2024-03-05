@@ -201,6 +201,29 @@ class NlDesignSurfaceZoomControllerTest {
     Assert.assertFalse(zoomController.canZoomToActual())
   }
 
+  @Test
+  fun `test can zoom to fit`() {
+    val zoomController = createNlDesignSurfaceZoomController()
+
+    repeat((0..3).count()) { zoomController.zoom(ZoomType.OUT) }
+
+    Assert.assertTrue(zoomController.canZoomToFit())
+    Assert.assertTrue(zoomController.zoom(ZoomType.FIT))
+
+    Assert.assertEquals(zoomController.scale, zoomController.getFitScale(), 0.0)
+
+    // We can't apply zoom to fit as we are already in the zoom to fit scale.
+    Assert.assertFalse(zoomController.canZoomToFit())
+
+    // We now zoom in
+    repeat((0..2).count()) { zoomController.zoom(ZoomType.IN) }
+
+    // We can apply zoom to fit again.
+    Assert.assertTrue(zoomController.canZoomToFit())
+    Assert.assertTrue(zoomController.zoom(ZoomType.FIT))
+    Assert.assertFalse(zoomController.canZoomToFit())
+  }
+
   private fun createNlDesignSurfaceZoomController(
     layoutManager: NlDesignSurfacePositionableContentLayoutManager = mock(),
     sceneViewPanelComponents: Collection<PositionableContent> = emptyList(),
