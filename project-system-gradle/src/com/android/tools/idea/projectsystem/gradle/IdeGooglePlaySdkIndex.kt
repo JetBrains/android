@@ -193,7 +193,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
       DataSourceType.CACHE_FILE_EXPIRED_UNKNOWN -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_EXPIRED_UNKNOWN
       DataSourceType.CACHE_FILE_RECENT -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_RECENT
       DataSourceType.CACHE_FILE_NEW -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_NEW
-      DataSourceType.CACHE_FILE_NOT_MODIIFED_SINCE -> SdkIndexLoadingDetails.SourceType.UNKNOWN_SOURCE // TODO(b/328020192)
+      DataSourceType.CACHE_FILE_NOT_MODIIFED_SINCE -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_NOT_MODIFIED
       DataSourceType.DEFAULT_DATA -> SdkIndexLoadingDetails.SourceType.DEFAULT_DATA
     }
   }
