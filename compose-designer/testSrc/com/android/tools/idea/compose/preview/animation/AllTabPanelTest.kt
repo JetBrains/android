@@ -25,7 +25,6 @@ import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
@@ -35,7 +34,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
@@ -46,15 +44,12 @@ class AllTabPanelTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var parentDisposable: Disposable
-
   private lateinit var surface: DesignSurface<*>
 
   private lateinit var panel: AllTabPanel
 
   @Before
   fun setUp() {
-    parentDisposable = Disposer.newDisposable()
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
           projectRule,
@@ -64,14 +59,9 @@ class AllTabPanelTest {
         )
         .build()
     }
-    surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
+    surface = NlDesignSurface.builder(projectRule.project, projectRule.testRootDisposable).build()
     surface.addModelWithoutRender(model)
-    panel = AllTabPanel(parentDisposable)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(parentDisposable)
+    panel = AllTabPanel(projectRule.testRootDisposable)
   }
 
   @Test
