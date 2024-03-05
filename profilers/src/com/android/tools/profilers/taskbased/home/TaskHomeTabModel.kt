@@ -40,7 +40,14 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   private val _isProfilingFromProcessStartOptionEnabled = MutableStateFlow(false)
   val isProfilingFromProcessStartOptionEnabled = _isProfilingFromProcessStartOptionEnabled.asStateFlow()
 
-  var selectionStateOnTaskEnter = SelectionStateOnTaskEnter(ProfilingProcessStartingPoint.UNSPECIFIED, ProfilerTaskType.UNSPECIFIED)
+  /**
+   * The user's selections made at the moment of clicking the start profiler task button. This state needs to be stored as performing a
+   * startup task is an asynchronous operation, and therefore there is a non-zero amount of time in between the user clicking the start
+   * profiler task button and the app actually launching where the user can change their selections.
+   *
+   * Note: Once the selection state is consumed for startup task purposes, the value is reset to null.
+   */
+  var selectionStateOnTaskEnter: SelectionStateOnTaskEnter? = null
 
   val processListModel = ProcessListModel(profilers, this::updateProfilingProcessStartingPointDropdown)
 
@@ -84,11 +91,10 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     _profilingProcessStartingPoint.value = profilingProcessStartingPoint
   }
 
-  fun onStartupTaskStart() {
-    // All startup configurations are disabled to prevent the user from triggering another startup task with the already used config via
-    // the main toolbar's profiler rebuild actions.
-    profilers.ideServices.disableStartupTasks()
-    setSelectionState()
+  fun onStartupTaskStart() = resetSelectionState()
+
+  private fun resetSelectionState() {
+    selectionStateOnTaskEnter = null
   }
 
   private fun setSelectionState() {
@@ -187,8 +193,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
       ProfilingProcessStartingPoint.NOW -> {
         assert(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
-        // If the user clicks to enter the task with startup profiling disabled, startup config selections should be reset.
-        profilers.ideServices.disableStartupTasks()
         profilers.setProcess(selectedDevice!!.device, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
       }
 

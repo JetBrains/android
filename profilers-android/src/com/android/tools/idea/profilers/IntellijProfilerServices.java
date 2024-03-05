@@ -316,12 +316,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
       if (configurationSettings != null &&
           configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
-        // Disable/reset all startup profiling configurations before setting one.
-        disableStartupTasks();
-
         ProfilerState profilerState = androidConfiguration.getProfilerState();
-        profilerState.STARTUP_PROFILING_ENABLED = true;
+        // Disable/reset all startup profiling configurations before setting one.
+        profilerState.disableStartupProfiling();
 
+        profilerState.STARTUP_PROFILING_ENABLED = true;
         if (taskType == ProfilerTaskType.NATIVE_ALLOCATIONS) {
           profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
         }
@@ -338,22 +337,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     // The CpuProfilerConfig technologies are the only profiling configurations allowed to be performed on startup.
     return Arrays.stream(CpuProfilerConfig.Technology.values())
       .anyMatch(value -> value.getName().equals(taskType.getDescription()));
-  }
-
-  @Override
-  public void disableStartupTasks() {
-    RunManager runManager = RunManager.getInstance(myProject);
-    if (runManager != null) {
-      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
-      if (configurationSettings != null &&
-          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
-        ProfilerState profilerState = androidConfiguration.getProfilerState();
-        profilerState.STARTUP_PROFILING_ENABLED = false;
-        profilerState.STARTUP_CPU_PROFILING_ENABLED = false;
-        profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = false;
-        profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = "";
-      }
-    }
   }
 
   @Override

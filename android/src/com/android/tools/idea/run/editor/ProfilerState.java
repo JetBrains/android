@@ -95,6 +95,12 @@ public class ProfilerState {
     myCheckAdvancedProfiling = checkAdvancedProfiling;
   }
 
+  public void disableStartupProfiling() {
+    STARTUP_PROFILING_ENABLED = false;
+    STARTUP_CPU_PROFILING_ENABLED = false;
+    STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = false;
+  }
+
   @NotNull
   public List<ValidationError> validate() {
     List<ValidationError> errors = new LinkedList<>();

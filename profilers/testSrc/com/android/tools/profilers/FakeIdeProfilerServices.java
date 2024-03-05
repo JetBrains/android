@@ -421,11 +421,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void disableStartupTasks() {
-    // No-op.
-  }
-
-  @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     return myNativeProfilingConfigurationPreferred;
   }

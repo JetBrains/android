@@ -333,11 +333,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           TimeRequest.newBuilder().setStreamId(mySelectedSession.getStreamId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
-        if (startupCpuProfilingStarted()) {
-          setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
+        boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+
+        if (isTaskBasedUXEnabled) {
+          if (startupProfilingStarted()) {
+            getTaskHomeTabModel().onStartupTaskStart();
+          }
         }
-        else if (startupMemoryProfilingStarted()) {
-          setStage(new MainMemoryProfilerStage(this));
+        else {
+          if (startupCpuProfilingStarted()) {
+            setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
+          }
+          else if (startupMemoryProfilingStarted()) {
+            setStage(new MainMemoryProfilerStage(this));
+          }
         }
       }
       else {
@@ -563,18 +572,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
-  private void checkAndUpdateStartupTaskStatus() {
-    if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-      return;
-    }
-    // Update the task home tab model state after confirmation that the startup task has already started (the task is alive/ongoing).
-    if (getSessionsManager().isSessionAlive() && getSessionsManager().isCurrentTaskStartup() &&
-        getTaskHomeTabModel().getSelectionStateOnTaskEnter().getProfilingProcessStartingPoint().equals(
-          TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START)) {
-      getTaskHomeTabModel().onStartupTaskStart();
-    }
-  }
-
   @NotNull
   public Common.Stream getStream(long streamId) {
     return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
@@ -632,15 +629,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           TaskHomeTabModel.SelectionStateOnTaskEnter selectionStateOnTaskEnter = getTaskHomeTabModel().getSelectionStateOnTaskEnter();
-          boolean isProfilingFromProcessStart =
+          if (selectionStateOnTaskEnter != null) {
+            boolean isProfilingFromProcessStart =
             selectionStateOnTaskEnter.getProfilingProcessStartingPoint() == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START;
-          ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
-          // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
-          // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
-          // setProcess with the same parameters are harmless, as setProcess prevents starting a session/task with the same device and
-          // process combination when facilitating a startup task.
-          if (findPreferredDevice() != null && isProfilingFromProcessStart && selectedTaskType != ProfilerTaskType.UNSPECIFIED) {
-            setProcess(findPreferredDevice(), null, TaskTypeMappingUtils.convertTaskType(selectedTaskType), true);
+            ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
+            // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
+            // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
+            // setProcess with the same parameters are harmless, as setProcess prevents starting a session/task with the same device and
+            // process combination when facilitating a startup task.
+            if (findPreferredDevice() != null && isProfilingFromProcessStart && selectedTaskType != ProfilerTaskType.UNSPECIFIED) {
+              setProcess(findPreferredDevice(), null, TaskTypeMappingUtils.convertTaskType(selectedTaskType), true);
+            }
           }
         }
 
@@ -649,8 +648,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
 
       mySessionsManager.update();
-
-      checkAndUpdateStartupTaskStatus();
 
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
@@ -881,6 +878,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
+  }
+
+  private boolean startupProfilingStarted() {
+    return startupCpuProfilingStarted() || startupMemoryProfilingStarted();
   }
 
   private boolean startupMemoryProfilingStarted() {
