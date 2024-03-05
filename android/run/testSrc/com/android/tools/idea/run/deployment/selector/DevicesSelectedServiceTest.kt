@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -65,11 +66,13 @@ class DevicesSelectedServiceTest {
     // Favor the more recently connected device over the selected device.
     assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target2)
 
+    val modificationCount = ActivityTracker.getInstance().count
     devicesSelectedService.setTargetSelectedWithComboBox(target1)
     testScope.advanceUntilIdle()
 
     // Now favor the just-selected device
     assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target1)
+    assertThat(ActivityTracker.getInstance().count).isGreaterThan(modificationCount)
   }
 
   @Test

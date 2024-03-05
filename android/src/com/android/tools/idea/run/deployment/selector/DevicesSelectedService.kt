@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -30,9 +31,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -112,6 +115,15 @@ constructor(
         SharingStarted.Eagerly,
         DevicesAndTargets(emptyList(), false, emptyList()),
       )
+
+  init {
+    coroutineScope.launch {
+      devicesAndTargetsFlow
+        .map { it.selectedTargets }
+        .distinctUntilChanged()
+        .collect { ActivityTracker.getInstance().inc() }
+    }
+  }
 
   val devicesAndTargets: DevicesAndTargets
     get() = devicesAndTargetsFlow.value
