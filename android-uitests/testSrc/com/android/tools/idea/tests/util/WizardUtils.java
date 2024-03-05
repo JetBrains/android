@@ -34,6 +34,23 @@ public final class WizardUtils {
   private WizardUtils() {
   }
 
+  public static void createDefaultEmptyActivity(GuiTestRule guiTest) {
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Empty Activity")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterPackageName("com.google.myapplication")
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
+  }
+
   public static void createNewProject(@NotNull GuiTestRule guiTest) {
     createNewProject(guiTest, "Empty Views Activity");
 

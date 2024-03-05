@@ -15,51 +15,54 @@
  */
 package com.android.tools.idea.tests.gui.instantapp
 
-import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.android.tools.idea.tests.util.WizardUtils
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
-class EnableInstantAppTest {
+class BuildInstantAppTest {
 
   @Rule
   @JvmField
   val guiTest: GuiTestRule = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   /**
-   * Verifies - Creating  a project with AIA enabled
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial
-   * changes.
-   * <p>
-   * TT ID: 84f8150d-0319-4e7e-b510-8227890aca3f
+   * Verify imported instant apps can be built without error.
+   *
+   * <p>TT ID: 56be2a70-25a2-4b1f-9887-c19073874aa2
    *
    * <pre>
-   *   Test Steps
-   *   1. Import sample "Google Analytics Example"
-   *      "Google Analytics Example" sample has build errors
-   *      Test creates a new projects and enables the instant apps support.
-   *   2. Run instant app on emulator (Verify 1)
-   *   Verification
-   *   1)  App deploys on emulator without any errors
+   *   Test steps:
+   *   1. Import a sample app project
+   *   2. Refactor > Enable Instant app support > Select app module > OK
+   *   3. After gradle sync, Click the Run configuration drop-down,
+   *      choose "Edit Configuration" and Enable checkbox for "Deploy as instant app"
+   *   Verify:
+   *   1. Build to success
    * </pre>
    */
   @Test
-  fun createProjectAndEnableAIA(){
-    val instantAppSupportUtil = InstantAppSupportUtils()
+  fun testBuildInstantApp(){
+    val instantAppUtil = InstantAppSupportUtils()
 
-    instantAppSupportUtil.createEmptyActivityAndEnableInstantApp(guiTest)
+    instantAppUtil.createEmptyActivityAndEnableInstantApp(guiTest)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
-    Truth.assertThat(instantAppSupportUtil.buildProject(guiTest.ideFrame()))
+    val ideFrame = guiTest.ideFrame()
+    ideFrame.waitUntilProgressBarNotDisplayed()
+
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(ideFrame.robot())
+      .selectDeployAsInstantApp(true)
+      .clickOk();
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    Truth.assertThat(instantAppUtil.buildProject(ideFrame))
       .isTrue()
   }
 }
