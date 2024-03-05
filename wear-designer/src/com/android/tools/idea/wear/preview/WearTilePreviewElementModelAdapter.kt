@@ -53,8 +53,3 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
   ): LightVirtualFile =
     WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
 }
-
-private fun Collection<Device>.findById(deviceDefinition: String): Device? {
-  val id = deviceDefinition.removePrefix("id:")
-  return firstOrNull { it.id == id }
-}
