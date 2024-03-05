@@ -159,7 +159,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1840-0-0-1840");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1080-0-0-1840");
     assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
