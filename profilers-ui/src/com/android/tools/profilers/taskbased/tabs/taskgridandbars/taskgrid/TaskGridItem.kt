@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -41,36 +39,20 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.ICON_SIZE_PX
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import main.utils.UnitConversion.toDpWithCurrentDisplayDensity
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Tooltip
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskGridItem(task: ProfilerTaskType,
-                 isSelectedTask: Boolean,
-                 onTaskSelection: (task: ProfilerTaskType) -> Unit,
-                 isTaskEnabled: Boolean) {
-  // TODO (b/309506699) Give more description as to why it is not supported (because profileable, api level, etc.)
-  val tooltipMessage = if (isTaskEnabled) "Tooltip for ${task.description}" else "${task.description} is not supported"
-
-  val taskIconAndDescription: @Composable () -> Unit = {
-    TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, isTaskEnabled = isTaskEnabled,
-                                  onTaskSelection = onTaskSelection)
-  }
-  taskIconAndDescription.let { if (isTaskEnabled) it() else Tooltip(tooltip = { Text(tooltipMessage) }, content = it) }
+fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
 }
 
 @Composable
-fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType,
-                                  isSelectedTask: Boolean,
-                                  isTaskEnabled: Boolean,
-                                  onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
 
   var isHovered by remember { mutableStateOf(false) }
   Box(
@@ -82,29 +64,26 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType,
         if (isSelectedTask) {
           TASK_SELECTION_BACKGROUND_COLOR
         }
-        else if (isHovered && isTaskEnabled) {
+        else if (isHovered) {
           TASK_HOVER_BACKGROUND_COLOR
         }
         else {
           Color.Transparent
         })
-      .selectable(
-        selected = isSelectedTask,
-        enabled = isTaskEnabled
-      ) {
+      .selectable(selected = isSelectedTask) {
         onTaskSelection(task)
       }
       .onHover { isHovered = it }
       .testTag("TaskGridItem")
   ) {
-    TaskIconAndDescription(task = task, isTaskEnabled = isTaskEnabled, this)
+    TaskIconAndDescription(task = task, this)
   }
 }
 
 @Composable
-fun TaskIconAndDescription(task: ProfilerTaskType, isTaskEnabled: Boolean, boxScope: BoxScope) {
+fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
   val iconSizeDp = ICON_SIZE_PX.toDpWithCurrentDisplayDensity()
-  val taskIcon = if (isTaskEnabled) TaskBasedUxIcons.getTaskIcon(task) else TaskBasedUxIcons.DISABLED_TASK_ICON
+  val taskIcon = TaskBasedUxIcons.getTaskIcon(task)
   with(boxScope) {
     Column(
       modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(20.dp)

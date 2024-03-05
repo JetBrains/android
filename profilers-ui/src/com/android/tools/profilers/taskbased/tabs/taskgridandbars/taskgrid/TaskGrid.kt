@@ -86,7 +86,6 @@ fun TaskGrid(taskGridModel: TaskGridModel,
                 setIsProfilingFromProcessStart(false)
               }
             },
-            isTaskEnabled = true
           )
         }
       }
@@ -106,9 +105,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
           TaskGridItem(
             task = it,
             isSelectedTask = it == selectedTask,
-            onTaskSelection = taskGridModel::onTaskSelection,
-            // If the task item is being rendered, the task should be enabled in the recording-based task grid.
-            isTaskEnabled = true
+            onTaskSelection = taskGridModel::onTaskSelection
           )
         }
       }

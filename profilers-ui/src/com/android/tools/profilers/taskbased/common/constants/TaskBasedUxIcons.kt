@@ -26,8 +26,6 @@ object TaskBasedUxIcons {
   /** The following are the StudioIcons used in the Task-Based UX Profiler. **/
   private const val TASK_ICON_BASE_PATH = "studio/icons/profiler"
 
-  val DISABLED_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sidebar/issue.svg", StudioIcons::class.java,
-                                           StudioIcons.Profiler.Sidebar.ISSUE)
   private val CPU_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/cpu.svg", StudioIcons::class.java,
                                               StudioIcons.Profiler.Sessions.CPU)
   private val ALLOCATIONS_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/allocations.svg", StudioIcons::class.java,
@@ -39,7 +37,7 @@ object TaskBasedUxIcons {
 
   fun getTaskIcon(taskType: ProfilerTaskType): TaskBasedUxIcon {
     return when (taskType) {
-      ProfilerTaskType.UNSPECIFIED -> DISABLED_TASK_ICON
+      ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
       ProfilerTaskType.CALLSTACK_SAMPLE -> CPU_TASK_ICON
       ProfilerTaskType.SYSTEM_TRACE -> CPU_TASK_ICON
       ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> CPU_TASK_ICON
