@@ -89,7 +89,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     val animation = createComposeAnimation()
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     val otherAnimation = createComposeAnimation()
@@ -101,10 +101,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
   }
 
   @Test
-  fun closingInspectorClearsSubscriptions() {
+  fun closingInspectorClearsSubscriptions() = runBlocking {
     createAndOpenInspector()
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
+      .join()
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     ComposePreviewAnimationManager.closeCurrentInspector()

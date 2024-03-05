@@ -44,7 +44,7 @@ open class InspectorTests {
 
   @Before
   open fun setUp() {
-    parentDisposable = projectRule.fixture.testRootDisposable
+    parentDisposable = projectRule.testRootDisposable
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
           projectRule,

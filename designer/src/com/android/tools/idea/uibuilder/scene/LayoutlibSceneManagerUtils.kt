@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.rendering.ExecuteCallbacksResult
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.future.await
 
 /** Suspendable equivalent to [LayoutlibSceneManager.executeCallbacks]. */
@@ -39,3 +40,11 @@ fun LayoutlibSceneManager?.hasValidImage(): Boolean =
   this?.renderResult?.renderedImage?.isValid ?: false
 
 fun LayoutlibSceneManager?.hasRenderErrors(): Boolean = this?.renderResult.isErrorResult()
+
+suspend fun LayoutlibSceneManager.executeInRenderSession(
+  useLongTimeout: Boolean = false,
+  callback: () -> Unit,
+) {
+  this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS)
+    .await()
+}

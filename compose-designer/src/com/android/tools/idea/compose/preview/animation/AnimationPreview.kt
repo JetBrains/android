@@ -17,14 +17,13 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import androidx.compose.animation.tooling.TransitionInfo
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
+import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
+import com.android.tools.idea.compose.preview.animation.managers.SupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
-import com.android.tools.idea.compose.preview.animation.state.AnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -36,11 +35,7 @@ import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.Tooltip
-import com.android.tools.idea.preview.animation.timeline.ElementState
-import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.preview.animation.timeline.TimelineLine
-import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -49,9 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
 import com.intellij.util.io.await
@@ -61,8 +54,6 @@ import java.awt.event.ComponentEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.border.MatteBorder
 import kotlin.math.max
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,10 +68,6 @@ private val LOG = Logger.getInstance(AnimationPreview::class.java)
  * duration allows to interact with timeline even for 0-duration animations.
  */
 private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
-
-// TODO(b/161344747) This value could be dynamic depending on the curve type.
-/** Number of points for one curve. */
-private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the
@@ -185,7 +172,6 @@ class AnimationPreview(
             elementState.value = elementState.value.copy(valueOffset = 0)
           }
         }
-        updateTimelineMaximum()
       }
     }
 
@@ -198,11 +184,7 @@ class AnimationPreview(
    */
   var animationClock: AnimationClock? = null
 
-  private var maxDurationPerIteration = DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
-    set(value) {
-      field = value
-      updateTimelineMaximum()
-    }
+  private var maxDurationPerIteration = MutableStateFlow(DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS)
 
   /** Update list of [TimelineElement] for selected [SupportedAnimationManager]s. */
   private suspend fun updateTimelineElements() {
@@ -280,7 +262,7 @@ class AnimationPreview(
   ) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
-      executeInRenderSessionAsync(longTimeout) {
+      sceneManagerProvider()?.executeInRenderSessionAsync(longTimeout) {
         if (coordinationIsSupported())
           setClockTimes(
             animations.associate {
@@ -333,8 +315,8 @@ class AnimationPreview(
   private fun updateTimelineMaximum() {
     val timelineMax =
       max(
-        animations.maxOfOrNull { it.timelineMaximumMs }?.toLong() ?: maxDurationPerIteration,
-        maxDurationPerIteration,
+        animations.maxOfOrNull { it.timelineMaximumMs }?.toLong() ?: maxDurationPerIteration.value,
+        maxDurationPerIteration.value,
       )
     scope.launch {
       withContext(uiThread) {
@@ -354,8 +336,8 @@ class AnimationPreview(
   private suspend fun updateMaxDuration(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
-    executeInRenderSessionAsync(longTimeout) {
-      maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
+    sceneManagerProvider()?.executeInRenderSessionAsync(longTimeout) {
+      maxDurationPerIteration.value = clock.getMaxDurationMsPerIteration()
     }
   }
 
@@ -384,11 +366,41 @@ class AnimationPreview(
   @UiThread
   private fun createTab(animation: ComposeAnimation): AnimationManager =
     when (animation.type) {
-      ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
+      ComposeAnimationType.ANIMATED_VISIBILITY ->
+        AnimatedVisibilityAnimationManager(
+          animation,
+          tabNames.createName(animation),
+          tracker,
+          animationClock!!,
+          maxDurationPerIteration,
+          previewState,
+          sceneManagerProvider(),
+          tabbedPane,
+          rootComponent,
+          playbackControls,
+          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
+          { updateTimelineMaximum() },
+          scope,
+        )
       ComposeAnimationType.TRANSITION_ANIMATION,
       ComposeAnimationType.ANIMATE_X_AS_STATE,
       ComposeAnimationType.ANIMATED_CONTENT,
-      ComposeAnimationType.INFINITE_TRANSITION -> SupportedAnimationManager(animation)
+      ComposeAnimationType.INFINITE_TRANSITION ->
+        SupportedAnimationManager(
+          animation,
+          tabNames.createName(animation),
+          tracker,
+          animationClock!!,
+          maxDurationPerIteration,
+          previewState,
+          sceneManagerProvider(),
+          tabbedPane,
+          rootComponent,
+          playbackControls,
+          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
+          { updateTimelineMaximum() },
+          scope,
+        )
       ComposeAnimationType.ANIMATED_VALUE,
       ComposeAnimationType.ANIMATABLE,
       ComposeAnimationType.ANIMATE_CONTENT_SIZE,
@@ -435,7 +447,7 @@ class AnimationPreview(
                 .find { it.component == tab.tabComponent }
                 ?.let { tabbedPane.removeTab(it) }
             animations.remove(tab)
-
+            tab.destroy()
             if (animations.size == 0) {
               tabbedPane.removeAllTabs()
               // There are no more tabs. Replace the TabbedPane with the placeholder panel.
@@ -490,364 +502,16 @@ class AnimationPreview(
         if (it != null) {
           // Swing components cannot be placed into different containers, so we add the shared
           // timeline to the active tab on tab change.
-          withContext(uiThread) { it.addTimeline() }
+          withContext(uiThread) {
+            it.addTimeline(timeline)
+            timeline.revalidate()
+          }
           it.loadProperties()
         }
         updateTimelineElements()
       }
     }
-  }
-
-  private fun ComposeAnimation.getCurrentState(): Any? {
-    return when (type) {
-      ComposeAnimationType.TRANSITION_ANIMATION ->
-        animationObject::class
-          .java
-          .methods
-          .singleOrNull { it.name == "getCurrentState" }
-          ?.let {
-            it.isAccessible = true
-            it.invoke(animationObject)
-          } ?: states.firstOrNull()
-      else -> states.firstOrNull()
-    }
-  }
-
-  private inner class AnimatedVisibilityAnimationManager(animation: ComposeAnimation) :
-    SupportedAnimationManager(animation) {
-
-    /**
-     * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation,
-     * and resets the timeline
-     */
-    override suspend fun setup() {
-      stateComboBox.updateStates(animation.states)
-      // Update the animated visibility combo box with the correct initial state, obtained from
-      // PreviewAnimationClock.
-      var state: Any? = null
-      executeInRenderSessionAsync(useLongTimeout = true) {
-        val clock = animationClock ?: return@executeInRenderSessionAsync
-        // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
-        // calling `getAnimatedVisibilityState`
-        // via reflection will return a String rather than an AnimatedVisibilityState. To work
-        // around that, we select the initial combo
-        // box item by checking the display value.
-        state =
-          clock.getAnimatedVisibilityState(animation).let { loadedState ->
-            animation.states.firstOrNull { it.toString() == loadedState.toString() }
-          }
-      }
-
-      stateComboBox.setStartState(state ?: animation.states.firstOrNull())
-
-      // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
-      // we're running off EDT, the UI will not
-      // freeze. This is necessary here because it's the first time the animation mutable states
-      // will be written, when setting the clock,
-      // and read, when getting its duration. These operations take longer than the default 30ms
-      // timeout the first time they're executed.
-      updateAnimatedVisibility(longTimeout = true)
-      loadTransitionFromCacheOrLib(longTimeout = true)
-      loadProperties()
-
-      // Set up the combo box listener so further changes to the selected state will trigger a
-      // call to updateAnimatedVisibility.
-      stateComboBox.callbackEnabled = true
-    }
-  }
-
-  private open inner class SupportedAnimationManager(animation: ComposeAnimation) :
-    AnimationManager(animation, tabNames.createName(animation)) {
-
-    /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
-    var currentTransition = Transition()
-      protected set(value) {
-        field = value
-        // If transition has changed, reset it offset.
-        elementState.value = elementState.value.copy(valueOffset = 0)
-      }
-
-    override val timelineMaximumMs: Int
-      get() = currentTransition.endMillis?.let { max(it + elementState.value.valueOffset, it) } ?: 0
-
-    val stateComboBox = animation.createState(tracker, animation.findCallback())
-
-    /** State of animation, shared between single animation tab and coordination panel. */
-    final override val elementState = MutableStateFlow(ElementState(tabTitle))
-
-    /** [AnimationCard] for coordination panel. */
-    override val card: AnimationCard =
-      AnimationCard(previewState, rootComponent, elementState, stateComboBox.extraActions, tracker)
-        .apply {
-
-          /** [TabInfo] for the animation when it is opened in a new tab. */
-          var tabInfo: TabInfo? = null
-
-          /** Create if required and open the tab. */
-          fun addTabToPane() {
-            if (tabInfo == null) {
-              tabInfo =
-                TabInfo(tabComponent).apply {
-                  text = tabTitle
-                  tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
-                }
-            }
-            tabInfo?.let { tabbedPane.select(it, true) }
-          }
-          this.addOpenInTabListener { addTabToPane() }
-        }
-
-    private val tabScrollPane =
-      JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
-
-    /** [Timeline] parent when animation in new tab is selected. */
-    private val tabTimelineParent = JPanel(BorderLayout())
-
-    val tabComponent =
-      JPanel(TabularLayout("*,Fit", "32px,*")).apply {
-        //    |  playbackControls                            |  toolbar  |
-        //    ------------------------------------------------------------
-        //    |                                                          |
-        //    |                     tabScrollPane                        |
-        //    |                                                          |
-        val toolbar =
-          createToolbarWithNavigation(rootComponent, "State", stateComboBox.extraActions)
-        add(toolbar.component, TabularLayout.Constraint(0, 1))
-        add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
-        tabScrollPane.setViewportView(tabTimelineParent)
-        add(
-          playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))),
-          TabularLayout.Constraint(0, 0),
-        )
-        isFocusable = false
-        focusTraversalPolicy = LayoutFocusTraversalPolicy()
-      }
-
-    private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
-
-    /**
-     * Updates the `initial` and `target` state combo boxes to display the states of the given
-     * animation, and resets the timeline.
-     */
-    override suspend fun setup() {
-      val states: Set<Any> = handleKnownStateTypes(animation.states)
-      val currentState = animation.getCurrentState()
-      stateComboBox.updateStates(states)
-      stateComboBox.setStartState(currentState)
-
-      // Use a longer timeout the first time we're updating the start and end states. Since we're
-      // running off EDT, the UI will not freeze.
-      // This is necessary here because it's the first time the animation mutable states will be
-      // written, when setting the clock, and
-      // read, when getting its duration. These operations take longer than the default 30ms
-      // timeout the first time they're executed.
-      updateAnimationStartAndEndStates(longTimeout = true)
-      loadTransitionFromCacheOrLib(longTimeout = true)
-
-      // Set up the state listeners so further changes to the selected state will trigger a
-      // call to updateAnimationStartAndEndStates.
-      stateComboBox.callbackEnabled = true
-
-      scope.launch {
-        elementState.collect {
-          loadProperties()
-          updateTimelineElements()
-        }
-      }
-    }
-
-    /**
-     * Due to a limitation in the Compose Animation framework, we might not know all the available
-     * states for a given animation, only the initial/current one. However, we can infer all the
-     * states based on the initial one depending on its type, e.g. for a boolean we know the
-     * available states are only `true` or `false`.
-     */
-    private fun handleKnownStateTypes(originalStates: Set<Any>) =
-      when (originalStates.iterator().next()) {
-        is Boolean -> setOf(true, false)
-        else -> originalStates
-      }
-
-    private fun ComposeAnimation.findCallback(): () -> Unit {
-      return when (type) {
-        ComposeAnimationType.TRANSITION_ANIMATION,
-        ComposeAnimationType.ANIMATE_X_AS_STATE,
-        ComposeAnimationType.ANIMATED_CONTENT -> { ->
-            scope.launch {
-              updateAnimationStartAndEndStates()
-              loadTransitionFromCacheOrLib()
-              loadProperties()
-            }
-          }
-        ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
-            scope.launch {
-              updateAnimatedVisibility()
-              loadTransitionFromCacheOrLib()
-              loadProperties()
-            }
-          }
-        ComposeAnimationType.ANIMATED_VALUE,
-        ComposeAnimationType.ANIMATABLE,
-        ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-        ComposeAnimationType.DECAY_ANIMATION,
-        ComposeAnimationType.INFINITE_TRANSITION,
-        ComposeAnimationType.TARGET_BASED_ANIMATION,
-        ComposeAnimationType.UNSUPPORTED -> { -> }
-      }
-    }
-
-    /**
-     * Updates the actual animation in Compose to set its start and end states to the ones selected
-     * in the respective combo boxes.
-     */
-    suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
-      animationClock?.apply {
-        val startState = stateComboBox.getState(0) ?: return
-        val toState = stateComboBox.getState(1) ?: return
-
-        executeInRenderSessionAsync(longTimeout) {
-          updateFromAndToStates(animation, startState, toState)
-        }
-
-        resetTimelineAndUpdateWindowSize(longTimeout)
-      }
-    }
-
-    /**
-     * Updates the actual animation in Compose to set its state based on the selected value of
-     * [stateComboBox].
-     */
-    suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
-      animationClock?.apply {
-        val state = stateComboBox.getState(0) ?: return
-        executeInRenderSessionAsync(longTimeout) { updateAnimatedVisibilityState(animation, state) }
-        resetTimelineAndUpdateWindowSize(longTimeout)
-      }
-    }
-
-    /**
-     * Load transition for current start and end state. If transition was loaded before, the cached
-     * result is used.
-     */
-    suspend fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
-      val stateHash = stateComboBox.stateHashCode()
-
-      cachedTransitions[stateHash]?.let {
-        currentTransition = it
-        return@loadTransitionFromCacheOrLib
-      }
-
-      val clock = animationClock ?: return
-
-      executeInRenderSessionAsync(longTimeout) {
-        val transition = loadTransitionsFromLib(clock)
-        cachedTransitions[stateHash] = transition
-        currentTransition = transition
-      }
-    }
-
-    private fun loadTransitionsFromLib(clock: AnimationClock): Transition {
-      val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
-      val clockTimeMsStep = max(1, maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER)
-
-      fun getTransitions() {
-        val composeTransitions =
-          clock.getTransitionsFunction?.invoke(clock.clock, animation, clockTimeMsStep)
-            as List<TransitionInfo>
-        for ((index, composeTransition) in composeTransitions.withIndex()) {
-          val builder =
-            AnimatedProperty.Builder()
-              .setStartTimeMs(composeTransition.startTimeMillis.toInt())
-              .setEndTimeMs(composeTransition.endTimeMillis.toInt())
-          composeTransition.values
-            .mapValues { ComposeUnit.parseNumberUnit(it.value) }
-            .forEach { (ms, unit) -> unit?.let { builder.add(ms.toInt(), unit) } }
-          builders[index] = builder
-        }
-      }
-
-      fun getAnimatedProperties() {
-        for (clockTimeMs in 0..maxDurationPerIteration step clockTimeMsStep) {
-          clock.setClockTime(clockTimeMs)
-          val properties = clock.getAnimatedProperties(animation)
-          for ((index, property) in properties.withIndex()) {
-            ComposeUnit.parse(property)?.let { unit ->
-              builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
-            }
-          }
-        }
-      }
-
-      try {
-        if (clock.getTransitionsFunction != null) getTransitions() else getAnimatedProperties()
-      } catch (e: Exception) {
-        LOG.warn("Failed to load the Compose Animation properties", e)
-      }
-
-      builders
-        .mapValues { it.value.build() }
-        .let {
-          return Transition(it)
-        }
-    }
-
-    override suspend fun loadProperties() {
-      executeInRenderSessionAsync {
-        animationClock?.apply {
-          try {
-            selectedProperties =
-              getAnimatedProperties(animation).map {
-                ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
-              }
-          } catch (e: Exception) {
-            LOG.warn("Failed to get the Compose Animation properties", e)
-          }
-        }
-      }
-    }
-
-    override fun createTimelineElement(
-      parent: JComponent,
-      minY: Int,
-      positionProxy: PositionProxy,
-    ): TimelineElement {
-      val state = elementState.value
-      return if (state.expanded) {
-        val curve =
-          TransitionCurve.create(
-            state.valueOffset,
-            if (state.frozen) state.frozenValue else null,
-            currentTransition,
-            minY,
-            positionProxy,
-          )
-        selectedPropertiesCallback = { curve.timelineUnits = it }
-        curve.timelineUnits = selectedProperties
-        curve
-      } else
-        TimelineLine(
-          state.valueOffset,
-          if (state.frozen) state.frozenValue else null,
-          currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
-            ?: (positionProxy.minimumXPosition()),
-          currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
-            ?: positionProxy.minimumXPosition(),
-          minY,
-          positionProxy,
-        )
-    }
-
-    /**
-     * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing
-     * component can't be added as a child of multiple components simultaneously. Therefore, this
-     * method needs to be called everytime we change tabs.
-     */
-    @UiThread
-    fun addTimeline() {
-      tabTimelineParent.add(timeline, BorderLayout.CENTER)
-      timeline.revalidate()
-      tabScrollPane.revalidate()
-    }
+    scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
   }
 
   /**
@@ -875,17 +539,12 @@ class AnimationPreview(
       dragEndListeners.add { updateTimelineMaximum() }
     }
   }
+}
 
-  private suspend fun executeInRenderSessionAsync(
-    useLongTimeout: Boolean = false,
-    callback: () -> Unit,
-  ) {
-    sceneManagerProvider()
-      ?.executeInRenderSessionAsync(
-        { callback() },
-        if (useLongTimeout) 5L else 0L,
-        TimeUnit.SECONDS,
-      )
-      ?.await()
-  }
+suspend fun LayoutlibSceneManager.executeInRenderSessionAsync(
+  useLongTimeout: Boolean = false,
+  callback: () -> Unit,
+) {
+  this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS)
+    .await()
 }

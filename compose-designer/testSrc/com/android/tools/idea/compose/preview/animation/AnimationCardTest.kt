@@ -65,11 +65,11 @@ class AnimationCardTest {
           layoutAndDispatchEvents()
         }
       }
-    var stateChanges = -1
+    var stateChanges = 0
     val job = launch { card.state.collect { stateChanges++ } }
 
     // collector above will collect once even without any user action
-    delayUntilCondition(200) { stateChanges == 0 }
+    delayUntilCondition(200) { stateChanges == 1 }
 
     withContext(uiThread) {
       // Expand/collapse button.
@@ -81,7 +81,8 @@ class AnimationCardTest {
         ui.updateToolbars()
         ui.layoutAndDispatchEvents()
         // Expand/collapse button clicked
-        assertEquals(1, stateChanges)
+        delayUntilCondition(200) { stateChanges == 2 }
+        assertEquals(2, stateChanges)
       }
       // Transition name label.
       (card.components[0] as JComponent).components[1].also {
@@ -106,11 +107,13 @@ class AnimationCardTest {
         ui.clickOn(freezeButton)
         ui.updateToolbars()
         // Freeze button clicked
-        assertEquals(2, stateChanges)
+        delayUntilCondition(200) { stateChanges == 3 }
+        assertEquals(3, stateChanges)
         freezeButton = findFreezeButton(card)
         ui.clickOn(freezeButton)
         // Freeze button clicked
-        assertEquals(3, stateChanges)
+        delayUntilCondition(200) { stateChanges == 4 }
+        assertEquals(4, stateChanges)
       }
       // Double click to open in new tab. Use label position just to make sure we are not clicking
       // on any button.

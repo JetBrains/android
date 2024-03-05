@@ -42,6 +42,8 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
 
   override suspend fun setup() {}
 
+  override fun destroy() {}
+
   override val timelineMaximumMs = 0
 
   override fun createTimelineElement(
