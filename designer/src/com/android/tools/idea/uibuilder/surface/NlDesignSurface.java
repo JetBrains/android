@@ -49,7 +49,6 @@ import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ScenesOwner;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
@@ -482,7 +481,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       this::getPositionableContent,
       getAnalyticsManager(),
       getSelectionModel(),
-      (ScenesOwner) this,
+      this,
       maxFitIntoZoomLevel
     );
     myZoomController.setOnScaleListener(this);
