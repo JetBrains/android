@@ -260,6 +260,8 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-compiler_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-runtime_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
