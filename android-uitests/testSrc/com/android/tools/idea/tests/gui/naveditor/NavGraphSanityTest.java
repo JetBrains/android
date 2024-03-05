@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertTrue;
 
@@ -43,16 +42,16 @@ public class NavGraphSanityTest {
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = 30;
+  protected static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;
 
-  NlEditorFixture editorFixture;
+  NlEditorFixture myNlEditorFixture;
   private EditorFixture myEditorFixture;
 
   @Before
   public void setUp() {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -68,11 +67,11 @@ public class NavGraphSanityTest {
     myEditorFixture.open("app/src/main/res/navigation/nav_graph.xml", EditorFixture.Tab.DESIGN);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editorFixture = myEditorFixture
+    myNlEditorFixture = myEditorFixture
       .getLayoutEditor()
       .waitForSurfaceToLoad();
 
-    assertThat(editorFixture.canInteractWithSurface()).isTrue();
+    assertThat(myNlEditorFixture.canInteractWithSurface()).isTrue();
   }
 
   /**
@@ -102,20 +101,20 @@ public class NavGraphSanityTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void verifyAttibutePanel(){
-    editorFixture.waitForRenderToFinish()
+    myNlEditorFixture.waitForRenderToFinish()
       .getAttributesPanel()
       .waitForId("nav_graph")
       .findSectionByName("navigation");
 
     //Asserting label in default section
-    List<String> mainSectionsNames = editorFixture.waitForRenderToFinish()
+    List<String> mainSectionsNames = myNlEditorFixture.waitForRenderToFinish()
       .getAttributesPanel().waitForId("nav_graph").listAllLabels();
     assertTrue(mainSectionsNames.contains("id"));
     assertTrue(mainSectionsNames.contains("label"));
     assertTrue(mainSectionsNames.contains("startDestination"));
 
     //Asserting scrollable section header names
-    List<String> scrollableSectionsNames = editorFixture.waitForRenderToFinish()
+    List<String> scrollableSectionsNames = myNlEditorFixture.waitForRenderToFinish()
       .getAttributesPanel().waitForId("nav_graph").listSectionNames();
     assertTrue(scrollableSectionsNames.contains("Argument Default Values"));
     assertTrue(scrollableSectionsNames.contains("Global Actions"));
@@ -145,15 +144,15 @@ public class NavGraphSanityTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void verifyZoomPanButtons() {
-    editorFixture.waitForRenderToFinish();
+    myNlEditorFixture.waitForRenderToFinish();
 
-    double originalScale = editorFixture.getScale();
-    editorFixture.zoomIn();
-    editorFixture.zoomIn(); //Doing it twice to reduce flakiness
-    double zoomInScale = editorFixture.getScale();
-    editorFixture.zoomOut();
-    editorFixture.zoomOut(); //Doing it twice to reduce flakiness
-    double zoomOutScale = editorFixture.getScale();
+    double originalScale = myNlEditorFixture.getScale();
+    myNlEditorFixture.zoomIn();
+    myNlEditorFixture.zoomIn(); //Doing it twice to reduce flakiness
+    double zoomInScale = myNlEditorFixture.getScale();
+    myNlEditorFixture.zoomOut();
+    myNlEditorFixture.zoomOut(); //Doing it twice to reduce flakiness
+    double zoomOutScale = myNlEditorFixture.getScale();
 
     System.out.println("***** Original scale: " + originalScale);
     System.out.println("***** Scale after Zoom In click: " + zoomInScale);
@@ -162,7 +161,7 @@ public class NavGraphSanityTest {
     assertThat(zoomInScale).isGreaterThan(originalScale);
     assertThat(zoomOutScale).isLessThan(zoomInScale);
 
-    assertTrue(editorFixture.panButtonPresent());
+    assertTrue(myNlEditorFixture.panButtonPresent());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
@@ -182,8 +181,8 @@ public class NavGraphSanityTest {
    *   4. Use the keyboard keys (Verify 1)
    *      Zoom in : Ctrl + Plus or  Cmd + Plus for mac
    *      Zoom Out: Ctrl + Minus or  Cmd + Minus for mac
-   *      Zoom to 100% : Ctrl + / or  Cmd + / for mac
-   *      Zoom to Fit : Ctrl + 0 (zero) or  Cmd + 0 (zero) for mac
+   *      Zoom to 100% : Ctrl + . or  Cmd + . for mac
+   *      Zoom to Fit : Ctrl + / or  Cmd + / for mac
    *
    *   Verify:
    *   1. Zoom and Pan controls located on the bottom right.
@@ -194,33 +193,38 @@ public class NavGraphSanityTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void verifyZoomShortcutKeysFunctionality() {
-    editorFixture.waitForRenderToFinish();
-    assertTrue(editorFixture.panButtonPresent());
-    double originalScale = editorFixture.getScale();
+    myNlEditorFixture.waitForRenderToFinish();
+    assertTrue(myNlEditorFixture.panButtonPresent());
+    double originalScale = myNlEditorFixture.getScale();
     System.out.println("***** Original scale: " + originalScale);
 
-    editorFixture.zoomInByShortcutKeys();
-    editorFixture.zoomInByShortcutKeys(); //Doing it twice to reduce flakiness
-    double zoomInScale =  editorFixture.getScale();
+    myNlEditorFixture.zoomInByShortcutKeys();
+    myNlEditorFixture.zoomInByShortcutKeys(); //Doing it twice to reduce flakiness
+    double zoomInScale =  myNlEditorFixture.getScale();
     System.out.println("***** Scale after Zoom In shortcutKeys: " + zoomInScale);
     assertThat(zoomInScale).isGreaterThan(originalScale);
 
-    editorFixture.zoomOutByShortcutKeys();
-    double zoomOutScale = editorFixture.getScale();
+    myNlEditorFixture.zoomto100PercentByShortcutKeys();
+    myNlEditorFixture.zoomto100PercentByShortcutKeys(); //Doing it twice to reduce flakiness
+    double zoom100PercentScale = myNlEditorFixture.getScale();
+    System.out.println("***** Scale after Zoom to 100% shortcutKeys: " + zoom100PercentScale);
+    assertThat(zoom100PercentScale).isEqualTo(1.0);
+
+    myNlEditorFixture.zoomOutByShortcutKeys();
+    myNlEditorFixture.zoomOutByShortcutKeys();
+    myNlEditorFixture.zoomOutByShortcutKeys();
+    myNlEditorFixture.zoomOutByShortcutKeys();
+    double zoomOutScale = myNlEditorFixture.getScale();
     System.out.println("***** Scale after Zoom out shortcutKeys: " + zoomOutScale);
-    assertThat(zoomOutScale).isLessThan(zoomInScale);
+    assertThat(zoomOutScale).isLessThan(zoom100PercentScale);
 
-    editorFixture.zoomto100PercentByShortcutKeys();
-    double zoomScale = editorFixture.getScale();
-    System.out.println("***** Scale after Zoom to 100% shortcutKeys: " + zoomScale);
-    assertThat(zoomInScale).isEqualTo(1.0);
+    myNlEditorFixture.zoomtoFitByShortcutKeys();
+    myNlEditorFixture.zoomtoFitByShortcutKeys(); //Doing it twice to reduce flakiness
+    double zoomToFitScale = myNlEditorFixture.getScale();
+    System.out.println("***** Scale after Zoom to fit shortcutKeys: " + zoomToFitScale);
+    assertThat(zoomToFitScale).isGreaterThan(zoomOutScale);
 
-    editorFixture.zoomtoFitByShortcutKeys();
-    zoomScale = editorFixture.getScale();
-    System.out.println("***** Scale after Zoom to fit shortcutKeys: " + zoomScale);
-    assertThat(zoomScale).isNotEqualTo(1.0);
-
-    assertTrue(editorFixture.panButtonPresent());
+    assertTrue(myNlEditorFixture.panButtonPresent());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }

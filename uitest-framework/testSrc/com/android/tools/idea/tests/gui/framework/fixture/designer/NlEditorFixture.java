@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.TestCase.assertTrue;
 import static org.fest.swing.awt.AWT.translate;
 
@@ -190,6 +191,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
       robot().pressAndReleaseKey(keyEvent);
       robot().releaseKey(KeyEvent.VK_CONTROL);
     }
+    robot().waitForIdle();
   }
 
   public void zoomOutByShortcutKeys() {
@@ -203,7 +205,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   public void zoomto100PercentByShortcutKeys() {
-    pressControlKeyAndOtherKey(KeyEvent.VK_0);
+    pressControlKeyAndOtherKey(KeyEvent.VK_PERIOD);
   }
 
   public boolean panButtonPresent() {
