@@ -222,7 +222,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
-    val taskIcon = TaskBasedUxIcons.getTaskIcon(taskType).swingIcon
+    val taskIcon = TaskBasedUxIcons.getTaskIcon(taskType)
     if (taskTab != null) {
       taskTab.displayName = taskName
       window.getContentManager().setSelectedContent(taskTab)

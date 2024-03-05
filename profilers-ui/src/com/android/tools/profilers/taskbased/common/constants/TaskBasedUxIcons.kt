@@ -21,52 +21,74 @@ import icons.StudioIcons
 import javax.swing.Icon
 
 object TaskBasedUxIcons {
-  data class TaskBasedUxIcon(val path: String, val iconClass: Class<*>, val swingIcon: Icon)
+  data class TaskBasedUxIcon(val path: String, val iconClass: Class<*>)
 
   /** The following are the StudioIcons used in the Task-Based UX Profiler. **/
-  private const val TASK_ICON_BASE_PATH = "studio/icons/profiler"
+  private const val LARGE_TASK_ICON_BASE_PATH = "studio/icons/profiler/taskslarge/"
 
-  private val CPU_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/cpu.svg", StudioIcons::class.java,
-                                              StudioIcons.Profiler.Sessions.CPU)
-  private val ALLOCATIONS_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/allocations.svg", StudioIcons::class.java,
-                                                      StudioIcons.Profiler.Sessions.ALLOCATIONS)
-  private val HEAP_DUMP_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/heap.svg", StudioIcons::class.java,
-                                                    StudioIcons.Profiler.Sessions.HEAP)
-  private val LIVE_VIEW_TASK_ICON = TaskBasedUxIcon("studio/icons/shell/filetree/library-unknown.svg", StudioIcons::class.java,
-                                                    StudioIcons.Shell.Filetree.LIBRARY_UNKNOWN)
+  private val LARGE_CALLSTACK_SAMPLE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/callstack-sample-large.svg",
+                                                                 StudioIcons::class.java)
+  private val LARGE_SYSTEM_TRACE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/system-trace-large.svg", StudioIcons::class.java)
+  private val LARGE_JAVA_KOTLIN_METHOD_TRACE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/java-kotlin-method-trace-large.svg",
+                                                                         StudioIcons::class.java)
+  private val LARGE_JAVA_KOTLIN_METHOD_SAMPLE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/callstack-sample-large.svg",
+                                                                          StudioIcons::class.java)
+  private val LARGE_HEAP_DUMP_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/heap-dump-large.svg", StudioIcons::class.java)
+  private val LARGE_NATIVE_ALLOCATIONS_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/native-allocations-large.svg",
+                                                                   StudioIcons::class.java)
+  private val LARGE_JAVA_KOTLIN_ALLOCATIONS_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/java-kotlin-allocations-large.svg",
+                                                                        StudioIcons::class.java)
+  private val LARGE_LIVE_VIEW_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/live-view-large.svg", StudioIcons::class.java)
 
-  fun getTaskIcon(taskType: ProfilerTaskType): TaskBasedUxIcon {
+  /**
+   * Utility to fetch the corresponding large task icon for a task type. To be used in the task selection grid.
+   */
+  fun getLargeTaskIcon(taskType: ProfilerTaskType): TaskBasedUxIcon {
     return when (taskType) {
       ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
-      ProfilerTaskType.CALLSTACK_SAMPLE -> CPU_TASK_ICON
-      ProfilerTaskType.SYSTEM_TRACE -> CPU_TASK_ICON
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> CPU_TASK_ICON
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> CPU_TASK_ICON
-      ProfilerTaskType.HEAP_DUMP -> HEAP_DUMP_TASK_ICON
-      ProfilerTaskType.NATIVE_ALLOCATIONS -> ALLOCATIONS_TASK_ICON
-      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> ALLOCATIONS_TASK_ICON
-      ProfilerTaskType.LIVE_VIEW -> LIVE_VIEW_TASK_ICON
+      ProfilerTaskType.CALLSTACK_SAMPLE -> LARGE_CALLSTACK_SAMPLE_TASK_ICON
+      ProfilerTaskType.SYSTEM_TRACE -> LARGE_SYSTEM_TRACE_TASK_ICON
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> LARGE_JAVA_KOTLIN_METHOD_TRACE_TASK_ICON
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> LARGE_JAVA_KOTLIN_METHOD_SAMPLE_TASK_ICON
+      ProfilerTaskType.HEAP_DUMP -> LARGE_HEAP_DUMP_TASK_ICON
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> LARGE_NATIVE_ALLOCATIONS_TASK_ICON
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> LARGE_JAVA_KOTLIN_ALLOCATIONS_TASK_ICON
+      ProfilerTaskType.LIVE_VIEW -> LARGE_LIVE_VIEW_TASK_ICON
+    }
+  }
+
+  /**
+   * Utility to fetch the corresponding task icon for a task type. To be used for the task tab icon.
+   */
+  fun getTaskIcon(taskType: ProfilerTaskType): Icon {
+    return when (taskType) {
+      ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
+      ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIcons.Profiler.Tasks.CALLSTACK_SAMPLE
+      ProfilerTaskType.SYSTEM_TRACE -> StudioIcons.Profiler.Tasks.SYSTEM_TRACE
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_METHOD_TRACE
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> StudioIcons.Profiler.Tasks.CALLSTACK_SAMPLE
+      ProfilerTaskType.HEAP_DUMP -> StudioIcons.Profiler.Tasks.HEAP_DUMP
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIcons.Profiler.Tasks.NATIVE_ALLOCATIONS
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_ALLOCATIONS
+      ProfilerTaskType.LIVE_VIEW -> StudioIcons.Profiler.Tasks.LIVE_VIEW
     }
   }
 
   // The settings icon is used as a button to invoke the task configuration dialog.
-  val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java, StudioIcons.Common.SETTINGS)
+  val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java)
 
   // The garbage icon is used for the delete recording button.
-  val DELETE_RECORDING_ICON = TaskBasedUxIcon("studio/icons/common/delete.svg", StudioIcons::class.java, StudioIcons.Common.DELETE)
+  val DELETE_RECORDING_ICON = TaskBasedUxIcon("studio/icons/common/delete.svg", StudioIcons::class.java)
 
   // The android head icon to indicate the preferred process
-  val ANDROID_HEAD_ICON = TaskBasedUxIcon("studio/icons/common/android-head.svg", StudioIcons::class.java, StudioIcons.Common.ANDROID_HEAD)
+  val ANDROID_HEAD_ICON = TaskBasedUxIcon("studio/icons/common/android-head.svg", StudioIcons::class.java)
 
   // Recording screen icons.
-  val RECORDING_IN_PROGRESS_ICON = TaskBasedUxIcon("studio/icons/profiler/toolbar/stop-recording.svg", StudioIcons::class.java,
-                                                   StudioIcons.Profiler.Toolbar.STOP_RECORDING)
+  val RECORDING_IN_PROGRESS_ICON = TaskBasedUxIcon("studio/icons/profiler/toolbar/stop-recording.svg", StudioIcons::class.java)
 
   /** The following are the AllIcons used in the Task-Based UX Profiler. **/
-  val IMPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/import.svg", AllIcons::class.java,
-                                              AllIcons.ToolbarDecorator.Import)
-  val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java,
-                                              AllIcons.ToolbarDecorator.Export)
+  val IMPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/import.svg", AllIcons::class.java)
+  val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java)
 
   /** The following are values used for enabled and disabled icon buttons. **/
   const val ENABLED_ICON_ALPHA = 1.0f

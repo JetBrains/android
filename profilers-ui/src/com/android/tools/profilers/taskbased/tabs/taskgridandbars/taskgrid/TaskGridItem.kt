@@ -83,7 +83,7 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 @Composable
 fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
   val iconSizeDp = ICON_SIZE_PX.toDpWithCurrentDisplayDensity()
-  val taskIcon = TaskBasedUxIcons.getTaskIcon(task)
+  val taskIcon = TaskBasedUxIcons.getLargeTaskIcon(task)
   with(boxScope) {
     Column(
       modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(20.dp)
