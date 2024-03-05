@@ -85,8 +85,8 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     }
   override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
-  override val info: AndroidModuleInfo
-    get() = StudioAndroidModuleInfo.getInstance(facet)
+  override val info: AndroidModuleInfo?
+    get() = if (facet.isDisposed) null else StudioAndroidModuleInfo.getInstance(facet)
   override val androidPlatform: AndroidPlatform?
     get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
