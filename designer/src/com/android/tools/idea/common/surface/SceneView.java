@@ -16,9 +16,6 @@
 package com.android.tools.idea.common.surface;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.resources.ScreenRound;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
@@ -37,11 +34,7 @@ import com.intellij.util.ui.JBInsets;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,52 +42,6 @@ import org.jetbrains.annotations.Nullable;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView implements Disposable {
-  /**
-   * Policy for determining the {@link Shape} of a {@link SceneView}.
-   */
-  public interface ShapePolicy {
-    @Nullable Shape getShape(@NotNull SceneView sceneView);
-  }
-
-  /**
-   * A {@link ShapePolicy} that uses the device configuration shape.
-   */
-  public static final ShapePolicy DEVICE_CONFIGURATION_SHAPE_POLICY = sceneView -> {
-    Device device = sceneView.getConfiguration().getCachedDevice();
-    if (device == null) {
-      return null;
-    }
-
-    Screen screen = device.getDefaultHardware().getScreen();
-    if (screen.getScreenRound() != ScreenRound.ROUND) {
-      return null;
-    }
-
-    Dimension size = sceneView.getScaledContentSize();
-
-    int chin = screen.getChin();
-    int originX = sceneView.getX();
-    int originY = sceneView.getY();
-    if (chin == 0) {
-      // Plain circle
-      return new Ellipse2D.Double(originX, originY, size.width, size.height);
-    }
-    else {
-      int height = size.height * chin / screen.getYDimension();
-      Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
-      Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
-      a1.subtract(a2);
-      return a1;
-    }
-  };
-
-  /**
-   * A {@link ShapePolicy} that a square size. The size is determined from the rendered size.
-   */
-  public static final ShapePolicy SQUARE_SHAPE_POLICY = sceneView -> {
-    Dimension size = sceneView.getScaledContentSize();
-    return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
-  };
 
   @NotNull private final DesignSurface<?> mySurface;
   @NotNull private final SceneManager myManager;

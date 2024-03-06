@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
-import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
+import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 

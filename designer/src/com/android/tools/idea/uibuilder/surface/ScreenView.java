@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.common.surface.ShapePolicyKt.DEVICE_CONFIGURATION_SHAPE_POLICY;
+import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -28,6 +29,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.common.surface.ShapePolicy;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;

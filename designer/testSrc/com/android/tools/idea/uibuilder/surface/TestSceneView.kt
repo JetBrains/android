@@ -19,6 +19,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension

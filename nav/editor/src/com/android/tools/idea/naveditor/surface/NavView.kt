@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 
 /**
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].

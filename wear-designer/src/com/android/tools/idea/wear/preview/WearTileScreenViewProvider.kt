@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.idea.common.surface.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
@@ -54,7 +55,7 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
             }
             .build()
         }
-        .withShapePolicy { SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY.getShape(it) }
+        .withShapePolicy (DEVICE_CONFIGURATION_SHAPE_POLICY)
         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
         .build()
 
