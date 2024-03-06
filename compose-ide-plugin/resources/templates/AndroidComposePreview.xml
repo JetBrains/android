@@ -7,8 +7,8 @@
             toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="ANDROID_KOTLIN" value="true" />
+      <option name="ANDROID_KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
 
@@ -22,14 +22,13 @@
     <variable name="TYPE" expression="" defaultValue="" alwaysStopAt="true"/>
     <variable name="DATA" expression="" defaultValue="" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_CLASS" value="false"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
-      <option name="KOTLIN_EXPRESSION" value="false"/>
-      <option name="KOTLIN_OBJECT_DECLARATION" value="false"/>
-      <option name="KOTLIN_STATEMENT" value="false"/>
+      <option name="ANDROID_KOTLIN" value="true" />
+      <option name="ANDROID_KOTLIN_CLASS" value="false"/>
+      <option name="ANDROID_KOTLIN_COMMENT" value="false"/>
+      <option name="ANDROID_KOTLIN_EXPRESSION" value="false"/>
+      <option name="ANDROID_KOTLIN_OBJECT_DECLARATION" value="false"/>
+      <option name="ANDROID_KOTLIN_STATEMENT" value="false"/>
     </context>
   </template>
   <!-- endregion -->
 </templateSet>
-

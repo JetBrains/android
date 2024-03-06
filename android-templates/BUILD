@@ -65,6 +65,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ] + glob(["testData/**"]),
+    test_friends = ["//tools/adt/idea/android-templates:intellij.android.templates"],
     test_srcs = ["testSrc"],
     test_tags = [],
     test_timeout = "long",
@@ -100,6 +101,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
