@@ -1368,18 +1368,7 @@ private class AggregationRow(override val packageName: String = "",
   }
 
   override fun getLogcat(device: AndroidDevice): String {
-    return allChildren.fold("") { acc, result ->
-      val logcat = (result as? AndroidTestResults)?.getLogcat(device)
-      if (logcat.isNullOrBlank()) {
-        acc
-      } else {
-        if (acc.isBlank()) {
-          logcat
-        } else {
-          "${acc}\n${logcat}"
-        }
-      }
-    }
+    return ""
   }
 
   override fun getStartTime(device: AndroidDevice): Long? {

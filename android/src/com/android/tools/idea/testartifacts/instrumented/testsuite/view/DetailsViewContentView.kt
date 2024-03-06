@@ -66,6 +66,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
   @VisibleForTesting val myRetentionView: RetentionView
   @VisibleForTesting val myRetentionTab: TabInfo
+  @VisibleForTesting val logsTab: TabInfo
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
@@ -89,9 +90,9 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_LOG,
       DefaultActionGroup(*myLogsView.createConsoleActions()),
       false)
-    logViewToolbar.setTargetComponent(myLogsView.component)
+    logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
-    val logsTab = TabInfo(logsViewWithVerticalToolbar)
+    logsTab = TabInfo(logsViewWithVerticalToolbar)
     logsTab.text = "Logs"
     logsTab.tooltipText = "Show logcat output"
     tabs.addTab(logsTab)
@@ -268,10 +269,10 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     needsRefreshLogsView = false
     myLogsView.clear()
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
-      myLogsView.print("No logcat output for this device.",
-                       ConsoleViewContentType.NORMAL_OUTPUT)
+      logsTab.isHidden = true
       return
     }
+    logsTab.isHidden = false
     if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
