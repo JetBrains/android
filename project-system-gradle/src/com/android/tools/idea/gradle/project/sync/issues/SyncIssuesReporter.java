@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilterKt;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.studiobot.StudioBot;
@@ -164,7 +165,9 @@ public class SyncIssuesReporter {
       ) {
         @Override
         protected void execute(@NotNull Project project) {
-          studioBot.chat(project).stageChatQuery("Explain gradle sync issue: " + message, StudioBot.RequestSource.SYNC);
+          ExplainBuildErrorFilterKt.sendChatQueryIfContextAllowed(studioBot, project,
+                                                                  "Explain gradle sync issue: " + message,
+                                                                  StudioBot.RequestSource.SYNC);
         }
       });
     }

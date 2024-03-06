@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkWithSeparatorText
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
+import com.intellij.openapi.project.Project
 
 class ExplainBuildErrorFilter : Filter {
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
@@ -39,7 +41,17 @@ class ExplainBuildErrorFilter : Filter {
     val studioBot = StudioBot.getInstance()
     return Filter.Result(
       listOf(ResultItem(linkStart, linkStart + linkPrefix.length) { project ->
-        studioBot.chat(project).stageChatQuery("Explain build error: $message", StudioBot.RequestSource.BUILD)
+        studioBot.sendChatQueryIfContextAllowed(project, "Explain build error: $message", StudioBot.RequestSource.BUILD)
       }))
+  }
+}
+
+fun StudioBot.sendChatQueryIfContextAllowed(project: Project, query: String, requestSource: StudioBot.RequestSource) {
+  if (isContextAllowed(project)) {
+    val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
+    chat(project).sendChatQuery(prompt, requestSource)
+  }
+  else {
+    chat(project).stageChatQuery(query, requestSource)
   }
 }

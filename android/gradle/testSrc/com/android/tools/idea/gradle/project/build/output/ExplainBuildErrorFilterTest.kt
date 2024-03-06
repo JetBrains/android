@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.SafePrompt
 import com.android.tools.idea.testing.disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -38,15 +39,24 @@ class ExplainBuildErrorFilterTest {
 
       var lastQuery: String? = null
       var lastSource: StudioBot.RequestSource? = null
+      var sendQueryInvoked: Boolean = false
 
       override fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {
         lastQuery = prompt
         lastSource = requestSource
       }
+
+      override fun sendChatQuery(prompt: SafePrompt, requestSource: StudioBot.RequestSource, displayText: String?) {
+        lastQuery = prompt.messages.first().toString()
+        lastSource = requestSource
+        sendQueryInvoked = true
+      }
     }
 
   private val studioBot =
     object : StudioBot.StubStudioBot() {
+      var isContextSharingAllowed: Boolean = false
+      override fun isContextAllowed(project: Project): Boolean = isContextSharingAllowed
       override fun chat(project: Project): ChatService = chatService
     }
 
@@ -67,11 +77,33 @@ class ExplainBuildErrorFilterTest {
       >> Ask Studio Bot Expecting an element
     """
         .trimIndent()
+    studioBot.isContextSharingAllowed = false
     val result = filter.applyFilter(output, output.length)!!.resultItems[0]
     assertEquals(output.indexOf(">> Ask Stu"), result.highlightStartOffset)
     assertEquals(output.lastIndexOf(" Expecting an"), result.highlightEndOffset)
     result.hyperlinkInfo!!.navigate(projectRule.project)
     assertEquals("Explain build error: Expecting an element", chatService.lastQuery)
     assertEquals(StudioBot.RequestSource.BUILD, chatService.lastSource)
+    assertEquals(false, chatService.sendQueryInvoked)
+  }
+
+  @Test
+  fun `send query immediately if context sharing allowed`() {
+    val filter = ExplainBuildErrorFilter()
+    val output =
+      """
+      e: file:///Users/someone/AndroidStudioProjects/MyApplication31/app/build.gradle.kts:11:24: Expecting an element
+
+      >> Ask Studio Bot Expecting an element
+    """
+        .trimIndent()
+    studioBot.isContextSharingAllowed = true
+    val result = filter.applyFilter(output, output.length)!!.resultItems[0]
+    assertEquals(output.indexOf(">> Ask Stu"), result.highlightStartOffset)
+    assertEquals(output.lastIndexOf(" Expecting an"), result.highlightEndOffset)
+    result.hyperlinkInfo!!.navigate(projectRule.project)
+    assertEquals("UserMessage(chunks=[TextChunk(text=Explain build error: Expecting an element, filesUsed=[])])", chatService.lastQuery)
+    assertEquals(StudioBot.RequestSource.BUILD, chatService.lastSource)
+    assertEquals(true, chatService.sendQueryInvoked)
   }
 }
