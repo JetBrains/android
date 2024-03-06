@@ -37,23 +37,25 @@ class ShowFilesUnknownToCMakeActionTest {
       .enterPackageName("dev.tools")
       .wizard()
       .clickNext()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240))
-
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
+    val ideFrame = guiTest.ideFrame()
+    ideFrame.waitUntilProgressBarNotDisplayed()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Add an unused C file
     val unusedFile1 = guiTest.projectPath.resolve("app/src/main/cpp/unused1.c")
     unusedFile1.writeText("int i1 = 1;")
 
-    val ideFrame = guiTest.ideFrame()
     ideFrame.requestProjectSyncAndWaitForSyncToFinish()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val projectView = ideFrame.projectView
     val androidPane = projectView.selectAndroidPane()
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     androidPane.clickPath("app", "cpp")
 
     // Turn off show unused files
     projectView.showOptionsMenu()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     // Add a new file inside the IDE
@@ -70,14 +72,14 @@ class ShowFilesUnknownToCMakeActionTest {
     ideFrame.editor
       .enterText("int i2 = 1;")
       .invokeAction(EditorFixture.EditorAction.SAVE)
-    GuiTests.waitForBackgroundTasks(ideFrame.robot())
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     // Check that the new file is shown
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
 
     // And the new file should be hidden after sync since it's not used.
     ideFrame.requestProjectSync()
-    GuiTests.waitForBackgroundTasks(ideFrame.robot())
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isFalse()
 
