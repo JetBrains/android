@@ -30,6 +30,7 @@ import com.android.tools.idea.preview.TestPreviewRefreshRequest
 import com.android.tools.idea.preview.requestRefreshSync
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
+import com.android.tools.idea.preview.waitUntilRefreshStarts
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -166,7 +167,7 @@ class CommonPreviewRepresentationTest {
       // unblock the refresh manager
       TestPreviewRefreshRequest.expectedLogPrintCount.await()
       TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
-      waitForCondition(5.seconds) { blockingRefresh.runningRefreshJob != null }
+      blockingRefresh.waitUntilRefreshStarts()
       blockingRefresh.runningRefreshJob!!.cancel()
       TestPreviewRefreshRequest.expectedLogPrintCount.await()
       assertEquals(
