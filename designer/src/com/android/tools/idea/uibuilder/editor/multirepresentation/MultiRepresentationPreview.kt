@@ -251,7 +251,7 @@ open class MultiRepresentationPreview(
     representationNeverShown = false
   }
 
-  private fun validateCurrentRepresentationName() {
+  private fun updateCurrentRepresentationName() {
     synchronized(representations) {
       if (representations.isEmpty()) {
         currentRepresentationName = ""
@@ -329,7 +329,7 @@ open class MultiRepresentationPreview(
 
     withContext(uiThread) {
       // update current if it was deleted
-      validateCurrentRepresentationName()
+      updateCurrentRepresentationName()
 
       // Only show the bar if there is more than one representation with previews to be shown.
       representationSelectionToolbar.isVisible =
