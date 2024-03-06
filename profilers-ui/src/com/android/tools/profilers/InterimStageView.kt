@@ -53,4 +53,6 @@ class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageV
   }
 
   override fun getToolbar() = JPanel()
+
+  override fun isToolbarVisible() = false
 }
