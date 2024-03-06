@@ -76,17 +76,9 @@ class ImportLogcatActionTest {
       override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
     }
 
-    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
-      return object : FileChooserDialog {
-        @Deprecated("Deprecated in Java", ReplaceWith("NA"))
-        override fun choose(toSelect: VirtualFile?, project: Project?) = TODO("Not yet implemented")
-
-        override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
-          return arrayOf(virtualFile)
-        }
+    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog =
+      object : FileChooserDialog {
+        override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> = arrayOf(virtualFile)
       }
-    }
   }
-
-
 }
