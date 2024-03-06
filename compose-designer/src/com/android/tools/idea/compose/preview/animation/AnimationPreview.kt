@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
-import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
+import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.SupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
@@ -127,7 +127,7 @@ class AnimationPreview(
   }
 
   /** List of [AnimationManager], so all animation cards that are displayed in inspector. */
-  @VisibleForTesting val animations = mutableListOf<AnimationManager>()
+  @VisibleForTesting val animations = mutableListOf<ComposeAnimationManager>()
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
@@ -279,9 +279,10 @@ class AnimationPreview(
   }
 
   /**
-   * Creates and adds [AnimationManager] for given [ComposeAnimation] to the panel.
+   * Creates and adds [ComposeAnimationManager] for given [ComposeAnimation] to the panel.
    *
-   * If this animation was already added, removes old [AnimationManager] first. Repaints panel.
+   * If this animation was already added, removes old [ComposeAnimationManager] first. Repaints
+   * panel.
    */
   fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
@@ -355,7 +356,7 @@ class AnimationPreview(
    * should be used.
    */
   @UiThread
-  private fun createTab(animation: ComposeAnimation): AnimationManager =
+  private fun createTab(animation: ComposeAnimation): ComposeAnimationManager =
     when (animation.type) {
       ComposeAnimationType.ANIMATED_VISIBILITY ->
         AnimatedVisibilityAnimationManager(
@@ -401,9 +402,9 @@ class AnimationPreview(
         UnsupportedAnimationManager(animation, tabNames.createName(animation))
     }
 
-  /** Adds an [AnimationManager] card to [coordinationTab]. */
+  /** Adds an [ComposeAnimationManager] card to [coordinationTab]. */
   @UiThread
-  private fun addTab(animationTab: AnimationManager) {
+  private fun addTab(animationTab: ComposeAnimationManager) {
     val isAddingFirstTab = tabbedPane.tabCount == 0
     coordinationTab.addCard(animationTab.card)
     animations.add(animationTab)
@@ -423,7 +424,7 @@ class AnimationPreview(
   }
 
   /**
-   * Removes the [AnimationManager] card and tab corresponding to the given [animation] from
+   * Removes the [ComposeAnimationManager] card and tab corresponding to the given [animation] from
    * [tabbedPane].
    */
   fun removeAnimation(animation: ComposeAnimation) =

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
-import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.StateFlow
 
-/** Card displayed in [AllTabPanel]. Each [ComposeAnimation] represented by one [Card]. */
+/** Card displayed in [AllTabPanel]. Each animation represented by one [Card]. */
 interface Card {
   /** [Card] component what should be added to the layout. */
   val component: JPanel
@@ -35,6 +34,6 @@ interface Card {
   /** The size of the [Card] after it expands. */
   var expandedSize: Int
 
-  /** Set duration of the [ComposeAnimation]. */
+  /** Set duration of the animation. */
   fun setDuration(durationMillis: Int?)
 }

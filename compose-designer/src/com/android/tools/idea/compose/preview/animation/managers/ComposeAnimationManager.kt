@@ -17,25 +17,18 @@ package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.AnimationPreview
-import com.android.tools.idea.compose.preview.animation.Card
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.preview.animation.timeline.ElementState
-import com.android.tools.idea.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import javax.swing.JComponent
-import kotlinx.coroutines.flow.StateFlow
+import com.android.tools.idea.preview.animation.AnimationManager
 
 /**
- * [AnimationManager] is handling the state of one subscribed [animation]. Each [animation] is
- * represented by one row in coordination panel. Supported animation types could also be opened in a
- * new tab. All supported managers are part of [AnimationPreview].
+ * [ComposeAnimationManager] is handling the state of one subscribed [animation]. Each [animation]
+ * is represented by one row in coordination panel. Supported animation types could also be opened
+ * in a new tab. All supported managers are part of [AnimationPreview].
  */
-abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: String) {
-  /** State of the [TimelineElement] for the [animation]. */
-  abstract val elementState: StateFlow<ElementState>
-
-  /** [Card] for the current animation in the coordination panel. */
-  abstract val card: Card
+abstract class ComposeAnimationManager(
+  val animation: ComposeAnimation,
+  override val tabTitle: String,
+) : AnimationManager {
 
   /** Callback when [selectedProperties] has been changed. */
   var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
@@ -49,21 +42,6 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
       selectedPropertiesCallback(value)
     }
 
-  /** [TimelineElement] for the current transition displayed in the timeline. */
-  abstract fun createTimelineElement(
-    parent: JComponent,
-    minY: Int,
-    positionProxy: PositionProxy,
-  ): TimelineElement
-
   /** Called everytime if [selectedProperties] should be updated. */
   abstract suspend fun loadProperties()
-
-  /** Initial setup for this animation before adding it to the panel. */
-  abstract suspend fun setup()
-
-  abstract fun destroy()
-
-  /** Maximum ms for [currentTransition] required in the timeline. */
-  abstract val timelineMaximumMs: Int
 }

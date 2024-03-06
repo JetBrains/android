@@ -34,7 +34,6 @@ import com.android.tools.idea.compose.preview.animation.state.AnimationState.Com
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
-import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
@@ -84,11 +83,11 @@ open class SupportedAnimationManager(
   val resetCallback: suspend (Boolean) -> Unit,
   val updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
-) : AnimationManager(animation, tabTitle) {
+) : ComposeAnimationManager(animation, tabTitle) {
 
   protected val scope = parentScope.createChildScope(tabTitle)
 
-  override fun destroy() {
+  override suspend fun destroy() {
     scope.cancel("AnimationManager is destroyed")
   }
 

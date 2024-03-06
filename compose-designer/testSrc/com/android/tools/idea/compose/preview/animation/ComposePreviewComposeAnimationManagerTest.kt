@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeA
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
+import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
@@ -64,7 +64,8 @@ import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
-class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : InspectorTests() {
+class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType) :
+  InspectorTests() {
 
   private fun getClock() = clockType.getClock()
 
@@ -122,19 +123,20 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
+    val clock = getClock()
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After subscribing an animation, we should display the tabbedPane
     val anotherAnimation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), anotherAnimation).join()
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, anotherAnimation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(2, inspector.tabCount())
 
     // After unsubscribing from one animation, animation panel still shown.
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
@@ -150,7 +152,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     assertEquals(0, inspector.tabCount())
 
     // After subscribing again to the animation, we should display the tabbedPane
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
@@ -529,15 +531,15 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     }
 
     assertEquals(11, inspector.animations.size)
-    assertInstanceOf<AnimationManager>(inspector.animations[0])
+    assertInstanceOf<ComposeAnimationManager>(inspector.animations[0])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
-    assertInstanceOf<AnimationManager>(inspector.animations[2])
+    assertInstanceOf<ComposeAnimationManager>(inspector.animations[2])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[3])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[4])
-    assertInstanceOf<AnimationManager>(inspector.animations[5])
-    assertInstanceOf<AnimationManager>(inspector.animations[6])
+    assertInstanceOf<ComposeAnimationManager>(inspector.animations[5])
+    assertInstanceOf<ComposeAnimationManager>(inspector.animations[6])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[7])
-    assertInstanceOf<AnimationManager>(inspector.animations[8])
+    assertInstanceOf<ComposeAnimationManager>(inspector.animations[8])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[9])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[10])
   }

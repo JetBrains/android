@@ -20,6 +20,7 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.preview.animation.AnimationPreviewState
+import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl

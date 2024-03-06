@@ -19,6 +19,7 @@ import com.android.annotations.TestOnly
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable

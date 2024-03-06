@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.animation.AnimationPreviewState
+import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.util.createToolbarWithNavigation

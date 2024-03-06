@@ -26,9 +26,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** [AnimationManager] for unsupported animations. */
+/** [ComposeAnimationManager] for unsupported animations. */
 class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
-  AnimationManager(animation, title) {
+  ComposeAnimationManager(animation, title) {
 
   /**
    * State of animation, shared between single animation tab and coordination panel. All callbacks
@@ -42,7 +42,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
 
   override suspend fun setup() {}
 
-  override fun destroy() {}
+  override suspend fun destroy() {}
 
   override val timelineMaximumMs = 0
 

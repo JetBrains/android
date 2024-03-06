@@ -25,7 +25,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class UnsupportedAnimationManagerTest {
+class UnsupportedComposeAnimationManagerTest {
 
   val animation = TestUtils.createComposeAnimation("Label")
 
