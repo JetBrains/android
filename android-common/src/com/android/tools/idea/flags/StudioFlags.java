@@ -1822,6 +1822,12 @@ public final class StudioFlags {
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
                     false);
 
+  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
+    new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
+                    "Use ML model to suggest commit messages",
+                    "Enables the \"Suggest Commit Message\" button in the Commit tool window",
+                    false);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
