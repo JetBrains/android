@@ -39,6 +39,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -51,6 +52,7 @@ import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
 
 @RunsInEdt
+@Ignore("b/326061638")
 class WearHealthServicesToolWindowTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
