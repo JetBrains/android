@@ -24,8 +24,6 @@ object TaskBasedUxDimensions {
 
   // Size of each Task grid item in the Task selection grid. This includes both the task icon and title.
   val TASK_WIDTH_DP = 150.dp
-  // Size of the task grid item icon.
-  const val ICON_SIZE_PX = 75
 
   // Common table dimensions
   val TABLE_ROW_HEIGHT_DP = 24.dp

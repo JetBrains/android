@@ -38,10 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.ICON_SIZE_PX
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import main.utils.UnitConversion.toDpWithCurrentDisplayDensity
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -82,7 +80,6 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 
 @Composable
 fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
-  val iconSizeDp = ICON_SIZE_PX.toDpWithCurrentDisplayDensity()
   val taskIcon = TaskBasedUxIcons.getLargeTaskIcon(task)
   with(boxScope) {
     Column(
@@ -92,7 +89,7 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
         resource = taskIcon.path,
         iconClass = taskIcon.iconClass,
         contentDescription = task.description,
-        modifier = Modifier.size(iconSizeDp).align(Alignment.CenterHorizontally)
+        modifier = Modifier.align(Alignment.CenterHorizontally)
       )
       Text(
         text = task.description,
