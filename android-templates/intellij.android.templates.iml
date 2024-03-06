@@ -44,5 +44,7 @@
     <orderEntry type="module" module-name="kotlin.base.plugin" />
     <orderEntry type="module" module-name="kotlin.base.project-structure" />
     <orderEntry type="module" module-name="kotlin.base.facet" />
+    <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" />
+    <orderEntry type="module" module-name="kotlin.base.util" />
   </component>
 </module>
