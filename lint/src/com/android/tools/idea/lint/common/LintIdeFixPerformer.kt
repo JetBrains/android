@@ -195,7 +195,9 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
           return arrayOf(ShowUrlQuickFix(fix))
         }
         is DataMap -> {
-          error("A DataMap fix should only be used with inspections that override `getQuickFixes`")
+          error(
+            "A DataMap fix should only be used with inspections that override `getQuickFixes` (issue id: ${incident.issue.id})"
+          )
         }
       }
 

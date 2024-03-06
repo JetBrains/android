@@ -55,6 +55,7 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.lang.properties.PropertiesFileType
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -82,6 +83,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
   companion object {
     const val INCLUDE_IDEA_SUPPRESS_ACTIONS = false
+
+    private val LOG = Logger.getInstance(LintExternalAnnotator::class.java)
 
     init {
       LintClient.clientName = LintClient.CLIENT_STUDIO
@@ -323,26 +326,30 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val tooltip = XmlStringUtil.wrapInHtml(descriptionRef + messageHtml + moreLink)
       var builder =
         holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
-      val fixes =
-        inspection.getAllFixes(
-          startElement,
-          endElement,
-          incident,
-          message,
-          quickfixData,
-          fixProviders,
-          issue,
-        )
-      for (fix in fixes) {
-        if (
-          fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)
-        ) {
-          val smartRange =
-            fix.range
-              ?: SmartPointerManager.getInstance(project)
-                .createSmartPsiFileRangePointer(file, range)
-          builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+      try {
+        val fixes =
+          inspection.getAllFixes(
+            startElement,
+            endElement,
+            incident,
+            message,
+            quickfixData,
+            fixProviders,
+            issue,
+          )
+        for (fix in fixes) {
+          if (
+            fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)
+          ) {
+            val smartRange =
+              fix.range
+                ?: SmartPointerManager.getInstance(project)
+                  .createSmartPsiFileRangePointer(file, range)
+            builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+          }
         }
+      } catch (ex: Exception) {
+        LOG.error("Exception thrown while creating quick-fixes for issue id ${issue.id}", ex)
       }
       for (intention in inspection.getIntentions(startElement, endElement)) {
         builder = builder.withFix(intention)
