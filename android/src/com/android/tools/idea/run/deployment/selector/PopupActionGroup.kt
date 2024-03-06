@@ -20,11 +20,14 @@ import com.android.tools.idea.run.deployment.Heading
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 
 internal class ActionGroupSection(val headingActionId: String?, val actions: List<AnAction>)
 
 internal fun DefaultActionGroup.addSection(section: ActionGroupSection) {
-  section.headingActionId?.let { ActionManager.getInstance().getAction(it) }?.let { add(it) }
+  section.headingActionId
+    ?.let { ActionManager.getInstance().getAction(it) }
+    ?.let { add(Separator(it.templateText)) }
   addAll(section.actions)
 }
 

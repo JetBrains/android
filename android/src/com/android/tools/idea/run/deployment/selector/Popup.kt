@@ -26,7 +26,6 @@ import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.ui.popup.list.PopupListElementRenderer
 import com.intellij.util.ui.StartupUiUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
@@ -70,10 +69,6 @@ internal class Popup(group: ActionGroup, context: DataContext, runnable: Runnabl
       selected: Boolean,
     ) {
       super.customizeComponent(list, value, selected)
-      if (value.action is Heading) {
-        myTextLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.MINI))
-        return
-      }
       myTextLabel.setFont(StartupUiUtil.labelFont)
     }
   }

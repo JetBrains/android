@@ -47,7 +47,7 @@ class ActionGroupSectionTest {
         ActionGroupSection(Heading.AVAILABLE_DEVICES_ID, listOf(action2)),
       )
     assertThat(group.getChildren(null).map { it::class })
-      .containsExactly(action1::class, Separator::class, Heading::class, action2::class)
+      .containsExactly(action1::class, Separator::class, Separator::class, action2::class)
       .inOrder()
   }
 }
