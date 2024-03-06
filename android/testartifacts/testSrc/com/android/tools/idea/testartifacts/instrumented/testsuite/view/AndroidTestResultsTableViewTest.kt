@@ -263,24 +263,6 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(5).getLogcat(device2)).isEqualTo("logcatF")
   }
 
-  @Ignore("b/319145240")
-  @Test
-  fun add1000TestCases() {
-    val table = AndroidTestResultsTableView(
-      mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
-    val device1 = device("deviceId1", "deviceName1")
-    val device2 = device("deviceId2", "deviceName2")
-    table.addDevice(device1)
-    table.addDevice(device2)
-    val start = System.currentTimeMillis()
-    for (i in 1..1000) {
-      table.addTestCase(device1, AndroidTestCase("testid$i", "method$i", "class$i", "package$i", logcat="logcat$i"))
-      table.addTestCase(device2, AndroidTestCase("testid$i", "method$i", "class$i", "package$i", logcat="logcat$i"))
-    }
-    val end = System.currentTimeMillis()
-    println("${(end-start)/1000}s") // current value: 64 s
-  }
-
   @Test
   fun addTestResultsWithBenchmark() {
     val table = AndroidTestResultsTableView(
