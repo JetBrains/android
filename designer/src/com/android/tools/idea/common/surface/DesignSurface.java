@@ -952,10 +952,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return getZoomController().canZoomOut();
   }
 
-  public Map<SceneView, Rectangle> findSceneViewRectangles() {
-    return mySceneViewPanel.findSceneViewRectangles();
-  }
-
   public Rectangle getCurrentScrollRectangle() {
     if (myScrollPane == null) return null;
     return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());

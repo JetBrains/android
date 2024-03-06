@@ -928,6 +928,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return mySceneViewPanel.getPositionableContent();
   }
 
+  public Map<SceneView, Rectangle> findSceneViewRectangles() {
+    return mySceneViewPanel.findSceneViewRectangles();
+  }
+
   @Override
   public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
     return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
