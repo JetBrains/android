@@ -93,9 +93,6 @@ class AnimationPreview(
 
   private val previewState =
     object : AnimationPreviewState {
-      override fun isCoordinationAvailable(): Boolean =
-        animationClock?.coordinationIsSupported() == true
-
       override fun isCoordinationPanelOpened(): Boolean = selectedAnimation.value == null
 
       override val currentTime
@@ -260,17 +257,14 @@ class AnimationPreview(
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
       sceneManagerProvider()?.executeInRenderSessionAsync(longTimeout) {
-        if (coordinationIsSupported())
-          setClockTimes(
-            animations.associate {
-              val newTime =
-                (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
-                else clockTimeMs) - it.elementState.value.valueOffset
-              it.animation to newTime
-            }
-          )
-        // Fall back to `setClockTime` if coordination is nor available.
-        else setClockTime(clockTimeMs)
+        setClockTimes(
+          animations.associate {
+            val newTime =
+              (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
+              else clockTimeMs) - it.elementState.value.valueOffset
+            it.animation to newTime
+          }
+        )
       }
 
       // Load all properties.

@@ -36,10 +36,8 @@ val NoopComposeAnimationTracker =
 
 object TestUtils {
 
-  fun testPreviewState(withCoordination: Boolean = true) =
+  fun testPreviewState() =
     object : AnimationPreviewState {
-      override fun isCoordinationAvailable() = withCoordination
-
       override val currentTime: Int
         get() = 0
     }

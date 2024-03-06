@@ -30,10 +30,8 @@ object TestUtils {
   private const val TEST_ELEMENT_HEIGHT = 10
   private const val TEST_ELEMENT_ROW_HEIGHT = 100
 
-  private fun testPreviewState(withCoordination: Boolean = true) =
+  private fun testPreviewState() =
     object : AnimationPreviewState {
-      override fun isCoordinationAvailable() = withCoordination
-
       override val currentTime: Int
         get() = 0
     }

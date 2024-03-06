@@ -189,13 +189,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   /** Element currently hovered or dragged. */
   var activeElement: TimelineElement? = null
     private set(value) {
-      field =
-        if (
-          timeline.previewState.isCoordinationAvailable() &&
-            COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()
-        )
-          value
-        else null
+      field = if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) value else null
     }
 
   private fun moreThanOneTimelineElementInPanel() = elements.size > 1

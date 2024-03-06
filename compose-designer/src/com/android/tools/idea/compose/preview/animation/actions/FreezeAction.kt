@@ -54,12 +54,8 @@ class FreezeAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    if (e.presentation.isEnabled != previewState.isCoordinationAvailable()) {
-      e.presentation.isEnabled = previewState.isCoordinationAvailable()
-      e.presentation.text =
-        if (previewState.isCoordinationAvailable()) message("animation.inspector.action.freeze")
-        else message("animation.inspector.coordination.unavailable.freeze.animation")
-    }
+    e.presentation.isEnabled = true
+    e.presentation.text = message("animation.inspector.action.freeze")
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

@@ -34,7 +34,6 @@ import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -115,24 +114,6 @@ class BottomPanelTest(
     }
 
   @Test
-  fun `reset button is disabled if coordination is not available`(): Unit =
-    runBlocking(uiThread) {
-      if (!enableCoordinationDrag) return@runBlocking
-      val panel = createBottomPanel(false)
-      val ui =
-        FakeUi(panel.parent).apply {
-          updateToolbars()
-          layout()
-        }
-      (panel.components[0] as Container).components[2].also {
-        // Reset button.
-        assertTrue(it.isVisible)
-        assertFalse(it.isEnabled)
-        TestUtils.assertBigger(minimumSize, it.size)
-      }
-    }
-
-  @Test
   fun `no reset button if coordination drag is not available`(): Unit =
     runBlocking(uiThread) {
       if (enableCoordinationDrag) return@runBlocking
@@ -187,12 +168,10 @@ class BottomPanelTest(
     }
 
   /** Create [BottomPanel] with 300x500 size. */
-  private fun createBottomPanel(withCoordination: Boolean = true): BottomPanel {
+  private fun createBottomPanel(): BottomPanel {
     val panel =
       BottomPanel(
         object : AnimationPreviewState {
-          override fun isCoordinationAvailable() = withCoordination
-
           override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
 
           override val currentTime: Int

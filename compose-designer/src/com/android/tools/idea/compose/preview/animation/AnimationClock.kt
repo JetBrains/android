@@ -21,12 +21,6 @@ import java.lang.reflect.Method
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Returns true if coordination is supported by the clock. In that case clock time could be set
- * individually for each animation.
- */
-internal fun AnimationClock.coordinationIsSupported() = setClockTimesFunction != null
-
-/**
  * Returns a list of the given [ComposeAnimation]'s animated properties. The properties are wrapped
  * into a [ComposeAnimatedProperty] object containing the property label and the corresponding value
  * at the current time.

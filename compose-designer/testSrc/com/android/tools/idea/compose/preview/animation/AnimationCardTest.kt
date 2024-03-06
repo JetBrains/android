@@ -32,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -126,38 +125,6 @@ class AnimationCardTest {
       job.cancel()
     }
   }
-
-  @Test
-  fun `create animation card if coordination is not available`(): Unit =
-    runBlocking(uiThread) {
-      val card =
-        AnimationCard(
-            TestUtils.testPreviewState(false),
-            Mockito.mock(DesignSurface::class.java),
-            MutableStateFlow(ElementState("Title")),
-            emptyList(),
-            NoopComposeAnimationTracker,
-          )
-          .apply {
-            setDuration(111)
-            setSize(300, 300)
-          }
-      val ui =
-        FakeUi(card).apply {
-          updateToolbars()
-          layout()
-        }
-
-      // Lock button is not available.
-      findFreezeButton(card).also {
-        // Button is here and visible.
-        assertTrue(it.isVisible)
-        assertFalse(it.isEnabled)
-        TestUtils.assertBigger(minimumSize, it.size)
-      }
-      // Uncomment to preview ui.
-      // ui.render()
-    }
 
   private fun findFreezeButton(parent: Component): Component {
     return parent.findToolbar("AnimationCard").components[0]
