@@ -38,6 +38,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
@@ -97,12 +98,12 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     // Note: the original DeviceManager does this in UI thread, but this may call
     // @Slow methods so switch
     withContext(workerThread) {
-      avdManagerConnection.quickBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
+      avdManagerConnection.quickBoot(project, avdInfo, DIRECT_DEVICE_MANAGER).await()
     }
 
   override suspend fun coldBootAvd(avdInfo: AvdInfo): Unit =
     withContext(workerThread) {
-      avdManagerConnection.coldBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
+      avdManagerConnection.coldBoot(project, avdInfo, DIRECT_DEVICE_MANAGER).await()
     }
 
   override suspend fun bootAvdFromSnapshot(
@@ -111,7 +112,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   ): Unit =
     withContext(workerThread) {
       val snapshotPath = snapshot.path.fileName.toString()
-      avdManagerConnection.bootWithSnapshot(project, avdInfo, snapshotPath, INDIRECT)
+      avdManagerConnection.bootWithSnapshot(project, avdInfo, snapshotPath, INDIRECT).await()
     }
 
   override suspend fun stopAvd(avdInfo: AvdInfo) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.deviceprovisioner
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -42,6 +43,8 @@ suspend fun runCatchingDeviceActionException(
 ) {
   try {
     block()
+  } catch (e: DeviceActionCanceledException) {
+    logger<DeviceAction>().info(e.message)
   } catch (e: DeviceActionException) {
     logger<DeviceAction>().warn(e)
     withContext(AndroidDispatchers.uiThread) { Messages.showErrorDialog(project, e.message, title) }

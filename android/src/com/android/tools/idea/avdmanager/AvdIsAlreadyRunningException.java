@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
-final class AvdIsAlreadyRunningException extends RuntimeException {
+final class AvdIsAlreadyRunningException extends DeviceActionException {
   AvdIsAlreadyRunningException(@NotNull AvdInfo avd) {
     super(avd.getDisplayName() + " is already running. If that is not the case, delete " + avd.getDataFolderPath() + File.separatorChar +
           "*.lock and try again.");

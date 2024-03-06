@@ -53,6 +53,8 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.PathFileWrapper;
+import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException;
+import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -531,7 +533,7 @@ public class AvdManagerConnection {
   public @NotNull ListenableFuture<IDevice> startAvd(
       @Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType, @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
-      return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
+      return Futures.immediateFailedFuture(new DeviceActionException("No Android SDK Found"));
     }
     assert mySdkHandler != null;
 
@@ -560,6 +562,9 @@ public class AvdManagerConnection {
       @NotNull AvdInfo info,
       @NotNull RequestType requestType,
       @NotNull EmulatorCommandBuilderFactory factory) {
+    if (!code.getProblem().isEmpty()) {
+      IJ_LOG.warn(String.format("Launching %s: %s: %s", info.getName(), code, code.getProblem()));
+    }
     switch (code) {
       case ALREADY_INSTALLED:
         return continueToStartAvd(project, info, requestType, factory);
@@ -594,7 +599,7 @@ public class AvdManagerConnection {
     Path emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
-      return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
+      return Futures.immediateFailedFuture(new DeviceActionException("No emulator binary found"));
     }
 
     avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
@@ -621,7 +626,7 @@ public class AvdManagerConnection {
     }
     catch (ExecutionException e) {
       IJ_LOG.error("Error launching emulator", e);
-      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s", avdName), e));
+      return Futures.immediateFailedFuture(new DeviceActionException(String.format("Error launching emulator %1$s", avdName), e));
     }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise, show it.
@@ -818,7 +823,7 @@ public class AvdManagerConnection {
                                                             @NotNull RequestType requestType,
                                                             @NotNull AccelerationErrorCode code) {
     if (code.getSolution().equals(SolutionCode.NONE)) {
-      return Futures.immediateFailedFuture(new RuntimeException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
+      return Futures.immediateFailedFuture(new DeviceActionException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
@@ -853,14 +858,14 @@ public class AvdManagerConnection {
                                                                @NotNull RequestType requestType,
                                                                @NotNull AccelerationErrorCode code) {
     if (result == Messages.CANCEL) {
-      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+      return Futures.immediateFailedFuture(new DeviceActionCanceledException("Could not start AVD"));
     }
 
     SettableFuture<IDevice> future = SettableFuture.create();
 
     Runnable setFuture = () -> future.setFuture(startAvd(project, info, requestType));
 
-    Runnable setException = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
+    Runnable setException = () -> future.setException(new DeviceActionCanceledException("Retry after fixing problem by hand"));
     ApplicationManager.getApplication().invokeLater(AccelerationErrorSolution.getActionForFix(code, project, setFuture, setException));
 
     return future;
