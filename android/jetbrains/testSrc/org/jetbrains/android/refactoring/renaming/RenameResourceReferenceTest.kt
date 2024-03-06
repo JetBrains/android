@@ -107,10 +107,7 @@ class RenameResourceReferenceTest {
 
     assertThat(xmlFile.name).isEqualTo("renamed_resource.xml")
     assertThat(ninePatchFile.name).isEqualTo("renamed_ninepatch.9.png")
-
-    // TODO(b/326180138): The file should be renamed without a dot at the end
-    assertThat(fileWithoutExtension.name).isEqualTo("renamed_noextension.")
-
+    assertThat(fileWithoutExtension.name).isEqualTo("renamed_noextension")
     assertThat(fileWithEmptyExtension.name).isEqualTo("renamed_emptyextension.")
   }
 }
