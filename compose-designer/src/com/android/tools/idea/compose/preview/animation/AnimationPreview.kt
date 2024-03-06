@@ -39,7 +39,6 @@ import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -60,8 +59,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
-
-private val LOG = Logger.getInstance(AnimationPreview::class.java)
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
