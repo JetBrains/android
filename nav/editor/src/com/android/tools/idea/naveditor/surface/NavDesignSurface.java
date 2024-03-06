@@ -23,6 +23,7 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
+import static com.intellij.util.progress.CancellationUtil.sleepCancellable;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -79,6 +80,10 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -276,14 +281,23 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
           @Override
           public void onSuccess(@Nullable Object unused) {
-            application.executeOnPooledThread(() -> {
-              if (!tryToCreateSchema(facet)) {
+            ProgressManager.getInstance().runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
+              @Override
+              public void run(@NotNull ProgressIndicator indicator) {
+                final int initialAttempts = 3;
+                int attempts = initialAttempts;
+                while (attempts > 0) {
+                  DumbService.getInstance(getProject()).waitForSmartMode();
+                  if (tryToCreateSchema(facet)) {
+                    result.complete(null);
+                    return;
+                  }
+                  attempts--;
+                  sleepCancellable(500L * (initialAttempts - attempts));
+                }
                 showFailToAddMessage(result, model);
               }
-              else {
-                result.complete(null);
-              }
-            });
+            }, new EmptyProgressIndicator());
           }
 
           @Override
