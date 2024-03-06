@@ -481,10 +481,10 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         }
         val studioBot = StudioBot.getInstance()
         if (studioBot.isAvailable()) {
-          // build explainer output text shouldn't contain explainer links,
-          // but it's added here to prevent links without highlighting from appearing
-          // since both build and sync output are managed by BuildOutputParserWrapper
-          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter(StudioBotBundle.message("studiobot.ask.text") + ": "))
+          // build output text shouldn't contain Studio Bot links,
+          // but this converter is added here to prevent links without highlighting from
+          // appearing since both build and sync output are managed by BuildOutputParserWrapper
+          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter())
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
         startBuildEventPosted = true

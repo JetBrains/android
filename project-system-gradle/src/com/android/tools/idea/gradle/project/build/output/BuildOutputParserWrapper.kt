@@ -21,9 +21,9 @@ import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_T
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE
 import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser.Companion.XML_PARSING_GROUP
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkWithSeparatorText
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.StudioBotBundle
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
@@ -89,7 +89,7 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
   private fun BuildEvent.injectExplanationText(): BuildEvent {
     return if (this is FileMessageEvent) {
       val description = (description?.trimEnd()?.plus("\n\n") ?: "") +
-                        StudioBotBundle.message("studiobot.ask.text") + message
+                        consoleLinkWithSeparatorText + message
       FileMessageEventImpl(parentId ?: "", kind, group, message, description, filePosition)
     } else {
       this

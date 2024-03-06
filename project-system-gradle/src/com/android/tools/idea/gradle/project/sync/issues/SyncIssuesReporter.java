@@ -45,6 +45,9 @@ public class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
+  public static String consoleLinkUnderlinedText = ">> " + StudioBotBundle.message("studiobot.ask.text");
+  public static String consoleLinkWithSeparatorText = consoleLinkUnderlinedText + " ";
+
   @NotNull
   public static SyncIssuesReporter getInstance() {
     return ApplicationManager.getApplication().getService(SyncIssuesReporter.class);
@@ -143,8 +146,9 @@ public class SyncIssuesReporter {
     Runnable reportTask = () -> {
       SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker(rootProjectPath);
     };
-    if (ApplicationManager.getApplication().isUnitTestMode())
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
       reportTask.run();
+    }
     else {
       ApplicationManager.getApplication().invokeLater(reportTask);
     }
@@ -155,12 +159,12 @@ public class SyncIssuesReporter {
       final var message = syncMessage.getText();
       syncMessage.add(new SyncIssueNotificationHyperlink(
         "explain.issue",
-        StudioBotBundle.message("studiobot.ask.text"),
+        consoleLinkUnderlinedText,
         AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX
       ) {
         @Override
         protected void execute(@NotNull Project project) {
-          studioBot.chat(project).stageChatQuery("Explain gradle sync issue:" + message, StudioBot.RequestSource.SYNC);
+          studioBot.chat(project).stageChatQuery("Explain gradle sync issue: " + message, StudioBot.RequestSource.SYNC);
         }
       });
     }

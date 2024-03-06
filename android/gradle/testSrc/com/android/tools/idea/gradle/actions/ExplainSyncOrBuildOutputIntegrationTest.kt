@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.EventResult
-import org.jetbrains.kotlin.utils.sure
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule

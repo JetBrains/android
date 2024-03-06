@@ -184,6 +184,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
