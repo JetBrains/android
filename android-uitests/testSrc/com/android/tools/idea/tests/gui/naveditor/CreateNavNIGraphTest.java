@@ -142,6 +142,7 @@ public class CreateNavNIGraphTest {
     ComponentDragAndDrop myDragAndDrop = new ComponentDragAndDrop(guiTest.robot());
     DesignSurface<?> mySurface = editorFixture.getSurface().target();
 
+    sceneComponentFragment2.click();
     // Create a self action on fragment2
     myDragAndDrop.drag(mySurface, sceneComponentFragment2.getRightCenterPoint());
     myDragAndDrop.drop(mySurface, sceneComponentFragment2.getMidPoint());
