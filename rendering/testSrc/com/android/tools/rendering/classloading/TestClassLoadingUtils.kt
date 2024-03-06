@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -30,13 +30,6 @@ private object TestClassLoadingUtils
 fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
-}
-
-fun textifyClass(c: ByteArray): String {
-  val stringWriter = StringWriter()
-  ClassReader(c).accept(TraceClassVisitor(PrintWriter(stringWriter)), 0)
-
-  return stringWriter.toString()
 }
 
 /**

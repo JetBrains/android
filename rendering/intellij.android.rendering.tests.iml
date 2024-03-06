@@ -18,5 +18,6 @@
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
   </component>
 </module>

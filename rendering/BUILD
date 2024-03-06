@@ -45,6 +45,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/adt/idea/.idea/libraries:layoutlib[test]",
     ],
 )
 
@@ -91,6 +92,7 @@ kotlin_test(
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":tools.rendering",
+        "//prebuilts/studio/layoutlib/data:layoutlib",
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/base/common:tools.common",
@@ -102,5 +104,6 @@ kotlin_test(
         "@maven//:com.google.truth.truth",
         "@maven//:junit.junit",
         "@maven//:net.sf.kxml.kxml2",
+        "@maven//:org.ow2.asm.asm-util",
     ],
 )

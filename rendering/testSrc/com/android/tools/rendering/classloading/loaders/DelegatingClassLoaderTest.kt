@@ -15,19 +15,12 @@
  */
 package com.android.tools.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loadClassBytes
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Test
-import org.objectweb.asm.Type
 
 private class TestClass
-
-private fun loadClassBytes(c: Class<*>): ByteArray {
-  val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use {
-    return it.readBytes()
-  }
-}
 
 internal class DelegatingClassLoaderTest {
   @Test

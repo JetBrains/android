@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
-
-import com.android.tools.rendering.classloading.PseudoClass
-import com.android.tools.rendering.classloading.PseudoClassLocator
+package com.android.tools.rendering.classloading
 
 /**
  * A [PseudoClassLocator] for test that resolves the [PseudoClass]es from the given [classes] map.

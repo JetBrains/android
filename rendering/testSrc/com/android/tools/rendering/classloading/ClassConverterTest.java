@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading;
+package com.android.tools.rendering.classloading;
 
 import static com.android.tools.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.rendering.classloading.ClassConverter.getMagic;
@@ -41,13 +41,6 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_6;
 import static org.objectweb.asm.Opcodes.V1_7;
 
-import com.android.tools.rendering.classloading.ClassTransform;
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider;
-import com.android.tools.rendering.classloading.NopClassLocator;
-import com.android.tools.rendering.classloading.PseudoClassLocator;
-import com.android.tools.rendering.classloading.UtilKt;
-import com.android.tools.rendering.classloading.VersionClassTransform;
-import com.android.tools.rendering.classloading.ViewMethodWrapperTransform;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;

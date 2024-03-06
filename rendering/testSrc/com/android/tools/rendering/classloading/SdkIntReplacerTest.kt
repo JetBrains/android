@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import com.android.layoutlib.bridge.impl.RenderAction
-import com.android.tools.rendering.classloading.StaticFieldReplacer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.StringWriter
@@ -37,9 +36,10 @@ class SdkIntReplacerTest {
       mapOf("androidx/core/content/res/ResourcesCompat" to ResourcesCompat::class.java),
       beforeTransformTrace,
       afterTransformTrace) { visitor ->
-      StaticFieldReplacer(visitor, "com/android/tools/idea/rendering/classloading/Build\$VERSION", "SDK_INT",
+      StaticFieldReplacer(visitor, "com/android/tools/rendering/classloading/Build\$VERSION", "SDK_INT",
                           "com/android/layoutlib/bridge/impl/RenderAction", "sSimulatedSdk")
     }
+
     val resourcesCompat = testClassLoader.loadClass("androidx/core/content/res/ResourcesCompat")
 
     RenderAction.sSimulatedSdk = 28

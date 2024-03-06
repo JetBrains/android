@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.RenderService
-import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform
-import com.android.tools.rendering.classloading.TooManyAllocationsException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail

@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
@@ -24,8 +23,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.objectweb.asm.Type
 import java.nio.file.Files
 import java.nio.file.Paths
+
+fun loadClassBytes(c: Class<*>): ByteArray {
+  val className = "${Type.getInternalName(c)}.class"
+  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+}
 
 private class TestClass
 private val testClassName = TestClass::class.java.canonicalName
