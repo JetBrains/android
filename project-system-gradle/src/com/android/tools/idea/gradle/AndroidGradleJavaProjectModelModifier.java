@@ -332,12 +332,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull IdeVariant selectedVariant) {
     @Nullable ArtifactDependencySpec matchedLibrary = null;
-    IdeBaseArtifact artifact = selectedVariant.getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).toList().get(0);
+    @Nullable IdeBaseArtifact artifact = selectedVariant.getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).findFirst().orElse(null);
     if (artifact != null) {
       matchedLibrary = findMatchedLibrary(library, artifact);
     }
     if (matchedLibrary == null) {
-      artifact = selectedVariant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList().get(0);
+      artifact = selectedVariant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
       if (artifact != null) {
         matchedLibrary = findMatchedLibrary(library, artifact);
       }
@@ -349,7 +349,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       }
     }
     if (matchedLibrary == null) {
-      artifact = selectedVariant.getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.SCREENSHOT_TEST).toList().get(0);
+      artifact = selectedVariant.getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.SCREENSHOT_TEST).findFirst().orElse(null);
       if (artifact != null) {
         matchedLibrary = findMatchedLibrary(library, artifact);
       }
