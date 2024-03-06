@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.preview.animation
 
-/** Describes availability of different features in Animation Preview. */
+/**
+ * Contains properties of the entire Animation Preview panel (e.g. [currentTime]) and describes
+ * the availability of different features in Animation Preview.
+ */
 interface AnimationPreviewState {
   fun isCoordinationPanelOpened(): Boolean = true
 
