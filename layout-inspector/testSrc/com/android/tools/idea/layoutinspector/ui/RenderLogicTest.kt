@@ -68,6 +68,7 @@ import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.io.path.pathString
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -1096,7 +1097,7 @@ class RenderLogicTest {
         {},
       )
     inspectorModel.update(window, listOf(1L), 2)
-    inspectorModel.windows[1L]?.refreshImages(1.0)
+    runBlocking { inspectorModel.windows[1L]?.refreshImages(1.0) }
 
     val renderDimension = Dimension(454, 454)
     return createPaintConfig(inspectorModel, renderDimension)

@@ -46,6 +46,7 @@ import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 import kotlin.io.path.readBytes
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -255,7 +256,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           legacyClient.process,
         )!!
         .window!!
-    window.refreshImages(1.0)
+    runBlocking { window.refreshImages(1.0) }
 
     assertThat(window.id).isEqualTo("window1")
 
@@ -346,9 +347,8 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     assertThat(window).isNull()
   }
 
-  @Suppress("UndesirableClassUsage")
   @Test
-  fun testRefreshImages() {
+  fun testRefreshImages() = runBlocking {
     val imageBytes =
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").readBytes()
     val image1 = ImageIO.read(ByteArrayInputStream(imageBytes))

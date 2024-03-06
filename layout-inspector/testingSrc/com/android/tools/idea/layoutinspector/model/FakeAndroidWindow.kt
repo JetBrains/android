@@ -21,7 +21,7 @@ class FakeAndroidWindow(
   imageType: ImageType = ImageType.SKP,
   var refreshImages: ((Double, AndroidWindow) -> Unit)? = null,
 ) : AndroidWindow(root, id, imageType) {
-  override fun refreshImages(scale: Double) {
+  override suspend fun refreshImages(scale: Double) {
     refreshImages?.invoke(scale, this)
   }
 }

@@ -33,10 +33,12 @@ import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -44,6 +46,10 @@ import org.mockito.Mockito.verify
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
+  companion object {
+    @JvmField @ClassRule val rule = ApplicationRule()
+  }
+
   @get:Rule val disposableRule = DisposableRule()
 
   val disposable

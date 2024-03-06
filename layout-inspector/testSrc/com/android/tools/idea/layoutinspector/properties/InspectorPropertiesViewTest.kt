@@ -57,6 +57,7 @@ import com.android.tools.property.ptable.PTableColumn
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import java.awt.Component
@@ -74,12 +75,15 @@ class InspectorPropertiesViewTest {
 
   @get:Rule val disposableRule = DisposableRule()
 
+  private val disposable: Disposable
+    get() = disposableRule.disposable
+
   @Test
   fun testResolutionElementEditorFromRendererCache() {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
-        override val scope = AndroidCoroutineScope(disposableRule.disposable)
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -117,7 +121,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
-        override val scope = AndroidCoroutineScope(disposableRule.disposable)
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -166,7 +170,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
-        override val scope = AndroidCoroutineScope(disposableRule.disposable)
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -241,7 +245,7 @@ class InspectorPropertiesViewTest {
   @Test
   fun testInlinedComposable() {
     val model =
-      model(disposableRule.disposable) {
+      model(disposable) {
         view(ROOT) {
           compose(VIEW1, "MyApplicationTheme") {
             compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
@@ -314,19 +318,26 @@ class InspectorPropertiesViewTest {
   private fun createView(
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {},
-    model: InspectorModel = model(disposableRule.disposable) {},
+    model: InspectorModel = model(disposable) {},
     notificationModel: NotificationModel = NotificationModel(mock()),
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
-    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
+    val propertiesModel = InspectorPropertiesModel(disposable)
     val propertiesView = InspectorPropertiesView(propertiesModel)
     propertiesModel.properties = PropertiesTable.create(table)
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
     val layoutInspector =
-      LayoutInspector(mock(), mock(), client, model, notificationModel, settings)
+      LayoutInspector(
+        AndroidCoroutineScope(disposable),
+        mock(),
+        client,
+        model,
+        notificationModel,
+        settings,
+      )
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView

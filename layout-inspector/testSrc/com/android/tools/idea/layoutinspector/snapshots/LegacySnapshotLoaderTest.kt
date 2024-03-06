@@ -29,6 +29,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.intellij.testFramework.ProjectRule
 import java.nio.file.Files
 import javax.imageio.ImageIO
+import kotlinx.coroutines.runBlocking
 import layoutinspector.snapshots.Metadata
 import org.junit.Rule
 import org.junit.Test
@@ -75,7 +76,7 @@ class LegacySnapshotLoaderTest {
 
   private fun validateModel(model: InspectorModel) {
     val window = model.windows.values.single()
-    window.refreshImages(1.0)
+    runBlocking { window.refreshImages(1.0) }
     val expected =
       model(projectRule.disposable) {
         view(ANY_DRAW_ID) {

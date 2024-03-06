@@ -73,7 +73,7 @@ abstract class AndroidWindow(val root: ViewNode, val id: Any, imageType: ImageTy
    * Subclasses are expected to respect this window's [imageType] and call
    * [ViewNode.writeDrawChildren] to generate draw results into [ViewNode.drawChildren].
    */
-  abstract fun refreshImages(scale: Double)
+  abstract suspend fun refreshImages(scale: Double)
 
   fun skpLoadingComplete() {
     imageType = ImageType.SKP

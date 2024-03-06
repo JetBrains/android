@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
@@ -43,6 +44,8 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
@@ -50,7 +53,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.times
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
@@ -236,9 +239,8 @@ class LayoutInspectorTest {
     val newWindow = window(ROOT, ROOT, onRefreshImages = { imagesRefreshed = true })
 
     inspectorModel.update(newWindow, listOf(ROOT), 0)
-
-    assertThat(imagesRefreshed).isTrue()
-    verify(mockRenderModel, times(2)).refresh()
+    waitForCondition(10.seconds) { imagesRefreshed }
+    verify(mockRenderModel, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).refresh()
   }
 
   /** Connect a device to the transport and to adb. */

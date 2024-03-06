@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
@@ -55,7 +54,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.concurrent.Executor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
@@ -63,7 +61,7 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
-import org.jetbrains.annotations.TestOnly
+import kotlinx.coroutines.launch
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
@@ -76,12 +74,8 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("Toggle3DActionButtonKey")
 
 /** Panel that shows the device screen in the layout inspector. */
-class DeviceViewPanel(
-  val layoutInspector: LayoutInspector,
-  disposableParent: Disposable,
-  @TestOnly
-  private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
+class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Disposable) :
+  JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   private val renderSettings = layoutInspector.renderLogic.renderSettings
 
@@ -399,7 +393,7 @@ class DeviceViewPanel(
         client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
       }
       if (prevZoom != renderSettings.scalePercent) {
-        backgroundExecutor.execute {
+        layoutInspector.coroutineScope.launch {
           floatingToolbarProvider.zoomChanged(prevZoom / 100.0, renderSettings.scalePercent / 100.0)
           prevZoom = renderSettings.scalePercent
           model.windows.values.forEach { it.refreshImages(renderSettings.scaleFraction) }

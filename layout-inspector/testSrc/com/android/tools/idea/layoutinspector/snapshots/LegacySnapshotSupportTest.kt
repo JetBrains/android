@@ -39,6 +39,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.readBytes
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -88,7 +89,7 @@ DONE.
     snapshotLoader.loadFile(savePath, newModel, newNotificationModel, stats)
 
     val window = newModel.windows[windowName]!!
-    window.refreshImages(1.0)
+    runBlocking { window.refreshImages(1.0) }
     val root = window.root
     assertThat(root.drawId).isEqualTo(0x41673e3)
     assertThat(root.layoutBounds.x).isEqualTo(0)

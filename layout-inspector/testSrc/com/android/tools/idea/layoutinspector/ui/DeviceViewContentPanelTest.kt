@@ -108,6 +108,7 @@ import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -1447,7 +1448,7 @@ class DeviceViewContentPanelTest {
         {},
       )
     model.update(window, listOf(1L), 2)
-    model.windows[1L]?.refreshImages(1.0)
+    runBlocking { model.windows[1L]?.refreshImages(1.0) }
 
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()

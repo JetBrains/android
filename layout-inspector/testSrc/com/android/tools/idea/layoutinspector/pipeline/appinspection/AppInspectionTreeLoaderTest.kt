@@ -73,6 +73,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.Polygon
+import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.fail
@@ -372,10 +373,10 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(data, lookup, MODERN_DEVICE.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
 
-    window!!.refreshImages(1.0)
+    runBlocking { window!!.refreshImages(1.0) }
 
     ViewNode.readAccess {
-      val tree = window.root
+      val tree = window!!.root
       assertThat(tree.drawId).isEqualTo(1)
       assertThat(tree.layoutBounds.x).isEqualTo(0)
       assertThat(tree.layoutBounds.y).isEqualTo(0)
@@ -540,7 +541,7 @@ class AppInspectionTreeLoaderTest {
         ResourceLookup(projectRule.project),
         MODERN_DEVICE.createProcess(),
       )!!
-    window!!.refreshImages(1.0)
+    runBlocking { window!!.refreshImages(1.0) }
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     val notification1 = notificationModel.notifications.single()
@@ -582,7 +583,7 @@ class AppInspectionTreeLoaderTest {
   }
 
   @Test
-  fun testCanProcessBitmapScreenshots() {
+  fun testCanProcessBitmapScreenshots() = runBlocking {
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(any(), any(), any(), any()))
       .thenThrow(AssertionError("SKIA not used in bitmap mode"))
@@ -643,11 +644,11 @@ class AppInspectionTreeLoaderTest {
         MODERN_DEVICE.createProcess(),
       )!!
     assertThat(data.generation).isEqualTo(generation)
-    window!!.refreshImages(1.0)
+    runBlocking { window!!.refreshImages(1.0) }
 
     val hasDrawViewImage =
       ViewNode.readAccess {
-        (window.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty())
+        (window!!.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty())
       }
     assertThat(hasDrawViewImage).isFalse()
   }

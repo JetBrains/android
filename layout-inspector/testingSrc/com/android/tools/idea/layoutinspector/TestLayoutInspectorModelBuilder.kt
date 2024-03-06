@@ -43,6 +43,7 @@ import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
 import java.util.concurrent.ScheduledExecutorService
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a
@@ -458,7 +459,7 @@ class InspectorModelDescriptor(
       )
     }
     // This is usually added by DeviceViewPanel
-    model.addModificationListener { _, new, _ -> new?.refreshImages(1.0) }
+    model.addModificationListener { _, new, _ -> runBlocking { new?.refreshImages(1.0) } }
 
     return model
   }

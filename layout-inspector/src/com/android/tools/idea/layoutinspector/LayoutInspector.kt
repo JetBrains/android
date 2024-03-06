@@ -158,8 +158,10 @@ private constructor(
   init {
     // refresh the rendering each time the inspector model changes
     inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
-      newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
-      renderModel.refresh()
+      coroutineScope.launch {
+        newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
+        renderModel.refresh()
+      }
     }
   }
 

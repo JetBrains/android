@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
-import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ScreenRound
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -87,8 +86,7 @@ class ViewAndroidWindow(
     }
   }
 
-  @Slow
-  override fun refreshImages(scale: Double) {
+  override suspend fun refreshImages(scale: Double) {
     try {
       val immutableScreenshotBytes = screenshotBytes
       if (immutableScreenshotBytes == null) {

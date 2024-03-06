@@ -47,6 +47,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -175,7 +176,7 @@ class AppInspectionInspectorMetricsTest {
   }
 
   @Test
-  fun testInitialRenderLogging() {
+  fun testInitialRenderLogging() = runBlocking {
     inspectorRule.launchSynchronously = false
     inspectionRule.viewInspector.listenWhen({ true }) {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)

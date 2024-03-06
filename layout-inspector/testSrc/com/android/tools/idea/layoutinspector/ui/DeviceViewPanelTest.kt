@@ -122,6 +122,7 @@ import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
 import junit.framework.TestCase
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -229,15 +230,14 @@ class DeviceViewPanelWithFullInspectorTest {
     // Hide VIEW2:
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
     inspectorRule.inspectorModel.hideSubtree(view2)
-    UIUtil.dispatchAllInvocationEvents()
-    val notification2 = notificationModel.notifications.single()
-    assertThat(notification2.message)
-      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
+    val expectedMessage = LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN)
+    waitForCondition(10.seconds) {
+      notificationModel.notifications.any { it.message == expectedMessage }
+    }
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(notificationModel.notifications).isEmpty()
+    waitForCondition(10.seconds) { notificationModel.notifications.isEmpty() }
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
@@ -713,8 +713,7 @@ class DeviceViewPanelTest {
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
-    val panel =
-      DeviceViewPanel(inspector, disposableRule.disposable, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
 
     val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -722,6 +721,7 @@ class DeviceViewPanelTest {
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
 
     model.update(window1, listOf(ROOT), 0)
+    waitForCondition(10.seconds) { ViewNode.readAccess { window1.root.drawChildren.size } == 1 }
 
     // Add another window
     val window2 = window(100, 100, 0, 0, 100, 200) { view(VIEW2, 50, 20, 30, 40) { image() } }
@@ -731,7 +731,7 @@ class DeviceViewPanelTest {
     model.update(window2, listOf(ROOT, 100), 1)
 
     // drawChildren for the new window should be populated
-    assertThat(ViewNode.readAccess { window2.root.drawChildren }).isNotEmpty()
+    waitForCondition(10.seconds) { ViewNode.readAccess { window2.root.drawChildren.size } > 0 }
   }
 
   @Test
@@ -763,8 +763,7 @@ class DeviceViewPanelTest {
         MoreExecutors.directExecutor(),
       )
     treeSettings.hideSystemNodes = false
-    val panel =
-      DeviceViewPanel(inspector, disposableRule.disposable, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
 
     val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     val contentPanelModel =
@@ -774,7 +773,7 @@ class DeviceViewPanelTest {
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
 
     model.update(window1, listOf(ROOT), 0)
-    assertThat(contentPanelModel.hitRects.size).isEqualTo(2)
+    waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 2 }
 
     inspector.renderLogic.renderSettings.scalePercent = 33
 
@@ -782,7 +781,7 @@ class DeviceViewPanelTest {
     val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) { view(VIEW2, 50, 20, 30, 40) { image() } }
 
     model.update(window2, listOf(ROOT, ROOT2), 1)
-    assertThat(contentPanelModel.hitRects.size).isEqualTo(4)
+    waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 4 }
 
     // we should still have the manually set zoom
     assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(33)
