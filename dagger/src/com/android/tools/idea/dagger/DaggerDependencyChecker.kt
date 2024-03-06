@@ -24,7 +24,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
 /** Checks if project uses Dagger (any module depends on Dagger) */
-@Service
+@Service(Service.Level.PROJECT)
 class DaggerDependencyChecker(private val project: Project) {
 
   fun isDaggerPresent(): Boolean =
