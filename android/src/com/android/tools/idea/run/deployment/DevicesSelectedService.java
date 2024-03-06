@@ -40,7 +40,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -194,7 +193,7 @@ public final class DevicesSelectedService {
     return myPersistentStateComponent.getState(getSelectedRunConfiguration()).multipleDevicesSelectedInDropDown;
   }
 
-  void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
+  public void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
     var configuration = getSelectedRunConfiguration();
     myPersistentStateComponent.getState(configuration).multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
@@ -211,7 +210,7 @@ public final class DevicesSelectedService {
     return supplier.getDialogTargets();
   }
 
-  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
+  public void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
     var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
 
