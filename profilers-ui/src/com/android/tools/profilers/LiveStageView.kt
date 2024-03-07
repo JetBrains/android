@@ -78,12 +78,7 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val topPanel = JPanel(topPanelLayout)
     topPanel.background = ProfilerColors.DEFAULT_STAGE_BACKGROUND
 
-    val messagePanel = JPanel(TabularLayout("*"))
-    val messageBasedOnSupportLevel = getMessageBasedOnSupportLevel()
-    messagePanel.add(messageBasedOnSupportLevel, TabularLayout.Constraint(0, 0))
-
     topPanelLayout.setRowSizing(0, "Fit-")
-    topPanel.add(messagePanel, TabularLayout.Constraint(0, 0))
 
     if (liveStage.eventMonitor.isPresent) {
       liveStage.eventMonitor.let { eventMonitor ->
@@ -171,8 +166,6 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     panel.add(toolbar, BorderLayout.WEST)
     return panel
   }
-
-  private fun getMessageBasedOnSupportLevel() = getMessage(stage.studioProfilers)
 
   companion object {
     private const val showDebuggableMessage = "debuggable.monitor.message"

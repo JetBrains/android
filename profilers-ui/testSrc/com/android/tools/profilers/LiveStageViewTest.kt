@@ -169,7 +169,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -185,7 +185,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(1)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -206,7 +206,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -294,7 +294,7 @@ class LiveStageViewTest {
   }
 
   @Test
-  fun testDefaultMessage() {
+  fun testDefaultMessageNotPresent() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
@@ -304,13 +304,9 @@ class LiveStageViewTest {
     val viewPanelComponents = treeWalkerViewPanel.descendants().filterIsInstance(JPanel::class.java)
     val secondElementInToolbar = viewPanelComponents[0]
 
+    // Make sure that the message section is not available in the live stage
     val messageSectionComponentsLabel = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(JBLabel::class.java)
-
-    //Default mode is PROFILEABLE, so check for that message
-    assertThat(messageSectionComponentsLabel[0].text).isEqualTo("Profiling with low overhead. " +
-                                                                "Certain profiler features will be unavailable in this mode.")
-    assertThat(messageSectionComponentsLabel[1].text).isEqualTo("Dismiss")
-    assertThat(messageSectionComponentsLabel[2].text).isEqualTo("Learn more")
+    assertThat(messageSectionComponentsLabel).isEmpty()
   }
 
   private fun getToolbar(isSessionAlive: Boolean): JComponent {
