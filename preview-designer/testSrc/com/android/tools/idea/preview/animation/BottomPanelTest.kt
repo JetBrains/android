@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -41,10 +42,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class BottomPanelTest(
-  private val enableCoordinationDrag: Boolean,
-  private val isCoordinationPanelOpened: Boolean,
-) {
+class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -52,16 +50,8 @@ class BottomPanelTest(
 
   companion object {
     @JvmStatic
-    @Parameterized.Parameters(
-      name = "Coordination drag is enabled: {0}, coordination panel opened: {1}"
-    )
-    fun parameters() =
-      listOf(
-        arrayOf<Any>(true, true),
-        arrayOf<Any>(true, false),
-        arrayOf<Any>(false, true),
-        arrayOf<Any>(false, false),
-      )
+    @Parameterized.Parameters(name = "Coordination drag is enabled: {0}")
+    fun parameters() = listOf(arrayOf<Any>(true), arrayOf<Any>(false))
   }
 
   @Before
@@ -168,7 +158,7 @@ class BottomPanelTest(
 
   /** Create [BottomPanel] with 300x500 size. */
   private fun createBottomPanel(): BottomPanel {
-    val panel = BottomPanel(surface, NoopComposeAnimationTracker)
+    val panel = BottomPanel(surface, NoopAnimationTracker)
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)
