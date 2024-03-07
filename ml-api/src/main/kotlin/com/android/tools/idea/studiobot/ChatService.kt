@@ -48,6 +48,7 @@ interface ChatService {
    * @param requestSource The source of the query in Android Studio
    * @param displayText How the query should appear in the chat timeline.
    *  This will default to the last user query if not specified.
+   * @throws IllegalStateException if context sharing is not enabled, or if the prompt does not end with a user message
    */
   fun sendChatQuery(
     prompt: SafePrompt,

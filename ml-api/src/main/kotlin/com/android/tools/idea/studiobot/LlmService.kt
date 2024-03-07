@@ -37,6 +37,8 @@ interface LlmService {
    *  - An error chunk representing an API error which will start with "ERROR: " followed by error details.
    *  - A citations chunk containing citations attached with the response, which will start with "CITATIONS: " followed
    *    by a comma-separated list of URLs.
+   *
+   * @throws IllegalStateException if context sharing is not enabled, or if the prompt does not end with a user message
    */
   suspend fun sendQuery(prompt: SafePrompt, source: StudioBot.RequestSource): Flow<String>
 
