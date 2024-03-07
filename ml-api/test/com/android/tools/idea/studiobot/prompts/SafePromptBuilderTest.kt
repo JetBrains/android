@@ -218,14 +218,14 @@ class SafePromptBuilderTest : BasePlatformTestCase() {
   }
 
   @Test
-  fun appendPrompt_addsToPrompt() {
+  fun buildPrompt_withLastPrompt_addsToPrompt() {
     val basePrompt =
       buildPrompt(project) {
         systemMessage { text("You are Studio Bot", emptyList()) }
         userMessage { text("Hello Studio Bot!", emptyList()) }
         modelMessage { text("Hello! How are you?", emptyList()) }
       }
-    val prompt = appendToPrompt(project, basePrompt) {
+    val prompt = buildPrompt(project, basePrompt) {
       userMessage { text("I am doing well, how about you?", emptyList()) }
     }
     assertThat(prompt)
