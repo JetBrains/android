@@ -33,6 +33,9 @@ iml_module(
     iml_files = ["intellij.android.preview-designer.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
+    test_data = [
+        "//tools/adt/idea/compose-ide-plugin/testData",
+    ],
     test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -59,5 +62,6 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering.tests[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
     ],
 )

@@ -95,6 +95,8 @@ private fun findDaemonJarRootPath(): Path {
  *
  * @param scope the [CoroutineScope] to be used by the coroutines in the daemon.
  * @param log [Logger] used to log the debug output of the daemon.
+ *
+ * TODO(b/328608974): move this whole class and file out of compose-designer
  */
 @Suppress("BlockingMethodInNonBlockingContext") // All calls are running within the IO context
 internal class OutOfProcessCompilerDaemonClientImpl(

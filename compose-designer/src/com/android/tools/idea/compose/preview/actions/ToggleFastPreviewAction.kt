@@ -17,17 +17,22 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
 
-/** Action that toggles the Fast Preview state. */
+/**
+ * Action that toggles the Fast Preview state.
+ *
+ * TODO(b/328758600): move this action to preview-designer to make it reusable in other preview
+ *   tools
+ */
 class ToggleFastPreviewAction : AnAction(null, null, null) {
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
