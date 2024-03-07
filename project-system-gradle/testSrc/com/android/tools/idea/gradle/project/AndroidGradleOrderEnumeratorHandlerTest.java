@@ -25,6 +25,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertDoesntContain;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +77,8 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
                                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
 
       IdeJavaArtifact unitTestArtifact =
-        model.getSelectedVariant().getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).toList().get(0);
+        model.getSelectedVariant().getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).findFirst().orElse(null);
+      assertNotNull(unitTestArtifact);
       Collection<String> unitTestClassesFolders =
         Collections2.transform(unitTestArtifact.getClassesFolder(), (input) -> input == null ? null : pathToIdeaUrl(input));
       Collection<String> intersectionMainAndUnitTest = getIntersection(result, unitTestClassesFolders);

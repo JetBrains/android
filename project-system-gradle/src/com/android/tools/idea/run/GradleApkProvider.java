@@ -300,8 +300,7 @@ public final class GradleApkProvider implements ApkProvider {
         IdeAndroidArtifact testArtifactInfo =
           androidModel
             .getSelectedVariant().
-            getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST)
-            .toList().get(0);
+            getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
         if (testArtifactInfo != null) {
           File testApk =
             getApk(androidModel.getSelectedVariant().getName(), getAndroidTestArtifact(androidModel.getSelectedVariant()), deviceAbis,
@@ -536,7 +535,7 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {
     IdeAndroidArtifact androidTestArtifact =
-      variant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList().get(0);
+      variant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
     if (androidTestArtifact == null) {
       throw new ApkProvisionException(String.format("AndroidTest artifact is not configured in %s variant.", variant.getDisplayName()));
     }
