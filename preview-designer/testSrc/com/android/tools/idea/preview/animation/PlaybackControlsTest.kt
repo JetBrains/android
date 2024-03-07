@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.NoopAnimationTracker
-import com.android.tools.idea.preview.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -69,6 +68,7 @@ class PlaybackControlsTest {
 
   private class TestAction : ToolbarLabelAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.presentation.text = "Label"

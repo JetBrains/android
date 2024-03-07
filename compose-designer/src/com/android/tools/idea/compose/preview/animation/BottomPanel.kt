@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -39,11 +38,8 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 /** Bottom control panel. */
-class BottomPanel(
-  val previewState: AnimationPreviewState,
-  rootComponent: JComponent,
-  private val tracker: ComposeAnimationTracker,
-) : JPanel(BorderLayout()) {
+class BottomPanel(rootComponent: JComponent, private val tracker: ComposeAnimationTracker) :
+  JPanel(BorderLayout()) {
 
   var clockTimeMs = 0
     set(value) {
@@ -104,12 +100,7 @@ class BottomPanel(
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
       e.presentation.isEnabled = true
-      e.presentation.text =
-        if (previewState.isCoordinationPanelOpened()) {
-          message("animation.inspector.action.reset.timeline")
-        } else {
-          message("animation.inspector.action.reset.single.animation")
-        }
+      e.presentation.text = message("animation.inspector.action.reset.single.animation")
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
+import com.android.tools.idea.preview.NoopAnimationTracker
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -78,31 +80,32 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove cards`() {
+    val slider = createTestSlider()
     val cardOne =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("One")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("Two")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("Three")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(333) }
 
@@ -178,31 +181,32 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui`() {
+    val slider = createTestSlider()
     val cardOne =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("One")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("Two")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("Three")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(333) }
 
@@ -226,31 +230,32 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui with mixed cards`() {
+    val slider = createTestSlider()
     val cardOne =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("AnimationCard One")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(111) }
     val cardTwo =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("AnimationCard Two")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(222) }
     val cardThree =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          slider,
           surface,
           MutableStateFlow(ElementState("AnimationCard Three")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(333) }
     val labelCardOne = LabelCard(MutableStateFlow(ElementState("LabelCard One")))
@@ -280,6 +285,7 @@ class AllTabPanelTest {
 
   @Test
   fun `expand cards`() {
+    val slider = createTestSlider()
     panel.apply {
       setSize(1000, 400)
       addPlayback(TestUtils.createPlaybackPlaceHolder())
@@ -288,11 +294,11 @@ class AllTabPanelTest {
     for (i in 0..10) {
       panel.addCard(
         AnimationCard(
-            TestUtils.testPreviewState(),
+            slider,
             surface,
             MutableStateFlow(ElementState("card $i")),
             emptyList(),
-            NoopComposeAnimationTracker,
+            NoopAnimationTracker,
           )
           .apply { setDuration(i * 10) }
       )
@@ -318,6 +324,7 @@ class AllTabPanelTest {
 
   @Test
   fun `scroll ui`() {
+    val slider = createTestSlider()
     panel.apply {
       setSize(1000, 400)
       addPlayback(TestUtils.createPlaybackPlaceHolder())
@@ -326,11 +333,11 @@ class AllTabPanelTest {
     for (i in 0..10) {
       panel.addCard(
         AnimationCard(
-            TestUtils.testPreviewState(),
+            slider,
             surface,
             MutableStateFlow(ElementState("card $i")),
             emptyList(),
-            NoopComposeAnimationTracker,
+            NoopAnimationTracker,
           )
           .apply { setDuration(i * 10) }
       )

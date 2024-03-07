@@ -51,4 +51,8 @@ interface AnimationTracker {
   fun resetTimeline()
 
   fun dragTimelineLine()
+
+  fun lockAnimation()
+
+  fun unlockAnimation()
 }

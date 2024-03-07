@@ -28,7 +28,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.PlaybackControls
@@ -91,14 +90,6 @@ class AnimationPreview(
 
   val component = TooltipLayeredPane(animationPreviewPanel)
 
-  private val previewState =
-    object : AnimationPreviewState {
-      override fun isCoordinationPanelOpened(): Boolean = selectedAnimation.value == null
-
-      override val currentTime
-        get() = timeline.value
-    }
-
   /**
    * Tabs panel where each tab represents a single animation being inspected. First tab is a
    * coordination tab. All tabs share the same [Timeline], but have their own playback toolbar and
@@ -153,11 +144,11 @@ class AnimationPreview(
   private val playbackControls = PlaybackControls(clockControl, tracker, rootComponent, this)
 
   private val bottomPanel =
-    BottomPanel(previewState, rootComponent, tracker).apply {
+    BottomPanel(rootComponent, tracker).apply {
       timeline.addChangeListener { scope.launch(uiThread) { clockTimeMs = timeline.value } }
       addResetListener {
         timeline.sliderUI.elements.forEach { it.reset() }
-        if (previewState.isCoordinationPanelOpened()) {
+        if (selectedAnimation.value == null) {
           animations.filterIsInstance<SupportedAnimationManager>().forEach {
             it.elementState.value = it.elementState.value.copy(valueOffset = 0)
           }
@@ -365,7 +356,7 @@ class AnimationPreview(
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          previewState,
+          timeline,
           sceneManagerProvider(),
           tabbedPane,
           rootComponent,
@@ -384,7 +375,7 @@ class AnimationPreview(
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          previewState,
+          timeline,
           sceneManagerProvider(),
           tabbedPane,
           rootComponent,
@@ -511,8 +502,7 @@ class AnimationPreview(
    * listing all the animations and their corresponding range as well. The timeline should respond
    * to mouse commands, allowing users to jump to specific points, scrub it, etc.
    */
-  private inner class Timeline :
-    TimelinePanel(Tooltip(animationPreviewPanel, component), previewState, tracker) {
+  private inner class Timeline : TimelinePanel(Tooltip(animationPreviewPanel, component), tracker) {
     var cachedVal = -1
 
     init {

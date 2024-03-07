@@ -19,10 +19,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationCard
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -56,7 +56,7 @@ class FromToStateTest {
         }
     val card =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
           MutableStateFlow(ElementState("Title")),
           state.extraActions,

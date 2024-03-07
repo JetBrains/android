@@ -34,7 +34,6 @@ import com.android.tools.idea.compose.preview.animation.state.AnimationState.Com
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
-import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.timeline.ElementState
@@ -75,7 +74,7 @@ open class SupportedAnimationManager(
   private val tracker: ComposeAnimationTracker,
   private val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
-  private val previewState: AnimationPreviewState,
+  private val timelinePanel: TimelinePanel,
   private val sceneManager: LayoutlibSceneManager?,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
@@ -109,7 +108,7 @@ open class SupportedAnimationManager(
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =
-    AnimationCard(previewState, rootComponent, elementState, stateComboBox.extraActions, tracker)
+    AnimationCard(timelinePanel, rootComponent, elementState, stateComboBox.extraActions, tracker)
       .apply {
 
         /** [TabInfo] for the animation when it is opened in a new tab. */
@@ -147,7 +146,7 @@ open class SupportedAnimationManager(
       add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
       tabScrollPane.setViewportView(tabTimelineParent)
       add(
-        playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))),
+        playbackControls.createToolbar(listOf(FreezeAction(timelinePanel, elementState, tracker))),
         TabularLayout.Constraint(0, 0),
       )
       isFocusable = false

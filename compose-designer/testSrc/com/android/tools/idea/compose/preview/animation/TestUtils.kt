@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
@@ -36,12 +35,6 @@ val NoopComposeAnimationTracker =
   ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
-
-  fun testPreviewState() =
-    object : AnimationPreviewState {
-      override val currentTime: Int
-        get() = 0
-    }
 
   fun createPlaybackPlaceHolder() =
     JLabel("Playback placeholder").apply { background = JBColor.blue }

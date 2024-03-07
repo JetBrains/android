@@ -24,17 +24,12 @@ import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
 import javax.swing.JPanel
+import org.junit.Assert
 
 object TestUtils {
   private const val TEST_ELEMENT_WIDTH = 100
   private const val TEST_ELEMENT_HEIGHT = 10
   private const val TEST_ELEMENT_ROW_HEIGHT = 100
-
-  private fun testPreviewState() =
-    object : AnimationPreviewState {
-      override val currentTime: Int
-        get() = 0
-    }
 
   fun TimelinePanel.scanForTooltips(): Set<TooltipInfo> =
     this.sliderUI.elements.flatMap { it.scanForTooltips(this.size) }.toSet()
@@ -74,12 +69,7 @@ object TestUtils {
   /** Create [TimelinePanel] with 300x500 size. */
   fun createTestSlider(): TimelinePanel {
     val root = JPanel(BorderLayout())
-    val slider =
-      TimelinePanel(
-        Tooltip(root, TooltipLayeredPane(root)),
-        testPreviewState(),
-        NoopAnimationTracker,
-      )
+    val slider = TimelinePanel(Tooltip(root, TooltipLayeredPane(root)), NoopAnimationTracker)
     slider.maximum = 100
     root.apply {
       // Extra parent panel is required for slider to properly set all sizes and to enable tooltips.
@@ -88,4 +78,9 @@ object TestUtils {
     }
     return slider
   }
+
+  fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
+    Assert.assertTrue(
+      minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height
+    )
 }

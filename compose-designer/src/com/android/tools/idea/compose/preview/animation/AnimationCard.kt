@@ -18,9 +18,10 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.animation.AnimationPreviewState
+import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -42,11 +43,11 @@ import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class AnimationCard(
-  previewState: AnimationPreviewState,
+  timelinePanel: TimelinePanel,
   rootComponent: JComponent,
   override val state: MutableStateFlow<ElementState>,
   extraActions: List<AnAction> = emptyList(),
-  private val tracker: ComposeAnimationTracker,
+  private val tracker: AnimationTracker,
 ) : JPanel(TabularLayout("*", "30px,40px")), Card {
 
   // Collapsed view:
@@ -115,7 +116,7 @@ class AnimationCard(
       createToolbarWithNavigation(
         rootComponent,
         "AnimationCard",
-        listOf(FreezeAction(previewState, state, tracker)) + extraActions,
+        listOf(FreezeAction(timelinePanel, state, tracker)) + extraActions,
       )
     secondRow.add(secondRowToolbar.component, BorderLayout.CENTER)
     add(firstRow, TabularLayout.Constraint(0, 0))

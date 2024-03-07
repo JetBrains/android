@@ -21,7 +21,6 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.animation.AnimationPreviewState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -169,17 +168,7 @@ class BottomPanelTest(
 
   /** Create [BottomPanel] with 300x500 size. */
   private fun createBottomPanel(): BottomPanel {
-    val panel =
-      BottomPanel(
-        object : AnimationPreviewState {
-          override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
-
-          override val currentTime: Int
-            get() = 0
-        },
-        surface,
-        NoopComposeAnimationTracker,
-      )
+    val panel = BottomPanel(surface, NoopComposeAnimationTracker)
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)

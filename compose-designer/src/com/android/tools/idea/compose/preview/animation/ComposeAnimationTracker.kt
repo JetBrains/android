@@ -82,9 +82,9 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
 
   override fun closeAnimationTab() = logEvent(ComposeAnimationToolingEventType.CLOSE_ANIMATION_TAB)
 
-  fun lockAnimation() = logEvent(ComposeAnimationToolingEventType.LOCK_ANIMATION)
+  override fun lockAnimation() = logEvent(ComposeAnimationToolingEventType.LOCK_ANIMATION)
 
-  fun unlockAnimation() = logEvent(ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
+  override fun unlockAnimation() = logEvent(ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
 
   override fun resetTimeline() = logEvent(ComposeAnimationToolingEventType.RESET_TIMELINE)
 

@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Component
@@ -47,7 +48,7 @@ class AnimationCardTest {
   fun `create animation card`(): Unit = runBlocking {
     val card =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
           MutableStateFlow(ElementState("Title")),
           emptyList(),

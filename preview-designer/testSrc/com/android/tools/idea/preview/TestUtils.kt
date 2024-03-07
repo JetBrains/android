@@ -16,8 +16,6 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.idea.preview.animation.AnimationTracker
-import java.awt.Dimension
-import org.junit.Assert
 
 val NoopAnimationTracker =
   object : AnimationTracker {
@@ -56,14 +54,11 @@ val NoopAnimationTracker =
     override fun resetTimeline() {}
 
     override fun dragTimelineLine() {}
-  }
 
-object TestUtils {
-  fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
-    Assert.assertTrue(
-      minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height
-    )
-}
+    override fun lockAnimation() {}
+
+    override fun unlockAnimation() {}
+  }
 
 /**
  * Send the [request] to the refresh manager and wait for it to be actually enqueued.

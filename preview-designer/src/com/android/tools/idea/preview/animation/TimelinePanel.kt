@@ -43,11 +43,8 @@ import kotlin.math.max
 const val DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS = 10000L
 
 /** Timeline slider with auto-resized ticks and labels distance. */
-open class TimelinePanel(
-  val tooltip: Tooltip,
-  val previewState: AnimationPreviewState,
-  val tracker: AnimationTracker,
-) : JSlider(0, DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS.toInt(), 0) {
+open class TimelinePanel(val tooltip: Tooltip, val tracker: AnimationTracker) :
+  JSlider(0, DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
 
