@@ -25,9 +25,6 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
-import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
-import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
-import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
@@ -730,16 +727,7 @@ class EmulatorView(
           response.hasDisplayConfigurationsChangedNotification() ->
               checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification)
           response.hasPosture() -> updateCurrentPosture(response.posture.value)
-          else  -> {
-            // Old style notifications.
-            // TODO: Remove the following 'when' statement after January 1, 2024.
-            when (response.event) {
-              VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
-              VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
-              DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners(null)
-              else -> {}
-            }
-          }
+          else  -> {}
         }
       }
     }
