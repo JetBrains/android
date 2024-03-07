@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
@@ -176,8 +175,7 @@ class ImportUtpResultAction(icon: Icon? = null,
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = (e.project != null
-                                          && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
+    e.presentation.isEnabledAndVisible = (e.project != null)
   }
 }
 

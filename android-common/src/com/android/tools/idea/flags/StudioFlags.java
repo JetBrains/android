@@ -1146,12 +1146,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> UTP_TEST_RESULT_SUPPORT = Flag.create(
-    TESTING, "utp.instrumentation.tests", "Allow importing UTP test results.",
-    "If enabled, you can import UTP test results and display them in test result panel.",
-    true
-  );
-
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = Flag.create(
     TESTING, "screenshot.testing", "Run screenshot tests",
     "If enabled, a screenshotTest source set will be added for running screenshot tests",

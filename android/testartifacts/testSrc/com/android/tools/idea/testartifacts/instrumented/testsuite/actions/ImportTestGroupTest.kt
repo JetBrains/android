@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.android.tools.idea.protobuf.TextFormat
@@ -63,7 +61,6 @@ class ImportTestGroupTest {
     .around(EdtRule())
     .around(disposableRule)
     .around(temporaryFolder)
-    .around(FlagRule(StudioFlags.UTP_TEST_RESULT_SUPPORT))
 
   @get:Rule
   var mockitoRule: MockitoRule = MockitoJUnit.rule()
