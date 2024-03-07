@@ -56,7 +56,7 @@ public abstract class SceneView implements Disposable {
   /**
    * A {@link SceneContext} which offers the rendering and/or picking information for this {@link SceneView}
    */
-  @NotNull private final SceneContext myContext = new SceneViewTransform();
+  @NotNull private final SceneContext myContext = new SceneViewTransform(this);
 
   public SceneView(@NotNull DesignSurface<?> surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
     mySurface = surface;
@@ -292,83 +292,6 @@ public abstract class SceneView implements Disposable {
         SceneLayer sceneLayer = (SceneLayer)layer;
         sceneLayer.setTemporaryShow(value);
       }
-    }
-  }
-
-  /**
-   * The {@link SceneContext} based on a {@link SceneView}.
-   *
-   * TODO: b/140160277
-   *   For historical reason we put the Coordinate translation in {@link SceneContext} instead of using
-   *   {@link SceneView} directly. Maybe we can remove {@link SceneContext} and just use {@link SceneView} only.
-   */
-  private class SceneViewTransform extends SceneContext {
-
-    private SceneViewTransform() {
-    }
-
-    @Override
-    @NotNull
-    public ColorSet getColorSet() {
-      return SceneView.this.getColorSet();
-    }
-
-    @NotNull
-    @Override
-    public DesignSurface<?> getSurface() {
-      return SceneView.this.getSurface();
-    }
-
-    @Override
-    public double getScale() {
-      return SceneView.this.getScale();
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingXDip(@AndroidDpCoordinate float x) {
-      return Coordinates.getSwingX(SceneView.this, Coordinates.dpToPx(SceneView.this, x));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingYDip(@AndroidDpCoordinate float y) {
-      return Coordinates.getSwingY(SceneView.this, Coordinates.dpToPx(SceneView.this, y));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingX(@AndroidCoordinate int x) {
-      return Coordinates.getSwingX(SceneView.this, x);
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingY(@AndroidCoordinate int y) {
-      return Coordinates.getSwingY(SceneView.this, y);
-    }
-
-    @Override
-    @AndroidDpCoordinate
-    public float pxToDp(@AndroidCoordinate int px) {
-      return Coordinates.pxToDp(SceneView.this, px);
-    }
-
-    @Override
-    public void repaint() {
-      getSurface().needsRepaint();
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingDimensionDip(@AndroidDpCoordinate float dim) {
-      return Coordinates.getSwingDimension(SceneView.this, Coordinates.dpToPx(SceneView.this, dim));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingDimension(@AndroidCoordinate int dim) {
-      return Coordinates.getSwingDimension(SceneView.this, dim);
     }
   }
 
