@@ -200,19 +200,21 @@ class ComposeViewControlActionTest {
     val manager = TestComposePreviewManager()
     val refreshingStatus =
       ComposePreviewManager.Status(
-        hasRuntimeErrors = false,
+        hasErrorsAndNeedsBuild = false,
         hasSyntaxErrors = false,
         isOutOfDate = false,
         isRefreshing = true,
         areResourcesOutOfDate = false,
+        previewedFile = null,
       )
     val nonRefreshingStatus =
       ComposePreviewManager.Status(
-        hasRuntimeErrors = false,
+        hasErrorsAndNeedsBuild = false,
         hasSyntaxErrors = false,
         isOutOfDate = false,
         isRefreshing = false,
         areResourcesOutOfDate = false,
+        previewedFile = null,
       )
     val context = DataContext {
       when {

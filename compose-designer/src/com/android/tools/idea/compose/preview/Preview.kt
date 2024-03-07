@@ -619,9 +619,6 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  override val previewedFile: PsiFile?
-    get() = psiFilePointer.element
-
   override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
@@ -971,6 +968,7 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
+        psiFilePointer.element,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
@@ -1390,7 +1388,7 @@ class ComposePreviewRepresentation(
    * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = previewedFile?.virtualFile ?: return false
+    val vFile = psiFilePointer.element?.virtualFile ?: return false
     findAnnotatedMethodsValues(
         project,
         vFile,

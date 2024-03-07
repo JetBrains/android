@@ -78,7 +78,7 @@ private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Sta
     // Build/Syntax/Render errors
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
-    previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
+    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
 
     // Fast preview refresh/failures
     project.fastPreviewManager.isAutoDisabled -> PreviewStatus.FastPreviewFailed
@@ -102,7 +102,7 @@ private fun getStatusForFastPreview(project: Project, previewStatus: ComposePrev
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
     project.needsBuild -> PreviewStatus.NeedsBuild
-    previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
+    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
     project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
 
     // Up-to-date
@@ -122,7 +122,7 @@ private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -
   private val composePreviewManager = WeakReference(dataContext.getData(COMPOSE_PREVIEW_MANAGER))
 
   override fun invoke(): PsiFile? {
-    return composePreviewManager.get()?.previewedFile
+    return composePreviewManager.get()?.status()?.previewedFile
   }
 }
 

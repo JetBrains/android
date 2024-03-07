@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -24,16 +23,15 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   var currentStatus =
     ComposePreviewManager.Status(
-      hasRuntimeErrors = false,
+      hasErrorsAndNeedsBuild = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
+      previewedFile = null,
     )
 
   override fun status(): ComposePreviewManager.Status = currentStatus
-
-  override val previewedFile: PsiFile? = null
 
   override fun invalidate() {}
 
