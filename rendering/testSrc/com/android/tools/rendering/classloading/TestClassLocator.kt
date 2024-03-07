@@ -18,7 +18,8 @@ package com.android.tools.rendering.classloading
 /**
  * A [PseudoClassLocator] for test that resolves the [PseudoClass]es from the given [classes] map.
  */
-class TestClassLocator(val classes: Map<String, ByteArray>): PseudoClassLocator {
+class TestClassLocator(val classes: Map<String, ByteArray>) : PseudoClassLocator {
   override fun locatePseudoClass(classFqn: String): PseudoClass =
-    classes[classFqn]?.let { PseudoClass.fromByteArray(it, this) } ?: PseudoClass.objectPseudoClass()
+    classes[classFqn]?.let { PseudoClass.fromByteArray(it, this) }
+      ?: PseudoClass.objectPseudoClass()
 }

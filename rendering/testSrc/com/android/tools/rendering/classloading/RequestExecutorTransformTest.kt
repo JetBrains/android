@@ -15,10 +15,10 @@
  */
 package com.android.tools.rendering.classloading
 
-import org.junit.Assert.assertThrows
-import org.junit.Test
 import java.io.StringWriter
 import java.lang.RuntimeException
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class RequestExecutorTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */
@@ -29,14 +29,16 @@ class RequestExecutorTransformTest {
 
   @Test
   fun testTransform() {
-    assertThrows(RuntimeException::class.java) {
-      RequestExecutor.execute<String>(null, null, null)
-    }
+    assertThrows(RuntimeException::class.java) { RequestExecutor.execute<String>(null, null, null) }
 
-    val testClassLoader = setupTestClassLoaderWithTransformation(
-      mapOf("androidx/core/provider/RequestExecutor" to RequestExecutor::class.java),
-      beforeTransformTrace,
-      afterTransformTrace) { visitor -> RequestExecutorTransform(visitor) }
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(
+        mapOf("androidx/core/provider/RequestExecutor" to RequestExecutor::class.java),
+        beforeTransformTrace,
+        afterTransformTrace,
+      ) { visitor ->
+        RequestExecutorTransform(visitor)
+      }
     val requestExecutor = testClassLoader.loadClass("androidx/core/provider/RequestExecutor")
     requestExecutor.methods.firstOrNull { it.name == "execute" }!!.invoke(null, null, null, null)
   }

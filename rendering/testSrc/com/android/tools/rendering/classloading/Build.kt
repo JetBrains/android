@@ -18,8 +18,7 @@ package com.android.tools.rendering.classloading
 class Build {
   class VERSION {
     companion object {
-      @JvmField
-      val SDK_INT = 33
+      @JvmField val SDK_INT = 33
     }
   }
 }

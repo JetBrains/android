@@ -16,6 +16,9 @@
 package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.RenderService
+import java.io.StringWriter
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -23,9 +26,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import java.io.StringWriter
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
 
 interface AllocationTestInterface {
   val allocations: Long
@@ -49,7 +49,6 @@ class AllocationTestClass : AllocationTestInterface {
   }
 }
 
-
 class RenderActionAllocationLimiterTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */
   private val afterTransformTrace = StringWriter()
@@ -60,34 +59,40 @@ class RenderActionAllocationLimiterTransformTest {
   // This will will log to the stdout logging information that might be useful debugging failures.
   // The logging only happens if the test fails.
   @get:Rule
-  val onFailureRule = object : TestWatcher() {
-    override fun failed(e: Throwable?, description: Description?) {
-      super.failed(e, description)
+  val onFailureRule =
+    object : TestWatcher() {
+      override fun failed(e: Throwable?, description: Description?) {
+        super.failed(e, description)
 
-      println("\n---- Classes before transformation ----")
-      println(beforeTransformTrace)
-      println("\n---- Classes after transformation ----")
-      println(afterTransformTrace)
+        println("\n---- Classes before transformation ----")
+        println(beforeTransformTrace)
+        println("\n---- Classes after transformation ----")
+        println(afterTransformTrace)
+      }
     }
-  }
 
   @Test
   fun `verify allocation limit`() {
-    val testClassLoader = setupTestClassLoaderWithTransformation(
-      mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
-      beforeTransformTrace, afterTransformTrace) { visitor ->
-      RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
-    }
-    val loopTestInstance = testClassLoader.loadClass(
-      AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(
+        mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
+        beforeTransformTrace,
+        afterTransformTrace,
+      ) { visitor ->
+        RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
+      }
+    val loopTestInstance =
+      testClassLoader
+        .loadClass(AllocationTestClass::class.simpleName!!)
+        .getDeclaredConstructor()
+        .newInstance() as AllocationTestInterface
 
     try {
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-        loopTestInstance.call(102)
-      }.get(10, TimeUnit.SECONDS)
+      RenderService.getRenderAsyncActionExecutor()
+        .runAsyncAction { loopTestInstance.call(102) }
+        .get(10, TimeUnit.SECONDS)
       fail("Expected TooManyAllocationsException")
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       assertTrue(e.cause is TooManyAllocationsException)
       assertEquals(101, loopTestInstance.allocations)
     }
@@ -95,21 +100,26 @@ class RenderActionAllocationLimiterTransformTest {
 
   @Test
   fun `verify allocation limit sampling`() {
-    val testClassLoader = setupTestClassLoaderWithTransformation(
-      mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
-      beforeTransformTrace, afterTransformTrace) { visitor ->
-      RenderActionAllocationLimiterTransform(visitor, 1, maxAllocationsPerRenderAction = 1)
-    }
-    val loopTestInstance = testClassLoader.loadClass(
-      AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(
+        mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
+        beforeTransformTrace,
+        afterTransformTrace,
+      ) { visitor ->
+        RenderActionAllocationLimiterTransform(visitor, 1, maxAllocationsPerRenderAction = 1)
+      }
+    val loopTestInstance =
+      testClassLoader
+        .loadClass(AllocationTestClass::class.simpleName!!)
+        .getDeclaredConstructor()
+        .newInstance() as AllocationTestInterface
 
     try {
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-        loopTestInstance.call(5000)
-      }.get(10, TimeUnit.SECONDS)
+      RenderService.getRenderAsyncActionExecutor()
+        .runAsyncAction { loopTestInstance.call(5000) }
+        .get(10, TimeUnit.SECONDS)
       fail("Expected TooManyAllocationsException")
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       assertTrue(e.cause is TooManyAllocationsException)
       assertTrue(loopTestInstance.allocations > 1)
     }
@@ -117,19 +127,25 @@ class RenderActionAllocationLimiterTransformTest {
 
   @Test
   fun `verify allocation limit is per action`() {
-    val testClassLoader = setupTestClassLoaderWithTransformation(
-      mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
-      beforeTransformTrace, afterTransformTrace) { visitor ->
-      RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
-    }
-    val loopTestInstance = testClassLoader.loadClass(
-      AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(
+        mapOf(AllocationTestClass::class.simpleName!! to AllocationTestClass::class.java),
+        beforeTransformTrace,
+        afterTransformTrace,
+      ) { visitor ->
+        RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
+      }
+    val loopTestInstance =
+      testClassLoader
+        .loadClass(AllocationTestClass::class.simpleName!!)
+        .getDeclaredConstructor()
+        .newInstance() as AllocationTestInterface
 
     // None of the 5 actions should hit the allocation limit since they run 90 times each
     repeat(5) {
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-        loopTestInstance.call(90)
-      }.get(10, TimeUnit.SECONDS)
+      RenderService.getRenderAsyncActionExecutor()
+        .runAsyncAction { loopTestInstance.call(90) }
+        .get(10, TimeUnit.SECONDS)
     }
   }
 }

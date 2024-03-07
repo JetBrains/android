@@ -15,6 +15,8 @@
  */
 package com.android.tools.rendering.classloading
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
@@ -22,44 +24,57 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.SimpleRemapper
 import org.objectweb.asm.util.TraceClassVisitor
-import java.io.PrintWriter
-import java.io.StringWriter
 
 private object TestClassLoadingUtils
 
 fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+  c.classLoader.getResourceAsStream(className)!!.use {
+    return it.readBytes()
+  }
 }
 
 /**
- * Sets up a new [TestClassLoader].
- * We take the already compiled classes in the test project, and save it to a byte array, applying the
- * transformations.
+ * Sets up a new [TestClassLoader]. We take the already compiled classes in the test project, and
+ * save it to a byte array, applying the transformations.
  */
 fun setupTestClassLoaderWithTransformation(
   classDefinitions: Map<String, Class<*>>,
   beforeTransformTrace: StringWriter,
   afterTransformTrace: StringWriter,
-  classTransformation: (ClassVisitor) -> ClassVisitor
+  classTransformation: (ClassVisitor) -> ClassVisitor,
 ): TestClassLoader {
   // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
   // names to the new ones.
-  val classNameRemapper = SimpleRemapper(
-    classDefinitions.map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }.toMap())
-  val redefinedClasses = classDefinitions.map { (newClassName, clazz) ->
-    val testClassBytes = loadClassBytes(clazz)
+  val classNameRemapper =
+    SimpleRemapper(
+      classDefinitions
+        .map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }
+        .toMap()
+    )
+  val redefinedClasses =
+    classDefinitions
+      .map { (newClassName, clazz) ->
+        val testClassBytes = loadClassBytes(clazz)
 
-    val classReader = ClassReader(testClassBytes)
-    val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
-    // Move the class
-    val remapper = ClassRemapper(classTransformation(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))),
-                                 classNameRemapper)
-    classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
+        val classReader = ClassReader(testClassBytes)
+        val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+        // Move the class
+        val remapper =
+          ClassRemapper(
+            classTransformation(
+              TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))
+            ),
+            classNameRemapper,
+          )
+        classReader.accept(
+          TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)),
+          ClassReader.EXPAND_FRAMES,
+        )
 
-    newClassName to classOutputWriter.toByteArray()
-  }.toMap()
+        newClassName to classOutputWriter.toByteArray()
+      }
+      .toMap()
 
-  return TestClassLoader(TestClassLoadingUtils::class.java.classLoader,
-                         redefinedClasses)
+  return TestClassLoader(TestClassLoadingUtils::class.java.classLoader, redefinedClasses)
 }

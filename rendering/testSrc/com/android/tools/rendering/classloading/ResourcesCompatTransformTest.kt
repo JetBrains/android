@@ -16,10 +16,10 @@
 package com.android.tools.rendering.classloading
 
 import android.util.TypedValue
-import org.junit.Assert.assertThrows
-import org.junit.Test
 import java.io.StringWriter
 import java.lang.RuntimeException
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class ResourcesCompatTransformTest {
 
@@ -34,15 +34,26 @@ class ResourcesCompatTransformTest {
     val value = TypedValue()
     value.string = "project-path/res/font/font.ttf"
 
-    assertThrows(RuntimeException::class.java) { ResourcesCompat.loadFont(null, null, value, 0, 0, null, null, false, false) }
+    assertThrows(RuntimeException::class.java) {
+      ResourcesCompat.loadFont(null, null, value, 0, 0, null, null, false, false)
+    }
 
-    val testClassLoader = setupTestClassLoaderWithTransformation(
-      mapOf("androidx/core/content/res/ResourcesCompat\$FontCallback" to ResourcesCompat.FontCallback::class.java,
-            "androidx/core/content/res/ResourcesCompat" to ResourcesCompat::class.java),
-      beforeTransformTrace,
-      afterTransformTrace) { visitor -> ResourcesCompatTransform(visitor) }
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(
+        mapOf(
+          "androidx/core/content/res/ResourcesCompat\$FontCallback" to
+            ResourcesCompat.FontCallback::class.java,
+          "androidx/core/content/res/ResourcesCompat" to ResourcesCompat::class.java,
+        ),
+        beforeTransformTrace,
+        afterTransformTrace,
+      ) { visitor ->
+        ResourcesCompatTransform(visitor)
+      }
     testClassLoader.loadClass("androidx/core/content/res/ResourcesCompat\$FontCallback")
     val resourcesCompat = testClassLoader.loadClass("androidx/core/content/res/ResourcesCompat")
-    resourcesCompat.methods.firstOrNull { it.name == "loadFont" }?.invoke(null, null, null, value, 0, 0, null, null, false, false)
+    resourcesCompat.methods
+      .firstOrNull { it.name == "loadFont" }
+      ?.invoke(null, null, null, value, 0, 0, null, null, false, false)
   }
 }
