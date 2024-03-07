@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
@@ -102,7 +102,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
   parentDisposable: Disposable,
   contextModule: Module,
   files: Set<PsiFile>,
-  currentStatus: ComposePreviewManager.Status,
+  currentStatus: PreviewViewModelStatus,
   launcher: UniqueTaskCoroutineLauncher,
   trackedForceRefresh: suspend (String) -> Unit,
 ): CompilationResult = coroutineScope {
