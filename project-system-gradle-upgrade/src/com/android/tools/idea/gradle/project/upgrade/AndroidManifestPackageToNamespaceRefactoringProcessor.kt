@@ -38,6 +38,9 @@ import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  private var blockedReasons: List<BlockReason>? = null
+  private var cachingLock = Any()
+
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
@@ -84,6 +87,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   )
 
   override fun blockProcessorReasons(): List<BlockReason> {
+    synchronized(cachingLock) {
+      if (blockedReasons == null) {
+        blockedReasons = getBlockedReasons()
+      }
+      return blockedReasons!!
+    }
+  }
+
+  private fun getBlockedReasons(): List<BlockReason> {
     val moduleNames = mutableListOf<String>()
     val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
     modules.forEach module@{ module ->
@@ -158,6 +170,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
       override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.usageView.header")
     }
+  }
+
+  override fun initializeComponentExtraCaches() {
+    synchronized(cachingLock) {
+      if (blockedReasons == null) {
+        blockedReasons = getBlockedReasons()
+      }
+    }
+    super.initializeComponentExtraCaches()
   }
 
   companion object {
