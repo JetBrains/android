@@ -69,7 +69,8 @@ class DrawableBackgroundLayerTest {
             mockLayoutlibSceneManager,
             { _, outDimension -> outDimension.setSize(300, 200) },
           ) {
-          override fun getScale(): Double = 1.0
+          override val scale: Double
+            get() = 1.0
         }
 
       val bufferedImage = BufferedImage(300, 200, BufferedImage.TYPE_INT_BGR)

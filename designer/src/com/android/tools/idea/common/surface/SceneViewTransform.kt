@@ -29,7 +29,7 @@ import com.android.tools.idea.common.scene.SceneContext
  *   [SceneView] only.
  */
 class SceneViewTransform(private val sceneView: SceneView) : SceneContext() {
-  override fun getColorSet() = sceneView.getColorSet()
+  override fun getColorSet() = sceneView.colorSet
 
   override fun getSurface() = sceneView.surface
 
