@@ -1051,12 +1051,12 @@ _intellij_plugin_import = rule(
     implementation = _intellij_plugin_import_impl,
 )
 
-def intellij_plugin_import(name, files_root_dir, target_dir, exports, **kwargs):
+def intellij_plugin_import(name, files, strip_prefix, target_dir, exports, **kwargs):
     """This macro is for prebuilt IntelliJ plugins that are not already part of intellij-sdk."""
     _intellij_plugin_import(
         name = name,
-        files = native.glob([files_root_dir + "/**"]),
-        strip_prefix = native.package_name() + "/" + files_root_dir + "/",
+        files = files,
+        strip_prefix = strip_prefix,
         target_dir = target_dir,
         exports = exports,
         compress = is_release(),
