@@ -40,9 +40,6 @@ class InvalidGradleLocalJavaHomeException(
     if (resolvedGradleJdkPath == null) UndefinedGradleLocalJavaHome else InvalidGradleLocalJavaHome(resolvedGradleJdkPath)
 
   override val recoveryJdkCandidates = listOf(
-    RecoveryCandidate(
-      jdkName = AndroidBundle.message("gradle.project.jdk.name"),
-      jdkPath = ProjectRootManager.getInstance(project).projectSdk?.homePath.orEmpty(),
-      reason = "")
+    AndroidBundle.message("gradle.project.jdk.name") to ProjectRootManager.getInstance(project).projectSdk?.homePath.orEmpty()
   ).plus(super.recoveryJdkCandidates)
 }

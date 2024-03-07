@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.jdk.exceptions.base
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
-import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
@@ -26,13 +25,8 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
-import com.intellij.openapi.projectRoots.JavaSdkVersion
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import kotlinx.collections.immutable.toImmutableList
-import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.jps.model.java.JdkVersionDetector
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 
@@ -50,116 +44,38 @@ abstract class GradleJdkException(
   val reason by lazy { cause.reason }
 
   fun recover() {
-    var resolution: String? = null
-    lateinit var notificationType: NotificationType
     recoveryJdkCandidates
-      .firstOrNull { candidate -> ExternalSystemJdkUtil.isValidJdk(candidate.jdkPath) }
-      ?.let { candidate ->
-        JdkUtils.setProjectGradleJdk(project, gradleRootPath, candidate.jdkPath)
-        resolution = candidate.generateResolutionMessage()
-        notificationType = NotificationType.WARNING
-      }
-    if (resolution == null) {
-      // Show a notification asking users to pick a different JDK
-      val gradleVersion = GradleWrapper.find(project)?.gradleVersion?.let { GradleVersion.version(it) }
-      if (gradleVersion != null) {
-        val requiredJavaVersion = getCompatibleJdkVersionForGradle(gradleVersion)
-        resolution = "This project uses Gradle ${gradleVersion.version} that requires JDK ${requiredJavaVersion.description}"
-      }
-      notificationType = NotificationType.ERROR
+      .firstOrNull { (_, jdkPath) -> ExternalSystemJdkUtil.isValidJdk(jdkPath)}
+      ?.let { (jdkName, jdkPath) ->
+        JdkUtils.setProjectGradleJdk(project, gradleRootPath, jdkPath)
+        val jdkVersion = JavaSdk.getInstance().getVersionString(jdkPath)  ?: "<unknown>"
+        showRecoveredGradleJdkNotification(
+          project = project,
+          gradleRootPath = gradleRootPath,
+          errorDescription = cause.description,
+          errorResolution = AndroidBundle.message("project.sync.jdk.recovery.message", jdkName, jdkVersion)
+        )
     }
-    showRecoverResultGradleJdkNotification(
-      errorResolution = resolution,
-      notificationType = notificationType
-    )
   }
 
   protected abstract val cause: InvalidGradleJdkCause
 
-  protected open val recoveryJdkCandidates: List<RecoveryCandidate>
-    get() {
-      val jdkCandidates: MutableList<RecoveryCandidate> = mutableListOf()
-      val gradleVersion = GradleWrapper.find(project)?.gradleVersion?.let { GradleVersion.version(it) }
-      if (gradleVersion != null) {
-        val requiredJavaVersion = getCompatibleJdkVersionForGradle(gradleVersion)
-        // Add default and embedded if they are compatible with Gradle
-        jdkCandidates.addIfSameJdkVersion(
-          jdkName = AndroidBundle.message("gradle.default.jdk.name"),
-          jdkPath = GradleDefaultJdkPathStore.jdkPath.orEmpty(),
-          requiredJavaVersion
-        )
-        jdkCandidates.addIfSameJdkVersion(
-          jdkName = AndroidBundle.message("gradle.embedded.jdk.name"),
-          jdkPath = IdeSdks.getInstance().embeddedJdkPath.toString(),
-          requiredJavaVersion
-        )
-        // Add candidates from JDK table that are compatible with Gradle
-        val javaSdkType = ExternalSystemJdkUtil.getJavaSdkType()
-        ProjectJdkTable.getInstance().getSdksOfType(javaSdkType)
-          .filterNotNull()
-          .filter { sdk ->
-            val sdkVersion = JavaSdk.getInstance().getVersion(sdk)
-            requiredJavaVersion == sdkVersion
-          }
-          .forEach { jdk ->
-            jdkCandidates.add(RecoveryCandidate(
-              jdkName = "JDK ${requiredJavaVersion.description}",
-              jdkPath = jdk.homePath.orEmpty(),
-              reason = " required by Gradle ${gradleVersion.version}")
-            )
-          }
-      }
-      else {
-        // Try default and embedded when Gradle version cannot be found
-        jdkCandidates.add(
-          RecoveryCandidate(AndroidBundle.message("gradle.default.jdk.name"), GradleDefaultJdkPathStore.jdkPath.orEmpty(), "")
-        )
-        jdkCandidates.add(
-          RecoveryCandidate(AndroidBundle.message("gradle.embedded.jdk.name"), IdeSdks.getInstance().embeddedJdkPath.toString(), "")
-        )
-      }
-      return jdkCandidates.toImmutableList()
-    }
+  protected open val recoveryJdkCandidates = listOf(
+    AndroidBundle.message("gradle.default.jdk.name") to GradleDefaultJdkPathStore.jdkPath.orEmpty(),
+    AndroidBundle.message("gradle.embedded.jdk.name") to IdeSdks.getInstance().embeddedJdkPath.toString()
+  )
 
-  private fun showRecoverResultGradleJdkNotification(
-    errorResolution: String?,
-    notificationType: NotificationType
+  private fun showRecoveredGradleJdkNotification(
+    project: Project,
+    gradleRootPath: @SystemIndependent String,
+    errorDescription: String,
+    errorResolution: String
   ) {
     val title = GradleBundle.message("gradle.jvm.is.invalid")
     val messageBuilder = StringBuilder()
-      .appendLine(cause.description)
-    errorResolution?.let { messageBuilder.appendLine(it) }
+      .appendLine(errorDescription)
+      .appendLine(errorResolution)
     val quickFixes = listOfNotNull(SelectJdkFromFileSystemHyperlink.create(project, gradleRootPath))
-    AndroidNotification.getInstance(project).showBalloon(title, messageBuilder.toString(), notificationType, *quickFixes.toTypedArray())
-  }
-
-  private fun getCompatibleJdkVersionForGradle(gradleVersion: GradleVersion): JavaSdkVersion =
-    when {
-      gradleVersion < GradleVersion.version("5.0") -> JavaSdkVersion.JDK_1_8
-      gradleVersion < GradleVersion.version("7.3") -> JavaSdkVersion.JDK_11
-      gradleVersion < GradleVersion.version("8.5") -> JavaSdkVersion.JDK_17
-      else -> JavaSdkVersion.JDK_21
-    }
-
-  private fun MutableList<RecoveryCandidate>.addIfSameJdkVersion(jdkName: String, jdkPath: String, requiredJavaVersion: JavaSdkVersion) {
-    val defaultJdkVersion = getJdkVersionFromPath(jdkPath)
-    if (defaultJdkVersion == requiredJavaVersion) {
-      add(RecoveryCandidate(jdkName, jdkPath, reason = ""))
-    }
-  }
-
-  private fun getJdkVersionFromPath(jdkPath: String): JavaSdkVersion? {
-    if (!ExternalSystemJdkUtil.isValidJdk(jdkPath)) {
-      return null
-    }
-    val versionInfo = JdkVersionDetector.getInstance().detectJdkVersionInfo(jdkPath) ?: return null
-    return JavaSdkVersion.fromJavaVersion(versionInfo.version)
-  }
-
-  protected data class RecoveryCandidate(val jdkName: String, val jdkPath: String, val reason: String) {
-    fun generateResolutionMessage(): String {
-      val jdkVersion = JavaSdk.getInstance().getVersionString(jdkPath) ?: "<unknown>"
-      return AndroidBundle.message("project.sync.jdk.recovery.message", jdkName, jdkVersion, reason)
-    }
+    AndroidNotification.getInstance(project).showBalloon(title, messageBuilder.toString(), NotificationType.WARNING, *quickFixes.toTypedArray())
   }
 }
