@@ -30,7 +30,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,7 @@ import org.junit.runner.RunWith;
 public class AgpUpgradeTest {
 
   @Rule
-  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private File projectDir;
   private IdeFrameFixture ideFrame;
   private String projectName = "SimpleApplication";
@@ -52,6 +51,7 @@ public class AgpUpgradeTest {
     guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame = guiTest.ideFrame();
+    ideFrame.waitUntilProgressBarNotDisplayed();
   }
 
   //The test verifies the AGP upgrade from one stable version to the latest public stable version.
@@ -124,6 +124,8 @@ public class AgpUpgradeTest {
     upgradeAssistant.clickRevertProjectFiles();
     ideFrame.waitForGradleSyncToFinish(null);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.waitUntilProgressBarNotDisplayed();
+    upgradeAssistant.activate();
     assertTrue(upgradeAssistant.isRefreshButtonEnabled());
     assertTrue(upgradeAssistant.isShowUsagesEnabled());
     assertTrue(upgradeAssistant.isRunSelectedStepsButtonEnabled());
@@ -161,15 +163,17 @@ public class AgpUpgradeTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     EditorFixture editor = ideFrame.getEditor();
-
-    //Updating the AGP version using build.gradle file.
+    String latestGradleVersion = "classpath 'com.android.tools.build:gradle:"+ANDROID_GRADLE_PLUGIN_VERSION+"'";
     editor.open("build.gradle")
-      .select("gradle\\:(\\d+\\.\\d+\\.\\d+)")
-      .enterText(ANDROID_GRADLE_PLUGIN_VERSION);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+      .moveBetween("classpath 'com.android.tools.", "build:gradle")
+      .moveBetween("classpath 'com.android.tools.", "build:gradle")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .typeText(latestGradleVersion)
+      .invokeAction(EditorFixture.EditorAction.SAVE)
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents()).contains(ANDROID_GRADLE_PLUGIN_VERSION);
-
   }
 }
