@@ -1504,8 +1504,8 @@ public final class StudioFlags {
     Flag.create(
       FIREBASE_TEST_LAB,
       "direct.access.monthly.quota",
-      "Direct Access",
-      "Enable FTL DirectAccess",
+      "Direct Access Monthly Quota",
+      "Enable FTL DirectAccess Monthly Quota",
       false);
 
   public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
@@ -1540,6 +1540,15 @@ public final class StudioFlags {
       "FTL Direct Access Monitoring endpoint",
       "The URL for FTL Direct Access to monitor quota usage and limit.",
       "monitoring.googleapis.com"
+    );
+
+  public static final Flag<String> DIRECT_ACCESS_MONITORING_METRICS_DIRECTORY =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.monitoring.metrics.directory",
+      "FTL Direct Access Metrics Directory",
+      "The directory for FTL Direct Access monthly usage metrics.",
+      "device_streaming"
     );
   // endregion Firebase Test Lab
 
