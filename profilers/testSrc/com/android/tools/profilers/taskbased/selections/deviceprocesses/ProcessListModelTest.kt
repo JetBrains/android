@@ -166,7 +166,7 @@ class ProcessListModelTest {
     // PREFERRED_PROCESS_NAME aspect should be fired via the call to set the preferred process name.
     myProfilers.preferredProcessName = "FakeProcess1"
 
-    assertThat(processListModel.preferredProcessName).isEqualTo("FakeProcess1")
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess1")
 
     val process2 = createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId)
     addDeviceWithProcess(device, process2, myTransportService, myTimer)
@@ -176,7 +176,7 @@ class ProcessListModelTest {
 
     myProfilers.deviceProcessMap.keys.find { it == device }
 
-    assertThat(processListModel.preferredProcessName).isEqualTo("FakeProcess2")
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess2")
 
     assertThat(processListModel.deviceToProcesses.value).isNotEmpty()
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
@@ -214,7 +214,7 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(6)
 
-    assertThat(processListModel.preferredProcessName).isEqualTo("FakeProcess2:X")
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess2:X")
     var deviceProcessesSorted = processListModel.getSelectedDeviceProcesses()
     assertThat(deviceProcessesSorted[0].name).isEqualTo("FakeProcess2:X")
     assertThat(deviceProcessesSorted[1].name).isEqualTo("FakeProcess2")
@@ -228,7 +228,7 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(6)
 
-    assertThat(processListModel.preferredProcessName).isEqualTo("FakeProcess1")
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess1")
     deviceProcessesSorted = processListModel.getSelectedDeviceProcesses()
     assertThat(deviceProcessesSorted[0].name).isEqualTo("FakeProcess1")
     assertThat(deviceProcessesSorted[1].name).isEqualTo("FakeProcess1:X")
@@ -297,7 +297,7 @@ class ProcessListModelTest {
     // Now set preferred process name which should trigger a reordering of the processes.
     myProfilers.preferredProcessName = "FakeProcess3"
 
-    assertThat(processListModel.preferredProcessName).isEqualTo("FakeProcess3")
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess3")
     assertThat(processListModel.deviceToProcesses.value).isNotEmpty()
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(3)

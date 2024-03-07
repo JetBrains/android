@@ -36,11 +36,10 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
   val selectedProcess = _selectedProcess.asStateFlow()
   private val _selectedDevicesCount = MutableStateFlow(0)
   val selectedDevicesCount = _selectedDevicesCount.asStateFlow()
-
-  var isPreferredProcessSelected = false
-
-  @VisibleForTesting
-  val preferredProcessName get() = profilers.preferredProcessName
+  private var _isPreferredProcessSelected = MutableStateFlow(false)
+  val isPreferredProcessSelected = _isPreferredProcessSelected.asStateFlow()
+  private var _preferredProcessName = MutableStateFlow<String?>(null)
+  val preferredProcessName = _preferredProcessName.asStateFlow()
 
   init {
     profilers.addDependency(this)
@@ -93,8 +92,8 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
    * Checks for the presence of the preferred process, and resets the selection if preferred process is selected and no longer present.
    */
   private fun checkForPreferredProcess() {
-    val isPreferredProcessPresent = getSelectedDeviceProcesses().find { it.name == preferredProcessName } != null
-    if (!isPreferredProcessPresent && isPreferredProcessSelected) {
+    val isPreferredProcessPresent = getSelectedDeviceProcesses().find { it.name == _preferredProcessName.value } != null
+    if (!isPreferredProcessPresent && _isPreferredProcessSelected.value) {
       resetProcessSelection()
     }
   }
@@ -115,17 +114,17 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     // The following collection of indices (sorted by a custom comparator) of device process names that have the same substring up to the
     // first ":" instance as the preferred process name. These are the device processes that will be brought to the top of the device
     // process list and are considered to be the "preferred processes".
-    val preferredProcessesWithIndicesSorted = if (!preferredProcessName.isNullOrBlank()) {
+    val preferredProcessesWithIndicesSorted = if (!_preferredProcessName.value.isNullOrBlank()) {
       getSelectedDeviceProcesses().withIndex().filter { (_, value) ->
-        value.name.split(':').first() == preferredProcessName!!.split(':').first()
+        value.name.split(':').first() == _preferredProcessName.value!!.split(':').first()
       }.sortedWith { a, b ->
         // The following comparator gives priority to a device process if the process name is equal to the preferred process name.
         // Otherwise, it uses a regular lexicographic comparison.
         val processNameA = a.value.name
         val processNameB = b.value.name
         when {
-          processNameA == preferredProcessName && processNameB != preferredProcessName -> -1
-          processNameA != preferredProcessName && processNameB == preferredProcessName -> 1
+          processNameA == _preferredProcessName.value && processNameB != _preferredProcessName.value -> -1
+          processNameA != _preferredProcessName.value && processNameB == _preferredProcessName.value -> 1
           else -> processNameA.compareTo(processNameB)
         }
       }.map { it.index }
@@ -137,8 +136,9 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
 
     val reorderedProcessList = mutableListOf<Common.Process>()
     // Populate the new, reordered list with the non-preferred processes and sort it lexicographically.
-    reorderedProcessList.addAll(
-      getSelectedDeviceProcesses().withIndex().filter { !preferredProcessesWithIndicesSorted.contains(it.index) }.map { it.value })
+    reorderedProcessList.addAll(getSelectedDeviceProcesses().withIndex().filter {
+      !preferredProcessesWithIndicesSorted.contains(it.index) && it.value.state == Common.Process.State.ALIVE
+    }.map { it.value })
     reorderedProcessList.sortBy { it.name }
     // Add the preferred processes to the top of the new, reordered list.
     reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { getSelectedDeviceProcesses()[it] })
@@ -161,22 +161,22 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
    */
   private fun updatePreferredProcessAndSelect(preferredProcessesWithIndicesSorted: List<Int>, reorderedProcessList: MutableList<Common.Process>) {
     // If the preferred process name is present, but the process entry is not present, add a fake/dead process entry to represent it.
-    if (!preferredProcessName.isNullOrBlank() && preferredProcessesWithIndicesSorted.isEmpty()) {
-      val deadPreferredProcess = Common.Process.newBuilder().setName(preferredProcessName).setState(Common.Process.State.DEAD).build()
+    if (!_preferredProcessName.value.isNullOrBlank() && preferredProcessesWithIndicesSorted.isEmpty()) {
+      val deadPreferredProcess = Common.Process.newBuilder().setName(_preferredProcessName.value).setState(Common.Process.State.DEAD).build()
       // The preferred process, dead or alive, should always be added to the top.
       reorderedProcessList.add(0, deadPreferredProcess)
       selectPreferredProcess(reorderedProcessList)
     }
     // If a preferred process already exists and is running, and no process selection has been made, the preferred process is selected.
     else if (preferredProcessesWithIndicesSorted.isNotEmpty() &&
-             ((isPreferredProcessSelected && _selectedProcess.value.state == Common.Process.State.DEAD) ||
+             ((_isPreferredProcessSelected.value && _selectedProcess.value.state == Common.Process.State.DEAD) ||
               _selectedProcess.value == Common.Process.getDefaultInstance())) {
       selectPreferredProcess(reorderedProcessList)
     }
   }
 
   private fun selectPreferredProcess(processList: List<Common.Process>) {
-    val preferredProcess = processList.find { it.name == preferredProcessName }
+    val preferredProcess = processList.find { it.name == _preferredProcessName.value }
     preferredProcess?.let { onProcessSelection(it) }
   }
 
@@ -248,26 +248,19 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
 
   fun onProcessSelection(newProcess: Common.Process) {
     _selectedProcess.value = newProcess
-    isPreferredProcessSelected = newProcess.name == preferredProcessName
+    _isPreferredProcessSelected.value = newProcess.name == _preferredProcessName.value
 
     updateProfilingProcessStartingPoint()
   }
 
   private fun preferredProcessUpdated() {
+    _preferredProcessName.value = profilers.preferredProcessName
     // Force update of process list ordering.
     reorderProcessList()
   }
 
   fun setSelectedDevicesCount(selectedDevicesCount: Int) {
     _selectedDevicesCount.value = selectedDevicesCount;
-  }
-
-  /**
-   * Allows to simulate preferred process selection and startup tasks from tests without having to create and select a process.
-   */
-  @VisibleForTesting
-  fun setIsPreferredProcessSelected(selected: Boolean) {
-    isPreferredProcessSelected = selected
   }
 
   fun resetDeviceSelection() { _selectedDevice.value = null }

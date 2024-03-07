@@ -161,7 +161,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final Function0<List<ToolbarDeviceSelection>> myToolbarDeviceSelectionsFetcher;
 
-  @NotNull
+  /**
+   * Callback to fetch the selected run configuration's package name. In the Task-Based UX, this is invoked at each tick in the update
+   * method and used to set the preferred process name.
+   *
+   * Note: This callback will be set to null by test-only constructors to prevent test environments from invoking it and overwriting the
+   * preferred process set by the test. A non-null value will be set on tool window initialization in production.
+   */
+  @Nullable
   private final Function0<String> myPreferredProcessNameFetcher;
 
   @Nullable
@@ -245,7 +252,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, () -> null);
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null);
   }
 
   /**
@@ -261,7 +268,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                          @NotNull Runnable openTaskTab,
                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                         @NotNull Function0<String> preferredProcessNameFetcher) {
+                         @Nullable Function0<String> preferredProcessNameFetcher) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
          toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher);
   }
@@ -273,7 +280,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                           @NotNull Runnable openTaskTab,
                           @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                          @NotNull Function0<String> preferredProcessNameFetcher)  {
+                          @Nullable Function0<String> preferredProcessNameFetcher) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -429,6 +436,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
 
+    boolean processNameChanged = !Objects.equals(myPreference.processName, processName);
+
     myPreference = new Preference(
       deviceName,
       processName,
@@ -442,6 +451,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     changed(ProfilerAspect.PREFERRED_PROCESS);
+
+    if (processNameChanged) {
+      changed(ProfilerAspect.PREFERRED_PROCESS_NAME);
+    }
   }
 
   public void setPreferredProcessName(@Nullable String processName) {
@@ -591,8 +604,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     myRefreshDevicesAndPreferredProcessName = 0;
 
-    String preferredProcessName = myPreferredProcessNameFetcher.invoke();
-    if (preferredProcessName != null && !preferredProcessName.isEmpty()) {
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myPreferredProcessNameFetcher != null) {
+      String preferredProcessName = myPreferredProcessNameFetcher.invoke();
       setPreferredProcessName(preferredProcessName);
     }
 

@@ -40,7 +40,7 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
     DeviceSelection(deviceList = deviceList, selectedDevice = selectedDevice, selectedDevicesCount = selectedDevicesCount,
                     onDeviceSelection = processListModel::onDeviceSelection)
 
-    val preferredProcessName = processListModel.preferredProcessName
+    val preferredProcessName by processListModel.preferredProcessName.collectAsState()
     val selectedProcess by processListModel.selectedProcess.collectAsState()
     val deviceToProcessList by processListModel.deviceToProcesses.collectAsState()
     val processList = if (selectedDevice != null && deviceToProcessList.containsKey(selectedDevice!!.device)) {
