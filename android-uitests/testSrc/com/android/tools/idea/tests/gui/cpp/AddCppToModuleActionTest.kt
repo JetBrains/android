@@ -23,7 +23,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.AddCppToModuleDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
+import com.android.tools.idea.wizard.template.Language.Java
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -62,6 +64,7 @@ class AddCppToModuleActionTest {
       }
       okButton.click()
     }
+    ideFrame.waitForGradleSyncToFinish(Wait.seconds(240))
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     if (getInstance(ideFrame.project).lastSyncFailed()) {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
@@ -84,6 +87,7 @@ class AddCppToModuleActionTest {
       project("test")
       add_library(native-lib SHARED native-lib.cpp )
       """.trimIndent())
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     cppDir.resolve("native-lib.cpp").writeText("""
       #include <jni.h>
       int i = 2;
@@ -94,15 +98,15 @@ class AddCppToModuleActionTest {
       enabledTextField.setText(cmakeListsFile.absolutePath)
       okButton.click()
     }
-
+    ideFrame.waitForGradleSyncToFinish(Wait.seconds(240))
     GuiTests.waitForBackgroundTasks(guiTest.robot())
 
     if (getInstance(ideFrame.project).lastSyncFailed()) {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/CMakeLists.txt")
-    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("version = \"$DEFAULT_CMAKE_VERSION\"")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/CMakeLists.txt")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("version '$DEFAULT_CMAKE_VERSION'")
   }
 
   @Test
@@ -137,7 +141,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/Android.mk")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/Android.mk")
   }
 
   @Test
@@ -163,7 +167,7 @@ class AddCppToModuleActionTest {
       enabledTextField.setText("/blah")
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection exists, but it's not a CMakeLists.txt or *.mk file
-      enabledTextField.setText(projectRoot.resolve("build.gradle.kts").absolutePath)
+      enabledTextField.setText(projectRoot.resolve("build.gradle").absolutePath)
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection is valid
       enabledTextField.setText(cmakeListsFile.absolutePath)
@@ -176,15 +180,18 @@ class AddCppToModuleActionTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .chooseActivity("Empty Activity")
+      .chooseActivity("Empty Views Activity")
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
       .enterName("AddCppToModuleTestProject")
       .enterPackageName("dev.tools")
+      .setSourceLanguage(Java)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject.Groovy)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(360))
     guiTest.waitForAllBackgroundTasksToBeCompleted()
+    guiTest.ideFrame().waitUntilProgressBarNotDisplayed()
   }
 
   private fun IdeFrameFixture.openAddCppToModuleDialog(): AddCppToModuleDialogFixture {
