@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -175,19 +176,32 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
 }
 
 /**
- * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned [Disposable] can be used
- * as the root.
- * This is analogous to [AndroidCoroutineScope] where this generates a [Disposable] for the given [CoroutineScope].
+ * This application level service is used to ensure all Disposables created by
+ * [CoroutineScope.scopeDisposable] get disposed when the application is disposed.
+ * [Job.invokeOnCompletion] does not provide thread guarantees (cf.
+ * https://github.com/Kotlin/kotlinx.coroutines/issues/3505) and we had some race conditions where
+ * the UndisposedAndroidObjectsCheckerRule#checkUndisposedAndroidRelatedObjects leak check would run
+ * before the call to [Disposable.dispose] inside the [Job.invokeOnCompletion]. This created some
+ * errors in some tests, for example: b/328290264. By using this application level service as a
+ * parent disposable, we ensure all child disposables are disposed of at the end of each test.
+ */
+@Service(Service.Level.APP)
+private class ApplicationCoroutineScopeDisposable : Disposable {
+  override fun dispose() {}
+}
+
+/**
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
+ * [Disposable] can be used as the root. This is analogous to [AndroidCoroutineScope] where this
+ * generates a [Disposable] for the given [CoroutineScope].
  */
 fun CoroutineScope.scopeDisposable(): Disposable {
-  val disposable = Disposer.newDisposable()
+  val parentDisposable =
+    ApplicationManager.getApplication().getService(ApplicationCoroutineScopeDisposable::class.java)
+  val disposable = Disposer.newDisposable(parentDisposable)
 
-  // We use a weak reference so the disposable is not held by the coroutine if the caller ends up not
-  // using it.
-  val disposableRef = WeakReference(disposable)
-  coroutineContext.job.invokeOnCompletion {
-    disposableRef.get()?.let { Disposer.dispose(it) }
-  }
+  // The disposable should be disposed of once the coroutine scope is ended
+  coroutineContext.job.invokeOnCompletion { Disposer.dispose(disposable) }
   return disposable
 }
 
