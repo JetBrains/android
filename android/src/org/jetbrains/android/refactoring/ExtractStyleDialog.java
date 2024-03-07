@@ -22,6 +22,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -156,6 +157,11 @@ class ExtractStyleDialog extends DialogWrapper {
 
     AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
+      @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(true);
       }
@@ -163,6 +169,10 @@ class ExtractStyleDialog extends DialogWrapper {
     decorator.addExtraAction(selectAll);
 
     AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+      @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(false);
