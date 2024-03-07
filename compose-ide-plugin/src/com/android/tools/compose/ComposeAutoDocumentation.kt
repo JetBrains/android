@@ -30,8 +30,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiElement
 import com.intellij.util.Alarm
+import com.intellij.util.SlowOperations
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -48,7 +50,12 @@ class ComposeAutoDocumentation(private val project: Project) {
       val moduleSystem =
         FileDocumentManager.getInstance()
           .getFile(newLookup.editor.document)
-          ?.let { ModuleUtilCore.findModuleForFile(it, newLookup.project) }
+          ?.let {
+            // TODO(b/328605000): remove the allowSlowOperations call here.
+            SlowOperations.allowSlowOperations(
+              ThrowableComputable { ModuleUtilCore.findModuleForFile(it, newLookup.project) }
+            )
+          }
           ?.getModuleSystem()
 
       if (moduleSystem?.usesCompose == true) {
