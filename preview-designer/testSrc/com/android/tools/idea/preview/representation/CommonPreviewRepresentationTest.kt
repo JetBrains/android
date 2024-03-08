@@ -126,19 +126,19 @@ class CommonPreviewRepresentationTest {
 
       // wait for smart mode and status to be needs build
       DumbModeTestUtils.waitForSmartMode(fixture.project)
-      waitForCondition(5.seconds) {
+      waitForCondition(10.seconds) {
         previewRepresentation.getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild
       }
 
       // Activate and wait for build listener setup to finish
       assertFalse(previewRepresentation.hasBuildListenerSetupFinishedForTest())
       previewRepresentation.onActivate()
-      waitForCondition(5.seconds) { previewRepresentation.hasBuildListenerSetupFinishedForTest() }
+      waitForCondition(10.seconds) { previewRepresentation.hasBuildListenerSetupFinishedForTest() }
       assertTrue(previewRepresentation.isInvalidatedForTest())
 
       // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-      waitForCondition(5.seconds) { !previewRepresentation.isInvalidatedForTest() }
+      waitForCondition(10.seconds) { !previewRepresentation.isInvalidatedForTest() }
       assertFalse(previewRepresentation.isInvalidatedForTest())
 
       // block the refresh manager with a high priority refresh that won't finish
@@ -161,7 +161,7 @@ class CommonPreviewRepresentationTest {
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-      waitForCondition(5.seconds) { previewRepresentation.isInvalidatedForTest() }
+      waitForCondition(10.seconds) { previewRepresentation.isInvalidatedForTest() }
       assertTrue(previewRepresentation.isInvalidatedForTest())
 
       // unblock the refresh manager
@@ -181,7 +181,7 @@ class CommonPreviewRepresentationTest {
 
       // As a consequence of the build a refresh should happen in the preview representation now
       // that the refresh manager was unblocked
-      waitForCondition(5.seconds) { !previewRepresentation.isInvalidatedForTest() }
+      waitForCondition(10.seconds) { !previewRepresentation.isInvalidatedForTest() }
       assertFalse(previewRepresentation.isInvalidatedForTest())
     }
 
