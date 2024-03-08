@@ -202,10 +202,7 @@ internal class EmulatorToolWindowPanel(
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
-    if (multiDisplayState == null) {
-      centerPanel.addToCenter(primaryDisplayPanel)
-    }
-    else {
+    if (multiDisplayState?.isInitialized() == true) {
       try {
         displayConfigurator.buildLayout(multiDisplayState)
       }
@@ -214,6 +211,9 @@ internal class EmulatorToolWindowPanel(
         // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
+    }
+    else {
+      centerPanel.addToCenter(primaryDisplayPanel)
     }
 
     mainToolbar.targetComponent = emulatorView
@@ -446,13 +446,15 @@ internal class EmulatorToolWindowPanel(
    */
   class MultiDisplayState() {
 
+    lateinit var displayDescriptors: MutableList<DisplayDescriptor>
+    lateinit var panelState: PanelState
+
     constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
       this.displayDescriptors = displayDescriptors
       this.panelState = panelState
     }
 
-    lateinit var displayDescriptors: MutableList<DisplayDescriptor>
-    lateinit var panelState: PanelState
+    fun isInitialized(): Boolean = ::displayDescriptors.isInitialized && ::panelState.isInitialized
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
