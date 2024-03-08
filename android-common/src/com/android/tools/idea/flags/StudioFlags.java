@@ -1367,6 +1367,11 @@ public final class StudioFlags {
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
     "Enable a Studio Bot context-menu action that generates sample data for a given Composable function",
     false);
+
+  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_AI_QUICK_FIX = new BooleanFlag(
+    COMPOSE, "compose.ui.check.mode.ai.quickfix", "Enable AI-powered quick fix action for UI Check",
+    "Enable an AI-powered quick fix action for UI Check issues.",
+    false);
   //endregion
 
   // region Wear surfaces

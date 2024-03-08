@@ -43,6 +43,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
     ],
 )
 
