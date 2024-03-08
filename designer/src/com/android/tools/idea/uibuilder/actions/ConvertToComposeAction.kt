@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ml.xmltocompose.ComposeConverterDataType
+import com.android.tools.idea.ml.xmltocompose.ConversionResponse
 import com.android.tools.idea.ml.xmltocompose.NShotXmlToComposeConverter
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.actionSystem.AnAction
@@ -153,7 +154,13 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
             show()
             AndroidCoroutineScope(disposable).launch(workerThread) {
               val response = nShotXmlToComposeConverter.convertToCompose(xmlFileContent)
-              withContext(uiThread) { updateContent(response) }
+              val contentText =
+                if (response.status == ConversionResponse.Status.SUCCESS) {
+                  response.generatedCode
+                } else {
+                  "[CONVERSION FAILED] ${response.generatedCode}"
+                }
+              withContext(uiThread) { updateContent(contentText) }
             }
           }
         }

@@ -25,14 +25,23 @@ internal const val PROMPT_PREFIX =
   "What's the Jetpack Compose equivalent of the following Android XML layout?"
 
 /**
- * Service that takes the content of an XML layout file as a string and returns a corresponding
- * Compose file, also as a string.
+ * Service that takes the content of an XML layout file as a string and returns the code of a
+ * corresponding Jetpack Compose file, also as a string, wrapped in a [ConversionResponse] object.
+ * This object also contains a [ConversionResponse.Status] indicating if the conversion succeeded.
  *
  * The conversion is intended to be backed LLMs triggered using the Studio Bot API. [PROMPT_PREFIX]
  * is the query to be included when passing the layout to Studio Bot.
  */
 interface XmlToComposeConverter : Disposable {
-  suspend fun convertToCompose(xml: String): String
+  suspend fun convertToCompose(xml: String): ConversionResponse
 
   override fun dispose() {}
+}
+
+/** Represents the data returned when calling [XmlToComposeConverter.convertToCompose]. */
+data class ConversionResponse(val generatedCode: String, val status: Status) {
+  enum class Status {
+    ERROR,
+    SUCCESS
+  }
 }

@@ -60,21 +60,30 @@ private constructor(private val project: Project, private val nShots: List<Strin
 
   private val logger = Logger.getInstance(NShotXmlToComposeConverter::class.java)
 
-  override suspend fun convertToCompose(xml: String): String {
+  override suspend fun convertToCompose(xml: String): ConversionResponse {
     val prompt = getPrompt(xml)
     val studioBot = StudioBot.getInstance()
     // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
     // can't use the sendQuery API.
     if (!studioBot.isContextAllowed()) {
-      return contextSharingNeedsToBeEnabled
+      return ConversionResponse(
+        generatedCode = contextSharingNeedsToBeEnabled,
+        status = ConversionResponse.Status.ERROR,
+      )
     }
     try {
       val response =
         studioBot.model().sendQuery(prompt, StudioBot.RequestSource.DESIGN_TOOLS).toList()
-      return response.parseCode()
+      return ConversionResponse(
+        generatedCode = response.parseCode(),
+        status = ConversionResponse.Status.SUCCESS,
+      )
     } catch (t: Throwable) {
       logger.error("Error while trying to send query", t)
-      return errorToGenerateComposeCode
+      return ConversionResponse(
+        generatedCode = errorToGenerateComposeCode,
+        status = ConversionResponse.Status.ERROR,
+      )
     }
   }
 

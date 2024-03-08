@@ -194,7 +194,8 @@ class NShotXmlToComposeConverterTest {
   fun testStudioBotResponse() {
     val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).build()
     val response = runBlocking { nShotXmlToComposeConverter.convertToCompose(simpleXmlLayout()) }
-    assertEquals(simpleKotlinCode(), response)
+    assertEquals(ConversionResponse.Status.SUCCESS, response.status)
+    assertEquals(simpleKotlinCode(), response.generatedCode)
   }
 
   @Test
@@ -202,10 +203,11 @@ class NShotXmlToComposeConverterTest {
     studioBot.contextAllowed = false
     val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).build()
     val response = runBlocking { nShotXmlToComposeConverter.convertToCompose(simpleXmlLayout()) }
+    assertEquals(ConversionResponse.Status.ERROR, response.status)
     assertEquals(
       "Please follow the Studio Bot onboarding and enable context sharing if you want to use " +
         "this feature.",
-      response,
+      response.generatedCode,
     )
   }
 
