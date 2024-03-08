@@ -28,6 +28,7 @@ import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.module.Module
@@ -40,6 +41,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 /** Action to run a Compose Preview on a device/emulator. */
 internal class DeployToDeviceAction :
   AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun actionPerformed(e: AnActionEvent) {
     e.dataContext.previewElement()?.let {

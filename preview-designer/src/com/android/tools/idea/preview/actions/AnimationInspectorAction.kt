@@ -19,6 +19,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
@@ -39,6 +40,7 @@ class AnimationInspectorAction(
     defaultModeDescription,
     ANIMATION_INSPECTOR,
   ) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)

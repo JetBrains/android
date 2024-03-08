@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManagerEx
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
@@ -26,6 +27,7 @@ private const val HIDE = "Hide"
 
 /** Action that controls when to enable the debug boundaries mode. */
 internal class ShowDebugBoundaries : ToggleAction("$SHOW Composable Bounds", null, null) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isSelected(e: AnActionEvent): Boolean =
     (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? ComposePreviewManagerEx)

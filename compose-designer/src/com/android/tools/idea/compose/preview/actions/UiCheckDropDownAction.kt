@@ -73,6 +73,9 @@ internal class UiCheckFilteringAction(private val previewManager: ComposePreview
 internal class UiCheckReopenTabAction(private val previewManager: ComposePreviewManager) :
   AnAction("Open UI Check Tab in Problems Panel") {
 
+  /** Running on EDT since the update accesses UI state via tabName */
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val problemsWindow =
