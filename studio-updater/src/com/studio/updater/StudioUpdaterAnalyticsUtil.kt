@@ -24,6 +24,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.utils.StdLogger
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioPatchUpdaterEvent
+import com.intellij.updater.UpdaterUI
 import com.intellij.updater.ValidationResult
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -122,13 +123,14 @@ fun logProcessFinish(result: Boolean) {
 
 internal fun toAnalytics(phase: String): StudioPatchUpdaterEvent.Kind {
   return when (phase) {
-    "Extracting patch file...", "Extracting patch files..." -> StudioPatchUpdaterEvent.Kind.PHASE_EXTRACTING_PATCH_FILES
-    "Validating installation..." -> StudioPatchUpdaterEvent.Kind.PHASE_VALIDATING_INSTALLATION
-    "Backing up files..." -> StudioPatchUpdaterEvent.Kind.PHASE_BACKING_UP_FILES
-    "Preparing update..." -> StudioPatchUpdaterEvent.Kind.PHASE_PREPARING_UPDATE
-    "Applying patch..." -> StudioPatchUpdaterEvent.Kind.PHASE_APPLYING_PATCH
-    "Reverting..." -> StudioPatchUpdaterEvent.Kind.PHASE_REVERTING
-    "Cleaning up..." -> StudioPatchUpdaterEvent.Kind.PHASE_CLEANING_UP
+    UpdaterUI.message("extracting.patch.file") -> StudioPatchUpdaterEvent.Kind.PHASE_EXTRACTING_PATCH_FILES
+    UpdaterUI.message("extracting.patch.files") -> StudioPatchUpdaterEvent.Kind.PHASE_EXTRACTING_PATCH_FILES
+    UpdaterUI.message("validating.installation") -> StudioPatchUpdaterEvent.Kind.PHASE_VALIDATING_INSTALLATION
+    UpdaterUI.message("backing.up.files") -> StudioPatchUpdaterEvent.Kind.PHASE_BACKING_UP_FILES
+    UpdaterUI.message("preparing.update") -> StudioPatchUpdaterEvent.Kind.PHASE_PREPARING_UPDATE
+    UpdaterUI.message("applying.patch") -> StudioPatchUpdaterEvent.Kind.PHASE_APPLYING_PATCH
+    UpdaterUI.message("reverting") -> StudioPatchUpdaterEvent.Kind.PHASE_REVERTING
+    UpdaterUI.message("cleaning.up") -> StudioPatchUpdaterEvent.Kind.PHASE_CLEANING_UP
     else -> StudioPatchUpdaterEvent.Kind.PHASE_UNKNOWN
   }
 }
