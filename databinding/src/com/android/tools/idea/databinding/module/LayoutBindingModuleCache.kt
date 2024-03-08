@@ -45,16 +45,25 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.indexing.FileBasedIndex
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
+import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
 private val LIGHT_BINDING_CLASSES_KEY =
   Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
+
+/**
+ * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they
+ * can be recognized elsewhere and included in the search scope when necessary.
+ */
+private val BACKING_FILE_MARKER: Key<Any> = Key("LIGHT_BINDING_CLASS_BACKING_FILE_MARKER")
 
 @ThreadSafe
 class LayoutBindingModuleCache(val module: Module) : Disposable {
@@ -67,6 +76,16 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   }
 
   private val lock = Any()
+
+  /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
+  private val moduleBindingClassMarker = Any()
+
+  /**
+   * Search scope which includes any light binding classes generated in this cache for the current
+   * module.
+   */
+  val lightBindingClassSearchScope: GlobalSearchScope =
+    LightBindingClassSearchScope(moduleBindingClassMarker)
 
   @GuardedBy("lock") private var _dataBindingMode = DataBindingMode.NONE
   var dataBindingMode: DataBindingMode
@@ -142,6 +161,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
           val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return null
           _lightBrClass =
             LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
+              .withMarkedBackingFile()
         }
         return _lightBrClass
       }
@@ -167,6 +187,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
         if (_lightDataBindingComponentClass == null) {
           _lightDataBindingComponentClass =
             LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
+              .withMarkedBackingFile()
         }
         return _lightDataBindingComponentClass
       }
@@ -263,7 +284,8 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
 
         // Always add a full "Binding" class.
         val psiManager = PsiManager.getInstance(module.project)
-        val bindingClass = LightBindingClass(psiManager, BindingClassConfig(facet, group))
+        val bindingClass =
+          LightBindingClass(psiManager, BindingClassConfig(facet, group)).withMarkedBackingFile()
         bindingClasses.add(bindingClass)
 
         // "Impl" classes are only necessary if we have more than a single configuration.
@@ -275,6 +297,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
           for (layoutIndex in group.layouts.indices) {
             val bindingImplClass =
               LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
+                .withMarkedBackingFile()
             bindingClasses.add(bindingImplClass)
           }
         }
@@ -286,4 +309,23 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   }
 
   override fun dispose() {}
+
+  private fun <T : AndroidLightClassBase> T.withMarkedBackingFile() = apply {
+    requireNotNull(containingFile)
+      .viewProvider
+      .virtualFile
+      .putUserData(BACKING_FILE_MARKER, moduleBindingClassMarker)
+  }
+
+  /** Search scope which recognizes any light classes created with the given marker. */
+  private class LightBindingClassSearchScope(private val bindingClassMarker: Any) :
+    GlobalSearchScope() {
+    override fun contains(file: VirtualFile): Boolean {
+      return file.getUserData(BACKING_FILE_MARKER) === bindingClassMarker
+    }
+
+    override fun isSearchInModuleContent(aModule: Module) = true
+
+    override fun isSearchInLibraries() = false
+  }
 }

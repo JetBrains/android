@@ -28,11 +28,9 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.search.PsiSearchScopeUtil
-import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -96,32 +94,30 @@ class BindingScopeEnlargerTest {
   }
 
   @Test
-  fun scopeDoesNotCacheStaleValuesInDumbMode() {
-    assertThat(DumbService.isDumb(project)).isFalse()
+  fun scopeContainsAllLightClasses() {
+    fixture.addFileToProject("res/layout/activity_main.xml", EMPTY_LAYOUT_FILE)
 
-    // In dumb mode, add a resource and then request the current scope. The enlarger will return a
-    // stale value while in dumb mode, but should return an updated value after dumb mode completes.
-    val (activityClass, dumbScope) =
-      DumbModeTestUtils.computeInDumbModeSynchronously(project) {
-        fixture.addFileToProject("res/layout/activity_main.xml", EMPTY_LAYOUT_FILE)
-        val activityClass = fixture.addClass("public class MainActivity {}")
-        val dumbScope = activityClass.resolveScope
-        Pair(activityClass, dumbScope)
-      }
-    // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
-    // occurred while we were previously in dumb mode.
-    val enlargedScope = activityClass.resolveScope
-
+    // There should be exactly one light binding class.
     val moduleCache = LayoutBindingModuleCache.getInstance(facet)
     assertThat(moduleCache.bindingLayoutGroups.map { it.mainLayout.qualifiedClassName })
       .containsExactly("test.db.databinding.ActivityMainBinding")
+    val allLightBindingClasses =
+      moduleCache.bindingLayoutGroups.flatMap { moduleCache.getLightBindingClasses(it) }
+    assertThat(allLightBindingClasses).hasSize(1)
 
-    moduleCache.bindingLayoutGroups.forEach { group ->
-      moduleCache.getLightBindingClasses(group).forEach { bindingClass ->
-        assertThat(PsiSearchScopeUtil.isInScope(dumbScope, bindingClass)).isFalse()
-        assertThat(PsiSearchScopeUtil.isInScope(enlargedScope, bindingClass)).isTrue()
-      }
-    }
+    // Resolve scope for a class in the module should contain the light binding class, as well as
+    // the BR and DataBindingComponent classes.
+    val activityClass = fixture.addClass("public class MainActivity {}")
+    val scope = activityClass.resolveScope
+
+    assertThat(PsiSearchScopeUtil.isInScope(scope, allLightBindingClasses.single()))
+    assertThat(PsiSearchScopeUtil.isInScope(scope, requireNotNull(moduleCache.lightBrClass)))
+    assertThat(
+      PsiSearchScopeUtil.isInScope(
+        scope,
+        requireNotNull(moduleCache.lightDataBindingComponentClass),
+      )
+    )
   }
 }
 
@@ -216,94 +212,11 @@ class BindingScopeEnlargerMultiModuleTest {
       .isTrue()
   }
 
-  @Test
-  fun scopeValuesUpdateAfterDumbMode() {
-    val appActivityClass =
-      fixture
-        .addFileToProject("app/src/main/src/AppActivity.java", "public class AppActivity {}")
-        .getFirstJavaClass()
-    val libActivityClass =
-      fixture
-        .addFileToProject("lib/src/main/src/LibActivity.java", "public class LibActivity {}")
-        .getFirstJavaClass()
-
-    fixture.addFileToProject("app/src/main/res/layout/activity1_app.xml", EMPTY_LAYOUT_FILE)
-    fixture.addFileToProject("lib/src/main/res/layout/activity1_lib.xml", EMPTY_LAYOUT_FILE)
-
-    var appActivity1LightClass =
-      appFacet.getLightBindingClass("com.example.app.databinding.Activity1AppBinding")
-    var libActivity1LightClass =
-      libFacet.getLightBindingClass("com.example.lib.databinding.Activity1LibBinding")
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appActivity1LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appActivity1LightClass))
-      .isFalse()
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libActivity1LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libActivity1LightClass))
-      .isTrue()
-
-    // In dumb mode, add a resource and then request the current scope. The enlarger will return a
-    // stale value while in dumb mode, but should return an updated value after dumb mode completes.
-    DumbModeTestUtils.computeInDumbModeSynchronously(project) {
-      fixture.addFileToProject("app/src/main/res/layout/activity2_app.xml", EMPTY_LAYOUT_FILE)
-      fixture.addFileToProject("lib/src/main/res/layout/activity2_lib.xml", EMPTY_LAYOUT_FILE)
-
-      assertThat(
-          PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appActivity1LightClass)
-        )
-        .isTrue()
-      assertThat(
-          PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appActivity1LightClass)
-        )
-        .isFalse()
-      assertThat(
-          PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libActivity1LightClass)
-        )
-        .isTrue()
-      assertThat(
-          PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libActivity1LightClass)
-        )
-        .isTrue()
-    }
-
-    // Light classes will be regenerated now, so need to refetch the first two.
-    appActivity1LightClass =
-      appFacet.getLightBindingClass("com.example.app.databinding.Activity1AppBinding")
-    libActivity1LightClass =
-      libFacet.getLightBindingClass("com.example.lib.databinding.Activity1LibBinding")
-    val appActivity2LightClass =
-      appFacet.getLightBindingClass("com.example.app.databinding.Activity2AppBinding")
-    val libActivity2LightClass =
-      libFacet.getLightBindingClass("com.example.lib.databinding.Activity2LibBinding")
-
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appActivity1LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appActivity1LightClass))
-      .isFalse()
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libActivity1LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libActivity1LightClass))
-      .isTrue()
-
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appActivity2LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appActivity2LightClass))
-      .isFalse()
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libActivity2LightClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libActivity2LightClass))
-      .isTrue()
-  }
-
   private fun AndroidFacet.getLightBindingClasses() = runReadAction {
     LayoutBindingModuleCache.getInstance(this).let { cache ->
       cache.bindingLayoutGroups.flatMap { cache.getLightBindingClasses(it) }
     }
   }
-
-  private fun AndroidFacet.getLightBindingClass(qualifiedName: String) =
-    getLightBindingClasses().single { it.qualifiedName == qualifiedName }
 
   private fun PsiFile.getFirstJavaClass() = runReadAction { (this as PsiJavaFile).classes.first() }
 }
