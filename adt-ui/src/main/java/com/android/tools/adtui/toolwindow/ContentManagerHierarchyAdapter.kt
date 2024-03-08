@@ -86,4 +86,7 @@ abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow
     Disposer.register(toolWindow.disposable, this)
     Disposer.register(this, listener)
   }
+
+  override fun dispose() {
+  }
 }

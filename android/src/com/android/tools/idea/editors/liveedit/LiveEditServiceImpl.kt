@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.liveedit
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.usesCompose
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
@@ -74,7 +75,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.ui.content.ContentManagerListener
+import com.intellij.ui.content.impl.ContentManagerImpl
 import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -322,7 +323,7 @@ class LiveEditServiceImpl(val project: Project,
    * Adds content listeners, so we know when a device is added/removed to the running devices tool window.
    */
   private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
-    runningDevicesWindow.addContentManagerListener(object : ContentManagerListener {
+    object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
       override fun contentAdded(event: ContentManagerEvent) {
         val dataProvider = event.content.component as? DataProvider ?: return
         val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
@@ -338,9 +339,10 @@ class LiveEditServiceImpl(val project: Project,
         val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
         serial?.let { adapter.unregister(it) }
       }
-    })
+    }
 
-    runningDevicesWindow.contentManagerIfCreated?.contents?.forEach {
+    // TODO: Remove the cast after ag/26340227 is merged.
+    (runningDevicesWindow.contentManagerIfCreated as? ContentManagerImpl)?.contentsRecursively?.forEach {
       val dataProvider = it.component as? DataProvider ?: return@forEach
       val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
       serial?.let { s -> adapter.register(s) }
