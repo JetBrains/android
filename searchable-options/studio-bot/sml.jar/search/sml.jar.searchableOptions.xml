@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="code" path="ActionManager" hit="Comment Code" />
     <option name="comment" path="ActionManager" hit="Comment Code" />
     <option name="code" path="ActionManager" hit="Document Code" />

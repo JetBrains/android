@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="agp" path="ActionManager" hit="AGP Upgrade Assistant..." />
     <option name="assistant" path="ActionManager" hit="AGP Upgrade Assistant..." />
     <option name="upgrade" path="ActionManager" hit="AGP Upgrade Assistant..." />
@@ -554,6 +553,11 @@
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="logcat" path="ActionManager" hit="Pause Logcat" />
     <option name="pause" path="ActionManager" hit="Pause Logcat" />
+    <option name="logcat" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="panel" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="pause" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="resume" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="the" path="ActionManager" hit="Pause/Resume the Logcat panel" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
     <option name="+" path="ActionManager" hit="Power + Volume Up (Power Menu)" />

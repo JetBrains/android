@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="100" path="ActionManager" hit="100%" />
     <option name="left" path="ActionManager" hit="Move Tab Left" />
     <option name="move" path="ActionManager" hit="Move Tab Left" />

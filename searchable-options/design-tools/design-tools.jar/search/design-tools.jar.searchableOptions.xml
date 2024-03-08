@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="action" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="and" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="create" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
