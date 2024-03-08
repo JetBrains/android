@@ -56,7 +56,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
@@ -358,12 +358,12 @@ private class FailedTestsNavigator(private val treetableView: AndroidTestResults
     }
     var node: AndroidTestResultsRow? = null
 
-    ApplicationManager.getApplication().invokeAndWait {
+    runInEdt {
       if (treetableView.rowCount == 0) {
-        return@invokeAndWait 
+        return@runInEdt
       }
 
-      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@invokeAndWait
+      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@runInEdt
       node = generateSequence(selectedNode.next()) { it.next() }
         .filterIsInstance<AndroidTestResultsRow>()
         .filter { it.getTestResultSummary() == AndroidTestCaseResult.FAILED }
@@ -530,7 +530,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
         return selection?.firstOrNull() as? AndroidTestResults
 
       var testResult: AndroidTestResults? = null
-      ApplicationManager.getApplication().invokeAndWait {
+      runInEdt {
         testResult = selection?.firstOrNull() as? AndroidTestResults
       }
       return testResult
