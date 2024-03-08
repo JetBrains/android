@@ -40,6 +40,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
 
 /** Command received from the daemon to indicate the result is available. */
 private const val CMD_RESULT = "RESULT"
@@ -87,10 +89,10 @@ private fun defaultModuleDependenciesCompileClassPathLocator(module: Module): Li
 }
 
 /**
- * Finds the `kotlin-compiler-daemon` jar for the given [version] that is included as part of the
- * plugin. This method does not check the path actually exists.
+ * Finds the folder containing `kotlin-compiler-daemon` jar. This method does not check the path
+ * actually exists.
  */
-private fun findDaemonPath(version: String): String {
+private fun findDaemonJarRootPath(): Path {
   val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
   val jarRootPath =
     if (StudioPathManager.isRunningFromSources()) {
@@ -105,7 +107,7 @@ private fun findDaemonPath(version: String): String {
       )
     }
 
-  return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
+  return Path.of(jarRootPath)
 }
 
 /**
@@ -143,7 +145,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
       scope,
       IdeSdks.getInstance().jdk?.homePath?.let { javaHomePath -> "$javaHomePath/bin/java" }
         ?: throw IllegalStateException("No SDK found"),
-      ::findDaemonPath,
+      findDaemonJarRootPath(),
       log,
       StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get(),
     )
@@ -190,11 +192,11 @@ internal class OutOfProcessCompilerDaemonClient(
   version: String,
   private val scope: CoroutineScope,
   private val javaCommand: String,
-  private val findDaemonPath: (String) -> String,
+  private val daemonJarRootPath: Path,
   private val log: Logger,
   private val isDebug: Boolean,
 ) {
-  private fun getDaemonPath(version: String): String =
+  private fun getDaemonPath(version: String): Path =
     // Prepare fallback versions
     linkedSetOf(
         version,
@@ -207,10 +209,11 @@ internal class OutOfProcessCompilerDaemonClient(
       )
       .asSequence()
       .map {
-        log.debug("Looking for kotlin daemon version '${version}'")
-        findDaemonPath(it)
+        daemonJarRootPath.resolve("kotlin-compiler-daemon-$it.jar")
       }
-      .find { FileUtil.exists(it) }
+      .find {
+        it.exists()
+      }
       ?: throw FileNotFoundException("Unable to find kotlin daemon for version '$version'")
 
   /** Starts the daemon in the given [daemonPath]. */
@@ -231,7 +234,7 @@ internal class OutOfProcessCompilerDaemonClient(
       .start()
   }
 
-  private val daemonPath: String = getDaemonPath(version)
+  private val daemonPath: String = getDaemonPath(version).absolutePathString()
   private val daemonShortId = daemonPath.substringAfterLast("/")
 
   data class Request(val parameters: List<String>, val onComplete: (CompilationResult) -> Unit) {
