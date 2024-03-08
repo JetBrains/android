@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.draw;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
@@ -292,6 +293,7 @@ public class DrawTextRegion extends DrawRegion {
     return alignmentX;
   }
 
+  @Slow
   public static int getFont(NlComponent nlc, String default_dim) {
     // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
     //  getResourceResolver in non-smart mode.
@@ -301,11 +303,9 @@ public class DrawTextRegion extends DrawRegion {
 
     Integer size = null;
 
-    if (resourceResolver != null) {
-      String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
-      if (textSize != null) {
-        size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
-      }
+    String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
+    if (textSize != null) {
+      size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
     }
 
     if (size == null) {
