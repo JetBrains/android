@@ -262,21 +262,21 @@ class TransportFileManagerTest {
     // Files expected to be copied for device M include TRANSPORT
     testNumberOfFilesToCopy(false, 23, 1)
 
-    // Files expected to be copied for device O include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
-    testNumberOfFilesToCopy(true, 26, 6)
-    // Files expected to be copied include for device O TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(false, 26, 5)
+    // Files expected to be copied for device O include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 26, 5)
+    // Files expected to be copied include for device O TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 26, 4)
 
-    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
-    testNumberOfFilesToCopy(true, 28, 6)
-    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
+    // Files expected to be copied for device P include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 28, 5)
+    // Files expected to be copied for device P include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
     // TRACED, TRACED_PROBE
-    testNumberOfFilesToCopy(false, 28, 9)
+    testNumberOfFilesToCopy(false, 28, 8)
 
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(true, 29, 5)
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(false, 29, 5)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(true, 29, 4)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 29, 4)
   }
 
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {

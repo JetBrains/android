@@ -301,7 +301,6 @@ filegroup(
     srcs = [
         "//tools/base/profiler:perfetto-protos",
         "//tools/base/profiler/app:perfa.jar",
-        "//tools/base/profiler/app:perfa_okhttp.dex",
         "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/base/profiler/transform:profilers-transform.jar",
     ],

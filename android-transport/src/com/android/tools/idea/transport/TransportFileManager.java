@@ -62,8 +62,6 @@ public final class TransportFileManager implements TransportFileCopier {
 
     @NotNull static final DeployableFile PERFA = new DeployableFile.Builder("perfa.jar").build();
 
-    @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
-
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
       .setReleaseDir(Constants.JVMTI_AGENT_RELEASE_DIR)
       .setDevDir(Constants.JVMTI_AGENT_DEV_DIR)
@@ -139,7 +137,6 @@ public final class TransportFileManager implements TransportFileCopier {
     copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
-      copyFileToDevice(HostFiles.PERFA_OKHTTP);
       copyFileToDevice(HostFiles.JVMTI_AGENT);
       // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
       // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
