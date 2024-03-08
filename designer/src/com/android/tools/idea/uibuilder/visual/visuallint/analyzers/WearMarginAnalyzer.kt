@@ -60,7 +60,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
       val absoluteViewLeft = view.left + absoluteParentLeft
       val absoluteViewRight = view.right + absoluteParentLeft
       if (absoluteViewLeft < minLeft || absoluteViewRight > maxRight) {
-        if (view.viewObject !is ViewGroup) {
+        if (view.isRelevant()) {
           issues.add(createIssueContent(view))
         } else {
           view.children.forEach {
@@ -86,6 +86,18 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
         )
     }
     return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
+  }
+
+  /**
+   * Decides whether a given view is relevant for margin analysis. Containers for example are not
+   * since they are not displaying anything themselves.
+   */
+  private fun ViewInfo.isRelevant(): Boolean {
+    return if (accessibilityObject != null) {
+      className != "android.view.View"
+    } else {
+      viewObject !is ViewGroup
+    }
   }
 }
 

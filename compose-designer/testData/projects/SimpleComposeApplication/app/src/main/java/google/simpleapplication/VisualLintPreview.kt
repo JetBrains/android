@@ -19,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -28,7 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 @Preview
 @Composable
@@ -38,7 +41,7 @@ fun VisualLintErrorPreview() {
     TextField(
       value = textState.value,
       modifier = Modifier.fillMaxWidth(),
-      onValueChange = { textState.value = it }
+      onValueChange = { textState.value = it },
     )
     Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
       Text(text = "This is a wide button")
@@ -73,7 +76,7 @@ fun ColorContrastIssuePreview() {
   Text(
     color = veryDarkGrayColor,
     text = "Hello Android!",
-    modifier = Modifier.background(blackColor)
+    modifier = Modifier.background(blackColor),
   )
 }
 
@@ -85,7 +88,7 @@ fun OneColorBlindErrorPreview() {
   Text(
     color = foregroundColor,
     text = "Hello Android",
-    modifier = Modifier.background(backgroundColor)
+    modifier = Modifier.background(backgroundColor),
   )
 }
 
@@ -106,9 +109,11 @@ fun TwoColorBlindErrorsPreview() {
 fun ThreeColorBlindErrorPreview() {
   val purpleColor = Color(0xFFB3003D)
   val veryLightColor = Color(0xFFBCD5E2)
-  Text(
-    color = purpleColor,
-    text = "Hello Android!",
-    modifier = Modifier.background(veryLightColor),
-  )
+  Text(color = purpleColor, text = "Hello Android!", modifier = Modifier.background(veryLightColor))
+}
+
+@Preview(device = Devices.WEAR_OS_LARGE_ROUND)
+@Composable
+fun WearPreview() {
+  Column { Text("Hello world", modifier = Modifier.padding(10.dp)) }
 }
