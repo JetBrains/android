@@ -47,6 +47,9 @@ abstract class AiExcludeService {
    * called in smart mode within a read lock (so that smart mode status cannot change during
    * execution). Invoking this method outside smart mode will throw [IllegalStateException]. To
    * determine if a file is excluded without requiring smart mode, use [isFileExcluded].
+   *
+   * The [List] may be empty if [file] is blocked because it is outside the project, instead
+   * of because of an aiexclude rule.
    */
   @RequiresReadLock
   abstract fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile>
