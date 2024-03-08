@@ -94,7 +94,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
   ) : DialogWrapper(project) {
     private val displayDependencies = JBCheckBox("Display dependencies", false)
     private val useViewModel = JBCheckBox("Use ViewModel", false)
-    private val useCustomView = JBCheckBox("Has Custom Views", false)
+    private val useCustomView = JBCheckBox("Has custom views", false)
     private val dataTypeGroup = ButtonGroup()
     private val dataTypeButtons: List<JBRadioButton>
 
