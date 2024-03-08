@@ -22,6 +22,7 @@ import com.android.tools.idea.ml.xmltocompose.ComposeConverterDataType
 import com.android.tools.idea.ml.xmltocompose.ConversionResponse
 import com.android.tools.idea.ml.xmltocompose.NShotXmlToComposeConverter
 import com.android.tools.idea.studiobot.StudioBot
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
@@ -45,6 +46,8 @@ import kotlinx.coroutines.withContext
 private const val ACTION_TITLE = "I am feeling Compose"
 
 class ConvertToComposeAction : AnAction(ACTION_TITLE) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
