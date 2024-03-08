@@ -38,22 +38,11 @@ import javax.swing.Box
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JToggleButton.ToggleButtonModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val ACTION_TITLE = "I am feeling Compose"
-
-/**
- * List of possible types to use for storing data in a view model.
- *
- * TODO(b/322759144): Use ComposeConverterDataType
- */
-private val optionalStateType =
-  listOf(
-    "androidx.compose.runtime.MutableState",
-    "kotlinx.coroutines.flow.StateFlow",
-    "androidx.lifecycle.LiveData",
-  )
 
 class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
@@ -96,17 +85,17 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     private val displayDependencies = JBCheckBox("Display dependencies", false)
     private val useViewModel = JBCheckBox("Use ViewModel", false)
     private val useCustomView = JBCheckBox("Has custom views", false)
-    private val dataTypeGroup = ButtonGroup()
-    private val dataTypeButtons: List<JBRadioButton>
+    private val dataTypeGroup = DataTypeButtonGroup()
+    private val dataTypeButtons: List<DataTypeRadioButton>
 
     init {
       title = ACTION_TITLE
       dataTypeButtons =
-        optionalStateType.map {
-          JBRadioButton("Use $it", false).apply {
+        ComposeConverterDataType.values().mapNotNull {
+          if (it == ComposeConverterDataType.UNKNOWN) return@mapNotNull null
+          DataTypeRadioButton(it).apply {
+            dataTypeGroup.addDataTypeButton(this)
             isEnabled = false
-            actionCommand = it
-            dataTypeGroup.add(this)
           }
         }
       dataTypeButtons[0].isSelected = true
@@ -129,24 +118,15 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
     override fun doOKAction() {
       super.doOKAction()
-      val dataType =
-        if (useViewModel.isSelected) {
-          // TODO(b/322759144): Use ComposeConverterDataType directly in the radio button
-          ComposeConverterDataType.values().firstOrNull {
-            it.classFqn == dataTypeGroup.selection.actionCommand
-          } ?: ComposeConverterDataType.UNKNOWN
-        } else {
-          ComposeConverterDataType.UNKNOWN
-        }
-      convertXmlToCompose(dataType)
+      convertXmlToCompose()
     }
 
-    private fun convertXmlToCompose(dataType: ComposeConverterDataType) {
+    private fun convertXmlToCompose() {
       NShotXmlToComposeConverter.Builder(project)
         .useViewModel(useViewModel.isSelected)
         .useCustomView(useCustomView.isSelected)
         .displayDependencies(displayDependencies.isSelected)
-        .withDataType(dataType)
+        .withDataType(dataTypeGroup.getSelectedDataType())
         .build()
         .let { nShotXmlToComposeConverter ->
           ComposeCodeDialog(project).run {
@@ -165,5 +145,24 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
           }
         }
     }
+  }
+
+  private class DataTypeRadioButton(val dataType: ComposeConverterDataType) :
+    JBRadioButton("Use ${dataType.classFqn}", false)
+
+  private class DataTypeButtonGroup : ButtonGroup() {
+    fun addDataTypeButton(button: DataTypeRadioButton) {
+      val model = Model(button.dataType)
+      model.isSelected = button.isSelected
+      button.model = model
+      add(button)
+    }
+
+    fun getSelectedDataType(): ComposeConverterDataType {
+      val model = (selection as? Model) ?: return ComposeConverterDataType.UNKNOWN
+      return model.dataType
+    }
+
+    class Model(val dataType: ComposeConverterDataType) : ToggleButtonModel()
   }
 }
