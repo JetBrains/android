@@ -102,7 +102,7 @@ internal data class DeviceRowData(
         status = Status.OFFLINE,
         error = template.state.error,
         handleType = HandleType.REMOTE,
-        wearPairingId = properties.wearPairingId,
+        wearPairingId = null,
         pairingStatus = emptyList(),
       )
     }

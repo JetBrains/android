@@ -33,6 +33,7 @@ iml_module(
     name = "intellij.android.wear-pairing.tests",
     iml_files = ["intellij.android.wear-pairing.tests.iml"],
     test_class = "com.android.tools.idea.wearpairing.WearPairingTestSuite",
+    test_friends = ["//tools/adt/idea/wear-pairing:intellij.android.wear-pairing"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
