@@ -22,7 +22,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.AnimationClock
-import com.android.tools.idea.compose.preview.animation.AnimationTabs
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.Transition
@@ -33,6 +32,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.actions.FreezeAction

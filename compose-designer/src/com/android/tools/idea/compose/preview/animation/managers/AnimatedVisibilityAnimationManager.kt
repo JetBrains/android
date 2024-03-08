@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.AnimationClock
-import com.android.tools.idea.compose.preview.animation.AnimationTabs
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.getAnimatedVisibilityState
+import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager

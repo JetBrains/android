@@ -29,6 +29,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AllTabPanel
+import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.BottomPanel
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
