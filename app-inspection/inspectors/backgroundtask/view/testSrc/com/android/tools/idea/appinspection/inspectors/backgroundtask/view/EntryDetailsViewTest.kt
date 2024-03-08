@@ -255,6 +255,24 @@ class EntryDetailsViewTest {
   }
 
   @Test
+  fun uniqueWorkChain_clicked() = runBlocking {
+    val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
+    client.sendWorkAddedEvent(workInfo)
+    val dependentWork = workInfo.toBuilder().setId(workInfo.getDependents(0)).build()
+    client.sendWorkAddedEvent(dependentWork)
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry(workInfo.id)
+      val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
+      val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
+      val actionLink = (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
+
+      actionLink.doClick()
+
+      assertThat(ideServices.lastVisitedCodeLocation!!.fqcn).isEqualTo(workInfo.workerClassName)
+    }
+  }
+
+  @Test
   fun alarmEntrySelected() = runBlocking {
     val event =
       client.sendBackgroundTaskEvent(0) {
@@ -501,7 +519,7 @@ class EntryDetailsViewTest {
       assertThat(stateComponent.text).isEqualTo("Scheduled")
       assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
       val workerComponent = executionPanel.getValueComponent("Related Worker") as ActionLink
-      assertThat(workerComponent.text).isEqualTo("ClassName1")
+      assertThat(workerComponent.text).isEqualTo("package1.package2.ClassName1")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel

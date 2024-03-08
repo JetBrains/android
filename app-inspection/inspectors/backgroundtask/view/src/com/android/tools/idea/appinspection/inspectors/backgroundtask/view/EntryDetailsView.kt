@@ -376,6 +376,10 @@ class EntryDetailsView(
     val idListProvider =
       IdListProvider(client, work) {
         selectionModel.selectedEntry = it
+        scope.launch {
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(it.className))
+          client.tracker.trackJumpedToSource()
+        }
         client.tracker.trackWorkSelected(
           AppInspectionEvent.BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT
         )
