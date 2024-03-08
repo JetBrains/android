@@ -77,9 +77,8 @@ internal fun AdditionalSettingsPanel(
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupHeader("Camera")
-
-  Row {
+  GroupLayout {
+    GroupHeader("Camera")
     Text("Front")
 
     Dropdown(
@@ -87,9 +86,7 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
       FRONT_CAMERAS,
       onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
     )
-  }
 
-  Row {
     Text("Rear")
 
     Dropdown(
