@@ -19,6 +19,7 @@ import com.android.annotations.TestOnly
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.google.common.annotations.VisibleForTesting
@@ -128,7 +129,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
       TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
     )
     updateDimension()
-    scope.launch(uiThread) { card.state.collect { updateCardSize(card) } }
+    if (card is AnimationCard) {
+      scope.launch(uiThread) { card.state.collect { updateCardSize(card) } }
+    }
   }
 
   fun updateCardSize(card: Card) {

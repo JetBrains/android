@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.animation.managers
 
-import com.android.tools.idea.compose.preview.animation.LabelCard
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
+import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.preview.animation.Card
-import com.android.tools.idea.preview.animation.InspectorLayout
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
-import kotlinx.coroutines.flow.StateFlow
 
 /** [Card] containing only animation label. */
-class LabelCard(override val state: StateFlow<ElementState>) :
-  Card, JPanel(TabularLayout("*", "30px")) {
+class LabelCard(override val title: String) : Card, JPanel(TabularLayout("*", "30px")) {
 
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
   // ⎹    transitionName                          ⎹ ⬅ component
@@ -37,7 +32,7 @@ class LabelCard(override val state: StateFlow<ElementState>) :
   private val firstRow =
     JPanel(TabularLayout("30px,*,Fit", "30px")).apply {
       border = JBUI.Borders.emptyRight(8)
-      add(JBLabel(state.value.title ?: "_"), TabularLayout.Constraint(0, 1))
+      add(JBLabel(title ?: "_"), TabularLayout.Constraint(0, 1))
     }
 
   override val component: JPanel = this

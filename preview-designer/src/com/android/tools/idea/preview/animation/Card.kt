@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.preview.animation.timeline.ElementState
-import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.StateFlow
 
 /** Card displayed in [AllTabPanel]. Each animation represented by one [Card]. */
 interface Card {
@@ -28,8 +25,7 @@ interface Card {
   /** Height of the component. */
   fun getCurrentHeight(): Int
 
-  /** State of the [TimelineElement] in the timeline. */
-  val state: StateFlow<ElementState>
+  val title: String
 
   /** The size of the [Card] after it expands. */
   var expandedSize: Int

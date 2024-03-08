@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimatio
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.rendering.classloading.NopClassLocator

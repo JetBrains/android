@@ -104,11 +104,18 @@ open class SupportedAnimationManager(
   val stateComboBox = animation.createState(tracker, animation.findCallback())
 
   /** State of animation, shared between single animation tab and coordination panel. */
-  final override val elementState = MutableStateFlow(ElementState(tabTitle))
+  final override val elementState = MutableStateFlow(ElementState())
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =
-    AnimationCard(timelinePanel, rootComponent, elementState, stateComboBox.extraActions, tracker)
+    AnimationCard(
+        timelinePanel,
+        rootComponent,
+        elementState,
+        tabTitle,
+        stateComboBox.extraActions,
+        tracker,
+      )
       .apply {
 
         /** [TabInfo] for the animation when it is opened in a new tab. */

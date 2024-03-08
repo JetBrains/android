@@ -51,7 +51,8 @@ class AnimationCardTest {
       AnimationCard(
           createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          MutableStateFlow(ElementState("Title")),
+          MutableStateFlow(ElementState()),
+          "Title",
           emptyList(),
           NoopAnimationTracker,
         )

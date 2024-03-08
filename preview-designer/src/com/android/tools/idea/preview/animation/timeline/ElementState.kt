@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.animation.timeline
 
 /** State of Animation shared between the [TimelineElement]s in timeline. */
 data class ElementState(
-  val title: String? = null,
   /** The offset in ms for which the animation is shifted. */
   val valueOffset: Int = 0,
   /** If element is frozen in specified [frozenValue]. */

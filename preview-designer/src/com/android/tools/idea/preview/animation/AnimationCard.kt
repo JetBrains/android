@@ -41,7 +41,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class AnimationCard(
   timelinePanel: TimelinePanel,
   rootComponent: JComponent,
-  override val state: MutableStateFlow<ElementState>,
+  val state: MutableStateFlow<ElementState>,
+  override val title: String,
   extraActions: List<AnAction> = emptyList(),
   private val tracker: AnimationTracker,
 ) : JPanel(TabularLayout("*", "30px,40px")), Card {
@@ -106,7 +107,7 @@ class AnimationCard(
         listOf(ExpandAction()),
       )
     firstRow.add(expandButton.component, TabularLayout.Constraint(0, 0))
-    firstRow.add(JBLabel(state.value.title ?: "_"), TabularLayout.Constraint(0, 1))
+    firstRow.add(JBLabel(title ?: "_"), TabularLayout.Constraint(0, 1))
 
     val secondRowToolbar =
       createToolbarWithNavigation(

@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import com.android.tools.idea.compose.preview.animation.LabelCard
 import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
+import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
@@ -30,13 +30,10 @@ import kotlinx.coroutines.flow.asStateFlow
 class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
   ComposeAnimationManager(animation, title) {
 
-  /**
-   * State of animation, shared between single animation tab and coordination panel. All callbacks
-   * are empty for [UnsupportedAnimationManager].
-   */
+  override val card = LabelCard(title)
+
   override val elementState: StateFlow<ElementState> =
-    MutableStateFlow(ElementState(title)).asStateFlow()
-  override val card = LabelCard(elementState)
+    MutableStateFlow(ElementState()).asStateFlow()
 
   override suspend fun loadProperties() {}
 

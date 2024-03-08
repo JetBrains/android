@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.timeline.ElementState
@@ -86,7 +87,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("One")),
+          MutableStateFlow(ElementState()),
+          "One",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -95,7 +97,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("Two")),
+          MutableStateFlow(ElementState()),
+          "Two",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -104,7 +107,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("Three")),
+          MutableStateFlow(ElementState()),
+          "Three",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -144,9 +148,9 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove label cards`() {
-    val cardOne = LabelCard(MutableStateFlow(ElementState("One")))
-    val cardTwo = LabelCard(MutableStateFlow(ElementState("Two")))
-    val cardThree = LabelCard(MutableStateFlow(ElementState("Three")))
+    val cardOne = LabelCard("One")
+    val cardTwo = LabelCard("Two")
+    val cardThree = LabelCard("Three")
 
     panel.apply { setSize(1000, 800) }
 
@@ -187,7 +191,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("One")),
+          MutableStateFlow(ElementState()),
+          "One",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -196,7 +201,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("Two")),
+          MutableStateFlow(ElementState()),
+          "Two",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -205,7 +211,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("Three")),
+          MutableStateFlow(ElementState()),
+          "Three",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -236,7 +243,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("AnimationCard One")),
+          MutableStateFlow(ElementState()),
+          "AnimationCard One",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -245,7 +253,8 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("AnimationCard Two")),
+          MutableStateFlow(ElementState()),
+          "AnimationCard Two",
           emptyList(),
           NoopAnimationTracker,
         )
@@ -254,14 +263,15 @@ class AllTabPanelTest {
       AnimationCard(
           slider,
           surface,
-          MutableStateFlow(ElementState("AnimationCard Three")),
+          MutableStateFlow(ElementState()),
+          "AnimationCard Three",
           emptyList(),
           NoopAnimationTracker,
         )
         .apply { setDuration(333) }
-    val labelCardOne = LabelCard(MutableStateFlow(ElementState("LabelCard One")))
-    val labelCardTwo = LabelCard(MutableStateFlow(ElementState("LabelCard Two")))
-    val labelCardThree = LabelCard(MutableStateFlow(ElementState("LabelCard Three)")))
+    val labelCardOne = LabelCard("LabelCard One")
+    val labelCardTwo = LabelCard("LabelCard Two")
+    val labelCardThree = LabelCard("LabelCard Three)")
 
     panel.apply {
       setSize(1000, 800)
@@ -297,7 +307,8 @@ class AllTabPanelTest {
         AnimationCard(
             slider,
             surface,
-            MutableStateFlow(ElementState("card $i")),
+            MutableStateFlow(ElementState()),
+            "card $i",
             emptyList(),
             NoopAnimationTracker,
           )
@@ -336,7 +347,8 @@ class AllTabPanelTest {
         AnimationCard(
             slider,
             surface,
-            MutableStateFlow(ElementState("card $i")),
+            MutableStateFlow(ElementState()),
+            "card $i",
             emptyList(),
             NoopAnimationTracker,
           )

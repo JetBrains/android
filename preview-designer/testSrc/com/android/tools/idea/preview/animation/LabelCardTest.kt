@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.Dimension
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -29,7 +27,7 @@ class LabelCardTest {
 
   @Test
   fun `create animation card`(): Unit {
-    val card = LabelCard(MutableStateFlow(ElementState("Title")))
+    val card = LabelCard("Title")
     card.component.setSize(100, card.getCurrentHeight())
     card.setDuration(0)
 
