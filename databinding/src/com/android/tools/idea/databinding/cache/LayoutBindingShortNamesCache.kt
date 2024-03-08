@@ -54,9 +54,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
         val allBindingClasses =
           enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
-            val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
-            val groups = bindingModuleCache.bindingLayoutGroups
-            groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
+            LayoutBindingModuleCache.getInstance(facet).getLightBindingClasses()
           }
 
         val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()

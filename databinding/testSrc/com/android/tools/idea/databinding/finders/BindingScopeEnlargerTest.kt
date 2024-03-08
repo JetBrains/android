@@ -101,8 +101,7 @@ class BindingScopeEnlargerTest {
     val moduleCache = LayoutBindingModuleCache.getInstance(facet)
     assertThat(moduleCache.bindingLayoutGroups.map { it.mainLayout.qualifiedClassName })
       .containsExactly("test.db.databinding.ActivityMainBinding")
-    val allLightBindingClasses =
-      moduleCache.bindingLayoutGroups.flatMap { moduleCache.getLightBindingClasses(it) }
+    val allLightBindingClasses = moduleCache.getLightBindingClasses()
     assertThat(allLightBindingClasses).hasSize(1)
 
     // Resolve scope for a class in the module should contain the light binding class, as well as
@@ -213,9 +212,7 @@ class BindingScopeEnlargerMultiModuleTest {
   }
 
   private fun AndroidFacet.getLightBindingClasses() = runReadAction {
-    LayoutBindingModuleCache.getInstance(this).let { cache ->
-      cache.bindingLayoutGroups.flatMap { cache.getLightBindingClasses(it) }
-    }
+    LayoutBindingModuleCache.getInstance(this).getLightBindingClasses()
   }
 
   private fun PsiFile.getFirstJavaClass() = runReadAction { (this as PsiJavaFile).classes.first() }

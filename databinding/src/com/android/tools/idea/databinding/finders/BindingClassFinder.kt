@@ -57,10 +57,7 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
         val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
         val lightBindings =
           enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
-            val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
-            bindingModuleCache.bindingLayoutGroups.flatMap { group ->
-              bindingModuleCache.getLightBindingClasses(group)
-            }
+            LayoutBindingModuleCache.getInstance(facet).getLightBindingClasses()
           }
         CachedValueProvider.Result.create(lightBindings, *getCommonDependencies())
       }

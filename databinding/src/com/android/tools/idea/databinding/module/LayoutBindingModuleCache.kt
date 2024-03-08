@@ -262,6 +262,14 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   }
 
   /**
+   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
+   * associated with this facet.
+   */
+  fun getLightBindingClasses(): List<LightBindingClass> {
+    return bindingLayoutGroups.flatMap(this::getLightBindingClasses)
+  }
+
+  /**
    * Returns a list of [LightBindingClass] instances corresponding to the layout XML files related
    * to the passed-in [BindingLayoutGroup].
    *

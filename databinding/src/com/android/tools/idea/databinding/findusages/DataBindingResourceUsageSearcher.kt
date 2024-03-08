@@ -49,15 +49,15 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
       val androidFacet =
         element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
       val bindingModuleCache = LayoutBindingModuleCache.getInstance(androidFacet)
-      val groups = bindingModuleCache.bindingLayoutGroups
 
       when (element.resourceReference.resourceType) {
         ResourceType.LAYOUT -> {
           // When searching for usages of a layout resource, we want to add any uses of the
           // generated DataBinding class.
           val layoutGroup =
-            groups.firstOrNull { it.mainLayout.resource.name == element.resourceReference.name }
-              ?: return@runReadAction
+            bindingModuleCache.bindingLayoutGroups.firstOrNull {
+              it.mainLayout.resource.name == element.resourceReference.name
+            } ?: return@runReadAction
           val lightBindingClasses = bindingModuleCache.getLightBindingClasses(layoutGroup)
           lightBindingClasses.forEach {
             ReferencesSearch.search(it, options.searchScope).all { reference ->
@@ -69,12 +69,11 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
           // When searching for usages of an ID resource, we want to add any uses of the generated
           // fields, in every accessible DataBinding
           // class.
-          val lightClasses =
-            groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
           val javaFieldName = convertAndroidIdToJavaFieldName(element.resourceReference.name)
           val definingXmlTag = element.parentOfType<XmlTag>()
           val relevantFields =
-            lightClasses
+            bindingModuleCache
+              .getLightBindingClasses()
               .mapNotNull { bindingClass ->
                 bindingClass.allFields.find { it.name == javaFieldName }
               }
