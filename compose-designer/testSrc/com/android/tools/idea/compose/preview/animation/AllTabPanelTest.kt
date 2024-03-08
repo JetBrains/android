@@ -20,9 +20,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
-import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.NoopAnimationTracker
+import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil

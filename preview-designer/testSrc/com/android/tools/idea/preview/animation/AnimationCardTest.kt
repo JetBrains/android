@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Component
@@ -52,7 +53,7 @@ class AnimationCardTest {
           Mockito.mock(DesignSurface::class.java),
           MutableStateFlow(ElementState("Title")),
           emptyList(),
-          NoopComposeAnimationTracker,
+          NoopAnimationTracker,
         )
         .apply { setDuration(111) }
     card.setSize(300, 300)

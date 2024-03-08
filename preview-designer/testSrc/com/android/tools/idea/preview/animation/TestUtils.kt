@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.preview.animation
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
+import java.util.stream.Collectors
 import javax.swing.JPanel
 import org.junit.Assert
 
@@ -83,4 +88,17 @@ object TestUtils {
     Assert.assertTrue(
       minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height
     )
+
+  fun AnimationCard.findExpandButton(): Component {
+    return (this.component.components[0] as Container).components[0]
+  }
+
+  fun Component.findToolbar(place: String): ActionToolbarImpl {
+    return TreeWalker(this)
+      .descendantStream()
+      .filter { it is ActionToolbarImpl }
+      .collect(Collectors.toList())
+      .map { it as ActionToolbarImpl }
+      .first { it.place == place }
+  }
 }

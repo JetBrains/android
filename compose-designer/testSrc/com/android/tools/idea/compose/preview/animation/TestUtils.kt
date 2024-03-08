@@ -22,10 +22,8 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor
 import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JLabel
@@ -63,15 +61,6 @@ object TestUtils {
       .collect(Collectors.toList())
       .map { it as Card }
 
-  fun Component.findToolbar(place: String): ActionToolbarImpl {
-    return TreeWalker(this)
-      .descendantStream()
-      .filter { it is ActionToolbarImpl }
-      .collect(Collectors.toList())
-      .map { it as ActionToolbarImpl }
-      .first { it.place == place }
-  }
-
   fun findTimeline(parent: Component): TimelinePanel =
     TreeWalker(parent)
       .descendantStream()
@@ -87,10 +76,6 @@ object TestUtils {
       .collect(Collectors.toList())
       .map { it as JLabel }
       .first()
-
-  fun AnimationCard.findExpandButton(): Component {
-    return (this.component.components[0] as Container).components[0]
-  }
 
   fun Component.findComboBox(): ComboBoxAction.ComboBoxButton =
     TreeWalker(this)

@@ -24,9 +24,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
