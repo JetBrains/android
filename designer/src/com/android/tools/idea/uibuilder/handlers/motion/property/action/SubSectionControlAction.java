@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.InspectorLineModel;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -37,6 +38,12 @@ public class SubSectionControlAction extends AnAction {
   public SubSectionControlAction(@Nullable NlPropertyItem property) {
     myProperty = property;
     myLookupResult = new LookupResult();
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    // Updated in the EDT because of the access to properties in check.
+    return ActionUpdateThread.EDT;
   }
 
   public void setLineModel(@NotNull InspectorLineModel lineModel) {
