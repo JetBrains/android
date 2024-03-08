@@ -51,6 +51,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.resolve.api.GroovyMethodCallReference;
 
@@ -114,9 +115,34 @@ public class LintIdeGradleVisitor extends GradleVisitor {
       result.add(name);
       if (!(referenceExpression.isQualified())) return true;
       GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
-      if (!(qualifierExpression instanceof GrReferenceExpression)) break;
-      referenceExpression = (GrReferenceExpression)qualifierExpression;
-      name = referenceExpression.getReferenceName();
+      if (qualifierExpression instanceof GrReferenceExpression) {
+        // proceed up chains of foo.bar.baz references
+        referenceExpression = (GrReferenceExpression)qualifierExpression;
+        name = referenceExpression.getReferenceName();
+      }
+      else if (qualifierExpression instanceof GrCallExpression) {
+        // look for id '...' at the top of a chain of id '...' version '...' apply true
+        PsiElement deepestFirst = PsiTreeUtil.getDeepestFirst(qualifierExpression);
+        if (deepestFirst.textMatches("id")) {
+          PsiElement maybeCall = deepestFirst.getParent().getParent();
+          if (maybeCall instanceof GrCallExpression call) {
+            GrExpression[] arguments = call.getExpressionArguments();
+            if (arguments.length == 1) {
+              if (arguments[0] instanceof GrLiteral literal) {
+                if (literal.getValue() instanceof String pluginName) {
+                  result.add(pluginName);
+                  return true;
+                }
+              }
+            }
+          }
+        }
+
+
+      }
+      else {
+        break;
+      }
     }
     return false;
   }
@@ -309,10 +335,10 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               return;
             }
             List<String> names = getReferenceExpressionNamesOrNull(propertyRef);
-            if (names == null) {
+            if (names == null || propertyRef.getQualifierExpression() instanceof GrCallExpression) {
               handleApplicationOrMethodCallInClosure(closureNames, propertyRef.getQualifierExpression());
-              return;
             }
+            if (names == null) return;
             names.addAll(closureNames);
             String property = names.get(0);
             String parentName = names.size() > 1 ? names.get(1) : null;
