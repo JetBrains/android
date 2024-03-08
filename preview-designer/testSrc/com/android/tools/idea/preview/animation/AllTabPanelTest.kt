@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
 import com.android.tools.idea.preview.NoopAnimationTracker
-import com.android.tools.idea.preview.animation.AnimationCard
-import com.android.tools.idea.preview.animation.LabelCard
+import com.android.tools.idea.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.timeline.ElementState

@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.LabelCard
+import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import java.awt.Dimension
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

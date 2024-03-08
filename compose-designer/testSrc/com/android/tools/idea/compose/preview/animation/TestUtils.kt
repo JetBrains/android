@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.preview.animation.Card
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
-import com.intellij.ui.JBColor
 import java.awt.Component
 import java.awt.Dimension
 import java.util.stream.Collectors
@@ -33,12 +32,6 @@ val NoopComposeAnimationTracker =
   ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
-
-  fun createPlaybackPlaceHolder() =
-    JLabel("Playback placeholder").apply { background = JBColor.blue }
-
-  fun createTimelinePlaceHolder() =
-    JLabel("Timeline placeholder").apply { background = JBColor.pink }
 
   fun createComposeAnimation(
     label: String? = null,
@@ -53,13 +46,6 @@ object TestUtils {
 
   fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
     assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
-
-  fun findAllCards(parent: Component): List<Card> =
-    TreeWalker(parent)
-      .descendantStream()
-      .filter { it is Card }
-      .collect(Collectors.toList())
-      .map { it as Card }
 
   fun findTimeline(parent: Component): TimelinePanel =
     TreeWalker(parent)

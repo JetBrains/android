@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.ui.JBColor
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -28,6 +29,7 @@ import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
 import java.util.stream.Collectors
+import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Assert
 
@@ -101,4 +103,17 @@ object TestUtils {
       .map { it as ActionToolbarImpl }
       .first { it.place == place }
   }
+
+  fun createPlaybackPlaceHolder() =
+    JLabel("Playback placeholder").apply { background = JBColor.blue }
+
+  fun createTimelinePlaceHolder() =
+    JLabel("Timeline placeholder").apply { background = JBColor.pink }
+
+  fun findAllCards(parent: Component): List<Card> =
+    TreeWalker(parent)
+      .descendantStream()
+      .filter { it is Card }
+      .collect(Collectors.toList())
+      .map { it as Card }
 }
