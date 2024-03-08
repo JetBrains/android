@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.compose.ComposeStatus
@@ -186,10 +188,12 @@ class LiveEditIssueNotificationAction(
     return JBUI.insets(2)
   }
 
+  @UiThread
   override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
+  @UiThread
   override fun shouldSimplify(status: ComposeStatus, dataContext: DataContext): Boolean {
     val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
 
@@ -199,12 +203,9 @@ class LiveEditIssueNotificationAction(
       return false
     }
   }
-
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
-  }
 }
 
+@UiThread
 private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
   if (status != LiveEditStatus.Disabled) {
     // Always show when it's an active status, even if error.
