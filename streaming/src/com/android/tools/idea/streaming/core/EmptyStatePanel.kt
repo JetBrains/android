@@ -53,6 +53,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
@@ -86,6 +88,12 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     isFocusable = true
 
     emulatorVersionIsInsufficient = false
+
+    addMouseListener(object : MouseAdapter() {
+      override fun mousePressed(event: MouseEvent) {
+        requestFocusInWindow()
+      }
+    })
 
     hyperlinkListener = HyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
