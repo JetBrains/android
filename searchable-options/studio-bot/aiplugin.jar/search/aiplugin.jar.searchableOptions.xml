@@ -10,6 +10,17 @@
     <option name="data" path="ActionManager" hit="Generate Compose Sample Data" />
     <option name="generate" path="ActionManager" hit="Generate Compose Sample Data" />
     <option name="sample" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="generate" path="ActionManager" hit="Generate README" />
+    <option name="readme" path="ActionManager" hit="Generate README" />
+    <option name="a" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="files" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="for" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="generates" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="in" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="markdown" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="readme" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="selected" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="the" path="ActionManager" hit="Generates a README in markdown for the selected files." />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
     <option name="bot" path="ActionManager" hit="Studio Bot" />

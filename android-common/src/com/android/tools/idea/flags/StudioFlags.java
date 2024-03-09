@@ -1864,6 +1864,12 @@ public final class StudioFlags {
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
                     false);
 
+  public static final Flag<Boolean> README_GENERATION =
+    new BooleanFlag(STUDIOBOT, "readme.generation",
+                    "Use ML model to create a README",
+                    "Enables the \"Generate README\" button in the Project tool window",
+                    false);
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
