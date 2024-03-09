@@ -18,23 +18,32 @@ package com.android.tools.idea.adddevicedialog.localavd
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
-import kotlin.math.max
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.unit.Constraints
 
 @Composable
 internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
   Layout(content) { measurables, constraints ->
-    val placeables = measurables.map { it.measure(constraints) }
-    val header = placeables[0]
-    val rows = Row.buildList(placeables)
+    val header = measurables.first().measure(constraints)
+    val rows = Row.buildList(measurables, constraints)
 
     layout(getWidth(header, rows), header.height + rows.sumOf(Row::height)) {
       header.placeRelative(0, 0)
       var y = header.height
 
       rows.forEach {
-        it.text.placeRelative(0, y)
-        it.placeable.placeRelative(it.text.width, y)
+        var x = 0
+        it.text.placeRelative(x, y)
+
+        x += it.text.width
+        it.placeable.placeRelative(x, y)
+
+        if (it.icon != null) {
+          x += it.placeable.width
+          it.icon.placeRelative(x, y)
+        }
 
         y += it.height
       }
@@ -42,23 +51,55 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
   }
 }
 
-private class Row private constructor(val text: Placeable, val placeable: Placeable) {
+internal object Icon
+
+private class Row
+private constructor(val text: Placeable, val placeable: Placeable, val icon: Placeable? = null) {
   val width
-    get() = text.width + placeable.width
+    get() = text.width + placeable.width + (icon?.width ?: 0)
 
   val height
-    get() = max(text.height, placeable.height)
+    get() = maxOf(text.height, placeable.height, icon?.height ?: 0)
 
   companion object {
-    internal fun buildList(placeables: List<Placeable>) = buildList {
-      for (i in 1 until placeables.size step 2) {
-        add(Row(placeables[i], placeables[i + 1]))
+    internal fun buildList(measurables: List<Measurable>, constraints: Constraints): Iterable<Row> {
+      val i = measurables.listIterator()
+
+      // Skip the GroupHeader
+      i.next()
+
+      return buildList {
+        while (i.hasNext()) {
+          add(newRow(i, constraints))
+        }
       }
+    }
+
+    private fun newRow(i: ListIterator<Measurable>, constraints: Constraints): Row {
+      val text = i.next().measure(constraints)
+      val placeable = i.next().measure(constraints)
+
+      if (!i.hasNext()) {
+        // We're at the end and there's no Icon
+        return Row(text, placeable)
+      }
+
+      val measurable = i.next()
+
+      if (measurable.layoutId != Icon) {
+        // The measurable is a Text. Go back.
+        i.previous()
+
+        return Row(text, placeable)
+      }
+
+      // We have an Icon
+      return Row(text, placeable, measurable.measure(constraints))
     }
   }
 }
 
 private fun getWidth(header: Placeable, rows: Iterable<Row>): Int {
   val maxRowWidth = rows.maxOfOrNull(Row::width)
-  return if (maxRowWidth == null) header.width else max(header.width, maxRowWidth)
+  return if (maxRowWidth == null) header.width else maxOf(header.width, maxRowWidth)
 }

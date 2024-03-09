@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
@@ -34,6 +35,7 @@ import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.intellij.icons.AllIcons
+import com.intellij.icons.ExpUiIcons
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
@@ -87,6 +89,7 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
       onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
     )
 
+    InfoOutlineIcon(Modifier.layoutId(Icon))
     Text("Rear")
 
     Dropdown(
@@ -94,6 +97,8 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
       REAR_CAMERAS,
       onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
     )
+
+    InfoOutlineIcon(Modifier.layoutId(Icon))
   }
 }
 
@@ -463,4 +468,9 @@ internal constructor(internal val value: String, internal val valid: Boolean) {
         ExistingImageFieldState("", false)
       }
   }
+}
+
+@Composable
+private fun InfoOutlineIcon(modifier: Modifier = Modifier) {
+  Icon("expui/status/infoOutline.svg", null, ExpUiIcons::class.java, modifier)
 }
