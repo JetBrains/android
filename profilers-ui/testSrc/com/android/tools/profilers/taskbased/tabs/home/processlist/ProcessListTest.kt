@@ -37,7 +37,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
-import com.android.tools.profilers.taskbased.selections.deviceprocesses.ProcessListModelTest
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
@@ -94,18 +94,18 @@ class ProcessListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
-      val device1 = ProcessListModelTest.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
-      ProcessListModelTest.addDeviceWithProcess(device1, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                            device1.deviceId), myTransportService, myTimer)
+      val device1 = TaskModelTestUtils.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
+      TaskModelTestUtils.addDeviceWithProcess(device1, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                        device1.deviceId), myTransportService, myTimer)
 
       // Assert FakeDevice1 was auto-selected.
       assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
 
-      val device2 = ProcessListModelTest.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
-      ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                            device2.deviceId), myTransportService, myTimer)
-      ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
-                                                                                            device2.deviceId), myTransportService, myTimer)
+      val device2 = TaskModelTestUtils.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
+      TaskModelTestUtils.addDeviceWithProcess(device2, TaskModelTestUtils.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                        device2.deviceId), myTransportService, myTimer)
+      TaskModelTestUtils.addDeviceWithProcess(device2, TaskModelTestUtils.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
+                                                                                        device2.deviceId), myTransportService, myTimer)
 
 
       JewelThemedComposableWrapper(isDark = true) {
@@ -130,9 +130,9 @@ class ProcessListTest {
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(0)
 
     // FakeDevice1 is added first and will this be auto-selected.
-    val device1 = ProcessListModelTest.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
-    ProcessListModelTest.addDeviceWithProcess(device1, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                         device1.deviceId), myTransportService, myTimer)
+    val device1 = TaskModelTestUtils.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
+    TaskModelTestUtils.addDeviceWithProcess(device1, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                      device1.deviceId), myTransportService, myTimer)
 
     // Select the device
     processListModel.onDeviceSelection(device1)
@@ -146,13 +146,13 @@ class ProcessListTest {
 
   @Test
   fun `process selection reflects in data model`() {
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
+    val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                             device.deviceId), myTransportService, myTimer)
-        ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                             device.deviceId), myTransportService, myTimer)
+        TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                         device.deviceId), myTransportService, myTimer)
+        TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                         device.deviceId), myTransportService, myTimer)
         ProcessList(processListModel)
       }
     }
@@ -207,10 +207,10 @@ class ProcessListTest {
 
   private fun populateVisualTestData() {
     assertThat(processListModel.deviceList.value).isEmpty()
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
+    val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
+    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                     device.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                     device.deviceId), myTransportService, myTimer)
   }
 }

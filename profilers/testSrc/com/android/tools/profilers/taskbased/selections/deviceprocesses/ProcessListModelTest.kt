@@ -28,7 +28,10 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.updateDeviceState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -329,7 +332,7 @@ class ProcessListModelTest {
   @Test
   fun `set device using toolbar selected online device, with a match in transport pipeline devices`() {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
-    val device = createDevice("FakeDevice", "serial-123", Common.Device.State.ONLINE)
+    val device = createDevice("FakeDevice", Common.Device.State.ONLINE, "serial-123")
     val process = createProcess(10, "FakeProcess", Common.Process.State.ALIVE, device.deviceId)
     addDeviceWithProcess(device, process, myTransportService, myTimer)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -422,40 +425,5 @@ class ProcessListModelTest {
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(2)
     assertThat(processListModel.getSelectedDeviceProcesses()[0].name).isEqualTo("com.foo.bar")
     assertThat(processListModel.getSelectedDeviceProcesses()[1].name).isEqualTo("FakeProcess1")
-  }
-
-  companion object {
-    fun addDeviceWithProcess(device: Common.Device,
-                                     process: Common.Process,
-                                     transportService: FakeTransportService,
-                                     timer: FakeTimer) {
-      transportService.addDevice(device)
-      transportService.addProcess(device, process)
-      timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    }
-
-    fun createDevice(deviceName: String, deviceState: Common.Device.State, version: String, apilevel: Int): Common.Device = createDevice(
-      deviceName, deviceName, deviceName.hashCode().toLong(), deviceState, version, apilevel)
-
-    fun createDevice(deviceName: String,
-                     serial: String,
-                     deviceId: Long,
-                     deviceState: Common.Device.State,
-                     version: String,
-                     apilevel: Int) = Common.Device.newBuilder().setDeviceId(deviceId).setSerial(serial).setState(deviceState).setModel(
-      deviceName).setVersion(version).setApiLevel(apilevel).setFeatureLevel(apilevel).build()
-
-    fun createProcess(pid: Int,
-                      processName: String,
-                      processState: Common.Process.State,
-                      deviceId: Long,
-                      exposureLevel: ExposureLevel = ExposureLevel.DEBUGGABLE) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(
-      pid).setName(processName).setState(processState).setExposureLevel(exposureLevel).build()
-
-    private fun updateDeviceState(deviceName: String, deviceState: Common.Device.State, transportService: FakeTransportService, timer: FakeTimer) {
-      val newDevice = createDevice(deviceName, deviceState)
-      transportService.addDevice(newDevice)
-      timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    }
   }
 }

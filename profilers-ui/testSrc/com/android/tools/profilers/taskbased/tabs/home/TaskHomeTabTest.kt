@@ -45,9 +45,9 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
-import com.android.tools.profilers.taskbased.selections.deviceprocesses.ProcessListModelTest
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -129,12 +129,12 @@ class TaskHomeTabTest {
     }
 
     // Populate the device.
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 28)
+    val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 28)
     // Populate the processes for the selected device.
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                     device.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                     device.deviceId), myTransportService, myTimer)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
@@ -221,10 +221,10 @@ class TaskHomeTabTest {
     myProfilers.preferredProcessName = "com.foo.bar"
 
     // Add online device with alive process (that is NOT the preferred process)
-    ProcessListModelTest.addDeviceWithProcess(
-      ProcessListModelTest.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
-      ProcessListModelTest.createProcess(20, "not.preferred.process", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
-      myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
+                                            TaskModelTestUtils.createProcess(20, "not.preferred.process", Common.Process.State.ALIVE, 456,
+                                                                             Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
+                                            myTimer)
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -300,9 +300,9 @@ class TaskHomeTabTest {
     myProfilers.preferredProcessName = "com.foo.bar"
 
     // Add online device with alive process (that is also the preferred process)
-    ProcessListModelTest.addDeviceWithProcess(
-      ProcessListModelTest.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
-      ProcessListModelTest.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
+    TaskModelTestUtils.addDeviceWithProcess(
+      TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
+      TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
     // Make sure device selection is also registered in data model.
@@ -337,11 +337,11 @@ class TaskHomeTabTest {
     }
 
     // Populate the device.
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
+    val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
     // Populate the processes for the selected device.
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess", Common.Process.State.ALIVE,
-                                                                                         device.deviceId,
-                                                                                         Common.Process.ExposureLevel.DEBUGGABLE),
+    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess", Common.Process.State.ALIVE,
+                                                                                     device.deviceId,
+                                                                                     Common.Process.ExposureLevel.DEBUGGABLE),
                                               myTransportService, myTimer)
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
@@ -388,12 +388,12 @@ class TaskHomeTabTest {
     }
 
     // Populate the device.
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
+    val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
     // Populate the processes for the selected device.
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess", Common.Process.State.ALIVE,
-                                                                                         device.deviceId,
-                                                                                         Common.Process.ExposureLevel.PROFILEABLE),
-                                              myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(device,
+                                            TaskModelTestUtils.createProcess(20, "FakeProcess", Common.Process.State.ALIVE, device.deviceId,
+                                                                             Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
+                                            myTimer)
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
 
@@ -482,9 +482,9 @@ class TaskHomeTabTest {
     myProfilers.preferredProcessName = "com.foo.bar"
 
     // Add online device with alive process (that is also the preferred process)
-    ProcessListModelTest.addDeviceWithProcess(
-      ProcessListModelTest.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
-      ProcessListModelTest.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
+    TaskModelTestUtils.addDeviceWithProcess(
+      TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
+      TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
     // Make sure device selection is also registered in data model.
