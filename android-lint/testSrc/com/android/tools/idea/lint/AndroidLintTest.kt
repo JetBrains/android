@@ -1618,12 +1618,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     val errorDescriptions = errors.map { it.description }
     assertThat(errorDescriptions)
       .containsExactly(
-        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#range`",
-        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#filter`",
-        "Method reference requires API level 24 (current min is 16): `isEven::test`",
-        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
-        "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
-        "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`",
+        "Call requires API level 24, or core library desugaring (current min is 16): `java.util.stream.IntStream#range`",
+        "Call requires API level 24, or core library desugaring (current min is 16): `java.util.stream.IntStream#filter`",
+        "Method reference requires API level 24, or core library desugaring (current min is 16): `isEven::test`",
+        "Call requires API level 24, or core library desugaring (current min is 16): `java.util.stream.IntStream#boxed`",
+        "Call requires API level 24, or core library desugaring (current min is 16): `java.util.stream.Stream#collect`",
+        "Call requires API level 24, or core library desugaring (current min is 16): `java.util.stream.Collectors#toList`",
       )
   }
 

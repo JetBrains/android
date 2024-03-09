@@ -130,7 +130,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       AndroidLintNewApiInspection(),
       "collection.st|ream",
       """
-    Error: Call requires API level 24 (current min is 16): `java.util.Collection#stream`
+    Error: Call requires API level 24, or core library desugaring (current min is 16): `java.util.Collection#stream`
         java.util.stream.Stream<String> streamOfCollection = collection.stream();
                                                                         ~~~~~~
         Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.N) { ... }
