@@ -391,7 +391,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       initialized = true
 
       val newTabAction = NewTabAction()
-      newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
+      newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK, toolWindow.component)
       (toolWindow as ToolWindowEx).setTabActions(newTabAction)
 
       val actionGroup = DefaultActionGroup()
