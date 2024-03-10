@@ -1,5 +1,16 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="analyze" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="safety" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="thread" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="analyzes" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="files" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="for" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="safety" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="selected" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="state" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="the" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="thread" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
     <option name="code" path="ActionManager" hit="Comment Code" />
     <option name="comment" path="ActionManager" hit="Comment Code" />
     <option name="code" path="ActionManager" hit="Document Code" />

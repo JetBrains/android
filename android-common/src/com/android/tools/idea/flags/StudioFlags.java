@@ -1870,6 +1870,12 @@ public final class StudioFlags {
                     "Enables the \"Generate README\" button in the Project tool window",
                     false);
 
+  public static final Flag<Boolean> ANALYZE_THREAD_SAFETY =
+    new BooleanFlag(STUDIOBOT, "analyze.thread.safety",
+                    "Use ML model analyze thread safety of selected files",
+                    "Enables the \"Analyze Thread Safety\" button in the Project tool window",
+                    false);
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
