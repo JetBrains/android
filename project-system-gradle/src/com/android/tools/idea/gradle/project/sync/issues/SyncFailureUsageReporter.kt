@@ -36,7 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.issue.UnsupportedGradleVersionIssue
+import org.jetbrains.plugins.gradle.util.GradleBundle
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
@@ -93,7 +93,7 @@ class SyncFailureUsageReporter {
   private fun deriveSyncFailureFromProcessedError(error: Throwable?) = if (error is BuildIssueException) {
     when {
       error.buildIssue.javaClass.packageName.startsWith("com.android.tools.") -> GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
-      error.buildIssue is UnsupportedGradleVersionIssue -> GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
+      error.buildIssue.title == GradleBundle.message("gradle.build.issue.gradle.unsupported.title") -> GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
       else -> GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
     }
   }

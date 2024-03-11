@@ -45,7 +45,9 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.containers.DisposableWrapperList
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.issue.DeprecatedGradleVersionIssue
-import org.jetbrains.plugins.gradle.issue.UnsupportedGradleVersionIssue
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.UnsupportedGradleVersionIssueChecker
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
@@ -117,13 +119,25 @@ class SyncFailureUsageReporterTest {
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
   }
 
+  /**
+   * The build issue under test here is generated in platform in [UnsupportedGradleVersionIssueChecker]. We detect this issue
+   * by matching the name as the class became private.
+   * This test is needed to make sure this does not change silently without us knowing, it uses the same code path of generating
+   * this issue as in production code.
+   */
   @Test
   fun detectedInPlatformCodeUnsupportedGradleBuildIssue() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
-    val exception = BuildIssueException(
-      UnsupportedGradleVersionIssue(GradleVersion.version("2.6"), projectRule.project.basePath!!, GradleVersion.version("3.0"))
+    // Emulate process of issue being handled by platform's UnsupportedGradleVersionIssueChecker
+    val issueData = GradleIssueData(
+      projectRule.project.basePath!!,
+      GradleExecutionHelper.UnsupportedGradleVersionByIdeaException(GradleVersion.version("2.6")),
+      null, null
     )
+    val issue = UnsupportedGradleVersionIssueChecker().check(issueData)!!
+    val exception = BuildIssueException(issue)
+
     SyncFailureUsageReporter.getInstance().collectProcessedError(buildId, projectRule.project, projectRule.project.basePath!!, exception)
 
     sendBuildFinishedEvent(exception)
