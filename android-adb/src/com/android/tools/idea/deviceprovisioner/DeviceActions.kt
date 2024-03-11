@@ -89,6 +89,12 @@ fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActio
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
 
 /**
+ * Returns the DeviceTemplate associated with the existing event. Note that this depends on some
+ * component related to the event implementing [DataProvider] and supplying the handle.
+ */
+fun AnActionEvent.deviceTemplate() = DEVICE_TEMPLATE_KEY.getData(dataContext)
+
+/**
  * Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have
  * [ReservationAction]
  */

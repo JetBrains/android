@@ -384,6 +384,7 @@ constructor(
   override fun getData(dataId: String): Any? =
     when {
       DEVICE_MANAGER_PANEL_KEY.`is`(dataId) -> this
+      DEVICE_MANAGER_COROUTINE_SCOPE_KEY.`is`(dataId) -> panelScope
       else -> null
     }
 }
@@ -413,3 +414,5 @@ private fun Flow<DeviceState>.pairWithConnectionState():
 private const val TOOLBAR_ID = "DeviceManager2"
 
 internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")
+internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY =
+  DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")

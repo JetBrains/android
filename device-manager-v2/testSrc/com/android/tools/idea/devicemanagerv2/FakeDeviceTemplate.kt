@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeleteAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
+import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import icons.StudioIcons
 import java.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,4 +51,9 @@ internal class FakeDeviceTemplate(override val properties: DeviceProperties) : D
         MutableStateFlow(DeviceAction.Presentation("", StudioIcons.Avd.RUN, true))
     }
   override val editAction = null
+  override val deleteAction =
+    mock<DeleteAction>().also {
+      whenever(it.presentation)
+        .thenReturn(MutableStateFlow(TestDefaultDeviceActionPresentation.deleteAction))
+    }
 }
