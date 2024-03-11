@@ -23,6 +23,3 @@ internal fun AndroidModuleSystem.isPreviewPickerEnabled(): Boolean =
   this.usesCompose &&
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get() &&
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled
-
-internal fun AndroidModuleSystem.isSpringPickerEnabled(): Boolean =
-  this.usesCompose && StudioFlags.COMPOSE_SPRING_PICKER.get()

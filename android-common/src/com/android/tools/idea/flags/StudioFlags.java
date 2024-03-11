@@ -1260,13 +1260,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_SPRING_PICKER = new BooleanFlag(
-    COMPOSE, "preview.spring.picker",
-    "Enable the SpringSpec picker",
-    "If enabled, a picker will be available in SpringSpec calls on the Editor gutter",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",
