@@ -76,7 +76,7 @@ class ExplainSyncOrBuildOutputTest {
 
     override fun isAvailable() = available
 
-    override fun isContextAllowed() = contextAllowed
+    override fun isContextAllowed(project: Project) = contextAllowed
 
     private val _chatService = spy(object : ChatService.StubChatService() {})
 

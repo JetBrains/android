@@ -62,7 +62,7 @@ internal class StudioBotFilter(private val editor: EditorEx) : Filter {
 
         // If context sharing is enabled, send the query immediately. Otherwise, stage
         // it in the query bar.
-        if (studioBot.isContextAllowed()) {
+        if (studioBot.isContextAllowed(project)) {
           val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
           studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
         } else {

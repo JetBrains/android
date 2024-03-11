@@ -172,6 +172,6 @@ class EditorHyperlinkDetectorTest {
 
     override fun isAvailable(): Boolean = available
 
-    override fun isContextAllowed(): Boolean = true
+    override fun isContextAllowed(project: Project): Boolean = true
   }
 }

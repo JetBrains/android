@@ -65,7 +65,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
     val studioBot = StudioBot.getInstance()
     // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
     // can't use the sendQuery API.
-    if (!studioBot.isContextAllowed()) {
+    if (!studioBot.isContextAllowed(project)) {
       return ConversionResponse(
         generatedCode = contextSharingNeedsToBeEnabled,
         status = ConversionResponse.Status.ERROR,

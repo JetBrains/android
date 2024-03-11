@@ -51,8 +51,9 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
+    val project = e.project
     // Only enable the action if user has opted-in to share context.
-    e.presentation.isEnabled = StudioBot.getInstance().isContextAllowed()
+    e.presentation.isEnabled = project != null && StudioBot.getInstance().isContextAllowed(project)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -34,7 +34,7 @@ class StudioBotFilterTest {
 
       override fun isAvailable() = true
 
-      override fun isContextAllowed() = contextAllowed
+      override fun isContextAllowed(project: Project) = contextAllowed
 
       override fun chat(project: Project) = mockChatService
     }

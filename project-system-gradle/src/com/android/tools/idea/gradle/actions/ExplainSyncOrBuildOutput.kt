@@ -95,7 +95,7 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
     val errorName = node.name
 
     val studioBot = StudioBot.getInstance()
-    if (!studioBot.isContextAllowed()) {
+    if (!studioBot.isContextAllowed(project)) {
       // If context isn't enabled, all we do is paste a simple query into the query bar
       // using the error description.
       val shortDescription = getErrorShortDescription(node.result) ?: errorName

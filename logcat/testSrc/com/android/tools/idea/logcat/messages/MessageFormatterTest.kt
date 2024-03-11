@@ -32,6 +32,7 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import java.time.Instant
@@ -670,7 +671,7 @@ class MessageFormatterTest {
 
     override fun isAvailable(): Boolean = available
 
-    override fun isContextAllowed(): Boolean = true
+    override fun isContextAllowed(project: Project): Boolean = true
   }
 }
 

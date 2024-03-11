@@ -72,7 +72,7 @@ internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
     val queryText = LogcatBundle.message("logcat.studio.bot.action.query", label, content)
 
     // Logcat output is considered sensitive text, so we have to check the context sharing setting
-    if (studioBot.isContextAllowed()) {
+    if (studioBot.isContextAllowed(project)) {
       val prompt = buildPrompt(project) { userMessage { text(queryText, filesUsed = emptyList()) } }
       studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
     } else {
