@@ -24,7 +24,9 @@ import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.common.cleanApplicationState
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.unregisterService
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -58,5 +60,33 @@ class ServerFlagOverridesTest {
     Truth.assertThat(overrides.get(flagA)).isEqualTo("true")
     Truth.assertThat(overrides.get(flagB)).isEqualTo("false")
     Truth.assertThat(overrides.get(flagC)).isNull()
+
+    ApplicationManager.getApplication().unregisterService(ServerFlagService::class.java)
+  }
+
+  @Test
+  fun testIntServerFlagOverrides() {
+    val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
+    val flags = Flags(overrides)
+    val group = FlagGroup(flags, TEST_GROUP, "display")
+    val flagD = Flag.create(group, "d", "name_d", "description_d", 0)
+    val flagE = Flag.create(group, "e", "name_e", "description_e", 1)
+    val flagF = Flag.create(group, "f", "name_f", "description_f", 0)
+
+    Truth.assertThat(overrides.get(flagD)).isNull()
+    Truth.assertThat(overrides.get(flagE)).isNull()
+    Truth.assertThat(overrides.get(flagF)).isNull()
+
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getInt("$STUDIO_FLAG_PREFIX.d")).thenReturn(1)
+    whenever(service.getInt("$STUDIO_FLAG_PREFIX.e")).thenReturn(0)
+    whenever(service.getInt("$STUDIO_FLAG_PREFIX.f")).thenReturn(null)
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
+
+    Truth.assertThat(overrides.get(flagD)).isEqualTo("1")
+    Truth.assertThat(overrides.get(flagE)).isEqualTo("0")
+    Truth.assertThat(overrides.get(flagF)).isNull()
+
+    ApplicationManager.getApplication().unregisterService(ServerFlagService::class.java)
   }
 }
