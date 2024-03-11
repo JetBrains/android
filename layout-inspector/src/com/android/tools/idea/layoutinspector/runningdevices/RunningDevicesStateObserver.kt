@@ -197,8 +197,6 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
       // invokeLater, they should be executed first.
       invokeLater { updateVisibleTabs() }
     }
-
-    override fun dispose() {}
   }
 
   /** Returns [DeviceId] of the visible tabs in the Running Devices Tool Window. */
