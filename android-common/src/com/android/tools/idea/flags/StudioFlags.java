@@ -1821,6 +1821,25 @@ public final class StudioFlags {
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
                     false);
 
+  // rate limits are controlled by server flags
+  public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
+    new IntFlag(STUDIOBOT, "completions.per.hour",
+                    "AI completion requests per hour",
+                    "AI completion requests per hour",
+                    36000);
+
+  public static final Flag<Integer> STUDIOBOT_CONVERSATIONS_PER_HOUR =
+    new IntFlag(STUDIOBOT, "conversations.per.hour",
+                "AI conversations per hour",
+                "AI conversations per hour",
+                60);
+
+  public static final Flag<Integer> STUDIOBOT_GENERATIONS_PER_HOUR =
+    new IntFlag(STUDIOBOT, "generations.per.hour",
+                "AI generation requests per hour",
+                "AI generation requests per hour",
+                3600);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
