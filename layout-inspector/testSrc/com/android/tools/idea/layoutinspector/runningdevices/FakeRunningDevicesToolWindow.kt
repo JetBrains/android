@@ -114,6 +114,10 @@ class FakeToolWindow(
     }
   }
 
+  override fun addContentManagerListener(listener: ContentManagerListener) {
+    fakeContentManager.addContentManagerListener(listener)
+  }
+
   override fun getContentManager(): ContentManager {
     return fakeContentManager
   }

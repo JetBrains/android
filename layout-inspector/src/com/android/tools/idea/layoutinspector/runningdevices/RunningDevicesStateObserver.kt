@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
@@ -24,6 +25,8 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
@@ -76,9 +79,11 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
     }
 
   // TODO(b/324741151): Add support for multiple context managers.
-  private var runningDevicesContext: RunningDevicesContext? = null
+  private var currentContentManager: ContentManager? = null
 
   init {
+    var toolWindowListener: RunningDevicesContentManagerListener? = null
+
     // Listen for changes to RD Tool Window state.
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(
@@ -87,6 +92,14 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
 
         override fun stateChanged(toolWindowManager: ToolWindowManager) {
           val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
+
+          if (toolWindowListener == null) {
+            // Register the listener only once.
+            toolWindowListener =
+              RunningDevicesContentManagerListener(toolWindow).also {
+                Disposer.register(this@RunningDevicesStateObserver, it)
+              }
+          }
 
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
@@ -121,36 +134,24 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (enabled) {
-      if (runningDevicesContext != null) {
+      if (currentContentManager != null) {
         // Context already registered.
         return
       }
 
       checkNotNull(newContentManager)
-
-      val runningDevicesContentManagerListener = RunningDevicesContentManagerListener()
-      newContentManager.addContentManagerListener(runningDevicesContentManagerListener)
-
-      runningDevicesContext =
-        RunningDevicesContext(newContentManager, runningDevicesContentManagerListener)
+      currentContentManager = newContentManager
 
       updateSelectedTab()
       updateExistingTabs()
     } else {
-      // If context is null, we're not registered, so we're not observing anything.
-      val localRunningDevicesContext = runningDevicesContext ?: return
-
-      localRunningDevicesContext.contentManager.removeContentManagerListener(
-        localRunningDevicesContext.contentManagerListener
-      )
-
-      runningDevicesContext = null
+      currentContentManager = null
       selectedTab = null
     }
   }
 
   fun getTabContent(deviceId: DeviceId): Content? {
-    return runningDevicesContext?.contentManager?.contents?.find { it.deviceId == deviceId }
+    return currentContentManager?.contents?.find { it.deviceId == deviceId }
   }
 
   private fun updateSelectedTab() {
@@ -163,13 +164,9 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
     existingTabs = deviceIds
   }
 
-  private data class RunningDevicesContext(
-    val contentManager: ContentManager,
-    val contentManagerListener: RunningDevicesContentManagerListener,
-  )
-
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
-  private inner class RunningDevicesContentManagerListener : ContentManagerListener {
+  private inner class RunningDevicesContentManagerListener(toolWindow: ToolWindow) :
+    ContentManagerHierarchyAdapter(toolWindow) {
     override fun contentAdded(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using
       // invokeLater, they should be executed first.
@@ -187,11 +184,13 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
       // invokeLater, they should be executed first.
       invokeLater { updateSelectedTab() }
     }
+
+    override fun dispose() {}
   }
 
   /** Returns [DeviceId] of the selected tab in the Running Devices Tool Window. */
   private fun getSelectedTabDeviceId(): DeviceId? {
-    val contentManager = runningDevicesContext?.contentManager ?: return null
+    val contentManager = currentContentManager ?: return null
     val selectedContent = contentManager.selectedContent ?: return null
     val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
 
@@ -200,7 +199,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
 
   /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
   private fun getAllTabsDeviceIds(): List<DeviceId> {
-    val contentManager = runningDevicesContext?.contentManager ?: return emptyList()
+    val contentManager = currentContentManager ?: return emptyList()
     val contents = contentManager.contents
     val tabIds =
       contents

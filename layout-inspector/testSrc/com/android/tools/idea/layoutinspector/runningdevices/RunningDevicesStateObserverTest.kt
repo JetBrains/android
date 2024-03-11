@@ -108,6 +108,8 @@ class RunningDevicesStateObserverTest {
       newContentManager = fakeToolWindowManager.toolWindow.contentManager,
     )
 
+    fakeToolWindowManager.toolWindow.show()
+
     val observedSelectedTabs = mutableListOf<DeviceId?>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
 
@@ -165,6 +167,8 @@ class RunningDevicesStateObserverTest {
           observedExistingTabs.add(existingTabs)
         }
       }
+
+    fakeToolWindowManager.toolWindow.show()
 
     runningDevicesStateObserver.addListener(listener)
 

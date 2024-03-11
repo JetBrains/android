@@ -146,6 +146,8 @@ class LayoutInspectorManagerTest {
 
     RunningDevicesStateObserver.getInstance(displayViewRule.project)
       .update(enabled = true, newContentManager = fakeToolWindowManager.toolWindow.contentManager)
+
+    fakeToolWindowManager.toolWindow.show()
   }
 
   @After
