@@ -219,7 +219,9 @@ class DeviceMenuActionTest {
     assertEquals("Pixel", configuration.device?.displayName)
 
     val pixelFoldAction = menuAction.findActionByText("Pixel Fold (841 × 701 dp, 420dpi)")!!
-    pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
+    withContext(uiThread) {
+      pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
+    }
 
     assertEquals("Pixel Fold", configuration.device?.displayName)
   }
