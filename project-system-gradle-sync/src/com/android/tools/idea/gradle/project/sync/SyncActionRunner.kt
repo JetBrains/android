@@ -162,6 +162,8 @@ data class ActionToRun<T>(
 
       override fun getBuildModel(): GradleBuild = error("Not intended to be used")
 
+      override fun <T : Any?> send(value: T) = error("Not intended to be used")
+
       @Suppress("UnstableApiUsage")
       override fun <T : Any?> run(p0: Collection<out BuildAction<out T>>?): List<T> = error("Not intended to be used")
 
@@ -287,6 +289,8 @@ private fun BuildController.toMeasuringController(syncCounters: SyncCounters): B
     }
 
     override fun getBuildModel(): GradleBuild = error("Not intended to be used")
+
+    override fun <T : Any?> send(value: T) = error("Not intended to be used")
 
     @Suppress("UnstableApiUsage")
     override fun <T : Any?> run(p0: Collection<out BuildAction<out T>>?): List<T> = error("Not intended to be used")
