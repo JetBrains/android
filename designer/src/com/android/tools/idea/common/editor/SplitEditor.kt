@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -253,6 +254,10 @@ abstract class SplitEditor<P : FileEditor>(
     val delegate: ToggleAction,
     val showDefaultGutterPopup: Boolean,
   ) : ToggleAction(if (NewUI.isEnabled()) null else name, name, icon), DumbAware {
+
+    // Using EDT since getFakeActionEvent within getSelectedAction requires the DataContext
+    // of a UI component.
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 
