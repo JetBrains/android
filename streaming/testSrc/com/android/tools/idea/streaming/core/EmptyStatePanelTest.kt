@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
@@ -77,6 +78,7 @@ class EmptyStatePanelTest {
   fun setUp() {
     val mockActionManager = mock<ActionManagerEx>()
     whenever(mockActionManager.getAction(any())).thenAnswer { TestAction(it.getArgument(0)) }
+    whenever(mockActionManager.performWithActionCallbacks(any(), any(), any<Runnable>())).then { it.getArgument<Runnable>(2).run() }
     ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, testRootDisposable)
 
     val repoManager = FakeRepoManager(RepositoryPackages(listOf(emulatorPackage), emptyList()))
