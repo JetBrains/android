@@ -58,6 +58,7 @@ import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -115,6 +116,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   public ConvertToConstraintLayoutAction() {
     super(TITLE, TITLE, null);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

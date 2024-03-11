@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,11 @@ public final class ToggleBoundsVisibility extends AnAction {
   public ToggleBoundsVisibility(@NotNull PropertiesComponent properties, @NotNull Component componentTree) {
     myProperties = properties;
     myComponentTree = componentTree;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

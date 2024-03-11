@@ -681,6 +681,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
       myCurrentPresentation = e.getPresentation();
       try {

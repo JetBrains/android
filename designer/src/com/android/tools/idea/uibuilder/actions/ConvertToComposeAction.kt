@@ -46,7 +46,6 @@ import kotlinx.coroutines.withContext
 private const val ACTION_TITLE = "I am feeling Compose"
 
 class ConvertToComposeAction : AnAction(ACTION_TITLE) {
-
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.primitives.Ints
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -47,6 +48,9 @@ private const val PICKER_WIDTH_PX = 300
 private const val STATE_ITEM_HEIGHT_PX = 35
 
 class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEditor.Menu.SWITCH) {
+
+  // Run on EDT since toolbar.isTransitionSelected accesses UI state
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun displayTextInToolbar(): Boolean = true
 
