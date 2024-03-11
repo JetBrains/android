@@ -25,6 +25,7 @@ import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.databinding.util.getViewBindingClassName
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -87,7 +88,11 @@ private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData,
   val aggregatedVariables = mutableListOf<Pair<VariableData, XmlTag>>()
   val alreadySeen = mutableSetOf<String>()
   for (layout in layouts) {
-    val xmlFile = layout.toXmlFile() ?: continue
+    val xmlFile = layout.toXmlFile()
+    if (xmlFile == null) {
+      thisLogger().error("Layout should always be backed by an xml file. (${layout.file.name})")
+      continue
+    }
     val layoutData = layout.data
     for (variable in layoutData.variables) {
       val variableTag = xmlFile.findVariableTag(variable.name)
@@ -147,8 +152,22 @@ data class BindingClassConfig(
     get() {
       val viewIds = mutableMapOf<BindingLayout, Collection<ViewIdData>>()
       for (layout in group.layouts) {
-        val xmlFile = layout.toXmlFile() ?: continue
-        val xmlData = BindingXmlIndex.getDataForFile(xmlFile) ?: continue
+        val xmlFile = layout.toXmlFile()
+        if (xmlFile == null) {
+          thisLogger()
+            .error(
+              "Layout should always be backed by an xml file. ($qualifiedName, ${layout.file.name})"
+            )
+          continue
+        }
+        val xmlData = BindingXmlIndex.getDataForFile(xmlFile)
+        if (xmlData == null) {
+          thisLogger()
+            .error(
+              "Every binding layout should have indexed data. ($qualifiedName, ${layout.file.name})"
+            )
+          continue
+        }
         viewIds[layout] = xmlData.viewIds
       }
       return viewIds
