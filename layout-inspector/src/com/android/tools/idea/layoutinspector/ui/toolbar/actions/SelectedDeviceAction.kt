@@ -175,6 +175,8 @@ class SelectDeviceAction(
       null,
       device.toIcon(),
     ) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun displayTextInToolbar() = true
 
     init {
