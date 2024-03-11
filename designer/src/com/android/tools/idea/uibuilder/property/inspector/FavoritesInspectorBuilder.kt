@@ -40,6 +40,7 @@ import com.google.common.base.Splitter
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
@@ -235,6 +236,9 @@ class FavoritesInspectorBuilder(
       val manager = ActionManager.getInstance()
       shortcutSet = manager.getAction(IdeActions.ACTION_DELETE).shortcutSet
     }
+
+    // Running on edt because of the table data model access
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun update(event: AnActionEvent) {
       val enabled = lineModel?.tableModel?.items?.isNotEmpty() ?: false

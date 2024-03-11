@@ -23,6 +23,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -78,6 +79,8 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
 
   private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) :
     ToggleActionButton(model.description, model.icon) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return model.selected
     }
