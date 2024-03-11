@@ -669,6 +669,27 @@ public final class GuiTests {
     waitForProjectIndexingToFinish(project, Wait.seconds(300));
   }
 
+  public static void waitForIndexingDependenciesToFinish(@NotNull Project project, @NotNull Wait indexing) {
+    AtomicBoolean isDependenciesIndexed = new AtomicBoolean();
+    DumbService.getInstance(project).smartInvokeLater(() -> isDependenciesIndexed.set(true));
+
+    try {
+      indexing.expecting("Project indexing to finish")
+        .until(isDependenciesIndexed::get);
+    }
+    catch (WaitTimedOutError e) {
+      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true);
+      LOG.error("Timeout out waiting project dependencies indexing to finish" + ThreadDumper.dumpThreadsToString());
+      throw e;
+    }
+  }
+
+  public static void waitForIndexingDependenciesToFinish(@NotNull Project project) {
+    // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
+    // Usually this take 20-30 secs, but depends heavily on the machine and its load
+    waitForIndexingDependenciesToFinish(project, Wait.seconds(120));
+  }
+
   public static void takeScreenshot(@NotNull Robot robot, @NotNull String name) {
     try {
       File folderName = GuiTests.getFailedTestScreenshotDirPath();

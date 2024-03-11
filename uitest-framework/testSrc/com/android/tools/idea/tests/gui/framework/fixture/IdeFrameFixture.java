@@ -479,7 +479,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     // to 120 seconds). Otherwise, sync timeout may expire
     // too soon.
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
-
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
       .until(() -> {
@@ -496,8 +495,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       fail("Sync failed. See logs.");
     }
 
+    // Wait for project indexing
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
     waitForIdle();
+
+    // Wait for dependencies to be indexed.
+    GuiTests.waitForIndexingDependenciesToFinish(ideFixture.getProject());
+    waitForIdle();
+
     // Wait for other tasks like native sync that might have been triggered.
     GuiTests.waitForBackgroundTasks(ideFixture.robot());
     waitForIdle();
