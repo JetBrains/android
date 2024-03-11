@@ -2063,7 +2063,7 @@ android-studio/plugins/android/lib/sdk-common.jar
 android-studio/plugins/android/lib/sdk-tools.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
-android-studio/plugins/android/lib/skiko-awt-0.7.85.4.jar
+android-studio/plugins/android/lib/skiko-awt-0.7.85.5.jar
 android-studio/plugins/android/lib/skiko-awt-runtime-linux-x64-0.7.85.4.jar
 android-studio/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.7.85.4.jar
 android-studio/plugins/android/lib/skiko-awt-runtime-macos-x64-0.7.85.4.jar

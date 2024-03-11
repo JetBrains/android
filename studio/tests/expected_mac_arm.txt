@@ -2077,7 +2077,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/sdk-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdk-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.7.85.4.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.7.85.5.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-x64-0.7.85.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.7.85.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-x64-0.7.85.4.jar
