@@ -15,28 +15,38 @@
  */
 package com.android.tools.idea.preview.animation
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
+import com.intellij.util.io.await
+import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.max
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
  * duration allows to interact with timeline even for 0-duration animations.
  */
-const val MINIMUM_TIMELINE_DURATION_MS = 1000L
+private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 
 /**
  * Provides tools for in-depth inspection of animations within your application.
@@ -60,7 +70,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   // ******************
   // Properties: UI Components
   // *******************
-  protected val animationPreviewPanel =
+  private val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
   val component = TooltipLayeredPane(animationPreviewPanel)
 
@@ -71,10 +81,23 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   @VisibleForTesting
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
-  protected val bottomPanel =
+  private val bottomPanel =
     BottomPanel(rootComponent, tracker).apply {
-      addResetListener { timeline.sliderUI.elements.forEach { it.reset() } }
+      addResetListener {
+        timeline.sliderUI.elements.forEach { it.reset() }
+        scope.launch { resetTimelineAndUpdateWindowSize(false) }
+      }
     }
+
+  /** Loading panel displayed when the preview has no animations subscribed. */
+  private val noAnimationsPanel =
+    JBLoadingPanel(BorderLayout(), this).apply {
+      name = "Loading Animations Panel"
+      setLoadingText(message("animation.inspector.loading.animations.panel.message"))
+    }
+
+  /** A special tab that displays an overview of all the animations being inspected. */
+  @VisibleForTesting val coordinationTab = AllTabPanel(this)
 
   // ************************
   // Properties: State Management
@@ -92,6 +115,13 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected var selectedAnimation: SupportedAnimationManager? = null
     private set
 
+  /**
+   * Tracks the maximum allowed duration of a single animation iteration. This is important for
+   * handling long-running or repeating animations.
+   */
+  protected val maxDurationPerIteration: MutableStateFlow<Long> =
+    MutableStateFlow(DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS)
+
   // *****************
   // Properties: Timeline
   // *****************
@@ -105,14 +135,23 @@ abstract class AnimationPreview<T : AnimationManager>(
     }
   protected val clockControl = SliderClockControl(timeline)
 
+  /**
+   * Provides buttons and controls for playing, pausing, and adjusting the playback speed of the
+   * animation.
+   */
+  protected val playbackControls =
+    PlaybackControls(clockControl, tracker, rootComponent, this).apply {
+      coordinationTab.addPlayback(createToolbar())
+    }
+
   // ************************
   // Protected Methods: Animation Control
   // *************************
-  protected fun addAnimation(animation: T) {
+  private fun addAnimation(animation: T) {
     synchronized(animations) { animations = animations.plus(animation) }
   }
 
-  protected fun removeAnimation(animation: T) {
+  private fun removeAnimation(animation: T) {
     synchronized(animations) {
       animations = animations.filterNot { it == animation }
       if (selectedAnimation == animation) {
@@ -132,7 +171,16 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected abstract suspend fun setClockTime(newValue: Int, longTimeout: Boolean = false)
 
   /** Repaints [TimelineElement] on selected tab. */
-  protected abstract suspend fun updateTimelineElements()
+  protected suspend fun updateTimelineElements() {
+    // Call once to update all sizes as all curves / lines required it.
+    withContext(uiThread) {
+      timeline.sliderUI.elements.forEach { it.dispose() }
+      timeline.sliderUI.elements = getTimelineElements()
+    }
+    timeline.repaint()
+    timeline.revalidate()
+    coordinationTab.revalidate()
+  }
 
   // *******************
   // Nested Classes
@@ -162,13 +210,19 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   protected inner class Timeline(owner: JComponent, pane: TooltipLayeredPane) :
     TimelinePanel(Tooltip(owner, pane), tracker) {
+
     var cachedVal = 0
 
     init {
       addChangeListener {
-        if (value == cachedVal) return@addChangeListener // Ignore repeated values
-        cachedVal = value
-        scope.launch { setClockTime(value) }
+        val newValue = value
+        if (cachedVal != newValue) {
+          cachedVal = newValue
+          scope.launch {
+            setClockTime(newValue)
+            renderAnimation()
+          }
+        }
       }
       addComponentListener(
         object : ComponentAdapter() {
@@ -178,5 +232,144 @@ abstract class AnimationPreview<T : AnimationManager>(
         }
       )
     }
+  }
+
+  init {
+    showNoAnimationsPanel()
+    tabbedPane.addListener(TabChangeListener())
+    scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
+  }
+
+  @UiThread protected abstract fun getTimelineElements(): List<TimelineElement>
+
+  protected fun TimelineElement.getValueOffset(offset: Int) =
+    if (offset >= 0)
+      timeline.sliderUI.positionProxy.valueForXPosition(minX + offset) -
+        timeline.sliderUI.positionProxy.valueForXPosition(minX)
+    else
+      timeline.sliderUI.positionProxy.valueForXPosition(maxX + offset) -
+        timeline.sliderUI.positionProxy.valueForXPosition(maxX)
+
+  /** Triggers a render/update of the displayed preview. */
+  private suspend fun renderAnimation() {
+    sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
+  }
+
+  protected suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
+    // Set the timeline to 0
+    setClockTime(0, longTimeout)
+    updateMaxDuration(longTimeout)
+    // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
+    // short timeout.
+    timeline.cachedVal = 0
+    // Move the timeline slider to 0.
+    withContext(uiThread) { clockControl.jumpToStart() }
+  }
+
+  private fun updateTimelineMaximum() {
+    val timelineMax =
+      max(
+        animations.maxOfOrNull { it.timelineMaximumMs }?.toLong() ?: maxDurationPerIteration.value,
+        maxDurationPerIteration.value,
+      )
+    scope.launch {
+      withContext(uiThread) {
+        clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
+      }
+      updateTimelineElements()
+    }
+  }
+
+  /**
+   * Update the timeline window size, which is usually the duration of the longest animation being
+   * tracked. However, repeatable animations are handled differently because they can have a large
+   * number of iterations resulting in an unrealistic duration. In that case, we take the longest
+   * iteration instead to represent the window size and set the timeline max loop count to be large
+   * enough to display all the iterations.
+   */
+  protected abstract suspend fun updateMaxDuration(longTimeout: Boolean = false)
+
+  /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
+  private fun showNoAnimationsPanel() {
+    noAnimationsPanel.startLoading()
+    animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(0, 0))
+    animationPreviewPanel.remove(tabbedPane.component)
+    animationPreviewPanel.remove(bottomPanel)
+    // Reset the timeline cached value, so when new tabs are added, any new value will trigger an
+    // update
+    clockControl.jumpToStart()
+    // The animation panel might not have the focus when the "No animations" panel is displayed,
+    // i.e. when code has changed in the editor using Fast Preview, and we need to refresh the
+    // animation preview, so it displays the most up-to-date animations. For that reason, we need to
+    // make
+    // sure the animation panel is repainted correctly.
+    animationPreviewPanel.repaint()
+    playbackControls.pause()
+  }
+
+  /** Hide [noAnimationsPanel] and add [tabbedPane]. */
+  private fun hideNoAnimationPanel() {
+    noAnimationsPanel.stopLoading()
+    animationPreviewPanel.remove(noAnimationsPanel)
+    animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
+    animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
+  }
+
+  /**
+   * Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached
+   * animations.
+   */
+  open fun invalidatePanel(): Job =
+    scope.launch(uiThread) {
+      /**
+       * Calling [removeAnimationManager] for all animations will properly remove the cards from
+       * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
+       * noAnimationsPanel when removing all tabs.
+       */
+      animations.forEach { removeAnimationManager(it) }
+    }
+
+  @UiThread
+  protected suspend fun removeAnimationManager(animationManager: T) {
+    animationManager.destroy()
+    coordinationTab.removeCard(animationManager.card)
+    removeAnimation(animationManager)
+    if (animationManager is SupportedAnimationManager) {
+      tabbedPane.tabs
+        .find { it.component == animationManager.tabComponent }
+        ?.let { tabbedPane.removeTab(it) }
+    }
+    if (animations.isEmpty()) {
+      tabbedPane.removeAllTabs()
+      // There are no more tabs. Replace the TabbedPane with the placeholder panel.
+      showNoAnimationsPanel()
+    } else if (tabbedPane.tabCount != 0) {
+      tabbedPane.select(tabbedPane.getTabAt(0), true)
+    }
+  }
+
+  /** Adds an [AnimationManager] card to [coordinationTab]. */
+  @UiThread
+  protected fun addAnimationManager(animationTab: T) {
+    val isAddingFirstTab = animations.isEmpty()
+    addAnimation(animationTab)
+    coordinationTab.addCard(animationTab.card)
+
+    if (isAddingFirstTab) {
+      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
+      // TabbedPane.
+      hideNoAnimationPanel()
+      tabbedPane.addTab(
+        TabInfo(coordinationTab).apply {
+          text = "${message("animation.inspector.tab.all.title")}  "
+        },
+        0,
+      )
+      coordinationTab.addTimeline(timeline)
+    }
+  }
+
+  override fun dispose() {
+    timeline.sliderUI.elements.forEach { it.dispose() }
   }
 }

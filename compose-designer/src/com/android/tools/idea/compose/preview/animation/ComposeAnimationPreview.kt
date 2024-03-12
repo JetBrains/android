@@ -18,46 +18,28 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsupportedAnimationManager
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
-import com.android.tools.idea.preview.animation.MINIMUM_TIMELINE_DURATION_MS
-import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.tabs.TabInfo
-import com.intellij.util.io.await
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import kotlin.math.max
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Displays details about animations belonging to a Compose Preview. Allows users to see all the
- * properties (e.g. `ColorPropKeys`) being animated grouped by animation (e.g.
- * `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view that can be
- * controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The
- * [ComposeAnimationPreview] therefore allows a detailed inspection of Compose animations.
+ * Displays details about animations belonging to a Compose Preview.
  *
  * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
  *   opened.
@@ -74,96 +56,59 @@ class ComposeAnimationPreview(
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
 
-  /** Loading panel displayed when the preview has no animations subscribed. */
-  private val noAnimationsPanel =
-    JBLoadingPanel(BorderLayout(), this).apply {
-      name = "Loading Animations Panel"
-      setLoadingText(message("animation.inspector.loading.animations.panel.message"))
-    }
-
-  /**
-   * If [loadingPanelVisible] is true - [noAnimationsPanel] is added to layout and animation tabs
-   * are removed. If [loadingPanelVisible] is false - [noAnimationsPanel] is removed from layout and
-   * animation tabs are added.
-   */
-  private val loadingPanelVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
-
-  private val playbackControls = PlaybackControls(clockControl, tracker, rootComponent, this)
-
-  @VisibleForTesting
-  val coordinationTab = AllTabPanel(this).apply { addPlayback(playbackControls.createToolbar()) }
-
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
    * to. Null when there are no animations.
    */
   var animationClock: AnimationClock? = null
 
-  private var maxDurationPerIteration = MutableStateFlow(DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS)
-
   /** Update list of [TimelineElement] for selected [ComposeSupportedAnimationManager]s. */
-  override suspend fun updateTimelineElements() {
-    var minY = InspectorLayout.timelineHeaderHeightScaled()
-    // Call once to update all sizes as all curves / lines required it.
-    withContext(uiThread) {
-      timeline.repaint()
-      timeline.sliderUI.elements.forEach { it.dispose() }
-      timeline.sliderUI.elements = run {
-        val selected = selectedAnimation
-        if (selected is ComposeSupportedAnimationManager) {
-          // Paint single selected animation.
-          val state = selected.elementState.value
-          val curve =
-            TransitionCurve.create(
-              state.valueOffset,
-              if (state.frozen) state.frozenValue else null,
-              selected.currentTransition,
-              minY,
-              timeline.sliderUI.positionProxy,
-            )
-          selected.selectedPropertiesCallback = { curve.timelineUnits = it }
-          curve.timelineUnits = selected.selectedProperties
-          if (Disposer.tryRegister(this@ComposeAnimationPreview, curve)) {
-            AndroidCoroutineScope(curve).launch {
-              curve.offsetPx.collect {
-                selected.elementState.value =
-                  selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
-              }
-            }
+  @UiThread
+  override fun getTimelineElements(): List<TimelineElement> {
+    val selected = selectedAnimation as? ComposeSupportedAnimationManager
+    if (selected != null) {
+      // Paint single selected animation.
+      val state = selected.elementState.value
+      val curve =
+        TransitionCurve.create(
+          state.valueOffset,
+          if (state.frozen) state.frozenValue else null,
+          selected.currentTransition,
+          rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
+          timeline.sliderUI.positionProxy,
+        )
+      selected.selectedPropertiesCallback = { curve.timelineUnits = it }
+      curve.timelineUnits = selected.selectedProperties
+      if (Disposer.tryRegister(this@ComposeAnimationPreview, curve)) {
+        AndroidCoroutineScope(curve).launch {
+          curve.offsetPx.collect {
+            selected.elementState.value =
+              selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
           }
-          listOf(curve)
-        } else
-          animations.map { tab ->
-            tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
-              minY += heightScaled()
-              if (Disposer.tryRegister(this@ComposeAnimationPreview, this)) {
-                if (tab is ComposeSupportedAnimationManager) {
-                  tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-                  tab.card.setDuration(tab.currentTransition.duration)
-                  AndroidCoroutineScope(this).launch {
-                    offsetPx.collect {
-                      tab.elementState.value =
-                        tab.elementState.value.copy(valueOffset = getValueOffset(it))
-                    }
-                  }
+        }
+      }
+      return listOf(curve)
+    } else {
+      var minY = InspectorLayout.timelineHeaderHeightScaled()
+      return animations.map { tab ->
+        tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).also { element ->
+          minY += element.heightScaled()
+          if (Disposer.tryRegister(this@ComposeAnimationPreview, element)) {
+            if (tab is ComposeSupportedAnimationManager) {
+              tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
+              tab.card.setDuration(tab.currentTransition.duration)
+              AndroidCoroutineScope(this).launch {
+                element.offsetPx.collect {
+                  tab.elementState.value =
+                    tab.elementState.value.copy(valueOffset = element.getValueOffset(it))
                 }
               }
             }
           }
+        }
       }
     }
-    timeline.repaint()
-    timeline.revalidate()
-    coordinationTab.revalidate()
   }
-
-  private fun TimelineElement.getValueOffset(offset: Int) =
-    if (offset >= 0)
-      timeline.sliderUI.positionProxy.valueForXPosition(minX + offset) -
-        timeline.sliderUI.positionProxy.valueForXPosition(minX)
-    else
-      timeline.sliderUI.positionProxy.valueForXPosition(maxX + offset) -
-        timeline.sliderUI.positionProxy.valueForXPosition(maxX)
 
   /**
    * Set clock time
@@ -174,9 +119,11 @@ class ComposeAnimationPreview(
   override suspend fun setClockTime(newValue: Int, longTimeout: Boolean) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
+      val animationsToUpdate = animations.filterIsInstance<ComposeSupportedAnimationManager>()
+
       sceneManagerProvider()?.executeInRenderSession(longTimeout) {
         setClockTimes(
-          animations.filterIsInstance<ComposeSupportedAnimationManager>().associate {
+          animationsToUpdate.associate {
             val newTime =
               (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
               else clockTimeMs) - it.elementState.value.valueOffset
@@ -185,15 +132,8 @@ class ComposeAnimationPreview(
         )
       }
 
-      animations.filterIsInstance<ComposeSupportedAnimationManager>().forEach {
-        it.loadProperties()
-      }
-      renderAnimation()
+      animationsToUpdate.forEach { it.loadProperties() }
     }
-  }
-
-  private suspend fun renderAnimation() {
-    sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
   }
 
   /**
@@ -205,45 +145,13 @@ class ComposeAnimationPreview(
   fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
       removeAnimation(animation).join()
-      val tab = withContext(uiThread) { createTab(animation) }
+      val tab = withContext(uiThread) { createAnimationManager(animation) }
       tab.setup()
-      withContext(uiThread) { addTab(tab) }
+      withContext(uiThread) { addAnimationManager(tab) }
       updateTimelineElements()
     }
 
-  private suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
-    // Set the timeline to 0
-    setClockTime(0, longTimeout)
-    updateMaxDuration(longTimeout)
-    // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
-    // short timeout.
-    timeline.cachedVal = 0
-    // Move the timeline slider to 0.
-    withContext(uiThread) { clockControl.jumpToStart() }
-  }
-
-  private fun updateTimelineMaximum() {
-    val timelineMax =
-      max(
-        animations.maxOfOrNull { it.timelineMaximumMs }?.toLong() ?: maxDurationPerIteration.value,
-        maxDurationPerIteration.value,
-      )
-    scope.launch {
-      withContext(uiThread) {
-        clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
-      }
-      updateTimelineElements()
-    }
-  }
-
-  /**
-   * Update the timeline window size, which is usually the duration of the longest animation being
-   * tracked. However, repeatable animations are handled differently because they can have a large
-   * number of iterations resulting in an unrealistic duration. In that case, we take the longest
-   * iteration instead to represent the window size and set the timeline max loop count to be large
-   * enough to display all the iterations.
-   */
-  private suspend fun updateMaxDuration(longTimeout: Boolean = false) {
+  override suspend fun updateMaxDuration(longTimeout: Boolean) {
     val clock = animationClock ?: return
 
     sceneManagerProvider()?.executeInRenderSession(longTimeout) {
@@ -251,27 +159,12 @@ class ComposeAnimationPreview(
     }
   }
 
-  /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
-  private fun showNoAnimationsPanel() {
-    loadingPanelVisible.value = true
-    // Reset tab names, so when new tabs are added they start as #1
-    tabNames.clear()
-    // The animation panel might not have the focus when the "No animations" panel is displayed,
-    // i.e. when code has changed in the editor using Fast Preview, and we need to refresh the
-    // animation preview, so it displays the most up-to-date animations. For that reason, we need to
-    // make
-    // sure the animation panel is repainted correctly.
-    animationPreviewPanel.repaint()
-    playbackControls.pause()
-  }
-
   /**
-   * Creates an [ComposeSupportedAnimationManager] corresponding to the given [animation] and add it
-   * to the [animations] map. Note: this method does not add the tab to [tabbedPane]. For that,
-   * [addTab] should be used.
+   * Creates an [ComposeAnimationManager] corresponding to the given [animation]. Note: this method
+   * does not add the tab to [tabbedPane]. For that, [addAnimationManager] should be used.
    */
   @UiThread
-  private fun createTab(animation: ComposeAnimation): ComposeAnimationManager =
+  private fun createAnimationManager(animation: ComposeAnimation): ComposeAnimationManager =
     when (animation.type) {
       ComposeAnimationType.ANIMATED_VISIBILITY ->
         AnimatedVisibilityAnimationManager(
@@ -286,7 +179,7 @@ class ComposeAnimationPreview(
           rootComponent,
           playbackControls,
           { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
-          { updateTimelineMaximum() },
+          { updateTimelineElements() },
           scope,
         )
       ComposeAnimationType.TRANSITION_ANIMATION,
@@ -305,7 +198,7 @@ class ComposeAnimationPreview(
           rootComponent,
           playbackControls,
           { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
-          { updateTimelineMaximum() },
+          { updateTimelineElements() },
           scope,
         )
       ComposeAnimationType.ANIMATED_VALUE,
@@ -317,27 +210,6 @@ class ComposeAnimationPreview(
         ComposeUnsupportedAnimationManager(animation, tabNames.createName(animation))
     }
 
-  /** Adds an [ComposeAnimationManager] card to [coordinationTab]. */
-  @UiThread
-  private fun addTab(animationTab: ComposeAnimationManager) {
-    val isAddingFirstTab = tabbedPane.tabCount == 0
-    coordinationTab.addCard(animationTab.card)
-    addAnimation(animationTab)
-
-    if (isAddingFirstTab) {
-      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
-      // TabbedPane.
-      loadingPanelVisible.value = false
-      tabbedPane.addTab(
-        TabInfo(coordinationTab).apply {
-          text = "${message("animation.inspector.tab.all.title")}  "
-        },
-        0,
-      )
-      coordinationTab.addTimeline(timeline)
-    }
-  }
-
   /**
    * Removes the [ComposeAnimationManager] card and tab corresponding to the given [animation] from
    * [tabbedPane].
@@ -345,65 +217,19 @@ class ComposeAnimationPreview(
   fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
       withContext(uiThread) {
-        animations
-          .find { it.animation == animation }
-          ?.let { tab ->
-            coordinationTab.removeCard(tab.card)
-            if (tab is ComposeSupportedAnimationManager)
-              tabbedPane.tabs
-                .find { it.component == tab.tabComponent }
-                ?.let { tabbedPane.removeTab(it) }
-            removeAnimation(tab)
-            tab.destroy()
-            if (animations.isEmpty()) {
-              tabbedPane.removeAllTabs()
-              tabNames.clear()
-              // There are no more tabs. Replace the TabbedPane with the placeholder panel.
-              showNoAnimationsPanel()
-            } else if (tabbedPane.tabCount != 0) {
-              tabbedPane.select(tabbedPane.getTabAt(0), true)
-            }
-          }
+        animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
       }
       updateTimelineElements()
     }
 
-  /**
-   * Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached
-   * animations.
-   */
-  fun invalidatePanel() =
+  override fun invalidatePanel() =
     scope.launch {
-      /**
-       * Calling [removeAnimation] for all animations will properly remove the cards from
-       * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
-       * noAnimationsPanel when removing all tabs.
-       */
-      animations.forEach { removeAnimation(it.animation).join() }
+      super.invalidatePanel().join()
+      tabNames.clear()
     }
 
   override fun dispose() {
-    scope.cancel()
+    super.dispose()
     tabNames.clear()
-  }
-
-  init {
-    scope.launch(uiThread) {
-      loadingPanelVisible.collect {
-        if (it) {
-          noAnimationsPanel.startLoading()
-          animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(0, 0))
-          animationPreviewPanel.remove(tabbedPane.component)
-          animationPreviewPanel.remove(bottomPanel)
-        } else {
-          noAnimationsPanel.stopLoading()
-          animationPreviewPanel.remove(noAnimationsPanel)
-          animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
-          animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
-        }
-      }
-    }
-    scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
-    timeline.dragEndListeners.add { updateTimelineMaximum() }
   }
 }

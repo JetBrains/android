@@ -228,6 +228,7 @@ open class ComposeSupportedAnimationManager(
             updateAnimationStartAndEndStates()
             loadTransitionFromCacheOrLib()
             loadProperties()
+            updateTimelineElementsCallback()
           }
         }
       ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
@@ -235,6 +236,7 @@ open class ComposeSupportedAnimationManager(
             updateAnimatedVisibility()
             loadTransitionFromCacheOrLib()
             loadProperties()
+            updateTimelineElementsCallback()
           }
         }
       ComposeAnimationType.ANIMATED_VALUE,
