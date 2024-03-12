@@ -20,6 +20,7 @@ import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableFunction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
@@ -28,8 +29,7 @@ import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSo
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
 import org.jetbrains.kotlin.idea.refactoring.getExtractionContainers
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -87,16 +87,15 @@ class ComposeCreateComposableFunctionQuickFix(
 
   companion object {
 
-    val factory: KotlinDiagnosticFixFactory<KtFirDiagnostic.UnresolvedReference> =
-      diagnosticFixFactory(KtFirDiagnostic.UnresolvedReference::class) { diagnostic ->
-        listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
-      }
+    val factory = KotlinQuickFixFactory.IntentionBased { diagnostic: KtFirDiagnostic.UnresolvedReference ->
+      listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic.psi))
+    }
 
     context(KtAnalysisSession)
     private fun createComposableFunctionQuickFixIfApplicable(
-      diagnostic: KtFirDiagnostic.UnresolvedReference
+      element: PsiElement,
     ): ComposeCreateComposableFunctionQuickFix? {
-      val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
+      val unresolvedCall = element.parent as? KtCallExpression ?: return null
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
       if (!parentFunction.isComposableFunction()) return null
 

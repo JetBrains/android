@@ -15,11 +15,13 @@
  */
 package com.android.tools.compose.aa.intentions
 
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
 
-class ComposeIdePluginQuickFixRegistrar : org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar() {
+class ComposeIdePluginQuickFixRegistrar : KotlinQuickFixRegistrar() {
+
   override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-    registerApplicator(ComposeCreateComposableFunctionQuickFix.factory)
+    registerFactory(ComposeCreateComposableFunctionQuickFix.factory)
   }
 }
