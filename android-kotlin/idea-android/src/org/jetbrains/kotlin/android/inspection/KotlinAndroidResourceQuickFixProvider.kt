@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFix
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
-
 class KotlinAndroidResourceQuickFixProvider : UnresolvedReferenceQuickFixProvider<KtSimpleNameReference>() {
 
     override fun registerFixes(ref: KtSimpleNameReference, registrar: QuickFixActionRegistrar) {
@@ -48,7 +47,7 @@ class KotlinAndroidResourceQuickFixProvider : UnresolvedReferenceQuickFixProvide
 
 class KotlinAndroidResourceQuickFixRegistrarK2 : KotlinQuickFixRegistrar() {
     override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-        registerApplicator(kotlinAndroidResourceQuickFixFactory)
+        registerFactory(kotlinAndroidResourceQuickFixFactory)
     }
 }
 
