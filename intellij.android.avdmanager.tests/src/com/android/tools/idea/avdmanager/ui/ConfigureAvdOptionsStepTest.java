@@ -54,6 +54,8 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.components.JBLabel;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -76,9 +78,13 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
+@RunsInEdt
 public final class ConfigureAvdOptionsStepTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.withSdk();
+
+  @Rule
+  public final EdtRule edtRule = new EdtRule();
 
   private ISystemImage mySnapshotSystemImage;
 
