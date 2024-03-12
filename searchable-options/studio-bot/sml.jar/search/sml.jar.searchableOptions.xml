@@ -29,30 +29,49 @@
     <option name="transform" path="ActionManager" hit="Transform..." />
   </configurable>
   <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
-    <option name="" hit=" Augment responses with information from your codebase" />
-    <option name="augment" hit=" Augment responses with information from your codebase" />
-    <option name="codebase" hit=" Augment responses with information from your codebase" />
-    <option name="from" hit=" Augment responses with information from your codebase" />
-    <option name="information" hit=" Augment responses with information from your codebase" />
-    <option name="responses" hit=" Augment responses with information from your codebase" />
-    <option name="with" hit=" Augment responses with information from your codebase" />
-    <option name="your" hit=" Augment responses with information from your codebase" />
-    <option name="" hit=" Do not share information from your codebase" />
-    <option name="codebase" hit=" Do not share information from your codebase" />
-    <option name="do" hit=" Do not share information from your codebase" />
-    <option name="from" hit=" Do not share information from your codebase" />
-    <option name="information" hit=" Do not share information from your codebase" />
-    <option name="not" hit=" Do not share information from your codebase" />
-    <option name="share" hit=" Do not share information from your codebase" />
-    <option name="your" hit=" Do not share information from your codebase" />
-    <option name="ai" hit="Enable AI code completion" />
-    <option name="code" hit="Enable AI code completion" />
-    <option name="completion" hit="Enable AI code completion" />
-    <option name="enable" hit="Enable AI code completion" />
+    <option name="" hit=" Ask to decide per project" />
+    <option name="ask" hit=" Ask to decide per project" />
+    <option name="decide" hit=" Ask to decide per project" />
+    <option name="per" hit=" Ask to decide per project" />
+    <option name="project" hit=" Ask to decide per project" />
+    <option name="to" hit=" Ask to decide per project" />
+    <option name="" hit=" Do not use context from any project" />
+    <option name="any" hit=" Do not use context from any project" />
+    <option name="context" hit=" Do not use context from any project" />
+    <option name="do" hit=" Do not use context from any project" />
+    <option name="from" hit=" Do not use context from any project" />
+    <option name="not" hit=" Do not use context from any project" />
+    <option name="project" hit=" Do not use context from any project" />
+    <option name="use" hit=" Do not use context from any project" />
+    <option name="" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="context" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="default" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="from" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="improve" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="project" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="responses" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="template" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="this" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="to" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="use" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="" hit=" Use context from your projects to improve responses" />
+    <option name="context" hit=" Use context from your projects to improve responses" />
+    <option name="from" hit=" Use context from your projects to improve responses" />
+    <option name="improve" hit=" Use context from your projects to improve responses" />
+    <option name="projects" hit=" Use context from your projects to improve responses" />
+    <option name="responses" hit=" Use context from your projects to improve responses" />
+    <option name="to" hit=" Use context from your projects to improve responses" />
+    <option name="use" hit=" Use context from your projects to improve responses" />
+    <option name="your" hit=" Use context from your projects to improve responses" />
+    <option name="awareness" hit="Context Awareness" />
+    <option name="context" hit="Context Awareness" />
+    <option name="ai-based" hit="Enable AI-based inline code completions" />
+    <option name="code" hit="Enable AI-based inline code completions" />
+    <option name="completions" hit="Enable AI-based inline code completions" />
+    <option name="enable" hit="Enable AI-based inline code completions" />
+    <option name="inline" hit="Enable AI-based inline code completions" />
     <option name="in" hit="Log in" />
     <option name="log" hit="Log in" />
-    <option name="privacy" hit="Privacy Settings" />
-    <option name="settings" hit="Privacy Settings" />
     <option name="bot" hit="Studio Bot" />
     <option name="studio" hit="Studio Bot" />
     <option name="a" hit="Studio Bot requires a logged in Google account." />
