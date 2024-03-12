@@ -28,8 +28,7 @@ import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSo
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
 import org.jetbrains.kotlin.idea.refactoring.getExtractionContainers
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -82,10 +81,9 @@ class ComposeCreateComposableFunctionQuickFix(
 
   companion object {
 
-    val factory: KotlinDiagnosticFixFactory<KaFirDiagnostic.UnresolvedReference> =
-      diagnosticFixFactory(KaFirDiagnostic.UnresolvedReference::class) { diagnostic ->
-        listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
-      }
+    val factory = KotlinQuickFixFactory.IntentionBased<KaFirDiagnostic.UnresolvedReference> { diagnostic ->
+      listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
+    }
 
     private fun KtAnalysisSession.createComposableFunctionQuickFixIfApplicable(
       diagnostic: KaFirDiagnostic.UnresolvedReference
