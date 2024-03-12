@@ -16,17 +16,27 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 
-class JavaKotlinMethodSampleTaskHandler(sessionsManager: SessionsManager) : CpuTaskHandler(sessionsManager) {
-  override fun getCpuRecordingConfig() = ArtSampledConfiguration(getTaskName())
+class JavaKotlinMethodRecordingTaskHandler(private val sessionsManager: SessionsManager) : CpuTaskHandler(sessionsManager) {
+  override fun getCpuRecordingConfig(): ProfilingConfiguration {
+    val taskHomeTabModel = sessionsManager.studioProfilers.taskHomeTabModel
+    val taskRecordingMode = taskHomeTabModel.taskRecordingType.value
+    return when (taskRecordingMode) {
+      TaskHomeTabModel.TaskRecordingType.SAMPLED ->  ArtSampledConfiguration("Java/Kotlin Method Sample (legacy)")
+      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->  ArtInstrumentedConfiguration("Java/Kotlin Method Trace")
+    }
+  }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
     artifact is CpuCaptureSessionArtifact
     && artifact.artifactProto.hasConfiguration()
     && artifact.artifactProto.configuration.hasArtOptions()
 
-  override fun getTaskName() = "Java/Kotlin Method Sample (legacy)"
+  override fun getTaskName() = "Java/Kotlin Method Recording"
 }

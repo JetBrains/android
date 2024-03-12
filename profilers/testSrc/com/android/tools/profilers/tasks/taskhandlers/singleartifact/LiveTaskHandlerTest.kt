@@ -189,7 +189,7 @@ class LiveTaskHandlerTest {
     )
     // Begin non-live view session
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)
+                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
 
     assertThrows(IllegalStateException::class.java) {
       liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)

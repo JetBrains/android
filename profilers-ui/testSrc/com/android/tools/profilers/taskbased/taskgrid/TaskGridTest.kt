@@ -146,12 +146,11 @@ class TaskGridTest {
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Java/Kotlin Method Recording").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
@@ -166,7 +165,7 @@ class TaskGridTest {
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("System Trace").performClick()
@@ -188,26 +187,6 @@ class TaskGridTest {
 
     // Heap dump recording only has one supported task (Heap Dump task).
     composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(1)
-    // If a task is displayed post-recording selection, then it must be enabled.
-    composeTestRule.onAllNodesWithTag("TaskGridItem").assertAll(isEnabled())
-  }
-
-  @Test
-  fun `only supported tasks show up on recording selection (multiple supported tasks)`() {
-    composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = false) {
-        val javaKotlinMethodArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
-          myProfilers, Common.Session.newBuilder().setSessionId(1L).build(), 1L, 1L,
-          Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build())
-        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, javaKotlinMethodArtifact.session,
-                                                                 javaKotlinMethodArtifact.session.sessionId,
-                                                                 listOf(javaKotlinMethodArtifact))
-        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
-      }
-    }
-
-    // Java/Kotlin ART-based recording has two supported tasks (Java/Kotlin Method Sample and Java/Kotlin Method Trace tasks).
-    composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(2)
     // If a task is displayed post-recording selection, then it must be enabled.
     composeTestRule.onAllNodesWithTag("TaskGridItem").assertAll(isEnabled())
   }

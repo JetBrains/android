@@ -33,8 +33,10 @@ object TaskBasedUxDimensions {
   val PID_COL_WIDTH_DP = 55.dp
   val MANIFEST_CONFIG_COL_WIDTH_DP = 175.dp
 
+  // Common dropdown dimensions
+  val DROPDOWN_HORIZONTAL_PADDING_DP = 5.dp
+
   // Device selection dropdown and restart buttons content padding
-  val DEVICE_SELECTION_DROPDOWN_HORIZONTAL_PADDING_DP = 5.dp
   val DEVICE_SELECTION_DROPDOWN_VERTICAL_PADDING_DP = 10.dp
   val DEVICE_SELECTION_HORIZONTAL_PADDING_DP = 10.dp
   val DEVICE_SELECTION_VERTICAL_PADDING_DP = 5.dp
@@ -49,6 +51,10 @@ object TaskBasedUxDimensions {
 
   // Task action bar content padding.
   val TASK_ACTION_BAR_CONTENT_PADDING_DP = 5.dp
+  val TASK_ACTION_BAR_SETTINGS_DROPDOWN_HORIZONTAL_SPACE_DP = 15.dp
+
+  // Task recording type dropdown dimensions
+  val TASK_RECORDING_TYPE_DROPDOWN_HORIZONTAL_SPACE_DP = 7.5.dp
 
   // Top bar dimensions
   val TOP_BAR_HEIGHT_DP = 30.dp

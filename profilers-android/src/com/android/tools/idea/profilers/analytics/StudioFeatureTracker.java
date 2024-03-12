@@ -230,8 +230,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
       ProfilerTaskType.UNSPECIFIED, TaskMetadata.ProfilerTaskType.PROFILER_TASK_TYPE_UNSPECIFIED,
       ProfilerTaskType.CALLSTACK_SAMPLE, TaskMetadata.ProfilerTaskType.CALLSTACK_SAMPLE,
       ProfilerTaskType.SYSTEM_TRACE, TaskMetadata.ProfilerTaskType.SYSTEM_TRACE,
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE, TaskMetadata.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE,
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE, TaskMetadata.ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE,
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, TaskMetadata.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
       ProfilerTaskType.HEAP_DUMP, TaskMetadata.ProfilerTaskType.HEAP_DUMP,
       ProfilerTaskType.NATIVE_ALLOCATIONS, TaskMetadata.ProfilerTaskType.NATIVE_ALLOCATIONS,
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, TaskMetadata.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
@@ -777,39 +776,30 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.TASK_SETTINGS_OPENED).setIsTaskSettingsChanged(isTaskSettingsChanged).track();
   }
 
-  private TaskMetadata.TaskConfig buildCustomTaskConfig(ProfilerTaskType taskType, @NotNull List<ProfilingConfiguration> taskConfigs) {
+  private TaskMetadata.TaskConfig buildCustomTaskConfig(@NotNull ProfilingConfiguration taskConfig) {
     TaskMetadata.TaskConfig.Builder taskConfigBuilder = TaskMetadata.TaskConfig.newBuilder();
 
-    switch (taskType) {
-      case CALLSTACK_SAMPLE -> taskConfigs.stream()
-        .filter(SimpleperfConfiguration.class::isInstance)
-        .map(SimpleperfConfiguration.class::cast)
-        .findFirst()
-        .ifPresent(config -> taskConfigBuilder.setCallstackSampleTaskConfig(
-          TaskMetadata.CallstackSampleTaskConfig.newBuilder().setSampleIntervalUs(config.getProfilingSamplingIntervalUs()).build()));
-      case JAVA_KOTLIN_METHOD_TRACE -> taskConfigs.stream()
-        .filter(ArtInstrumentedConfiguration.class::isInstance)
-        .map(ArtInstrumentedConfiguration.class::cast)
-        .findFirst()
-        .ifPresent(config -> taskConfigBuilder.setJavaKotlinMethodTraceTaskConfig(
-          TaskMetadata.JavaKotlinMethodTraceTaskConfig.newBuilder().setBufferSizeMb(config.getProfilingBufferSizeInMb())));
-      case JAVA_KOTLIN_METHOD_SAMPLE -> taskConfigs.stream()
-        .filter(ArtSampledConfiguration.class::isInstance)
-        .map(ArtSampledConfiguration.class::cast)
-        .findFirst()
-        .ifPresent(config -> {
-          taskConfigBuilder.setJavaKotlinMethodSampleTaskConfig(
-            TaskMetadata.JavaKotlinMethodSampleTaskConfig.newBuilder().setSampleIntervalUs(config.getProfilingSamplingIntervalUs())
-              .setBufferSizeMb(config.getProfilingBufferSizeInMb()).build());
-        });
-      case NATIVE_ALLOCATIONS -> taskConfigs.stream()
-        .filter(PerfettoNativeAllocationsConfiguration.class::isInstance)
-        .map(PerfettoNativeAllocationsConfiguration.class::cast)
-        .findFirst()
-        .ifPresent(config -> taskConfigBuilder.setNativeAllocationsTaskConfig(
-          TaskMetadata.NativeAllocationsTaskConfig.newBuilder().setSampleIntervalBytes(config.getMemorySamplingIntervalBytes()).build()));
-      // Return null to indicate that there was no found task configuration.
-      default -> { return null; }
+    if (taskConfig instanceof SimpleperfConfiguration) {
+      int profilingSamplingIntervalUs = ((SimpleperfConfiguration)taskConfig).getProfilingSamplingIntervalUs();
+      taskConfigBuilder.setCallstackSampleTaskConfig(
+        TaskMetadata.CallstackSampleTaskConfig.newBuilder().setSampleIntervalUs(profilingSamplingIntervalUs).build());
+    }
+    else if (taskConfig instanceof ArtSampledConfiguration) {
+      int profilingSamplingIntervalUs = ((ArtSampledConfiguration)taskConfig).getProfilingSamplingIntervalUs();
+      int profilingBufferSizeInMb = ((ArtSampledConfiguration)taskConfig).getProfilingBufferSizeInMb();
+      taskConfigBuilder.setJavaKotlinMethodSampleTaskConfig(
+        TaskMetadata.JavaKotlinMethodSampleTaskConfig.newBuilder().setSampleIntervalUs(profilingSamplingIntervalUs)
+          .setBufferSizeMb(profilingBufferSizeInMb).build());
+    }
+    else if (taskConfig instanceof ArtInstrumentedConfiguration) {
+      int profilingBufferSizeInMb = ((ArtInstrumentedConfiguration)taskConfig).getProfilingBufferSizeInMb();
+      taskConfigBuilder.setJavaKotlinMethodTraceTaskConfig(
+        TaskMetadata.JavaKotlinMethodTraceTaskConfig.newBuilder().setBufferSizeMb(profilingBufferSizeInMb).build());
+    }
+    else if (taskConfig instanceof PerfettoNativeAllocationsConfiguration) {
+      int memorySamplingIntervalBytes = ((PerfettoNativeAllocationsConfiguration)taskConfig).getMemorySamplingIntervalBytes();
+      taskConfigBuilder.setNativeAllocationsTaskConfig(
+        TaskMetadata.NativeAllocationsTaskConfig.newBuilder().setSampleIntervalBytes(memorySamplingIntervalBytes).build());
     }
 
     return taskConfigBuilder.build();
@@ -825,12 +815,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .setTaskAttachmentPoint(TASK_ATTACHMENT_POINT_MAP.getOrDefault(taskMetadata.getTaskAttachmentPoint(),
                                                                      TaskMetadata.TaskAttachmentPoint.TASK_ATTACHMENT_POINT_UNSPECIFIED));
 
-    // Only set/include the task configurations if the task was newly created/recorded.
-    if (taskMetadata.getTaskDataOrigin().equals(TaskDataOrigin.NEW)) {
-      TaskMetadata.TaskConfig taskConfig = buildCustomTaskConfig(taskMetadata.getTaskType(), taskMetadata.getTaskConfigs());
-      if (taskConfig != null) {
-        taskMetadataBuilder.setTaskConfig(taskConfig);
-      }
+    // Not all tasks have a task configuration. For those that do, however, it will be indicated by a non-null task config value and be set
+    // in the TaskMetadata.
+    if (taskMetadata.getTaskConfig() != null) {
+      TaskMetadata.TaskConfig taskConfig = buildCustomTaskConfig(taskMetadata.getTaskConfig());
+      taskMetadataBuilder.setTaskConfig(taskConfig);
     }
 
     return taskMetadataBuilder.build();

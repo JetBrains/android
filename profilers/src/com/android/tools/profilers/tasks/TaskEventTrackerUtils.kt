@@ -24,11 +24,16 @@ import com.android.tools.profiler.proto.Trace.TraceStopStatus.Status.*
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
+import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata.TraceStopStatus
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 
 object TaskEventTrackerUtils {
 
@@ -82,8 +87,34 @@ object TaskEventTrackerUtils {
     }
 
     val taskConfigs = getCustomTaskConfigs(profilers)
+    val taskConfig: ProfilingConfiguration? =
+      // Only include the task configuration if the task was newly created/recorded.
+      if (taskDataOrigin != TaskDataOrigin.NEW) {
+        null
+      }
+      else {
+        when (taskType) {
+          ProfilerTaskType.CALLSTACK_SAMPLE -> {
+            taskConfigs.find { it is SimpleperfConfiguration }
+          }
 
-    return TaskMetadata(taskType, taskId, taskDataOrigin, taskAttachmentPoint, exposureLevel, taskConfigs)
+          ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> {
+            when (profilers.taskHomeTabModel.persistentStateOnTaskEnter.recordingType) {
+              TaskHomeTabModel.TaskRecordingType.SAMPLED -> taskConfigs.find { it is ArtSampledConfiguration }
+              TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> taskConfigs.find { it is ArtInstrumentedConfiguration }
+              else -> null
+            }
+          }
+
+          ProfilerTaskType.NATIVE_ALLOCATIONS -> {
+            taskConfigs.find { it is PerfettoNativeAllocationsConfiguration }
+          }
+
+          else -> null
+        }
+      }
+
+    return TaskMetadata(taskType, taskId, taskDataOrigin, taskAttachmentPoint, exposureLevel, taskConfig)
   }
 
   @JvmStatic
@@ -204,7 +235,8 @@ data class TaskMetadata(
   val taskDataOrigin: TaskDataOrigin,
   val taskAttachmentPoint: TaskAttachmentPoint,
   val exposureLevel: ExposureLevel,
-  val taskConfigs: List<ProfilingConfiguration>
+  // Set to null if there is no custom task configuration for the respective task.
+  val taskConfig: ProfilingConfiguration?
 )
 
 data class TaskStartFailedMetadata(

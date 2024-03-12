@@ -20,6 +20,7 @@ import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import java.io.File
 import java.io.FileOutputStream
@@ -176,7 +177,7 @@ interface IdeProfilerServices {
    * Enabled startup profiling and sets the provided task to be performed on startup.
    * This method assumes this task is supported on startup (isTaskSupportedOnStartup returns true).
    */
-  fun enableStartupTask(taskType: ProfilerTaskType)
+  fun enableStartupTask(taskType: ProfilerTaskType, recordingType: TaskHomeTabModel.TaskRecordingType)
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.

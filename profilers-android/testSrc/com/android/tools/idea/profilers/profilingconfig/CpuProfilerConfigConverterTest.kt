@@ -34,6 +34,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth.assertThat
 import org.junit.AfterClass
@@ -384,38 +385,38 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun testFromTaskTypeToConfigNameJavaKotlinMethodSample() {
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, TaskHomeTabModel.TaskRecordingType.SAMPLED)
     assertThat(SAMPLED_JAVA_CONFIG_NAME).isEqualTo(result)
   }
 
   @Test
   fun testFromTaskTypeToConfigNameJavaKotlinMethodTrace() {
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, TaskHomeTabModel.TaskRecordingType.INSTRUMENTED)
     assertThat(INSTRUMENTED_JAVA_CONFIG_NAME).isEqualTo(result)
   }
 
   @Test
   fun testFromTaskTypeToConfigNameCallstackSample() {
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.CALLSTACK_SAMPLE)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.CALLSTACK_SAMPLE, null)
     assertThat(SAMPLED_NATIVE_CONFIG_NAME).isEqualTo(result)
   }
 
   @Test
   fun testFromTaskTypeToConfigNameSystemTrace() {
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.SYSTEM_TRACE)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.SYSTEM_TRACE, null)
     assertThat(SYSTEM_TRACE_CONFIG_NAME).isEqualTo(result)
   }
 
   @Test
   fun testFromTaskTypeToConfigNameNativeAllocations() {
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.NATIVE_ALLOCATIONS)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.NATIVE_ALLOCATIONS, null)
     assertThat(NATIVE_ALLOCATIONS_CONFIG_NAME).isEqualTo(result)
   }
 
   @Test
   fun testFromTaskTypeToConfigNameUnspecifiedTaskType() {
     // Test handling of unspecified task type
-    val result = fromTaskTypeToConfigName(ProfilerTaskType.UNSPECIFIED)
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.UNSPECIFIED, null)
     assertThat("").isEqualTo(result)
   }
 }

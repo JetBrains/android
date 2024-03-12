@@ -29,10 +29,8 @@ object TaskBasedUxIcons {
   private val LARGE_CALLSTACK_SAMPLE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/callstack-sample-large.svg",
                                                                  StudioIcons::class.java)
   private val LARGE_SYSTEM_TRACE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/system-trace-large.svg", StudioIcons::class.java)
-  private val LARGE_JAVA_KOTLIN_METHOD_TRACE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/java-kotlin-method-trace-large.svg",
+  private val LARGE_JAVA_KOTLIN_METHOD_RECORDING_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/java-kotlin-method-trace-large.svg",
                                                                          StudioIcons::class.java)
-  private val LARGE_JAVA_KOTLIN_METHOD_SAMPLE_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/callstack-sample-large.svg",
-                                                                          StudioIcons::class.java)
   private val LARGE_HEAP_DUMP_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/heap-dump-large.svg", StudioIcons::class.java)
   private val LARGE_NATIVE_ALLOCATIONS_TASK_ICON = TaskBasedUxIcon("$LARGE_TASK_ICON_BASE_PATH/native-allocations-large.svg",
                                                                    StudioIcons::class.java)
@@ -48,8 +46,7 @@ object TaskBasedUxIcons {
       ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
       ProfilerTaskType.CALLSTACK_SAMPLE -> LARGE_CALLSTACK_SAMPLE_TASK_ICON
       ProfilerTaskType.SYSTEM_TRACE -> LARGE_SYSTEM_TRACE_TASK_ICON
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> LARGE_JAVA_KOTLIN_METHOD_TRACE_TASK_ICON
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> LARGE_JAVA_KOTLIN_METHOD_SAMPLE_TASK_ICON
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> LARGE_JAVA_KOTLIN_METHOD_RECORDING_TASK_ICON
       ProfilerTaskType.HEAP_DUMP -> LARGE_HEAP_DUMP_TASK_ICON
       ProfilerTaskType.NATIVE_ALLOCATIONS -> LARGE_NATIVE_ALLOCATIONS_TASK_ICON
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> LARGE_JAVA_KOTLIN_ALLOCATIONS_TASK_ICON
@@ -65,8 +62,7 @@ object TaskBasedUxIcons {
       ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
       ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIcons.Profiler.Tasks.CALLSTACK_SAMPLE
       ProfilerTaskType.SYSTEM_TRACE -> StudioIcons.Profiler.Tasks.SYSTEM_TRACE
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_METHOD_TRACE
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> StudioIcons.Profiler.Tasks.CALLSTACK_SAMPLE
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_METHOD_TRACE
       ProfilerTaskType.HEAP_DUMP -> StudioIcons.Profiler.Tasks.HEAP_DUMP
       ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIcons.Profiler.Tasks.NATIVE_ALLOCATIONS
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_ALLOCATIONS

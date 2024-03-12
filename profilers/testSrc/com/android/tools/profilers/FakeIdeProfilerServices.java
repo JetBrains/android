@@ -21,13 +21,11 @@ import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -35,6 +33,7 @@ import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
@@ -411,12 +410,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return taskType == ProfilerTaskType.NATIVE_ALLOCATIONS ||
            taskType == ProfilerTaskType.SYSTEM_TRACE ||
            taskType == ProfilerTaskType.CALLSTACK_SAMPLE ||
-           taskType == ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE ||
-           taskType == ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE;
+           taskType == ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING;
   }
 
   @Override
-  public void enableStartupTask(@NotNull ProfilerTaskType taskType) {
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskHomeTabModel.TaskRecordingType recordingType) {
     // No-op.
   }
 

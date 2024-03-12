@@ -19,6 +19,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelectable
 import androidx.compose.ui.test.assertTextContains
@@ -544,5 +545,21 @@ class TaskHomeTabTest {
 
     // Re-click dropdown to collapse it again
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
+  }
+
+  @Test
+  fun `test recording type dropdown appears for applicable tasks only`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        TaskHomeTab(taskHomeTabModel, myComponents)
+      }
+    }
+    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
+    // Selecting a task that has recording types should now show the recording type dropdown
+    verifyTaskExistsAndSelect(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
+    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertExists().assertIsDisplayed()
+    // Selecting a task that does NOT have recording types should NOT show the recording type dropdown
+    verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE)
+    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
   }
 }

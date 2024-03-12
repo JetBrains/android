@@ -38,8 +38,7 @@ object TaskSupportUtils {
     when (taskType) {
       ProfilerTaskType.SYSTEM_TRACE,
       ProfilerTaskType.CALLSTACK_SAMPLE,
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE,
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> featureLevel >= 26
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> featureLevel >= 26
       ProfilerTaskType.NATIVE_ALLOCATIONS -> featureLevel >= 29
       else -> false
     }

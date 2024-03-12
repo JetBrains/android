@@ -124,18 +124,6 @@ class PastRecordingsTabModelTest {
   }
 
   @Test
-  fun `test no task is auto-selected if there are more than one supported task for a selected recording`() {
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
-    val session = Common.Session.getDefaultInstance()
-    val artConfig = Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build()
-    val artTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, artConfig)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(artTraceArtifact))
-    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
-    // ART-based recordings have multiple supported tasks.
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
-  }
-
-  @Test
   fun `test task type and recording selection resets after recording deletion`() {
     pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
     Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)

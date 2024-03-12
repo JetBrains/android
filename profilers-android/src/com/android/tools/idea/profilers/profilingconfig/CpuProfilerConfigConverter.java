@@ -22,6 +22,7 @@ import static com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_NATI
 import static com.android.tools.idea.run.profiler.CpuProfilerConfig.SYSTEM_TRACE_CONFIG_NAME;
 import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB;
 
+import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
@@ -33,6 +34,7 @@ import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -147,15 +149,30 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from a {@link ProfilerTaskType} to the respective {@link CpuProfilerConfig} technology name.
    */
-  public static String fromTaskTypeToConfigName(ProfilerTaskType taskType) {
+  public static String fromTaskTypeToConfigName(ProfilerTaskType taskType, @Nullable TaskHomeTabModel.TaskRecordingType recordingType) {
     String configName = "";
     switch (taskType) {
-      case JAVA_KOTLIN_METHOD_SAMPLE -> configName = SAMPLED_JAVA_CONFIG_NAME;
-      case JAVA_KOTLIN_METHOD_TRACE -> configName = INSTRUMENTED_JAVA_CONFIG_NAME;
+      case JAVA_KOTLIN_METHOD_RECORDING -> {
+        if (recordingType == TaskHomeTabModel.TaskRecordingType.SAMPLED) {
+          configName = SAMPLED_JAVA_CONFIG_NAME;
+        }
+        else if (recordingType == TaskHomeTabModel.TaskRecordingType.INSTRUMENTED) {
+          configName = INSTRUMENTED_JAVA_CONFIG_NAME;
+        }
+      }
       case CALLSTACK_SAMPLE -> configName = SAMPLED_NATIVE_CONFIG_NAME;
       case SYSTEM_TRACE  -> configName = SYSTEM_TRACE_CONFIG_NAME;
       case NATIVE_ALLOCATIONS -> configName = NATIVE_ALLOCATIONS_CONFIG_NAME;
     }
     return configName;
+  }
+
+  public static ProfilerTaskType fromTechnologyToTaskType(CpuProfilerConfig.Technology technology) {
+    return switch (technology) {
+      case SAMPLED_JAVA, INSTRUMENTED_JAVA -> ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING;
+      case SAMPLED_NATIVE -> ProfilerTaskType.CALLSTACK_SAMPLE;
+      case SYSTEM_TRACE -> ProfilerTaskType.SYSTEM_TRACE;
+      case NATIVE_ALLOCATIONS -> ProfilerTaskType.NATIVE_ALLOCATIONS;
+    };
   }
 }

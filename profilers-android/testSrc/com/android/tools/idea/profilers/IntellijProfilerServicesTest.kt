@@ -148,8 +148,7 @@ class IntellijProfilerServicesTest {
     // The following tasks are supported on startup.
     assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.NATIVE_ALLOCATIONS)).isTrue()
     assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.CALLSTACK_SAMPLE)).isTrue()
-    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)).isTrue()
-    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)).isTrue()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)).isTrue()
     // The following tasks are NOT supported on startup.
     assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.HEAP_DUMP)).isFalse()
     assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)).isFalse()

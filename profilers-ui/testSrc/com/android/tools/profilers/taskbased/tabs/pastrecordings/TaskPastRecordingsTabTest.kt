@@ -137,21 +137,11 @@ class TaskPastRecordingsTabTest {
     // Make sure process selection was registered in data model.
     assertThat(pastRecordingsTabModel.selectedRecording!!.name).isEqualTo("Recording 1")
 
-    // Make sure at this point, the start profiler task button is still disabled.
-    composeTestRule.onNodeWithTag("EnterTaskButton").assertIsNotEnabled()
+    // Make sure a task selection was registered in the data model, as because only one task was applicable to the ART recording, it
+    // was auto-selected.
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
 
-    // Make task selection.
-    composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(2)
-    composeTestRule.onAllNodesWithTag("TaskGridItem")[0].assertIsDisplayed().assertIsEnabled().assertHasClickAction()
-    composeTestRule.onAllNodesWithTag("TaskGridItem")[1].assertIsDisplayed().assertIsEnabled().assertHasClickAction()
-    composeTestRule.onAllNodesWithTag("TaskGridItem")[0].performClick()
-
-    // Make sure task selection was registered in data model. To make the task selected by this test is agnostic of task grid item order,
-    // the selected task type is checked against all supported tasks that could have been selected.
-    assertThat(pastRecordingsTabModel.selectedTaskType).isAnyOf(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE,
-                                                                ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
-
-    // Make sure at this point, the start profiler task button is now enabled as device, process, and task selections were all valid.
+    // Make sure at this point, the open profiler task button is enabled as recording and task selection have been made,
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()
   }
 }

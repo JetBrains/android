@@ -152,7 +152,7 @@ class RecordingListModelTest {
   }
 
   @Test
-  fun `java kotlin method trace and sample task recording shows correct supported tasks`() {
+  fun `java kotlin method recording shows correct supported tasks`() {
     val sessionId = 1L
     val traceId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
@@ -161,7 +161,7 @@ class RecordingListModelTest {
       Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinMethodArtifact))
     val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Method Trace, Java/Kotlin Method Sample (legacy)")
+    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Method Recording")
   }
 
   @Test
