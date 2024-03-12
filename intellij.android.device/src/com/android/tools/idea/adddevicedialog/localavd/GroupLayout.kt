@@ -23,16 +23,18 @@ import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
   Layout(content) { measurables, constraints ->
     val header = measurables.first().measure(constraints)
     val rows = Row.buildList(measurables, constraints)
+    val padding = 12.dp.roundToPx()
 
-    layout(getWidth(header, rows), header.height + rows.sumOf(Row::height)) {
+    layout(getWidth(header, rows), getHeight(header, rows, padding)) {
       header.placeRelative(0, 0)
-      var y = header.height
+      var y = header.height + padding
 
       rows.forEach {
         var x = 0
@@ -48,7 +50,7 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
           it.icon.placeRelative(x, y + (it.height - it.icon.height) / 2)
         }
 
-        y += it.height
+        y += it.height + padding
       }
     }
   }
@@ -106,3 +108,6 @@ private fun getWidth(header: Placeable, rows: Iterable<Row>): Int {
   val maxRowWidth = rows.maxOfOrNull(Row::width)
   return if (maxRowWidth == null) header.width else maxOf(header.width, maxRowWidth)
 }
+
+private fun getHeight(header: Placeable, rows: Iterable<Row>, padding: Int) =
+  header.height + rows.sumOf { padding + it.height }
