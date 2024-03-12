@@ -105,6 +105,8 @@ internal class VideoDecoder(
   private val codec = CompletableDeferred<AVCodec>()
   @Volatile
   private var endOfVideoStream = false
+  private val logger
+    get() = thisLogger()
 
   /**
    * Enables video decoding for the given display unless it is already active.
@@ -167,6 +169,9 @@ internal class VideoDecoder(
       }
       catch (_: EOFException) {
       }
+      catch (e: Throwable) {
+        logger.error(e)
+      }
       finally {
         endOfVideoStream = true
         for (decodingContext in decodingContexts.values) {
@@ -186,7 +191,7 @@ internal class VideoDecoder(
     val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
     videoChannel.readFully(header)
     val codecName = String(header.array(), UTF_8).trim()
-    thisLogger().debug { "Receiving $codecName video stream" }
+    logger.debug { "Receiving $codecName video stream" }
     val ffmpegCodecName = when (codecName) {
       "av01" -> "av1"
       "avc" -> "h264"
@@ -235,9 +240,6 @@ internal class VideoDecoder(
 
         packet.pts(if (presentationTimestampUs == 0L) AV_NOPTS_VALUE else presentationTimestampUs)
         decodingContexts[header.displayId]?.processPacket(packet, header)
-      }
-      catch (e: VideoDecoderException) {
-        thisLogger().error(e)
       }
       finally {
         av_packet_unref(packet)
@@ -481,7 +483,7 @@ internal class VideoDecoder(
         if (header.isBitRateReduced) {
           BitRateManager.getInstance().bitRateReduced(header.bitRate, deviceProperties)
           framesAtBitRate = 1
-          thisLogger().info("${deviceProperties.title} bit rate: ${header.bitRate}")
+          logger.info("${deviceProperties.title} bit rate: ${header.bitRate}")
         }
         else {
           if (++framesAtBitRate % BIT_RATE_STABILITY_FRAME_COUNT == 0) {
