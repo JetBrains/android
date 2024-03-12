@@ -41,7 +41,7 @@ class NShotXmlToComposeConverterTest {
 
       override fun isContextAllowed(project: Project) = contextAllowed
 
-      override fun model() =
+      override fun model(project: Project) =
         object : LlmService.StubLlmService() {
           override suspend fun sendQuery(
             prompt: SafePrompt,
