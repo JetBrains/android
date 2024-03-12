@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.preview.animation
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlinx.coroutines.flow.StateFlow
 
 interface AnimationManager {
   val tabTitle: String
-
-  /** State of the [TimelineElement] for the [animation]. */
-  val elementState: StateFlow<ElementState>
 
   /** [Card] for the current animation in the coordination panel. */
   val card: Card
@@ -45,4 +45,41 @@ interface AnimationManager {
 
   /** Clean up steps for animation before removing it from the panel. */
   suspend fun destroy()
+}
+
+/*
+ * Supported animation types could be opened in a new tab. Its card could be frozen or expended.
+ */
+interface SupportedAnimationManager : AnimationManager {
+  /** State of the [TimelineElement] for the animation. */
+  val elementState: StateFlow<ElementState>
+
+  /** Tab that shows animation individually */
+  val tabComponent: JPanel
+
+  /**
+   * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing
+   * component can't be added as a child of multiple components simultaneously. Therefore, this
+   * method needs to be called everytime we change tabs.
+   */
+  @UiThread fun addTimeline(timeline: TimelinePanel)
+}
+
+/** Manager for animations we can detect, but can't manipulate,set time/state, etc */
+abstract class UnsupportedAnimationManager(final override val tabTitle: String) : AnimationManager {
+  override val card = LabelCard(tabTitle)
+
+  override suspend fun setup() {}
+
+  override suspend fun destroy() {}
+
+  override val timelineMaximumMs = 0
+
+  override fun createTimelineElement(
+    parent: JComponent,
+    minY: Int,
+    positionProxy: PositionProxy,
+  ): UnsupportedLabel {
+    return UnsupportedLabel(parent, minY, positionProxy)
+  }
 }

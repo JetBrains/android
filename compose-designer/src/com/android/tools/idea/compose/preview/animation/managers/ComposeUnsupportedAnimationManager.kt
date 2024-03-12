@@ -16,12 +16,8 @@
 package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import com.android.tools.idea.preview.animation.AnimationManager
+import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
 
-/**
- * [ComposeAnimationManager] is handling the state of one subscribed [animation]. Each [animation]
- * is represented by one row in coordination panel.
- */
-interface ComposeAnimationManager : AnimationManager {
-  val animation: ComposeAnimation
-}
+/** [ComposeAnimationManager] for unsupported animations. */
+class ComposeUnsupportedAnimationManager(override val animation: ComposeAnimation, title: String) :
+  ComposeAnimationManager, UnsupportedAnimationManager(title)

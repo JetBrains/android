@@ -43,7 +43,7 @@ class AnimatedVisibilityAnimationManager(
   updateTimelineElementsCallback: suspend () -> Unit,
   scope: CoroutineScope,
 ) :
-  SupportedAnimationManager(
+  ComposeSupportedAnimationManager(
     animation,
     tabTitle,
     tracker,

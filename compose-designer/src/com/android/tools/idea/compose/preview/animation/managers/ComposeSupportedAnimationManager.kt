@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.preview.animation.timeline.ElementState
@@ -68,9 +69,9 @@ private val LOG = Logger.getInstance(SupportedAnimationManager::class.java)
 /** Number of points for one curve. */
 private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
-open class SupportedAnimationManager(
-  animation: ComposeAnimation,
-  tabTitle: String,
+open class ComposeSupportedAnimationManager(
+  override val animation: ComposeAnimation,
+  override val tabTitle: String,
   private val tracker: ComposeAnimationTracker,
   private val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
@@ -82,9 +83,21 @@ open class SupportedAnimationManager(
   val resetCallback: suspend (Boolean) -> Unit,
   val updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
-) : ComposeAnimationManager(animation, tabTitle) {
+) : ComposeAnimationManager, SupportedAnimationManager {
 
-  protected val scope = parentScope.createChildScope(tabTitle)
+  private val scope = parentScope.createChildScope(tabTitle)
+
+  /** Callback when [selectedProperties] has been changed. */
+  var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
+  /**
+   * Currently selected properties in the timeline. Updated everytime the slider has moved or the
+   * state of animation has changed. Could be empty if transition is not loaded or not supported.
+   */
+  var selectedProperties = listOf<ComposeUnit.TimelineUnit>()
+    private set(value) {
+      field = value
+      selectedPropertiesCallback(value)
+    }
 
   override suspend fun destroy() {
     scope.cancel("AnimationManager is destroyed")
@@ -92,7 +105,7 @@ open class SupportedAnimationManager(
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   var currentTransition = Transition()
-    protected set(value) {
+    private set(value) {
       field = value
       // If transition has changed, reset it offset.
       elementState.value = elementState.value.copy(valueOffset = 0)
@@ -104,7 +117,7 @@ open class SupportedAnimationManager(
   val stateComboBox = animation.createState(tracker, animation.findCallback())
 
   /** State of animation, shared between single animation tab and coordination panel. */
-  final override val elementState = MutableStateFlow(ElementState())
+  override val elementState = MutableStateFlow(ElementState())
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =
@@ -141,7 +154,7 @@ open class SupportedAnimationManager(
   /** [Timeline] parent when animation in new tab is selected. */
   private val tabTimelineParent = JPanel(BorderLayout())
 
-  val tabComponent =
+  override val tabComponent =
     JPanel(TabularLayout("*,Fit", "32px,*")).apply {
       //    |  playbackControls                            |  toolbar  |
       //    ------------------------------------------------------------
@@ -331,7 +344,7 @@ open class SupportedAnimationManager(
       }
   }
 
-  override suspend fun loadProperties() {
+  suspend fun loadProperties() {
     sceneManager?.executeInRenderSession {
       animationClock.apply {
         try {
@@ -383,7 +396,7 @@ open class SupportedAnimationManager(
    * method needs to be called everytime we change tabs.
    */
   @UiThread
-  fun addTimeline(timeline: TimelinePanel) {
+  override fun addTimeline(timeline: TimelinePanel) {
     tabTimelineParent.add(timeline, BorderLayout.CENTER)
     tabScrollPane.revalidate()
   }

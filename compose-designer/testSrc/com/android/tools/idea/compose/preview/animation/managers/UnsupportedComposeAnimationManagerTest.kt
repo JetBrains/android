@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.animation.managers
 
 import com.android.tools.idea.compose.preview.animation.TestUtils
-import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
 import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
@@ -31,17 +31,15 @@ class UnsupportedComposeAnimationManagerTest {
 
   @Test
   fun `default states`() = runBlocking {
-    val manager = UnsupportedAnimationManager(animation, "Label")
-    assertNotNull(manager.elementState)
+    val manager = ComposeUnsupportedAnimationManager(animation, "Label")
     assertNotNull(manager.card)
     assertInstanceOf<LabelCard>(manager.card)
     assertEquals(manager.timelineMaximumMs, 0)
-    manager.loadProperties()
   }
 
   @Test
   fun `create timeline element`() {
-    val manager = UnsupportedAnimationManager(animation, "Label")
+    val manager = ComposeUnsupportedAnimationManager(animation, "Label")
     val slider = createTestSlider()
     assertInstanceOf<UnsupportedLabel>(
       manager.createTimelineElement(slider, 0, slider.sliderUI.positionProxy)

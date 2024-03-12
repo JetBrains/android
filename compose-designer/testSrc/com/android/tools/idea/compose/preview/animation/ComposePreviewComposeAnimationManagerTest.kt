@@ -24,12 +24,12 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeA
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
-import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.rendering.classloading.NopClassLocator
 import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
