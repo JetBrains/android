@@ -7,21 +7,25 @@ import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbAwareToggleAction;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid;
+import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -35,6 +39,7 @@ import com.intellij.ui.NewUI;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
@@ -461,8 +466,10 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     DefaultActionGroup group = new DefaultActionGroup();
     addGearPopupActions(group);
 
-    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group);
-    popupMenu.getComponent().show(component, x, y);
+    DataContext context = DataManager.getInstance().getDataContext(component);
+    ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(
+      null, group, context, ActionSelectionAid.SPEEDSEARCH, true, null, -1, null, ActionPlaces.POPUP);
+    popup.show(new RelativePoint(component, new Point(x, y)));
   }
 
   private void addGearPopupActions(@NotNull DefaultActionGroup group) {
