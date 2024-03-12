@@ -55,7 +55,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
 
         case EINTR:
         case EAGAIN: {
-          Log::W("Writing to %s socked failed - %s", socket_name_.c_str(), strerror(errno));
+          Log::W("Writing to %s socket failed - %s", socket_name_.c_str(), strerror(errno));
           was_blocked = true;
           auto poll_start = steady_clock::now();
           struct pollfd fds = {socket_fd_, POLLOUT, 0};
@@ -70,7 +70,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
           if (timeout_micros <= 0) {
             return Result::TIMEOUT;
           }
-          Log::W("Retrying writing to %s socked", socket_name_.c_str());
+          Log::W("Retrying writing to %s socket", socket_name_.c_str());
           continue;
         }
 
