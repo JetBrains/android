@@ -17,21 +17,21 @@ package org.jetbrains.kotlin.android.quickfix
 
 import com.intellij.codeInsight.intention.IntentionAction
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.UnresolvedReference
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactoryFromIntentionActions
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 class K2CreateResourceQuickFixRegistrar : KotlinQuickFixRegistrar() {
     override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-        registerApplicator(FACTORY)
+        registerFactory(FACTORY)
     }
 
     companion object {
-        private val FACTORY = diagnosticFixFactoryFromIntentionActions(UnresolvedReference::class) { diagnostic ->
+        private val FACTORY = KotlinQuickFixFactory.IntentionBased<UnresolvedReference> { diagnostic ->
             val ref = diagnostic.psi as? KtSimpleNameExpression
-                      ?: return@diagnosticFixFactoryFromIntentionActions emptyList<IntentionAction>()
+                      ?: return@IntentionBased emptyList<IntentionAction>()
 
             getCreateResourceQuickFixActions(ref)
         }
