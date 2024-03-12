@@ -17,6 +17,7 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.UiComposable
+import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
@@ -35,14 +36,16 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
 
       rows.forEach {
         var x = 0
-        it.text.placeRelative(x, y)
+
+        // Align text's baseline with placeable's
+        it.text.placeRelative(x, y + it.placeable[FirstBaseline] - it.text[FirstBaseline])
 
         x += it.text.width
         it.placeable.placeRelative(x, y)
 
         if (it.icon != null) {
           x += it.placeable.width
-          it.icon.placeRelative(x, y)
+          it.icon.placeRelative(x, y + (it.height - it.icon.height) / 2)
         }
 
         y += it.height
