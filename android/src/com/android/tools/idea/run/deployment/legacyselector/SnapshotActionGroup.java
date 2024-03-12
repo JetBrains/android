@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.legacyselector;
 
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -42,6 +43,11 @@ final class SnapshotActionGroup extends ActionGroup {
     return myDevice.getTargets().stream()
       .map(target -> new SelectTargetAction(target, myDevice, myComboBoxAction))
       .toArray(AnAction[]::new);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
@@ -24,6 +25,8 @@ import com.intellij.openapi.components.service
  * cold booted, quick booted, or booted with a snapshot.
  */
 internal class SelectTargetAction(private val target: DeploymentTarget) : AnAction() {
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     event.presentation.setText(target.bootOption.text, false)
   }

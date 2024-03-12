@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.legacyselector;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import java.util.Objects;
@@ -34,6 +35,11 @@ final class SelectTargetAction extends AnAction {
     myTarget = target;
     myDevice = device;
     myComboBoxAction = comboBoxAction;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.legacyselector;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -42,6 +43,11 @@ public final class SelectDeviceAction extends AnAction {
   @NotNull
   public Device getDevice() {
     return myDevice;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

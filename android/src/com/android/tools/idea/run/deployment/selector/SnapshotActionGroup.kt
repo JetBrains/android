@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -28,6 +29,8 @@ internal class SnapshotActionGroup(val device: DeploymentTargetDevice) : ActionG
   init {
     isPopup = true
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
     return device.targets.map { SelectTargetAction(it) }.toTypedArray()
