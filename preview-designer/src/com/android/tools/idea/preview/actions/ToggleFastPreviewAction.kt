@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.EditorNotifications
 
-/**
- * Action that toggles the Fast Preview state.
- *
- * TODO(b/328758600): move this action to preview-designer to make it reusable in other preview
- *   tools
- */
-class ToggleFastPreviewAction : AnAction(null, null, null) {
+/** Action that toggles the Fast Preview state. */
+class ToggleFastPreviewAction(
+  private val fastPreviewSurfaceProvider: (DataContext) -> FastPreviewSurface?,
+  private val isEssentialsModeEnabled: () -> Boolean,
+) : AnAction(null, null, null) {
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -45,8 +41,7 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
       fastPreviewManager.enable()
 
       // Automatically refresh when re-enabling
-      (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? FastPreviewSurface)
-        ?.requestFastPreviewRefreshAsync()
+      fastPreviewSurfaceProvider(e.dataContext)?.requestFastPreviewRefreshAsync()
     } else fastPreviewManager.disable(ManualDisabledReason)
     // We have changed the state of Fast Preview, update notifications
     EditorNotifications.getInstance(project).updateAllNotifications()
@@ -61,7 +56,7 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
       presentation.isEnabledAndVisible = false
       return
     }
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
+    if (isEssentialsModeEnabled()) {
       presentation.description =
         message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
       presentation.isEnabled = false

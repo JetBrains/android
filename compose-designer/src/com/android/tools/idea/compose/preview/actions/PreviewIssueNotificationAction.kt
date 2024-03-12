@@ -25,6 +25,7 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -36,7 +37,9 @@ import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ReEnableFastPreview
 import com.android.tools.idea.preview.actions.ShowEventLogAction
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
+import com.android.tools.idea.preview.actions.ToggleFastPreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
@@ -150,7 +153,15 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
       return@let InformationPopupImpl(
           title = null,
           description = previewStatusNotification.description,
-          additionalActions = listOf(ToggleFastPreviewAction()),
+          additionalActions =
+            listOf(
+              ToggleFastPreviewAction(
+                fastPreviewSurfaceProvider = { dataContext ->
+                  (dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? FastPreviewSurface)
+                },
+                ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
+              )
+            ),
           links = linksList,
         )
         .also { newPopup ->
