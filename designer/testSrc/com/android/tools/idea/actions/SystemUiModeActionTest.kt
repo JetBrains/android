@@ -20,6 +20,7 @@ import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndWait
 import junit.framework.Assert
 import org.jetbrains.android.AndroidTestCase
 
@@ -36,7 +37,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val wallpapers = enumValues<Wallpaper>()
     Assert.assertEquals(wallpapers.size + 1, wallpaperActions.size)
     wallpaperActions.forEachIndexed { index, action ->
-      action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
+      runInEdtAndWait { action.actionPerformed(TestActionEvent.createTestEvent(dataContext)) }
       if (index < wallpapers.size) {
         Assert.assertEquals(wallpapers[index].resourcePath, configuration.wallpaperPath)
       } else {
@@ -47,7 +48,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val nightModeActions = systemUiModeAction.getNightModeActions()
     val nightModes = enumValues<NightMode>()
     nightModeActions.forEachIndexed { index, action ->
-      action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
+      runInEdtAndWait { action.actionPerformed(TestActionEvent.createTestEvent(dataContext)) }
       Assert.assertEquals(nightModes[index], configuration.nightMode)
     }
   }

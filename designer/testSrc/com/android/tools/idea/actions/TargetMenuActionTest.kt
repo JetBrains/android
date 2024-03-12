@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
@@ -105,7 +106,7 @@ class TargetMenuActionTest : AndroidTestCase() {
       children[2].actionPerformed(TestActionEvent.createTestEvent(dataContext))
     }
 
-    menuAction.updateActions(dataContext)
+    runInEdtAndWait { menuAction.updateActions(dataContext) }
     menuAction.getChildren(null).let { children ->
       val event = TestActionEvent.createTestEvent(dataContext)
       // Automatically pick best should not be selected
