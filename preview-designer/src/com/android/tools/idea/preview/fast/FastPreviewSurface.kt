@@ -15,8 +15,26 @@
  */
 package com.android.tools.idea.preview.fast
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
+import java.io.File
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtFile
 
 /** Interface to be implemented by surfaces (like the Preview) that support FastPreview. */
 interface FastPreviewSurface {
@@ -26,4 +44,89 @@ interface FastPreviewSurface {
    * request could not be scheduled (e.g. the code has syntax errors).
    */
   fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>
+}
+
+/**
+ * Default implementation of [FastPreviewSurface], that triggers a fast preview compilation via
+ * [requestFastPreviewRefreshAndTrack], and delegates the refresh after a successful compilation to
+ * [delegateRefresh].
+ */
+class CommonFastPreviewSurface(
+  parentDisposable: Disposable,
+  private val lifecycleManager: PreviewLifecycleManager,
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  private val previewStatusProvider: () -> PreviewViewModelStatus,
+  private val delegateRefresh: suspend () -> Unit,
+) : Disposable, FastPreviewSurface {
+
+  private val psiCodeFileChangeDetectorService =
+    PsiCodeFileChangeDetectorService.getInstance(psiFilePointer.project)
+
+  private val coroutineScope: CoroutineScope
+
+  init {
+    Disposer.register(parentDisposable, this)
+    coroutineScope = AndroidCoroutineScope(this)
+  }
+
+  /**
+   * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a
+   * time.
+   */
+  private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
+    }
+
+  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
+    lifecycleManager.executeIfActive { async { requestFastPreviewRefreshSync() } }
+      ?: CompletableDeferred(CompilationResult.CompilationAborted())
+
+  /**
+   * Request a fast preview compilation, followed by preview refresh when the compilation is
+   * successful. Note that this method waits for the compilation to complete, returning its result,
+   * but it doesn't wait for the refresh to finish.
+   */
+  suspend fun requestFastPreviewRefreshSync(): CompilationResult {
+    val previewFile =
+      readAction { psiFilePointer.element }
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File is no valid")
+        )
+    val previewFileModule =
+      readAction { previewFile.module }
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File does not have a valid module")
+        )
+    val outOfDateFiles =
+      psiCodeFileChangeDetectorService.outOfDateFiles
+        .filterIsInstance<KtFile>()
+        .filter { modifiedFile ->
+          if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
+          val modifiedFileModule = readAction { modifiedFile.module } ?: return@filter false
+
+          // Keep the file if the file is from this module or from a module we depend on
+          modifiedFileModule == previewFileModule ||
+            ModuleManager.getInstance(psiFilePointer.project)
+              .isModuleDependent(previewFileModule, modifiedFileModule)
+        }
+        .toSet()
+
+    // Nothing to compile
+    if (outOfDateFiles.isEmpty()) return CompilationResult.Success
+
+    return requestFastPreviewRefreshAndTrack(
+      parentDisposable = this,
+      previewFileModule,
+      outOfDateFiles,
+      previewStatusProvider(),
+      fastPreviewCompilationLauncher,
+    ) { outputAbsolutePath ->
+      ModuleClassLoaderOverlays.getInstance(previewFileModule)
+        .pushOverlayPath(File(outputAbsolutePath).toPath())
+      delegateRefresh()
+    }
+  }
+
+  override fun dispose() {}
 }

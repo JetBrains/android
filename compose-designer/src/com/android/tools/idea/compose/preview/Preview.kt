@@ -41,13 +41,11 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
-import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
@@ -65,8 +63,8 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
-import com.android.tools.idea.preview.fast.requestFastPreviewRefreshAndTrack
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
 import com.android.tools.idea.preview.gallery.GalleryMode
@@ -113,7 +111,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
@@ -128,7 +125,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.io.File
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -142,19 +138,15 @@ import kotlin.properties.Delegates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
@@ -348,15 +340,6 @@ class ComposePreviewRepresentation(
         }
       },
     )
-
-  /**
-   * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a
-   * time.
-   */
-  private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      UniqueTaskCoroutineLauncher(this, "Compilation Launcher")
-    }
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not
@@ -836,7 +819,7 @@ class ComposePreviewRepresentation(
         psiFilePointer,
         ::invalidate,
         ::requestRefresh,
-        ::requestFastPreviewRefreshAndTrack,
+        delegateFastPreviewSurface::requestFastPreviewRefreshSync,
         ::restorePrevious,
         { projectBuildStatusManager.status },
         { composeWorkBench.updateVisibilityAndNotifications() },
@@ -868,7 +851,7 @@ class ComposePreviewRepresentation(
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
       // the annotations have changed.
-      launch { requestFastPreviewRefreshAndTrack() }
+      launch { delegateFastPreviewSurface.requestFastPreviewRefreshSync() }
     } else if (invalidated.get()) requestRefresh()
 
     // Gallery mode should be updated only if Preview is active / in foreground.
@@ -1447,50 +1430,17 @@ class ComposePreviewRepresentation(
     }
   }
 
-  private suspend fun requestFastPreviewRefreshAndTrack(): CompilationResult {
-    val previewFile =
-      readAction { psiFilePointer.element }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File is no valid")
-        )
-    val previewFileModule =
-      readAction { previewFile.module }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid module")
-        )
-    val outOfDateFiles =
-      psiCodeFileChangeDetectorService.outOfDateFiles
-        .filterIsInstance<KtFile>()
-        .filter { modifiedFile ->
-          if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileModule = readAction { modifiedFile.module } ?: return@filter false
+  private val delegateFastPreviewSurface =
+    CommonFastPreviewSurface(
+      parentDisposable = this,
+      lifecycleManager = lifecycleManager,
+      psiFilePointer = psiFilePointer,
+      previewStatusProvider = ::status,
+      delegateRefresh = ::invalidateAndRefresh,
+    )
 
-          // Keep the file if the file is from this module or from a module we depend on
-          modifiedFileModule == previewFileModule ||
-            ModuleManager.getInstance(project)
-              .isModuleDependent(previewFileModule, modifiedFileModule)
-        }
-        .toSet()
-
-    // Nothing to compile
-    if (outOfDateFiles.isEmpty()) return CompilationResult.Success
-
-    return requestFastPreviewRefreshAndTrack(
-      this@ComposePreviewRepresentation,
-      previewFileModule,
-      outOfDateFiles,
-      status(),
-      fastPreviewCompilationLauncher,
-    ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileModule)
-        .pushOverlayPath(File(outputAbsolutePath).toPath())
-      invalidateAndRefresh()
-    }
-  }
-
-  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
-    lifecycleManager.executeIfActive { async { requestFastPreviewRefreshAndTrack() } }
-      ?: CompletableDeferred(CompilationResult.CompilationAborted())
+  override fun requestFastPreviewRefreshAsync() =
+    delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
 
   /** Waits for any preview to be populated. */
   @TestOnly
