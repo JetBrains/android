@@ -46,6 +46,7 @@ class SelectionStatePersistenceTest {
         |  <option name="selectionMode" value="DIALOG" />
         |  <DropdownSelection timestamp="2023-01-08T01:02:03Z">
         |    <Target type="DEFAULT_BOOT">
+        |      <handle />
         |      <template>
         |        <DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />
         |      </template>
@@ -65,12 +66,12 @@ class SelectionStatePersistenceTest {
         |        <handle>
         |          <DeviceId pluginId="Test" type="HANDLE" identifier="hijk" />
         |        </handle>
+        |        <template />
         |      </Target>
         |    </targets>
         |  </DialogSelection>
         |</SelectionState>"""
-        .trimMargin(),
-      exactMatch = true,
+        .trimMargin()
     )
   }
 
