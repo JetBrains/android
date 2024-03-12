@@ -24,7 +24,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.sdk.AndroidSdkData
 import com.google.common.truth.Truth.assertThat
@@ -39,8 +39,6 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Before
@@ -48,57 +46,50 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
-@OptIn(ExperimentalCoroutinesApi::class)
 class AttachAndroidSdkSourcesNotificationProviderTest {
   // TODO(b/291755082): Update to 34 once 34 sources are published
   @get:Rule
-  val myAndroidProjectRule = withSdk(AndroidVersion(33))
+  val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
 
-  @get:Rule
-  val myMockitoRule = MockitoJUnit.rule()
+  private val mockFileEditor: FileEditor = mock()
+  private val mockModelWizardDialog: ModelWizardDialog = mock()
+  private val testCoroutineScope = TestScope()
 
-  val myFileEditor: FileEditor = mock()
-  val myModelWizardDialog: ModelWizardDialog = mock()
-  val testCoroutineScope = TestScope()
+  private val provider = TestAttachAndroidSdkSourcesNotificationProvider()
 
-  private lateinit var myProvider: TestAttachAndroidSdkSourcesNotificationProvider
+  private val repositoryPackages = RepositoryPackages()
 
-  private val myRepositoryPackages = RepositoryPackages()
-
-  private var myOriginalAndroidSdkData: AndroidSdkData? = null
+  private var originalAndroidSdkData: AndroidSdkData? = null
 
   @Before
   fun setup() {
-    myProvider = TestAttachAndroidSdkSourcesNotificationProvider()
-
     val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
-    val repoManager = FakeRepoManager(sdkRoot, myRepositoryPackages)
+    val repoManager = FakeRepoManager(sdkRoot, repositoryPackages)
     val sdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot.root.resolve("avd"), repoManager)
     val sdkData: AndroidSdkData = mock()
     whenever(sdkData.sdkHandler).thenReturn(sdkHandler)
 
-    myRepositoryPackages.setRemotePkgInfos(
+    repositoryPackages.setRemotePkgInfos(
       listOf(
         FakeRemotePackage("sources;android-30"),
         FakeRemotePackage("sources;android-33")
       ))
 
     val androidSdks = AndroidSdks.getInstance()
-    myOriginalAndroidSdkData = androidSdks.tryToChooseAndroidSdk()
+    originalAndroidSdkData = androidSdks.tryToChooseAndroidSdk()
     androidSdks.setSdkData(sdkData)
   }
 
   @After
   fun tearDown() {
-    AndroidSdks.getInstance().setSdkData(myOriginalAndroidSdkData)
+    AndroidSdks.getInstance().setSdkData(originalAndroidSdkData)
   }
 
   @Test
   fun createNotificationPanel_fileIsNotJavaClass_returnsNull() {
-    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
+    val javaFile = projectRule.fixture.createFile("somefile.java", "file contents")
 
     assertThat(javaFile.fileType).isEqualTo(JavaFileType.INSTANCE)
     val panel = invokeCreateNotificationPanel(javaFile)
@@ -107,7 +98,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_javaClassNotInAndroidSdk_returnsNull() {
-    val javaClassFile = myAndroidProjectRule.fixture.createFile("someclass.class", "")
+    val javaClassFile = projectRule.fixture.createFile("someclass.class", "")
 
     assertThat(javaClassFile.fileType).isEqualTo(JavaClassFileType.INSTANCE)
     val panel = invokeCreateNotificationPanel(javaClassFile)
@@ -117,8 +108,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Test
   fun createNotificationPanel_javaClassInAndroidSdkAndSourcesAvailable_nullReturned() {
     val virtualFile = runReadAction {
-      JavaPsiFacade.getInstance(myAndroidProjectRule.project)
-        .findClass("android.view.View", GlobalSearchScope.allScope(myAndroidProjectRule.project))!!
+      JavaPsiFacade.getInstance(projectRule.project)
+        .findClass("android.view.View", GlobalSearchScope.allScope(projectRule.project))!!
         .containingFile
         .virtualFile
     }
@@ -129,7 +120,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKeyButIsNull_nullReturned() {
-    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
+    val javaFile = projectRule.fixture.createFile("somefile.java", "file contents")
     javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, null)
 
     val panel = invokeCreateNotificationPanel(javaFile)
@@ -144,7 +135,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_downloadNotAvailable_panelHasCorrectLabel() {
-    myRepositoryPackages.setRemotePkgInfos(listOf())
+    repositoryPackages.setRemotePkgInfos(listOf())
 
     val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
     assertThat(panel.text).isEqualTo("Android SDK sources for API 33 are not available.")
@@ -160,7 +151,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_downloadNotAvailable_panelHasNoLinks() {
-    myRepositoryPackages.setRemotePkgInfos(listOf())
+    repositoryPackages.setRemotePkgInfos(listOf())
 
     val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
     val links: Map<String, Runnable> = panel.links
@@ -169,7 +160,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_downloadLinkDownloadsSources() {
-    whenever(myModelWizardDialog.showAndGet()).thenReturn(true)
+    whenever(mockModelWizardDialog.showAndGet()).thenReturn(true)
     val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
 
     val rootProvider = AndroidSdks.getInstance().allAndroidSdks[0].rootProvider
@@ -179,30 +170,30 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     ApplicationManager.getApplication().invokeAndWait { panel.links["Download"]!!.run() }
 
     // Check that the link requested the correct paths, and that then sources became available.
-    assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-33")
+    assertThat(provider.requestedPaths).isNotNull()
+    assertThat(provider.requestedPaths).containsExactly("sources;android-33")
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES).size).isGreaterThan(0)
   }
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
-    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
+    val javaFile = projectRule.fixture.createFile("somefile.java", "file contents")
     javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, 30)
 
     val panel = requireNotNull(invokeCreateNotificationPanel(javaFile))
     ApplicationManager.getApplication().invokeAndWait { panel.links["Download"]!!.run() }
 
     // Check that the link requested the correct paths, and that then sources became available.
-    assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-30")
+    assertThat(provider.requestedPaths).isNotNull()
+    assertThat(provider.requestedPaths).containsExactly("sources;android-30")
   }
 
   private fun invokeCreateNotificationPanel(virtualFile: VirtualFile): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
     val panelCreationFunction = runReadAction {
-      myProvider.collectNotificationData(myAndroidProjectRule.project, virtualFile)
+      provider.collectNotificationData(projectRule.project, virtualFile)
     } ?: return null
 
-    val panel = panelCreationFunction.apply(myFileEditor)
+    val panel = panelCreationFunction.apply(mockFileEditor)
 
     testCoroutineScope.testScheduler.advanceUntilIdle()
     ApplicationManager.getApplication().invokeAndWait {}
@@ -219,8 +210,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
       }
 
       return runReadAction {
-        JavaPsiFacade.getInstance(myAndroidProjectRule.project)
-          .findClass("android.view.View", GlobalSearchScope.allScope(myAndroidProjectRule.project))!!
+        JavaPsiFacade.getInstance(projectRule.project)
+          .findClass("android.view.View", GlobalSearchScope.allScope(projectRule.project))!!
           .containingFile
           .virtualFile
       }
@@ -236,7 +227,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
     override fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog {
       this.requestedPaths = requestedPaths
-      return myModelWizardDialog
+      return mockModelWizardDialog
     }
 
     override fun createCoroutineScopeForEditor(fileEditor: FileEditor) = testCoroutineScope
