@@ -56,6 +56,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
+        "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
@@ -109,7 +110,6 @@ studio_plugin(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
-        "//tools/base/common:version",
     ],
     licenses = [
         "//prebuilts/r8:license",

@@ -384,6 +384,7 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
@@ -402,7 +403,6 @@ filegroup(
         "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/build-system/gradle-core:common_proto",
-        "//tools/base/common:version",
         "//tools/base/ddmlib:adb-server-proto",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
