@@ -1522,25 +1522,33 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
+                        main
+                            sourceCompatibility           : 1.6
+                            targetCompatibility           : 1.6
+                            - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/jav/build/classes/java/main [-]
+                                - files                       : <ROOT>/jav/build/resources/main [-]
                             sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/jav/src/main/resources [-]
-                                    outputDir                     : <ROOT>/jav/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/jav/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
                                 SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/jav/src/main/java [-]
                                     outputDir                     : <ROOT>/jav/out/production/classes [-]
                                     - gradleOutputDirs            : <ROOT>/jav/build/classes/java/main [-]
                                     patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/jav/src/main/resources [-]
+                                    outputDir                     : <ROOT>/jav/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/jav/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
+                            sourceCompatibility           : 1.6
+                            targetCompatibility           : 1.6
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/jav/build/classes/java/main [-]
                                 - files                       : <ROOT>/jav/build/resources/main [-]
-                            - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
-                            sourceCompatibility           : 1.6
-                            targetCompatibility           : 1.6
-                        test                          : test (DefaultExternalSourceSet)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/jav/build/classes/java/test [-]
+                                - files                       : <ROOT>/jav/build/resources/test [-]
                             sources
                                 TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/jav/src/test/java [-]
@@ -1552,14 +1560,6 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/jav/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/jav/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/jav/build/classes/java/main [-]
-                                - files                       : <ROOT>/jav/build/resources/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/jav/build/classes/java/test [-]
-                                - files                       : <ROOT>/jav/build/resources/test [-]
-                            sourceCompatibility           : 1.6
-                            targetCompatibility           : 1.6
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]

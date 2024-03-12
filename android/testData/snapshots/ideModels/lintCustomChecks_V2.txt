@@ -494,18 +494,10 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lint/src/main/resources [-]
-                                    outputDir                     : <ROOT>/lint/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/lint/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lint/src/main/java
-                                    outputDir                     : <ROOT>/lint/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/lint/build/classes/java/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
@@ -582,10 +574,26 @@ MODULE                        : project
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lint/build/classes/java/main [-]
                                 - files                       : <ROOT>/lint/build/resources/main [-]
-                            - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/main/java
+                                    outputDir                     : <ROOT>/lint/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lint/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        test                          : test (DefaultExternalSourceSet)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lint/build/classes/java/main [-]
+                                - files                       : <ROOT>/lint/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lint/build/classes/java/test [-]
+                                - files                       : <ROOT>/lint/build/resources/test [-]
                             sources
                                 TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/lint/src/test/java [-]
@@ -597,14 +605,6 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lint/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lint/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lint/build/classes/java/main [-]
-                                - files                       : <ROOT>/lint/build/resources/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lint/build/classes/java/test [-]
-                                - files                       : <ROOT>/lint/build/resources/test [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             lintpublish                   : :lintpublish (DefaultExternalProject)
                 path                          : :lintpublish [-]
                 identityPath                  : :lintpublish [-]
@@ -646,18 +646,10 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lintpublish/src/main/resources [-]
-                                    outputDir                     : <ROOT>/lintpublish/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lintpublish/src/main/java
-                                    outputDir                     : <ROOT>/lintpublish/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
@@ -690,10 +682,26 @@ MODULE                        : project
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                                 - files                       : <ROOT>/lintpublish/build/resources/main [-]
-                            - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/main/java
+                                    outputDir                     : <ROOT>/lintpublish/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        test                          : test (DefaultExternalSourceSet)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
+                                - files                       : <ROOT>/lintpublish/build/resources/test [-]
                             sources
                                 TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/lintpublish/src/test/java [-]
@@ -705,14 +713,6 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lintpublish/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
-                                - files                       : <ROOT>/lintpublish/build/resources/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
-                                - files                       : <ROOT>/lintpublish/build/resources/test [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
                 path                          : :lintpublish-remote [-]
                 identityPath                  : :lintpublish-remote [-]
@@ -754,18 +754,10 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/resources [-]
-                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/java
-                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
@@ -798,10 +790,26 @@ MODULE                        : project
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
                                 - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
-                            - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/java
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        test                          : test (DefaultExternalSourceSet)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
+                                - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
                             sources
                                 TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/lintpublish-remote/src/test/java [-]
@@ -813,14 +821,6 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lintpublish-remote/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
-                                - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
-                                - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle

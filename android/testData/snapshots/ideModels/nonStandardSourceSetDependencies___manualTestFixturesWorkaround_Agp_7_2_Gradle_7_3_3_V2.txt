@@ -1150,20 +1150,10 @@ MODULE                        : NonStandardSourceSetDependencies
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/desktop/src/main/resources [-]
-                                    outputDir                     : <ROOT>/desktop/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/desktop/src/main/java
-                                    - srcDirs                     : <ROOT>/desktop/src/main/kotlin [-]
-                                    outputDir                     : <ROOT>/desktop/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/main [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : 1.7
+                            targetCompatibility           : 1.7
+                            - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -1173,23 +1163,22 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - files                       : <ROOT>/desktop/build/classes/java/main [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/desktop/build/resources/main [-]
-                            - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/desktop/src/main/java
+                                    - srcDirs                     : <ROOT>/desktop/src/main/kotlin [-]
+                                    outputDir                     : <ROOT>/desktop/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/main [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/desktop/src/main/resources [-]
+                                    outputDir                     : <ROOT>/desktop/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
-                        test                          : test (DefaultExternalSourceSet)
-                            sources
-                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/desktop/src/test/java [-]
-                                    - srcDirs                     : <ROOT>/desktop/src/test/kotlin [-]
-                                    outputDir                     : <ROOT>/desktop/out/test/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/test [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/test [-]
-                                    patterns                      : FilePatternSetImpl
-                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/desktop/src/test/resources [-]
-                                    outputDir                     : <ROOT>/desktop/out/test/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/desktop/build/resources/test [-]
-                                    patterns                      : FilePatternSetImpl
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/desktop/build/classes/java/main [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
@@ -1203,8 +1192,19 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - files                       : <ROOT>/desktop/build/classes/java/test [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/test [-]
                                 - files                       : <ROOT>/desktop/build/resources/test [-]
-                            sourceCompatibility           : 1.7
-                            targetCompatibility           : 1.7
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/desktop/src/test/java [-]
+                                    - srcDirs                     : <ROOT>/desktop/src/test/kotlin [-]
+                                    outputDir                     : <ROOT>/desktop/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/test [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/desktop/src/test/resources [-]
+                                    outputDir                     : <ROOT>/desktop/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/desktop/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
             feature-a                     : :feature-a (DefaultExternalProject)
                 path                          : :feature-a [-]
                 identityPath                  : :feature-a [-]
@@ -1828,20 +1828,10 @@ MODULE                        : NonStandardSourceSetDependencies
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/resources [-]
-                                    outputDir                     : <ROOT>/javaLibrary/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/java
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/kotlin [-]
-                                    outputDir                     : <ROOT>/javaLibrary/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/main [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : 1.7
+                            targetCompatibility           : 1.7
+                            - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                             - dependencies                : jvmApiElements (DefaultExternalProjectDependency)
                                 projectPath                   : :common
                                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
@@ -1856,23 +1846,22 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/resources/main [-]
-                            - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/java
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLibrary/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/main [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javaLibrary/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
-                        test                          : test (DefaultExternalSourceSet)
-                            sources
-                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/java [-]
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/kotlin [-]
-                                    outputDir                     : <ROOT>/javaLibrary/out/test/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/test [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
-                                    patterns                      : FilePatternSetImpl
-                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/resources [-]
-                                    outputDir                     : <ROOT>/javaLibrary/out/test/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/test [-]
-                                    patterns                      : FilePatternSetImpl
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
@@ -1892,15 +1881,30 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/test [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
                                 - files                       : <ROOT>/javaLibrary/build/resources/test [-]
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/java [-]
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLibrary/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/test [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javaLibrary/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                        testEnv
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
-                        testEnv                       : testEnv (DefaultExternalSourceSet)
+                            - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
+                                - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
+                                - files                       : <ROOT>/javaLibrary/build/resources/testEnv [-]
                             sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLibrary/src/testEnv/resources [-]
-                                    outputDir                     : <ROOT>/javaLibrary/out/testEnv/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/testEnv [-]
-                                    patterns                      : FilePatternSetImpl
                                 SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/javaLibrary/src/testEnv/java
                                     - srcDirs                     : <ROOT>/javaLibrary/src/testEnv/kotlin [-]
@@ -1908,15 +1912,11 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                                     - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
-                                - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
-                                - files                       : <ROOT>/javaLibrary/build/resources/testEnv [-]
-                            - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
-                            sourceCompatibility           : 1.7
-                            targetCompatibility           : 1.7
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLibrary/src/testEnv/resources [-]
+                                    outputDir                     : <ROOT>/javaLibrary/out/testEnv/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/testEnv [-]
+                                    patterns                      : FilePatternSetImpl
             kmp-java                      : :kmp-java (DefaultExternalProject)
                 path                          : :kmp-java [-]
                 identityPath                  : :kmp-java [-]
@@ -2037,41 +2037,31 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testRuntimeClasspath          : <empty>
                                 testRuntimeOnly               : <empty>
                             sourceSets
-                                main                          : main (DefaultExternalSourceSet)
-                                    sources
-                                        RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/resources [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                            patterns                      : FilePatternSetImpl
-                                        SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/classes [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                            patterns                      : FilePatternSetImpl
+                                main
+                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                    - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                    sources
+                                        SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/classes [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                            patterns                      : FilePatternSetImpl
+                                        RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/resources [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                            patterns                      : FilePatternSetImpl
+                                test
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                test                          : test (DefaultExternalSourceSet)
-                                    sources
-                                        TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/classes [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
-                                            patterns                      : FilePatternSetImpl
-                                        TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/resources [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
-                                            patterns                      : FilePatternSetImpl
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                     - dependencies                : DefaultFileCollectionDependency
@@ -2084,8 +2074,18 @@ MODULE                        : NonStandardSourceSetDependencies
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                    sources
+                                        TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/classes [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                            patterns                      : FilePatternSetImpl
+                                        TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/resources [-]
+                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                                            patterns                      : FilePatternSetImpl
                     sample-test                   : :kmp-java:sample-test (DefaultExternalProject)
                         path                          : :kmp-java:sample-test [-]
                         identityPath                  : :kmp-java:sample-test [-]

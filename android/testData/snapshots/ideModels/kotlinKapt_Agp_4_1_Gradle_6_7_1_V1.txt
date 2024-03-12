@@ -1376,21 +1376,10 @@ MODULE                        : MainActivity
                         testRuntimeOnly               : <empty>
                         testRuntimeOnlyDependenciesMetadata     : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLib/src/main/resources [-]
-                                    outputDir                     : <ROOT>/javaLib/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLib/src/main/java
-                                    - srcDirs                     : <ROOT>/javaLib/src/main/kotlin [-]
-                                    outputDir                     : <ROOT>/javaLib/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/main [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/main [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : 1.7
+                            targetCompatibility           : 1.7
+                            - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -1413,24 +1402,23 @@ MODULE                        : MainActivity
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                                 - files                       : <ROOT>/javaLib/build/resources/main [-]
-                            - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/java
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLib/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/main [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javaLib/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
-                        test                          : test (DefaultExternalSourceSet)
-                            sources
-                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLib/src/test/java [-]
-                                    - srcDirs                     : <ROOT>/javaLib/src/test/kotlin [-]
-                                    outputDir                     : <ROOT>/javaLib/out/test/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/test [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/test [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
-                                    patterns                      : FilePatternSetImpl
-                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javaLib/src/test/resources [-]
-                                    outputDir                     : <ROOT>/javaLib/out/test/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/test [-]
-                                    patterns                      : FilePatternSetImpl
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLib/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
@@ -1458,8 +1446,20 @@ MODULE                        : MainActivity
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
                                 - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
                                 - files                       : <ROOT>/javaLib/build/resources/test [-]
-                            sourceCompatibility           : 1.7
-                            targetCompatibility           : 1.7
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/java [-]
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLib/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/test [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/test [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javaLib/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]

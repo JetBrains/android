@@ -838,18 +838,10 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
-                            sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javalib1/src/main/resources [-]
-                                    outputDir                     : <ROOT>/javalib1/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
-                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javalib1/src/main/java
-                                    outputDir                     : <ROOT>/javalib1/out/production/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/main [-]
-                                    patterns                      : FilePatternSetImpl
+                        main
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
                             - dependencies                : apiElements (DefaultExternalProjectDependency)
@@ -867,21 +859,20 @@ MODULE                        : project
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javalib1/build/classes/java/main [-]
                                 - files                       : <ROOT>/javalib1/build/resources/main [-]
-                            - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/main/java
+                                    outputDir                     : <ROOT>/javalib1/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javalib1/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        test                          : test (DefaultExternalSourceSet)
-                            sources
-                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javalib1/src/test/java [-]
-                                    outputDir                     : <ROOT>/javalib1/out/test/classes [-]
-                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/test [-]
-                                    patterns                      : FilePatternSetImpl
-                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javalib1/src/test/resources [-]
-                                    outputDir                     : <ROOT>/javalib1/out/test/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
-                                    patterns                      : FilePatternSetImpl
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javalib1/build/classes/java/main [-]
                                 - files                       : <ROOT>/javalib1/build/resources/main [-]
@@ -901,8 +892,17 @@ MODULE                        : project
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javalib1/build/classes/java/test [-]
                                 - files                       : <ROOT>/javalib1/build/resources/test [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/test/java [-]
+                                    outputDir                     : <ROOT>/javalib1/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javalib1/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
             javalib2                      : :javalib2 (DefaultExternalProject)
                 path                          : :javalib2 [-]
                 identityPath                  : :javalib2 [-]
@@ -944,25 +944,33 @@ MODULE                        : project
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                     sourceSets
-                        main                          : main (DefaultExternalSourceSet)
+                        main
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib2/build/classes/java/main [-]
+                                - files                       : <ROOT>/javalib2/build/resources/main [-]
                             sources
-                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                    - srcDirs                     : <ROOT>/javalib2/src/main/resources [-]
-                                    outputDir                     : <ROOT>/javalib2/out/production/resources [-]
-                                    - gradleOutputDirs            : <ROOT>/javalib2/build/resources/main [-]
-                                    patterns                      : FilePatternSetImpl
                                 SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/javalib2/src/main/java
                                     outputDir                     : <ROOT>/javalib2/out/production/classes [-]
                                     - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/main [-]
                                     patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib2/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javalib2/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib2/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        test
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javalib2/build/classes/java/main [-]
                                 - files                       : <ROOT>/javalib2/build/resources/main [-]
-                            - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        test                          : test (DefaultExternalSourceSet)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib2/build/classes/java/test [-]
+                                - files                       : <ROOT>/javalib2/build/resources/test [-]
                             sources
                                 TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                     - srcDirs                     : <ROOT>/javalib2/src/test/java [-]
@@ -974,14 +982,6 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/javalib2/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/javalib2/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/javalib2/build/classes/java/main [-]
-                                - files                       : <ROOT>/javalib2/build/resources/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/javalib2/build/classes/java/test [-]
-                                - files                       : <ROOT>/javalib2/build/resources/test [-]
-                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             library1                      : :library1 (DefaultExternalProject)
                 path                          : :library1 [-]
                 identityPath                  : :library1 [-]

@@ -1072,7 +1072,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragments=androidInstrumentedTest
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
@@ -1263,7 +1263,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=androidMain:commonMain -Xfragments=androidMain,commonMain
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
@@ -1377,7 +1377,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=androidUnitTest:commonTest -Xfragments=androidUnitTest,commonTest
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
@@ -1861,7 +1861,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=jvmMain:commonMain -Xfragments=jvmMain,commonMain
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpJvmOnly
@@ -1939,7 +1939,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=jvmTest:commonTest -Xfragments=jvmTest,commonTest
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpJvmOnly
@@ -2108,7 +2108,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=androidMain:commonMain -Xfragments=androidMain,commonMain
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpSecondLib
@@ -2184,9 +2184,9 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
+                apiVersion                    : 2.0
                 languageVersion               : 2.0
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2203,7 +2203,7 @@ PROJECT                       : Kotlin Multiplatform
             Kind                          : SOURCE_SET_HOLDER
             LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
+                apiVersion                    : 2.0
                 languageVersion               : 2.0
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2347,7 +2347,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=jvmMain:commonMain -Xfragments=jvmMain,commonMain
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpSecondLib
@@ -2425,7 +2425,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xfragment-refines=jvmTest:commonTest -Xfragments=jvmTest,commonTest
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpSecondLib
