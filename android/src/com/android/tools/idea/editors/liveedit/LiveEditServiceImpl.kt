@@ -75,7 +75,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.ui.content.impl.ContentManagerImpl
 import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -341,8 +340,7 @@ class LiveEditServiceImpl(val project: Project,
       }
     }
 
-    // TODO: Remove the cast after ag/26340227 is merged.
-    (runningDevicesWindow.contentManagerIfCreated as? ContentManagerImpl)?.contentsRecursively?.forEach {
+    runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach {
       val dataProvider = it.component as? DataProvider ?: return@forEach
       val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
       serial?.let { s -> adapter.register(s) }
