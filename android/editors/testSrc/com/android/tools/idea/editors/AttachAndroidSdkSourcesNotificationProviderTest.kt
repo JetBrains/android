@@ -107,12 +107,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_javaClassInAndroidSdkAndSourcesAvailable_nullReturned() {
-    val virtualFile = runReadAction {
-      JavaPsiFacade.getInstance(projectRule.project)
-        .findClass("android.view.View", GlobalSearchScope.allScope(projectRule.project))!!
-        .containingFile
-        .virtualFile
-    }
+    val virtualFile = getSdkViewClassContainingFile()
 
     val panel = invokeCreateNotificationPanel(virtualFile)
     assertThat(panel).isNull()
@@ -129,7 +124,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_panelHasCorrectLabel() {
-    val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
+    removeSourcesFromSdk()
+    val panel = requireNotNull(invokeCreateNotificationPanel(getSdkViewClassContainingFile()))
     assertThat(panel.text).isEqualTo("Android SDK sources for API 33 are not available.")
   }
 
@@ -137,13 +133,15 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_downloadNotAvailable_panelHasCorrectLabel() {
     repositoryPackages.setRemotePkgInfos(listOf())
 
-    val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
+    removeSourcesFromSdk()
+    val panel = requireNotNull(invokeCreateNotificationPanel(getSdkViewClassContainingFile()))
     assertThat(panel.text).isEqualTo("Android SDK sources for API 33 are not available.")
   }
 
   @Test
   fun createNotificationPanel_panelHasDownloadLink() {
-    val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
+    removeSourcesFromSdk()
+    val panel = requireNotNull(invokeCreateNotificationPanel(getSdkViewClassContainingFile()))
 
     val links: Map<String, Runnable> = panel.links
     assertThat(links.keys).containsExactly("Download")
@@ -153,7 +151,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_downloadNotAvailable_panelHasNoLinks() {
     repositoryPackages.setRemotePkgInfos(listOf())
 
-    val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
+    removeSourcesFromSdk()
+    val panel = requireNotNull(invokeCreateNotificationPanel(getSdkViewClassContainingFile()))
     val links: Map<String, Runnable> = panel.links
     assertThat(links).isEmpty()
   }
@@ -161,7 +160,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Test
   fun createNotificationPanel_downloadLinkDownloadsSources() {
     whenever(mockModelWizardDialog.showAndGet()).thenReturn(true)
-    val panel = requireNotNull(invokeCreateNotificationPanel(androidSdkClassWithoutSources))
+    removeSourcesFromSdk()
+    val panel = requireNotNull(invokeCreateNotificationPanel(getSdkViewClassContainingFile()))
 
     val rootProvider = AndroidSdks.getInstance().allAndroidSdks[0].rootProvider
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES)).hasLength(0)
@@ -201,21 +201,20 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     return panel as AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel?
   }
 
-  private val androidSdkClassWithoutSources: VirtualFile
-    get() {
-      for (sdk in AndroidSdks.getInstance().allAndroidSdks) {
-        val sdkModificator = sdk.sdkModificator
-        sdkModificator.removeRoots(OrderRootType.SOURCES)
-        WriteAction.runAndWait<Throwable>(sdkModificator::commitChanges)
-      }
+  private fun getSdkViewClassContainingFile(): VirtualFile = runReadAction {
+    JavaPsiFacade.getInstance(projectRule.project)
+      .findClass("android.view.View", GlobalSearchScope.allScope(projectRule.project))!!
+      .containingFile
+      .virtualFile
+  }
 
-      return runReadAction {
-        JavaPsiFacade.getInstance(projectRule.project)
-          .findClass("android.view.View", GlobalSearchScope.allScope(projectRule.project))!!
-          .containingFile
-          .virtualFile
-      }
+  private fun removeSourcesFromSdk() {
+    for (sdk in AndroidSdks.getInstance().allAndroidSdks) {
+      val sdkModificator = sdk.sdkModificator
+      sdkModificator.removeRoots(OrderRootType.SOURCES)
+      WriteAction.runAndWait<Throwable>(sdkModificator::commitChanges)
     }
+  }
 
   /**
    * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to create an SDK download dialog.
