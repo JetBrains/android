@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.tools.idea.perfetto.PerfettoTraceWebLoader
 import com.android.tools.idea.project.AndroidNotification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -37,14 +36,8 @@ class BenchmarkLinkListener(private val project: Project) : HyperlinkListener {
         return
       }
       val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile) ?: return
-
-      // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-      if (Registry.`is`(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
-        PerfettoTraceWebLoader.loadTrace(virtualFileTrace.toNioPath().toFile())
-      } else {
-        val fd = OpenFileDescriptor(project, virtualFileTrace)
-        FileEditorManager.getInstance(project).openEditor(fd, true)
-      }
+      val fd = OpenFileDescriptor(project, virtualFileTrace)
+      FileEditorManager.getInstance(project).openEditor(fd, true)
     }
   }
 }
