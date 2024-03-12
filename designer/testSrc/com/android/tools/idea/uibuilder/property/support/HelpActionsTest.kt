@@ -59,10 +59,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 internal const val EXPECTED_TEXT_DOCUMENTATION =
-  "<html><body><div class='content-only'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
+  "<html><body><div class='content'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
 
 internal const val EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION =
-  "<html><body><div class='content-only'><b>legend</b><br/><br/></div>"
+  "<html><body><div class='content'><b>legend</b><br/><br/></div>"
 
 class HelpActionsTest {
 
@@ -120,6 +120,9 @@ class HelpActionsTest {
         .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
     return doc.text
+      // IntelliJ 2024.1 changes the class from content-only to content
+      // Once the merge is complete, this check can be removed.
+      .replace("class='content-only'", "class='content'")
   }
 
   @Test
