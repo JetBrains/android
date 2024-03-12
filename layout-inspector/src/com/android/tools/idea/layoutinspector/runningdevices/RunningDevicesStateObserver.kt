@@ -110,8 +110,12 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
 
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
-              // Restore selected tabs in case they are removed when the tool window is hidden.
-              updateVisibleTabs()
+              if (toolWindow.isVisible) {
+                // Restore visible tabs that were removed when the tool window was hidden.
+                updateVisibleTabs()
+              } else {
+                visibleTabs = emptyList()
+              }
             }
           }
         }

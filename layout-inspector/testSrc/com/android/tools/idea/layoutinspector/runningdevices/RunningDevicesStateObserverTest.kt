@@ -241,6 +241,7 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.toolWindow.show()
     fakeToolWindowManager.toolWindow.hide()
 
-    assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId))
+    assertThat(observedVisibleTabs)
+      .containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), emptyList<DeviceId>())
   }
 }

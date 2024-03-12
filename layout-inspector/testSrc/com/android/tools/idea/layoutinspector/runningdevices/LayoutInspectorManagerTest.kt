@@ -172,7 +172,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testHideToolWindowDoesNotRemoveUi() = withEmbeddedLayoutInspector {
+  fun testHideToolWindowRemovesUi() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.addContent(tab1)
@@ -191,11 +191,13 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.toolWindow.hide()
     waitForCondition(2, TimeUnit.SECONDS) { !fakeToolWindowManager.toolWindow.isVisible }
 
-    verifyUiInjected(tab1)
+    // Make sure that the UI is removed when the tool window is hidden.
+    verifyUiRemoved(tab1)
 
     fakeToolWindowManager.toolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindowManager.toolWindow.isVisible }
 
+    // The UI should be re-inject from scratch when the tool window is visible again.
     verifyUiInjected(tab1)
   }
 
