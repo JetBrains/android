@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
@@ -25,10 +26,12 @@ internal fun <I> Dropdown(
   selectedItem: I,
   items: ImmutableCollection<I>,
   onSelectedItemChange: (I) -> Unit,
+  modifier: Modifier = Modifier,
   enabled: Boolean = true,
 ) {
   Dropdown(
-    enabled = enabled,
+    modifier,
+    enabled,
     menuContent = {
       items.forEach {
         selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {

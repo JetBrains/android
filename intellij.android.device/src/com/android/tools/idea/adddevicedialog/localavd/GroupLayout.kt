@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
@@ -24,13 +25,15 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.Placeable.PlacementScope
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
-  Layout(content) { measurables, constraints ->
-    val relatedPadding = 6.dp.roundToPx()
-    val unrelatedPadding = 12.dp.roundToPx()
+internal fun GroupLayout(
+  modifier: Modifier = Modifier,
+  content: @Composable @UiComposable () -> Unit,
+) {
+  Layout(content, modifier) { measurables, constraints ->
+    val relatedPadding = Padding.SMALL.roundToPx()
+    val unrelatedPadding = Padding.MEDIUM.roundToPx()
 
     val header = measurables.first().measure(constraints)
     val rows = Row.buildRows(measurables, constraints, relatedPadding, unrelatedPadding)

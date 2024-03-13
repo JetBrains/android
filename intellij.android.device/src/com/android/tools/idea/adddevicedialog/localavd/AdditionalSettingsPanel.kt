@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog.localavd
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,9 +67,16 @@ internal fun AdditionalSettingsPanel(
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  Row {
-    Text("Device skin")
-    Dropdown(device.skin, skins, onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) })
+  Row(Modifier.padding(bottom = Padding.LARGE)) {
+    Text("Device skin", Modifier.padding(end = Padding.SMALL))
+
+    Dropdown(
+      device.skin,
+      skins,
+      onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) },
+      Modifier.padding(end = Padding.MEDIUM),
+    )
+
     OutlinedButton(onImportButtonClick) { Text("Import") }
   }
 
@@ -81,7 +89,7 @@ internal fun AdditionalSettingsPanel(
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  GroupLayout(Modifier.padding(bottom = Padding.LARGE)) {
     GroupHeader("Camera")
     Text("Front")
 
@@ -111,7 +119,7 @@ private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
 
 @Composable
 private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  GroupLayout(Modifier.padding(bottom = Padding.LARGE)) {
     GroupHeader("Network")
     Text("Speed")
 
@@ -139,7 +147,7 @@ private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList(
 
 @Composable
 private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  GroupLayout(Modifier.padding(bottom = Padding.LARGE)) {
     GroupHeader("Startup")
     Text("Orientation")
 

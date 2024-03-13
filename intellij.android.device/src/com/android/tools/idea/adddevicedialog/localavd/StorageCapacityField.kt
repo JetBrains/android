@@ -44,7 +44,7 @@ internal fun StorageCapacityField(
     value.unit,
     UNITS,
     onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) },
-    enabled,
+    enabled = enabled,
   )
 }
 
