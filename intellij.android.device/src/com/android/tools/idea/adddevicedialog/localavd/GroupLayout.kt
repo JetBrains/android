@@ -34,13 +34,14 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
 
     val header = measurables.first().measure(constraints)
     val rows = Row.buildRows(measurables, constraints, relatedPadding, unrelatedPadding)
+    val maxTextWidth = rows.maxOf { it.text.width }
 
-    layout(getWidth(header, rows), getHeight(header, rows, unrelatedPadding)) {
+    layout(getWidth(header, rows, maxTextWidth), getHeight(header, rows, unrelatedPadding)) {
       header.placeRelative(0, 0)
       var y = header.height + unrelatedPadding
 
       rows.forEach {
-        it.placePlaceables(this, y)
+        it.placePlaceables(this, y, maxTextWidth)
         y += it.height + unrelatedPadding
       }
     }
@@ -51,18 +52,12 @@ internal object Icon
 
 private class Row
 private constructor(
-  private val text: Placeable,
+  val text: Placeable,
   private val placeable: Placeable,
   private val icon: Placeable? = null,
   private val relatedPadding: Int,
   private val unrelatedPadding: Int,
 ) {
-  val width: Int
-    get() {
-      val width = text.width + relatedPadding + placeable.width
-      return if (icon == null) width else width + unrelatedPadding + icon.width
-    }
-
   val height
     get() = maxOf(text.height, placeable.height, icon?.height ?: 0)
 
@@ -123,14 +118,19 @@ private constructor(
     }
   }
 
-  fun placePlaceables(scope: PlacementScope, y: Int) =
+  fun width(maxTextWidth: Int): Int {
+    val width = maxTextWidth + relatedPadding + placeable.width
+    return if (icon == null) width else width + unrelatedPadding + icon.width
+  }
+
+  fun placePlaceables(scope: PlacementScope, y: Int, maxTextWidth: Int) =
     with(scope) {
       var x = 0
 
       // Align text's baseline with placeable's
       text.placeRelative(x, y + placeable[FirstBaseline] - text[FirstBaseline])
 
-      x += text.width + relatedPadding
+      x += maxTextWidth + relatedPadding
       placeable.placeRelative(x, y)
 
       if (icon == null) {
@@ -142,10 +142,8 @@ private constructor(
     }
 }
 
-private fun getWidth(header: Placeable, rows: Iterable<Row>): Int {
-  val maxRowWidth = rows.maxOfOrNull(Row::width)
-  return if (maxRowWidth == null) header.width else maxOf(header.width, maxRowWidth)
-}
+private fun getWidth(header: Placeable, rows: Iterable<Row>, maxTextWidth: Int) =
+  maxOf(header.width, rows.maxOf { it.width(maxTextWidth) })
 
 private fun getHeight(header: Placeable, rows: Iterable<Row>, padding: Int) =
   header.height + rows.sumOf { padding + it.height }
