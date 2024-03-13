@@ -21,15 +21,16 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 
 /** This label displays the [SceneView] model label. */
-open class LabelPanel(var layoutData: LayoutData) : JBLabel() {
+open class LabelPanel(initialLayoutData: LayoutData) : JBLabel() {
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = labelDefaultColor
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    updateFromLayoutData(initialLayoutData)
   }
 
-  final override fun doLayout() {
-    super.doLayout()
+  /** Updates the label data from the given [LayoutData] information. */
+  fun updateFromLayoutData(layoutData: LayoutData) {
     // If there is a model name, we manually assign the content of the modelNameLabel and position
     // it here.
     // Once this panel gets more functionality, we will need the use of a layout manager. For now,
