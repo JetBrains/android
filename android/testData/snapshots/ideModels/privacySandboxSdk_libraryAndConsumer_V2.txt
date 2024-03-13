@@ -834,6 +834,8 @@ MODULE                        : project
                         include                       : <empty>
                         includeApiClasspath           : <empty>
                         includeRuntimeClasspath       : <empty>
+                        optionalSdk                   : <empty>
+                        requiredSdk                   : <empty>
                         runtimeElements               : <empty>
             ads-sdk-implementation        : :ads-sdk-implementation (DefaultExternalProject)
                 path                          : :ads-sdk-implementation [-]
