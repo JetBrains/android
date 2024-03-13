@@ -18,10 +18,14 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.flags.StudioFlags
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.sqrt
+
+/** The minumum height x width what should be available for the preview. */
+private const val minumumPreviewSpacePx = 100 * 100
 
 /**
  * This layout put the previews in the same group into the same rows and tries to not use the
@@ -123,12 +127,18 @@ class GroupedGridSurfaceLayoutManager(
       return 1.0
     }
 
+    val contentToFit =
+      if (StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
+        // Take into consideration both height and width
+        content.take(availableWidth * availableHeight / minumumPreviewSpacePx)
+      } else content
+
     // Use binary search to find the proper zoom-to-fit value.
 
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
-      content.map {
+      contentToFit.map {
         val contentSize = it.contentSize
         val margin = it.getMargin(1.0)
         val framePadding = padding.previewPaddingProvider(1.0)
@@ -170,7 +180,7 @@ class GroupedGridSurfaceLayoutManager(
     }
 
     return getMaxZoomToFitScale(
-      content,
+      contentToFit,
       lowerBound,
       upperBound,
       availableWidth,
