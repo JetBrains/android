@@ -202,7 +202,7 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = Flag.create(PROFILER, "task.based.ux", "Task-based UX",
-    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)", false);
+    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)", true);
 
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     Flag.create(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
