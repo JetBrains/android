@@ -91,7 +91,7 @@ class CommonFastPreviewSurface(
     val previewFile =
       readAction { psiFilePointer.element }
         ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File is no valid")
+          IllegalStateException("Preview File is not valid")
         )
     val previewFileModule =
       readAction { previewFile.module }
