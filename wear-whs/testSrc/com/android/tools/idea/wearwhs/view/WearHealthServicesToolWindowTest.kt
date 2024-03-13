@@ -31,6 +31,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -70,10 +71,14 @@ class WearHealthServicesToolWindowTest {
 
   private val deviceManager by lazy { FakeDeviceManager() }
   private val stateManager by lazy {
-    WearHealthServicesToolWindowStateManagerImpl(deviceManager, pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS)
+    WearHealthServicesToolWindowStateManagerImpl(deviceManager, pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS).apply {
+      runPeriodicUpdates = true
+    }
   }
   private val toolWindow by lazy {
-    WearHealthServicesToolWindow(stateManager).apply {
+    WearHealthServicesToolWindow(stateManager,
+                                 ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project),
+                                 projectRule.project).apply {
       setSerialNumber("test")
     }
   }

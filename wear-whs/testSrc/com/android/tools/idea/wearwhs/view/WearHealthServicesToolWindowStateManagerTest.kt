@@ -75,6 +75,7 @@ class WearHealthServicesToolWindowStateManagerTest {
   private val stateManager by lazy {
     WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
       it.serialNumber = "test"
+      it.runPeriodicUpdates = true
     }
   }
 
@@ -282,6 +283,18 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     // Verify that the value is updated
     stateManager.ongoingExercise.waitForValue(true)
+  }
+
+  @Test
+  fun `test periodic updates do not run if the tool window is not visible`() = runBlocking {
+    stateManager.runPeriodicUpdates = false
+
+    deviceManager.activeExercise = true
+
+    stateManager.forceUpdateState()
+
+    // Verify that the value is not updated
+    stateManager.ongoingExercise.waitForValue(false)
   }
 
   private suspend fun <T> Flow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {

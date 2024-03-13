@@ -46,6 +46,8 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS)
   : WearHealthServicesToolWindowStateManager, Disposable {
 
+  override var runPeriodicUpdates = false
+
   private val logger: Logger = Logger.getInstance(WearHealthServicesToolWindowStateManagerImpl::class.java)
   override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
   override val capabilitiesList = deviceManager.getCapabilities()
@@ -95,6 +97,10 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   private suspend fun updateState() {
+    if (!runPeriodicUpdates) {
+      // Don't update the state if the tool window is hidden
+      return
+    }
     if (serialNumber == null) {
       // Panel is not bound to an emulator yet
       return

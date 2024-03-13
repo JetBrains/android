@@ -56,7 +56,7 @@ private fun ToolWindow.displayWearHealthServices() {
   contentManager.removeAllContents(true)
   val deviceManager = ContentProviderDeviceManager({ AdbLibService.getSession(project) })
   val stateManager = WearHealthServicesToolWindowStateManagerImpl(deviceManager)
-  val view = WearHealthServicesToolWindow(stateManager)
+  val view = WearHealthServicesToolWindow(stateManager, this, project)
 
   Disposer.register(disposable, stateManager)
   Disposer.register(disposable, view)
