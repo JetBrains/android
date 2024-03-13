@@ -33,8 +33,6 @@
         <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />
             <arg value="//tools/adt/idea/android:artifacts" />
-            <arg value="@blaze//third_party/intellij/bazel/plugin/proto:proto_deps" />
-            <arg value="@blaze//java/com/google/devtools/intellij/blaze/plugin/aswb/proto:duckie_java_proto" />
             <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
         </exec>
     </target>
