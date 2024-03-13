@@ -38,7 +38,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Default polling interval for updating the state manager with values from [WearHealthServicesDeviceManager].
  */
-private const val POLLING_INTERVAL_MILLISECONDS: Long = 10000
+private const val POLLING_INTERVAL_MILLISECONDS: Long = 5000
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
