@@ -49,6 +49,7 @@ import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.adtui.TabularLayout
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
@@ -199,9 +200,9 @@ class WarningsViewDetailPagesFactory(
     val linkPanel = JPanel().apply {
       layout = FlowLayout(FlowLayout.LEFT, 0, 0)
       add(HyperlinkLabel("Make sure that you are using an incremental version of this annotation processor.").apply {
-        val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
-        addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
-        setHyperlinkTarget(target.urlTarget)
+        addHyperlinkListener { actionHandlers.helpLinkClicked(BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS) }
+        icon = AllIcons.Ide.External_link_arrow
+        isIconAtRight = true
       })
     }
 
