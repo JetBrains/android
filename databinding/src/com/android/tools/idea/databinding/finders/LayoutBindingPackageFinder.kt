@@ -50,15 +50,11 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
         bindingFacetsProvider
           .getAllBindingEnabledFacets()
           .flatMap { facet ->
-            val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
-            val packageNames =
-              bindingModuleCache
-                .getLightBindingClasses()
-                .map { lightClass -> lightClass.qualifiedName.substringBeforeLast('.') }
-                .distinct()
-            packageNames.map { packageName ->
-              packageFactory.getOrCreatePsiPackage(facet, packageName)
-            }
+            LayoutBindingModuleCache.getInstance(facet)
+              .getLightBindingClasses()
+              .map { lightClass -> lightClass.qualifiedName.substringBeforeLast('.') }
+              .toSet()
+              .map { packageName -> packageFactory.getOrCreatePsiPackage(facet, packageName) }
           }
           .associateBy { psiPackage -> psiPackage.qualifiedName }
 
