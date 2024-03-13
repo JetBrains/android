@@ -30,12 +30,9 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
-import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder
 import com.android.utils.TraceUtils
 import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
-import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ObjectArrays
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
@@ -48,9 +45,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
@@ -61,7 +56,6 @@ import com.intellij.psi.PsiTypes
 import com.intellij.psi.ResolveState
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.light.LightField
-import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.impl.light.LightMethod
 import com.intellij.psi.impl.light.LightMethodBuilder
@@ -70,7 +64,6 @@ import com.intellij.psi.scope.NameHint
 import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
-import java.util.Objects
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.annotations.NonNls
 
@@ -85,11 +78,9 @@ import org.jetbrains.annotations.NonNls
  * class as well as layout-specific implementations, e.g. "BindingImpl", "BindingLandImpl", will be
  * generated.
  */
-class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindingClassConfig) :
-  AndroidLightClassBase(
-    psiManager,
-    ImmutableSet.of<String>(PsiModifier.PUBLIC, PsiModifier.FINAL),
-  ) {
+class LightBindingClass(psiManager: PsiManager, private val config: LightBindingClassConfig) :
+  AndroidLightClassBase(psiManager, setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
+
   private enum class NullabilityType {
     UNSPECIFIED,
     NONNULL,
@@ -99,256 +90,164 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
       get() = this == NULLABLE
   }
 
-  private val myBackingFile: PsiJavaFile
-
-  private var myPsiSupers: Array<PsiClass>? // Created lazily
-  private var myPsiConstructors: Array<PsiMethod>? // Created lazily
-  private var myPsiAllMethods: Array<PsiMethod> // Created lazily
-  private var myPsiMethods: Array<PsiMethod> // Created lazily
-  private var myPsiFields: Array<PsiField> // Created lazily
-  private var myExtendsList: PsiReferenceList? = null // Created lazily
-  private var myExtendsListTypes: Array<PsiClassType>? // Created lazily
-
-  init {
-    // Create a fake backing file to represent this binding class
-    val fileFactory = PsiFileFactory.getInstance(project)
-    myBackingFile =
-      fileFactory.createFileFromText(
-        myConfig.className + ".java",
+  // Create a fake backing file to represent this binding class
+  private val backingFile =
+    PsiFileFactory.getInstance(project)
+      .createFileFromText(
+        "${config.className}.java",
         JavaFileType.INSTANCE,
         "// This class is generated on-the-fly by the IDE.",
-      ) as PsiJavaFile
-    myBackingFile.packageName = StringUtil.getPackageName(myConfig.qualifiedName)
+      )
+      .apply {
+        (this@apply as PsiJavaFile).packageName = StringUtil.getPackageName(config.qualifiedName)
+      }
 
-    setModuleInfo(myConfig.facet.module, false)
+  private val psiSupers: Array<PsiClass> by
+    lazy(LazyThreadSafetyMode.NONE) { superClass?.let { arrayOf(it) } ?: PsiClass.EMPTY_ARRAY }
+
+  private val psiConstructors: Array<PsiMethod> by
+    lazy(LazyThreadSafetyMode.NONE) { arrayOf(createConstructor()) }
+
+  private val psiAllMethods: Array<PsiMethod> by
+    lazy(LazyThreadSafetyMode.NONE) { (superClass?.allMethods ?: arrayOf()) + methods }
+
+  private val psiMethods: Array<PsiMethod> by lazy(LazyThreadSafetyMode.NONE, ::computeMethods)
+
+  private val psiFields: Array<PsiField> by lazy(LazyThreadSafetyMode.NONE, ::computeFields)
+
+  private val psiExtendsList: PsiReferenceList by
+    lazy(LazyThreadSafetyMode.NONE) {
+      val factory = PsiElementFactory.getInstance(project)
+      val referenceElementByType = factory.createReferenceElementByType(extendsListTypes[0])
+      factory.createReferenceList(arrayOf(referenceElementByType))
+    }
+
+  private val psiExtendsListTypes: Array<PsiClassType> by
+    lazy(LazyThreadSafetyMode.NONE) {
+      arrayOf(PsiType.getTypeByName(config.superName, project, moduleScope))
+    }
+
+  init {
+    setModuleInfo(config.facet.module, false)
   }
 
   private fun computeMethods(): Array<PsiMethod> {
-    val methods: MutableList<PsiMethod> = ArrayList()
+    val methods: MutableList<PsiMethod> = mutableListOf()
 
     createRootOverride(methods)
 
-    for (variableTag in myConfig.variableTags) {
-      createVariableMethods(variableTag, methods)
+    for (variableTag in config.variableTags) {
+      createVariableMethods(variableTag.first, variableTag.second, methods)
     }
 
-    if (myConfig.shouldGenerateGettersAndStaticMethods()) {
+    if (config.shouldGenerateGettersAndStaticMethods()) {
       createStaticMethods(methods)
     }
 
-    return methods.toArray(PsiMethod.EMPTY_ARRAY)
+    return methods.toTypedArray()
   }
 
   private fun computeFields(): Array<PsiField> {
-    val scopedViewIds = myConfig.scopedViewIds
-    if (scopedViewIds.isEmpty()) {
+    val scopedViewIds = config.scopedViewIds
+    if (scopedViewIds.isEmpty() || scopedViewIds.values.all(Collection<ViewIdData>::isEmpty)) {
       return PsiField.EMPTY_ARRAY
     }
-    var allEmpty = true
-    for (viewIds in scopedViewIds.values) {
-      if (!viewIds.isEmpty()) {
-        allEmpty = false
-        break
-      }
-    }
-    if (allEmpty) {
-      return PsiField.EMPTY_ARRAY
-    }
-
-    val computed: Array<PsiField>
 
     val numLayouts = scopedViewIds.keys.size
     if (numLayouts == 1) {
       // In the overwhelmingly common case, there's only a single layout, which means that all the
       // IDs are present in every layout (there's only the one!), so the fields generated for it
       // are always non-null.
-      val viewIds = scopedViewIds.values.stream().findFirst().get()
-      computed =
-        viewIds
-          .stream()
-          .map<PsiField?> { viewId: ViewIdData ->
-            var typeOverride: PsiType? = null
-            var typeOverrideStr = viewId.typeOverride
-            if (typeOverrideStr != null) {
-              typeOverrideStr = getFqcn(typeOverrideStr)
-              typeOverride = parsePsiType(typeOverrideStr, this)
+      val viewIds = scopedViewIds.values.single()
+      return viewIds
+        .mapNotNull { viewId: ViewIdData ->
+          val typeOverride =
+            viewId.typeOverride?.let { typeOverrideStr ->
+              parsePsiType(getFqcn(typeOverrideStr), this)
             }
-            createPsiField(viewId, true, typeOverride)
-          }
-          .filter { obj: PsiField? -> Objects.nonNull(obj) }
-          .toArray<PsiField> { _Dummy_.__Array__() }
-    } else { // Two or more layouts.
-      // Generated fields are non-null only if their source IDs are defined consistently across all
-      // layouts.
-      val dedupedViewIds: MutableSet<ViewIdData> = HashSet() // Only create one field per ID
-      val idCounts: MutableMap<String, Int> = HashMap()
-      run {
-        for (viewIds in scopedViewIds.values) {
-          for (viewId in viewIds) {
-            val count =
-              idCounts.compute(viewId.id) { key: String?, value: Int? ->
-                if ((value == null)) 1 else (value + 1)
-              }!!
-            if (count == 1) {
-              // It doesn't matter which copy of the ID we keep, so just keep the first one
-              dedupedViewIds.add(viewId)
-            }
-          }
+          createPsiField(viewId, true, typeOverride)
         }
-      }
-
-      // If tags have inconsitent IDs, e.g. <TextView ...> in one configuration and <Button ...> in
-      // another,
-      // the databinding compiler reverts to View
-      val inconsistentlyTypedIds: MutableSet<String> = HashSet()
-      run {
-        val idTypes: MutableMap<String, String> = HashMap()
-        for (viewIds in scopedViewIds.values) {
-          for ((id, viewName, _, viewTypeOverride) in viewIds) {
-            var viewFqcn = getFqcn(viewName)
-            if (viewTypeOverride != null) {
-              viewFqcn = getFqcn(viewTypeOverride)
-            }
-
-            val previousViewName = idTypes[id]
-            if (previousViewName == null) {
-              idTypes[id] = viewFqcn
-            } else {
-              if (viewFqcn != previousViewName) {
-                inconsistentlyTypedIds.add(id)
-              }
-            }
-          }
-        }
-      }
-
-      computed =
-        dedupedViewIds
-          .stream()
-          .map<PsiField?> { viewId: ViewIdData ->
-            var typeOverride: PsiType? = null
-            var typeOverrideStr = viewId.typeOverride
-            if (inconsistentlyTypedIds.contains(viewId.id)) {
-              typeOverride = parsePsiType(SdkConstants.CLASS_VIEW, this)
-            } else if (typeOverrideStr != null) {
-              typeOverrideStr = getFqcn(typeOverrideStr!!)
-              typeOverride = parsePsiType(typeOverrideStr!!, this)
-            }
-            createPsiField(viewId, idCounts[viewId.id] == numLayouts, typeOverride)
-          }
-          .filter { obj: PsiField? -> Objects.nonNull(obj) }
-          .toArray<PsiField> { _Dummy_.__Array__() }
+        .toTypedArray()
     }
 
-    return computed
+    // Two or more layouts.
+    // Generated fields are non-null only if their source IDs are defined consistently across all
+    // layouts.
+    val dedupedViewIds: MutableSet<ViewIdData> = mutableSetOf() // Only create one field per ID
+    val idCounts: MutableMap<String, Int> = mutableMapOf()
+
+    for (viewId in scopedViewIds.values.flatten()) {
+      val count = idCounts.compute(viewId.id) { _, value -> if (value == null) 1 else (value + 1) }
+      if (count == 1) {
+        // It doesn't matter which copy of the ID we keep, so just keep the first one
+        dedupedViewIds.add(viewId)
+      }
+    }
+
+    // If tags have inconsistent IDs, e.g. <TextView ...> in one configuration and <Button ...> in
+    // another, the data binding compiler reverts to View
+    val inconsistentlyTypedIds: MutableSet<String> = mutableSetOf()
+    val idTypes: MutableMap<String, String> = mutableMapOf()
+    for ((id, viewName, _, viewTypeOverride) in scopedViewIds.values.flatten()) {
+      val viewFqcn = getFqcn(viewTypeOverride ?: viewName)
+
+      val previousViewName = idTypes[id]
+      if (previousViewName == null) {
+        idTypes[id] = viewFqcn
+      } else if (viewFqcn != previousViewName) {
+        inconsistentlyTypedIds.add(id)
+      }
+    }
+
+    return dedupedViewIds
+      .mapNotNull { viewId: ViewIdData ->
+        val typeOverride =
+          if (inconsistentlyTypedIds.contains(viewId.id)) {
+            parsePsiType(SdkConstants.CLASS_VIEW, this)
+          } else {
+            viewId.typeOverride?.let { parsePsiType(getFqcn(it), this) }
+          }
+        createPsiField(viewId, idCounts[viewId.id] == numLayouts, typeOverride)
+      }
+      .toTypedArray()
   }
 
   /** Creates a private no-argument constructor. */
-  private fun createConstructor(): PsiMethod {
-    val constructor = LightMethodBuilder(this, JavaLanguage.INSTANCE)
-    constructor.setConstructor(true)
-    constructor.addModifier(PsiModifier.PRIVATE)
-    return constructor
-  }
-
-  override fun getQualifiedName(): String {
-    return myConfig.qualifiedName
-  }
-
-  override fun getContainingClass(): PsiClass? {
-    return null
-  }
-
-  override fun getFields(): Array<PsiField> {
-    if (myPsiFields == null) {
-      myPsiFields = computeFields()
-    }
-    return myPsiFields
-  }
-
-  override fun getAllFields(): Array<PsiField> {
-    return fields
-  }
-
-  override fun getConstructors(): Array<PsiMethod> {
-    if (myPsiConstructors == null) {
-      myPsiConstructors = arrayOf(createConstructor())
-    }
-    return myPsiConstructors!!
-  }
-
-  override fun getMethods(): Array<PsiMethod> {
-    if (myPsiMethods == null) {
-      myPsiMethods = computeMethods()
-    }
-    return myPsiMethods
-  }
-
-  override fun getSupers(): Array<PsiClass> {
-    if (myPsiSupers == null) {
-      val superClass = superClass
-      myPsiSupers =
-        if (superClass != null) {
-          arrayOf(superClass)
-        } else {
-          // superClass shouldn't be null but we handle just in case
-          PsiClass.EMPTY_ARRAY
-        }
-    }
-    return myPsiSupers!!
-  }
-
-  override fun getSuperClass(): PsiClass? {
-    return JavaPsiFacade.getInstance(project).findClass(myConfig.superName, moduleScope)
-  }
-
-  override fun getExtendsList(): PsiReferenceList? {
-    if (myExtendsList == null) {
-      val factory = PsiElementFactory.getInstance(project)
-      val referenceElementByType = factory.createReferenceElementByType(extendsListTypes[0])
-      myExtendsList = factory.createReferenceList(arrayOf(referenceElementByType))
-    }
-    return myExtendsList
-  }
-
-  override fun getSuperTypes(): Array<PsiClassType> {
-    return extendsListTypes
-  }
-
-  override fun getExtendsListTypes(): Array<PsiClassType> {
-    if (myExtendsListTypes == null) {
-      myExtendsListTypes = arrayOf(PsiType.getTypeByName(myConfig.superName, project, moduleScope))
-    }
-    return myExtendsListTypes!!
-  }
-
-  override fun getAllMethods(): Array<PsiMethod> {
-    if (myPsiAllMethods == null) {
-      val superClass = superClass
-      myPsiAllMethods =
-        if (superClass != null) {
-          ObjectArrays.concat(superClass.allMethods, methods, PsiMethod::class.java)
-        } else {
-          // superClass shouldn't be null but we handle just in case
-          methods
-        }
+  private fun createConstructor() =
+    LightMethodBuilder(this, JavaLanguage.INSTANCE).apply {
+      setConstructor(true)
+      addModifier(PsiModifier.PRIVATE)
     }
 
-    return myPsiAllMethods
-  }
+  override fun getQualifiedName() = config.qualifiedName
+
+  override fun getContainingClass(): PsiClass? = null
+
+  override fun getFields() = psiFields
+
+  override fun getAllFields() = getFields()
+
+  override fun getConstructors() = psiConstructors
+
+  override fun getMethods() = psiMethods
+
+  override fun getSupers() = psiSupers
+
+  override fun getSuperClass() =
+    JavaPsiFacade.getInstance(project).findClass(config.superName, moduleScope)
+
+  override fun getExtendsList() = psiExtendsList
+
+  override fun getSuperTypes() = getExtendsListTypes()
+
+  override fun getExtendsListTypes() = psiExtendsListTypes
+
+  override fun getAllMethods() = psiAllMethods
 
   override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod> {
-    var matched: MutableList<PsiMethod?>? = null
     val methods = if (checkBases) allMethods else methods
-    for (method in methods) {
-      if (name == method.name) {
-        if (matched == null) {
-          matched = ArrayList()
-        }
-        matched.add(method)
-      }
-    }
-    return if (matched == null) PsiMethod.EMPTY_ARRAY else matched.toArray(PsiMethod.EMPTY_ARRAY)
+    val matched = methods.filter { it.name == name }
+    return if (matched.isEmpty()) PsiMethod.EMPTY_ARRAY else matched.toTypedArray()
   }
 
   override fun processDeclarations(
@@ -357,32 +256,33 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
     lastParent: PsiElement?,
     place: PsiElement,
   ): Boolean {
-    val continueProcessing = super.processDeclarations(processor, state, lastParent, place)
-    if (!continueProcessing) {
-      return false
-    }
-    val imports = myConfig.targetLayout.data.imports
-    if (imports.isEmpty()) {
-      return true
-    }
-    val classHint = processor.getHint(ElementClassHint.KEY)
-    if (classHint != null && classHint.shouldProcess(ElementClassHint.DeclarationKind.CLASS)) {
-      val nameHint = processor.getHint(NameHint.KEY)
-      val name = nameHint?.getName(state)
-      for ((qName, alias) in imports) {
-        if (alias != null) {
-          continue // Aliases are pre-resolved.
-        }
-        if (name != null && !qName.endsWith(name)) {
-          continue
-        }
+    if (!super.processDeclarations(processor, state, lastParent, place)) return false
 
-        val aClass = JavaPsiFacade.getInstance(project).findClass(qName, moduleScope)
-        if (aClass != null && !processor.execute(aClass, state)) {
-          return false // Found it.
-        }
+    val imports = config.targetLayout.data.imports
+    if (imports.isEmpty()) return true
+
+    if (
+      processor
+        .getHint(ElementClassHint.KEY)
+        ?.shouldProcess(ElementClassHint.DeclarationKind.CLASS) != true
+    )
+      return true
+
+    val name = processor.getHint(NameHint.KEY)?.getName(state)
+    for ((qName, alias) in imports) {
+      if (alias != null) {
+        continue // Aliases are pre-resolved.
+      }
+      if (name != null && !qName.endsWith(name)) {
+        continue
+      }
+
+      val aClass = JavaPsiFacade.getInstance(project).findClass(qName, moduleScope)
+      if (aClass != null && !processor.execute(aClass, state)) {
+        return false // Found it.
       }
     }
+
     return true
   }
 
@@ -393,24 +293,13 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
       .toString()
   }
 
-  override fun equals(obj: Any?): Boolean {
-    if (this === obj) {
-      return true
-    }
+  override fun equals(other: Any?) =
+    this === other || config == (other as? LightBindingClass)?.config
 
-    if (obj !is LightBindingClass) {
-      return false
-    }
-
-    return myConfig == obj.myConfig
-  }
-
-  override fun hashCode(): Int {
-    return myConfig.hashCode()
-  }
+  override fun hashCode() = config.hashCode()
 
   private val moduleScope: GlobalSearchScope
-    get() = myConfig.facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    get() = config.facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
 
   /**
    * If applicable, create a `getRoot` method that overrides / specializes the one in the base
@@ -423,59 +312,55 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
    * tags, then "View" will be returned.
    */
   private fun createRootOverride(outPsiMethods: MutableList<PsiMethod>) {
-    val xmlFile = myConfig.targetLayout.toXmlFile() ?: return
+    val xmlFile = config.targetLayout.toXmlFile() ?: return
+    val xmlData = config.targetLayout.data
 
-    val xmlData = myConfig.targetLayout.data
     // For legacy reasons, data binding does not override getRoot with a more specialized return
     // type (e.g. FrameLayout instead of View). Only view binding does this at this time.
     if (
-      xmlData.layoutType == BindingLayoutType.PLAIN_LAYOUT && myConfig.facet.isViewBindingEnabled()
-    ) {
-      val xmlRootTag =
-        xmlFile.rootTag ?: return // Abort if we can't find an actual PSI tag we can navigate to
+      xmlData.layoutType != BindingLayoutType.PLAIN_LAYOUT || !config.facet.isViewBindingEnabled()
+    )
+      return
 
-      // Note: We don't simply use xmlRootTag's name, since the final return type could be
-      // different if root tag names are not consistent across layout configurations.
-      val rootTag = myConfig.rootType
+    // Abort if we can't find an actual PSI tag we can navigate to
+    val xmlRootTag = xmlFile.rootTag ?: return
 
-      val type = resolveViewPsiType(xmlData, rootTag, this)
-      if (type != null) {
-        val rootMethod: LightMethodBuilder = createPublicMethod("getRoot", type)
-        outPsiMethods.add(
-          LightDataBindingMethod(xmlRootTag, manager, rootMethod, this, JavaLanguage.INSTANCE)
-        )
-      }
-    }
+    // Note: We don't simply use xmlRootTag's name, since the final return type could be
+    // different if root tag names are not consistent across layout configurations.
+    val rootTag = config.rootType
+
+    val type = resolveViewPsiType(xmlData, rootTag, this) ?: return
+    val rootMethod: LightMethodBuilder = createPublicMethod("getRoot", type)
+    outPsiMethods.add(
+      LightDataBindingMethod(xmlRootTag, manager, rootMethod, this, JavaLanguage.INSTANCE)
+    )
   }
 
   private fun createVariableMethods(
-    variableTag: Pair<VariableData, XmlTag>,
+    variable: VariableData,
+    xmlTag: XmlTag,
     outPsiMethods: MutableList<PsiMethod>,
   ) {
     val psiManager = manager
 
-    val variable = variableTag.first
-    val xmlTag = variableTag.second
-
     val typeName = variable.type
     val variableType =
-      DataBindingUtil.getQualifiedType(project, typeName, myConfig.targetLayout.data, true)
-        ?: return
+      DataBindingUtil.getQualifiedType(project, typeName, config.targetLayout.data, true) ?: return
     val type = parsePsiType(variableType, xmlTag) ?: return
 
     val javaName = DataBindingUtil.convertVariableNameToJavaFieldName(variable.name)
     val capitalizedName = StringUtil.capitalize(javaName)
-    val setter: LightMethodBuilder = createPublicMethod("set$capitalizedName", PsiTypes.voidType())
-    setter.addParameter(javaName, type)
-    if (myConfig.settersShouldBeAbstract()) {
-      setter.addModifier("abstract")
-    }
+    val setter =
+      createPublicMethod("set$capitalizedName", PsiTypes.voidType()).apply {
+        addParameter(javaName, type)
+        if (config.settersShouldBeAbstract()) addModifier("abstract")
+      }
     outPsiMethods.add(
       LightDataBindingMethod(xmlTag, psiManager, setter, this, JavaLanguage.INSTANCE)
     )
 
-    if (myConfig.shouldGenerateGettersAndStaticMethods()) {
-      val getter: LightMethodBuilder = createPublicMethod("get$capitalizedName", type)
+    if (config.shouldGenerateGettersAndStaticMethods()) {
+      val getter = createPublicMethod("get$capitalizedName", type)
       outPsiMethods.add(
         LightDataBindingMethod(xmlTag, psiManager, getter, this, JavaLanguage.INSTANCE)
       )
@@ -483,7 +368,7 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
   }
 
   private fun createStaticMethods(outPsiMethods: MutableList<PsiMethod>) {
-    val xmlFile = myConfig.targetLayout.toXmlFile() ?: return
+    val xmlFile = config.targetLayout.toXmlFile() ?: return
 
     val project = project
     val moduleScope = moduleScope
@@ -494,44 +379,53 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
     val viewType = PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope)
     val dataBindingComponentType = PsiType.getJavaLangObject(manager, moduleScope)
 
-    val methods: MutableList<PsiMethod> = ArrayList()
-    val xmlData = myConfig.targetLayout.data
+    val methods: MutableList<PsiMethod> = mutableListOf()
+    val xmlData = config.targetLayout.data
 
     // Methods generated for data binding and view binding diverge a little
     if (xmlData.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT) {
-      val inflate4Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-      inflate4Params.addNullabilityParameter("inflater", inflaterType, true)
-      inflate4Params.addNullabilityParameter("root", viewGroupType, false)
-      inflate4Params.addParameter("attachToRoot", PsiTypes.booleanType())
-      inflate4Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
-      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-      inflate4Params.isDeprecated = true
+      val inflate4Params =
+        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("inflater", inflaterType, true)
+          addNullabilityParameter("root", viewGroupType, false)
+          addParameter("attachToRoot", PsiTypes.booleanType())
+          addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
+          // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+          isDeprecated = true
+        }
 
-      val inflate3Params: NullabilityLightMethodBuilder =
-        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-      inflate3Params.addNullabilityParameter("inflater", inflaterType, true)
-      inflate3Params.addNullabilityParameter("root", viewGroupType, false)
-      inflate3Params.addParameter("attachToRoot", PsiTypes.booleanType())
+      val inflate3Params =
+        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("inflater", inflaterType, true)
+          addNullabilityParameter("root", viewGroupType, false)
+          addParameter("attachToRoot", PsiTypes.booleanType())
+        }
 
-      val inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-      inflate2Params.addNullabilityParameter("inflater", inflaterType, true)
-      inflate2Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
-      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-      inflate2Params.isDeprecated = true
+      val inflate2Params =
+        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("inflater", inflaterType, true)
+          addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
+          // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+          isDeprecated = true
+        }
 
-      val inflate1Param: NullabilityLightMethodBuilder =
-        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-      inflate1Param.addNullabilityParameter("inflater", inflaterType, true)
+      val inflate1Param =
+        createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("inflater", inflaterType, true)
+        }
 
-      val bind: NullabilityLightMethodBuilder =
-        createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL)
-      bind.addNullabilityParameter("view", viewType, true)
+      val bind =
+        createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("view", viewType, true)
+        }
 
-      val bindWithComponent = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL)
-      bindWithComponent.addNullabilityParameter("view", viewType, true)
-      bindWithComponent.addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
-      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-      bindWithComponent.isDeprecated = true
+      val bindWithComponent =
+        createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("view", viewType, true)
+          addNullabilityParameter("bindingComponent", dataBindingComponentType, false)
+          // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+          isDeprecated = true
+        }
 
       methods.add(inflate1Param)
       methods.add(inflate2Params)
@@ -542,35 +436,38 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
     } else {
       // Expected: If not a data binding layout, this is a view binding layout
       assert(
-        xmlData.layoutType == BindingLayoutType.PLAIN_LAYOUT &&
-          myConfig.facet.isViewBindingEnabled()
+        xmlData.layoutType == BindingLayoutType.PLAIN_LAYOUT && config.facet.isViewBindingEnabled()
       )
       // View Binding is a fresh start - don't show the deprecated methods for them
       if (xmlData.rootTag != SdkConstants.VIEW_MERGE) {
-        val inflate3Params: NullabilityLightMethodBuilder =
-          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-        inflate3Params.addNullabilityParameter("inflater", inflaterType, true)
-        inflate3Params.addNullabilityParameter("parent", viewGroupType, false)
-        inflate3Params.addParameter("attachToParent", PsiTypes.booleanType())
+        val inflate3Params =
+          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+            addNullabilityParameter("inflater", inflaterType, true)
+            addNullabilityParameter("parent", viewGroupType, false)
+            addParameter("attachToParent", PsiTypes.booleanType())
+          }
 
-        val inflate1Param: NullabilityLightMethodBuilder =
-          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-        inflate1Param.addNullabilityParameter("inflater", inflaterType, true)
+        val inflate1Param =
+          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+            addNullabilityParameter("inflater", inflaterType, true)
+          }
 
         methods.add(inflate1Param)
         methods.add(inflate3Params)
       } else {
         // View Bindings with <merge> roots have a different set of inflate methods
-        val inflate2Params: NullabilityLightMethodBuilder =
-          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL)
-        inflate2Params.addNullabilityParameter("inflater", inflaterType, true)
-        inflate2Params.addNullabilityParameter("parent", viewGroupType, true)
+        val inflate2Params =
+          createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL).apply {
+            addNullabilityParameter("inflater", inflaterType, true)
+            addNullabilityParameter("parent", viewGroupType, true)
+          }
         methods.add(inflate2Params)
       }
 
-      val bind: NullabilityLightMethodBuilder =
-        createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL)
-      bind.addNullabilityParameter("view", viewType, true)
+      val bind =
+        createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL).apply {
+          addNullabilityParameter("view", viewType, true)
+        }
       methods.add(bind)
     }
 
@@ -587,9 +484,7 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
     returnType: PsiType,
     nullabilityType: NullabilityType,
   ): DeprecatableLightMethodBuilder {
-    val method = createPublicMethod(name, returnType, nullabilityType)
-    method.addModifier("static")
-    return method
+    return createPublicMethod(name, returnType, nullabilityType).apply { addModifier("static") }
   }
 
   private fun createPublicMethod(
@@ -597,15 +492,17 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
     returnType: PsiType,
     nullabilityType: NullabilityType = NullabilityType.UNSPECIFIED,
   ): DeprecatableLightMethodBuilder {
-    val method = DeprecatableLightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
-    method.setContainingClass(this)
-    if (nullabilityType == NullabilityType.UNSPECIFIED) {
-      method.setMethodReturnType(returnType)
-    } else {
-      method.setMethodReturnType(returnType, !nullabilityType.isNullable())
+    return DeprecatableLightMethodBuilder(manager, JavaLanguage.INSTANCE, name).apply {
+      setContainingClass(this@LightBindingClass)
+
+      if (nullabilityType == NullabilityType.UNSPECIFIED) {
+        setMethodReturnType(returnType)
+      } else {
+        setMethodReturnType(returnType, !nullabilityType.isNullable)
+      }
+
+      addModifier("public")
     }
-    method.addModifier("public")
-    return method
   }
 
   private fun createPsiField(
@@ -615,17 +512,10 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
   ): PsiField? {
     val name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.id)
 
-    val type: PsiType?
-    if (typeOverride == null) {
-      type = resolveViewPsiType(myConfig.targetLayout.data, viewIdData, this)
-      if (type == null) {
-        return null
-      }
-    } else {
-      type = typeOverride
-    }
+    val type =
+      typeOverride ?: resolveViewPsiType(config.targetLayout.data, viewIdData, this) ?: return null
 
-    val field: LightFieldBuilder =
+    val field =
       NullabilityLightFieldBuilder(
         PsiManager.getInstance(project),
         name,
@@ -634,75 +524,63 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
         PsiModifier.PUBLIC,
         PsiModifier.FINAL,
       )
-    return LightDataBindingField(myConfig.targetLayout, viewIdData, manager, field, this)
+    return LightDataBindingField(config.targetLayout, viewIdData, manager, field, this)
   }
 
-  override fun isInterface(): Boolean {
-    return false
-  }
+  override fun isInterface() = false
 
   override fun getNavigationElement(): PsiElement {
-    val xmlFile = myConfig.targetLayout.toXmlFile() ?: return super.getNavigationElement()
-    val xmlNavElement = xmlFile.navigationElement
-    return xmlNavElement ?: xmlFile
+    val xmlFile = config.targetLayout.toXmlFile() ?: return super.getNavigationElement()
+    return xmlFile.navigationElement ?: xmlFile
   }
 
-  override fun getName(): String {
-    return myConfig.className
-  }
+  override fun getName() = config.className
 
-  override fun getContainingFile(): PsiFile? {
-    return myBackingFile
-  }
+  override fun getContainingFile() = backingFile
 
-  override fun isValid(): Boolean {
+  override fun isValid() =
     // It is always valid. Not having this valid creates IDE errors because it is not always
     // resolved instantly.
-    return true
-  }
+    true
 
   /**
    * The light method class that represents the generated data binding methods for a layout file.
    */
   class LightDataBindingMethod(
-    private val myNavigationElement: PsiElement,
+    private val navigationElement: PsiElement,
     manager: PsiManager,
     method: PsiMethod,
     containingClass: PsiClass,
     language: Language,
   ) : LightMethod(manager, method, containingClass, language) {
-    override fun getTextRange(): TextRange {
-      return TextRange.EMPTY_RANGE
-    }
 
-    override fun getNavigationElement(): PsiElement {
-      return myNavigationElement
-    }
+    override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 
-    override fun getNameIdentifier(): PsiIdentifier? {
-      return LightIdentifier(manager, name)
-    }
+    override fun getNavigationElement() = navigationElement
+
+    override fun getNameIdentifier() = LightIdentifier(manager, name)
   }
 
   /** The light field class that represents the generated view fields for a layout file. */
   class LightDataBindingField(
-    private val myLayout: BindingLayout,
-    private val myViewIdData: ViewIdData,
+    private val layout: BindingLayout,
+    private val viewIdData: ViewIdData,
     manager: PsiManager,
     field: PsiField,
     containingClass: PsiClass,
   ) : LightField(manager, field, containingClass) {
-    private var myNavigationTag: XmlTag? = null
+
+    private var navigationTag: XmlTag? = null
 
     private fun computeTag(): XmlTag? {
-      val xmlFile = myLayout.toXmlFile() ?: return null
+      val xmlFile = layout.toXmlFile() ?: return null
       val resultTag = Ref<XmlTag>()
       xmlFile.accept(
         object : XmlRecursiveElementWalkingVisitor() {
           override fun visitXmlTag(tag: XmlTag) {
             super.visitXmlTag(tag)
             val idValue = tag.getAttributeValue(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)
-            if (idValue != null && myViewIdData.id == stripPrefixFromId(idValue)) {
+            if (idValue != null && viewIdData.id == stripPrefixFromId(idValue)) {
               resultTag.set(tag)
               stopWalking()
             }
@@ -712,29 +590,18 @@ class LightBindingClass(psiManager: PsiManager, private val myConfig: LightBindi
       return resultTag.get()
     }
 
-    override fun getContainingFile(): PsiFile? {
-      return myLayout.toXmlFile()
-    }
+    override fun getContainingFile() = layout.toXmlFile()
 
-    override fun getTextRange(): TextRange {
-      return TextRange.EMPTY_RANGE
-    }
+    override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 
     override fun getNavigationElement(): PsiElement {
-      if (myNavigationTag != null) {
-        return myNavigationTag
-      }
-      myNavigationTag = computeTag()
-      return if ((myNavigationTag != null)) myNavigationTag!! else super.getNavigationElement()
+      if (navigationTag == null) navigationTag = computeTag()
+      return navigationTag ?: super.getNavigationElement()
     }
 
-    override fun setName(name: String): PsiElement {
-      // This method is called by rename refactoring and has to succeed in order for the refactoring
-      // to succeed.
-      // There no need to change the name since once the refactoring is complete, this object will
-      // be replaced
-      // by a new one reflecting the changed source code.
-      return this
-    }
+    // This method is called by rename refactoring and has to succeed in order for the refactoring
+    // to succeed. There no need to change the name since once the refactoring is complete, this
+    // object will be replaced by a new one reflecting the changed source code.
+    override fun setName(name: String): PsiElement = this
   }
 }
