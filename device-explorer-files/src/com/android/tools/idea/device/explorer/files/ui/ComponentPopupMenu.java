@@ -19,6 +19,7 @@ import com.android.tools.idea.device.explorer.files.ui.menu.item.PopupMenuItem;
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -74,6 +75,11 @@ public class ComponentPopupMenu {
   public void addItem(@NotNull PopupMenuItem popupMenuItem) {
 
     AnAction action = new AnAction(popupMenuItem.getIcon()) {
+      @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
       @Override
       public void update(@NotNull AnActionEvent e) {
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor
 import com.intellij.execution.util.ListTableWithButtons
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.util.ui.JBUI
@@ -57,6 +58,9 @@ class AndroidTestExtraParamsTable(
     return if (showRevertElementButton) {
       val revertAction = object : AnActionButton(ActionsBundle.message("action.ChangesView.Revert.text"),
                                                  AllIcons.Actions.Rollback) {
+
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           stopEditing()
           selection.forEach { selectedParam ->

@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -33,6 +34,9 @@ import javax.swing.JComponent
 
 val NO_PROCESS_ACTION =
   object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
@@ -42,6 +46,9 @@ val NO_PROCESS_ACTION =
 
 val NO_DEVICE_ACTION =
   object : AnAction(AppInspectionBundle.message("action.no.devices")) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
@@ -114,6 +121,8 @@ class SelectProcessAction(
     ICON_PHONE,
   ) {
 
+  override fun getActionUpdateThread() = BGT
+
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {
       return "${process.device.buildDeviceName()} > ${process.buildProcessName()}"
@@ -173,6 +182,9 @@ class SelectProcessAction(
     val stopInspectionAction =
       object :
         AnAction(stopPresentation.text, stopPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+
+        override fun getActionUpdateThread() = BGT
+
         override fun update(e: AnActionEvent) {
           e.presentation.isEnabled = (model.selectedProcess?.isRunning == true)
         }
@@ -195,6 +207,9 @@ class SelectProcessAction(
 
   private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
     ToggleAction(processDescriptor.buildProcessName()) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == model.selectedProcess
     }
@@ -211,6 +226,9 @@ class SelectProcessAction(
 
   private inner class DeviceAction(private val device: DeviceDescriptor) :
     DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun displayTextInToolbar() = true
 
     init {

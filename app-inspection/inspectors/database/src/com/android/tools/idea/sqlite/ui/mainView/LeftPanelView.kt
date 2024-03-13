@@ -32,6 +32,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -312,6 +313,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun setUpExportPopUp(tree: Tree) {
     val exportAction =
       object : AnAction(DatabaseInspectorBundle.message("action.export.button.tooltip.title")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           val exportParams =
             createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU)

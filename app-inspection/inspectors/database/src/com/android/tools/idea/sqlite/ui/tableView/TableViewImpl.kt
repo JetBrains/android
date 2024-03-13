@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -474,6 +475,8 @@ class TableViewImpl : TableView {
   private fun setUpPopUp() {
     val setNullAction =
       object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           val rowIndex = table.selectedRow
           val columnIndex = table.selectedColumn
@@ -502,6 +505,8 @@ class TableViewImpl : TableView {
 
     val copyToClipboardAction =
       object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           val row = table.selectedRow
           val column = table.selectedColumn

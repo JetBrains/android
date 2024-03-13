@@ -20,6 +20,7 @@ import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ModalityState;
@@ -98,6 +99,11 @@ public class UpdateSitesPanel {
       }
     }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
       @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
+      @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(true);
       }
@@ -107,6 +113,11 @@ public class UpdateSitesPanel {
         return mySourcesTableModel.hasEditableRows();
       }
     }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
+      @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(false);

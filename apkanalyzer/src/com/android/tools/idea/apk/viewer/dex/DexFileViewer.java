@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -606,6 +607,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
     public ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show fields", "Toggle between show/hide fields", IconManager.getInstance().getPlatformIcon(PlatformIcons.Field));
       myTree = tree;
@@ -628,6 +634,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
     public ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show methods", "Toggle between show/hide methods", IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
       myTree = tree;
@@ -649,6 +660,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   private static class ShowReferencedAction extends ToggleAction implements DumbAware {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
 
     public ShowReferencedAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show referenced-only nodes", "Toggle between show/hide referenced-only nodes", AllIcons.ObjectBrowser.ShowMembers);
@@ -680,6 +696,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
     public ShowRemovedNodesAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show removed nodes", "Toggle between show/hide nodes removed by Proguard", AllIcons.ObjectBrowser.CompactEmptyPackages);
       myTree = tree;
@@ -710,6 +731,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public boolean isSelected(@NotNull AnActionEvent e) {
       return myDeobfuscateNames;
     }
@@ -731,6 +757,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     public LoadProguardAction() {
       super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
       getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override

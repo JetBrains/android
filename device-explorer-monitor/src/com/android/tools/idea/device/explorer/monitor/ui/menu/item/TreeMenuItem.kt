@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -37,6 +38,8 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
     }
 
   override val action: AnAction = object : AnAction(icon) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
       presentation.text = text
