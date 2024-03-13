@@ -28,6 +28,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.isDirectory
 
 object DeviceSkinUpdater {
 
@@ -124,7 +125,7 @@ object DeviceSkinUpdater {
   private fun updateSkinImpl(skin: Path, studioSkins: Path, skinFolder: Path): Path {
     assert(skin.toString().isNotEmpty() && skin.toString() != "_no_skin")
     val sdkDeviceSkin = skinFolder.resolve(skin)
-    val studioDeviceSkin = getStudioDeviceSkin(skin.fileName.toString(), studioSkins)
+    val studioDeviceSkin = getStudioDeviceSkin(skin.fileName.toString(), studioSkins) ?: return skin
 
     try {
       if (areAllFilesUpToDate(sdkDeviceSkin, studioDeviceSkin)) {
@@ -141,8 +142,8 @@ object DeviceSkinUpdater {
     }
   }
 
-  private fun getStudioDeviceSkin(skinName: String, studioSkins: Path): Path {
-    return studioSkins.resolve(getStudioSkinName(skinName))
+  private fun getStudioDeviceSkin(skinName: String, studioSkins: Path): Path? {
+    return studioSkins.resolve(getStudioSkinName(skinName)).takeIf { it.isDirectory() }
   }
 
   private fun getStudioSkinName(skinName: String): String {

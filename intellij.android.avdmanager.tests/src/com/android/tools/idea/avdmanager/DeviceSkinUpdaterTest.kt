@@ -89,6 +89,18 @@ class DeviceSkinUpdaterTest {
   }
 
   @Test
+  fun updateSkinImageSkinIsMissing() {
+    // Arrange
+    val imageSkin = homeDir.fileSystem.getPath("custom_device")
+
+    // Act
+    val deviceSkin = DeviceSkinUpdater.updateSkin(imageSkin, emptyList(), studioSkins, sdkLocation)
+
+    // Assert
+    assertThat(deviceSkin).isEqualTo(imageSkin)
+  }
+
+  @Test
   fun updateSkinStudioSkinIsNullAndSdkSkinIsNull() {
     // Arrange
     val skin = Paths.get("pixel_4")
