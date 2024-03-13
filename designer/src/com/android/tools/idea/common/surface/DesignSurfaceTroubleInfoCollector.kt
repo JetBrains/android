@@ -52,8 +52,12 @@ private fun collectSurfaceInfo(surface: DesignSurface<*>?): String {
 
   val issuePanelService = IssuePanelService.getInstance(surface.project)
   val surfaceContent =
-    StringBuilder(
-      "${surface.javaClass.simpleName}: issuePanelVisible=${issuePanelService.isIssuePanelVisible()}"
+    UIUtil.invokeAndWaitIfNeeded(
+      Computable {
+        StringBuilder(
+          "${surface.javaClass.simpleName}: issuePanelVisible=${issuePanelService.isIssuePanelVisible()}"
+        )
+      }
     )
 
   surface.models

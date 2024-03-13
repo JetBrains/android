@@ -260,7 +260,7 @@ class ComposePreviewRepresentationTest {
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
     val problemsView = ProblemsView.getToolWindow(project)!!
 
-    val contentManager = problemsView.contentManager
+    val contentManager = runBlocking(uiThread) { problemsView.contentManager }
     withContext(uiThread) {
       ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
       assertEquals(1, contentManager.contents.size)
@@ -487,7 +487,8 @@ class ComposePreviewRepresentationTest {
     val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
-    val contentManager = ProblemsView.getToolWindow(project)!!.contentManager
+    val contentManager =
+      runBlocking(uiThread) { ProblemsView.getToolWindow(project)!!.contentManager }
     ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
     assertEquals(1, contentManager.contents.size)
 
@@ -900,7 +901,7 @@ class ComposePreviewRepresentationTest {
       val uiCheckElement = mainSurface.models.mapNotNull { it.dataContext.previewElement() }[0]
       val problemsView = ProblemsView.getToolWindow(project)!!
 
-      val contentManager = problemsView.contentManager
+      val contentManager = runBlocking(uiThread) { problemsView.contentManager }
       withContext(uiThread) {
         ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
         assertEquals(1, contentManager.contents.size)

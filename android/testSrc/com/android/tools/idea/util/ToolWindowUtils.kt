@@ -18,6 +18,8 @@ package com.android.tools.idea.util
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import com.intellij.ui.content.ContentManager
+import com.intellij.util.concurrency.ThreadingAssertions
 
 class TestToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
   private val idToToolWindow = mutableMapOf<String, ToolWindow>()
@@ -39,6 +41,7 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
   private var _isVisible = false
   private var _isFocused = false
   private var _isActivated = false
+  private var isContentManagerInitialized = false
 
   override fun setAvailable(available: Boolean, runnable: Runnable?) {
     _isAvailable = available
@@ -89,5 +92,21 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
 
   override fun isDisposed(): Boolean {
     return contentManager.isDisposed
+  }
+
+  override fun getContentManager(): ContentManager {
+    if (!isContentManagerInitialized) {
+      isContentManagerInitialized = true
+      ThreadingAssertions.assertEventDispatchThread()
+    }
+    return super.getContentManager()
+  }
+
+  override fun getContentManagerIfCreated(): ContentManager? {
+    return if (isContentManagerInitialized) {
+      super.getContentManagerIfCreated()
+    } else {
+      null
+    }
   }
 }

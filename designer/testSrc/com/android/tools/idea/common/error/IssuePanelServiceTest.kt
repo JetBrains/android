@@ -61,14 +61,16 @@ class IssuePanelServiceTest {
     )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    val contentManager = toolWindow.contentManager
-    val content =
-      contentManager.factory
-        .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
-        .apply { isCloseable = false }
-    contentManager.addContent(content)
-    contentManager.setSelectedContent(content)
-    ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
+    runInEdtAndWait {
+      val contentManager = toolWindow.contentManager
+      val content =
+        contentManager.factory
+          .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
+          .apply { isCloseable = false }
+      contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
+      ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
+    }
     service = IssuePanelService.getInstance(rule.project)
   }
 

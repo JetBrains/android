@@ -166,6 +166,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
     }
   }
 
+  @UiThread
   fun getSharedPanelIssues() =
     getDesignerCommonIssuePanel(project)?.issueProvider?.getFilteredIssues() ?: emptyList()
 
@@ -253,6 +254,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   /** Return the visibility of the issue panel. */
+  @UiThread
   fun isIssuePanelVisible(): Boolean {
     return isTabShowing(
       ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID)
@@ -274,6 +276,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   /** Select the node by using the given [TreeVisitor] */
+  @UiThread
   fun setSelectedNode(nodeVisitor: TreeVisitor) {
     getDesignerCommonIssuePanel(project)?.setSelectedNode(nodeVisitor)
   }
@@ -283,6 +286,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
     fun getInstance(project: Project): IssuePanelService =
       project.getService(IssuePanelService::class.java)
 
+    @UiThread
     fun getDesignerCommonIssuePanel(project: Project): DesignerCommonIssuePanel? =
       ProblemsViewToolWindowUtils.getTabById(project, SHARED_ISSUE_PANEL_TAB_ID)
         as? DesignerCommonIssuePanel

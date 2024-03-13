@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -45,7 +46,9 @@ class ToggleIssueDetailActionTest {
     HeadlessDataManager.fallbackToProductionDataManager(rule.testRootDisposable)
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
+    runInEdtAndWait {
+      ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
+    }
   }
 
   @Test

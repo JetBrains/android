@@ -24,6 +24,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.waitUntil
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
@@ -45,13 +46,15 @@ class IssuePanelProjectActivityTest {
     )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    val contentManager = toolWindow.contentManager
-    val content =
-      contentManager.factory.createContent(mock(), "Current File", true).apply {
-        isCloseable = false
-      }
-    contentManager.addContent(content)
-    contentManager.setSelectedContent(content)
+    runInEdtAndWait {
+      val contentManager = toolWindow.contentManager
+      val content =
+        contentManager.factory.createContent(mock(), "Current File", true).apply {
+          isCloseable = false
+        }
+      contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
+    }
   }
 
   /** Regression test for b/235316289. */

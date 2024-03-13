@@ -54,5 +54,6 @@ class IssuePanelToggleAction :
     }
   }
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  // IssuePanelService.getSharedPanelIssues() needs to be called in EDT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }
