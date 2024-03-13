@@ -50,7 +50,7 @@ class FindSelectedLibVersionDeclarationAction(
 ) : AnAction(
   "Find Version Declarations") {
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     if (selectionSupplier.get() == null) {
