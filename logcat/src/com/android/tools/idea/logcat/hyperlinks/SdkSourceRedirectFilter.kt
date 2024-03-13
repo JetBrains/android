@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.filters.OpenFileHyperlinkInfo
@@ -28,15 +29,20 @@ import org.jetbrains.annotations.VisibleForTesting
  * The filter reads the results of the delegate and replaces results that have a [HyperlinkInfo] for
  * a file with a result that has a [SdkSourceRedirectLinkInfo].
  */
-internal class SdkSourceRedirectFilter(
-  private val project: Project,
-  @VisibleForTesting val delegate: Filter,
-) : Filter {
+internal class SdkSourceRedirectFilter(private val project: Project, vararg filters: Filter) :
+  Filter {
   var apiLevel: Int? = null
+  @VisibleForTesting
+  val compositeFilter =
+    CompositeFilter(project, filters.toList()).apply { setForceUseAllFilters(true) }
 
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
-    val result = delegate.applyFilter(line, entireLength) ?: return null
+    val result = compositeFilter.applyFilter(line, entireLength) ?: return null
     return apiLevel?.let { result.convert(it) } ?: result
+  }
+
+  fun addFilter(filter: Filter) {
+    compositeFilter.addFilter(filter)
   }
 
   private fun Filter.Result.convert(sdk: Int): Filter.Result =

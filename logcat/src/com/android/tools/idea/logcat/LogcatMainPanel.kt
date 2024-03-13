@@ -317,7 +317,9 @@ constructor(
   private val toolbar =
     ActionManager.getInstance()
       .createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
-  private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
+  private val hyperlinkDetector =
+    hyperlinkDetector
+      ?: EditorHyperlinkDetector(project, editor, this, ModalityState.stateForComponent(this))
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private val logcatService = LogcatService.getInstance(project)
   private var ignoreCaretAtBottom =

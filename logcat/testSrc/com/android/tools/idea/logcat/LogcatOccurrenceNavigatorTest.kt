@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.ide.OccurenceNavigator
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.search.PsiShortNamesCache
@@ -52,7 +53,12 @@ class LogcatOccurrenceNavigatorTest {
     get() = logcatEditorRule.editor
 
   private val editorHyperlinkDetector by lazy {
-    EditorHyperlinkDetector(projectRule.project, editor)
+    EditorHyperlinkDetector(
+      projectRule.project,
+      editor,
+      disposableRule.disposable,
+      ModalityState.any(),
+    )
   }
   private val editorHyperlinkSupport by lazy { EditorHyperlinkSupport.get(editor) }
 
