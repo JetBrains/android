@@ -50,6 +50,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
@@ -65,6 +66,8 @@ import org.jetbrains.annotations.TestOnly
 private const val WORKBENCH_NAME = "Layout Inspector"
 private const val UI_CONFIGURATION_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
+
+private val logger = Logger.getInstance(SelectedTabState::class.java)
 
 /**
  * Represents the state of the selected tab.
@@ -128,6 +131,8 @@ data class SelectedTabState(
       EdtExecutorService.getInstance(),
       selectedProcessListener,
     )
+
+    logger.debug("Embedded Layout Inspector successfully enabled.")
   }
 
   /** Wrap the RD tab by injecting Embedded Layout Inspector UI. */

@@ -36,7 +36,8 @@ class EmbeddedLayoutInspectorIntegrationTest {
     system.installation.addVmOption(
       join(
         listOf(
-          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector",
+          // Enable debug logging
+          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector,com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState",
           // Disable foreground detection: b/262770420
           "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=false",
           // Disable running devices: b/287696923
@@ -78,6 +79,13 @@ class EmbeddedLayoutInspectorIntegrationTest {
           )
 
           studio.invokeByIcon("studio/icons/shell/tool-windows/captures.svg")
+
+          ideaLog.waitForMatchingLine(
+            ".*Embedded Layout Inspector successfully enabled.",
+            300,
+            TimeUnit.SECONDS,
+          )
+
           ideaLog.waitForMatchingLine(
             ".*g:1 Model Updated for process: com.example.emptyapplication",
             120,
