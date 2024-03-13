@@ -134,7 +134,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     }
   }
 
-  @GuardedBy("lock") private var _lightBrClass: LightBrClass? = null
+  private val _lightBrClass = AtomicReference<LightBrClass?>()
   /**
    * Fetches the singleton light BR class associated with this module.
    *
@@ -145,22 +145,19 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * couldn't determine the class's fully-qualified name).
    */
   val lightBrClass: LightBrClass?
-    get() {
-      val facet = AndroidFacet.getInstance(module) ?: return null
+    get() =
+      _lightBrClass.updateAndGet { clazz ->
+        val facet = AndroidFacet.getInstance(module) ?: return@updateAndGet null
 
-      synchronized(lock) {
-        if (_lightBrClass == null) {
-          val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return null
-          _lightBrClass =
-            LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
-              .withMarkedBackingFile()
-        }
-        return _lightBrClass
+        // Reuse the existing class if it's already been created.
+        if (clazz != null) return@updateAndGet clazz
+
+        val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return@updateAndGet null
+        LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
+          .withMarkedBackingFile()
       }
-    }
 
-  @GuardedBy("lock")
-  private var _lightDataBindingComponentClass: LightDataBindingComponentClass? = null
+  private val _lightDataBindingComponentClass = AtomicReference<LightDataBindingComponentClass?>()
   /**
    * Fetches the singleton light DataBindingComponent class associated with this module.
    *
@@ -170,20 +167,17 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * current module doesn't provide one (e.g. it's not an app module).
    */
   val lightDataBindingComponentClass: LightDataBindingComponentClass?
-    get() {
-      val facet =
-        AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject }
-          ?: return null
+    get() =
+      _lightDataBindingComponentClass.updateAndGet { clazz ->
+        val facet =
+          AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject }
+            ?: return@updateAndGet null
 
-      synchronized(lock) {
-        if (_lightDataBindingComponentClass == null) {
-          _lightDataBindingComponentClass =
-            LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
-              .withMarkedBackingFile()
-        }
-        return _lightDataBindingComponentClass
+        // Reuse the existing class if it's already been created.
+        if (clazz != null) return@updateAndGet clazz
+        LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
+          .withMarkedBackingFile()
       }
-    }
 
   @GuardedBy("lock") private var _bindingLayoutGroups = emptySet<BindingLayoutGroup>()
   /**
