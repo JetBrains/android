@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.Placeable.PlacementScope
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -37,19 +38,7 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
       var y = header.height + padding
 
       rows.forEach {
-        var x = 0
-
-        // Align text's baseline with placeable's
-        it.text.placeRelative(x, y + it.placeable[FirstBaseline] - it.text[FirstBaseline])
-
-        x += it.text.width
-        it.placeable.placeRelative(x, y)
-
-        if (it.icon != null) {
-          x += it.placeable.width
-          it.icon.placeRelative(x, y + (it.height - it.icon.height) / 2)
-        }
-
+        it.placePlaceables(this, y)
         y += it.height + padding
       }
     }
@@ -59,7 +48,11 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
 internal object Icon
 
 private class Row
-private constructor(val text: Placeable, val placeable: Placeable, val icon: Placeable? = null) {
+private constructor(
+  private val text: Placeable,
+  private val placeable: Placeable,
+  private val icon: Placeable? = null,
+) {
   val width
     get() = text.width + placeable.width + (icon?.width ?: 0)
 
@@ -102,6 +95,24 @@ private constructor(val text: Placeable, val placeable: Placeable, val icon: Pla
       return Row(text, placeable, measurable.measure(constraints))
     }
   }
+
+  fun placePlaceables(scope: PlacementScope, y: Int) =
+    with(scope) {
+      var x = 0
+
+      // Align text's baseline with placeable's
+      text.placeRelative(x, y + placeable[FirstBaseline] - text[FirstBaseline])
+
+      x += text.width
+      placeable.placeRelative(x, y)
+
+      if (icon == null) {
+        return
+      }
+
+      x += placeable.width
+      icon.placeRelative(x, y + (height - icon.height) / 2)
+    }
 }
 
 private fun getWidth(header: Placeable, rows: Iterable<Row>): Int {
