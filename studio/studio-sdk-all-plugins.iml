@@ -35,6 +35,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-markdown" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-maven-server" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-performanceTesting" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-platform-langInjection" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-properties" level="project" />
