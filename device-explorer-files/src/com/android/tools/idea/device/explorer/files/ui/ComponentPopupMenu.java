@@ -64,7 +64,7 @@ public class ComponentPopupMenu {
   }
 
   public ComponentPopupMenu addPopup(@SuppressWarnings("SameParameterValue") @NotNull String name) {
-    ComponentPopupMenu newMenu = new ComponentPopupMenu(myComponent, new NonEmptyActionGroup());
+    ComponentPopupMenu newMenu = new ComponentPopupMenu(myComponent, new DefaultActionGroup());
     ActionGroup subGroup = newMenu.getActionGroup();
     subGroup.setPopup(true);
     subGroup.getTemplatePresentation().setText(name);
