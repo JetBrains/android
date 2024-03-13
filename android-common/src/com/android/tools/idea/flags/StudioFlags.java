@@ -1395,7 +1395,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> SYNTHETIC_HAL_PANEL = new BooleanFlag(
     WEAR_HEALTH_SERVICES, "synthetic.hal.panel.enabled", "Enable synthetic HAL panel",
     "If enabled, a button to display panel for modifying emulator sensors will appear",
-    false
+    ChannelDefault.enabledUpTo(CANARY)
   );
   // endregion
 
