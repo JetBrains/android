@@ -33,7 +33,7 @@ internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
     val unrelatedPadding = 12.dp.roundToPx()
 
     val header = measurables.first().measure(constraints)
-    val rows = Row.buildList(measurables, constraints, relatedPadding, unrelatedPadding)
+    val rows = Row.buildRows(measurables, constraints, relatedPadding, unrelatedPadding)
 
     layout(getWidth(header, rows), getHeight(header, rows, unrelatedPadding)) {
       header.placeRelative(0, 0)
@@ -67,7 +67,7 @@ private constructor(
     get() = maxOf(text.height, placeable.height, icon?.height ?: 0)
 
   companion object {
-    internal fun buildList(
+    internal fun buildRows(
       measurables: List<Measurable>,
       constraints: Constraints,
       relatedPadding: Int,
