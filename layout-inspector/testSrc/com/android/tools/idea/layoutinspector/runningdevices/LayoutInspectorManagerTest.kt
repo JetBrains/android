@@ -56,7 +56,6 @@ import com.intellij.testFramework.replaceService
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -104,6 +103,8 @@ class LayoutInspectorManagerTest {
       fakeToolWindowManager,
       displayViewRule.disposable,
     )
+    // Initiate state observer singleton.
+    RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
 
@@ -144,16 +145,7 @@ class LayoutInspectorManagerTest {
       displayViewRule.disposable,
     )
 
-    RunningDevicesStateObserver.getInstance(displayViewRule.project)
-      .update(enabled = true, newContentManager = fakeToolWindowManager.toolWindow.contentManager)
-
     fakeToolWindowManager.toolWindow.show()
-  }
-
-  @After
-  fun tearDown() {
-    RunningDevicesStateObserver.getInstance(displayViewRule.project)
-      .update(enabled = false, newContentManager = fakeToolWindowManager.toolWindow.contentManager)
   }
 
   @Test
@@ -602,9 +594,6 @@ class LayoutInspectorManagerTest {
     val secondContentManager = FakeContentManager()
     Disposer.register(displayViewRule.disposable, secondContentManager)
 
-    RunningDevicesStateObserver.getInstance(displayViewRule.project)
-      .update(enabled = true, newContentManager = secondContentManager)
-
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.addContent(tab1)
@@ -625,9 +614,6 @@ class LayoutInspectorManagerTest {
 
     verifyUiRemoved(tab1)
     verifyUiInjected(tab2)
-
-    RunningDevicesStateObserver.getInstance(displayViewRule.project)
-      .update(enabled = false, newContentManager = secondContentManager)
   }
 }
 

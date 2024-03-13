@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibili
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.checkSystemImageForAppInspectionCompatibility
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
-import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
 import com.android.tools.idea.sdk.AndroidSdks
@@ -36,7 +35,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.project.Project
-import com.intellij.ui.content.ContentManagerUtil
 import icons.StudioIcons
 import javax.swing.JComponent
 import org.jetbrains.annotations.VisibleForTesting
@@ -107,9 +105,6 @@ class ToggleLayoutInspectorAction :
     val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     e.presentation.isVisible =
       isEnabled && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
-
-    val contentManager = ContentManagerUtil.getContentManagerFromContext(e.dataContext, false)
-    RunningDevicesStateObserver.getInstance(project).update(isEnabled, contentManager)
 
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
     val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()

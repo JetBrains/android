@@ -122,6 +122,10 @@ class FakeToolWindow(
     return fakeContentManager
   }
 
+  override fun getContentManagerIfCreated(): ContentManager? {
+    return fakeContentManager
+  }
+
   fun addContent(tabInfo: TabInfo) {
     val fakeComponent = FakeRunningDevicesComponent(tabInfo)
     val fakeContent = FakeContent(disposable, fakeContentManager, fakeComponent)
@@ -495,7 +499,7 @@ class FakeContent(
 
   override fun getManager() = contentManager
 
-  override fun isSelected() = true
+  override fun isSelected() = contentManager.selectedContent == this
 
   override fun release() {}
 

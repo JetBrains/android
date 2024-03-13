@@ -69,17 +69,13 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWithExistingState() {
-    fakeToolWindowManager.addContent(tab1)
-    fakeToolWindowManager.addContent(tab2)
-
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(
-      enabled = true,
-      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
-    )
 
     fakeToolWindowManager.toolWindow.show()
+
+    fakeToolWindowManager.addContent(tab1)
+    fakeToolWindowManager.addContent(tab2)
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -105,10 +101,6 @@ class RunningDevicesStateObserverTest {
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(
-      enabled = true,
-      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
-    )
 
     fakeToolWindowManager.toolWindow.show()
 
@@ -152,10 +144,6 @@ class RunningDevicesStateObserverTest {
   fun testListenerIsCalledWhenSelectedTabChanges() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(
-      enabled = true,
-      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
-    )
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -211,10 +199,6 @@ class RunningDevicesStateObserverTest {
   fun testToolWindowStateChange() {
     val runningDevicesStateObserver =
       RunningDevicesStateObserver.getInstance(displayViewRule.project)
-    runningDevicesStateObserver.update(
-      enabled = true,
-      newContentManager = fakeToolWindowManager.toolWindow.contentManager,
-    )
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
 
