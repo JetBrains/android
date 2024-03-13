@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.util.UserDataHolderBase
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * A collection of relevant information for one (or more) related layout XML files - that is, a base
  * layout with possible alternate (e.g. landscape) configurations.
  */
-class BindingLayoutGroup(layouts: Collection<BindingLayout>) : UserDataHolderBase() {
+class BindingLayoutGroup(layouts: Collection<BindingLayout>) {
   init {
     assert(layouts.isNotEmpty())
   }
@@ -40,5 +41,17 @@ class BindingLayoutGroup(layouts: Collection<BindingLayout>) : UserDataHolderBas
 
   override fun hashCode(): Int {
     return layouts.hashCode()
+  }
+
+  private val lightBindingClasses = AtomicReference<List<LightBindingClass>>(emptyList())
+
+  fun getOrCreateLightBindingClasses(
+    classesSupplier: () -> List<LightBindingClass>
+  ): List<LightBindingClass> {
+    // The supplier should always return a non-empty list, so it's safe to assume an empty list is
+    // equivalent to "uninitialized".
+    return lightBindingClasses.updateAndGet { classes ->
+      classes.ifEmpty { classesSupplier.invoke() }
+    }
   }
 }

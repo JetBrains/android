@@ -54,9 +54,6 @@ import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
-private val LIGHT_BINDING_CLASSES_KEY =
-  Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
-
 /**
  * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they
  * can be recognized elsewhere and included in the search scope when necessary.
@@ -72,8 +69,6 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     @JvmStatic
     fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.mainModule.service()
   }
-
-  private val lock = Any()
 
   /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
   private val moduleBindingClassMarker = Any()
@@ -245,15 +240,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    */
   fun getLightBindingClasses(group: BindingLayoutGroup): List<LightBindingClass> {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-
-    synchronized(lock) {
-      var bindingClasses = group.getUserData(LIGHT_BINDING_CLASSES_KEY)
-      if (bindingClasses == null) {
-        bindingClasses = createLightBindingClasses(facet, group)
-        group.putUserData(LIGHT_BINDING_CLASSES_KEY, bindingClasses)
-      }
-      return bindingClasses
-    }
+    return group.getOrCreateLightBindingClasses { createLightBindingClasses(facet, group) }
   }
 
   private fun createLightBindingClasses(
