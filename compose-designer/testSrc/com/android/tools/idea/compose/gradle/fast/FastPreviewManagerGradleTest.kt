@@ -36,8 +36,8 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -123,18 +123,19 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
             { version, _, log, scope -> defaultDaemonFactory(version, log, scope) },
           )
           .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
-    ApplicationManager.getApplication().invokeAndWait { projectRule.buildAndAssertIsSuccessful() }
-    runWriteActionAndWait {
+    runInEdtAndWait {
+      projectRule.buildAndAssertIsSuccessful()
       projectRule.fixture.openFileInEditor(mainFile)
-      WriteCommandAction.runWriteCommandAction(projectRule.project) {
-        // Delete the reference to PreviewInOtherFile since it's a top level function not supported
-        // by the embedded compiler (b/201728545) and it's not used by the tests.
-        projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+      runWriteAction {
+        WriteCommandAction.runWriteCommandAction(projectRule.project) {
+          // Delete the reference to PreviewInOtherFile since it's a top level function not
+          // supported
+          // by the embedded compiler (b/201728545) and it's not used by the tests.
+          projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+        }
       }
       projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
       projectRule.fixture.type("\n")
-    }
-    runInEdtAndWait {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
     }
   }
@@ -324,8 +325,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   }
 
   private fun typeAndSaveDocument(typedString: String) {
+    projectRule.fixture.type(typedString)
     runWriteActionAndWait {
-      projectRule.fixture.type(typedString)
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
