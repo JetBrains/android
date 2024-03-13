@@ -66,9 +66,10 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
 
 @Composable
 fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
+  val sortedTaskTypes = taskTypes.sortedBy { it.rank }
   TaskGridContainer(taskGridModel) { selectedTask: ProfilerTaskType, lazyGridScope: LazyGridScope ->
     with(lazyGridScope) {
-      items(taskTypes) { taskType ->
+      items(sortedTaskTypes) { taskType ->
         taskType.let { task ->
           TaskGridItem(
             task = task,
