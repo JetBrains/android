@@ -43,7 +43,7 @@ import javax.swing.JToggleButton.ToggleButtonModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val ACTION_TITLE = "I am feeling Compose"
+private const val ACTION_TITLE = "AI transform to Compose"
 
 class ConvertToComposeAction : AnAction(ACTION_TITLE) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
