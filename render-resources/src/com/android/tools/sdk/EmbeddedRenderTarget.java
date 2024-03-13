@@ -41,13 +41,20 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
 
   @Nullable private final String myBasePath;
 
+  @Nullable private final String myBaseResPath;
+
   private static EmbeddedRenderTarget ourStudioEmbeddedTarget;
 
   /**
-   * Returns a CompatibilityRenderTarget that will use EmbeddedRenderTarget to do the rendering.
+   * Returns a CompatibilityRenderTarget that will use EmbeddedRenderTarget to do the rendering. {@link Supplier} is used instead of the
+   * value for layoutlib path because the {@link EmbeddedRenderTarget} is cached and that allows to calculate the value only once instead of
+   * calculating it eagerly to fulfil parameter for every call.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(
-    @NotNull IAndroidTarget target, @NotNull Supplier<String> layoutlibPathSupplier) {
+    @NotNull IAndroidTarget target,
+    @NotNull Supplier<String> layoutlibDataPathSupplier,
+    @NotNull Supplier<String> layoutlibResPathSupplier
+  ) {
     int api = target.getVersion().getApiLevel();
 
     if (target instanceof CompatibilityRenderTarget) {
@@ -55,12 +62,26 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
       target = compatRenderTarget.getRealTarget();
     }
 
-    return new CompatibilityRenderTarget(getInstance(layoutlibPathSupplier), api, target);
+    return new CompatibilityRenderTarget(getInstance(layoutlibDataPathSupplier, layoutlibResPathSupplier), api, target);
   }
 
-  private static EmbeddedRenderTarget getInstance(Supplier<String> layoutlibPathSupplier) {
+  public static CompatibilityRenderTarget getCompatibilityTarget(
+    @NotNull IAndroidTarget target, @NotNull Supplier<String> layoutlibPathSupplier) {
+    return getCompatibilityTarget(target, layoutlibPathSupplier, layoutlibPathSupplier);
+  }
+
+  private static EmbeddedRenderTarget getInstance(
+    @NotNull Supplier<String> layoutlibDataPathSupplier,
+    @NotNull Supplier<String> layoutlibResPathSupplier
+  ) {
     if (ourStudioEmbeddedTarget == null) {
-      ourStudioEmbeddedTarget = new EmbeddedRenderTarget(layoutlibPathSupplier.get());
+      // If it is called with the same supplier instance for both parameters (e.g. from getCompatibilityTarget) we only calculate path once.
+      if (layoutlibDataPathSupplier == layoutlibResPathSupplier) {
+        String layoutlibPath = layoutlibDataPathSupplier.get();
+        ourStudioEmbeddedTarget = new EmbeddedRenderTarget(layoutlibPath, layoutlibPath);
+      } else {
+        ourStudioEmbeddedTarget = new EmbeddedRenderTarget(layoutlibDataPathSupplier.get(), layoutlibResPathSupplier.get());
+      }
     }
     return ourStudioEmbeddedTarget;
   }
@@ -70,8 +91,9 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
     ourStudioEmbeddedTarget = null;
   }
 
-  private EmbeddedRenderTarget(@NotNull String layoutlibPath) {
-    myBasePath = layoutlibPath;
+  private EmbeddedRenderTarget(@Nullable String layoutlibDataPath, @Nullable String layoutlibResPath) {
+    myBasePath = layoutlibDataPath;
+    myBaseResPath = layoutlibResPath;
   }
 
   @Override
@@ -123,7 +145,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
       case DATA:
         return Paths.get(getLocation(), SdkConstants.FD_DATA);
       case RESOURCES:
-        return Paths.get(getLocation(), SdkConstants.FD_DATA, FRAMEWORK_RES_JAR);
+        return Paths.get(myBaseResPath, SdkConstants.FD_DATA, FRAMEWORK_RES_JAR);
       case FONTS:
         return Paths.get(getLocation(), SdkConstants.FD_DATA, SdkConstants.FD_FONTS);
       default:
