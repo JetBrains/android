@@ -70,6 +70,7 @@ iml_module(
         "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
     ],
     # do not sort: must match IML order
     deps = [

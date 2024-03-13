@@ -10,5 +10,9 @@ iml_module(
     ],
     iml_files = ["intellij.android.gradle.dsl.something.iml"],
     visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+    ],
 )

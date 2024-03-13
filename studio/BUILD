@@ -199,6 +199,7 @@ studio_plugin(
             "//tools/adt/idea/streaming:intellij.android.streaming",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+            "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
