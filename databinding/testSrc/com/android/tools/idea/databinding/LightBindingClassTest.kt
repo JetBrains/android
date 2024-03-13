@@ -50,13 +50,11 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlTag
-import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1253,63 +1251,6 @@ class LightBindingClassTest {
     assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
     assertThat(twoResourcesGroups).isNotSameAs(oneResourceGroups)
     assertThat(twoResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
-  }
-
-  @Test
-  @Ignore(
-    "b/322209412: bindingLayoutGroups should no longer be called in dumb mode, so this test doesn't apply."
-  )
-  fun bindingCacheRecoversAfterExitingDumbMode() {
-    // language=XML
-    val sampleXml =
-      """
-      <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout />
-      </layout>
-      """
-        .trimIndent()
-
-    fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
-
-    // initialize app resources
-    StudioResourceRepositoryManager.getAppResources(facet)
-
-    assertThat(
-        LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
-          group.mainLayout.className
-        }
-      )
-      .containsExactly("ActivityFirstBinding")
-
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      // First, verify that dumb mode doesn't prevent us from accessing the previous cache
-      assertThat(
-          LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
-            group.mainLayout.className
-          }
-        )
-        .containsExactly("ActivityFirstBinding")
-
-      // XML updates are ignored in dumb mode
-      fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
-      projectRule.waitForResourceRepositoryUpdates()
-      assertThat(
-          LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
-            group.mainLayout.className
-          }
-        )
-        .containsExactly("ActivityFirstBinding")
-    }
-    // XML updates should catch up after dumb mode is exited (in other words, we didn't save a
-    // snapshot of the stale
-    // cache from before)
-    assertThat(
-        LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
-          group.mainLayout.className
-        }
-      )
-      .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }
 
   @Test

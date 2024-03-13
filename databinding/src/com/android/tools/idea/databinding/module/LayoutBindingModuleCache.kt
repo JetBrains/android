@@ -39,9 +39,7 @@ import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -50,10 +48,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
@@ -179,7 +175,6 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
           .withMarkedBackingFile()
       }
 
-  @GuardedBy("lock") private var _bindingLayoutGroups = emptySet<BindingLayoutGroup>()
   /**
    * Returns all [BindingLayoutGroup] instances associated with this module, representing all
    * layouts that should have bindings generated for them.
@@ -194,29 +189,9 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
       // won't change on us in the middle of it.
       ApplicationManager.getApplication().assertReadAccessAllowed()
 
-      // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
-      // fail with an exception. To prevent this, we abort early with what we have.
-      // As of 2023.3, indexes can sometimes be accessed in dumb mode if some DumbModeAccessType is
-      // set. Allow execution to continue in those cases as well.
       val project = module.project
-      if (
-        DumbService.isDumb(project) &&
-          FileBasedIndex.getInstance().currentDumbModeAccessType == null
-      ) {
-        // TODO(b/322209412): Remove this error and instead throw an exception, after it's verified
-        // that end users are no longer running into this log line.
-        thisLogger()
-          .error("LayoutBindingModuleCache.bindingLayoutGroups cannot be used in dumb mode.")
-        return _bindingLayoutGroups
-      }
-
-      synchronized(lock) {
-        _bindingLayoutGroups =
-          CachedValuesManager.getManager(project)
-            .getCachedValue(facet, BindingLayoutGroupCachedValueProvider(facet, project))
-      }
-
-      return _bindingLayoutGroups
+      return CachedValuesManager.getManager(project)
+        .getCachedValue(facet, BindingLayoutGroupCachedValueProvider(facet, project))
     }
 
   private class BindingLayoutGroupCachedValueProvider(
