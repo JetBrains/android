@@ -206,12 +206,6 @@ void DisplayStreamer::Run() {
   DisplayManager::AddDisplayListener(jni, this);
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
-  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
-  if (codec == nullptr) {
-    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
-               display_id_, codec_info_->name.c_str());
-  }
-
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
@@ -222,6 +216,11 @@ void DisplayStreamer::Run() {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
+    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
+    if (codec == nullptr) {
+      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder", display_id_,
+                 codec_info_->name.c_str());
+    }
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
     if (Agent::feature_level() >= 34) {
       virtual_display_ = DisplayManager::CreateVirtualDisplay(
@@ -239,9 +238,9 @@ void DisplayStreamer::Run() {
       if (codec_stop_pending_) {
         codec_stop_pending_ = false;
         ReleaseVirtualDisplay(jni);
+        AMediaCodec_delete(codec);
         continue;  // Start another loop to refresh display information.
       }
-
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       if (display_info.rotation == 2 && rotation_correction == 0 && !Agent::is_watch()) {
@@ -249,12 +248,6 @@ void DisplayStreamer::Run() {
         // display orientation. Compensate for that using rotation_correction.
         display_info.rotation = 0;
         rotation_correction = 2;
-      }
-
-      if (bit_rate_reduced_) {
-        // Recreate codec because the existing one may not be usable (b327486966).
-        AMediaCodec_delete(codec);
-        codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
       }
       Size video_size = ConfigureCodec(
           codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
@@ -290,10 +283,10 @@ void DisplayStreamer::Run() {
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
     ReleaseVirtualDisplay(jni);
+    AMediaCodec_delete(codec);
     ANativeWindow_release(surface);
   }
 
-  AMediaCodec_delete(codec);
   AMediaFormat_delete(media_format);
   WindowManager::RemoveRotationWatcher(jni, display_id_, &display_rotation_watcher_);
   DisplayManager::RemoveDisplayListener(this);
