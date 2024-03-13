@@ -126,6 +126,8 @@ public class SessionProfilersViewTest {
 
   @Test
   public void testMonitorExpansion() {
+    myProfilerServices.enableTaskBasedUx(false);
+
     assumeFalse(myIsTestingProfileable);
     // Set session to enable Energy Monitor.
     myService.addSession(SESSION_O, SESSION_O_METADATA);
@@ -169,6 +171,8 @@ public class SessionProfilersViewTest {
 
   @Test
   public void testMonitorTooltip() {
+    myProfilerServices.enableTaskBasedUx(false);
+
     assumeFalse(myIsTestingProfileable);
     // Set Session to enable Energy monitor tooltip.
     myService.addSession(SESSION_O, SESSION_O_METADATA);

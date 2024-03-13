@@ -440,6 +440,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testLoadHeapDumpFromFile() throws Exception {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
 
     // Create a temp file
@@ -555,6 +557,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testNativeAllocationTooltipForX86() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     // Test toolbar configuration for O+;
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
     myTransportService.addEventToStream(
@@ -575,6 +579,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     // MainMemoryProfilerStageView object need to be declared to maintain its reference when being used in addDependency method in
     // AspectModel (more details in b/301024803)
@@ -593,6 +599,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testToolbarForNativeAllocations() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     // Test toolbar configuration for pre-Q (FAKE_DEVICE is O by default).
@@ -613,6 +621,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testToolbar() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     // Test toolbar configuration for pre-O.
     startWithNewDevice("PreO", AndroidVersion.VersionCodes.N);
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
@@ -774,6 +784,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void recordingsDisabledWhenVisitingDeadSession() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myProfilers.setStage(new NullMonitorStage(myProfilers));
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
@@ -785,6 +797,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void gcDisabledForDeadSession() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myProfilers.setStage(new NullMonitorStage(myProfilers));
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
@@ -805,6 +819,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void uiInSyncWithStartupNativeRecording() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     assertThat(myStage.isNativeAllocationSamplingEnabled()).isTrue();
     myStage.nativeAllocationTrackingStart(Trace.TraceStartStatus.newBuilder()

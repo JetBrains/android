@@ -33,6 +33,8 @@ import java.util.function.BiFunction
 class LegacyAllocationCommandHandlerTest {
   @Test
   fun testLegacyAllocationTrackingWorkflow() {
+    StudioFlags.PROFILER_TASK_BASED_UX.override(false)
+
     val time1 = 5L
     val time2 = 10L
 

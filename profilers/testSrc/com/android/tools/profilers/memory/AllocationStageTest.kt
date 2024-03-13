@@ -47,8 +47,12 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess, then re-enabled. This is because the setPreferredProcess
+    // method changes behavior based on the flag's value, and some of the tests depend on the behavior with the flag turned off.
+    ideProfilerServices.enableTaskBasedUx(false)
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
+    ideProfilerServices.enableTaskBasedUx(true)
     mockLoader = FakeCaptureObjectLoader()
     stage = if (isLive) spy(AllocationStage.makeLiveStage(profilers, mockLoader))
             else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
@@ -125,6 +129,8 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
 
   @Test
   fun `agent not attached still tracking in nonTaskBasedUx`() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     assumeTrue(isLive)
     (transportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
       trackStatus = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build()
@@ -163,6 +169,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
 
   @Test
   fun `implicit selection of allocation artifact proto is made post recording`() {
+    ideProfilerServices.enableTaskBasedUx(false)
     setupDeviceAndStage()
     // Capture a Java/Kotlin Allocation Trace
     MemoryProfilerTestUtils.startTrackingHelper(stage.parentStage, transportService, timer, 0, Memory.TrackStatus.Status.SUCCESS, false)

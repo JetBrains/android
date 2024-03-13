@@ -513,6 +513,8 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void implicitSelectionOfNativeAllocationArtifactProtoIsMadePostRecording() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     StudioProfilers profiler = new StudioProfilers(
       new ProfilerClient(myGrpcChannel.getChannel()),
       myIdeProfilerServices,
@@ -815,6 +817,8 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testNativeRecordingStopsWhenSessionDies() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Validate we enable tracking allocations

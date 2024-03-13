@@ -88,9 +88,13 @@ public class EventMonitorViewTest {
 
   @Before
   public void setUp() {
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess, then re-enabled. This is because the setPreferredProcess
+    // method changes behavior based on the flag's value, and some of the tests depend on the behavior with the flag turned off.
+    myProfilerServices.enableTaskBasedUx(false);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myProfilerServices.enableTaskBasedUx(true);
 
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
@@ -99,6 +103,7 @@ public class EventMonitorViewTest {
     myMonitorView = new EventMonitorView(profilerView, new EventMonitor(myProfilers));
 
     updateAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE);
+
   }
 
   @Test

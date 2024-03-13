@@ -156,6 +156,8 @@ public class StageNavigationToolbarTest {
 
   @Test
   public void menuShowsSupportedStagesForDebuggable() {
+    myProfilerServices.enableTaskBasedUx(false);
+
     assumeFalse(myIsTestingProfileable);
     // The Power Profiler is enabled by the FakeIdeProfilerServices by default, and thus the Energy Profiler should not be present.
     menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);

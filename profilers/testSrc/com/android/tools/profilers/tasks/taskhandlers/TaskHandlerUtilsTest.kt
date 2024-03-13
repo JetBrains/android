@@ -28,6 +28,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,6 +42,12 @@ class TaskHandlerUtilsTest {
 
   private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
+
+  @Before
+  fun setup() {
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
+    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
+  }
 
   @Test
   fun `test executeTaskAction with non-null arg`() {

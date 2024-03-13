@@ -97,6 +97,8 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
@@ -125,10 +127,12 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSessionWithTask() {
+    ideProfilerServices.enableTaskBasedUx(false)
     val streamId = 1L
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
     val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
     beginSessionWithTaskHelper(onlineDevice, onlineProcess, Common.ProfilerTaskType.SYSTEM_TRACE)
 
     val session = myManager.selectedSession
@@ -153,6 +157,8 @@ class SessionsManagerTest {
 
   @Test
   fun testValidSessionMetadataForDebuggableProcess() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val processId = 10
     val device = Common.Device.newBuilder().apply {
@@ -179,6 +185,8 @@ class SessionsManagerTest {
 
   @Test
   fun testValidSessionMetadataForProfileableProcess() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val processId = 10
     val device = Common.Device.newBuilder().apply {
@@ -205,6 +213,8 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSessionCannotRunTwice() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val deviceId = 1
     val pid1 = 10
     val pid2 = 20
@@ -219,6 +229,8 @@ class SessionsManagerTest {
 
   @Test
   fun testEndSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId.toLong()).setState(Common.Device.State.ONLINE).build()
@@ -272,6 +284,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSetSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -307,6 +321,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSetSessionById() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -349,6 +365,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSwitchingNonProfilingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -391,6 +409,8 @@ class SessionsManagerTest {
    */
   @Test
   fun testNativeHeapArtifacts() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val profiler = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -425,6 +445,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSessionArtifactsUpToDate() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -546,6 +568,8 @@ class SessionsManagerTest {
   // The epoch time in session meta data is the time when the file is imported.
   @Test
   fun testImportedSessionIsSelectedByImportTime() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     // Note the event may be added to the pipeline out of order (of epoch time).
     myTransportService.addEventToStream(
       1, ProfilersTestData.generateSessionStartEvent(
@@ -678,6 +702,8 @@ class SessionsManagerTest {
 
   @Test
   fun testDeleteProfilingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = debuggableProcess { pid = 10; deviceId = 1 }
     val process2 = debuggableProcess { pid = 20; deviceId = 1 }
@@ -756,6 +782,8 @@ class SessionsManagerTest {
 
   @Test
   fun testDeleteUnselectedSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = debuggableProcess { pid = 10; deviceId = 1 }
     val process2 = debuggableProcess { pid = 20; deviceId = 1 }

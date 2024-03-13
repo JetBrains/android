@@ -225,6 +225,8 @@ public final class MemoryProfilerTest {
 
   @Test
   public void testAllocationTrackingWhenAgentUnAttached() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build();
     // Setting to Long.Max_Value so the session is still active
@@ -252,6 +254,8 @@ public final class MemoryProfilerTest {
 
   @Test
   public void testLiveAllocationTrackingStoppedAndNotStartedOnAgentAttach() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     setupODeviceAndProcess();
     // Verify start and stop allocation tracking commands are handled by the same handler.
     MemoryAllocTracking allocTrackingHandler =
@@ -277,6 +281,8 @@ public final class MemoryProfilerTest {
 
   @Test
   public void liveAllocationTrackingDidNotStartIfAgentIsNotAttached() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     setupODeviceAndProcess();
 
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);

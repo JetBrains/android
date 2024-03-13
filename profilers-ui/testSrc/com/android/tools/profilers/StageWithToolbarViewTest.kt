@@ -54,9 +54,13 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
   @Before
   fun setUp() {
     ideProfilerServices.enableEnergyProfiler(true)
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess, then re-enabled. This is because the setPreferredProcess
+    // method changes behavior based on the flag's value, and some of the tests depend on the behavior with the flag turned off.
+    ideProfilerServices.enableTaskBasedUx(false)
     studioProfilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     studioProfilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    ideProfilerServices.enableTaskBasedUx(true)
 
     val fakeIdeProfilerComponents: IdeProfilerComponents = FakeIdeProfilerComponents()
     fakeStudioProfilersView = FakeStudioProfilersView(studioProfilers, fakeIdeProfilerComponents)
@@ -81,6 +85,8 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun testGoLiveButtonStates() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     // Check that go live is initially enabled and toggled
     val liveButton = stageWithToolbarView.goLiveButton
     val contextMenuItems = ProfilerContextMenu.createIfAbsent(stageComponent).contextMenuItems
@@ -166,6 +172,8 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun testTimelineButtonEnableStates() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val zoomInButton = stageWithToolbarView.zoomInButton
     val zoomOutButton = stageWithToolbarView.zoomOutButton
     val resetButton = stageWithToolbarView.resetZoomButton
@@ -224,6 +232,8 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun testLoadingPanelWhileWaitingForPreferredProcess() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
 
@@ -267,6 +277,8 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun testLoadingPanelWhileWaitingForAgentAttach() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     Assume.assumeFalse(isTestingProfileable) // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
@@ -313,6 +325,8 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun testNullStageIfDeviceIsUnsupported() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
 

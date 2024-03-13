@@ -47,16 +47,19 @@ class EventMonitorTest {
 
   private lateinit var monitor: EventMonitor
   private lateinit var profilers: StudioProfilers
+  private lateinit var ideProfilerServices: FakeIdeProfilerServices
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices()
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
+    ideProfilerServices = FakeIdeProfilerServices()
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     monitor = EventMonitor(profilers)
   }
 
   @Test
   fun monitorEnabledOnAgentAttached() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     assertThat(monitor.isEnabled).isFalse() // Monitor is not enabled on start.
 
     val session = Common.Session.newBuilder()
@@ -88,6 +91,8 @@ class EventMonitorTest {
 
   @Test
   fun monitorEnabledChangedOnAgentAttachable() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     assertThat(monitor.isEnabled).isFalse()
 
     val session = Common.Session.newBuilder()

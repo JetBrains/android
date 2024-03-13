@@ -52,6 +52,8 @@ class LegacyCpuTraceCommandHandlerTest {
 
   @Test
   fun testStartStopWorkflow() {
+    StudioFlags.PROFILER_TASK_BASED_UX.override(false)
+
     val testPid = 1
     val startTimestamp = 10L
     val endTimestamp = 20L
