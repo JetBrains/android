@@ -29,17 +29,19 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun GroupLayout(content: @Composable @UiComposable () -> Unit) {
   Layout(content) { measurables, constraints ->
-    val header = measurables.first().measure(constraints)
-    val rows = Row.buildList(measurables, constraints)
-    val padding = 12.dp.roundToPx()
+    val relatedPadding = 6.dp.roundToPx()
+    val unrelatedPadding = 12.dp.roundToPx()
 
-    layout(getWidth(header, rows), getHeight(header, rows, padding)) {
+    val header = measurables.first().measure(constraints)
+    val rows = Row.buildList(measurables, constraints, relatedPadding, unrelatedPadding)
+
+    layout(getWidth(header, rows), getHeight(header, rows, unrelatedPadding)) {
       header.placeRelative(0, 0)
-      var y = header.height + padding
+      var y = header.height + unrelatedPadding
 
       rows.forEach {
         it.placePlaceables(this, y)
-        y += it.height + padding
+        y += it.height + unrelatedPadding
       }
     }
   }
@@ -52,15 +54,25 @@ private constructor(
   private val text: Placeable,
   private val placeable: Placeable,
   private val icon: Placeable? = null,
+  private val relatedPadding: Int,
+  private val unrelatedPadding: Int,
 ) {
-  val width
-    get() = text.width + placeable.width + (icon?.width ?: 0)
+  val width: Int
+    get() {
+      val width = text.width + relatedPadding + placeable.width
+      return if (icon == null) width else width + unrelatedPadding + icon.width
+    }
 
   val height
     get() = maxOf(text.height, placeable.height, icon?.height ?: 0)
 
   companion object {
-    internal fun buildList(measurables: List<Measurable>, constraints: Constraints): Iterable<Row> {
+    internal fun buildList(
+      measurables: List<Measurable>,
+      constraints: Constraints,
+      relatedPadding: Int,
+      unrelatedPadding: Int,
+    ): Iterable<Row> {
       val i = measurables.listIterator()
 
       // Skip the GroupHeader
@@ -68,18 +80,28 @@ private constructor(
 
       return buildList {
         while (i.hasNext()) {
-          add(newRow(i, constraints))
+          add(newRow(i, constraints, relatedPadding, unrelatedPadding))
         }
       }
     }
 
-    private fun newRow(i: ListIterator<Measurable>, constraints: Constraints): Row {
+    private fun newRow(
+      i: ListIterator<Measurable>,
+      constraints: Constraints,
+      relatedPadding: Int,
+      unrelatedPadding: Int,
+    ): Row {
       val text = i.next().measure(constraints)
       val placeable = i.next().measure(constraints)
 
       if (!i.hasNext()) {
         // We're at the end and there's no Icon
-        return Row(text, placeable)
+        return Row(
+          text,
+          placeable,
+          relatedPadding = relatedPadding,
+          unrelatedPadding = unrelatedPadding,
+        )
       }
 
       val measurable = i.next()
@@ -88,11 +110,16 @@ private constructor(
         // The measurable is a Text. Go back.
         i.previous()
 
-        return Row(text, placeable)
+        return Row(
+          text,
+          placeable,
+          relatedPadding = relatedPadding,
+          unrelatedPadding = unrelatedPadding,
+        )
       }
 
       // We have an Icon
-      return Row(text, placeable, measurable.measure(constraints))
+      return Row(text, placeable, measurable.measure(constraints), relatedPadding, unrelatedPadding)
     }
   }
 
@@ -103,14 +130,14 @@ private constructor(
       // Align text's baseline with placeable's
       text.placeRelative(x, y + placeable[FirstBaseline] - text[FirstBaseline])
 
-      x += text.width
+      x += text.width + relatedPadding
       placeable.placeRelative(x, y)
 
       if (icon == null) {
         return
       }
 
-      x += placeable.width
+      x += placeable.width + unrelatedPadding
       icon.placeRelative(x, y + (height - icon.height) / 2)
     }
 }
