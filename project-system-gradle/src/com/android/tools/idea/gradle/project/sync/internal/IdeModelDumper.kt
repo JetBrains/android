@@ -81,6 +81,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
+import org.jetbrains.plugins.gradle.model.DefaultExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
@@ -191,6 +192,17 @@ private val jbModelDumpers = listOf(
           prop("compilerArguments", parseCommandLineArguments<K2JVMCompilerArguments>(compilerArguments))
         }
       }
+    }
+  },
+  SpecializedDumper<DefaultExternalSourceSet> { externalSourceSet ->
+    head(propertyName)
+    nest {
+      prop("sourceCompatibility", externalSourceSet.sourceCompatibility)
+      prop("targetCompatibility", externalSourceSet.targetCompatibility)
+      prop("jdkInstallationPath", externalSourceSet.jdkInstallationPath)
+      prop("artifacts", externalSourceSet.artifacts)
+      prop("dependencies", externalSourceSet.dependencies)
+      prop("sources", externalSourceSet.sources.toSortedMap())
     }
   },
   SpecializedDumper(property = KotlinMPPGradleModel::dependencies) { holder, dependencies ->
