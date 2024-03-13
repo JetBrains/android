@@ -27,13 +27,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Ignore
@@ -287,13 +285,7 @@ class WearHealthServicesToolWindowStateManagerTest {
   }
 
   private suspend fun <T> Flow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {
-    val received = mutableListOf<T>()
-    try {
-      withTimeout(timeoutSeconds.seconds) { takeWhile { it != value }.collect { received.add(it) } }
-    }
-    catch (ex: TimeoutCancellationException) {
-      Assert.fail("Timed out waiting for value $value. Received values so far $received")
-    }
+    withTimeout(timeoutSeconds.seconds) { takeWhile { it != value }.collect { } }
   }
 
   @Test
