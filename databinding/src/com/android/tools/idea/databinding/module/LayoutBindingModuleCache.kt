@@ -249,31 +249,33 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     synchronized(lock) {
       var bindingClasses = group.getUserData(LIGHT_BINDING_CLASSES_KEY)
       if (bindingClasses == null) {
-        bindingClasses = ArrayList()
-
-        // Always add a full "Binding" class.
-        val psiManager = PsiManager.getInstance(module.project)
-        val bindingClass =
-          LightBindingClass(psiManager, BindingClassConfig(facet, group)).withMarkedBackingFile()
-        bindingClasses.add(bindingClass)
-
-        // "Impl" classes are only necessary if we have more than a single configuration.
-        // Also, only create "Impl" bindings for data binding; view binding does not generate them
-        if (
-          group.layouts.size > 1 &&
-            group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
-        ) {
-          for (layoutIndex in group.layouts.indices) {
-            val bindingImplClass =
-              LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
-                .withMarkedBackingFile()
-            bindingClasses.add(bindingImplClass)
-          }
-        }
-
+        bindingClasses = createLightBindingClasses(facet, group)
         group.putUserData(LIGHT_BINDING_CLASSES_KEY, bindingClasses)
       }
       return bindingClasses
+    }
+  }
+
+  private fun createLightBindingClasses(
+    facet: AndroidFacet,
+    group: BindingLayoutGroup,
+  ): List<LightBindingClass> = buildList {
+    // Always add a full "Binding" class.
+    val psiManager = PsiManager.getInstance(facet.module.project)
+    add(LightBindingClass(psiManager, BindingClassConfig(facet, group)).withMarkedBackingFile())
+
+    // "Impl" classes are only necessary if we have more than a single configuration.
+    // Also, only create "Impl" bindings for data binding; view binding does not generate them
+    if (
+      group.layouts.size > 1 &&
+        group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
+    ) {
+      for (layoutIndex in group.layouts.indices) {
+        add(
+          LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
+            .withMarkedBackingFile()
+        )
+      }
     }
   }
 
