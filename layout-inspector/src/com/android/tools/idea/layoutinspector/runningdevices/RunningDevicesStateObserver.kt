@@ -221,7 +221,7 @@ class RunningDevicesStateObserver(project: Project) : Disposable {
   /**
    * Returns true if Running Devices has a tab containing a device with the desired serial number.
    */
-  fun hasDeviceWithSerialNumber(desiredSerialNumber: String): Boolean {
+  private fun hasDeviceWithSerialNumber(desiredSerialNumber: String): Boolean {
     val devicesIds = getAllTabsDeviceIds()
     return devicesIds.map { it.serialNumber }.contains(desiredSerialNumber)
   }
