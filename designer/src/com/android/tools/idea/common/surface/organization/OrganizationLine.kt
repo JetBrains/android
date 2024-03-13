@@ -26,8 +26,8 @@ fun Collection<Collection<JComponent>>.paintLines(g2d: Graphics2D) {
   g2d.color = OrganizationLine.COLOR
   g2d.stroke = BasicStroke(OrganizationLine.LINE_WIDTH)
   this.forEach { panels ->
-    val minY = panels.minOfOrNull { it.bounds.minY } ?: return@forEach
-    val maxY = panels.maxOfOrNull { it.bounds.maxY } ?: return@forEach
+    val minY = panels.filter { it.isVisible }.minOfOrNull { it.bounds.minY } ?: return@forEach
+    val maxY = panels.filter { it.isVisible }.maxOfOrNull { it.bounds.maxY } ?: return@forEach
     g2d.drawLine(OrganizationLine.LINE_X, minY.toInt(), OrganizationLine.LINE_X, maxY.toInt())
   }
 }

@@ -38,6 +38,12 @@ class OrganizationLineTest {
   }
 
   @Test
+  fun drawNoLine_noVisiblePanels() {
+    val panels = listOf(emptyList(), listOf(JPanel().apply { isVisible = false }))
+    verifyCalls(panels, 0)
+  }
+
+  @Test
   fun drawOneLine1() {
     val panels = listOf(emptyList(), listOf(JPanel(), JPanel(), JPanel()))
     verifyCalls(panels, 1)
@@ -46,6 +52,12 @@ class OrganizationLineTest {
   @Test
   fun drawOneLine2() {
     val panels = listOf(listOf(JPanel(), JPanel(), JPanel()))
+    verifyCalls(panels, 1)
+  }
+
+  @Test
+  fun drawOneLine_oneVisiblePanel() {
+    val panels = listOf(listOf(JPanel().apply { isVisible = false }), listOf(JPanel()))
     verifyCalls(panels, 1)
   }
 
