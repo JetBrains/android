@@ -127,6 +127,14 @@ Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Si
   return Size { width, height };
 }
 
+AMediaCodec* CreateCodec(const string& codec_name, int display_id) {
+  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_name.c_str());
+  if (codec == nullptr) {
+    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder", display_id, codec_name.c_str());
+  }
+  return codec;
+}
+
 Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, int32_t bit_rate,
                     AMediaFormat* media_format, const DisplayInfo& display_info, int32_t display_id) {
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
@@ -216,11 +224,7 @@ void DisplayStreamer::Run() {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
-    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
-    if (codec == nullptr) {
-      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder", display_id_,
-                 codec_info_->name.c_str());
-    }
+    AMediaCodec* codec = CreateCodec(codec_info_->name, display_id_);
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
     if (Agent::feature_level() >= 34) {
       virtual_display_ = DisplayManager::CreateVirtualDisplay(
