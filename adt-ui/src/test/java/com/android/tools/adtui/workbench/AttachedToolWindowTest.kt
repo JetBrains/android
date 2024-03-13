@@ -814,7 +814,7 @@ class AttachedToolWindowTest {
 
     private fun fireMouseClicked(component: JComponent, event: MouseEvent) {
       for (listener in component.mouseListeners) {
-        listener.mouseClicked(event)
+        runInEdtAndWait { listener.mouseClicked(event) }
       }
     }
 

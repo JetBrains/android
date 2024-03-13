@@ -800,6 +800,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       copyFrom(action);
     }
 
+    @NotNull
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
     @Override
     public boolean isSelected(@NotNull AnActionEvent event) {
       return getProperty(myProperty);
