@@ -111,9 +111,8 @@ private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
 
 @Composable
 private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupHeader("Network")
-
-  Row {
+  GroupLayout {
+    GroupHeader("Network")
     Text("Speed")
 
     Dropdown(
@@ -121,9 +120,8 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       SPEEDS,
       onSelectedItemChange = { onDeviceChange(device.copy(speed = it)) },
     )
-  }
 
-  Row {
+    InfoOutlineIcon(Modifier.layoutId(Icon))
     Text("Latency")
 
     Dropdown(
@@ -131,6 +129,8 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       LATENCIES,
       onSelectedItemChange = { onDeviceChange(device.copy(latency = it)) },
     )
+
+    InfoOutlineIcon(Modifier.layoutId(Icon))
   }
 }
 
@@ -139,9 +139,8 @@ private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList(
 
 @Composable
 private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupHeader("Startup")
-
-  Row {
+  GroupLayout {
+    GroupHeader("Startup")
     Text("Orientation")
 
     Dropdown(
@@ -158,9 +157,7 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
     ) {
       Text(device.orientation.shortDisplayValue)
     }
-  }
 
-  Row {
     Text("Default boot")
 
     Dropdown(
@@ -168,6 +165,8 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
       BOOTS,
       onSelectedItemChange = { onDeviceChange(device.copy(defaultBoot = it)) },
     )
+
+    InfoOutlineIcon(Modifier.layoutId(Icon))
   }
 }
 
