@@ -51,6 +51,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.indexing.FileBasedIndex
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.augment.AndroidLightClassBase
@@ -87,33 +89,23 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   val lightBindingClassSearchScope: GlobalSearchScope =
     LightBindingClassSearchScope(moduleBindingClassMarker)
 
-  @GuardedBy("lock") private var _dataBindingMode = DataBindingMode.NONE
+  private val _dataBindingMode = AtomicReference(DataBindingMode.NONE)
   var dataBindingMode: DataBindingMode
-    get() =
-      synchronized(lock) {
-        return _dataBindingMode
-      }
+    get() = _dataBindingMode.get()
     set(value) {
-      synchronized(lock) {
-        if (_dataBindingMode != value) {
-          _dataBindingMode = value
-          DataBindingModeTrackingService.getInstance().incModificationCount()
-        }
+      val oldValue = _dataBindingMode.getAndSet(value)
+      if (oldValue != value) {
+        DataBindingModeTrackingService.getInstance().incModificationCount()
       }
     }
 
-  @GuardedBy("lock") private var _viewBindingEnabled = false
+  private val _viewBindingEnabled = AtomicBoolean(false)
   private var viewBindingEnabled: Boolean
-    get() =
-      synchronized(lock) {
-        return _viewBindingEnabled
-      }
+    get() = _viewBindingEnabled.get()
     set(value) {
-      synchronized(lock) {
-        if (_viewBindingEnabled != value) {
-          _viewBindingEnabled = value
-          ViewBindingEnabledTrackingService.getInstance().incModificationCount()
-        }
+      val oldValue = _viewBindingEnabled.getAndSet(value)
+      if (oldValue != value) {
+        ViewBindingEnabledTrackingService.getInstance().incModificationCount()
       }
     }
 
