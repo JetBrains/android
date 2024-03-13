@@ -78,7 +78,6 @@ import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutM
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
