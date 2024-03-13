@@ -167,7 +167,7 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info
 }
 
 DisplayStreamer::~DisplayStreamer() {
-  if (thread_.joinable()) {
+  if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
     thread_.join();
   }
 }
@@ -188,7 +188,7 @@ void DisplayStreamer::Stop() {
   if (!streamer_stopped_.exchange(true)) {
     Log::D("Display %d: stopping video stream", display_id_);
     StopCodec();
-    if (thread_.joinable()) {
+    if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
       thread_.join();
     }
     ReleaseVirtualDisplay(Jvm::GetJni());

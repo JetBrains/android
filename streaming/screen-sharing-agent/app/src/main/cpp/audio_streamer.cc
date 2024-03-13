@@ -145,7 +145,7 @@ void AudioStreamer::Stop() {
   if (!streamer_stopped_.exchange(true)) {
     Log::D("Stopping audio stream");
     StopCodec();
-    if (thread_.joinable()) {
+    if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
       thread_.join();
     }
   }
