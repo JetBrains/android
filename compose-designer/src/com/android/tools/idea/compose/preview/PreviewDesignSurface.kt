@@ -43,7 +43,7 @@ internal val PREVIEW_LAYOUT_OPTIONS =
   listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
 
 /** Default layout option selected in the preview. */
-internal val DEFAULT_PREVIEW_LAYOUT_OPTION = PREVIEW_LAYOUT_OPTIONS.first()
+internal val DEFAULT_PREVIEW_LAYOUT_OPTION = GRID_LAYOUT_OPTION
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
