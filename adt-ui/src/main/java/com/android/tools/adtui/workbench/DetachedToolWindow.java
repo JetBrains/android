@@ -19,6 +19,7 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.
 import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.FLOATING;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -182,6 +183,12 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
       mySide = side;
     }
 
+    @NotNull
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
     @Override
     public void update(@NotNull AnActionEvent event) {
       event.getPresentation().setEnabledAndVisible(myCorrespondingToolWindow != null);
@@ -203,6 +210,12 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     private DetachedAction() {
       super("None");
+    }
+
+    @NotNull
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
     }
 
     @Override
