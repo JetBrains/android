@@ -96,6 +96,7 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
+        "//tools/adt/idea/.idea/libraries:agp-version",
     ],
 )
 
@@ -204,6 +205,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties[test]",
+        "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
 )
 

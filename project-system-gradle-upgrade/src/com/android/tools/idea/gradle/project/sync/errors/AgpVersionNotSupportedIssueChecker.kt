@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
@@ -58,12 +59,12 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
         Triple(tooOldMatcher.group(1), tooOldMatcher.group(0), TOO_OLD_URL)
       }
       AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> {
-        val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
+        val incompatiblePreviewMatcher = AgpVersionIncompatible.pattern(AgpVersions.latestKnown).matcher(message)
         if (!incompatiblePreviewMatcher.find()) return null
         Triple(incompatiblePreviewMatcher.group(1), incompatiblePreviewMatcher.group(0), PREVIEW_URL)
       }
       AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> {
-        val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
+        val tooNewMatcher = AgpVersionTooNew.pattern(AgpVersions.latestKnown).matcher(message)
         if (!tooNewMatcher.find()) return null
         Triple(tooNewMatcher.group(1), tooNewMatcher.group(0), TOO_NEW_URL)
       }

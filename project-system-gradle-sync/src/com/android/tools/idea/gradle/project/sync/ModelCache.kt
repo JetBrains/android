@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.Version
 import com.android.build.OutputFile
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Library
@@ -129,13 +128,13 @@ interface ModelCache {
     const val LOCAL_JARS = "__local_jars__"
 
     @JvmStatic
-    fun createForTests(useV2BuilderModels: Boolean): ModelCache {
+    fun createForTests(useV2BuilderModels: Boolean, agpVersion: AgpVersion): ModelCache {
       val internedModels = InternedModels(null)
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
           ModelVersions(
-            agp = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+            agp = agpVersion,
             modelVersion = ModelVersion(Int.MAX_VALUE, Int.MAX_VALUE, "Fake model for tests"),
             minimumModelConsumer = null,
             ),

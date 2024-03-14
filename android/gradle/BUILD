@@ -61,6 +61,7 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
+        "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
 )
 

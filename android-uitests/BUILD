@@ -109,6 +109,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module, test]",
+        "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
 )
 

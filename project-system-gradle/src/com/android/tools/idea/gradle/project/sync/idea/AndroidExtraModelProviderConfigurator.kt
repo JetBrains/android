@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
@@ -54,6 +55,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
 
   val studioFlags = GradleSyncStudioFlags(
+    studioLatestKnownAgpVersion = AgpVersions.latestKnown.toString(),
     studioFlagParallelSyncEnabled = parallelSync,
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
     studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),

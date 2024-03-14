@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
@@ -84,7 +85,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
   @Test
   fun testAgpVersionTooNewError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"))
+    val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"), latestSupportedVersion = AgpVersions.latestKnown)
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
@@ -106,7 +107,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
   @Test
   fun testAgpVersionIncompatible() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionIncompatible(AgpVersion.parse("7.1.0-beta01"))
+    val originalException = AgpVersionIncompatible(AgpVersion.parse("7.1.0-beta01"), latestSupportedVersion = AgpVersions.latestKnown)
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
