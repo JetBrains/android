@@ -20,10 +20,14 @@ package com.android.tools.idea.gradle.something.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
-public interface SomethingIdentifier extends PsiElement {
+public interface SomethingIdentifier extends PsiNamedElement, SomethingElement {
 
   @NotNull
   PsiElement getToken();
+
+  @Nullable
+  String getName();
 
 }

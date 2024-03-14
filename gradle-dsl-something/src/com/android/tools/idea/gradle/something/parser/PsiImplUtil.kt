@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.something.psi.SomethingBare
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifier
 import com.android.tools.idea.gradle.something.psi.SomethingProperty
 import com.android.tools.idea.gradle.something.psi.SomethingQualified
+import com.android.tools.idea.gradle.something.psi.SomethingValue
+import com.intellij.openapi.util.text.StringUtil
 
 class PsiImplUtil {
   companion object {
@@ -33,6 +35,11 @@ class PsiImplUtil {
       is SomethingBare -> property.identifier
       is SomethingQualified -> property.identifier!!
       else -> error("foo")
+    }
+
+    @JvmStatic
+    fun getName(property: SomethingIdentifier): String? {
+      return StringUtil.unescapeStringCharacters(property.text)
     }
   }
 }

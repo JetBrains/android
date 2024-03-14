@@ -17,19 +17,7 @@
 // ATTENTION: This file has been automatically generated from something.bnf. Do not edit it manually.
 package com.android.tools.idea.gradle.something.psi;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingFactory extends SomethingEntry {
-
-  @Nullable
-  SomethingFactory getFactory();
-
-  @NotNull
-  SomethingIdentifier getIdentifier();
-
-  @Nullable
-  SomethingValue getValue();
-
+public interface SomethingElement extends PsiElement {
 }

@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingProperty extends PsiElement {
+public interface SomethingProperty extends SomethingElement {
 
   @NotNull
   SomethingIdentifier getField();

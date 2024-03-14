@@ -28,13 +28,12 @@ public interface SomethingElementTypeHolder {
   IElementType ASSIGNMENT = new SomethingElementType("ASSIGNMENT");
   IElementType BARE = new SomethingElementType("BARE");
   IElementType BLOCK = new SomethingElementType("BLOCK");
-  IElementType ENTRY = new SomethingElementType("ENTRY");
   IElementType FACTORY = new SomethingElementType("FACTORY");
   IElementType IDENTIFIER = new SomethingElementType("IDENTIFIER");
-  IElementType LVALUE = new SomethingElementType("LVALUE");
+  IElementType LITERAL = new SomethingElementType("LITERAL");
   IElementType PROPERTY = new SomethingElementType("PROPERTY");
   IElementType QUALIFIED = new SomethingElementType("QUALIFIED");
-  IElementType RVALUE = new SomethingElementType("RVALUE");
+  IElementType VALUE = new SomethingElementType("VALUE");
 
   IElementType BOOLEAN = new SomethingTokenType("boolean");
   IElementType LINE_COMMENT = new SomethingTokenType("line_comment");
@@ -61,23 +60,20 @@ public interface SomethingElementTypeHolder {
       else if (type == BLOCK) {
         return new SomethingBlockImpl(node);
       }
-      else if (type == ENTRY) {
-        return new SomethingEntryImpl(node);
-      }
       else if (type == FACTORY) {
         return new SomethingFactoryImpl(node);
       }
       else if (type == IDENTIFIER) {
         return new SomethingIdentifierImpl(node);
       }
-      else if (type == LVALUE) {
-        return new SomethingLvalueImpl(node);
+      else if (type == LITERAL) {
+        return new SomethingLiteralImpl(node);
       }
       else if (type == QUALIFIED) {
         return new SomethingQualifiedImpl(node);
       }
-      else if (type == RVALUE) {
-        return new SomethingRvalueImpl(node);
+      else if (type == VALUE) {
+        return new SomethingValueImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

@@ -142,10 +142,10 @@ public class SomethingParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory)
-  public static boolean entry(PsiBuilder b, int l) {
+  static boolean entry(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "entry")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ENTRY, "<entry>");
+    Marker m = enter_section_(b, l, _NONE_);
     r = entry_0(b, l + 1);
     p = r; // pin = 1
     r = r && report_error_(b, entry_1(b, l + 1));
@@ -252,28 +252,33 @@ public class SomethingParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier
-  public static boolean lvalue(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "lvalue")) return false;
-    if (!nextTokenIs(b, TOKEN)) return false;
+  // string | number | boolean
+  public static boolean literal(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
-    Marker m = enter_section_(b);
-    r = identifier(b, l + 1);
-    exit_section_(b, m, LVALUE, r);
+    Marker m = enter_section_(b, l, _NONE_, LITERAL, "<literal>");
+    r = consumeToken(b, STRING);
+    if (!r) r = consumeToken(b, NUMBER);
+    if (!r) r = consumeToken(b, BOOLEAN);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // factory | property | string | number | boolean
+  // identifier
+  static boolean lvalue(PsiBuilder b, int l) {
+    return identifier(b, l + 1);
+  }
+
+  /* ********************************************************** */
+  // factory | property | literal
   public static boolean rvalue(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "rvalue")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, RVALUE, "<rvalue>");
+    Marker m = enter_section_(b, l, _NONE_, VALUE, "<rvalue>");
     r = factory(b, l + 1);
     if (!r) r = property(b, l + 1, -1);
-    if (!r) r = consumeToken(b, STRING);
-    if (!r) r = consumeToken(b, NUMBER);
-    if (!r) r = consumeToken(b, BOOLEAN);
+    if (!r) r = literal(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

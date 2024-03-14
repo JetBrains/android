@@ -21,13 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingRvalue extends PsiElement {
-
-  @Nullable
-  SomethingFactory getFactory();
-
-  @Nullable
-  SomethingProperty getProperty();
+public interface SomethingLiteral extends SomethingElement {
 
   @Nullable
   PsiElement getBoolean();

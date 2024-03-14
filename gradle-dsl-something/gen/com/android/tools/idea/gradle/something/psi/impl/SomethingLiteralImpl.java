@@ -28,14 +28,14 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
 
-public class SomethingLvalueImpl extends ASTWrapperPsiElement implements SomethingLvalue {
+public class SomethingLiteralImpl extends ASTWrapperPsiElement implements SomethingLiteral {
 
-  public SomethingLvalueImpl(@NotNull ASTNode node) {
+  public SomethingLiteralImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SomethingVisitor visitor) {
-    visitor.visitLvalue(this);
+    visitor.visitLiteral(this);
   }
 
   @Override
@@ -45,9 +45,21 @@ public class SomethingLvalueImpl extends ASTWrapperPsiElement implements Somethi
   }
 
   @Override
-  @NotNull
-  public SomethingIdentifier getIdentifier() {
-    return findNotNullChildByClass(SomethingIdentifier.class);
+  @Nullable
+  public PsiElement getBoolean() {
+    return findChildByType(BOOLEAN);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getNumber() {
+    return findChildByType(NUMBER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getString() {
+    return findChildByType(STRING);
   }
 
 }

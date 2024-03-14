@@ -29,13 +29,12 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       .isEqualTo(
         """
           FILE
-            SomethingEntryImpl(ENTRY)
-              SomethingAssignmentImpl(ASSIGNMENT)
-                SomethingLvalueImpl(LVALUE)
-                  SomethingIdentifierImpl(IDENTIFIER)
-                    PsiElement(SomethingTokenType.token)('foo')
-                PsiElement(SomethingTokenType.=)('=')
-                SomethingRvalueImpl(RVALUE)
+            SomethingAssignmentImpl(ASSIGNMENT)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.=)('=')
+              SomethingValueImpl(VALUE)
+                SomethingLiteralImpl(LITERAL)
                   PsiElement(SomethingTokenType.number)('3')
         """.trimIndent()
     )
@@ -51,12 +50,11 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       .isEqualTo(
         """
           FILE
-            SomethingEntryImpl(ENTRY)
-              SomethingBlockImpl(BLOCK)
-                SomethingIdentifierImpl(IDENTIFIER)
-                  PsiElement(SomethingTokenType.token)('dependencies')
-                PsiElement(SomethingTokenType.{)('{')
-                PsiElement(SomethingTokenType.})('}')
+            SomethingBlockImpl(BLOCK)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('dependencies')
+              PsiElement(SomethingTokenType.{)('{')
+              PsiElement(SomethingTokenType.})('}')
         """.trimIndent()
       )
   }
@@ -70,14 +68,14 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       .isEqualTo(
         """
           FILE
-            SomethingEntryImpl(ENTRY)
-              SomethingFactoryImpl(FACTORY)
-                SomethingIdentifierImpl(IDENTIFIER)
-                  PsiElement(SomethingTokenType.token)('foo')
-                PsiElement(SomethingTokenType.()('(')
-                SomethingRvalueImpl(RVALUE)
+            SomethingFactoryImpl(FACTORY)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.()('(')
+              SomethingValueImpl(VALUE)
+                SomethingLiteralImpl(LITERAL)
                   PsiElement(SomethingTokenType.string)('"abc/def"')
-                PsiElement(SomethingTokenType.))(')')
+              PsiElement(SomethingTokenType.))(')')
         """.trimIndent()
       )
   }
@@ -92,17 +90,17 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       .isEqualTo(
         """
           FILE
-            SomethingEntryImpl(ENTRY)
-              SomethingBlockImpl(BLOCK)
-                SomethingFactoryImpl(FACTORY)
-                  SomethingIdentifierImpl(IDENTIFIER)
-                    PsiElement(SomethingTokenType.token)('create')
-                  PsiElement(SomethingTokenType.()('(')
-                  SomethingRvalueImpl(RVALUE)
+            SomethingBlockImpl(BLOCK)
+              SomethingFactoryImpl(FACTORY)
+                SomethingIdentifierImpl(IDENTIFIER)
+                  PsiElement(SomethingTokenType.token)('create')
+                PsiElement(SomethingTokenType.()('(')
+                SomethingValueImpl(VALUE)
+                  SomethingLiteralImpl(LITERAL)
                     PsiElement(SomethingTokenType.string)('"foo"')
-                  PsiElement(SomethingTokenType.))(')')
-                PsiElement(SomethingTokenType.{)('{')
-                PsiElement(SomethingTokenType.})('}')
+                PsiElement(SomethingTokenType.))(')')
+              PsiElement(SomethingTokenType.{)('{')
+              PsiElement(SomethingTokenType.})('}')
         """.trimIndent()
       )
   }

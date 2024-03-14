@@ -58,8 +58,8 @@ public class SomethingFactoryImpl extends ASTWrapperPsiElement implements Someth
 
   @Override
   @Nullable
-  public SomethingRvalue getRvalue() {
-    return findChildByClass(SomethingRvalue.class);
+  public SomethingValue getValue() {
+    return findChildByClass(SomethingValue.class);
   }
 
 }

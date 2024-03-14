@@ -28,50 +28,20 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
 
-public class SomethingRvalueImpl extends ASTWrapperPsiElement implements SomethingRvalue {
+public class SomethingElementImpl extends ASTWrapperPsiElement implements SomethingElement {
 
-  public SomethingRvalueImpl(@NotNull ASTNode node) {
+  public SomethingElementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SomethingVisitor visitor) {
-    visitor.visitRvalue(this);
+    visitor.visitElement(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof SomethingVisitor) accept((SomethingVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public SomethingFactory getFactory() {
-    return findChildByClass(SomethingFactory.class);
-  }
-
-  @Override
-  @Nullable
-  public SomethingProperty getProperty() {
-    return findChildByClass(SomethingProperty.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getBoolean() {
-    return findChildByType(BOOLEAN);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getNumber() {
-    return findChildByType(NUMBER);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getString() {
-    return findChildByType(STRING);
   }
 
 }

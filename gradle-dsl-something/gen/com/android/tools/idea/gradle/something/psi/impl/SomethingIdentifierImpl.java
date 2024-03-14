@@ -24,11 +24,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.gradle.something.psi.SomethingIdentifierMixin;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
 
-public class SomethingIdentifierImpl extends ASTWrapperPsiElement implements SomethingIdentifier {
+public class SomethingIdentifierImpl extends SomethingIdentifierMixin implements SomethingIdentifier {
 
   public SomethingIdentifierImpl(@NotNull ASTNode node) {
     super(node);
@@ -48,6 +48,12 @@ public class SomethingIdentifierImpl extends ASTWrapperPsiElement implements Som
   @NotNull
   public PsiElement getToken() {
     return findNotNullChildByType(TOKEN);
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return PsiImplUtil.getName(this);
   }
 
 }

@@ -21,12 +21,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingAssignment extends PsiElement {
+public interface SomethingAssignment extends SomethingEntry {
 
   @NotNull
-  SomethingLvalue getLvalue();
+  SomethingIdentifier getIdentifier();
 
   @Nullable
-  SomethingRvalue getRvalue();
+  SomethingValue getValue();
 
 }

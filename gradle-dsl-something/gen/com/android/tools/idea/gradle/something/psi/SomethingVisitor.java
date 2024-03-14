@@ -19,12 +19,12 @@ package com.android.tools.idea.gradle.something.psi;
 
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
 public class SomethingVisitor extends PsiElementVisitor {
 
   public void visitAssignment(@NotNull SomethingAssignment o) {
-    visitPsiElement(o);
+    visitEntry(o);
   }
 
   public void visitBare(@NotNull SomethingBare o) {
@@ -32,39 +32,43 @@ public class SomethingVisitor extends PsiElementVisitor {
   }
 
   public void visitBlock(@NotNull SomethingBlock o) {
-    visitPsiElement(o);
-  }
-
-  public void visitEntry(@NotNull SomethingEntry o) {
-    visitPsiElement(o);
+    visitEntry(o);
   }
 
   public void visitFactory(@NotNull SomethingFactory o) {
-    visitPsiElement(o);
+    visitEntry(o);
   }
 
   public void visitIdentifier(@NotNull SomethingIdentifier o) {
-    visitPsiElement(o);
+    visitPsiNamedElement(o);
   }
 
-  public void visitLvalue(@NotNull SomethingLvalue o) {
-    visitPsiElement(o);
+  public void visitLiteral(@NotNull SomethingLiteral o) {
+    visitElement(o);
   }
 
   public void visitProperty(@NotNull SomethingProperty o) {
-    visitPsiElement(o);
+    visitElement(o);
   }
 
   public void visitQualified(@NotNull SomethingQualified o) {
     visitProperty(o);
   }
 
-  public void visitRvalue(@NotNull SomethingRvalue o) {
-    visitPsiElement(o);
+  public void visitValue(@NotNull SomethingValue o) {
+    visitElement(o);
   }
 
-  public void visitPsiElement(@NotNull PsiElement o) {
+  public void visitEntry(@NotNull SomethingEntry o) {
     visitElement(o);
+  }
+
+  public void visitPsiNamedElement(@NotNull PsiNamedElement o) {
+    visitElement(o);
+  }
+
+  public void visitElement(@NotNull SomethingElement o) {
+    super.visitElement(o);
   }
 
 }

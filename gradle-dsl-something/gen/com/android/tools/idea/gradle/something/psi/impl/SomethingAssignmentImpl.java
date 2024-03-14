@@ -46,14 +46,14 @@ public class SomethingAssignmentImpl extends ASTWrapperPsiElement implements Som
 
   @Override
   @NotNull
-  public SomethingLvalue getLvalue() {
-    return findNotNullChildByClass(SomethingLvalue.class);
+  public SomethingIdentifier getIdentifier() {
+    return findNotNullChildByClass(SomethingIdentifier.class);
   }
 
   @Override
   @Nullable
-  public SomethingRvalue getRvalue() {
-    return findChildByClass(SomethingRvalue.class);
+  public SomethingValue getValue() {
+    return findChildByClass(SomethingValue.class);
   }
 
 }
