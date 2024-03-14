@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
 import com.intellij.ui.JBColor
@@ -39,7 +40,7 @@ class InteractiveLabelPanel(
         }
 
         override fun mouseExited(e: MouseEvent?) {
-          foreground = labelDefaultColor
+          foreground = AdtUiUtils.HEADER_COLOR
         }
 
         override fun mouseClicked(e: MouseEvent?) {

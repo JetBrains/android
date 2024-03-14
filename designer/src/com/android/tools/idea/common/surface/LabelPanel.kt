@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.intellij.ui.JBColor
+import com.android.tools.adtui.common.AdtUiUtils
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -24,7 +24,7 @@ import java.awt.Dimension
 open class LabelPanel(initialLayoutData: LayoutData) : JBLabel() {
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-    foreground = labelDefaultColor
+    foreground = AdtUiUtils.HEADER_COLOR
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     updateFromLayoutData(initialLayoutData)
   }
@@ -45,9 +45,5 @@ open class LabelPanel(initialLayoutData: LayoutData) : JBLabel() {
       toolTipText = layoutData.modelTooltip ?: layoutData.modelName
       isVisible = true
     }
-  }
-
-  companion object {
-    val labelDefaultColor = JBColor(0x6c707e, 0xdfe1e5)
   }
 }

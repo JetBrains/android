@@ -75,6 +75,11 @@ object AdtUiUtils {
    */
   val TITLE_COLOR = JBColor(0x6C707E, 0xCED0D6)
 
+  /**
+   * Color to be used by labels representing the title in Preview.
+   */
+  val HEADER_COLOR = JBColor(0x6c707e, 0xdfe1e5)
+
   @JvmField
   val DEFAULT_BORDER_COLOR: Color = border
 
