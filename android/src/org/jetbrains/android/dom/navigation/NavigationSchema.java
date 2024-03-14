@@ -330,6 +330,12 @@ public class NavigationSchema implements Disposable {
         return 0;
       }
 
+      if (file.getFileType().isBinary()) {
+        // The class is part of compiled file. Do not obtain the document since this will
+        // trigger an unnecessary decompilation. Use the virtual file modification count instead.
+        return file.getVirtualFile().getModificationCount();
+      }
+
       Document document = manager.getDocument(file);
       return document == null ? 0 : document.getModificationStamp();
     }
