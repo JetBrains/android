@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
 import java.awt.Point
 import javax.swing.JViewport
+import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -39,6 +40,12 @@ import kotlin.math.min
  * ignored.
  */
 @SurfaceZoomLevel const val SCALING_THRESHOLD = 0.005
+
+/** The max milliseconds duration of the zooming animation. */
+private const val ANIMATION_MAX_DURATION_MILLIS = 200
+
+/** The number of scale changes allowed during one zooming animation. */
+private const val SCALE_CHANGES_PER_ANIMATION = 50
 
 /**
  * Implementation of [ZoomController] for [DesignSurface] zoom logic.
@@ -65,6 +72,8 @@ abstract class DesignSurfaceZoomController(
   override val minScale: Double = MIN_SCALE
 
   override val maxScale: Double = MAX_SCALE
+
+  open val shouldShowZoomAnimation: Boolean = false
 
   /**
    * The max zoom level allowed in zoom to fit could not correspond if [screenScalingFactor] is
@@ -110,10 +119,90 @@ abstract class DesignSurfaceZoomController(
     if (isScaleSame(currentScale, newScale)) {
       return false
     }
-    val previewsScale = currentScale
-    currentScale = newScale
-    scaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
+
+    if (shouldShowZoomAnimation) {
+      animateScaleChange(newScale) { scaleIncrement, isAnimating ->
+        val previousScale = currentScale
+        currentScale = scaleIncrement
+        scaleListener?.onScaleChange(
+          ScaleChange(previousScale, scaleIncrement, Point(x, y), isAnimating)
+        )
+      }
+    } else {
+      val previewsScale = currentScale
+      currentScale = newScale
+      scaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
+    }
     return true
+  }
+
+  private var currentTimer: Timer? = null
+
+  /**
+   * Shows a zooming animation.
+   *
+   * @param newScale The final scale we want to apply.
+   * @param changeScale Applies scale changes to [DesignSurface]
+   *
+   * TODO(b/331165064): if we want to ship this feature, it is better moving this code in a
+   *   different class
+   */
+  @UiThread
+  private fun animateScaleChange(newScale: Double, changeScale: (Double, Boolean) -> Unit) {
+    // Stop the previous timer if any
+    currentTimer?.stop()
+
+    val previousScale = currentScale
+
+    // The milliseconds interval between zoom change and another
+    val intervalDelay = ANIMATION_MAX_DURATION_MILLIS / SCALE_CHANGES_PER_ANIMATION
+
+    // The zoom level that we want to increment within the interval
+    val zoomChangePerInterval = max(0.01, abs(newScale - previousScale) / intervalDelay)
+
+    // Function that describes the zoom animation.
+    // It is a function similar to a Bezier curve, it calculates the scale change to be applied
+    // during the animation in a way that the zoom is happening in a smooth-looking way
+    val transformation: (Double) -> Double = { t ->
+      val x = t * zoomChangePerInterval
+      val threshold = SCALE_CHANGES_PER_ANIMATION / 2
+      when {
+        zoomChangePerInterval > 0.05 && t <= threshold -> {
+          2 * x * x * x
+        }
+        t <= threshold -> {
+          2 * x * x
+        }
+        else -> {
+          2 * x + (SCALE_CHANGES_PER_ANIMATION - x) + (SCALE_CHANGES_PER_ANIMATION / 2)
+        }
+      }
+    }
+
+    var intervalCounter = 0.0
+    currentTimer =
+      Timer(intervalDelay) {
+          if (isScaleSame(currentScale, newScale)) {
+            // scale is the same, we don't need to change scale anymore, timer can be stopped.
+            currentTimer?.stop()
+          } else if (intervalCounter >= SCALE_CHANGES_PER_ANIMATION) {
+            // we have reached the maximum scale changes per interval we set the zoom to newScale,
+            // no matter if the animation was completed or not, to ensure the user to be in the
+            // requested scale level.
+            changeScale(newScale, false)
+            currentTimer?.stop()
+          } else {
+            val updatedScale =
+              if (previousScale <= newScale) {
+                minOf(newScale, previousScale + transformation(intervalCounter))
+              } else {
+                maxOf(newScale, previousScale - transformation(intervalCounter))
+              }
+            changeScale(updatedScale, true)
+          }
+          intervalCounter++
+        }
+        .apply { start() }
   }
 
   override fun setScale(scale: Double): Boolean = setScale(scale, -1, -1)
@@ -143,6 +232,7 @@ abstract class DesignSurfaceZoomController(
         ZoomType.IN -> {
           @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
           val current = Math.round(currentScale * 100).toInt()
+
           @SurfaceScale
           val newScale: Double = (ZoomType.zoomIn(current) / 100.0) / screenScalingFactor
           setScale(newScale, newX, newY)
@@ -150,6 +240,7 @@ abstract class DesignSurfaceZoomController(
         ZoomType.OUT -> {
           @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
           val current = (currentScale * 100).toInt()
+
           @SurfaceScale
           val newScale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
           setScale(newScale, newX, newY)

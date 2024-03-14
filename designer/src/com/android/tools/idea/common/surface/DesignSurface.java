@@ -1023,6 +1023,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @Override
   public void onScaleChange(@NotNull ScaleChange update) {
     NlModel model = Iterables.getFirst(getModels(), null);
+    if(update.isAnimating()){
+      revalidateScrollArea();
+      return;
+    }
     if (model != null) {
       storeCurrentScale(model);
     }

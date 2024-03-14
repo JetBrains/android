@@ -273,6 +273,11 @@ public final class StudioFlags {
     NELE, "xml.to.compose", "Enable XML to Compose conversion",
     "Enable an action that converts XML layouts to Compose using the Gemini backend",
     false);
+
+  public static final Flag<Boolean> PREVIEW_ZOOM_ANIMATION = new BooleanFlag(
+    NELE, "preview.zoom.animation", "Enable animation while zooming",
+    "If enabled, Zoom change will show up an animation.",
+    false);
   //endregion
 
   //region Resource Repository

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.ScenesOwner
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.flags.StudioFlags
 
 /**
  * [DesignSurfaceZoomController] for the [NlDesignSurface]. It contains all the zooming logic of
@@ -52,6 +53,8 @@ class NlDesignSurfaceZoomController(
   override var maxScale: Double = super.maxScale
 
   override fun getFitScale(): Double = minOf(maxZoomToFitScale, fitScaleProvider())
+
+  override val shouldShowZoomAnimation: Boolean = StudioFlags.PREVIEW_ZOOM_ANIMATION.get()
 
   override fun canZoomToActual(): Boolean {
     @SurfaceScale val scaleOfActual = 1.0 / screenScalingFactor

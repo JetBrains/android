@@ -30,14 +30,16 @@ interface ScaleListener {
 /**
  * Defines a change of the surface scale.
  *
- * @param previousScale the scale change before its change
- * @param newScale the scale change after its change
- * @param focusPoint the focus point where to apply the scale change, default value is with
+ * @param previousScale The scale change before its change.
+ * @param newScale The scale change after its change.
+ * @param focusPoint The focus point where to apply the scale change, default value is with
  *   coordinates of (-1, -1), meaning that when the scale was changed, no focus coordinates were
- *   expressed. In such case we need to calculate the coordinates by checking the window size
+ *   expressed. In such case we need to calculate the coordinates by checking the window size.
+ * @param isAnimating Scale change is requested by an animation.
  */
 data class ScaleChange(
   val previousScale: Double,
   val newScale: Double,
   val focusPoint: Point = Point(-1, -1),
+  val isAnimating: Boolean = false,
 )
