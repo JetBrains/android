@@ -55,7 +55,7 @@ rvalue ::= factory | property | string | number | boolean
 property ::= qualified | bare {methods=[getField getReceiver]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
-block ::= (identifier | factory) OP_LBRACE block_entry* OP_RBRACE {pin=2}
+block ::= (factory | identifier) OP_LBRACE block_entry* OP_RBRACE {pin=2}
 private block_entry ::= !'}' entry
 factory ::= identifier OP_LPAREN (factory | rvalue) OP_RPAREN {pin=2}
 

@@ -82,6 +82,31 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       )
   }
 
+  fun testFactoryBlock() {
+    assertThat(
+      """
+        create("foo") {
+        }
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+          FILE
+            SomethingEntryImpl(ENTRY)
+              SomethingBlockImpl(BLOCK)
+                SomethingFactoryImpl(FACTORY)
+                  SomethingIdentifierImpl(IDENTIFIER)
+                    PsiElement(SomethingTokenType.token)('create')
+                  PsiElement(SomethingTokenType.()('(')
+                  SomethingRvalueImpl(RVALUE)
+                    PsiElement(SomethingTokenType.string)('"foo"')
+                  PsiElement(SomethingTokenType.))(')')
+                PsiElement(SomethingTokenType.{)('{')
+                PsiElement(SomethingTokenType.})('}')
+        """.trimIndent()
+      )
+  }
+
   private fun String.toParseTreeText() = createPsiFile("in-memory", this.trimIndent()).let {
     toParseTreeText(it, true, false).trim()
   }

@@ -71,7 +71,7 @@ public class SomethingParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (identifier | factory) OP_LBRACE block_entry* OP_RBRACE
+  // (factory | identifier) OP_LBRACE block_entry* OP_RBRACE
   public static boolean block(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
@@ -86,12 +86,12 @@ public class SomethingParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // identifier | factory
+  // factory | identifier
   private static boolean block_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_0")) return false;
     boolean r;
-    r = identifier(b, l + 1);
-    if (!r) r = factory(b, l + 1);
+    r = factory(b, l + 1);
+    if (!r) r = identifier(b, l + 1);
     return r;
   }
 
