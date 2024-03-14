@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.something
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.STRING
+import com.android.tools.idea.gradle.something.parser.SomethingLexer
 import com.android.tools.idea.gradle.something.parser.SomethingParser
 import com.android.tools.idea.gradle.something.parser._SomethingLexer
 import com.android.tools.idea.gradle.something.psi.SomethingFile
@@ -34,7 +35,7 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 
 class SomethingParserDefinition : ParserDefinition {
-  override fun createLexer(project: Project?) = FlexAdapter(_SomethingLexer(null))
+  override fun createLexer(project: Project?) = SomethingLexer()
   override fun createParser(project: Project?): PsiParser = SomethingParser()
 
   override fun getFileNodeType(): IFileElementType = FILE_ELEMENT_TYPE
