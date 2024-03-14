@@ -4,7 +4,7 @@
               implementationClass="com.android.tools.idea.gradle.something.SomethingFileType"
               fieldName="INSTANCE"
               language="Something"
-              extensions="gradle.something"/>
+              extensions="something"/>
     <lang.parserDefinition language="Something"
                            implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
   </extensions>

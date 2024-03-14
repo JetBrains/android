@@ -22,7 +22,7 @@ import javax.swing.Icon
 class SomethingFileType : LanguageFileType(SomethingLanguage.INSTANCE) {
   override fun getName(): String = "Something (Gradle Declarative)"
   override fun getDescription(): String = "Something (Gradle Declarative Build DSL)"
-  override fun getDefaultExtension(): String = "gradle.something"
+  override fun getDefaultExtension(): String = "something"
   override fun getIcon(): Icon = GradleIcons.GradleFile
 
   companion object {
