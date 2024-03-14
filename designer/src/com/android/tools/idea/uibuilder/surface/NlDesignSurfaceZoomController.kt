@@ -35,7 +35,7 @@ import kotlin.math.min
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner the scene owner of this [ZoomController].
- * @param maxFitIntoZoomLevel The maximum zoom level allowed for ZoomType#FIT.
+ * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 class NlDesignSurfaceZoomController(
   private val viewPort: DesignSurfaceViewport,
@@ -44,13 +44,13 @@ class NlDesignSurfaceZoomController(
   designerAnalyticsManager: DesignerAnalyticsManager?,
   selectionModel: SelectionModel?,
   scenesOwner: ScenesOwner?,
-  maxFitIntoZoomLevel: Double = Double.MAX_VALUE,
+  maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) :
   DesignSurfaceZoomController(
     designerAnalyticsManager,
     selectionModel,
     scenesOwner,
-    maxFitIntoZoomLevel,
+    maxZoomToFitLevel,
   ) {
 
   override var minScale: Double = super.minScale
