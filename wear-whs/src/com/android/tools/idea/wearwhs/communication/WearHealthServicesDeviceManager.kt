@@ -33,32 +33,32 @@ internal interface WearHealthServicesDeviceManager {
    *
    * @return true if there's an ongoing exercise, false otherwise.
    */
-  suspend fun loadActiveExercise(): Boolean
+  suspend fun loadActiveExercise(): Result<Boolean>
 
   /**
    * Set multiple WHS capabilities on the device.
    */
-  suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>)
+  suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>): Result<Unit>
 
   /**
    * Overrides the sensor value for the given capabilities.
    */
-  suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>)
+  suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>): Result<Unit>
 
   /**
    * Loads the current state from WHS to compare with the current UI.
    */
-  suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityState>
+  suspend fun loadCurrentCapabilityStates(): Result<Map<WhsDataType, CapabilityState>>
 
   /**
    * Deletes all data from the WHS content provider
    */
-  suspend fun clearContentProvider()
+  suspend fun clearContentProvider(): Result<Unit>
 
   /**
    * Returns if the WHS version is supported.
    */
-  suspend fun isWhsVersionSupported(): Boolean
+  suspend fun isWhsVersionSupported(): Result<Boolean>
 
   /**
    * Sets the serial number of the emulator to connect.
@@ -68,7 +68,7 @@ internal interface WearHealthServicesDeviceManager {
   /**
    * Sends an event trigger to the device.
    */
-  suspend fun triggerEvent(eventTrigger: EventTrigger)
+  suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 }
 
 internal data class CapabilityState(

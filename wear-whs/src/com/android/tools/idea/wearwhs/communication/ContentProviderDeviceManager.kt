@@ -26,7 +26,6 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.take
-import kotlin.jvm.Throws
 
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
@@ -52,7 +51,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     get() {
       try {
         field.throwIfClosed()
-      } catch (closedException: ClosedSessionException) {
+      }
+      catch (closedException: ClosedSessionException) {
         field = adbSessionProvider()
       }
       return field
@@ -60,15 +60,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
 
   override fun getCapabilities() = capabilities
 
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityState> {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return emptyMap()
-    }
-
-    try {
-      val output = runAdbShellCommandIfConnected("content query --uri $whsConfigUri")
-
+  override suspend fun loadCurrentCapabilityStates() =
+    runAdbShellCommandIfConnected("content query --uri $whsConfigUri").map { output ->
       val contentProviderEntryMatches = capabilityStatePattern.findAll(output)
 
       val capabilities = mutableMapOf<WhsDataType, CapabilityState>()
@@ -88,63 +81,27 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
         capabilities[dataType] = CapabilityState(isEnabled, overrideValue)
       }
 
-      return capabilities
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't load current capability states", e)
-    }
-  }
-
-  override suspend fun clearContentProvider() {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return
+      capabilities
     }
 
-    try {
-      runAdbShellCommandIfConnected("content delete --uri $whsConfigUri")
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't clear content provider", e)
-    }
-  }
+  override suspend fun clearContentProvider() =
+    runAdbShellCommandIfConnected("content delete --uri $whsConfigUri").map {}
 
-  override suspend fun isWhsVersionSupported(): Boolean {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return false
-    }
-
-    try {
-      val output = runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1")
+  override suspend fun isWhsVersionSupported() =
+    runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1").map { output ->
       val versionCode: Int? = versionCodePattern.find(output)?.groupValues?.get(1)?.toInt()
 
-      return versionCode != null && (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't determine if WHS version is supported", e)
+      versionCode != null && (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
     }
-  }
 
   override fun setSerialNumber(serialNumber: String) {
     this.serialNumber = serialNumber
   }
 
-  private fun activeExerciseCommand(): String {
-    return "content query --uri $whsActiveExerciseUri"
-  }
-
-  override suspend fun loadActiveExercise(): Boolean {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return false
+  override suspend fun loadActiveExercise() =
+    runAdbShellCommandIfConnected("content query --uri $whsActiveExerciseUri").map { output ->
+      activeExerciseRegex.find(output)?.groupValues?.get(1)?.toBoolean() ?: false
     }
-
-    try {
-      val output = runAdbShellCommandIfConnected(activeExerciseCommand())
-      val activeExercise = activeExerciseRegex.find(output)?.groupValues?.get(1)?.toBoolean()
-      return activeExercise ?: false
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't load active exercise", e)
-    }
-  }
 
   private fun contentUpdateMultipleCapabilities(capabilityUpdates: Map<WhsDataType, Any?>): String {
     val sb = StringBuilder("content update --uri $whsConfigUri")
@@ -177,32 +134,11 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     return " --bind $key:$type:$value"
   }
 
-  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return
-    }
+  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
+    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilities(capabilityUpdates)).map {}
 
-    try {
-      val contentUpdateCommand = contentUpdateMultipleCapabilities(capabilityUpdates)
-      runAdbShellCommandIfConnected(contentUpdateCommand)
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't set capabilities", e)
-    }
-  }
-
-  override suspend fun triggerEvent(eventTrigger: EventTrigger) {
-    if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return
-    }
-
-    try {
-      runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger))
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't trigger event", e)
-    }
-  }
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) =
+    runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map { }
 
   private fun triggerEventCommand(eventTrigger: EventTrigger): String {
     val commandStringBuilder = StringBuilder("am broadcast -a \"${eventTrigger.eventKey}\"")
@@ -213,31 +149,36 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     return commandStringBuilder.toString()
   }
 
-  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) {
+  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) =
+    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilities(overrideUpdates)).map {}
+
+  private suspend fun runAdbShellCommandIfConnected(command: String): Result<String> {
     if (serialNumber == null) {
-      logger.warn(IllegalStateException("Serial number not set"))
-      return
+      return loggedFailure(IllegalStateException("Serial number not set"))
     }
 
-    try {
-      val contentUpdateCommand = contentUpdateMultipleCapabilities(overrideUpdates)
-      runAdbShellCommandIfConnected(contentUpdateCommand)
-    } catch (e: Exception) {
-      throw ConnectionLostException("Couldn't override values", e)
+    // Wrap adbSession interactions with a try, as it can fail anywhere if it's closed
+    return try {
+      var deviceOnline = false
+      adbSession.hostServices.trackDevices().take(1).collect { devices ->
+        deviceOnline = devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
+      }
+      if (!deviceOnline) {
+        return loggedFailure(ConnectionLostException("Device is not online"))
+      }
+      // This can still fail, if the device becomes unreachable between these lines
+      Result.success(
+        adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command).stdout)
+    }
+    catch (e: Exception) {
+      loggedFailure(e)
     }
   }
 
-  @Throws(ConnectionLostException::class)
-  private suspend fun runAdbShellCommandIfConnected(command: String): String {
-    var deviceOnline = false
-    adbSession.hostServices.trackDevices().take(1).collect { devices ->
-      deviceOnline = devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
-    }
-    if (!deviceOnline) {
-      throw ConnectionLostException("Device is not online")
-    }
-    return adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command).stdout
-  }
+  private fun <T> loggedFailure(e: Exception): Result<T> =
+    Result.failure(e.also {
+      logger.warn(e)
+    })
 }
 
 private fun String.toDataType(): WhsDataType {

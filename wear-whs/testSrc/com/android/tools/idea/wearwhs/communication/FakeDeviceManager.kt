@@ -33,56 +33,45 @@ internal class FakeDeviceManager(
 
   override fun getCapabilities() = capabilities
 
-  override suspend fun loadActiveExercise() = if (failState) {
-    throw ConnectionLostException("Failed to load ongoing exercise")
-  }
-  else {
-    activeExercise
-  }
+  override suspend fun loadActiveExercise() =
+    failOrWrapResult(activeExercise)
 
-  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) = if (failState) {
-    throw ConnectionLostException("Failed to override value")
-  }
-  else {
-    capabilityUpdates.forEach { (dataType, enabled) ->
-      onDeviceStates[dataType] = CapabilityState(enabled, onDeviceStates[dataType]!!.overrideValue)
+  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
+    failOrWrapResult(Unit).also {
+      capabilityUpdates.forEach { (dataType, enabled) ->
+        onDeviceStates[dataType] = CapabilityState(enabled, onDeviceStates[dataType]!!.overrideValue)
+      }
     }
-  }
 
-  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) = if (failState) {
-    throw ConnectionLostException("Failed to override value")
-  }
-  else {
-    overrideUpdates.forEach { (dataType, value) ->
-      onDeviceStates[dataType] = CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
+  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) =
+    failOrWrapResult(Unit).also {
+      overrideUpdates.forEach { (dataType, value) ->
+        onDeviceStates[dataType] = CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
+      }
     }
-  }
 
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityState> = if (failState) {
-    throw ConnectionLostException("Failed to load capability states")
-  }
-  else {
-    onDeviceStates
-  }
+  override suspend fun loadCurrentCapabilityStates() =
+    failOrWrapResult(onDeviceStates)
 
-  override suspend fun clearContentProvider() {
-    clearContentProviderInvocations++
-    onDeviceStates.clear()
-  }
-
-  override suspend fun isWhsVersionSupported(): Boolean {
-    if (failState) {
-      throw ConnectionLostException("Failed to load capability states")
+  override suspend fun clearContentProvider(): Result<Unit> =
+    failOrWrapResult(Unit).also {
+      clearContentProviderInvocations++
+      onDeviceStates.clear()
     }
-    return true
-  }
+
+  override suspend fun isWhsVersionSupported() =
+    failOrWrapResult(true)
 
   override fun setSerialNumber(serialNumber: String) {}
 
-  override suspend fun triggerEvent(eventTrigger: EventTrigger) {
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) =
+    failOrWrapResult(triggeredEvents.add(eventTrigger)).map {}
+
+  private fun <T> failOrWrapResult(value: T) =
     if (failState) {
-      throw ConnectionLostException("Failed to trigger event")
+      Result.failure(ConnectionLostException("Failed to run command"))
     }
-    triggeredEvents.add(eventTrigger)
-  }
+    else {
+      Result.success(value)
+    }
 }

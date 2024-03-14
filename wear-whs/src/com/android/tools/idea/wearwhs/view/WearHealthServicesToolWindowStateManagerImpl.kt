@@ -116,26 +116,33 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
       // Don't update the state if the tool window is hidden
       return
     }
-    if (serialNumber == null) {
-      // Panel is not bound to an emulator yet
-      return
-    }
     runWithStatus(WhsStateManagerStatus.Busy) {
-      _ongoingExercise.value = deviceManager.loadActiveExercise()
-      val currentStates = deviceManager.loadCurrentCapabilityStates().toMutableMap()
-      val allCapabilities = deviceManager.getCapabilities().map { it.dataType }.toSet()
-      val missingCapabilities = allCapabilities.minus(currentStates.keys.toSet())
-      missingCapabilities.forEach {
-        currentStates[it] = CapabilityState(true, null)
+      val activeExerciseResult =
+        deviceManager.loadActiveExercise().map { activeExercise ->
+          _ongoingExercise.value = activeExercise
+        }
+      if (activeExerciseResult.isFailure) {
+        // Return early on failure
+        activeExerciseResult
       }
-      currentStates.forEach { (dataType, state) ->
-        // Update values only if they're synced through and got changed in the background
-        capabilityToState[dataType.toCapability()]?.let { stateFlow ->
-          if (stateFlow.value.synced) {
-            stateFlow.value =
-              stateFlow.value.copy(
-                capabilityState = state,
-              )
+      else {
+        deviceManager.loadCurrentCapabilityStates().map { states ->
+          val currentStates = states.toMutableMap()
+          val allCapabilities = deviceManager.getCapabilities().map { it.dataType }.toSet()
+          val missingCapabilities = allCapabilities.minus(currentStates.keys.toSet())
+          missingCapabilities.forEach {
+            currentStates[it] = CapabilityState(true, null)
+          }
+          currentStates.forEach { (dataType, state) ->
+            // Update values only if they're synced through and got changed in the background
+            capabilityToState[dataType.toCapability()]?.let { stateFlow ->
+              if (stateFlow.value.synced) {
+                stateFlow.value =
+                  stateFlow.value.copy(
+                    capabilityState = state,
+                  )
+              }
+            }
           }
         }
       }
@@ -147,19 +154,17 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
    * status to [status]. It restores the status to [WhsStateManagerStatus.Idle] after the block is
    * executed, or [WhsStateManagerStatus.ConnectionLost] if the block throws a [ConnectionLostException].
    */
-  private suspend fun runWithStatus(status: WhsStateManagerStatus, block: suspend () -> Unit) {
+  private suspend fun runWithStatus(status: WhsStateManagerStatus, block: suspend () -> Result<Unit>) {
     try {
       withTimeout(MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS) {
         _status.takeWhile {
           !it.idle
         }.collect {}
-        try {
-          _status.value = status
-          block()
+        _status.value = status
+        block().onSuccess {
           _status.value = WhsStateManagerStatus.Idle
-        }
-        catch (exception: ConnectionLostException) {
-          logger.warn(exception)
+        }.onFailure {
+          logger.warn(it)
           _status.value = WhsStateManagerStatus.ConnectionLost
         }
       }
@@ -169,15 +174,10 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
   }
 
-  override suspend fun isWhsVersionSupported(): Boolean {
-    return try {
-      deviceManager.isWhsVersionSupported()
-    }
-    catch (exception: ConnectionLostException) {
-      logger.warn(exception)
-      false
-    }
-  }
+  override suspend fun isWhsVersionSupported(): Boolean =
+    deviceManager.isWhsVersionSupported().onFailure {
+      logger.warn(it)
+    }.getOrDefault(false)
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
     runWithStatus(WhsStateManagerStatus.Syncing) {
@@ -210,13 +210,14 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     runWithStatus(WhsStateManagerStatus.Syncing) {
       val capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.enabled }
       val overrideUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.overrideValue }
-      try {
-        deviceManager.setCapabilities(capabilityUpdates)
-        deviceManager.overrideValues(overrideUpdates)
-      }
-      catch (exception: ConnectionLostException) {
+      // Return early if any of the updates fail
+      deviceManager.setCapabilities(capabilityUpdates).onFailure {
         eventLogger.logApplyChangesFailure()
-        throw exception
+        return@runWithStatus Result.failure(it)
+      }
+      deviceManager.overrideValues(overrideUpdates).onFailure {
+        eventLogger.logApplyChangesFailure()
+        return@runWithStatus Result.failure(it)
       }
       capabilityToState.entries.forEach {
         val stateFlow = it.value
@@ -224,6 +225,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
         stateFlow.value = state.copy(synced = true)
       }
       eventLogger.logApplyChangesSuccess()
+      Result.success(Unit)
     }
 
   override suspend fun reset() =
