@@ -54,7 +54,6 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -107,7 +106,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -267,7 +265,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, SurfaceInteractable::new, interactionProviderCreator,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
   }
 
   public DesignSurface(
@@ -279,8 +277,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
-    @NotNull ZoomControlsPolicy zoomControlsPolicy,
-    double maxFitIntoZoomLevel) {
+    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     super(new BorderLayout());
 
     Disposer.register(parentDisposable, this);

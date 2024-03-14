@@ -456,8 +456,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, parentDisposable, defaultLayoutOption),
           actionHandlerProvider,
           selectionModel,
-          zoomControlsPolicy,
-          maxFitIntoZoomLevel);
+          zoomControlsPolicy
+    );
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     mySceneManagerProvider = sceneManagerProvider;
