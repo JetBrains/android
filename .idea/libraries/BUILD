@@ -313,6 +313,6 @@ jvm_import(
 # managed by go/iml_to_build
 jvm_import(
     name = "agp-version",
-    jars = ["//tools/base/common/version:libversion.jar"],
+    jars = ["//tools/base/common/agp-version:libagp-version.jar"],
     visibility = ["//visibility:public"],
 )

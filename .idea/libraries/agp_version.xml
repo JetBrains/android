@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="agp-version">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/common/version/libversion.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/common/agp-version/libagp-version.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
