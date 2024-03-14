@@ -30,6 +30,7 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.something" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Groovy" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-toml" level="project" />

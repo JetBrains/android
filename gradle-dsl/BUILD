@@ -65,6 +65,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module, test]",
     ],
 )
 
@@ -79,6 +80,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
