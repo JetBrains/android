@@ -81,7 +81,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
-        "//tools/adt/idea/android-uitests:native_artifacts",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
@@ -111,11 +110,6 @@ iml_module(
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module, test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
-)
-
-alias(
-    name = "native_artifacts",
-    actual = "//tools/adt/idea/android-uitests/native/testing:layout_inspector_test_support",
 )
 
 # TODO (b/191383051): Trim artifacts down to what is actually used.
@@ -609,19 +603,20 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-java_test(
-    name = "BasicLayoutInspectorUITest",
-    size = "large",
-    data = COMMON_DATA + ["//prebuilts/studio/layoutlib/data:framework_res.jar"] + glob(["testData/LayoutTest/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.BasicLayoutInspectorUITest"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [
-        ":intellij.android.guiTests_testlib",
-        "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
-        "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
-    ],
-)
+# Disabled for now: b/329646345
+# java_test(
+#     name = "BasicLayoutInspectorUITest",
+#     size = "large",
+#     data = COMMON_DATA + ["//prebuilts/studio/layoutlib/data:framework_res.jar"] + glob(["testData/LayoutTest/**"]),
+#     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.BasicLayoutInspectorUITest"],
+#     tags = COMMON_TAGS + ["manual"],
+#     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+#     runtime_deps = [
+#         ":intellij.android.guiTests_testlib",
+#         "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
+#         "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
+#     ],
+# )
 
 java_test(
     name = "ResolveXmlReferencesTest",

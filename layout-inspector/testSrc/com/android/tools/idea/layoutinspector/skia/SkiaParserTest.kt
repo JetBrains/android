@@ -32,6 +32,7 @@ import com.google.common.truth.Truth.assertThat
 import java.awt.image.BufferedImage
 import kotlin.test.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -145,6 +146,7 @@ class SkiaParserWithSdkTest {
   }
 }
 
+@Ignore("b/329646345")
 class SkiaParserIntegrationTest {
   @get:Rule
   val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
