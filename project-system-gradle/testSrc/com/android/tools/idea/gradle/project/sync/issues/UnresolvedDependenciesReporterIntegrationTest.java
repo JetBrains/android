@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.openPreparedTestProject;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
@@ -31,6 +32,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
@@ -44,11 +46,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -468,10 +477,45 @@ public class UnresolvedDependenciesReporterIntegrationTest {
     });
   }
 
+
   @Test
-  public void testAndroidXGoogleHyperlink() {
+  public void testAndroidXGoogleHyperlinkWhenAlreadyGoogleRepoAlreadyExistsInSettings() {
+    testAndroidXGoogleHyperlink(true);
+  }
+
+  @Test
+  public void testAndroidXGoogleHyperlinkWhenGoogleRepoDoesNotExistInSettings() {
+    testAndroidXGoogleHyperlink(false);
+  }
+
+  private File getSettingsFilePath(Project project) {
+    return new File(project.getBasePath(), FN_SETTINGS_GRADLE);
+  }
+
+  private void addGoogleRepoInSettings(Project project) throws Exception {
+    // Add Google repository
+    GradleSettingsModel settingsModel  = ProjectBuildModel.get(project).getProjectSettingsModel();
+    File settingsFile = getSettingsFilePath(project);
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
+    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
+      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + """
+        dependencyResolutionManagement {
+          repositories {
+            google()
+          }
+        }
+        """);
+      return null;
+    });
+    runWriteCommandAction(project, settingsModel::applyChanges);
+  }
+
+  public void testAndroidXGoogleHyperlink(boolean googleRepoExistInSettings) {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
     openPreparedTestProject(preparedProject, project -> {
+      if (googleRepoExistInSettings) {
+        addGoogleRepoInSettings(project);
+      }
       Module appModule = gradleModule(project, ":app");
       VirtualFile appFile = getGradleBuildFile(appModule);
 
@@ -489,21 +533,28 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
       final var links = messages.get(0).getQuickFixes();
       boolean studio = IdeInfo.getInstance().isAndroidStudio();
-      assertSize((studio ? 2 : 1) + 1 /* affected modules */, links);
-      assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
-      if (studio) {
-        assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+      int size = (studio ? 2 : 1) + 1; /* affected modules */
+      if (googleRepoExistInSettings) {
+        size--;
       }
+      assertSize(size, links);
+      if (!googleRepoExistInSettings) {
+        assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+      }
+      if (studio) {
+        assertThat(links.get(googleRepoExistInSettings ? 0 : 1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+      }
+      GradleSyncIssue.Builder builder = GradleSyncIssue
+        .newBuilder()
+        .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY);
+      if (!googleRepoExistInSettings) {
+        builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK);
+      }
+      builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK);
+      builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK);
 
       assertEquals(
-        ImmutableList.of(
-          GradleSyncIssue
-            .newBuilder()
-            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
-            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
-            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
-            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
-            .build()),
+        ImmutableList.of(builder.build()),
         SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
     });
   }

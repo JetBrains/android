@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues.processor;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_ADDED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
@@ -91,8 +92,16 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
   @Override
   protected UsageInfo[] findUsages() {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
-
     List<UsageInfo> usages = new ArrayList<>();
+
+    GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
+    if (settingsModel != null) {
+      PsiElement psiElement = settingsModel.dependencyResolutionManagement().repositories().getPsiElement();
+      if (psiElement != null) {
+        usages.add(new UsageInfo(psiElement));
+        return usages.toArray(UsageInfo.EMPTY_ARRAY);
+      }
+    }
 
     for (VirtualFile file : myBuildFiles) {
       if (!file.isValid() || !file.isWritable()) {
@@ -113,7 +122,19 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
 
-    List<PsiElement> elements = Arrays.stream(usages).map(usage -> usage.getElement()).collect(Collectors.toList());
+    List<PsiElement> elements = Arrays.stream(usages).map(UsageInfo::getElement).toList();
+    GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
+    if (settingsModel != null) {
+      PsiElement psiElement = settingsModel.dependencyResolutionManagement().repositories().getPsiElement();
+      if (psiElement != null && elements.contains(psiElement) && myRepository.equals(Repository.GOOGLE)) {
+        settingsModel.dependencyResolutionManagement().repositories().addGoogleMavenRepository();
+        projectBuildModel.applyChanges();
+        if (myRequestSync) {
+          GradleSyncInvoker.getInstance().requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_REPOSITORY_ADDED), null);
+        }
+        return;
+      }
+    }
     for (VirtualFile file : myBuildFiles) {
       GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(file);
       PsiElement filePsiElement = buildModel.getPsiElement();

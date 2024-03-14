@@ -24,6 +24,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
@@ -34,7 +35,13 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.gradle.util.GradleVersion;
@@ -112,7 +119,81 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(repositories).hasSize(1);
   }
 
-  public void testAddToMulipleBuildFiles() throws Exception {
+  public void testNoRepoAdditionToBuildFilesWhenRepoAlreadyExistsInSettings() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+    Project project = getProject();
+    removeRepositories(project);
+    ProjectBuildModel pbm = ProjectBuildModel.get(project);
+    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
+    Module appModule = getModule("app");
+    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
+    removeRepositories(appBuildModel);
+
+    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
+    settingsModel.dependencyResolutionManagement().repositories().addGoogleMavenRepository();
+    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
+      ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
+      false);
+    hyperlink.execute(project);
+
+    // Verify it did not add the repository because it is present in dependencyResolutionManagement
+    assertThat(appBuildModel).isNotNull();
+    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
+    assertThat(repositories).isEmpty();
+    assertNull(appBuildModel.buildscript().getPsiElement());
+
+    repositories = projectBuildModel.repositories().repositories();
+    assertThat(repositories).isEmpty();
+
+    repositories = projectBuildModel.buildscript().repositories().repositories();
+    assertThat(repositories).isEmpty();
+  }
+
+  public void testGoogleRepoAdditionToSettingsFileWhenRepoBlockExistsInSettings() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+    Project project = getProject();
+    removeRepositories(project);
+    ProjectBuildModel pbm = ProjectBuildModel.get(project);
+    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
+    Module appModule = getModule("app");
+    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
+    removeRepositories(appBuildModel);
+    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
+    File settingsFile = getSettingsFilePath();
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
+    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
+      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + """
+        dependencyResolutionManagement {
+          repositories {
+          }
+        }
+        """);
+      return null;
+    });
+    runWriteCommandAction(getProject(), settingsModel::applyChanges);
+    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
+      ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
+      false);
+    hyperlink.execute(project);
+    pbm = ProjectBuildModel.get(project);
+    projectBuildModel = pbm.getProjectBuildModel();
+    appBuildModel = pbm.getModuleBuildModel(appModule);
+    settingsModel = pbm.getProjectSettingsModel();
+    assertThat(settingsModel.dependencyResolutionManagement().repositories().hasGoogleMavenRepository()).isTrue();
+
+    // Ensure that the Google repo is only added in settings file.
+    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
+    assertThat(repositories).isEmpty();
+    assertNull(appBuildModel.buildscript().getPsiElement());
+
+    repositories = projectBuildModel.repositories().repositories();
+    assertThat(repositories).isEmpty();
+
+    repositories = projectBuildModel.buildscript().repositories().repositories();
+    assertThat(repositories).isEmpty();
+  }
+
+  public void testAddToMultipleBuildFiles() throws Exception {
     loadProject(DEPENDENT_MODULES);
     Project project = getProject();
     removeRepositories(project);
