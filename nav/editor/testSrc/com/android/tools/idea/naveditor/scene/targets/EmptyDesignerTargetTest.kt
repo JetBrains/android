@@ -47,6 +47,7 @@ class EmptyDesignerTargetTest : NavTestCase() {
     whenever(surface.selectionModel).thenReturn(NopSelectionModel)
     whenever(surface.actionManager).thenReturn(actionManager)
     doReturn(menu).whenever(actionManager).addDestinationMenu
+    whenever(menu.actionUpdateThread).thenCallRealMethod()
     whenever(menu.templatePresentation).thenReturn(Presentation())
     whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
