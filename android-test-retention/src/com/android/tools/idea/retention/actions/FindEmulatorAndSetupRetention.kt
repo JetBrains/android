@@ -262,7 +262,7 @@ class FindEmulatorAndSetupRetention(private val avdManagerCache: AvdManagerCache
             }
           }
           // Find user content
-          currentSession.suspendContext.computeExecutionStacks(object: XSuspendContext.XExecutionStackContainer {
+          currentSession.suspendContext!!.computeExecutionStacks(object: XSuspendContext.XExecutionStackContainer {
             var foundUserFrame = false
             override fun errorOccurred(errorMessage: String) {
               stackReadySignal.countDown()
