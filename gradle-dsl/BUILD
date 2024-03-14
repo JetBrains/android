@@ -10,6 +10,7 @@ iml_module(
         # Language-specific implementation modules
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
         # Gradle Project System tools
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",

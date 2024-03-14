@@ -9,4 +9,7 @@
                            implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
     <lang.syntaxHighlighter language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingHighlighter"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>
+  </extensions>
 </idea-plugin>

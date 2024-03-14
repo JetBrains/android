@@ -14,5 +14,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
