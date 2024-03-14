@@ -17,28 +17,21 @@ package com.android.tools.idea.databinding.psiclass
 
 import com.android.SdkConstants
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.databinding.module.LayoutBindingModuleCache.Companion.getInstance
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Iterables
-import com.google.common.collect.Maps
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.AtomicNotNullLazyValue
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.impl.light.LightMethod
@@ -63,187 +56,134 @@ import org.jetbrains.annotations.NonNls
  *
  * See also: https://developer.android.com/reference/android/databinding/DataBindingComponent
  */
-class LightDataBindingComponentClass(psiManager: PsiManager, private val myFacet: AndroidFacet) :
-  AndroidLightClassBase(psiManager, ImmutableSet.of<String>(PsiModifier.PUBLIC)),
-  ModificationTracker {
-  private val myMethodCache: CachedValue<Array<PsiMethod>>
-  private val myContainingFile: AtomicNotNullLazyValue<PsiFile>
-  private val myMode = getInstance(myFacet).dataBindingMode
+class LightDataBindingComponentClass(psiManager: PsiManager, private val facet: AndroidFacet) :
+  AndroidLightClassBase(psiManager, setOf(PsiModifier.PUBLIC)), ModificationTracker {
 
-  init {
-    val project = myFacet.module.project
-    val modificationTracker = AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project)
+  private val dataBindingMode = LayoutBindingModuleCache.getInstance(facet).dataBindingMode
 
-    myMethodCache =
-      CachedValuesManager.getManager(project)
-        .createCachedValue<Array<PsiMethod>>(
-          CachedValueProvider<Array<PsiMethod?>> {
-            val instanceAdapterClasses: MutableMap<String, MutableSet<String?>> = Maps.newHashMap()
-            val facade = JavaPsiFacade.getInstance(myFacet.module.project)
-            val moduleScope = myFacet.getModuleSystem().getResolveScope(ScopeType.MAIN)
-            val aClass =
-              facade.findClass(myMode.bindingAdapter, moduleScope)
-                ?: return@createCachedValue CachedValueProvider.Result.create<Array<PsiMethod>>(
-                  PsiMethod.EMPTY_ARRAY,
-                  modificationTracker,
-                )
+  private val methodCache: CachedValue<Array<PsiMethod>> =
+    CachedValuesManager.getManager(facet.module.project).createCachedValue(::computeMethods)
 
-            val psiElements: Collection<PsiModifierListOwner> =
-              AnnotatedElementsSearch.searchElements(
-                  aClass,
-                  myFacet.module.moduleScope,
-                  PsiMethod::class.java,
-                )
-                .findAll()
-            var methodCount = 0
-
-            for (owner in psiElements) {
-              if (owner is PsiMethod && !owner.hasModifierProperty(PsiModifier.STATIC)) {
-                val containingClass = owner.containingClass ?: continue
-                val className = containingClass.name!!
-                var set = instanceAdapterClasses[className]
-                if (set == null) {
-                  set = TreeSet()
-                  instanceAdapterClasses[className] = set
-                }
-                if (set.add(containingClass.qualifiedName)) {
-                  methodCount++
-                }
-              }
-            }
-            if (methodCount == 0) {
-              return@createCachedValue CachedValueProvider.Result.create<Array<PsiMethod>>(
-                PsiMethod.EMPTY_ARRAY,
-                modificationTracker,
-              )
-            }
-            val elementFactory = PsiElementFactory.getInstance(project)
-            val result = arrayOfNulls<PsiMethod>(methodCount)
-            var methodIndex = 0
-            val scope = GlobalSearchScope.allScope(project)
-            for ((key, value) in instanceAdapterClasses) {
-              if (value.size == 1) {
-                result[methodIndex] =
-                  createPsiMethod(
-                    elementFactory,
-                    "get$key",
-                    Iterables.getFirst(value, ""),
-                    project,
-                    scope,
-                  )
-                methodIndex++
-              } else {
-                var suffix = 1
-                for (item in value) {
-                  val name = "get$key$suffix"
-                  result[methodIndex] = createPsiMethod(elementFactory, name, item, project, scope)
-                  suffix++
-                  methodIndex++
-                }
-              }
-            }
-            CachedValueProvider.Result.create<Array<PsiMethod?>>(result, modificationTracker)
-          },
-          false,
-        )
-
-    myContainingFile =
-      AtomicNotNullLazyValue.createValue {
-        var packageName = myMode.packageName
-        if (packageName.endsWith(".")) {
-          packageName = packageName.substring(0, packageName.length - 1)
-        }
-        PsiFileFactory.getInstance(myFacet.module.project)
-          .createFileFromText(
-            SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java",
-            JavaLanguage.INSTANCE,
-            """
-          package $packageName;
+  private val containingFile: NotNullLazyValue<PsiFile> =
+    NotNullLazyValue.atomicLazy {
+      val packageName = dataBindingMode.packageName
+      val normalizedPackageName =
+        if (packageName.endsWith(".")) packageName.substring(0, packageName.length - 1)
+        else packageName
+      PsiFileFactory.getInstance(facet.module.project)
+        .createFileFromText(
+          "${SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT}.java",
+          JavaLanguage.INSTANCE,
+          // language=Java
+          """
+          package $normalizedPackageName;
           public interface DataBindingComponent {}
           """
-              .trimIndent(),
-            false,
-            true,
-            true,
-          )
-      }
+            .trimIndent(),
+          false,
+          true,
+          true,
+        )
+    }
 
-    setModuleInfo(myFacet.module, false)
+  init {
+    setModuleInfo(facet.module, false)
   }
 
-  override fun isInterface(): Boolean {
-    return true
-  }
+  override fun isInterface() = true
 
-  override fun isAnnotationType(): Boolean {
-    return false
-  }
+  override fun isAnnotationType() = false
 
   private fun createPsiMethod(
     factory: PsiElementFactory,
     name: String,
-    type: String?,
+    type: String,
     project: Project,
     scope: GlobalSearchScope,
   ): PsiMethod {
-    val method = factory.createMethod(name, PsiType.getTypeByName(type!!, project, scope))
+    val method = factory.createMethod(name, PsiType.getTypeByName(type, project, scope))
     PsiUtil.setModifierProperty(method, PsiModifier.PUBLIC, true)
     PsiUtil.setModifierProperty(method, PsiModifier.ABSTRACT, true)
     return LightMethod(PsiManager.getInstance(project), method, this)
   }
 
-  override fun getQualifiedName(): String? {
-    return myMode.dataBindingComponent
-  }
+  private fun computeMethods(): CachedValueProvider.Result<Array<PsiMethod>> {
+    val project = facet.module.project
+    val modificationTracker = AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project)
 
-  override fun getName(): String? {
-    return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT
-  }
+    val instanceAdapterClasses: MutableMap<String, MutableSet<String>> = mutableMapOf()
+    val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    val aClass =
+      JavaPsiFacade.getInstance(project).findClass(dataBindingMode.bindingAdapter, moduleScope)
+        ?: return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker)
 
-  override fun getContainingClass(): PsiClass? {
-    return null
-  }
+    val psiElements =
+      AnnotatedElementsSearch.searchElements(
+          aClass,
+          facet.module.moduleScope,
+          PsiMethod::class.java,
+        )
+        .findAll()
+    var methodCount = 0
 
-  override fun getFields(): Array<PsiField> {
-    return PsiField.EMPTY_ARRAY
-  }
-
-  override fun getAllFields(): Array<PsiField> {
-    return fields
-  }
-
-  override fun getMethods(): Array<PsiMethod> {
-    return myMethodCache.value
-  }
-
-  override fun getAllMethods(): Array<PsiMethod> {
-    return methods
-  }
-
-  override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod> {
-    val result: MutableList<PsiMethod> = ArrayList()
-    for (method in myMethodCache.value) {
-      if (method.name == name) {
-        result.add(method)
+    val containingClasses =
+      psiElements
+        .filterIsInstance<PsiMethod>()
+        .filterNot { it.hasModifierProperty(PsiModifier.STATIC) }
+        .mapNotNull { it.containingClass }
+    for (containingClass in containingClasses) {
+      val className = requireNotNull(containingClass.name)
+      val set = instanceAdapterClasses.getOrPut(className) { TreeSet() }
+      if (set.add(requireNotNull(containingClass.qualifiedName))) {
+        methodCount++
       }
     }
-    return if (result.isEmpty()) PsiMethod.EMPTY_ARRAY else result.toArray(PsiMethod.EMPTY_ARRAY)
+    if (methodCount == 0) {
+      return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker)
+    }
+
+    val elementFactory = PsiElementFactory.getInstance(project)
+    val result = ArrayList<PsiMethod>(methodCount)
+    val scope = GlobalSearchScope.allScope(project)
+    for ((key, value) in instanceAdapterClasses) {
+      if (value.size == 1) {
+        result.add(createPsiMethod(elementFactory, "get$key", value.single(), project, scope))
+      } else {
+        var suffix = 1
+        for (item in value) {
+          val name = "get$key$suffix"
+          result.add(createPsiMethod(elementFactory, name, item, project, scope))
+          suffix++
+        }
+      }
+    }
+    return CachedValueProvider.Result.create(result.toTypedArray(), modificationTracker)
   }
 
-  override fun getContainingFile(): PsiFile? {
-    return myContainingFile.value
+  override fun getQualifiedName() = dataBindingMode.dataBindingComponent
+
+  override fun getName() = SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT
+
+  override fun getContainingClass() = null
+
+  override fun getFields(): Array<PsiField> = PsiField.EMPTY_ARRAY
+
+  override fun getAllFields() = getFields()
+
+  override fun getMethods(): Array<PsiMethod> = methodCache.value
+
+  override fun getAllMethods() = getMethods()
+
+  override fun findMethodsByName(name: @NonNls String?, checkBases: Boolean): Array<PsiMethod> {
+    val result = methodCache.value.filter { it.name == name }
+    return if (result.isEmpty()) PsiMethod.EMPTY_ARRAY else result.toTypedArray()
   }
 
-  override fun getNameIdentifier(): PsiIdentifier? {
-    return LightIdentifier(manager, name)
-  }
+  override fun getContainingFile() = containingFile.value
 
-  override fun getNavigationElement(): PsiElement {
-    val containingFile = containingFile
-    return containingFile ?: super.getNavigationElement()
-  }
+  override fun getNameIdentifier() = LightIdentifier(manager, name)
 
-  override fun getModificationCount(): Long {
-    return 0
-  }
+  override fun getNavigationElement() = getContainingFile()
+
+  override fun getModificationCount() = 0L
 }
