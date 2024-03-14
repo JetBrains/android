@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil.toHexString
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.toByteArray
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -168,6 +169,9 @@ internal class VideoDecoder(
       catch (_: ClosedChannelException) {
       }
       catch (_: EOFException) {
+      }
+      catch (e: CancellationException) {
+        throw e
       }
       catch (e: Throwable) {
         logger.error(e)
