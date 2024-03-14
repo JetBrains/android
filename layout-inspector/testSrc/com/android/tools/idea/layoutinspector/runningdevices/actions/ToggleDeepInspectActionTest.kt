@@ -61,9 +61,7 @@ class ToggleDeepInspectActionTest {
     toggleDeepInspectAction.update(event)
     assertThat(event.presentation.text).isEqualTo("Toggle Deep Inspect")
     assertThat(event.presentation.description)
-      .isEqualTo(
-        "Select components by clicking on the device. Enabling Deep Inspect will intercept clicks from the device."
-      )
+      .isEqualTo("Enable Deep Inspect to select components by clicking on the device.")
   }
 
   @Test
