@@ -24,7 +24,6 @@ import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibil
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsupportedAnimationManager
-import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -38,6 +37,7 @@ import com.android.tools.idea.preview.animation.SliderClockControl
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.Tooltip
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable

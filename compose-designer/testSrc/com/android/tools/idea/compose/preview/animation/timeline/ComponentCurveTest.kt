@@ -16,11 +16,12 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
+import com.android.tools.idea.preview.animation.timeline.ComponentCurve
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals

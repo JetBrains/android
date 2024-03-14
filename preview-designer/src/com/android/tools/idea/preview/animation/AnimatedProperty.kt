@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.preview.animation.AnimationUnit
+import com.android.tools.idea.preview.animation.AnimatedProperty.AnimatedComponent
 import java.util.SortedMap
 
 private const val CURVES_SIMILARITY = 0.015
