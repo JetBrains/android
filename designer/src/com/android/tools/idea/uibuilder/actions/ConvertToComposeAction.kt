@@ -85,7 +85,8 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     private val project: Project,
     private val xmlFileContent: String,
   ) : DialogWrapper(project) {
-    private val displayDependencies = JBCheckBox("Display dependencies", false)
+    private val displayDependencies =
+      JBCheckBox("Include Gradle dependencies in the response", false)
     private val useViewModel = JBCheckBox("Use ViewModel", false)
     private val useCustomView = JBCheckBox("Has custom views", false)
     private val dataTypeGroup = DataTypeButtonGroup()
