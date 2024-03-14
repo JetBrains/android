@@ -208,8 +208,7 @@ internal class SceneViewPanel(
       // A Dimension used to avoid reallocating new objects just to obtain the PositionableContent
       // dimensions
       val reusableDimension = Dimension()
-      val positionables: Collection<PositionableContent> =
-        sceneViewPeerPanels.map { it.positionableAdapter }
+      val positionables = positionableContent
       val horizontalTopScanLines = positionables.findAllScanlines { it.y }
       val horizontalBottomScanLines =
         positionables.findAllScanlines { it.y + it.getScaledContentSize(reusableDimension).height }
