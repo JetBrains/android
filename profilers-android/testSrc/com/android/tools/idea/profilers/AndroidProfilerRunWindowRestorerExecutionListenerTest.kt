@@ -17,15 +17,11 @@ package com.android.tools.idea.profilers
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.intellij.execution.Executor
-import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import org.junit.Before
@@ -39,9 +35,6 @@ class AndroidProfilerRunWindowRestorerExecutionListenerTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   private val mockToolWindowManager = mock<ToolWindowManager>()
   private val mockRunToolWindow = mock<ToolWindow>()
   private val mockExecutionEnvironment = mock<ExecutionEnvironment>()
@@ -54,7 +47,6 @@ class AndroidProfilerRunWindowRestorerExecutionListenerTest {
     projectRule.project.registerServiceInstance(ToolWindowManager::class.java, mockToolWindowManager)
     whenever(mockToolWindowManager.getToolWindow(ToolWindowId.RUN)).thenReturn(mockRunToolWindow)
     listener = AndroidProfilerRunWindowRestorerExecutionListener(projectRule.project)
-    registerExecutors(listOf(DefaultRunExecutor(), ProfileRunExecutor(), ProfileRunExecutorGroup()))
   }
 
   @Test
@@ -95,10 +87,4 @@ class AndroidProfilerRunWindowRestorerExecutionListenerTest {
 
   private fun profileGroupExecutorIds(): List<String> = requireNotNull(
     ProfileRunExecutorGroup.getInstance()).childExecutors().map { it.id } + requireNotNull(ProfileRunExecutor.getInstance()).id
-
-  private fun registerExecutors(executors: List<Executor>) {
-    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME,
-                                     executors,
-                                     disposableRule.disposable)
-  }
 }

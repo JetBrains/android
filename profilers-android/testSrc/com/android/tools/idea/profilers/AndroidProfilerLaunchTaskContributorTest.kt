@@ -22,10 +22,7 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportFileManager
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -35,16 +32,8 @@ class AndroidProfilerLaunchTaskContributorTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @Test
   fun testIsProfilerLaunch() {
-    // Register Profiler and Profiler Group as executors.
-    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME,
-                                     listOf(DefaultRunExecutor(), ProfileRunExecutor(), ProfileRunExecutorGroup()),
-                                     disposableRule.disposable)
-
     // Should return true for the legacy profile executor.
     val profileExecutor = ProfileRunExecutor.getInstance()!!
     assertThat(AndroidProfilerLaunchTaskContributor.isProfilerLaunch(profileExecutor)).isTrue()
@@ -60,11 +49,6 @@ class AndroidProfilerLaunchTaskContributorTest {
 
   @Test
   fun testEmptyAmStartOptions() {
-    // Register Profiler and Profiler Group as executors.
-    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME,
-                                     listOf(DefaultRunExecutor(), ProfileRunExecutor(), ProfileRunExecutorGroup()),
-                                     disposableRule.disposable)
-
     val device = DeviceImpl(null, "123", IDevice.DeviceState.ONLINE)
     val profilerState = ProfilerState()
 
@@ -80,8 +64,6 @@ class AndroidProfilerLaunchTaskContributorTest {
 
   @Test
   fun testAgentConfigIsEmptyForProfileable() {
-    // Register Profiler Group as executors.
-    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME, listOf(ProfileRunExecutorGroup()), disposableRule.disposable)
     val device = Mockito.mock(IDevice::class.java)
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
     val fileManager = TransportFileManager(device, projectRule.project.messageBus)
