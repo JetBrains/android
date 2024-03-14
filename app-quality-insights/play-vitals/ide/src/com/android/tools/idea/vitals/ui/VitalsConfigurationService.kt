@@ -133,14 +133,18 @@ class VitalsConfigurationManager(
       .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
   init {
-    Disposer.register(parentDisposable, this)
-    loader.start()
-    scope.launch {
-      loader
-        .getController()
-        .eventFlow
-        .filter { it is ExplicitRefresh }
-        .collect { refreshConfiguration() }
+    if (project.isDisposed) {
+      Disposer.dispose(this)
+    } else {
+      Disposer.register(parentDisposable, this)
+      loader.start()
+      scope.launch {
+        loader
+          .getController()
+          .eventFlow
+          .filter { it is ExplicitRefresh }
+          .collect { refreshConfiguration() }
+      }
     }
   }
 
