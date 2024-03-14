@@ -33,10 +33,13 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtOperationExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
@@ -114,8 +117,20 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
       val message = messageBuffer.toString().trim()
 
       val uElement = (previewAnnotation.toUElement() as? UAnnotation) ?: return
-      val deviceValueExpression = uElement.findDeclaredAttributeValue("device") ?: return
-      val deviceValueElement = deviceValueExpression.sourcePsiElement ?: return
+      val deviceValueExpression =
+        uElement.findDeclaredAttributeValue("device")?.sourcePsiElement ?: return
+      val deviceValueElement =
+        if (deviceValueExpression is KtOperationExpression) {
+          // If the expression is a string concatenation, highlight the entire expression
+          deviceValueExpression
+        } else {
+          // Otherwise, highlight the string literal itself.
+          PsiTreeUtil.findChildOfType(
+            deviceValueExpression,
+            KtLiteralStringTemplateEntry::class.java,
+            false,
+          ) ?: return
+        }
 
       holder.registerProblem(
         deviceValueElement,
