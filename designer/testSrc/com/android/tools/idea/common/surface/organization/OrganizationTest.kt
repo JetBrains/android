@@ -18,34 +18,45 @@ package com.android.tools.idea.common.surface.organization
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
+import javax.swing.JPanel
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class OrganizationTest {
+
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
   @Test
   fun createHeaders() {
-    val sceneViews =
-      listOf(
-        createSceneView("1", "name1"),
-        createSceneView("1", "name2"),
-        createSceneView("2", "name3"),
-        createSceneView("2", "name4"),
-      )
-    val headers = sceneViews.createOrganizationHeaders()
-    assertThat(headers).hasSize(2)
-    assertThat(headers["1"]).isNotNull()
-    assertThat(headers["2"]).isNotNull()
-    sceneViews.forEach {
-      Disposer.dispose(it.sceneManager)
-      Disposer.dispose(it)
+    invokeAndWaitIfNeeded {
+      val parent = JPanel()
+      val sceneViews =
+        listOf(
+          createSceneView("1", "name1"),
+          createSceneView("1", "name2"),
+          createSceneView("2", "name3"),
+          createSceneView("2", "name4"),
+        )
+      val headers = sceneViews.createOrganizationHeaders(parent)
+      assertThat(headers).hasSize(2)
+      assertThat(headers["1"]).isNotNull()
+      assertThat(headers["2"]).isNotNull()
+      sceneViews.forEach {
+        Disposer.dispose(it.sceneManager)
+        Disposer.dispose(it)
+      }
     }
   }
 
   @Test
   fun noHeaders() {
+    val parent = JPanel()
     val sceneViews =
       listOf(
         createSceneView("1", "name1"),
@@ -53,7 +64,7 @@ class OrganizationTest {
         createSceneView("3", "name3"),
         createSceneView("4", "name4"),
       )
-    val headers = sceneViews.createOrganizationHeaders()
+    val headers = sceneViews.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)
@@ -63,6 +74,7 @@ class OrganizationTest {
 
   @Test
   fun nullOrganizationIsNotAGroup() {
+    val parent = JPanel()
     val sceneViews =
       listOf(
         createSceneView(null, "name1"),
@@ -70,7 +82,7 @@ class OrganizationTest {
         createSceneView("1", "name3"),
         createSceneView("2", "name4"),
       )
-    val headers = sceneViews.createOrganizationHeaders()
+    val headers = sceneViews.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)

@@ -17,55 +17,58 @@ package com.android.tools.idea.common.surface.organization
 
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
-import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.JBDimension
+import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.Font
-import java.awt.Insets
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import javax.swing.JComponent
 import javax.swing.JPanel
 
-/** Header for the group of previews. */
-class SceneViewHeader(organizationGroup: String?, displayName: String?) :
-  JPanel(BorderLayout()), PositionablePanel {
+/** The unscaled height of the [SceneViewHeader]. */
+private const val heightPx = 26
 
-  val headerSize = JBDimension(200, 26)
+/** Offset to parent's width. */
+private const val widthOffsetPx = 30
+
+/** Header for the group of previews. */
+class SceneViewHeader(
+  parentContainer: JComponent,
+  organizationGroup: String?,
+  displayName: String,
+) : JPanel(BorderLayout()), PositionablePanel {
 
   init {
-    preferredSize = headerSize
     isOpaque = false
-    size = headerSize
-    displayName?.let {
-      val label = JBLabel(it)
-      label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL).deriveFont(Font.BOLD)
-      add(label, BorderLayout.CENTER)
-    }
+    add(createOrganizationHeader(OrganizationGroup(displayName)), BorderLayout.CENTER)
+
+    // Let component follow parent's width with offset.
+    parentContainer.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) {
+          size = Dimension(this@SceneViewHeader.parent.width - widthOffsetPx, scale(heightPx))
+        }
+      }
+    )
   }
 
   override val positionableAdapter =
     object : HeaderPositionableContent {
       override val organizationGroup: String? = organizationGroup
       override val scale: Double = 1.0
-      override var x: Int = 0
-        private set
+      override val x
+        get() = this@SceneViewHeader.x
 
-      override var y: Int = 0
-        private set
+      override val y
+        get() = this@SceneViewHeader.y
 
-      override fun getContentSize(dimension: Dimension?): Dimension {
-        return this@SceneViewHeader.headerSize
-      }
+      override fun getContentSize(dimension: Dimension?) = this@SceneViewHeader.size
+
+      override fun getMargin(scale: Double) = JBUI.emptyInsets()
 
       override fun setLocation(x: Int, y: Int) {
-        this.x = x
-        this.y = y
         this@SceneViewHeader.setLocation(x, y)
-      }
-
-      override fun getMargin(scale: Double): Insets {
-        return JBUI.emptyInsets()
       }
     }
 }

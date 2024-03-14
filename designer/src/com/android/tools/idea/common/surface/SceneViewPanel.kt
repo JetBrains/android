@@ -135,7 +135,7 @@ internal class SceneViewPanel(
 
     // Headers to be added.
     val headers =
-      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders()
+      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders(this)
       else mutableMapOf()
 
     groups.clear()
