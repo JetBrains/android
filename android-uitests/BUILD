@@ -1941,6 +1941,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.RefactoringFlowTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2160,6 +2161,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2905,6 +2907,7 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
