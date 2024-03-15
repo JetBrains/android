@@ -62,7 +62,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
   private var eastToolbar: ActionToolbar? = null
   private val dynamicGroup = DefaultActionGroup()
-  private var configuration: Configuration? = null
+  private val configuration: Configuration?
   private var layoutType: DesignerEditorFileType? = null
   private var toolbarActionGroups: ToolbarActionGroups? = null
   private var model: NlModel? = null
@@ -71,11 +71,9 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     Disposer.register(parent, this)
     surface.addListener(this)
     surface.addPanZoomListener(this)
-    if (configuration == null) {
-      // TODO: Update to support multiple configurations
-      configuration = surface.configurations.firstOrNull()
-      configuration?.addListener(this)
-    }
+    // TODO: Update to support multiple configurations
+    configuration = surface.configurations.firstOrNull()
+    configuration?.addListener(this)
     toolbarComponent = createToolbarComponent()
     updateActionGroups(surface.layoutType)
     updateActions()
