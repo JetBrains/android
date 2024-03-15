@@ -20,12 +20,8 @@ import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.*
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.openapi.keymap.MacKeymapUtil
-import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupListener
-import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
-import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
@@ -41,7 +37,6 @@ import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.GridBagConstraints
 import java.awt.Insets
-import java.awt.Point
 import java.awt.event.InputEvent
 import java.util.function.Predicate
 import javax.swing.BorderFactory
@@ -55,23 +50,6 @@ import kotlin.math.roundToInt
  * Contains an assortment of utility functions for the UI tools in this module.
  */
 object AdtUiUtils {
-  /**
-   * Shows the [JBPopup] above the given [component].
-   */
-  @JvmStatic
-  fun JBPopup.showAbove(component: JComponent) {
-    val northWest = RelativePoint(component, Point())
-
-    addListener(object : JBPopupListener {
-      override fun beforeShown(event: LightweightWindowEvent) {
-        val popup = event.asPopup()
-        val location = Point(popup.locationOnScreen).apply { y = northWest.screenPoint.y - popup.size.height }
-
-        popup.setLocation(location)
-      }
-    })
-    show(northWest)
-  }
 
   /**
    * Default font to be used in the profiler UI.
