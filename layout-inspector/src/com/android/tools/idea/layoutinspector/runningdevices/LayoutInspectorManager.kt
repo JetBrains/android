@@ -275,7 +275,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         val width = it.component.width
         // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH
         // stretchWidth resizes relatively to the current width of the tool window.
-        it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
+        if (width != JBUIScale.scale(DEFAULT_WINDOW_WIDTH)) {
+          it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
+        }
       }
 
       selectedTab?.let {
