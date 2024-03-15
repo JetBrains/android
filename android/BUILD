@@ -421,6 +421,7 @@ filegroup(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
         "//tools/vendor/google/ml/sml-core/aida:aida_artifacts",
+        "//tools/vendor/google/ml/sml-ij-ce/atlas:atlas_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
     ] + select({
         "//tools/base/bazel:windows": [],
