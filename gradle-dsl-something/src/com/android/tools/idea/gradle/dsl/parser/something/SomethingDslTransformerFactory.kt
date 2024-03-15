@@ -25,7 +25,7 @@ class SomethingDslTransformerFactory : GradleDslTransformerFactory {
   override fun canTransform(psiFile: PsiFile) = psiFile is SomethingFile
 
   override fun createParser(psiFile: PsiFile, context: BuildModelContext, dslFile: GradleDslFile) =
-    SomethingDslParser(psiFile as SomethingFile, context)
+    SomethingDslParser(psiFile as SomethingFile, context, dslFile)
 
   override fun createWriter(context: BuildModelContext) = SomethingDslWriter(context)
 }

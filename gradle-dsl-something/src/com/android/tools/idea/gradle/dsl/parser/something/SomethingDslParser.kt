@@ -23,12 +23,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFile
+import com.android.tools.idea.gradle.something.psi.SomethingRecursiveVisitor
 import com.intellij.psi.PsiElement
 
 class SomethingDslParser(
   private val psiFile: SomethingFile,
-  private val context: BuildModelContext
+  private val context: BuildModelContext,
+  private val dslFile: GradleDslFile
 ) : GradleDslParser, SomethingDslNameConverter {
   override fun shouldInterpolate(elementToCheck: GradleDslElement): Boolean = false
 
@@ -54,7 +58,16 @@ class SomethingDslParser(
 
   override fun getContext(): BuildModelContext = context
   override fun parse() {
-    // TODO implement
+    fun getVisitor(context: GradlePropertiesDslElement): SomethingRecursiveVisitor =
+      object : SomethingRecursiveVisitor() {
+        override fun visitBlock(psi: SomethingBlock) {
+          val name = psi.identifier?.name ?: return
+          val description = context.getChildPropertiesElementDescription(name) ?: return
+          val block: GradlePropertiesDslElement = context.ensurePropertyElement(description)
+          psi.entries.forEach { entry -> entry.accept(getVisitor(block)) }
+        }
+      }
+    psiFile.accept(getVisitor(dslFile))
   }
 
 }
