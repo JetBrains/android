@@ -131,10 +131,16 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
 
     GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
     settingsModel.dependencyResolutionManagement().repositories().addGoogleMavenRepository();
+    runWriteCommandAction(project, settingsModel::applyChanges);
+
     AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
       ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
       false);
     hyperlink.execute(project);
+
+    pbm = ProjectBuildModel.get(project);
+    projectBuildModel = pbm.getProjectBuildModel();
+    appBuildModel = pbm.getModuleBuildModel(appModule);
 
     // Verify it did not add the repository because it is present in dependencyResolutionManagement
     assertThat(appBuildModel).isNotNull();
@@ -158,7 +164,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     Module appModule = getModule("app");
     GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
     removeRepositories(appBuildModel);
-    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
     File settingsFile = getSettingsFilePath();
     VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
     ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
@@ -170,15 +175,15 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
         """);
       return null;
     });
-    runWriteCommandAction(getProject(), settingsModel::applyChanges);
     AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
       ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
       false);
     hyperlink.execute(project);
+
     pbm = ProjectBuildModel.get(project);
     projectBuildModel = pbm.getProjectBuildModel();
     appBuildModel = pbm.getModuleBuildModel(appModule);
-    settingsModel = pbm.getProjectSettingsModel();
+    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
     assertThat(settingsModel.dependencyResolutionManagement().repositories().hasGoogleMavenRepository()).isTrue();
 
     // Ensure that the Google repo is only added in settings file.

@@ -27,6 +27,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertNotEmpty;
 import static com.intellij.testFramework.UsefulTestCase.assertSize;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.fail;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -44,6 +45,8 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.FileWriteMode;
+import com.google.common.io.Files;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,6 +61,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -492,30 +497,30 @@ public class UnresolvedDependenciesReporterIntegrationTest {
     return new File(project.getBasePath(), FN_SETTINGS_GRADLE);
   }
 
-  private void addGoogleRepoInSettings(Project project) throws Exception {
+  private void addGoogleRepoInSettings(File root) {
     // Add Google repository
-    GradleSettingsModel settingsModel  = ProjectBuildModel.get(project).getProjectSettingsModel();
-    File settingsFile = getSettingsFilePath(project);
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
-    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
-      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + """
-        dependencyResolutionManagement {
-          repositories {
-            google()
-          }
-        }
-        """);
-      return null;
-    });
-    runWriteCommandAction(project, settingsModel::applyChanges);
+    File settingsFile = new File(root, FN_SETTINGS_GRADLE);
+    try {
+      Files.asCharSink(settingsFile, Charset.defaultCharset(), FileWriteMode.APPEND).write(
+        """
+           dependencyResolutionManagement {
+             repositories {
+               google()
+             }
+           }
+          """.stripIndent().trim());
+    } catch (IOException e) {
+      fail("Failed to add google repo in settings.gradle");
+    }
+    ApplicationManager.getApplication().runWriteAction(() -> VfsUtil.markDirtyAndRefresh(false, true, true, root));
   }
 
   public void testAndroidXGoogleHyperlink(boolean googleRepoExistInSettings) {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
+    if (googleRepoExistInSettings) {
+      addGoogleRepoInSettings(preparedProject.getRoot());
+    }
     openPreparedTestProject(preparedProject, project -> {
-      if (googleRepoExistInSettings) {
-        addGoogleRepoInSettings(project);
-      }
       Module appModule = gradleModule(project, ":app");
       VirtualFile appFile = getGradleBuildFile(appModule);
 
