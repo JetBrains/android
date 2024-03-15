@@ -210,6 +210,12 @@ def _depset_subtract(depset1, depset2):
     dict1 = {e1: None for e1 in depset1.to_list()}
     return [e2 for e2 in depset2.to_list() if e2 not in dict1]
 
+def _label_str(label):
+    if label.workspace_name:
+        return str(label)
+    else:
+        return "//%s:%s" % (label.package, label.name)
+
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
@@ -237,11 +243,12 @@ def _studio_plugin_impl(ctx):
                      [depset(ctx.attr.deps)],
     )
 
-    missing = [str(s.label) for s in _depset_subtract(have, need)]
+    missing = [s.label for s in _depset_subtract(have, need)]
     if missing:
-        fail("Plugin '" + ctx.attr.name + "' has some compile-time dependencies which are not on the " +
-             "runtime classpath in release builds. You may need to edit the plugin definition at " +
-             str(ctx.label) + " to include the following dependencies: " + ", ".join(missing))
+        error = "\n".join(["\"%s\"," % _label_str(l) for l in missing])
+        fail("Plugin '" + ctx.attr.name + "' has compile-time dependencies which are not on the " +
+             "runtime classpath in release builds.\nYou may need to edit the plugin definition at " +
+             str(ctx.label) + " to include the following dependencies:\n" + error)
     return [
         PluginInfo(
             directory = ctx.attr.directory,

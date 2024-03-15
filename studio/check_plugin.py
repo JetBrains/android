@@ -124,7 +124,7 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
   # We cannot use ElementInclude because it does not support xpointer
   resolve_includes(element, external_xmls, "META-INF", index)
   if plugin_id and found_id != plugin_id:
-    print("Expected plugin id to be %d, but found %s" % (plugin_id, found_id))
+    print("Expected plugin id to be %s, but found %s" % (plugin_id, found_id))
     sys.exit(1)
 
   if element.tag != 'idea-plugin':
