@@ -25,11 +25,15 @@ import com.intellij.codeInsight.hint.ImplementationViewSession
 import com.intellij.codeInsight.hint.ImplementationViewSessionFactory
 import com.intellij.codeInsight.hint.PsiImplementationViewElement
 import com.intellij.codeInsight.hint.PsiImplementationViewSession
+import com.intellij.codeInsight.navigation.ImplementationSearcher
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -102,9 +106,17 @@ class AndroidImplementationViewSession(
   // TODO(lukeegan): Create own ImplementationViewElement to show custom text eg. entire Style Tags for styleable attrs.
   override val implementationElements: List<ImplementationViewElement>
     get() {
-      return AndroidResourceToPsiResolver.getInstance()
-        .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
-        .map { PsiImplementationViewElement(it) }
+      return ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        ThrowableComputable {
+          runReadAction {
+            AndroidResourceToPsiResolver.getInstance()
+              .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
+              .map { PsiImplementationViewElement(it) }
+          }
+        },
+        ImplementationSearcher.getSearchingForImplementations(),
+        true,
+        contextElement.project)
     }
 
     override val file: VirtualFile? = contextElement.containingFile.virtualFile
