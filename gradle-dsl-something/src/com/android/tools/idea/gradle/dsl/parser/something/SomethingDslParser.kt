@@ -16,17 +16,24 @@
 package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFile
+import com.android.tools.idea.gradle.something.psi.SomethingLiteral
+import com.android.tools.idea.gradle.something.psi.SomethingLiteralKind
 import com.android.tools.idea.gradle.something.psi.SomethingRecursiveVisitor
+import com.android.tools.idea.gradle.something.psi.SomethingValue
+import com.android.tools.idea.gradle.something.psi.kind
 import com.intellij.psi.PsiElement
 
 class SomethingDslParser(
@@ -54,20 +61,31 @@ class SomethingDslParser(
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) = Unit
 
-  override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? = null
+  override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? =
+    (literal as? SomethingLiteral)?.let { it.kind?.value } ?: literal.text
 
   override fun getContext(): BuildModelContext = context
   override fun parse() {
-    fun getVisitor(context: GradlePropertiesDslElement): SomethingRecursiveVisitor =
+    fun getVisitor(context: GradlePropertiesDslElement, nameElement: GradleNameElement): SomethingRecursiveVisitor =
       object : SomethingRecursiveVisitor() {
         override fun visitBlock(psi: SomethingBlock) {
           val name = psi.identifier?.name ?: return
           val description = context.getChildPropertiesElementDescription(name) ?: return
           val block: GradlePropertiesDslElement = context.ensurePropertyElement(description)
-          psi.entries.forEach { entry -> entry.accept(getVisitor(block)) }
+          psi.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
+        }
+
+        override fun visitAssignment(psi: SomethingAssignment) {
+          psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.identifier, this@SomethingDslParser)))
+        }
+
+        override fun visitLiteral(psi: SomethingLiteral) {
+          val literal = GradleDslLiteral(context, psi, nameElement, psi, LITERAL)
+          literal.externalSyntax = ASSIGNMENT
+          context.addParsedElement(literal)
         }
       }
-    psiFile.accept(getVisitor(dslFile))
+    psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
   }
 
 }

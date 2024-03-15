@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.something
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
@@ -64,6 +65,36 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     doTest(text, expected)
   }
 
+  fun testAssignmentWithString() {
+    val toml = """
+      android {
+        namespace = "com.my"
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("mNamespace" to "com.my"))
+    doTest(toml, expected)
+  }
+
+  fun testAssignmentWithNumber() {
+    val toml = """
+      android {
+        namespace = 5
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("mNamespace" to 5))
+    doTest(toml, expected)
+  }
+
+
+  fun testAssignmentWithBoolean() {
+    val toml = """
+      android {
+        namespace = true
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("mNamespace" to true))
+    doTest(toml, expected)
+  }
 
   private fun doTest(text: String, expected: Map<String, Any>) {
     val somethingFile = writeSomethingFile(text)
@@ -90,6 +121,8 @@ class SomethingDslParserTest : LightPlatformTestCase() {
           element.currentElements.forEach { populate(it.name, element.getElement(it.name)) { k, v -> newMap[k] = v } }
           newMap
         }
+        is GradleDslLiteral -> element.value ?: "null literal"
+
         else -> {
           "Unknown element: $element"
         }
