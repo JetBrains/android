@@ -128,13 +128,13 @@ public class IntelliJStackTraceViewTest {
   @Test
   public void setStackFramesTest() {
     myStackView.getModel().setStackFrames(STACK_STRING);
-    //waitForModel();
+    waitForModel();
 
     List<CodeLocation> viewLocations = myStackView.getModel().getCodeLocations();
     assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
 
     myStackView.getModel().setStackFrames(INVALID_THREAD_ID, CODE_LOCATIONS);
-    //waitForModel();
+    waitForModel();
 
     viewLocations = myStackView.getModel().getCodeLocations();
     assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
