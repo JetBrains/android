@@ -206,6 +206,12 @@ class InferredConstraints private constructor(
   /** Annotation arguments, keyed by qualified name. */
   var arguments: MutableMap<String, List<UNamedExpression>>? = null
 
+  private val isKotlin: Boolean
+    get() {
+      if (psi == null) return false
+      return isKotlin(psi.language)
+    }
+
   /**
    * Adds a specific [annotation] into the constraint set, and returns true
    * if the annotation was not previously present
@@ -335,7 +341,7 @@ class InferredConstraints private constructor(
    * constraint.
    */
   fun getAnnotationSource(qualifiedName: String, namesOnly: Boolean): String {
-    return getAnnotationSource(qualifiedName, namesOnly, arguments?.get(qualifiedName), isKotlin(psi))
+    return getAnnotationSource(qualifiedName, namesOnly, arguments?.get(qualifiedName), isKotlin)
   }
 
   /** Whether this constraint set contains a `@Keep` annotation */
@@ -712,7 +718,7 @@ class InferredConstraints private constructor(
   }
 
   /** Returns all the permission annotations in this constraint. */
-  fun getPermissionAnnotations(kotlin: Boolean = isKotlin(psi)): List<String> {
+  fun getPermissionAnnotations(kotlin: Boolean = isKotlin): List<String> {
     val permissionReferences = this.permissionReferences
     return if (permissionReferences != null && permissionReferences.isNotEmpty()) {
       if (permissionReferences.size == 1) {
