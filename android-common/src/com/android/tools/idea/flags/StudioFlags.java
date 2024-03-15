@@ -1414,6 +1414,12 @@ public final class StudioFlags {
     "inspectors bundled in local, snapshot builds of Android libraries, as opposed to those released through the normal process on maven.",
     false
   );
+
+  public static final Flag<Boolean> APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR = new BooleanFlag(
+    APP_INSPECTION, "use.experimental.database.inspector", "Use experimental Database Inspector",
+    "Use experimental Database Inspector",
+    false
+  );
   // endregion
 
   // region Network Inspector
