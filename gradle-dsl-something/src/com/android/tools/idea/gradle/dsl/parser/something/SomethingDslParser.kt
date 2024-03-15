@@ -22,17 +22,17 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingLiteral
-import com.android.tools.idea.gradle.something.psi.SomethingLiteralKind
 import com.android.tools.idea.gradle.something.psi.SomethingRecursiveVisitor
-import com.android.tools.idea.gradle.something.psi.SomethingValue
 import com.android.tools.idea.gradle.something.psi.kind
 import com.intellij.psi.PsiElement
 
@@ -77,6 +77,18 @@ class SomethingDslParser(
 
         override fun visitAssignment(psi: SomethingAssignment) {
           psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.identifier, this@SomethingDslParser)))
+        }
+
+        override fun visitFactory(psi: SomethingFactory) {
+          val name = psi.identifier.name ?: return
+          val methodCall = GradleDslMethodCall(context, GradleNameElement.empty(), name)
+
+          psi.value?.accept(object : SomethingRecursiveVisitor() {
+            override fun visitLiteral(psi: SomethingLiteral) {
+              methodCall.addNewArgument(GradleDslLiteral(methodCall, psi, GradleNameElement.empty(), psi, LITERAL))
+            }
+          })
+          context.addParsedElement(methodCall)
         }
 
         override fun visitLiteral(psi: SomethingLiteral) {

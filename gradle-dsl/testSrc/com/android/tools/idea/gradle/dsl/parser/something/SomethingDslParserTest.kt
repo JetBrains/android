@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
@@ -27,6 +28,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.Mockito.mock
+import java.util.LinkedList
 
 class SomethingDslParserTest : LightPlatformTestCase() {
 
@@ -96,6 +98,47 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testFactory() {
+    val toml = """
+      android {
+        api("androidx.application")
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application")))
+    doTest(toml, expected)
+  }
+
+  fun testTwoFactoryMethods() {
+    val toml = """
+      android {
+        api("androidx.application")
+        api2("androidx.application2")
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application"), "api2" to listOf("androidx.application2")))
+    doTest(toml, expected)
+  }
+
+  fun testFactoryMethodNumberArgument() {
+    val toml = """
+      android {
+        api(23)
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("api" to listOf(23)))
+    doTest(toml, expected)
+  }
+
+  fun testFactoryMethodBooleanArgument() {
+    val toml = """
+      android {
+        fixit(true)
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("fixit" to listOf(true)))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String, Any>) {
     val somethingFile = writeSomethingFile(text)
     val dslFile = object : GradleBuildFile(somethingFile, project, ":", BuildModelContext.create(project, mock())) {}
@@ -121,6 +164,13 @@ class SomethingDslParserTest : LightPlatformTestCase() {
           element.currentElements.forEach { populate(it.name, element.getElement(it.name)) { k, v -> newMap[k] = v } }
           newMap
         }
+
+        is GradleDslMethodCall -> {
+          val newList = LinkedList<Any>()
+          element.arguments.forEach { populate("", it) { _, v -> newList.add(v) } }
+            newList
+        }
+
         is GradleDslLiteral -> element.value ?: "null literal"
 
         else -> {
@@ -134,5 +184,4 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     file.properties.forEach { populate(it, file.getElement(it)) { key, value -> map[key] = value } }
     return map
   }
-
 }
