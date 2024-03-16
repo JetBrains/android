@@ -29,7 +29,7 @@ import org.jetbrains.annotations.TestOnly
  * Users can place files called .aiexclude throughout their project to block ai features from
  * accessing or being active in those files. In order to send queries directly to a model, clients
  * must consult aiexclude. When building queries, clients must check each file they read using
- * [isFileExcluded]. Then to send the query, construct a SafePrompt by passing your intended query
+ * [isFileExcluded]. Then to send the query, construct a Prompt by passing your intended query
  * and the files used to construct it. This can then be sent to [ChatService.sendChatQuery] or
  * [LlmService.sendQuery].
  *

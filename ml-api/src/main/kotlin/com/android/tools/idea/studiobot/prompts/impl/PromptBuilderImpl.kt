@@ -17,62 +17,62 @@ package com.android.tools.idea.studiobot.prompts.impl
 
 import com.android.tools.idea.studiobot.AiExcludeException
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.Prompt
+import com.android.tools.idea.studiobot.prompts.PromptBuilder
 import com.android.tools.idea.studiobot.prompts.MalformedPromptException
-import com.android.tools.idea.studiobot.prompts.SafePrompt
-import com.android.tools.idea.studiobot.prompts.SafePromptBuilder
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting
-data class SafePromptImpl(override val messages: List<SafePrompt.Message>) : SafePrompt
+data class PromptImpl(override val messages: List<Prompt.Message>) : Prompt
 
-class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
-  override val messages = mutableListOf<SafePrompt.Message>()
+class PromptBuilderImpl(private val project: Project) : PromptBuilder {
+  override val messages = mutableListOf<Prompt.Message>()
 
   open class MessageBuilderImpl(
-    val makeMessage: (List<SafePrompt.Message.Chunk>) -> SafePrompt.Message
-  ) : SafePromptBuilder.MessageBuilder {
-    private val myChunks = mutableListOf<SafePrompt.Message.Chunk>()
+    val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message
+  ) : PromptBuilder.MessageBuilder {
+    private val myChunks = mutableListOf<Prompt.Message.Chunk>()
 
     /** Adds [str] as text in the message. */
     override fun text(str: String, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(SafePrompt.Message.TextChunk(str, filesUsed))
+      myChunks.add(Prompt.Message.TextChunk(str, filesUsed))
     }
 
     /** Adds [code] as a formatted code block in the message, with optional [language] specified. */
     override fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(SafePrompt.Message.CodeChunk(code, language, filesUsed))
+      myChunks.add(Prompt.Message.CodeChunk(code, language, filesUsed))
     }
 
     fun build() = makeMessage(myChunks)
   }
 
   inner class UserMessageBuilderImpl(
-    makeMessage: (List<SafePrompt.Message.Chunk>) -> SafePrompt.Message
-  ) : MessageBuilderImpl(makeMessage), SafePromptBuilder.UserMessageBuilder {
-    override val project: Project = this@SafePromptBuilderImpl.project
+    makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message
+  ) : MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
+    override val project: Project = this@PromptBuilderImpl.project
   }
 
-  override fun systemMessage(builderAction: SafePromptBuilder.MessageBuilder.() -> Unit) {
+  override fun systemMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
     if (messages.isNotEmpty()) {
       throw MalformedPromptException(
         "Prompt can only contain one system message, and it must be the first message."
       )
     }
-    messages.add(MessageBuilderImpl { SafePrompt.SystemMessage(it) }.apply(builderAction).build())
+    messages.add(MessageBuilderImpl { Prompt.SystemMessage(it) }.apply(builderAction).build())
   }
 
-  override fun userMessage(builderAction: SafePromptBuilder.UserMessageBuilder.() -> Unit) {
-    messages.add(UserMessageBuilderImpl { SafePrompt.UserMessage(it) }.apply(builderAction).build())
+  override fun userMessage(builderAction: PromptBuilder.UserMessageBuilder.() -> Unit) {
+    messages.add(UserMessageBuilderImpl { Prompt.UserMessage(it) }.apply(builderAction).build())
   }
 
-  override fun modelMessage(builderAction: SafePromptBuilder.MessageBuilder.() -> Unit) {
-    messages.add(MessageBuilderImpl { SafePrompt.ModelMessage(it) }.apply(builderAction).build())
+  override fun modelMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
+    messages.add(MessageBuilderImpl { Prompt.ModelMessage(it) }.apply(builderAction).build())
   }
 
-  fun addAll(prompt: SafePrompt): SafePromptBuilderImpl {
+  fun addAll(prompt: Prompt): PromptBuilderImpl {
     messages.addAll(prompt.messages)
     return this
   }
@@ -87,7 +87,7 @@ class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
       .filter { StudioBot.getInstance().aiExcludeService().isFileExcluded(project, it) }
       .toSet()
 
-  fun build(): SafePrompt {
+  fun build(): Prompt {
     // Verify that the prompt is well-formed
     checkPromptFormat(messages.isNotEmpty(), "Prompt has no messages.")
 
@@ -96,6 +96,6 @@ class SafePromptBuilderImpl(private val project: Project) : SafePromptBuilder {
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
     }
-    return SafePromptImpl(messages)
+    return PromptImpl(messages)
   }
 }

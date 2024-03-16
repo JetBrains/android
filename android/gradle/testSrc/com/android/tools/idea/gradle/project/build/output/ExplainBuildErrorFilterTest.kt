@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.SafePrompt
+import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.testing.disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -46,7 +46,7 @@ class ExplainBuildErrorFilterTest {
         lastSource = requestSource
       }
 
-      override fun sendChatQuery(prompt: SafePrompt, requestSource: StudioBot.RequestSource, displayText: String?) {
+      override fun sendChatQuery(prompt: Prompt, requestSource: StudioBot.RequestSource, displayText: String?) {
         lastQuery = prompt.messages.first().toString()
         lastSource = requestSource
         sendQueryInvoked = true

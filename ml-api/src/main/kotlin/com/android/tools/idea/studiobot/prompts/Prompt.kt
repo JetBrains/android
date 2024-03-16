@@ -23,7 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * and has been validated to conform to aiexclude rules in the project.
  * See [buildPrompt] for information on the format and how to construct a prompt.
  */
-interface SafePrompt {
+interface Prompt {
   val messages: List<Message>
 
   sealed class Message(open val chunks: List<Chunk>) {

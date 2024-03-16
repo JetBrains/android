@@ -19,9 +19,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.SafePrompt
+import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
-import com.android.tools.idea.studiobot.prompts.impl.SafePromptImpl
+import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
@@ -55,15 +55,15 @@ class FilesTest : BasePlatformTestCase() {
 
     assertThat(prompt)
       .isEqualTo(
-        SafePromptImpl(
+        PromptImpl(
           listOf(
-            SafePrompt.UserMessage(
+            Prompt.UserMessage(
               listOf(
-                SafePrompt.Message.TextChunk(
+                Prompt.Message.TextChunk(
                   "The contents of the file \"/src/$path\" are:",
                   filesUsed,
                 ),
-                SafePrompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
+                Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
           )
@@ -82,15 +82,15 @@ class FilesTest : BasePlatformTestCase() {
 
     assertThat(prompt)
       .isEqualTo(
-        SafePromptImpl(
+        PromptImpl(
           listOf(
-            SafePrompt.UserMessage(
+            Prompt.UserMessage(
               listOf(
-                SafePrompt.Message.TextChunk(
+                Prompt.Message.TextChunk(
                   "The contents of the file \"/src/$path\" are:",
                   filesUsed,
                 ),
-                SafePrompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
+                Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
           )
@@ -116,31 +116,31 @@ class FilesTest : BasePlatformTestCase() {
 
     assertThat(prompt)
       .isEqualTo(
-        SafePromptImpl(
+        PromptImpl(
           listOf(
-            SafePrompt.UserMessage(
+            Prompt.UserMessage(
               listOf(
-                SafePrompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
-                SafePrompt.Message.TextChunk(
+                Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
+                Prompt.Message.TextChunk(
                   "The contents before the selected text are:",
                   filesUsed,
                 ),
-                SafePrompt.Message.CodeChunk(
+                Prompt.Message.CodeChunk(
                   contents.take(selectionStart),
                   PlainTextLanguage.INSTANCE,
                   filesUsed,
                 ),
-                SafePrompt.Message.TextChunk("The selected text is:", filesUsed),
-                SafePrompt.Message.CodeChunk(
+                Prompt.Message.TextChunk("The selected text is:", filesUsed),
+                Prompt.Message.CodeChunk(
                   contents.subSequence(selectionStart, selectionEnd).toString(),
                   PlainTextLanguage.INSTANCE,
                   filesUsed,
                 ),
-                SafePrompt.Message.TextChunk(
+                Prompt.Message.TextChunk(
                   "The contents after the selected text are:",
                   filesUsed,
                 ),
-                SafePrompt.Message.CodeChunk(
+                Prompt.Message.CodeChunk(
                   contents.drop(selectionEnd),
                   PlainTextLanguage.INSTANCE,
                   filesUsed,
@@ -169,19 +169,19 @@ class FilesTest : BasePlatformTestCase() {
 
     assertThat(prompt)
       .isEqualTo(
-        SafePromptImpl(
+        PromptImpl(
           listOf(
-            SafePrompt.UserMessage(
+            Prompt.UserMessage(
               listOf(
-                SafePrompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
-                SafePrompt.Message.TextChunk("The contents before the caret are:", filesUsed),
-                SafePrompt.Message.CodeChunk(
+                Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
+                Prompt.Message.TextChunk("The contents before the caret are:", filesUsed),
+                Prompt.Message.CodeChunk(
                   contents.take(caretOffset),
                   PlainTextLanguage.INSTANCE,
                   filesUsed,
                 ),
-                SafePrompt.Message.TextChunk("The contents after the caret are:", filesUsed),
-                SafePrompt.Message.CodeChunk(
+                Prompt.Message.TextChunk("The contents after the caret are:", filesUsed),
+                Prompt.Message.CodeChunk(
                   contents.drop(caretOffset),
                   PlainTextLanguage.INSTANCE,
                   filesUsed,

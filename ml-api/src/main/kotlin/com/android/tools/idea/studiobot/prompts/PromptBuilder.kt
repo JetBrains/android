@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.studiobot.prompts
 
-import com.android.tools.idea.studiobot.prompts.impl.SafePromptBuilderImpl
+import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -25,9 +25,9 @@ import com.intellij.openapi.vfs.VirtualFile
  * Each part of the prompt must declare which files from the user's project, if any, it uses.
  *
  * No files may be used if the context sharing setting is disabled: check it with
- * StudioBot.isContextAllowed(project)
+ * `StudioBot.isContextAllowed(project)`
  *
- * Additionally, Each file must be allowed by aiexclude. Check files using
+ * Additionally, each file must be allowed by aiexclude. Check files using
  * AiExcludeService.isFileExcluded. If a file is not allowed, an AiExcludeException will be thrown.
  *
  * A prompt consists of a series of messages. There are three types of messages currently: system,
@@ -48,8 +48,8 @@ import com.intellij.openapi.vfs.VirtualFile
  * * Prompts must contain at least one message.
  * * There can be at most one system message, and it must be the first message.
  *
- * Use [SafePromptBuilder.MessageBuilder.text] to add plaintext to a message, and
- * [SafePromptBuilder.MessageBuilder.code] to add a formatted code block with the given language.
+ * Use [PromptBuilder.MessageBuilder.text] to add plaintext to a message, and
+ * [PromptBuilder.MessageBuilder.code] to add a formatted code block with the given language.
  *
  * Example usage:
  * ```
@@ -73,15 +73,15 @@ import com.intellij.openapi.vfs.VirtualFile
  * }
  * ```
  */
-inline fun buildPrompt(project: Project, existingPrompt: SafePrompt? = null, builderAction: SafePromptBuilder.() -> Unit): SafePrompt {
-  val builder = SafePromptBuilderImpl(project)
+inline fun buildPrompt(project: Project, existingPrompt: Prompt? = null, builderAction: PromptBuilder.() -> Unit): Prompt {
+  val builder = PromptBuilderImpl(project)
   existingPrompt?.let { builder.addAll(existingPrompt) }
   return builder.apply(builderAction).build()
 }
 
-/** Utility for constructing prompts for Studio Bot. */
-interface SafePromptBuilder {
-  val messages: List<SafePrompt.Message>
+/** Utility for constructing prompts for ML models. */
+interface PromptBuilder {
+  val messages: List<Prompt.Message>
 
   interface MessageBuilder {
     /** Adds [str] as text in the message. */

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.studiobot
 
-import com.android.tools.idea.studiobot.prompts.SafePrompt
+import com.android.tools.idea.studiobot.prompts.Prompt
 
 /**
  * Service which lets clients communicate with the StudioBot backend via the chat UI.
@@ -51,7 +51,7 @@ interface ChatService {
    * @throws IllegalStateException if context sharing is not enabled, or if the prompt does not end with a user message
    */
   fun sendChatQuery(
-    prompt: SafePrompt,
+    prompt: Prompt,
     requestSource: StudioBot.RequestSource,
     displayText: String? = null
   ) { }
@@ -68,7 +68,7 @@ interface ChatService {
   ) { }
 
   open class StubChatService: ChatService {
-    override fun sendChatQuery(prompt: SafePrompt,
+    override fun sendChatQuery(prompt: Prompt,
                                requestSource: StudioBot.RequestSource,
                                displayText: String?) {
     }

@@ -17,7 +17,7 @@ package com.android.tools.idea.ml.xmltocompose
 
 import com.android.tools.idea.studiobot.LlmService
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.SafePrompt
+import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -44,7 +44,7 @@ class NShotXmlToComposeConverterTest {
       override fun model(project: Project) =
         object : LlmService.StubLlmService() {
           override suspend fun sendQuery(
-            prompt: SafePrompt,
+            prompt: Prompt,
             source: StudioBot.RequestSource,
           ): Flow<String> {
             return flowOf("CITATIONS: Some citations here", "```kotlin\n${simpleKotlinCode()}\n```")

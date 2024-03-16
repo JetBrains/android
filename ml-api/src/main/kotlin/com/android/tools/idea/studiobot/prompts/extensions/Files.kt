@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.studiobot.prompts.extensions
 
-import com.android.tools.idea.studiobot.prompts.SafePromptBuilder.UserMessageBuilder
+import com.android.tools.idea.studiobot.prompts.PromptBuilder.UserMessageBuilder
 import com.intellij.lang.Language
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -39,7 +39,7 @@ private fun VirtualFile.projectRelativePath(project: Project) =
  * should not view the low-level formatting of these messages as authoritative in any way, they are
  * simply _one_ way to do it. If you care about your prompts performing optimally, you should build
  * and evaluate for your use case, potentially using the lower-level APIs in
- * [com.android.tools.idea.studiobot.prompts.SafePromptBuilder.MessageBuilder] directly instead.
+ * [com.android.tools.idea.studiobot.prompts.PromptBuilder.MessageBuilder] directly instead.
  */
 fun UserMessageBuilder.fileContents(file: VirtualFile, lang: Language? = null) {
   val usedFiles = listOf(file)
@@ -55,7 +55,7 @@ fun UserMessageBuilder.fileContents(file: VirtualFile, lang: Language? = null) {
  * should not view the low-level formatting of these messages as authoritative in any way, they are
  * simply _one_ way to do it. If you care about your prompts performing optimally, you should build
  * and evaluate for your use case, potentially using the lower-level APIs in
- * [com.android.tools.idea.studiobot.prompts.SafePromptBuilder.MessageBuilder] directly instead.
+ * [com.android.tools.idea.studiobot.prompts.PromptBuilder.MessageBuilder] directly instead.
  */
 fun UserMessageBuilder.fileContents(file: PsiFile) {
   fileContents(file.viewProvider.virtualFile, file.language)
@@ -77,7 +77,7 @@ interface ReadActionUserMessageBuilder : UserMessageBuilder {
    * should not view the low-level formatting of these messages as authoritative in any way, they
    * are simply _one_ way to do it. If you care about your prompts performing optimally, you should
    * build and evaluate for your use case, potentially using the lower-level APIs in
-   * [com.android.tools.idea.studiobot.prompts.SafePromptBuilder.MessageBuilder] directly instead.
+   * [com.android.tools.idea.studiobot.prompts.PromptBuilder.MessageBuilder] directly instead.
    */
   @RequiresReadLock fun openFileContents(editor: Editor)
 }
