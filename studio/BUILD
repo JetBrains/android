@@ -252,6 +252,7 @@ studio_plugin(
             "//tools/base/environment-services:studio.intellij.android.environment-services",
             "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
             "//tools/adt/idea/safemode:intellij.android.safemode",
+            "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

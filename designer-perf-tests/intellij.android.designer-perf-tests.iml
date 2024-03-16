@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-designer.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
   </component>
 </module>

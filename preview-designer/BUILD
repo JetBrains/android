@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
     ],
 )
 
@@ -65,5 +66,6 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
     ],
 )

@@ -136,6 +136,7 @@ iml_module(
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/.idea/libraries:libadb-server-proto",
         "//tools/adt/idea/safemode:intellij.android.safemode[module]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
     ],
 )
 
@@ -295,6 +296,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
     ],
 )
 

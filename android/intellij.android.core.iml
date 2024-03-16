@@ -130,5 +130,6 @@
     <orderEntry type="module" module-name="intellij.android.environment-services" />
     <orderEntry type="library" name="libadb-server-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.safemode" />
+    <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
   </component>
 </module>

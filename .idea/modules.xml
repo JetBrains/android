@@ -304,6 +304,7 @@
       <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" filepath="$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.tests.iml" filepath="$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/preview-fast-compile/intellij.android.preview-fast-compile.iml" filepath="$PROJECT_DIR$/preview-fast-compile/intellij.android.preview-fast-compile.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers/intellij.android.profilers.iml" filepath="$PROJECT_DIR$/profilers/intellij.android.profilers.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers-atrace/intellij.android.profilers.atrace.iml" filepath="$PROJECT_DIR$/profilers-atrace/intellij.android.profilers.atrace.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers-integration/intellij.android.profilers.integration.iml" filepath="$PROJECT_DIR$/profilers-integration/intellij.android.profilers.integration.iml" />

@@ -17,6 +17,9 @@ package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isError
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message

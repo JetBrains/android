@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
-import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.hasExistingClassFile

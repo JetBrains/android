@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.compile.fast
 
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.FileNotFoundException
@@ -65,7 +64,7 @@ private val FIXED_COMPILER_ARGS =
  * @param log logger
  * @param isDebug flag to pass additional command line parameters to make daemon debuggable
  */
-internal class OutOfProcessCompilerDaemonClient(
+class OutOfProcessCompilerDaemonClient(
   version: String,
   private val scope: CoroutineScope,
   private val javaCommand: String,

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.preview.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable

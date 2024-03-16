@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException

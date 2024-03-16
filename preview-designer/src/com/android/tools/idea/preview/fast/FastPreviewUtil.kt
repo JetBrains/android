@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.preview.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.runWriteActionAndWait
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager

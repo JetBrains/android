@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.OutOfProcessCompilerDaemonClient
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil

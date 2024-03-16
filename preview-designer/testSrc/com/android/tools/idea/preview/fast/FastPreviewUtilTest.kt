@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.preview.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule

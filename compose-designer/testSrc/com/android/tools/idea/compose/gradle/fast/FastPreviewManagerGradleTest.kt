@@ -16,17 +16,17 @@
 package com.android.tools.idea.compose.gradle.fast
 
 import com.android.testutils.delayUntilCondition
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput

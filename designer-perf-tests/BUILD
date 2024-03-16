@@ -107,6 +107,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
     ],
 )
 

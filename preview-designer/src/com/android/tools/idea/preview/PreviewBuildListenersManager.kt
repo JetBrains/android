@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.projectsystem.BuildListener
