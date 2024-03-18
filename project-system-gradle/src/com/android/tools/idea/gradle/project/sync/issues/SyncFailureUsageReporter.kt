@@ -23,8 +23,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.annotations.SystemIndependent
+import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
@@ -36,7 +36,7 @@ private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
  */
 @Service(Service.Level.APP)
 class SyncFailureUsageReporter {
-  private val collectedFailures = concurrentMapOf<String, AndroidStudioEvent.GradleSyncFailure>()
+  private val collectedFailures = ConcurrentHashMap<String, AndroidStudioEvent.GradleSyncFailure>()
 
   companion object {
     @JvmStatic

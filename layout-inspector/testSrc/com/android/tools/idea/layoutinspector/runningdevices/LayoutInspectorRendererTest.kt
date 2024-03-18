@@ -57,7 +57,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
-import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -590,9 +589,9 @@ class LayoutInspectorRendererTest {
   ) {
     val graphics = image.createGraphics()
     // add a gray background
+    graphics.color = Color(250, 250, 250)
     graphics.fillRect(
-      Rectangle(0, 0, screenDimension.width, screenDimension.height),
-      Color(250, 250, 250)
+      0, 0, screenDimension.width, screenDimension.height,
     )
     // render the display rectangle in black, the rendering from LI should be overlaid to it.
     graphics.color = Color(0, 0, 0)

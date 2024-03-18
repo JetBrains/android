@@ -80,7 +80,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.trove" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
-    <orderEntry type="library" scope="TEST" name="rd-core" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
     <orderEntry type="module" module-name="kotlin.project-wizard.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="assertJ" level="project" />

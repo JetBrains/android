@@ -42,7 +42,6 @@ import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
@@ -121,7 +120,7 @@ class ConfigureBaselineProfilesModuleStep(
 
     // If nothing was selected, then select the first of the list and set `use gmd` false
     if (!model.targetModule.isPresent.get()) {
-      appModules.firstOrNull()?.let { model.targetModule.value = it.key }
+      appModules.entries.firstOrNull()?.let { model.targetModule.value = it.key }
       useGmdCheck.isEnabled = false
       useGmdCheck.isSelected = false
     }

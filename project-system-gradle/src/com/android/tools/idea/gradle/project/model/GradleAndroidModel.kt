@@ -47,7 +47,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet

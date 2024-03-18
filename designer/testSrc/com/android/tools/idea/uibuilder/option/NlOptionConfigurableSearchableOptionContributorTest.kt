@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOp
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.jetbrains.rd.util.getOrCreate
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule

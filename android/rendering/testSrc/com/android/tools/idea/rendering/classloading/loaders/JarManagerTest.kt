@@ -19,7 +19,6 @@ import com.android.ide.common.util.PathString
 import com.google.common.cache.AbstractCache
 import com.google.common.cache.Cache
 import com.google.common.cache.ForwardingCache
-import com.jetbrains.rd.util.first
 import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.util.prefixIfNot
 import org.junit.Assert
@@ -177,7 +176,7 @@ class JarManagerUtilTest {
         file1
       """
         .trimIndent(),
-      backingMap.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n")
     )
 
     assertEquals(
@@ -190,7 +189,7 @@ class JarManagerUtilTest {
         file2
       """
         .trimIndent(),
-      backingMap.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n")
     )
   }
 
@@ -213,7 +212,7 @@ class JarManagerUtilTest {
         file2
       """
         .trimIndent(),
-      backingMap.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n")
     )
 
     assertEquals(
@@ -233,7 +232,7 @@ class JarManagerUtilTest {
         notAFile
       """
         .trimIndent(),
-      backingMap.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n")
     )
   }
 
