@@ -25,6 +25,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
@@ -54,6 +55,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:app-inspection.inspectors.backgroundtask.model[module, test]",

@@ -12,6 +12,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

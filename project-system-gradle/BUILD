@@ -51,6 +51,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
@@ -163,6 +164,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",

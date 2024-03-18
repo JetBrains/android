@@ -10,6 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
@@ -62,6 +63,7 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

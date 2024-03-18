@@ -14,6 +14,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
@@ -52,6 +53,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module, test]",

@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
     ],
@@ -23,6 +24,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -42,6 +44,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
@@ -66,6 +69,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
@@ -87,6 +91,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
@@ -119,6 +124,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common[module]",
@@ -141,6 +147,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
@@ -174,6 +181,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module, test]",

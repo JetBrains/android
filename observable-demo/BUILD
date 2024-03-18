@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",

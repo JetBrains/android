@@ -10,6 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/adt/idea/.idea/libraries:zxing-core",
@@ -62,6 +63,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:zxing-core[test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
@@ -80,6 +82,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

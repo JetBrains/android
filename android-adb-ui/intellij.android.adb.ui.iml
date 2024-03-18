@@ -20,6 +20,7 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
   </component>

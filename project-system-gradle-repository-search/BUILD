@@ -12,6 +12,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
@@ -26,6 +27,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
     ],

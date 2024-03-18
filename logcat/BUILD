@@ -17,6 +17,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
@@ -55,6 +56,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",

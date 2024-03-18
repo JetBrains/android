@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />

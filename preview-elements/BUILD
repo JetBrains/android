@@ -10,6 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
@@ -28,6 +29,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",

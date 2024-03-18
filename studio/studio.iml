@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="ml.sml-android" />
     <orderEntry type="module" module-name="studio-sdk-all-plugins" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
   </component>
 </module>

@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="module" module-name="intellij.android.designer" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />

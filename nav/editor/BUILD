@@ -12,6 +12,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
@@ -62,6 +63,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -111,6 +113,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",

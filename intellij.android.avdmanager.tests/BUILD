@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/repository:studio.android.sdktools.repository[module]",

@@ -40,6 +40,7 @@
     <orderEntry type="library" scope="TEST" name="studio-plugin-webp" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
   </component>

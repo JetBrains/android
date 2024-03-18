@@ -15,6 +15,7 @@ iml_module(
     deps = [
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

@@ -8,6 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="module" module-name="app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

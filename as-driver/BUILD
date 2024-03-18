@@ -54,6 +54,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/bleak:intellij.android.bleak[module]",
@@ -83,6 +84,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
@@ -107,6 +109,7 @@ iml_module(
         "//prebuilts/tools/common/m2:junit-4.12",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
     ],
 )
 

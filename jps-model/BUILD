@@ -11,5 +11,6 @@ iml_module(
     deps = [
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
     ],
 )

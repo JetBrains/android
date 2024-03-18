@@ -14,6 +14,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

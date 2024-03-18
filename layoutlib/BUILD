@@ -12,6 +12,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
@@ -29,6 +30,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",

@@ -10,6 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:transport-proto",

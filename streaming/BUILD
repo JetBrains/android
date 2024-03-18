@@ -12,6 +12,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/analytics[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
@@ -102,6 +103,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
@@ -129,6 +131,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
@@ -188,6 +191,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],

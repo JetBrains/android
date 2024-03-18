@@ -7,5 +7,9 @@ iml_module(
     iml_files = ["intellij.android.rt.iml"],
     jvm_target = "8",
     visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+    ],
 )

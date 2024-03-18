@@ -10,6 +10,7 @@ iml_module(
     deps = [
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],

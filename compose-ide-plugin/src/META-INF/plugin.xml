@@ -22,6 +22,7 @@
   <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
   <depends>org.jetbrains.android</depends>
+  <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="com.intellij">

@@ -17,6 +17,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",

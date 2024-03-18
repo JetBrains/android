@@ -11,6 +11,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/app-inspection/inspector/ide:app-inspection.inspector.ide[module]",
         "//tools/adt/idea/app-inspection/inspectors/network/model:app-inspection.inspectors.network.model[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
@@ -39,6 +40,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",

@@ -31,6 +31,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -49,6 +50,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -89,6 +91,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

@@ -16,5 +16,6 @@ kotlin_library(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
     ],
 )

@@ -11,6 +11,7 @@
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
+  <depends>com.intellij.java</depends>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

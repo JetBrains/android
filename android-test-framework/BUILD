@@ -16,6 +16,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",

@@ -8,5 +8,8 @@ iml_module(
     jvm_target = "8",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+    ],
 )

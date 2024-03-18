@@ -39,6 +39,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
@@ -81,6 +82,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",

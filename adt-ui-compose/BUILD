@@ -18,6 +18,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/tools/common/m2:jewel-ide",
         "//prebuilts/tools/common/m2:compose-desktop",
         "//prebuilts/tools/common/m2:jewel-standalone[test]",

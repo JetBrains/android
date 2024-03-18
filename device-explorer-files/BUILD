@@ -13,6 +13,7 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -45,6 +46,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",

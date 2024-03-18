@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
@@ -33,6 +34,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/.idea/libraries:truth",
     ],

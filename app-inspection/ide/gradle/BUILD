@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",

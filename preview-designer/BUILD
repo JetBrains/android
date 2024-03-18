@@ -13,6 +13,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
@@ -42,6 +43,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

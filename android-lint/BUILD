@@ -14,6 +14,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -84,6 +85,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",

@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
@@ -48,6 +49,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",

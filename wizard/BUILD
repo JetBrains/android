@@ -11,6 +11,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
@@ -33,6 +34,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",

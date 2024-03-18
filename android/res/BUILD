@@ -40,6 +40,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",

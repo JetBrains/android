@@ -30,6 +30,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

@@ -11,6 +11,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -46,6 +47,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

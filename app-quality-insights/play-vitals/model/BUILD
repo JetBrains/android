@@ -11,6 +11,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",

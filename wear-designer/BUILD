@@ -12,6 +12,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -36,6 +37,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
