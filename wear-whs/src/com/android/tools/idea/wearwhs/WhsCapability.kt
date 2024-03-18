@@ -131,6 +131,6 @@ val WHS_CAPABILITIES = listOf(
     "wear.whs.capability.steps.per.minute.label",
     "wear.whs.capability.steps.per.minute.unit",
     isOverrideable = true,
-    isStandardCapability = false,
+    isStandardCapability = true,
   ),
 )
