@@ -303,12 +303,6 @@ public class UpdateTest {
     return dest;
   }
 
-  /**
-   * Note: we explicitly do NOT call the "CheckForUpdate" action as part of this test since the
-   * platform will already call it, and calling it more than once will produce a race condition
-   * where the notification panel with the "Update…" link may close on us before we can interact
-   * with it.
-   */
   @Test
   public void updateTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
@@ -343,6 +337,10 @@ public class UpdateTest {
       try (AndroidStudio studio = install.run(display, env)) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_CURRENT_BUILD_NUMBER));
+
+        // Explicitly invoke the CheckForUpdate action. With IntelliJ 2024.1, updates are no longer
+        // implicitly shown, so we need to invoke this for the update button to be available.
+        studio.executeAction("CheckForUpdate");
 
         System.out.println("Updating Android Studio");
         // This invokes the "update button" in the bottom right of the "Welcome" window. It may
