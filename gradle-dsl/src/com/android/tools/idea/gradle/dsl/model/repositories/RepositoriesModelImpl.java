@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
@@ -91,7 +92,8 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     if (containsMethodCall(methodName)) {
       return false;
     }
-    PropertiesElementDescription description = myDslElement.getChildPropertiesElementDescription(methodName);
+    GradleDslNameConverter converter = myDslElement.getDslFile().getParser();
+    PropertiesElementDescription description = myDslElement.getChildPropertiesElementDescription(converter, methodName);
     if (description != null) {
       myDslElement.setNewElement(description.constructor.construct(myDslElement, GradleNameElement.fake(methodName)));
       return true;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
@@ -48,7 +49,9 @@ public class GradleSettingsFile extends GradleScriptFile {
 
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

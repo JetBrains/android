@@ -36,7 +36,10 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new, BuildTypesDslElementSchema::new);
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(
+    GradleDslNameConverter converter,
+    String name
+  ) {
     return BuildTypeDslElement.BUILD_TYPE;
   }
 

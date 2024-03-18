@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.settings;
 
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.settings.VersionCatalogModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
@@ -31,7 +32,7 @@ public class VersionCatalogsDslElement extends GradleDslElementMap implements Gr
     new PropertiesElementDescription<>("versionCatalogs", VersionCatalogsDslElement.class, VersionCatalogsDslElement::new);
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(GradleDslNameConverter converter, String name) {
     return VersionCatalogDslElement.VERSION_CATALOG;
   }
 

@@ -52,7 +52,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

@@ -535,7 +535,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                 @NotNull Function<ArtifactDependencySpec, String> getFunc,
                                                 @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setFunc,
                                                 boolean canDelete) {
-      return createModelFor(name,getFunc,setFunc,canDelete,null);
+      return createModelFor(name, getFunc, setFunc, canDelete, null);
     }
 
 

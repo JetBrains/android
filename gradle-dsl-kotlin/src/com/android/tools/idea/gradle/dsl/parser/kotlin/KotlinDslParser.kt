@@ -266,7 +266,7 @@ class KotlinDslParser(
       if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
 
     // If expression is a pure block element and not an expression.
-    if (expression.isBlockElement(parent)) {
+    if (expression.isBlockElement(this, parent)) {
       // If the block has a localMethodName, the nameElement should use the argument valueExpression psi. (ex: create("release") -> release)
       val argumentList = expression.valueArgumentList
       if (argumentList != null && argumentList.arguments.size > 0) {

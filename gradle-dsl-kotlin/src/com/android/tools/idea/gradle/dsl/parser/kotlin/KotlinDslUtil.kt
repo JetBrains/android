@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
@@ -56,7 +57,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
-import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
@@ -101,7 +101,7 @@ private val LOG = Logger.getInstance("KotlinDslUtil")
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
-internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
+internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
   val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
   val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
@@ -109,7 +109,7 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
                              parent is ConfigurationDslElement || // see special-case in SharedParserUtils.getPropertiesElement
-                             parent.getChildPropertiesElementDescription(this.name()) != null)
+                             parent.getChildPropertiesElementDescription(converter, this.name()) != null)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 

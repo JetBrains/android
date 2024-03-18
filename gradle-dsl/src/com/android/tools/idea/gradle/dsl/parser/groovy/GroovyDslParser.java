@@ -361,7 +361,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     // considered as blocks.
     List<String> specialCases = Arrays.asList("allprojects", APPLY_BLOCK_NAME, EXT.name);
 
-    if (nArgs > 0 || (!specialCases.contains(name.name()) && dslElement.getChildPropertiesElementDescription(name.name()) == null)) {
+    if (nArgs > 0 || (!specialCases.contains(name.name()) && dslElement.getChildPropertiesElementDescription(this, name.name()) == null)) {
       // This element is a method call with arguments and an optional closure associated with it.  Handle as a regular method call.
       // ex: compile("dependency") {}, reset()
       GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName(), false);

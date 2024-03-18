@@ -401,13 +401,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * maintaining a String-to-Description map, and looking up the given name.  This works for most blocks, but is not suitable for
    * NamedDomainObject containers, where the child properties can have arbitrary user-supplied names.
    *
-   * In principle this map could vary by external Dsl language (Groovy, KotlinScript).  In practice at least at present all properties
-   * elements have the same name in both.
+   * Groovy, KotlinScript have the same set of description but Declarative/"Something" format has elements named differently
+   * This is true for root DSL elements (android, dependencies etx) to avoid interference between declarative and traditional
+   * DSLs in declarative - experimental phase.
    *
    * @return a map of external names to descriptions of the corresponding properties element.
    */
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(GradleDslNameConverter.Kind kind) {
     return NO_CHILD_PROPERTIES_ELEMENTS;
   }
 
@@ -417,8 +418,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * element exists in the Dsl.
    */
   @Nullable
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
-    return getChildPropertiesElementsDescriptionMap().get(name);
+  public PropertiesElementDescription getChildPropertiesElementDescription(GradleDslNameConverter converter, String name) {
+    return getChildPropertiesElementsDescriptionMap(converter.getKind()).get(name);
   }
 
   @NotNull

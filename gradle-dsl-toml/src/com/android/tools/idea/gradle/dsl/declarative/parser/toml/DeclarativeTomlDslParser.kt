@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.declarative.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.TomlDslParser
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -57,8 +58,8 @@ class DeclarativeTomlDslParser(
         element.header.key?.doWithContext(context) { segment, context ->
           if (segment.name == null) return@doWithContext
           val nameElement = GradleNameElement.from(segment, this@DeclarativeTomlDslParser)
-          val description = context.getMapDescription(segment.name!!)
-          val map = context.getPropertyElement(description) ?: context.createChildDslElement(nameElement, element) {
+          val description = context.getMapDescription(this@DeclarativeTomlDslParser, segment.name!!)
+          val map = context.getPropertyElement(description) ?: context.createChildDslElement(this@DeclarativeTomlDslParser, nameElement, element) {
             GradleDslExpressionMap(context, element, nameElement, true)
           }
           map.psiElement = element // element must point to the last table psi
@@ -67,13 +68,13 @@ class DeclarativeTomlDslParser(
       }
 
       override fun visitArray(element: TomlArray) {
-        val list = context.createChildDslElement(name, element) { GradleDslExpressionList(context, element, true, name) }
+        val list = context.createChildDslElement(this@DeclarativeTomlDslParser, name, element) { GradleDslExpressionList(context, element, true, name) }
         list.externalSyntax = ExternalNameSyntax.ASSIGNMENT
         getVisitor(list, GradleNameElement.empty()).let { visitor -> element.elements.forEach { it.accept(visitor) } }
       }
 
       override fun visitInlineTable(element: TomlInlineTable) {
-        val map = context.createChildDslElement(name, element) { GradleDslExpressionMap(context, element, name, true) }
+        val map = context.createChildDslElement(this@DeclarativeTomlDslParser, name, element) { GradleDslExpressionMap(context, element, name, true) }
         getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
       }
 
@@ -95,13 +96,13 @@ class DeclarativeTomlDslParser(
         element.header.key?.doWithContext(context) { segment, context ->
           val name = segment.name ?: return@doWithContext
           val nameElement = GradleNameElement.from(segment, this@DeclarativeTomlDslParser)
-          val description = context.getChildPropertiesElementDescription(name)
+          val description = context.getChildPropertiesElementDescription(this@DeclarativeTomlDslParser, name)
                             ?: PropertiesElementDescription(name,
                                                             GradleDslExpressionList::class.java,
                                                             ::GradleDslExpressionList)
 
           val list: GradlePropertiesDslElement = context.getPropertyElement(description)
-                                                 ?: context.createChildDslElement(nameElement, element) {
+                                                 ?: context.createChildDslElement(this@DeclarativeTomlDslParser, nameElement, element) {
                                                    GradleDslExpressionList(context, GradleNameElement.create(name))
                                                  }
           val map = GradleDslExpressionMap(context, element, GradleNameElement.empty(), true)
@@ -121,10 +122,11 @@ class DeclarativeTomlDslParser(
     segments.forEachIndexed { i, segment ->
       if (i == lastSegmentIndex) return thunk(segment, currentContext)
       if (segment.name == null) return
-      val description = currentContext.getMapDescription(segment.name!!)
+      val description = currentContext.getMapDescription(this@DeclarativeTomlDslParser, segment.name!!)
 
       val nameElement = GradleNameElement.from(segment, this@DeclarativeTomlDslParser)
-      currentContext = currentContext.getPropertyElement(description) ?: currentContext.createChildDslElement(nameElement, segment) {
+      currentContext = currentContext.getPropertyElement(description) ?: currentContext.createChildDslElement(this@DeclarativeTomlDslParser,
+                                                                                                              nameElement, segment) {
         GradleDslExpressionMap(currentContext, segment, nameElement, true)
       }
     }
@@ -197,11 +199,12 @@ fun PsiElement.getPathToRoot():List<String>{
 }
 
 fun GradlePropertiesDslElement.createChildDslElement(
+  converter: GradleDslNameConverter,
   elementName: GradleNameElement,
   psiElement: PsiElement,
   defaultConstructor: () -> GradlePropertiesDslElement
 ): GradlePropertiesDslElement {
-  val result = when (val description = getChildPropertiesElementDescription(elementName.name())) {
+  val result = when (val description = getChildPropertiesElementDescription(converter, elementName.name())) {
     null -> defaultConstructor.invoke()
     else -> {
       val element = description.constructor.construct(this, elementName)
@@ -214,8 +217,8 @@ fun GradlePropertiesDslElement.createChildDslElement(
   return result
 }
 
-fun GradlePropertiesDslElement.getMapDescription(name: String): PropertiesElementDescription<*> {
-  var description = getChildPropertiesElementDescription(name) ?: PropertiesElementDescription(
+fun GradlePropertiesDslElement.getMapDescription(converter: GradleDslNameConverter, name: String): PropertiesElementDescription<*> {
+  var description = getChildPropertiesElementDescription(converter, name) ?: PropertiesElementDescription(
     name,
     GradleDslExpressionMap::class.java,
     ::GradleDslExpressionMap

@@ -76,7 +76,9 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

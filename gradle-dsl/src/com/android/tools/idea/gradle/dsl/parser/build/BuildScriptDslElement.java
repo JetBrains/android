@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.build;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -40,7 +41,9 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

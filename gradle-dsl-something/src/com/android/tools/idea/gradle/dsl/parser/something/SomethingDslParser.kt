@@ -70,7 +70,7 @@ class SomethingDslParser(
       object : SomethingRecursiveVisitor() {
         override fun visitBlock(psi: SomethingBlock) {
           val name = psi.identifier?.name ?: return
-          val description = context.getChildPropertiesElementDescription(name) ?: return
+          val description = context.getChildPropertiesElementDescription(this@SomethingDslParser, name) ?: return
           val block: GradlePropertiesDslElement = context.ensurePropertyElement(description)
           psi.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
         }

@@ -34,7 +34,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testBlock() {
     val text = """
-      android {
+      androidApplication {
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf<String, Any>())
@@ -52,11 +52,11 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testRepeatingEmbeddedBlock() {
     val text = """
-      android {
+      androidApplication {
         defaultConfig {
         }
       }
-      android {
+      androidApplication {
         dataBinding {
         }
         defaultConfig {
@@ -69,7 +69,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testAssignmentWithString() {
     val toml = """
-      android {
+      androidApplication {
         namespace = "com.my"
       }
     """.trimIndent()
@@ -79,7 +79,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testAssignmentWithNumber() {
     val toml = """
-      android {
+      androidApplication {
         namespace = 5
       }
     """.trimIndent()
@@ -90,7 +90,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testAssignmentWithBoolean() {
     val toml = """
-      android {
+      androidApplication {
         namespace = true
       }
     """.trimIndent()
@@ -100,7 +100,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testFactory() {
     val toml = """
-      android {
+      androidApplication {
         api("androidx.application")
       }
     """.trimIndent()
@@ -110,7 +110,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testTwoFactoryMethods() {
     val toml = """
-      android {
+      androidApplication {
         api("androidx.application")
         api2("androidx.application2")
       }
@@ -121,7 +121,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testFactoryMethodNumberArgument() {
     val toml = """
-      android {
+      androidApplication {
         api(23)
       }
     """.trimIndent()
@@ -131,7 +131,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
   fun testFactoryMethodBooleanArgument() {
     val toml = """
-      android {
+      androidApplication {
         fixit(true)
       }
     """.trimIndent()

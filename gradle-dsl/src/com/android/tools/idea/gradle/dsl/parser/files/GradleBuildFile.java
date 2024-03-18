@@ -154,9 +154,29 @@ public class GradleBuildFile extends GradleScriptFile {
     {"plugins", PluginsDslElement.PLUGINS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
+  // Gradle Declarative has different naming for some root elements. Maybe it will be gone in stable declarative version
+  public static final ImmutableMap<String, PropertiesElementDescription> SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"androidApplication", AndroidDslElement.ANDROID},
+    {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
+    {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
+    {"crashlytics", CrashlyticsDslElement.CRASHLYTICS},
+    {"declarativeDependencies", DependenciesDslElement.DEPENDENCIES},
+    {"ext", ExtDslElement.EXT},
+    {"java", JavaDslElement.JAVA},
+    {"repositories", RepositoriesDslElement.REPOSITORIES},
+    {"subprojects", SubProjectsDslElement.SUBPROJECTS},
+    {"plugins", PluginsDslElement.PLUGINS}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
+    if (kind == GradleDslNameConverter.Kind.SOMETHING) {
+      return SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

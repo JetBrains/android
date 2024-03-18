@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.settings;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -36,7 +37,9 @@ public class DependencyResolutionManagementDslElement extends GradleDslBlockElem
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
-  protected @NotNull ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected @NotNull ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENT_MAP;
   }
 
