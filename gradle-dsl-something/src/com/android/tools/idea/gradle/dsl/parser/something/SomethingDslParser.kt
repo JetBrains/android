@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingLiteral
+import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
 import com.android.tools.idea.gradle.something.psi.SomethingRecursiveVisitor
 import com.android.tools.idea.gradle.something.psi.kind
 import com.intellij.psi.PsiElement
@@ -57,8 +58,15 @@ class SomethingDslParser(
     return null
   }
 
-  override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? = null
-
+  override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
+    val factory = SomethingPsiFactory(context.dslFile.project)
+    return when (literal) {
+      is String -> factory.createStringLiteral("$literal")
+      is Int -> factory.createIntLiteral(literal)
+      is Boolean -> factory.createBooleanLiteral(literal)
+      else -> null
+    }
+  }
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) = Unit
 
   override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? =
