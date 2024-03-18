@@ -22,13 +22,17 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
+import com.android.tools.idea.projectsystem.PseudoLocalesToken
+import com.android.tools.idea.projectsystem.PseudoLocalesToken.Companion.isPseudoLocalesEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -266,6 +270,33 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix")).containsExactly("project.app.main")
           expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix")).containsExactly("project.app.main")
           expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.suffix")).containsExactly("project.app.main")
+        },
+        GradleProjectSystemIntegrationTest(
+          name = "pseudoLocalesToken",
+          testProject = TestProject.PSD_SAMPLE_GROOVY
+        ) { project, expect ->
+          fun doLookup(applicationId: String) =
+            project.getProjectSystem().isPseudoLocalesEnabled(
+              applicationProjectContext = FacetBasedApplicationProjectContext(
+                applicationId = applicationId,
+                facet = project.getProjectSystem().findModulesWithApplicationId(applicationId).single().androidFacet!!))
+          expect.that(doLookup("com.example.dyn_feature.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.nested1.deep.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.nested1.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.nested2.deep.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.nested2.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.nested2.trans.deep2.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.projectwithappandlib.lib.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.psd.sample.app.default.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.ENABLED) // tested build type is debug
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.BOTH) // used for both debug and specialRelease
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.barSuffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.BOTH) // used for both debug and specialRelease
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.barSuffix.suffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.suffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.psd.sample.app.paid.test")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.ENABLED) // tested build type is debug
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.BOTH) // used for both debug and specialRelease
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.BOTH) // used for both debug and specialRelease
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.suffix")).isEqualTo(PseudoLocalesToken.PseudoLocalesState.DISABLED)
         },
         GradleProjectSystemIntegrationTest(
           name = "getResolvedDependency",

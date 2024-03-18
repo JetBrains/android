@@ -172,6 +172,10 @@ class GradleAndroidModel(
     return buildTypeContainer.buildType.isDebuggable
   }
 
+  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer {
+    return myBuildTypesByName[variant.buildType] ?: error("Build type ${variant.buildType} not found")
+  }
+
   private val myMinSdkVersion: AndroidVersion by lazy(LazyThreadSafetyMode.PUBLICATION) {
     var minSdkVersion = selectedVariant.minSdkVersion
     if (minSdkVersion.codename != null) {

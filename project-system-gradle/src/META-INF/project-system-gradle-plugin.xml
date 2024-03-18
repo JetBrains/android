@@ -288,6 +288,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <sendFeedbackDescriptionProvider implementation="com.android.tools.idea.feedback.GradleAndNdkSendFeedbackDescriptionProvider" />
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.projectsystem.gradle.GradleApplicationProjectContextProvider"/>
+    <projectsystem.pseudoLocalesToken implementation="com.android.tools.idea.projectsystem.gradle.GradlePseudoLocalesToken"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
