@@ -32,6 +32,7 @@ import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -331,8 +332,8 @@ private fun ModuleAndMode.getTasksBy(
     val artifacts =
       mutableListOf<IdeBaseArtifact>().apply {
         addIfNotNull(variant.mainArtifact.takeIf { module.isHolderModule() || module.isMainModule() || (module.isAndroidTestModule() && expandModule) })
-        // TODO(karimai): Add support for Screenshot test.
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
+        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }.takeIf { module.isScreenshotTestModule() || module.isHolderModule() })
         addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { module.isAndroidTestModule() || module.isHolderModule() })
       }
       artifacts.flatMap { by.invoke(it) }.toSet()
