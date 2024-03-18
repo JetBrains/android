@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.template.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -77,15 +78,22 @@ object RecipeUtils {
     // TODO(b/149085696): create logging events for Firebase?
     recipe.findReferences(context)
 
+    setUpMetadata(context, metadata)
+    return metadata
+  }
+
+  @VisibleForTesting
+  fun setUpMetadata(context: RenderingContext, metadata: RecipeMetadata) {
     // TODO(qumeric): consider using RenderingContext instead of custom RecipeMetadata class
     with(context) {
       val manifests = mutableListOf<File>()
       // FIXME(qumeric): sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
 
       // Ignore test configurations here.
-      // TODO: This should always be empty (for AGP >= 3.0) since it's reading from the "compile"
-      // configuration rather than "implementation"
-      dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach {
+      dependencies[SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION].forEach {
+        metadata.dependencies.add(it!!)
+      }
+      dependencies[SdkConstants.GRADLE_API_CONFIGURATION].forEach {
         metadata.dependencies.add(it!!)
       }
       classpathEntries.forEach { metadata.classpathEntries.add(it) }
@@ -93,7 +101,6 @@ object RecipeUtils {
       plugins.forEach { metadata.plugins.add(it) }
       targetFiles.forEach { metadata.modifiedFiles.add(it) }
     }
-    return metadata
   }
 
   @JvmStatic
