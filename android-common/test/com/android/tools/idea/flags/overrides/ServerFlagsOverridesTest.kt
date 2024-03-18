@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.flags.overrides
 
+import com.android.flags.BooleanFlag
 import com.android.flags.Flag
 import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.IntFlag
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
@@ -43,9 +45,9 @@ class ServerFlagOverridesTest {
     val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
-    val flagA = Flag.create(group, "a", "name_a", "description_a", false)
-    val flagB = Flag.create(group, "b", "name_b", "description_b", true)
-    val flagC = Flag.create(group, "c", "name_c", "description_c", false)
+    val flagA = BooleanFlag(group, "a", "name_a", "description_a", false)
+    val flagB = BooleanFlag(group, "b", "name_b", "description_b", true)
+    val flagC = BooleanFlag(group, "c", "name_c", "description_c", false)
 
     Truth.assertThat(overrides.get(flagA)).isNull()
     Truth.assertThat(overrides.get(flagB)).isNull()
@@ -69,9 +71,9 @@ class ServerFlagOverridesTest {
     val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
-    val flagD = Flag.create(group, "d", "name_d", "description_d", 0)
-    val flagE = Flag.create(group, "e", "name_e", "description_e", 1)
-    val flagF = Flag.create(group, "f", "name_f", "description_f", 0)
+    val flagD = IntFlag(group, "d", "name_d", "description_d", 0)
+    val flagE = IntFlag(group, "e", "name_e", "description_e", 1)
+    val flagF = IntFlag(group, "f", "name_f", "description_f", 0)
 
     Truth.assertThat(overrides.get(flagD)).isNull()
     Truth.assertThat(overrides.get(flagE)).isNull()
