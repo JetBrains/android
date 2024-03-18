@@ -24,16 +24,17 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
@@ -110,9 +111,11 @@ constructor(
    * on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
   suspend fun startTrackingDatabaseConnections() {
-    dbMessenger.sendCommand(
-      Command.newBuilder().setTrackDatabases(TrackDatabasesCommand.getDefaultInstance())
-    )
+    val command = TrackDatabasesCommand.newBuilder()
+    if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+      command.setForceOpen(DatabaseInspectorSettings.getInstance().isForceOpen)
+    }
+    dbMessenger.sendCommand(Command.newBuilder().setTrackDatabases(command.build()))
   }
 
   /**

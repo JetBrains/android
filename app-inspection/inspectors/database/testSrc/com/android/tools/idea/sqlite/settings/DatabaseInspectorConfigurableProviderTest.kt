@@ -15,12 +15,22 @@
  */
 package com.android.tools.idea.sqlite.settings
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.ui.components.JBCheckBox
+import java.awt.Component
+import javax.swing.JCheckBox
+import kotlin.test.fail
+import org.junit.Rule
+
+private val EXPERIMENTAL_FLAG = StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR
 
 class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
   private lateinit var databaseInspectorSettings: DatabaseInspectorSettings
+
+  @get:Rule val flagRule = FlagRule(EXPERIMENTAL_FLAG)
 
   override fun setUp() {
     super.setUp()
@@ -41,18 +51,20 @@ class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
     assertEquals("database.inspector", configurable.id)
   }
 
-  fun testConfigurableSettingsInteraction() {
+  fun testConfigurableSettingsInteraction_enableOfflineMode() {
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
-    val enableOfflineModeCheckbox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
+    val checkbox =
+      configurable.createComponent().getNamedComponent<JCheckBox>("enableOfflineMode")
+        ?: kotlin.test.fail("Can't find enableOfflineMode checkbox")
 
     databaseInspectorSettings.isOfflineModeEnabled = true
     configurable.reset()
 
     assertTrue(databaseInspectorSettings.isOfflineModeEnabled)
-    assertTrue(enableOfflineModeCheckbox.isSelected)
+    assertTrue(checkbox.isSelected)
 
-    enableOfflineModeCheckbox.isSelected = false
+    checkbox.isSelected = false
 
     assertTrue(configurable.isModified)
     assertTrue(databaseInspectorSettings.isOfflineModeEnabled)
@@ -60,12 +72,60 @@ class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
     configurable.apply()
 
     assertFalse(configurable.isModified)
-    assertFalse(enableOfflineModeCheckbox.isSelected)
+    assertFalse(checkbox.isSelected)
     assertFalse(databaseInspectorSettings.isOfflineModeEnabled)
 
     configurable.reset()
 
     assertFalse(databaseInspectorSettings.isOfflineModeEnabled)
-    assertFalse(enableOfflineModeCheckbox.isSelected)
+    assertFalse(checkbox.isSelected)
   }
+
+  fun testConfigurableSettingsInteraction_forceOpen() {
+    EXPERIMENTAL_FLAG.override(true)
+
+    val provider = DatabaseInspectorConfigurableProvider()
+    val configurable = provider.createConfigurable()
+    val checkbox =
+      configurable.createComponent().getNamedComponent<JCheckBox>("forceOpen")
+        ?: kotlin.test.fail("Can't find forceOpen checkbox")
+
+    databaseInspectorSettings.isForceOpen = true
+    configurable.reset()
+
+    assertTrue(databaseInspectorSettings.isForceOpen)
+    assertTrue(checkbox.isSelected)
+
+    checkbox.isSelected = false
+
+    assertTrue(configurable.isModified)
+    assertTrue(databaseInspectorSettings.isForceOpen)
+
+    configurable.apply()
+
+    assertFalse(configurable.isModified)
+    assertFalse(checkbox.isSelected)
+    assertFalse(databaseInspectorSettings.isForceOpen)
+
+    configurable.reset()
+
+    assertFalse(databaseInspectorSettings.isForceOpen)
+    assertFalse(checkbox.isSelected)
+  }
+
+  fun testForceOpenCheckbox_flagDisabled_notShown() {
+    val provider = DatabaseInspectorConfigurableProvider()
+    val configurable = provider.createConfigurable()
+
+    val checkbox = configurable.createComponent().getNamedComponent<JCheckBox>("forceOpen")
+
+    assertNull(checkbox)
+  }
+}
+
+private inline fun <reified T : Component> Component?.getNamedComponent(name: String): T? {
+  if (this == null) {
+    fail("Unexpected null component")
+  }
+  return TreeWalker(this).descendants().filterIsInstance<T>().find { it.name == name }
 }
