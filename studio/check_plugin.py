@@ -22,11 +22,13 @@ def load_include(include, external_xmls, cwd, index):
     xpath = m.group(1)
   is_optional = any(child.tag == "{http://www.w3.org/2001/XInclude}fallback" for child in include)
 
-  rel = href[1:] if href.startswith("/") else cwd + "/" + href
+  rel = href
+  if rel not in index:
+    rel = href[1:] if href.startswith("/") else cwd + "/" + href
 
   if rel in external_xmls or is_optional:
     return [], None
-  new_cwd = rel[0:rel.rindex("/")]
+  new_cwd = rel[0:rel.rindex("/")] if "/" in rel else ""
 
   if rel not in index:
     print("Cannot find file to include %s" % href)
