@@ -48,6 +48,7 @@ import org.junit.Test
 import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 
+private const val SETTINGS_BUTTON_TEXT = "Common Android Settings"
 private const val ITERATION_DELAY_MS = 5L
 private val TIMEOUT = 10.seconds
 
@@ -103,19 +104,11 @@ class EmulatorAdbReadyServiceTest {
 
   @Test
   fun testMainToolbarUpdateOnConnect() = runBlocking {
+    val emulator = createFakeEmulator()
     val panel = createWindowPanel()
-    val ui = runInEdtAndGet {
-      val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposable)
-      panel.createContent(true)
-      panel.size = Dimension(200, 400)
-      ui.layoutAndDispatchEvents()
-      val content = ContentFactory.getInstance().createContent(panel, "Emulator", false)
-      val toolWindow =  ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!
-      toolWindow.contentManager.addContent(content)
-      ui
-    }
+    val ui = runInEdtAndGet { createUi(panel, emulator) }
 
-    val button = ui.getComponent<ActionButton> { it.action.templateText == "Common Android Settings" }
+    val button = ui.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     assertThat(button.isEnabled).isFalse()
 
     val serialNumber = panel.emulator.emulatorId.serialNumber
@@ -137,16 +130,53 @@ class EmulatorAdbReadyServiceTest {
     stateFlow.update { com.android.sdklib.deviceprovisioner.DeviceState.Disconnected(it.properties) }
   }
 
-  private fun createWindowPanel(): EmulatorToolWindowPanel {
+  private fun createFakeEmulator(): FakeEmulator {
     val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = 34)
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
+    return emulator
+  }
+
+  private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(disposable, project, emulatorController)
-    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    return panel
+    return EmulatorToolWindowPanel(disposable, project, emulatorController)
+  }
+
+  private fun createUi(panel: EmulatorToolWindowPanel, fakeEmulator: FakeEmulator): FakeUi {
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposable)
+    panel.createContent(true)
+    panel.size = Dimension(200, 400)
+    ui.layoutAndDispatchEvents()
+    val content = ContentFactory.getInstance().createContent(panel, "Emulator", false)
+    val toolWindow =  ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!
+    toolWindow.contentManager.addContent(content)
+    val emulatorView = panel.primaryDisplayView!!
+    val frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    waitForFrame(ui, emulatorView, fakeEmulator, panel)
+    return ui
+  }
+
+  private fun waitForFrame(ui: FakeUi, view: EmulatorView, fakeEmulator: FakeEmulator, panel: EmulatorToolWindowPanel) {
+    waitForCondition(TIMEOUT) {
+      view.emulator.connectionState == EmulatorController.ConnectionState.CONNECTED &&
+      view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
+      view.currentPosture?.posture == fakeEmulator.devicePosture
+      fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber &&
+      settingsButtonIsVisible(ui, panel)
+    }
+  }
+
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, view: EmulatorView): UInt {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return view.frameNumber
+  }
+
+  private fun settingsButtonIsVisible(fakeUi: FakeUi, panel: EmulatorToolWindowPanel): Boolean {
+    panel.updateMainToolbar()
+    return fakeUi.findComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT } != null
   }
 }
