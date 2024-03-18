@@ -37,6 +37,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -54,6 +55,13 @@ class SdkSourceFinderForApiLevelTest {
   private val fileEditorManager by lazy { FileEditorManager.getInstance(project) }
 
   private var originalLocalPackages: Collection<LocalPackage>? = null
+
+  @Before
+  fun setUp() {
+    // In order for `android.view.View` from the SDK to resolve, there has to be at least one file
+    // added to the project.
+    androidProjectRule.fixture.addFileToProject("foo.java", "// Empty file")
+  }
 
   @After
   fun tearDown() {
