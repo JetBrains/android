@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.something.parser
 
 import com.android.tools.idea.gradle.something.psi.SomethingBare
+import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingElement
+import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifier
 import com.android.tools.idea.gradle.something.psi.SomethingProperty
 import com.android.tools.idea.gradle.something.psi.SomethingQualified
@@ -40,6 +43,11 @@ class PsiImplUtil {
     @JvmStatic
     fun getName(property: SomethingIdentifier): String? {
       return StringUtil.unescapeStringCharacters(property.text)
+    }
+
+    @JvmStatic
+    fun getFactory(block: SomethingBlock): SomethingFactory? {
+      return block.firstChild as? SomethingFactory
     }
   }
 }

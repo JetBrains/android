@@ -45,27 +45,15 @@ public class SomethingBlockImpl extends SomethingBlockMixin implements Something
   }
 
   @Override
-  @NotNull
-  public List<SomethingAssignment> getAssignmentList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, SomethingAssignment.class);
-  }
-
-  @Override
-  @NotNull
-  public List<SomethingBlock> getBlockList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, SomethingBlock.class);
-  }
-
-  @Override
-  @NotNull
-  public List<SomethingFactory> getFactoryList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, SomethingFactory.class);
+  @Nullable
+  public SomethingIdentifier getIdentifier() {
+    return findChildByClass(SomethingIdentifier.class);
   }
 
   @Override
   @Nullable
-  public SomethingIdentifier getIdentifier() {
-    return findChildByClass(SomethingIdentifier.class);
+  public SomethingFactory getFactory() {
+    return PsiImplUtil.getFactory(this);
   }
 
 }

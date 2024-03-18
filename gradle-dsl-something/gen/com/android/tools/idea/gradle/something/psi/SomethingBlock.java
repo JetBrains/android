@@ -23,19 +23,13 @@ import com.intellij.psi.PsiElement;
 
 public interface SomethingBlock extends SomethingEntry {
 
-  @NotNull
-  List<SomethingAssignment> getAssignmentList();
-
-  @NotNull
-  List<SomethingBlock> getBlockList();
-
-  @NotNull
-  List<SomethingFactory> getFactoryList();
-
   @Nullable
   SomethingIdentifier getIdentifier();
 
   @NotNull
   List<SomethingEntry> getEntries();
+
+  @Nullable
+  SomethingFactory getFactory();
 
 }
