@@ -56,7 +56,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override var runPeriodicUpdates = false
 
-  private val logger: Logger = Logger.getInstance(WearHealthServicesToolWindowStateManagerImpl::class.java)
   override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
 
   override val capabilitiesList = deviceManager.getCapabilities()
@@ -157,7 +156,6 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
         block().onSuccess {
           _status.value = WhsStateManagerStatus.Idle
         }.onFailure {
-          logger.warn(it)
           _status.value = WhsStateManagerStatus.ConnectionLost
         }
       }
@@ -168,9 +166,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   override suspend fun isWhsVersionSupported(): Boolean =
-    deviceManager.isWhsVersionSupported().onFailure {
-      logger.warn(it)
-    }.getOrDefault(false)
+    deviceManager.isWhsVersionSupported().getOrDefault(false)
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
     runWithStatus(WhsStateManagerStatus.Syncing) {
