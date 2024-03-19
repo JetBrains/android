@@ -312,7 +312,7 @@ internal class SceneViewPanel(
       components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView }
         ?: return null
 
-    val layoutManager = layout as PositionableContentLayoutManager ?: return null
+    val layoutManager = layout as PositionableContentLayoutManager
     val positions =
       layoutManager.getMeasuredPositionableContentPosition(
         positionableContent,
