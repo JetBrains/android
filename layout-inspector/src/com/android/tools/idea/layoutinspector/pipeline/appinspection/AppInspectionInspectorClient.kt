@@ -55,13 +55,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 import java.nio.file.Path
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -388,7 +389,7 @@ class AppInspectionInspectorClient(
    * Check if the system image used by the emulator is supported or not. API 29 Play Store images
    * are not supported: b/180622424. If not supported, show a banner informing the user.
    */
-  private fun checkApi29Version(
+  private suspend fun checkApi29Version(
     process: ProcessDescriptor,
     project: Project,
     sdkHandler: AndroidSdkHandler,
@@ -427,7 +428,7 @@ class AppInspectionInspectorClient(
 }
 
 /** Check whether the current target's system image is compatible with app inspection. */
-fun checkSystemImageForAppInspectionCompatibility(
+suspend fun checkSystemImageForAppInspectionCompatibility(
   isEmulator: Boolean,
   apiLevel: Int,
   serialNumber: String,
@@ -439,10 +440,15 @@ fun checkSystemImageForAppInspectionCompatibility(
     return Compatibility.Compatible
   }
 
-  val adb = AdbUtils.getAdbFuture(project).get()
-  val avdName =
-    adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.get(1, TimeUnit.SECONDS)?.name
-      ?: return Compatibility.Compatible
+  val avdData =
+    withTimeoutOrNull(1000) {
+      withContext(AndroidDispatchers.workerThread) {
+        val adb = AdbUtils.getAdbFuture(project).await()
+        adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.await()
+      }
+    }
+
+  val avdName = avdData?.name ?: return Compatibility.Compatible
 
   val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
 

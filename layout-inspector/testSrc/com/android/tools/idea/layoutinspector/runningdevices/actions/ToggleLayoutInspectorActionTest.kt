@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility
 import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
@@ -40,13 +41,16 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -109,6 +113,11 @@ class ToggleLayoutInspectorActionTest {
       fakeLayoutInspectorManager,
       displayViewRule.disposable,
     )
+  }
+
+  @After
+  fun cleanUp() {
+    Disposer.dispose(displayView)
   }
 
   @Test
@@ -221,7 +230,7 @@ class ToggleLayoutInspectorActionTest {
     }
 
     toggleLayoutInspectorAction.update(fakeActionEvent)
-    assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
+    waitForCondition(2, TimeUnit.SECONDS) { !fakeActionEvent.presentation.isEnabled }
     assertThat(fakeActionEvent.presentation.description)
       .isEqualTo(
         "Embedded Layout Inspection is not available on API 29 Google Play images. Please use a different image."
