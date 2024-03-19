@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -26,27 +27,10 @@ val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
  * Interface to be implemented by classes able to find [PsiComposePreviewElement]s on
  * [VirtualFile]s.
  */
-interface ComposeFilePreviewElementFinder {
-  /**
-   * Returns whether this Preview element finder might apply to the given Kotlin file. The main
-   * difference with [findPreviewElements] is that method might be called on Dumb mode so it must
-   * not use any indexes.
-   */
-  suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
-
+interface ComposeFilePreviewElementFinder : FilePreviewElementFinder<PsiComposePreviewElement> {
   /**
    * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewElements]
    * but allows deciding if this file might allow previews to be added.
    */
   suspend fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
-
-  /**
-   * Returns all the [PsiComposePreviewElement]s present in the passed Kotlin [VirtualFile].
-   *
-   * This method always runs on smart mode.
-   */
-  suspend fun findPreviewElements(
-    project: Project,
-    vFile: VirtualFile,
-  ): Collection<PsiComposePreviewElement>
 }

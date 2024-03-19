@@ -25,6 +25,11 @@ import com.intellij.openapi.vfs.VirtualFile
  * with @Preview annotations or similar.
  */
 interface FilePreviewElementFinder<T : PreviewElement<*>> {
+  /**
+   * Returns whether this Preview element finder might apply to the given Kotlin file. The main
+   * difference with [findPreviewElements] is that method might be called on Dumb mode, so it must
+   * not use any indexes.
+   */
   suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
 
   /**
