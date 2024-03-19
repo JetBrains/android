@@ -126,22 +126,15 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
         activeExerciseResult
       }
       else {
-        deviceManager.loadCurrentCapabilityStates().map { states ->
-          val currentStates = states.toMutableMap()
-          val allCapabilities = deviceManager.getCapabilities().map { it.dataType }.toSet()
-          val missingCapabilities = allCapabilities.minus(currentStates.keys.toSet())
-          missingCapabilities.forEach {
-            currentStates[it] = CapabilityState(true, null)
-          }
-          currentStates.forEach { (dataType, state) ->
-            // Update values only if they're synced through and got changed in the background
-            capabilityToState[dataType.toCapability()]?.let { stateFlow ->
-              if (stateFlow.value.synced) {
-                stateFlow.value =
-                  stateFlow.value.copy(
-                    capabilityState = state,
-                  )
-              }
+        deviceManager.loadCurrentCapabilityStates().map { deviceStates ->
+          // Go through all capabilities, not just the ones returned by the device
+          capabilityToState.forEach { (capability, currentState) ->
+            if (currentState.value.synced) {
+              currentState.value =
+                currentState.value.copy(
+                  // If content provider doesn't return a capability, that means the capability is enabled with no overrides
+                  capabilityState = deviceStates[capability.dataType] ?: CapabilityState(true, null),
+                )
             }
           }
         }
