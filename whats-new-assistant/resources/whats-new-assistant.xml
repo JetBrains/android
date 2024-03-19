@@ -21,10 +21,10 @@
     hideStepIndex="true"
     version="2023.3.2">
   <feature
-      name="What's New in Jellyfish">
+      name="What's New in Koala">
     <tutorial
         key="whats-new"
-        label=" What's New in Jellyfish"
+        label=" What's New in Koala"
         icon="preview/product-icon.svg"
         remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2023-3-2"
         remoteLinkLabel="Read in a browser">
@@ -97,7 +97,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 1/8/2024</em><br><br>
+              <br><em>Last updated 3/19/2024</em><br><br>
             ]]>
           </section>
         </stepElement>
