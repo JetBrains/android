@@ -107,7 +107,7 @@ val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElement>("PreviewElement
 open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<T>,
+  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<T>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
   viewConstructor:
     (
@@ -240,7 +240,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElement>(
   private val previewFlowManager =
     CommonPreviewFlowManager(
       filePreviewElementProvider =
-        MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker),
+        MemoizedPreviewElementProvider(
+          previewProviderConstructor(psiFilePointer),
+          previewFreshnessTracker,
+        ),
       requestRefresh = ::requestRefresh,
     )
 

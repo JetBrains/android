@@ -205,7 +205,7 @@ class CommonPreviewRepresentationTest {
       CommonPreviewRepresentation(
         adapterViewFqcn = "TestAdapterViewFqcn",
         psiFile,
-        previewElementProvider,
+        { previewElementProvider },
         previewElementModelAdapter,
         viewConstructor = { _, _, _ -> previewView },
         viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },

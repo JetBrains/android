@@ -25,19 +25,20 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 
 private val WEAR_TILE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<PsiWearTilePreviewElement>,
+  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiWearTilePreviewElement>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>,
 ) :
   CommonPreviewRepresentation<PsiWearTilePreviewElement>(
     adapterViewFqcn,
     psiFile,
-    previewProvider,
+    previewProviderConstructor,
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::WearTilePreviewViewModel,

@@ -39,13 +39,13 @@ internal class GlancePreviewRepresentation<
 >(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<T>,
+  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<T>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
 ) :
   CommonPreviewRepresentation<T>(
     adapterViewFqcn,
     psiFile,
-    previewProvider,
+    previewProviderConstructor,
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::GlancePreviewViewModel,

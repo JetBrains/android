@@ -22,6 +22,8 @@ import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -108,3 +110,17 @@ class GroupFilteredPreviewElementProvider<P : PreviewElement<*>>(
         it.displaySettings.group == previewGroupManager.groupFilter.name
     },
   )
+
+/**
+ * A [PreviewElementProvider] that provides a list of [PreviewElement] found within a given
+ * [PsiFile] thanks to a given [FilePreviewElementFinder].
+ */
+class FilePreviewElementProvider<P : PreviewElement<*>>(
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  private val filePreviewElementFinder: FilePreviewElementFinder<P>,
+) : PreviewElementProvider<P> {
+  override suspend fun previewElements() =
+    filePreviewElementFinder
+      .findPreviewElements(psiFilePointer.project, psiFilePointer.virtualFile)
+      .asSequence()
+}

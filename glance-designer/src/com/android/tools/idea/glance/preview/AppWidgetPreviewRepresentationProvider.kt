@@ -21,7 +21,7 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -83,18 +83,10 @@ class AppWidgetPreviewRepresentationProvider(
 
   /** Creates a [AppWidgetPreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-    val previewProvider =
-      object : PreviewElementProvider<PsiGlancePreviewElement> {
-        override suspend fun previewElements(): Sequence<PsiGlancePreviewElement> =
-          filePreviewElementFinder
-            .findPreviewElements(psiFile.project, psiFile.virtualFile)
-            .asSequence()
-      }
-
     return GlancePreviewRepresentation(
       APP_WIDGET_VIEW_ADAPTER,
       psiFile,
-      previewProvider,
+      { psiFilePointer -> FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder) },
       AppWidgetModelAdapter,
     )
   }

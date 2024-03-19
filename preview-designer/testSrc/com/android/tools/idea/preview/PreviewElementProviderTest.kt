@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.preview.PreviewElement
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.LightVirtualFile
+import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class PreviewElementProviderTest {
   @Test
@@ -121,5 +128,22 @@ class PreviewElementProviderTest {
 
     previewGroupManager.groupFilter = PreviewGroup.All
     Assert.assertEquals(4, filteredProvider.previewElements().count())
+  }
+
+  @Test
+  fun testFileProvider() = runBlocking {
+    val project = mock<Project>()
+    val virtualFile = LightVirtualFile()
+    val psiFilePointer = mock<SmartPsiElementPointer<PsiFile>>()
+    whenever(psiFilePointer.project).thenReturn(project)
+    whenever(psiFilePointer.virtualFile).thenReturn(virtualFile)
+
+    val previewElements = listOf(TestPreviewElement(), TestPreviewElement())
+    val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
+    whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile))
+      .thenReturn(previewElements)
+
+    val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
+    assertEquals(previewElements, provider.previewElements().toList())
   }
 }
