@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.AnimatedProperty
-import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.timeline.ParentTimelineElement
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
@@ -46,8 +46,8 @@ private constructor(
           // In case there are no properties in the transition - add one "empty" property instead.
           listOf(
             AnimatedProperty.Builder()
-              .add(positionProxy.minimumValue(), ComposeUnit.IntUnit(0))
-              .add(positionProxy.minimumValue(), ComposeUnit.IntUnit(0))
+              .add(positionProxy.minimumValue(), AnimationUnit.IntUnit(0))
+              .add(positionProxy.minimumValue(), AnimationUnit.IntUnit(0))
               .build()
           )
         }
@@ -69,7 +69,7 @@ private constructor(
       }
   }
 
-  var timelineUnits: List<ComposeUnit.TimelineUnit?> = listOf()
+  var timelineUnits: List<AnimationUnit.TimelineUnit?> = listOf()
     set(units) {
       field = units
       propertyCurves.forEachIndexed { index, it -> it.timelineUnit = units.getOrNull(index) }

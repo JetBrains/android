@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibility
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.AnimationTabs
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TimelinePanel
@@ -88,12 +89,12 @@ open class ComposeSupportedAnimationManager(
   private val scope = parentScope.createChildScope(tabTitle)
 
   /** Callback when [selectedProperties] has been changed. */
-  var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
+  var selectedPropertiesCallback: (List<AnimationUnit.TimelineUnit>) -> Unit = {}
   /**
    * Currently selected properties in the timeline. Updated everytime the slider has moved or the
    * state of animation has changed. Could be empty if transition is not loaded or not supported.
    */
-  var selectedProperties = listOf<ComposeUnit.TimelineUnit>()
+  var selectedProperties = listOf<AnimationUnit.TimelineUnit>()
     private set(value) {
       field = value
       selectedPropertiesCallback(value)
@@ -350,7 +351,7 @@ open class ComposeSupportedAnimationManager(
         try {
           selectedProperties =
             getAnimatedProperties(animation).map {
-              ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
             }
         } catch (e: Exception) {
           LOG.warn("Failed to get the Compose Animation properties", e)

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.AnimatedProperty
-import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.TooltipInfo
 import com.android.tools.idea.preview.animation.timeline.ParentTimelineElement
@@ -60,7 +60,7 @@ private constructor(
     }
   }
 
-  var timelineUnit: ComposeUnit.TimelineUnit? = null
+  var timelineUnit: AnimationUnit.TimelineUnit? = null
     set(value) {
       field = value
       boxedLabels.forEach { it.timelineUnit = value }

@@ -19,6 +19,7 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
@@ -39,7 +40,7 @@ abstract class AnimationState(callback: () -> Unit = {}) {
         ComposeAnimationType.ANIMATED_CONTENT ->
           when {
             unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+            unit !is AnimationUnit.UnitUnknown -> PickerState(tracker, callback)
             states.firstOrNull() is Boolean -> FromToState(tracker, callback)
             states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
             else -> FromToState(tracker, callback)

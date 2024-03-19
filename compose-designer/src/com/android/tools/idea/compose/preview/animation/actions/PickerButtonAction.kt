@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertiesModel
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -78,8 +79,8 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onCli
     tracker.openPicker()
   }
 
-  private lateinit var initialState: ComposeUnit.Unit<*>
-  private lateinit var targetState: ComposeUnit.Unit<*>
+  private lateinit var initialState: AnimationUnit.Unit<*>
+  private lateinit var targetState: AnimationUnit.Unit<*>
   private val stateText: String
     get() = "$initialState to $targetState"
 
@@ -99,7 +100,7 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onCli
     setUnitStates(ComposeUnit.parseStateUnit(initial), ComposeUnit.parseStateUnit(target))
   }
 
-  private fun setUnitStates(initial: ComposeUnit.Unit<*>?, target: ComposeUnit.Unit<*>?) {
+  private fun setUnitStates(initial: AnimationUnit.Unit<*>?, target: AnimationUnit.Unit<*>?) {
     if (initial == null || target == null) return
     initialState = initial
     targetState = target

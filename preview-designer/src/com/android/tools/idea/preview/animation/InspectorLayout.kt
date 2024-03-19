@@ -111,11 +111,11 @@ object InspectorLayout {
   /** Offset between components. */
   var boxedLabelOffset = JBUI.scale(6)
 
-  /** Size of the color box for [ComposeUnit.Color] property. */
+  /** Size of the color box for [AnimationUnit.Color] property. */
   val boxedLabelColorBoxSize = JBUI.size(10)
   val boxedLabelColorBoxArc = JBUI.size(4)
 
-  /** Outline offset of the color box for [ComposeUnit.Color] property. */
+  /** Outline offset of the color box for [AnimationUnit.Color] property. */
   const val BOXED_LABEL_COLOR_OUTLINE_OFFSET = 1
 
   /** Label offset from the curve. */

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.idea.preview.animation.AnimationUnit
 import java.util.SortedMap
 
 private const val CURVES_SIMILARITY = 0.015
@@ -69,11 +70,11 @@ private constructor(
      * Animation values - mapping of the animation time in milliseconds to a value of animation for
      * this property - a [ComposeUnit.Unit<*>].
      */
-    private val units: MutableMap<Int, ComposeUnit.NumberUnit<*>> = mutableMapOf()
+    private val units: MutableMap<Int, AnimationUnit.NumberUnit<*>> = mutableMapOf()
     private var _startTimeMs: Int? = null
     private var _endTimeMs: Int? = null
 
-    fun add(ms: Int, property: ComposeUnit.NumberUnit<*>): Builder {
+    fun add(ms: Int, property: AnimationUnit.NumberUnit<*>): Builder {
       units[ms] = property
       return this
     }

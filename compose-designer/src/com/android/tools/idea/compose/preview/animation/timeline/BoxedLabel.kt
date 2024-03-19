@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
-import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorColors
 import com.android.tools.idea.preview.animation.InspectorLayout.BOXED_LABEL_COLOR_OUTLINE_OFFSET
 import com.android.tools.idea.preview.animation.InspectorLayout.boxedLabelColorBoxArc
@@ -49,7 +49,7 @@ class BoxedLabel(
     else null
   }
 
-  var timelineUnit: ComposeUnit.TimelineUnit? = null
+  var timelineUnit: AnimationUnit.TimelineUnit? = null
     set(value) {
       field = value
       if (value == null) {
@@ -62,7 +62,7 @@ class BoxedLabel(
   /** Paint a label with a box on background. */
   private fun paintBoxedLabel(
     g: Graphics2D,
-    timelineUnit: ComposeUnit.TimelineUnit,
+    timelineUnit: AnimationUnit.TimelineUnit,
     componentId: Int,
     grouped: Boolean,
     point: Point,
@@ -97,7 +97,9 @@ class BoxedLabel(
     val label = "${timelineUnit.propertyLabel} :  "
     val value =
       if (grouped) timelineUnit.unit?.toString() else timelineUnit.unit?.toString(componentId)
-    val color = if (timelineUnit.unit is ComposeUnit.Color) timelineUnit.unit.color else null
+    val color =
+      if (timelineUnit.unit is AnimationUnit.Color) (timelineUnit.unit as AnimationUnit.Color).color
+      else null
     g.font = JBFont.medium()
     val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
     val valueLayout = TextLayout(value, g.font, g.fontRenderContext)
