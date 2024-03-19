@@ -438,7 +438,7 @@ class EntryDetailsViewTest {
       assertThat(levelComponent.text).isEqualTo(wakeLockAcquired.level.name)
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
-      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
+      val timeStartedComponent = resultsPanel.getValueComponent("Acquired") as JLabel
       assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
@@ -459,10 +459,8 @@ class EntryDetailsViewTest {
 
     withContext(uiDispatcher) {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
-      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
+      val timeCompletedComponent = resultsPanel.getValueComponent("Released") as JLabel
       assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
-      val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
-      assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)

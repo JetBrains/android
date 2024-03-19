@@ -16,6 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.WAKE_LOCK_RELEASED
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
@@ -286,27 +288,24 @@ class EntryDetailsView(
   }
 
   private fun updateSelectedWakeLock(detailsPanel: ScrollablePanel, wakeLock: WakeLockEntry) {
-    val acquired = wakeLock.acquired ?: return
-    val wakeLockAcquired = acquired.backgroundTaskEvent.wakeLockAcquired
     detailsPanel.add(
       buildCategoryPanel(
         "Description",
-        listOf(
-          buildKeyValuePair("Tag", wakeLockAcquired.tag),
-          buildKeyValuePair("Level", wakeLockAcquired.level),
-        ),
+        listOf(buildKeyValuePair("Tag", wakeLock.tag), buildKeyValuePair("Level", wakeLock.level)),
       )
     )
 
     val results =
-      mutableListOf(buildKeyValuePair("Time started", wakeLock.startTimeMs, TimeProvider))
-    wakeLock.released?.let { released ->
-      val completeTimeMs = released.timestamp
-      results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
-      results.add(
-        buildKeyValuePair("Elapsed time", formatDuration(completeTimeMs - wakeLock.startTimeMs))
-      )
-    }
+      wakeLock.events.mapIndexed { index, event ->
+        when (event.backgroundTaskEvent.metadataCase) {
+          WAKE_LOCK_ACQUIRED -> buildKeyValuePair("Acquired", event.timestamp, TimeProvider)
+          WAKE_LOCK_RELEASED -> buildKeyValuePair("Released", event.timestamp, TimeProvider)
+          else ->
+            throw IllegalStateException(
+              "Unexpected event: ${event.backgroundTaskEvent.metadataCase}"
+            )
+        }
+      }
     detailsPanel.add(buildCategoryPanel("Results", results))
 
     detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Acquired", "Released"))
