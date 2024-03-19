@@ -362,6 +362,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
       packet_header->frame_number++;
     }
     bit_rate_reduced_ = false;
+    packet_header->flags &= ~VideoPacketHeader::FLAG_BIT_RATE_REDUCED;
   }
   return continue_streaming;
 }
