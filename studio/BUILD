@@ -368,6 +368,7 @@ studio_plugin(
             "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
             "//tools/base/app-inspection/inspectors/backgroundtask:bundle",
             "//tools/base/app-inspection/inspectors/network:bundle",
+            "//tools/base/app-inspection/inspectors/database:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/process-monitor/process-tracker-agent:bundle",
             "//tools/base/profiler/transform:profilers-transform",

@@ -1995,6 +1995,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.sha
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-3.5.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar
+Android Studio Preview.app/Contents/plugins/android/lib/database_inspector_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
@@ -2087,7 +2088,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/sqlite_inspector_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
@@ -2108,6 +2108,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_pr
 Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
 Android Studio Preview.app/Contents/plugins/android/resources/apks/ComplicationWatchFace.apk
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
+Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/database-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar

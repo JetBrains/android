@@ -137,13 +137,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "sqlite-inspector-proto",
-    jars = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "kotlinx-coroutines-guava",
     jars = ["//prebuilts/tools/common/m2:kotlinx-coroutines-guava_files"],
     visibility = ["//visibility:public"],
@@ -314,5 +307,12 @@ jvm_import(
 jvm_import(
     name = "agp-version",
     jars = ["//tools/base/common/agp-version:libagp-version.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "sqlite-inspector-proto",
+    jars = ["//tools/base/app-inspection/inspectors/database:database_inspector_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

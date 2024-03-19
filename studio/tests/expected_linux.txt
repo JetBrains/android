@@ -1981,6 +1981,7 @@ android-studio/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 android-studio/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 android-studio/plugins/android/lib/core-3.5.0.jar
 android-studio/plugins/android/lib/data-binding.jar
+android-studio/plugins/android/lib/database_inspector_java_proto.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
@@ -2073,7 +2074,6 @@ android-studio/plugins/android/lib/smali-baksmali-3.0.3.jar
 android-studio/plugins/android/lib/smali-dexlib2-3.0.3.jar
 android-studio/plugins/android/lib/smali-util-3.0.3.jar
 android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
-android-studio/plugins/android/lib/sqlite_inspector_proto.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
@@ -2094,6 +2094,7 @@ android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
 android-studio/plugins/android/resources/apks/ComplicationWatchFace.apk
 android-studio/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
+android-studio/plugins/android/resources/app-inspection/database-inspector.jar
 android-studio/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 android-studio/plugins/android/resources/app-inspection/network-inspector.jar
 android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
