@@ -53,12 +53,12 @@ class GradleTaskFinderWorker private constructor(
   private val requestedModules: List<ModuleAndMode>
 ) {
 
-  constructor(project: Project, buildMode: BuildMode, testCompileType: TestCompileType, modules: List<Module>, expandModule: Boolean = false):
+  constructor(project: Project, buildMode: BuildMode, modules: List<Module>, expandModule: Boolean = false):
     this(
       project,
       requestedModules = modules.mapNotNull {
         if (it.getGradleProjectPath() == null) return@mapNotNull null // Skip any non Gradle projects.
-        ModuleAndMode(it, buildMode, testCompileType, expandModule = expandModule)
+        ModuleAndMode(it, buildMode, expandModule = expandModule)
       }
     )
 
@@ -107,7 +107,7 @@ class GradleTaskFinderWorker private constructor(
       IdeAndroidProjectType.PROJECT_TYPE_APP ->
         androidProject
           .dynamicFeatures
-          .mapNotNull { GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode, testCompileMode = testCompileMode) }
+          .mapNotNull { GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode) }
 
       IdeAndroidProjectType.PROJECT_TYPE_TEST ->
         if (buildMode != BuildMode.ASSEMBLE && buildMode != BuildMode.REBUILD) emptyList()
@@ -129,9 +129,7 @@ class GradleTaskFinderWorker private constructor(
             listOfNotNull(
               GradleHolderProjectPath(buildRoot, it)
                 .toModuleAndMode(
-                  buildMode = buildMode,
-                  testCompileMode =
-                  if (buildMode == BuildMode.BUNDLE || buildMode == BuildMode.APK_FROM_BUNDLE) TestCompileType.NONE else testCompileMode
+                  buildMode = buildMode
                 )
             )
           }
@@ -183,7 +181,6 @@ class GradleTaskFinderWorker private constructor(
               module = moduleToProcess.module,
               cleanTasks = emptySet(),
               tasks =
-              // TODO(b/235567998): Review. Maybe replace with test compile mode expansion.
               moduleToProcess.getTasksBy {
                 listOfNotNull(
                   (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
@@ -192,7 +189,7 @@ class GradleTaskFinderWorker private constructor(
                 ) // Don't need getAdditionalApkSplitTask for bundle deployment
               }.tasks +
               if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE &&
-                  moduleToProcess.testCompileMode.compileAndroidTests)
+                  (moduleToProcess.module.isAndroidTestModule() || moduleToProcess.module.isHolderModule()))
                 setOfNotNull(
                   moduleToProcess.androidModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.assembleTaskName
                 )
@@ -224,7 +221,7 @@ class GradleTaskFinderWorker private constructor(
             BuildMode.REBUILD -> setOf("clean")
             BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE, BuildMode.BASELINE_PROFILE_GEN, BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> emptySet()
           },
-          tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.testCompileMode)
+          tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.module)
         )
       }
 
@@ -242,10 +239,9 @@ class GradleTaskFinderWorker private constructor(
     (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.taskLegacy
 
   private fun GradleProjectPath.toModuleAndMode(
-    buildMode: BuildMode,
-    testCompileMode: TestCompileType = TestCompileType.NONE
+    buildMode: BuildMode
   ): ModuleAndMode? =
-    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, testCompileMode = testCompileMode) }
+    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode) }
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
@@ -277,7 +273,6 @@ private fun ModuleTasks.rootedTasks(taskSelector: ModuleTasks.() -> Set<String>)
 private data class ModuleAndMode(
   val module: Module,
   val buildMode: BuildMode,
-  val testCompileMode: TestCompileType,
   val expandModule: Boolean = false
 ) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
@@ -295,7 +290,7 @@ private fun Module.isGradleJavaModule(): Boolean {
   return extensions.extensions.any { it.name == "java" }
 }
 
-private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<String> {
+private fun getGradleJavaTaskNames(buildMode: BuildMode, module: Module): Set<String> {
   return setOfNotNull(
     when (buildMode) {
       BuildMode.ASSEMBLE -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
@@ -308,7 +303,7 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCo
       BuildMode.BASELINE_PROFILE_GEN -> null
       BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
     },
-    if (testCompileMode.compileUnitTests) {
+    if (module.isUnitTestModule() || module.isHolderModule()) {
       when (buildMode) {
         BuildMode.ASSEMBLE -> JavaPlugin.TEST_CLASSES_TASK_NAME
         BuildMode.REBUILD -> JavaPlugin.TEST_CLASSES_TASK_NAME

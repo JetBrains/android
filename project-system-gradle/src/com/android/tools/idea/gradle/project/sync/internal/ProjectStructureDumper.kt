@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
@@ -175,37 +174,34 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
   val taskFinder = GradleTaskFinder.getInstance()
   head("BUILD_TASKS")
   nest {
-    TestCompileType.values().forEach { testCompileMode ->
-      head("TEST_COMPILE_MODE") { testCompileMode.displayName }
-      nest {
-        BuildMode.values().forEach { buildMode ->
-          val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
-          val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
+    nest {
+      BuildMode.values().forEach { buildMode ->
+        val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
+        val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
 
-          fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
-            if (expectedRoot != null && keys.size > 1) {
-              prop("ERROR") {
-                "Multiple project roots for a single module: " +
-                  keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
-              }
+        fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
+          if (expectedRoot != null && keys.size > 1) {
+            prop("ERROR") {
+              "Multiple project roots for a single module: " +
+                keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
             }
-            return entries
-              .sortedBy { it.key.pathString.replaceKnownPaths() }
-              .flatMap { (path, tasks) ->
-                if (path == expectedRoot) tasks
-                else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
-              }
-              .toSet()
           }
-
-          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
-
-          fun Set<String>.dumpAs(name: String) {
-            prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
-          }
-
-          getTasks().dumpAs(buildMode.toString())
+          return entries
+            .sortedBy { it.key.pathString.replaceKnownPaths() }
+            .flatMap { (path, tasks) ->
+              if (path == expectedRoot) tasks
+              else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
+            }
+            .toSet()
         }
+
+        fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode).asMap().asFirstEntry()
+
+        fun Set<String>.dumpAs(name: String) {
+          prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
+        }
+
+        getTasks().dumpAs(buildMode.toString())
       }
     }
   }

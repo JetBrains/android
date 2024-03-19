@@ -18,10 +18,6 @@ MODULE                        : project
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : ./app/libs/lib1-1.0.aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/aidl [-]

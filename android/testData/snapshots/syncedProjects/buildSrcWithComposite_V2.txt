@@ -21,10 +21,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : BuildSrcWithComposite.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : BuildSrcWithComposite.app
@@ -72,37 +68,6 @@ PROJECT                       : BuildSrcWithComposite
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
                 REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
@@ -354,31 +319,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:generateDebugAndroidTestSources
-                ASSEMBLE                      : :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources
-                ASSEMBLE                      : :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugAndroidTestSources
-                ASSEMBLE                      : :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
                 REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
@@ -536,37 +476,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:assembleDebug, :app:clean
@@ -788,31 +697,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar
-                ASSEMBLE                      : :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:createMockableJar
-                ASSEMBLE                      : :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar
-                ASSEMBLE                      : :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar
-                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
                 REBUILD                       : :app:assembleDebugUnitTest, :app:clean
@@ -843,22 +727,9 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
@@ -882,22 +753,9 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -922,22 +780,9 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
             -                             : file://<PROJECT>/buildSrc/lib1/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -962,22 +807,9 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
@@ -1001,22 +833,9 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -1040,22 +859,9 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
             -                             : file://<PROJECT>/buildSrc/lib2/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -1079,22 +885,9 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.main
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -1213,22 +1006,9 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
             -                             : file://<PROJECT>/buildSrc/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
     MODULE                        : BuildSrcWithComposite.buildSrc.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -1346,22 +1126,9 @@ PROJECT                       : BuildSrcWithComposite
             LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
                 REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
                 COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
@@ -1382,10 +1149,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : android-included.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : android-included.app
@@ -1433,37 +1196,6 @@ PROJECT                       : BuildSrcWithComposite
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
@@ -1629,31 +1361,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/android-included/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugAndroidTestSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:clean
@@ -1782,37 +1489,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/android-included/app/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:generateDebugSources
-                BUNDLE                        : <PROJECT>::android-included:app:bundleDebug
-                APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:clean
@@ -1972,31 +1648,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/android-included/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:app:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:app:createMockableJar
                 ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean
@@ -2051,31 +1702,6 @@ PROJECT                       : BuildSrcWithComposite
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
@@ -2183,31 +1809,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/android-included/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugAndroidTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugAndroidTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugAndroidTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:clean
@@ -2308,31 +1909,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/android-included/lib/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:generateDebugSources
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:generateDebugSources
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebug
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:clean
@@ -2434,31 +2010,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : <PROJECT>::android-included:lib:createMockableJar
-                ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugUnitTest
-                REBUILD                       : <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
-                COMPILE_JAVA                  : <PROJECT>::android-included:lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar
-                BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : <PROJECT>::android-included:lib:createMockableJar
                 ASSEMBLE                      : <PROJECT>::android-included:lib:assembleDebugUnitTest
                 REBUILD                       : <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean
@@ -2489,22 +2040,9 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
                 REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
                 COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
     MODULE                        : java-included.main
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -2528,22 +2066,9 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/java-included/build/classes/java/main
             -                             : file://<PROJECT>/java-included/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
                 REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
                 COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
     MODULE                        : java-included.test
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -2567,22 +2092,9 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : java-included.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
                 REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
                 COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::java-included:assemble
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
     RUN_CONFIGURATION             : android-included.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : android-included.app.main
@@ -2846,41 +2358,10 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
             REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
             COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
-            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
-            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::java-included:assemble
-            REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::java-included:compileJava
-            SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
-            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
-            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-            REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
-            SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
-            BASELINE_PROFILE_GEN          : <PROJECT>::android-included:app:generateDebugBaselineProfile, <PROJECT>::app:generateDebugBaselineProfile
-            BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:app:generateBaselineProfile, <PROJECT>::app:generateBaselineProfile
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::java-included:assemble
-            REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
-            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::java-included:compileJava
             SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug

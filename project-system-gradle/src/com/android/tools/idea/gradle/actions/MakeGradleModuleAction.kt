@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.actions
 
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Companion.getInstance
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.androidProjectType
@@ -80,7 +79,7 @@ abstract class AbstractMakeGradleModuleAction :
     val modules = getModulesToBuild(e, project).ifEmpty { getPreviouslySelectedModulesIfValid(project) }
     previouslySelectedModules = modules.map { it.name }
 
-    getInstance(project).assemble(modules, TestCompileType.ALL)
+    getInstance(project).assemble(modules)
   }
 
   private fun getPreviouslySelectedNamesIfValid(project: Project): List<String> =

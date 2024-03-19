@@ -88,7 +88,7 @@ class BuildCancellationTest {
         keepTasksAsynchronous.keepTasksAsynchronous()
 
         project.buildAndWait(eventHandler = ::buildEventHandler) { buildInvoker ->
-          buildInvoker.compileJava(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE);
+          buildInvoker.compileJava(arrayOf(project.gradleModule(":app")!!));
         }
 
         keepTasksAsynchronous.runTasksSynchronously()

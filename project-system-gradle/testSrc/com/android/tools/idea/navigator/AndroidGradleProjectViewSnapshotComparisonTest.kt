@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.navigator
 
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -138,7 +137,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
   fun testKotlinKapt() {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     preparedProject.open { project ->
-      project.buildAndWait { invoker -> invoker.assemble(TestCompileType.ALL) }
+      project.buildAndWait { invoker -> invoker.assemble() }
       val text = invokeAndWaitIfNeeded { project.dumpAndroidProjectView(ProjectViewSettings(flattenPackages = true), Unit, { _, _ -> Unit }) }
       assertIsEqualToSnapshot(text)
     }

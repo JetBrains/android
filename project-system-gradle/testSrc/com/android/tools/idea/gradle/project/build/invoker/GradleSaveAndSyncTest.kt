@@ -38,7 +38,7 @@ class GradleSaveAndSyncTest {
     projectRule.replaceService(SaveAndSyncHandler::class.java, saveAndSyncHandler)
     simpleApplication.open { project ->
       val result = project.buildAndWait {buildInvoker ->
-        buildInvoker.assemble(TestCompileType.ALL)
+        buildInvoker.assemble()
       }
       verify(saveAndSyncHandler).scheduleRefresh()
       Truth.assertThat(result.isBuildSuccessful).isTrue()

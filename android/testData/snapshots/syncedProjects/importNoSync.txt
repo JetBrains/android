@@ -17,12 +17,4 @@ PROJECT                       : testImportNoSync
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None

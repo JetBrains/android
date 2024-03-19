@@ -17,7 +17,6 @@ package com.android.tools.idea.lang.databinding.gradle
 
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_ANDROID_X
@@ -76,7 +75,7 @@ class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
   @Test
   fun dbReferencesIncludedLayoutBindingFromLibModule() {
     val assembleDebug = projectRule.project.buildAndWait {
-      it.assemble(TestCompileType.NONE)
+      it.assemble()
     }
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)

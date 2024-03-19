@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.gradle
 
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAndWait
@@ -47,7 +46,7 @@ class CompileErrorsTest {
 
   @Test
   fun compileErrorsContainExpectedValues() {
-    val assembleDebug = projectRule.project.buildAndWait { it.assemble(TestCompileType.NONE) }
+    val assembleDebug = projectRule.project.buildAndWait { it.assemble() }
     val errorMessage =
       with(StringWriter()) {
         assembleDebug.invocationResult.invocations

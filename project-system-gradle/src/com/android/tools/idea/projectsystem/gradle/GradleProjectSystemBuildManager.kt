@@ -5,12 +5,9 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.isAndroidTestFile
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
@@ -84,12 +81,12 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   }
   override fun compileProject() {
     val modules = ModuleManager.getInstance(project).modules
-    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL)
+    GradleBuildInvoker.getInstance(project).compileJava(modules)
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
     val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.toSet()
-    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), getTestCompileType(files))
+    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
   }
 
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =
@@ -110,19 +107,4 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
     get() {
       return project.getService(GradleProjectSystemBuildPublisher::class.java).isBuilding
     }
-
-  private fun getTestCompileType(files: Collection<VirtualFile>): TestCompileType {
-    var haveUnitTestFiles = false
-    var haveAndroidTestFiles = false
-
-    for (file in files) {
-      haveAndroidTestFiles = haveAndroidTestFiles || isAndroidTestFile(project, file)
-      haveUnitTestFiles = haveUnitTestFiles || isUnitTestFile(project, file)
-      if (haveUnitTestFiles && haveAndroidTestFiles) return TestCompileType.ALL
-    }
-
-    if (haveUnitTestFiles) return TestCompileType.UNIT_TESTS
-    if (haveAndroidTestFiles) return TestCompileType.ANDROID_TESTS
-    return TestCompileType.NONE
-  }
 }

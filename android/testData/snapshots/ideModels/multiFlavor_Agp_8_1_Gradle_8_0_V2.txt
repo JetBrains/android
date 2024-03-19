@@ -18,10 +18,6 @@ MODULE                        : MultiFlavor
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.activity:activity:1.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/aidl [-]

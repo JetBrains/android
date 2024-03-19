@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -58,7 +57,7 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     initMocks(this);
 
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    when(myBuildInvoker.assemble(any(), any()))
+    when(myBuildInvoker.assemble(any()))
       .thenReturn(
         Futures.immediateFuture(
           new AssembleInvocationResult(
@@ -86,7 +85,7 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(appModules));
   }
 
   public void testActionPerformedForDynamicApp() {
@@ -109,6 +108,6 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(allModules));
   }
 }

@@ -21,7 +21,6 @@ import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase.CurrentAgp.Companion.NUMBER_OF_EXPECTATIONS
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -150,7 +149,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
           val module = project.gradleModule(gradlePath)!!
           return try {
             GradleBuildInvoker.getInstance(project)
-              .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
+              .assemble(arrayOf(module))
               .get(3, TimeUnit.MINUTES)
           } finally {
             runInEdtAndWait {

@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem
 import com.android.SdkConstants
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
@@ -113,7 +112,7 @@ abstract class GradleProjectSystemIntegrationTestCase {
     assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     runTestOn(TestProject.SIMPLE_APPLICATION) { project ->
       // Invoke assemble task to generate output listing file and apk file.
-      project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE) }
+      project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!)) }
       val defaultApkFile = project
         .getProjectSystem()
         .getDefaultApkFile()

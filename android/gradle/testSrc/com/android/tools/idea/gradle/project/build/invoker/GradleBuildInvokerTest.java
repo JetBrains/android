@@ -181,8 +181,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
-      ).toArray(new Module[0]),
-      TestCompileType.ALL
+      ).toArray(new Module[0])
     );
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
@@ -207,11 +206,11 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     var modules = ImmutableList.of(
       Objects.requireNonNull(gradleModule(myProject, ":app"))
     ).toArray(new Module[0]);
-    when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE, false)).thenReturn(ArrayListMultimap.create());
+    when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, false)).thenReturn(ArrayListMultimap.create());
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
-      modules,
-      TestCompileType.NONE);
+      modules
+    );
 
     assertThat(assembleResult.isCancelled()).isTrue();
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
@@ -254,7 +253,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       Objects.requireNonNull(gradleModule(myProject, ":app")),
       Objects.requireNonNull(gradleModule(myProject, ":lib"))
     ).toArray(new Module[0]);
-    when(myTaskFinder.findTasksToExecute(modules, BUNDLE, TestCompileType.NONE, false)).thenReturn(ArrayListMultimap.create());
+    when(myTaskFinder.findTasksToExecute(modules, BUNDLE, false)).thenReturn(ArrayListMultimap.create());
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
 
     ListenableFuture<AssembleInvocationResult> bundleResult = buildInvoker.bundle(modules);
@@ -277,8 +276,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
-      ).toArray(new Module[0]),
-      TestCompileType.NONE);
+      ).toArray(new Module[0])
+    );
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
@@ -308,8 +307,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
-      ).toArray(new Module[0]),
-      TestCompileType.NONE);
+      ).toArray(new Module[0])
+    );
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();

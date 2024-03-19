@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -484,19 +483,18 @@ private fun build(
 
     return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
   }
-  val testCompileType = if (configuration?.isTestConfiguration == true) TestCompileType.ANDROID_TESTS else TestCompileType.NONE
   return when {
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
     // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
     // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
-    //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
+    //       since this is not about unit tests compilation it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
     // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType, expandModules = true).asMap(), BuildMode.APK_FROM_BUNDLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(), BuildMode.APK_FROM_BUNDLE)
     else ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType, expandModules = true).asMap(), BuildMode.ASSEMBLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, expandModules = true).asMap(), BuildMode.ASSEMBLE)
   }
 }
 

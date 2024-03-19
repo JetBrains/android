@@ -18,10 +18,6 @@ MODULE                        : Kotlin_Multiplatform
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : com.google.auto.value:auto-value-annotations:1.6.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar

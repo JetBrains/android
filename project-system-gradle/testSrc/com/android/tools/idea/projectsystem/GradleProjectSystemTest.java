@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.HeavyPlatformTestCase;
@@ -48,6 +47,6 @@ public class GradleProjectSystemTest extends HeavyPlatformTestCase {
 
   public void testCompileProject() {
     ProjectSystemUtil.getProjectSystem(getProject()).getBuildManager().compileProject();
-    verify(GradleBuildInvoker.getInstance(myProject)).compileJava(any(), eq(TestCompileType.ALL));
+    verify(GradleBuildInvoker.getInstance(myProject)).compileJava(any());
   }
 }

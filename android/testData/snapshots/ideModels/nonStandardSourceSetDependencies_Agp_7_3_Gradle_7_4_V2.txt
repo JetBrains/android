@@ -18,10 +18,6 @@ MODULE                        : NonStandardSourceSetDependencies
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/aidl [-]

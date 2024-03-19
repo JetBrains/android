@@ -5,7 +5,6 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.isAndroidProject
 import com.google.common.util.concurrent.ListenableFuture
@@ -57,7 +56,7 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
 
     fun findTasks(buildMode: BuildMode, modules: List<Module>): Map<TaskGroup, Collection<String>> {
       return taskFinder
-        .findTasksToExecute(modules.toTypedArray(), buildMode, TestCompileType.ALL)
+        .findTasksToExecute(modules.toTypedArray(), buildMode)
         .asMap()
         .mapKeys { TaskGroup(buildMode, it.key) }
     }

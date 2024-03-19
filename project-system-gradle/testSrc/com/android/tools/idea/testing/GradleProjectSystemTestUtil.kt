@@ -18,7 +18,6 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.module.Module
@@ -51,9 +50,9 @@ fun Project.hookExecuteTasks(): List<GradleBuildInvoker.Request> {
 
     override fun cleanProject() = notHooked()
     override fun generateSources(modules: Array<Module>) = notHooked()
-    override fun compileJava(modules: Array<Module>, testCompileType: TestCompileType) = notHooked()
-    override fun assemble(testCompileType: TestCompileType) = notHooked()
-    override fun assemble(modules: Array<Module>, testCompileType: TestCompileType) = notHooked()
+    override fun compileJava(modules: Array<Module>) = notHooked()
+    override fun assemble() = notHooked()
+    override fun assemble(modules: Array<Module>) = notHooked()
     override fun bundle(modules: Array<Module>) = notHooked()
     override fun rebuild() = notHooked()
     override fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>) = notHooked()
