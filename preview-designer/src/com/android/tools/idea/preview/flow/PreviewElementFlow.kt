@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.flow
+package com.android.tools.idea.preview.flow
 
-import com.android.tools.idea.compose.PsiComposePreviewElement
-import com.android.tools.idea.compose.preview.ComposeFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.preview.PreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiModificationTracker
@@ -45,9 +44,7 @@ import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
  * indexes are not yet prepared.
  */
 private fun languageModificationFlow(project: Project, languages: Set<Language>) =
-  disposableCallbackFlow<Long>(
-    "${languages.joinToString(", ") { it.displayName }} modification flow"
-  ) {
+  disposableCallbackFlow("${languages.joinToString(", ") { it.displayName }} modification flow") {
     val connection = project.messageBus.connect(this.disposable)
     val modificationTracker =
       PsiModificationTracker.getInstance(project).forLanguages { it in languages }
@@ -74,16 +71,16 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
   }
 
 /**
- * Creates a new [Flow] containing all the [ComposePreviewElement]s contained in the given
- * [psiFilePointer]. The given [ComposeFilePreviewElementFinder] is used to parse the file and obtain the
- * [ComposePreviewElement]s. This flow takes into account any changes in any Kotlin files since
+ * Creates a new [Flow] containing all the [PreviewElement]s contained in the given
+ * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
+ * [PreviewElement]s. This flow takes into account any changes in any Kotlin files since
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
-fun previewElementFlowForFile(
+fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementFlowForFile(
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  filePreviewElementProvider: () -> ComposeFilePreviewElementFinder = ::defaultFilePreviewElementFinder,
-): Flow<FlowableCollection<PsiComposePreviewElement>> {
+  filePreviewElementProvider: () -> FilePreviewElementFinder<T>,
+): Flow<FlowableCollection<T>> {
   return channelFlow {
       coroutineScope {
         // We are tracking the language change flow instead of file change flow because

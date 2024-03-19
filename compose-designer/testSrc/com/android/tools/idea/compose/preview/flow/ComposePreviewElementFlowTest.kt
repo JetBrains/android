@@ -16,10 +16,12 @@
 package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.preview.flow.previewElementFlowForFile
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
@@ -76,7 +78,7 @@ class ComposePreviewElementFlowTest {
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
-        previewElementFlowForFile(psiFilePointer)
+        previewElementFlowForFile(psiFilePointer) { defaultFilePreviewElementFinder }
           .map { it.asCollection() }
           .onEach { newValue ->
             val previousValue = previousElement.getAndSet(newValue)
@@ -185,7 +187,9 @@ class ComposePreviewElementFlowTest {
 
     runBlocking {
       val flowScope = createChildScope()
-      val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
+      val flow =
+        previewElementFlowForFile(psiFilePointer) { defaultFilePreviewElementFinder }
+          .stateIn(flowScope)
       assertEquals(
         "Preview1 - A,Preview1 - B",
         flow
