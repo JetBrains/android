@@ -12,8 +12,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
@@ -35,8 +35,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

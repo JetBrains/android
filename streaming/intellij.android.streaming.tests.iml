@@ -36,11 +36,11 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-platform-images" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-webp" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.platform.images" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.webp" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
   </component>

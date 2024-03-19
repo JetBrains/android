@@ -9,8 +9,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],

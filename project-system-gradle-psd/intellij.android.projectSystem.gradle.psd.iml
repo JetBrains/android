@@ -7,8 +7,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
@@ -27,7 +27,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" />

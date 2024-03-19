@@ -1327,13 +1327,13 @@ def intellij_platform(
 def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
-    jars_windows = [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows]
+    jars_windows = [src + "/windows/android-studio/" + jar for jar in jars + add_windows]
     add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
-    jars_darwin = [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin]
+    jars_darwin = [src + "/darwin/android-studio/Contents/" + jar for jar in jars + add_darwin]
     add_darwin_aarch64 = spec.plugin_jars_darwin_aarch64[plugin] if plugin in spec.plugin_jars_darwin_aarch64 else []
-    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin_aarch64]
+    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/" + jar for jar in jars + add_darwin_aarch64]
     add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
-    jars_linux = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux]
+    jars_linux = [src + "/linux/android-studio/" + jar for jar in jars + add_linux]
 
     jvm_import(
         name = name,

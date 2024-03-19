@@ -15,8 +15,8 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
     <orderEntry type="library" name="studio-sdk" scope="TEST" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" scope="TEST" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" scope="TEST" level="project" />
     <orderEntry type="library" name="truth" level="project" />
   </component>
 </module>

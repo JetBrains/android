@@ -8,8 +8,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.k2" scope="TEST" />

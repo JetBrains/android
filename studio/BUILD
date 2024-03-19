@@ -386,17 +386,17 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.idea.smali",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
+        "@intellij//:JUnit",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.platform.images",
+        "@intellij//:com.intellij.properties",
+        "@intellij//:intellij.webp",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.intellij.intelliLang",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.gradle",
+        "@intellij//:org.toml.lang",
     ],
 )
 
@@ -409,7 +409,7 @@ studio_plugin(
         ":com.android.tools.idea.smali",
         ":com.android.tools.ndk",
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -426,13 +426,13 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.cidr.base",
+        "@intellij//:com.intellij.cidr.debugger",
+        "@intellij//:com.intellij.cidr.lang",
+        "@intellij//:com.intellij.cidr.lang.clangd",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -468,9 +468,9 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.platform.images",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -482,8 +482,8 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -494,8 +494,8 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
+        "@intellij//:Git4Idea",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -514,9 +514,9 @@ studio_plugin(
     deps = [
         ":com.google.gct.test.recorder",
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -542,7 +542,7 @@ studio_plugin(
         ":com.google.gct.testing",
         ":com.google.services.firebase",
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -561,9 +561,9 @@ studio_plugin(
     deps = [
         ":com.google.services.firebase",
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -588,12 +588,12 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
+        "@intellij//:Git4Idea",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.gradle",
     ],
 )
 
@@ -603,7 +603,7 @@ studio_plugin(
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
     visibility = ["//visibility:public"],
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -621,7 +621,7 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -635,9 +635,9 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -648,8 +648,8 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -672,8 +672,8 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -692,10 +692,10 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -723,7 +723,7 @@ android_studio(
         "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
     },
     jre = "//prebuilts/studio/jdk:jdk-bundle",
-    platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
+    platform = "@intellij//:intellij-sdk",
     plugins = [
         ":org.jetbrains.android",
         ":com.android.tools.studiobot",
@@ -870,7 +870,7 @@ py_binary(
 # The result is used by Studio dev builds and tests.
 genrule(
     name = "required_jvm_args",
-    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-product-info"],
+    srcs = ["@intellij//:product-info"],
     outs = ["required_jvm_args.txt"],
     cmd = "$(location :jvm_args_extractor) $< $@",
     tools = [":jvm_args_extractor"],
@@ -881,7 +881,7 @@ genrule(
 # The result is used by Studio dev builds and tests.
 genrule(
     name = "default_user_jvm_args",
-    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-vm-options"],
+    srcs = ["@intellij//:vm-options"],
     outs = ["default_user_jvm_args.txt"],
     cmd = "cp $< $@",
     visibility = ["//visibility:public"],
@@ -897,13 +897,13 @@ java_binary(
     ],
     visibility = ["//visibility:public"],
     runtime_deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/studio-updater:intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater
         "//tools/analytics-library/shared:analytics-shared.jar",
         "//tools/analytics-library/tracker:analytics-tracker.jar",
         "//tools/base/annotations:studio.android.sdktools.android-annotations.jar",
         "//tools/base/common:studio.android.sdktools.common.jar",
+        "@intellij//:updater",
         "@maven//:com.google.code.gson.gson",
         "@maven//:com.google.guava.failureaccess",
         "@maven//:com.google.guava.guava",
@@ -948,8 +948,8 @@ iml_module(
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
         "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -977,8 +977,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
@@ -999,8 +999,8 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
@@ -1058,58 +1058,58 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangdBridge-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-clangConfig-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-clangFormat-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRankingModels",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-dev",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-devkit",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-editorconfig",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-html-tools",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-debugger-streams",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-keymap-eclipse",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-keymap-netbeans",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-keymap-visualStudio",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-markdown",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-model",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-server",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-performanceTesting",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-repository-search",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-rml-dfa-ide",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-sh",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-tasks",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-testng",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-turboComplete",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-github",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-gitlab",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-hg",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-svn",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
+        "@intellij//:intellij-sdk",
+        "@intellij//:Coverage",
+        "@intellij//:DevKit",
+        "@intellij//:Git4Idea",
+        "@intellij//:HtmlTools",
+        "@intellij//:JUnit",
+        "@intellij//:Subversion",
+        "@intellij//:TestNG-J",
+        "@intellij//:com.intellij.cidr.base",
+        "@intellij//:com.intellij.cidr.debugger",
+        "@intellij//:com.intellij.cidr.lang",
+        "@intellij//:com.intellij.cidr.lang.clangd",
+        "@intellij//:com.intellij.cidr.lang.clangdBridge",
+        "@intellij//:com.intellij.completion.ml.ranking",
+        "@intellij//:com.intellij.completion.ml.ranking.models",
+        "@intellij//:com.intellij.configurationScript",
+        "@intellij//:com.intellij.copyright",
+        "@intellij//:com.intellij.dev",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.java-i18n",
+        "@intellij//:com.intellij.java.ide",
+        "@intellij//:com.intellij.platform.images",
+        "@intellij//:com.intellij.plugins.eclipsekeymap",
+        "@intellij//:com.intellij.plugins.netbeanskeymap",
+        "@intellij//:com.intellij.plugins.visualstudiokeymap",
+        "@intellij//:com.intellij.properties",
+        "@intellij//:com.intellij.rml.dfa.ide",
+        "@intellij//:com.intellij.tasks",
+        "@intellij//:com.intellij.turboComplete",
+        "@intellij//:com.jetbrains.performancePlugin",
+        "@intellij//:com.jetbrains.sh",
+        "@intellij//:hg4idea",
+        "@intellij//:intellij.webp",
+        "@intellij//:org.editorconfig.editorconfigjetbrains",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.intellij.intelliLang",
+        "@intellij//:org.intellij.plugins.markdown",
+        "@intellij//:org.jetbrains.debugger.streams",
+        "@intellij//:org.jetbrains.idea.maven.model",
+        "@intellij//:org.jetbrains.idea.maven.server.api",
+        "@intellij//:org.jetbrains.idea.reposearch",
+        "@intellij//:org.jetbrains.java.decompiler",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.clangConfig",
+        "@intellij//:org.jetbrains.plugins.clangFormat",
+        "@intellij//:org.jetbrains.plugins.github",
+        "@intellij//:org.jetbrains.plugins.gitlab",
+        "@intellij//:org.jetbrains.plugins.gradle",
+        "@intellij//:org.jetbrains.plugins.terminal",
+        "@intellij//:org.jetbrains.plugins.textmate",
+        "@intellij//:org.jetbrains.plugins.yaml",
+        "@intellij//:org.toml.lang",
     ],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java"],
 )

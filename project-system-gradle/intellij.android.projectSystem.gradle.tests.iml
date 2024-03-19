@@ -8,13 +8,13 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-i18n" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-org.jetbrains.plugins.gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java-i18n" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java.ide" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
@@ -45,7 +45,7 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-org.intellij.groovy" level="project" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
@@ -55,8 +55,8 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
-    <orderEntry type="library" name="studio-plugin-toml" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
   </component>
 </module>
