@@ -84,12 +84,26 @@ interface PromptBuilder {
   val messages: List<Prompt.Message>
 
   interface MessageBuilder {
-    /** Adds [str] as text in the message. */
+    /**
+     * Adds [str] as text in the message.
+     *
+     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and `AiExcludeService`
+     * before including any user file content into the string passed to this method.
+     *
+     * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
+     * @see com.android.tools.idea.studiobot.AiExcludeService
+     */
     fun text(str: String, filesUsed: Collection<VirtualFile>)
 
     /**
      * Adds [code] as a Markdown formatted code block in the message, with optional [language]
      * specified if it has a Markdown representation.
+     *
+     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and `AiExcludeService`
+     * before including any user file content into the string passed to this method.
+     *
+     * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
+     * @see com.android.tools.idea.studiobot.AiExcludeService
      */
     fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>)
   }
