@@ -35,7 +35,7 @@ class SafeModeTests(unittest.TestCase):
           if "Djava" in line:
             args = line.replace("\\", "").strip().split(" ")
             for arg in args:
-              if "idea.paths.selector" in arg or "studio.safe.mode"in arg:
+              if "idea.paths.selector" in arg or "studio.safe.mode" in arg or not arg:
                 continue
               lin_safe_jvm_args.add(arg)
 
@@ -65,7 +65,7 @@ class SafeModeTests(unittest.TestCase):
           if "Djava" in line:
             args = line.replace("\\", "").strip().split(" ")
             for arg in args:
-              if "idea.paths.selector" in arg or "studio.safe.mode"in arg:
+              if "idea.paths.selector" in arg or "studio.safe.mode" in arg or not arg:
                 continue
               win_safe_jvm_args.add(arg)
 
@@ -96,7 +96,7 @@ class SafeModeTests(unittest.TestCase):
           if "Djava" in line:
             args = line.replace("\\", "").strip().split(" ")
             for arg in args:
-              if "idea.paths.selector" in arg or "studio.safe.mode" in arg:
+              if "idea.paths.selector" in arg or "studio.safe.mode" in arg or not arg:
                 continue
               mac_safe_jvm_args.add(arg)
 
@@ -126,6 +126,8 @@ class SafeModeTests(unittest.TestCase):
 
         //tools/adt/idea/safemode/script-generation/generate_safe_mode_scripts.py
       """)
+      print(win_jvm_args)
+      print(win_safe_jvm_args)
       raise e
 
 if __name__ == "__main__":

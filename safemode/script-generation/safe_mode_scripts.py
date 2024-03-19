@@ -21,7 +21,7 @@ mac_script = [
 # Android Safe Mode startup script.
 # ---------------------------------------------------------------------
 
-if [ -z "$(command -v uname)" ] || [ -z "$(command -v realpath)" ] || [ -z "$(command -v dirname)" ] || [ -z "$(command -v cat)" ] || \
+if [ -z "$(command -v uname)" ] || [ -z "$(command -v realpath)" ] || [ -z "$(command -v dirname)" ] || [ -z "$(command -v cat)" ] || \\
    [ -z "$(command -v grep)" ]; then
   TOOLS_MSG="Required tools are missing:"
   for tool in uname realpath grep dirname cat ; do
@@ -55,7 +55,7 @@ JDK_HOME=""
 JAVA_BIN="$JRE/bin/java"
 
 if [ -z "$JAVA_BIN" ] || [ ! -x "$JAVA_BIN" ]; then
-  echo "No JRE found. Please make sure \$STUDIO_JDK, \$JDK_HOME, or \$JAVA_HOME point to valid JRE installation."
+  echo "No JRE found. Please make sure \\$STUDIO_JDK, \\$JDK_HOME, or \\$JAVA_HOME point to valid JRE installation."
   exit 1
 fi
 
@@ -146,11 +146,11 @@ message()
   elif [ -n "$(command -v xmessage)" ]; then
     xmessage -center "ERROR: $TITLE: $1"
   else
-    printf "ERROR: %s\n%s\n" "$TITLE" "$1"
+    printf "ERROR: %s\\n%s\\n" "$TITLE" "$1"
   fi
 }
 
-if [ -z "$(command -v uname)" ] || [ -z "$(command -v realpath)" ] || [ -z "$(command -v dirname)" ] || [ -z "$(command -v cat)" ] || \
+if [ -z "$(command -v uname)" ] || [ -z "$(command -v realpath)" ] || [ -z "$(command -v dirname)" ] || [ -z "$(command -v cat)" ] || \\
    [ -z "$(command -v egrep)" ]; then
   TOOLS_MSG="Required tools are missing:"
   for tool in uname realpath egrep dirname cat ; do
@@ -182,7 +182,7 @@ STUDIO_JDK=""
 JDK_HOME=""
 JAVA_BIN="$JRE/bin/java"
 if [ -z "$JAVA_BIN" ] || [ ! -x "$JAVA_BIN" ]; then
-  message "ERROR: cannot start Android Studio. \nNo JRE found. Please make sure \$STUDIO_JDK, \$JDK_HOME, or \$JAVA_HOME point to valid JRE installation."
+  message "ERROR: cannot start Android Studio.\\nNo JRE found. Please make sure \\$STUDIO_JDK, \\$JDK_HOME, or \\$JAVA_HOME point to valid JRE installation."
   exit 1
 fi
 
@@ -199,7 +199,7 @@ VM_OPTIONS_FILE=""
 USER_VM_OPTIONS_FILE=""
 
 STUDIO_BIN="${IDE_BIN_HOME}/studio.sh"
-STUDIO_VERSION=$(cat ../product-info.json | grep AndroidStudio | awk '{ print $2}' | sed 's/"//' | sed 's/"//' | sed 's/,//')
+STUDIO_VERSION=$(cat "${IDE_HOME}/product-info.json" | grep AndroidStudio | awk '{ print $2 }' | sed 's/"//' | sed 's/"//' | sed 's/,//')
 STUDIO_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION}
 if [ ! -d "${STUDIO_CONFIG_DIR}" ]; then
   # Android Studio config is not set up
@@ -251,23 +251,23 @@ SETLOCAL
 :: ---------------------------------------------------------------------
 :: Ensure System32 is in PATH.
 :: ---------------------------------------------------------------------
-SET PATH=%PATH%;%systemroot%\system32
+SET PATH=%PATH%;%systemroot%\\system32
 
 :: ---------------------------------------------------------------------
 :: Ensure IDE_HOME points to the directory where the IDE is installed.
 :: ---------------------------------------------------------------------
 SET IDE_BIN_DIR=%~dp0
-FOR /F "delims=" %%i in ("%IDE_BIN_DIR%\..") DO SET IDE_HOME=%%~fi
+FOR /F "delims=" %%i in ("%IDE_BIN_DIR%\\..") DO SET IDE_HOME=%%~fi
 
 :: ---------------------------------------------------------------------
 :: Locate a JRE installation directory which will be used to run the IDE.
-:: Try (in order): STUDIO_JDK, studio%BITS%.exe.jdk, ..\jbr[-x86], JDK_HOME, JAVA_HOME.
+:: Try (in order): STUDIO_JDK, studio%BITS%.exe.jdk, ..\\jbr[-x86], JDK_HOME, JAVA_HOME.
 :: ---------------------------------------------------------------------
-SET JRE=%IDE_HOME%\jbr
+SET JRE=%IDE_HOME%\\jbr
 SET JAVA_HOME=
 SET STUDIO_JDK=
 SET JDK_HOME=
-SET JAVA_EXE=%JRE%\bin\java.exe
+SET JAVA_EXE=%JRE%\\bin\\java.exe
 IF NOT EXIST "%JAVA_EXE%" (
   ECHO ERROR: cannot start Android Studio.
   ECHO No JRE found. Please make sure STUDIO_JDK, JDK_HOME, or JAVA_HOME point to a valid JRE installation.
@@ -282,16 +282,13 @@ IF NOT "%STUDIO_PROPERTIES%" == "" SET IDE_PROPERTIES_PROPERTY="-Didea.propertie
 SET VM_OPTIONS_FILE=
 SET USER_VM_OPTIONS_FILE=
 
-SET STUDIO_VERSION=
-FOR /F "tokens=2 delims= " %%x in ('FINDSTR AndroidStudio "%IDE_HOME%\product-info.json"') do set STUDIO_VERSION=%%x
-SET STUDIO_VERSION=%STUDIO_VERSION:"=%
-SET STUDIO_VERSION=%STUDIO_VERSION:,=%
+SET STUDIO_VERSION=FOR /F "tokens=2 delims= " %%x in ('FINDSTR AndroidStudio "%IDE_HOME%\\product-info.json"') do set STUDIO_VERSION=%%x
 
 SET BITS=64
-REG Query "HKLM\Hardware\Description\System\CentralProcessor\0" | FIND /i "x86" > NUL && SET BITS=
-SET STUDIO_EXE=%IDE_HOME%\bin\studio%BITS%.exe
+REG Query "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0" | FIND /i "x86" > NUL && SET BITS=
+SET STUDIO_EXE=%IDE_HOME%\\bin\\studio%BITS%.exe
 
-SET STUDIO_CONFIG_DIR="%APPDATA%\Google\%STUDIO_VERSION%\%"
+SET STUDIO_CONFIG_DIR="%APPDATA%\\Google\\%STUDIO_VERSION%\\"
 IF NOT EXIST %STUDIO_CONFIG_DIR% (
   @REM Android Studio config is not set up
   ECHO Android Studio config doesn't exist %STUDIO_CONFIG_DIR%
@@ -299,7 +296,7 @@ IF NOT EXIST %STUDIO_CONFIG_DIR% (
   EXIT /B
 )
 
-SET STUDIO_SAFE_CONFIG_DIR="%APPDATA%\Google\%STUDIO_VERSION%.safe\%"
+SET STUDIO_SAFE_CONFIG_DIR="%APPDATA%\\Google\\%STUDIO_VERSION%.safe\\"
 IF NOT EXIST %STUDIO_SAFE_CONFIG_DIR% (
   mkdir %STUDIO_SAFE_CONFIG_DIR%
   EXIT /B
@@ -309,9 +306,9 @@ xcopy /YS %STUDIO_CONFIG_DIR%* %STUDIO_SAFE_CONFIG_DIR%
 del %STUDIO_SAFE_CONFIG_DIR%idea.properties
 del %STUDIO_SAFE_CONFIG_DIR%studio64.exe.vmoptions
 
-USER_VM_OPTIONS_FILE=%APPDATA%\Google\%STUDIO_VERSION%.safe\studio64.exe.vmoptions
+USER_VM_OPTIONS_FILE=%APPDATA%\\Google\\%STUDIO_VERSION%.safe\\studio64.exe.vmoptions
 SET ACC="-Djb.vmOptionsFile=%USER_VM_OPTIONS_FILE%"
-FINDSTR /R /C:"-XX:\+.*GC" "%USER_VM_OPTIONS_FILE%" > NUL
+FINDSTR /R /C:"-XX:\\+.*GC" "%USER_VM_OPTIONS_FILE%" > NUL
 
 """,
 """
@@ -322,8 +319,8 @@ FINDSTR /R /C:"-XX:\+.*GC" "%USER_VM_OPTIONS_FILE%" > NUL
 "%JAVA_EXE%" ^
   -cp "%CLASS_PATH%" ^
   %ACC% ^
-  "-XX:ErrorFile=%USERPROFILE%\java_error_in_studio_%%p.log" ^
-  "-XX:HeapDumpPath=%USERPROFILE%\java_error_in_studio.hprof" ^
+  "-XX:ErrorFile=%USERPROFILE%\\java_error_in_studio_%%p.log" ^
+  "-XX:HeapDumpPath=%USERPROFILE%\\java_error_in_studio.hprof" ^
   %IDE_PROPERTIES_PROPERTY% ^
 """,
 """

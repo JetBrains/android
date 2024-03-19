@@ -30,7 +30,7 @@ def generate_mac_scripts():
       raise Exception("Unable to find product-info.json file")
     # create the included jars and JVM argument strings
     jars = jars_string(mac_jars, "CLASS_PATH=\"$CLASS_PATH:$IDE_HOME/lib/", "\"\n")
-    jvm_args = jvm_string(mac_jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\"")
+    jvm_args = jvm_string(mac_jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\"") + " \\"
     # concat them with the script template
     safe_mode_script_content = mac_script[0] + jars + mac_script[1] + jvm_args + mac_script[2]
     # create safe mode script
@@ -62,14 +62,22 @@ def generate_lin_win_scripts(platform, zip_file, studio_file):
       raise Exception("Unable to find studio file")
     # create the included jars and JVM argument strings
     jars = jars_string(jars, "", "")
-    jvm_args = jvm_string(jvm_args, "-Didea.paths.selector=%STUDIO_VERSION%.safe ")
     # concat them with the script
-    scripts = lin_script
+    suffix = ""
+    scripts = []
+    jvm_args_string = ""
     if platform == "win":
+      suffix = "bat"
       scripts = win_script
-    safe_mode_script_content = scripts[0] + jars + scripts[1] + jvm_args + scripts[2]
+      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=%STUDIO_VERSION%.safe") + " ^"
+    else:
+      suffix = "sh"
+      scripts = lin_script
+      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\"") + " \\"
+
+    safe_mode_script_content = scripts[0] + jars + scripts[1] + jvm_args_string + scripts[2]
     # create safe mode script
-    gen_script(platform, safe_mode_script_content, "sh")
+    gen_script(platform, safe_mode_script_content, suffix)
 
 def jars_string(jars, prefix, suffix):
   plat_loader_jar = ""
@@ -91,15 +99,17 @@ def jvm_string(jvm_args, path_selector):
       other_args.append(a)
   return " ".join(d_args + other_args)
 
-def gen_script(prefix, content, suffix):
+def gen_script(platform, content, suffix):
     dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    name = dir + "/" + prefix + "_studio_safe." + suffix
+    os.mkdir(dir + "/" + platform)
+    name = dir + "/" + platform + "/studio_safe." + suffix
     f = open(name, "w")
     f.write(content)
     f.close()
+    os.chmod(name, 0o755)
     print("safe mode script created: " + name + "\n")
 
 if __name__ == "__main__" :
   generate_mac_scripts()
-  generate_lin_win_scripts("lin","tools/adt/idea/studio/android-studio.linux.zip", "studio.sh" )
+  generate_lin_win_scripts("linux","tools/adt/idea/studio/android-studio.linux.zip", "studio.sh" )
   generate_lin_win_scripts("win", "tools/adt/idea/studio/android-studio.win.zip", "studio.bat")
