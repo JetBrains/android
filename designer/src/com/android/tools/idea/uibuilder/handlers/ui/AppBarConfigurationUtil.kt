@@ -149,7 +149,7 @@ object Templates {
         $androidPrefix:layout_width="wrap_content"
         $androidPrefix:src="$imageSrc"
         $androidPrefix:layout_gravity="bottom|end"
-        $androidPrefix:layout_margin="16dp"/>"
+        $androidPrefix:layout_margin="16dp"/>
     """
       .trimIndent()
 
