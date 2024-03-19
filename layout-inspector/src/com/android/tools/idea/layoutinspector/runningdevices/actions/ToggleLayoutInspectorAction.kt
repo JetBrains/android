@@ -16,9 +16,9 @@
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.checkSystemImageForAppInspectionCompatibility
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
@@ -37,7 +37,6 @@ import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.JComponent
-import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Action used to turn Layout Inspector on and off in Running Devices tool window. */
@@ -61,9 +60,7 @@ class ToggleLayoutInspectorAction :
 
   @VisibleForTesting
   var checkForSystemImageCompatibility:
-    suspend (
-      isEmulator: Boolean, apiLevel: Int, serialNumber: String, project: Project,
-    ) -> Compatibility =
+    (isEmulator: Boolean, apiLevel: Int, serialNumber: String, project: Project) -> Compatibility =
     { isEmulator, apiLevel, serialNumber, project ->
       checkSystemImageForAppInspectionCompatibility(
         isEmulator,
@@ -123,31 +120,21 @@ class ToggleLayoutInspectorAction :
       e.presentation.isEnabled = false
       e.presentation.description = LayoutInspectorBundle.message("api.29.limit")
     } else {
-      // By default, enable action at this stage.
-      e.presentation.isEnabled = true
-      e.presentation.description = ""
 
-      if (displayView != null && isEmulator && apiLevel == 29) {
-        AndroidCoroutineScope(displayView).launch {
-          // Asynchronously check if the device being used is compatible.
-          // We're doing this to cover an edge case where API 29 Play Store emulator images are not
-          // compatible.
-          // The action might be disabled with a slight delay, but this is not a problem, since
-          // Layout Inspector itself is able to handle this, in the unlikely case the user manages
-          // to click the action before this is done.
-          val compatibility =
-            checkForSystemImageCompatibility(isEmulator, apiLevel, serialNumber, project)
+      val compatibility =
+        checkForSystemImageCompatibility(isEmulator, apiLevel, serialNumber, project)
 
-          when (compatibility) {
-            Compatibility.Compatible -> {}
-            is Compatibility.NotCompatible -> {
-              when (compatibility.reason) {
-                Compatibility.NotCompatible.Reason.API_29_PLAY_STORE -> {
-                  e.presentation.isEnabled = false
-                  e.presentation.description =
-                    LayoutInspectorBundle.message("api29.playstore.message.embedded.li")
-                }
-              }
+      when (compatibility) {
+        Compatibility.Compatible -> {
+          e.presentation.isEnabled = true
+          e.presentation.description = ""
+        }
+        is Compatibility.NotCompatible -> {
+          when (compatibility.reason) {
+            API_29_PLAY_STORE -> {
+              e.presentation.isEnabled = false
+              e.presentation.description =
+                LayoutInspectorBundle.message("api29.playstore.message.embedded.li")
             }
           }
         }
