@@ -138,6 +138,29 @@ class DeploymentTargetDevicesServiceTest {
   }
 
   @Test
+  fun deviceHandleActivationActionState() = runTestWithFixture {
+    val id = handleId("1")
+    val deviceHandle = FakeDeviceHandle(scope, null, id)
+    deviceHandle.activationAction.presentation.update {
+      it.copy(enabled = false, detail = "Error 12")
+    }
+    devicesFlow.value = listOf(deviceHandle)
+    sendLaunchCompatibility()
+
+    var device = devicesService.loadedDevices.first { it.isNotEmpty() }.first()
+    assertThat(device.id).isEqualTo(id)
+    assertThat(device.connectionTime).isNull()
+    assertThat(device.launchCompatibility)
+      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 12"))
+
+    deviceHandle.activationAction.presentation.update { it.copy(enabled = true, detail = null) }
+    testScope.advanceUntilIdle()
+
+    device = devicesService.loadedDevices.first { it.isNotEmpty() }.first()
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility.YES)
+  }
+
+  @Test
   fun deviceTemplate() = runTestWithFixture {
     val templateId = templateId("1")
     val template = FakeDeviceTemplate(templateId)
@@ -172,7 +195,8 @@ class DeploymentTargetDevicesServiceTest {
   fun deviceTemplateState() = runTestWithFixture {
     val templateId = templateId("1")
     val template = FakeDeviceTemplate(templateId)
-    template.stateFlow.value = TemplateState(TestDeviceError(DeviceError.Severity.ERROR, "Error"))
+    template.stateFlow.value =
+      TemplateState(error = TestDeviceError(DeviceError.Severity.ERROR, "Error"))
     templatesFlow.value = listOf(template)
     sendLaunchCompatibility()
 
@@ -182,12 +206,52 @@ class DeploymentTargetDevicesServiceTest {
     assertThat(device.launchCompatibility.state).isEqualTo(LaunchCompatibility.State.ERROR)
 
     // Clear the error; launch compatibility should become OK
-    template.stateFlow.value = TemplateState(null)
+    template.stateFlow.value = TemplateState()
     testScope.advanceUntilIdle()
 
     device = devicesService.loadedDevices.first().first()
     assertThat(device.launchCompatibility.reason).isNull()
     assertThat(device.launchCompatibility.state).isEqualTo(LaunchCompatibility.State.OK)
+  }
+
+  @Test
+  fun deviceTemplateActivationState() = runTestWithFixture {
+    val templateId = templateId("1")
+    val template = FakeDeviceTemplate(templateId)
+    template.stateFlow.value = TemplateState()
+    template.activationAction.presentation.update { it.copy(enabled = false, detail = "Error 42") }
+    templatesFlow.value = listOf(template)
+    sendLaunchCompatibility()
+
+    var devices = devicesService.loadedDevices.first { it.isNotEmpty() }
+    var device = devices.first()
+    assertThat(device.id).isEqualTo(templateId)
+    assertThat(device.launchCompatibility)
+      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 42"))
+
+    // Clear the error; launch compatibility should become OK
+    template.activationAction.presentation.update { it.copy(enabled = true, detail = null) }
+    testScope.advanceUntilIdle()
+
+    device = devicesService.loadedDevices.first().first()
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility.YES)
+
+    // Now the user launches the device; it becomes not runnable momentarily
+    template.activationAction.presentation.update {
+      it.copy(enabled = false, detail = "Already activating")
+    }
+    testScope.advanceUntilIdle()
+
+    device = devicesService.loadedDevices.first().first()
+    assertThat(device.launchCompatibility)
+      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Already activating"))
+
+    // Once the template state flow updates to reflect that it is activating, it becomes OK again
+    template.stateFlow.update { it.copy(isActivating = true) }
+    testScope.advanceUntilIdle()
+
+    device = devicesService.loadedDevices.first().first()
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility.YES)
   }
 
   @Test

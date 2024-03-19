@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.deviceprovisioner.mapChangedState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -31,6 +32,9 @@ import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl
 import com.android.tools.idea.run.asDdmlibDeviceLookup
+import com.android.tools.idea.run.deployment.selector.DeploymentTargetDevicesService.ActivationState.Activatable
+import com.android.tools.idea.run.deployment.selector.DeploymentTargetDevicesService.ActivationState.NotActivatable
+import com.android.tools.idea.run.deployment.selector.DeploymentTargetDevicesService.ActivationState.Online
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.Disposable
@@ -100,17 +104,65 @@ constructor(
   private data class DeviceHandleState(
     val handle: DeviceHandle,
     val state: DeviceState,
+    val activationState: ActivationState,
     val connectionTime: Instant?,
   )
+
+  private sealed interface ActivationState {
+    object Online : ActivationState
+
+    object Activatable : ActivationState
+
+    data class NotActivatable(val error: String) : ActivationState
+
+    fun toLaunchCompatibilityChecker() = LaunchCompatibilityChecker {
+      when (this) {
+        is NotActivatable -> LaunchCompatibility(LaunchCompatibility.State.ERROR, error)
+        else -> LaunchCompatibility.YES
+      }
+    }
+  }
+
+  private fun Flow<Iterable<DeviceHandle>>.pairWithDeviceAndActivationState():
+    Flow<List<Pair<DeviceHandle, Pair<DeviceState, ActivationState>>>> =
+    pairWithNestedState { handle ->
+      val actionFlow = handle.activationAction?.presentation ?: flowOf(null)
+      handle.stateFlow.combine(actionFlow) { deviceState, presentation ->
+        Pair(
+          deviceState,
+          when {
+            deviceState.isOnline() -> Online
+            deviceState.isTransitioning -> Activatable
+            presentation == null -> NotActivatable("Unavailable")
+            presentation.enabled -> Activatable
+            else -> NotActivatable(presentation.detail ?: "Unavailable")
+          },
+        )
+      }
+    }
+
+  private fun Flow<Iterable<DeviceTemplate>>.pairWithTemplateAndActivationState():
+    Flow<List<Pair<DeviceTemplate, Pair<TemplateState, ActivationState>>>> =
+    pairWithNestedState { template ->
+      template.stateFlow.combine(template.activationAction.presentation) { state, presentation ->
+        val activationState =
+          when {
+            presentation.enabled -> Activatable
+            state.isActivating -> Activatable
+            else -> NotActivatable(presentation.detail ?: "Unavailable")
+          }
+        Pair(state, activationState)
+      }
+    }
 
   /** A StateFlow that tracks DeviceHandles to build [DeviceHandleState]s. */
   private val deviceStateFlow: StateFlow<List<DeviceHandleState>> =
     run {
         val connectionTimes = mutableMapOf<DeviceId, Instant>()
         devicesFlow
-          .pairWithNestedState(DeviceHandle::stateFlow)
+          .pairWithDeviceAndActivationState()
           .onEach { handles -> connectionTimes.keys.retainAll(handles.map { it.first.id }.toSet()) }
-          .mapChangedState { handle, state ->
+          .mapChangedState { handle, (state, activationState) ->
             val connectionTime =
               if (state.isOnline()) {
                 connectionTimes.computeIfAbsent(handle.id) { clock.now() }
@@ -118,7 +170,7 @@ constructor(
                 connectionTimes.remove(handle.id)
                 null
               }
-            DeviceHandleState(handle, state, connectionTime)
+            DeviceHandleState(handle, state, activationState, connectionTime)
           }
       }
       .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
@@ -133,10 +185,18 @@ constructor(
   ): Flow<List<DeploymentTargetDevice>> =
     deviceStateFlow.map {
       it.map {
-        DeploymentTargetDevice.create(
+        val device = DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state)
+        val launchCompatibility =
+          it.activationState
+            .toLaunchCompatibilityChecker()
+            .combine(launchCompatibilityChecker)
+            .validate(device)
+        val snapshots = it.handle.bootSnapshotAction?.snapshots() ?: emptyList()
+        DeploymentTargetDevice(
           DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state),
           it.connectionTime,
-          launchCompatibilityChecker,
+          snapshots,
+          launchCompatibility,
         )
       }
     }
@@ -145,12 +205,16 @@ constructor(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker,
   ): Flow<List<DeploymentTargetDevice>> =
-    templatesFlow.pairWithNestedState(DeviceTemplate::stateFlow).mapChangedState { template, _ ->
-      DeploymentTargetDevice.create(
-        DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
-        null,
-        launchCompatibilityChecker,
-      )
+    templatesFlow.pairWithTemplateAndActivationState().mapChangedState {
+      template,
+      (_, activationState) ->
+      val device = DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template)
+      val launchCompatibility =
+        activationState
+          .toLaunchCompatibilityChecker()
+          .combine(launchCompatibilityChecker)
+          .validate(device)
+      DeploymentTargetDevice(device, null, emptyList(), launchCompatibility)
     }
 
   val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =

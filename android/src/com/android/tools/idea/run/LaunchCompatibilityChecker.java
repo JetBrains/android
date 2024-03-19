@@ -22,4 +22,21 @@ public interface LaunchCompatibilityChecker {
   @Slow
   @NotNull
   LaunchCompatibility validate(@NotNull AndroidDevice device);
+
+  /**
+   * Lazily combine this [LaunchCompatibilityChecker] with another [LaunchCompatibilityChecker]; i.e.
+   * only evaluate compatibility with the other checker if this returns OK or WARNING.
+   */
+  default LaunchCompatibilityChecker combine(LaunchCompatibilityChecker other) {
+    return new LaunchCompatibilityChecker() {
+      @Override
+      public @NotNull LaunchCompatibility validate(@NotNull AndroidDevice device) {
+        LaunchCompatibility compatibility = LaunchCompatibilityChecker.this.validate(device);
+        return switch (compatibility.getState()) {
+          case ERROR -> compatibility;
+          default -> compatibility.combine(other.validate(device));
+        };
+      }
+    };
+  }
 }

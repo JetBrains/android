@@ -89,13 +89,14 @@ internal class FakeDeviceHandle(
       stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
     }
 
-  override val activationAction =
-    object : ActivationAction {
-      override suspend fun activate() {}
+  override val activationAction = FakeActivationAction()
 
-      override val presentation =
-        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
-    }
+  inner class FakeActivationAction : ActivationAction {
+    override suspend fun activate() {}
+
+    override val presentation =
+      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  }
 
   override val coldBootAction =
     object : ColdBootAction {
@@ -130,18 +131,20 @@ internal class FakeDeviceTemplate(
     },
 ) : DeviceTemplate {
 
-  override val stateFlow = MutableStateFlow(TemplateState(null))
+  override val stateFlow = MutableStateFlow(TemplateState())
 
-  override val activationAction =
-    object : TemplateActivationAction {
-      override suspend fun activate(duration: Duration?): DeviceHandle {
-        throw UnsupportedOperationException()
-      }
+  override val activationAction = ActivationAction()
 
-      override val durationUsed: Boolean = false
-      override val presentation =
-        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  inner class ActivationAction : TemplateActivationAction {
+    override suspend fun activate(duration: Duration?): DeviceHandle {
+      throw UnsupportedOperationException()
     }
+
+    override val durationUsed: Boolean = false
+    override val presentation =
+      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  }
+
   override val editAction: EditTemplateAction? = null
 }
 
