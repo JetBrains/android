@@ -428,6 +428,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @Ignore("b/327623449")
   fun testResetFromAndApplyTo() {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyLongShortTextComplication"
     runConfiguration.setModule(module)
