@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -64,6 +65,9 @@ class GradleClassFileFinderTest {
     }
   }
 
+  /**
+   * Regression test for b/319822816
+   */
   @Test
   fun testClassFileFinder_nonAndroidTest() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
@@ -75,6 +79,24 @@ class GradleClassFileFinderTest {
       // Only fqcns present in the main module should be found
       expect.that(classFinder.findClassFile("google.simpleapplication.ApplicationTest")).isNull()
       expect.that(classFinder.findClassFile("google.simpleapplication.MyActivity")).isNotNull()
+    }
+  }
+
+  @Test
+  fun testClassFileFinder_transitiveDependency() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES)
+    preparedProject.open { project ->
+      GradleProjectSystemBuildManager(project).compileProject()
+
+      val classFinder = GradleClassFileFinder.create(project.findModule("app.main"))
+
+      // Dependency graph: app -> simpleapplication-b -> simpleapplication-c.
+      // We should be able to find app classes from the app module.
+      expect.that(classFinder.findClassFile("google.simpleapplication.MyActivity")).isNotNull()
+      // We should be able to find simpleapplication-b (direct dependency) classes from the app module.
+      expect.that(classFinder.findClassFile("google.simpleapplicationb.MyBClass")).isNotNull()
+      // We should be able to find simpleapplication-c (transitive dependency) classes from the app module.
+      expect.that(classFinder.findClassFile("google.simpleapplicationc.MyCClass")).isNotNull()
     }
   }
 }

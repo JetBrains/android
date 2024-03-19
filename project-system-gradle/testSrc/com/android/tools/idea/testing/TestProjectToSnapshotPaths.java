@@ -38,6 +38,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES = "projects/simpleApplicationWithTransitiveDependencies";
   public static final String ANDROID_KOTLIN_MULTIPLATFORM = "projects/androidKotlinMultiplatform";
 
   public static final String SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40 = "projects/simpleApplication_corrupted_missing_iml_40";

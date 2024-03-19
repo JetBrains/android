@@ -110,6 +110,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
 
   @Test
+  fun testSimpleApplication_withTransitiveDependencies() = testProject(TestProject.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES)
+
+  @Test
   fun testSimpleApplication_withAndroidCar() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR)
 
   @Test

@@ -142,6 +142,7 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { moveGradleRootUnderGradleProjectDirectory(it, makeSecondCopy = true) }
   ),
+  SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES),
   SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "withUnnamedDimension",
