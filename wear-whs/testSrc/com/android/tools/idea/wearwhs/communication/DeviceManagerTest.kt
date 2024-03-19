@@ -63,7 +63,7 @@ class DeviceManagerTest {
     val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
 
-    assertThat(deviceManager.clearContentProvider().isFailure).isTrue()
+    assertFailure(deviceManager.clearContentProvider())
     assertThat(adbSession.deviceServices.shellV2Requests).isEmpty()
   }
 
@@ -74,7 +74,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)).isFailure).isTrue()
+    assertFailure(deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)))
   }
 
   @Test
@@ -84,7 +84,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 50)).isFailure).isTrue()
+    assertFailure(deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 50)))
   }
 
   @Test
@@ -94,7 +94,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.loadActiveExercise().isFailure).isTrue()
+    assertFailure(deviceManager.loadActiveExercise())
   }
 
   @Test
@@ -104,7 +104,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.triggerEvent(EventTrigger("whs.TEST", "test")).isFailure).isTrue()
+    assertFailure(deviceManager.triggerEvent(EventTrigger("whs.TEST", "test")))
   }
 
   @Test
@@ -114,7 +114,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.loadCurrentCapabilityStates().isFailure).isTrue()
+    assertFailure(deviceManager.loadCurrentCapabilityStates())
   }
 
   @Test
@@ -124,7 +124,7 @@ class DeviceManagerTest {
 
     adbSession.close()
 
-    assertThat(deviceManager.isWhsVersionSupported().isFailure).isTrue()
+    assertFailure(deviceManager.isWhsVersionSupported())
   }
 
   @Test
@@ -703,7 +703,7 @@ class DeviceManagerTest {
     currentAdbSession = FakeAdbSession()
     currentAdbSession.close()
 
-    assertThat(deviceManager.clearContentProvider().isFailure).isTrue()
+    assertFailure(deviceManager.clearContentProvider())
   }
 
   @Test
@@ -720,7 +720,7 @@ class DeviceManagerTest {
     // Close the current adb session
     currentAdbSession.close()
 
-    assertThat(deviceManager.clearContentProvider().isFailure).isTrue()
+    assertFailure(deviceManager.clearContentProvider())
   }
 
   @Test
@@ -747,5 +747,9 @@ class DeviceManagerTest {
                                                "content delete --uri $WHS_CONTENT_PROVIDER_URI",
                                                deviceManager,
                                                newAdbSession)
+  }
+
+  private fun <T> assertFailure(result: Result<T>) {
+    assertThat(result.isFailure).isTrue()
   }
 }
