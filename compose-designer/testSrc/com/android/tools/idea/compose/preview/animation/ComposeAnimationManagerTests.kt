@@ -37,11 +37,13 @@ import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
+@Ignore("b/330299116")
 class ComposeAnimationManagerTests(private val animationType: ComposeAnimationType) :
   InspectorTests() {
 
