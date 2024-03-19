@@ -527,6 +527,7 @@ studio_plugin(
     libs = [
         "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
+        "//prebuilts/tools/common/m2:google-api-services",
     ],
     modules = {
         "directaccess.jar": [
@@ -540,7 +541,6 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
-        ":com.google.gct.testing",
         ":com.google.services.firebase",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
