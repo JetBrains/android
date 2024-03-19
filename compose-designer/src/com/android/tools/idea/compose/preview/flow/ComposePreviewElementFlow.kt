@@ -101,7 +101,7 @@ fun previewElementFlowForFile(
         languageChangeFlow.collectLatest {
           val previews =
             filePreviewElementProvider()
-              .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
+              .findPreviewElements(psiFilePointer.project, psiFilePointer.virtualFile)
               .toSet()
           send(FlowableCollection.Present(previews))
         }

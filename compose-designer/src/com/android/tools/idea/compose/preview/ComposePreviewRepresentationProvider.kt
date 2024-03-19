@@ -177,7 +177,7 @@ class ComposePreviewRepresentationProvider(
     val hasComposableMethods =
       filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
     val hasPreviewMethods =
-      filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
+      filePreviewElementProvider().hasPreviewElements(psiFile.project, psiFile.virtualFile)
     thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
     val globalState = AndroidEditorSettings.getInstance().globalState

@@ -110,7 +110,7 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
     val previewElements =
       ArrayList(
         runBlocking {
-          AnnotationFilePreviewElementFinder.findPreviewMethods(project, mainFile.virtualFile)
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, mainFile.virtualFile)
         }
       )
 

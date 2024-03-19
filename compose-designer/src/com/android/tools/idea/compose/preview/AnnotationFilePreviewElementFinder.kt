@@ -36,16 +36,18 @@ import org.jetbrains.uast.UMethod
 
 /** [FilePreviewElementFinder] that uses `@Preview` annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  override suspend fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSE_PREVIEW_ANNOTATION_FQN, COMPOSE_PREVIEW_ANNOTATION_NAME)
 
   override suspend fun hasComposableMethods(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
 
   /**
-   * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
+   * Returns all the preview elements in the [vFile]. Preview elements are `@Composable` functions
+   * that are also tagged with `@Preview`. A `@Composable` function tagged with `@Preview` can
+   * return multiple preview elements.
    */
-  override suspend fun findPreviewMethods(
+  override suspend fun findPreviewElements(
     project: Project,
     vFile: VirtualFile,
   ): Collection<PsiComposePreviewElement> {

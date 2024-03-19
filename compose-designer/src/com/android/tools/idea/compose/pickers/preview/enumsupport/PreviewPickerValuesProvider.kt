@@ -191,7 +191,7 @@ private fun createGroupEnumProvider(
   containingFile: VirtualFile,
 ): EnumValuesProvider = {
   runBlocking {
-      AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(module.project, containingFile)
     }
     .mapNotNull { previewElement -> previewElement.displaySettings.group }
     .distinct()

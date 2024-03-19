@@ -170,19 +170,21 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     assertTrue(
-      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
     )
-    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, otherFile.virtualFile))
+    assertTrue(
+      AnnotationFilePreviewElementFinder.hasPreviewElements(project, otherFile.virtualFile)
+    )
     assertTrue(
       computeOnBackground {
         runBlocking {
-          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+          AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
         }
       }
     )
 
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
     assertEquals(11, elements.size)
     elements[0].let {
@@ -497,10 +499,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     assertTrue(
-      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
     )
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
 
     assertEquals(4, elements.size)
@@ -600,11 +602,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     assertTrue(
-      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
     )
 
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
     assertEquals(2, elements.size)
 
@@ -633,7 +635,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     val element =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .single()
     // Check that we keep the first element
     assertEquals("Preview1 - preview", element.displaySettings.name)
@@ -684,7 +686,7 @@ class AnnotationFileComposePreviewElementFinderTest {
 
     assertEquals(
       0,
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .count(),
     )
   }
@@ -720,13 +722,16 @@ class AnnotationFileComposePreviewElementFinderTest {
         runInEdtAndWait {
           assertFalse(
             runBlocking {
-              AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+              AnnotationFilePreviewElementFinder.hasPreviewElements(
+                project,
+                composeTest.virtualFile,
+              )
             }
           )
         }
         val result =
           GlobalScope.async {
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
           }
         try {
           runBlocking { withTimeout(2500) { result.await() } }
@@ -737,7 +742,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     runInEdtAndWait {
       assertTrue(
         runBlocking {
-          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+          AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
         }
       )
     }
@@ -792,7 +797,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
     elements[0].let {
       assertFalse(it is ParametrizedComposePreviewElementTemplate)
@@ -866,7 +871,7 @@ class AnnotationFileComposePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+    AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
       .toMutableList()
       .apply {
         // Randomize to make sure the ordering works
@@ -958,7 +963,7 @@ class AnnotationFileComposePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+    AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
       .toMutableList()
       .apply {
         // Randomize to make sure the ordering works
@@ -1031,18 +1036,18 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     assertTrue(
-      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
     )
     assertTrue(
       computeOnBackground {
         runBlocking {
-          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+          AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
         }
       }
     )
 
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
     assertEquals(2, elements.size)
     elements[0].let {
@@ -1126,20 +1131,21 @@ class AnnotationFileComposePreviewElementFinderTest {
 
     repeat(3) {
       val elements =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
           .toList()
       assertEquals("Preview1", elements.single().displaySettings.name)
 
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
 
       val elementsInOtherFile =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile)
+        AnnotationFilePreviewElementFinder.findPreviewElements(project, otherFile.virtualFile)
           .toList()
       assertEquals("OtherFilePreview1", elementsInOtherFile[0].displaySettings.name)
       assertEquals("OtherFilePreview2", elementsInOtherFile[1].displaySettings.name)
 
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile).toList()
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, otherFile.virtualFile)
+        .toList()
     }
   }
 
@@ -1164,7 +1170,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       )
 
     val elements =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .toList()
     assertEquals("Preview1", elements.single().displaySettings.name)
   }

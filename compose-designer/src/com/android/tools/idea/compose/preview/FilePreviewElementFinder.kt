@@ -29,14 +29,14 @@ val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
 interface FilePreviewElementFinder {
   /**
    * Returns whether this Preview element finder might apply to the given Kotlin file. The main
-   * difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not
-   * use any indexes.
+   * difference with [findPreviewElements] is that method might be called on Dumb mode so it must
+   * not use any indexes.
    */
-  suspend fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean
+  suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean
 
   /**
-   * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewMethods] but
-   * allows deciding if this file might allow previews to be added.
+   * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewElements]
+   * but allows deciding if this file might allow previews to be added.
    */
   suspend fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
 
@@ -45,7 +45,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  suspend fun findPreviewMethods(
+  suspend fun findPreviewElements(
     project: Project,
     vFile: VirtualFile,
   ): Collection<PsiComposePreviewElement>

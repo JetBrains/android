@@ -101,7 +101,7 @@ class PreviewPickerTests {
 
     val file = fixture.configureByText("Test.kt", fileContent)
     val previews =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
@@ -265,7 +265,7 @@ class PreviewPickerTests {
 
     val model = getFirstModel(fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(
+      AnnotationFilePreviewElementFinder.findPreviewElements(
           fixture.project,
           fixture.findFileInTempDir("Test.kt"),
         )
@@ -307,7 +307,7 @@ class PreviewPickerTests {
 
     val model = getFirstModel(fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(
+      AnnotationFilePreviewElementFinder.findPreviewElements(
           fixture.project,
           fixture.findFileInTempDir("Test.kt"),
         )
@@ -478,7 +478,7 @@ class PreviewPickerTests {
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .first()
     val model =
       ReadAction.compute<PsiPropertiesModel, Throwable> {
@@ -548,7 +548,7 @@ class PreviewPickerTests {
   ): PsiPropertiesModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .first()
     ConfigurationManager.getOrCreateInstance(module)
     return ReadAction.compute<PsiPropertiesModel, Throwable> {

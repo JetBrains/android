@@ -125,7 +125,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestWithProvider" }
           )
           .resolve()
@@ -144,7 +144,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestWithProviderInExpression" }
           )
           .resolve()
@@ -164,7 +164,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestLorem" }
           )
           .resolve()
@@ -184,7 +184,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestFailingProvider" }
           )
           .resolve()
@@ -207,7 +207,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestLargeProvider" }
           )
           .resolve()
@@ -233,7 +233,7 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
               .filter { it.displaySettings.name == "TestEmptyProvider" }
           )
           .resolve()
@@ -273,7 +273,7 @@ class ParametrizedPreviewTest {
 
     val elements =
       StaticPreviewProvider(
-          AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
             .filter { it.displaySettings.name == "TestWithProvider" }
         )
         .resolve()
