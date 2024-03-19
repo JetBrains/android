@@ -2520,8 +2520,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
     - basicVariant:               : debug
         applicationId                 : me.monori.gradleprojectpathissue
         testApplicationId             : me.monori.gradleprojectpathissue.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : me.monori.gradleprojectpathissue
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -3609,7 +3611,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -4672,7 +4676,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5660,7 +5666,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : test.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5961,7 +5969,9 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

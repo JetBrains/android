@@ -1201,16 +1201,24 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         AndroidResourcesEnabled       : true
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typeoneModetwoDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typetwoModeoneDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typetwoModetwoDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typeoneModeoneRelease
+        buildType                     : release
     - basicVariant:               : typeoneModetwoRelease
+        buildType                     : release
     - basicVariant:               : typetwoModeoneRelease
+        buildType                     : release
     - basicVariant:               : typetwoModetwoRelease
+        buildType                     : release
     FlavorDimensions              : type
     FlavorDimensions              : mode
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -1796,8 +1804,10 @@ MODULE                        : Kotlin_Multiplatform.app
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.app
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

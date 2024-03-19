@@ -1151,8 +1151,10 @@ MODULE                        : TestCompositeLib1.app
     - basicVariant:               : debug
         applicationId                 : com.test.composite1
         testApplicationId             : com.test.composite1.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.test.composite1
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2266,7 +2268,9 @@ MODULE                        : TestCompositeLib1.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.test.composite1.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -3779,8 +3783,10 @@ MODULE                        : TestCompositeLib3.app
     - basicVariant:               : debug
         applicationId                 : com.test.composite3
         testApplicationId             : com.test.composite3.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.test.composite3
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -4872,7 +4878,9 @@ MODULE                        : TestCompositeLib3.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.test.composite3.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -6734,8 +6742,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.test.compositeapp
         testApplicationId             : com.test.compositeapp.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.test.compositeapp
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -7853,7 +7863,9 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

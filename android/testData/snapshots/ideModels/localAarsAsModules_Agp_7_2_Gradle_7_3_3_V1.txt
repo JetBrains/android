@@ -393,8 +393,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.android.test.localaarsasmodules
         testApplicationId             : com.android.test.localaarsasmodules.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.android.test.localaarsasmodules
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -746,7 +748,9 @@ MODULE                        : project.library
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.android.test.library.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

@@ -1302,23 +1302,31 @@ MODULE                        : MultiFlavor.app
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
+        buildType                     : debug
     - basicVariant:               : firstAbcSecondXyzDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondXyz.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondXyz.debug.test
+        buildType                     : debug
     - basicVariant:               : firstXyzSecondAbcDebug
         applicationId                 : com.example.multiflavor.secondAbc.debug
         testApplicationId             : com.example.multiflavor.secondAbc.debug.test
+        buildType                     : debug
     - basicVariant:               : firstXyzSecondXyzDebug
         applicationId                 : com.example.multiflavor.secondXyz.debug
         testApplicationId             : com.example.multiflavor.secondXyz.debug.test
+        buildType                     : debug
     - basicVariant:               : firstAbcSecondAbcRelease
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.release
+        buildType                     : release
     - basicVariant:               : firstAbcSecondXyzRelease
         applicationId                 : com.example.multiflavor.firstAbc.secondXyz.release
+        buildType                     : release
     - basicVariant:               : firstXyzSecondAbcRelease
         applicationId                 : com.example.multiflavor.secondAbc.release
+        buildType                     : release
     - basicVariant:               : firstXyzSecondXyzRelease
         applicationId                 : com.example.multiflavor.secondXyz.release
+        buildType                     : release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar

@@ -1945,7 +1945,9 @@ MODULE                        : project.ads-sdk-implementation
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.ads_sdk_implementation.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2446,8 +2448,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -3629,8 +3633,10 @@ MODULE                        : project.app-with-dynamic-feature
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DynamicFeatures               : :feature
     ViewBindingOptions
@@ -4830,7 +4836,9 @@ MODULE                        : project.feature
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.feature.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BaseFeature                   : :app-with-dynamic-feature
     ViewBindingOptions

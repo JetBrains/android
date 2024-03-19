@@ -950,8 +950,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.example.alruiz.transitive_dependencies
         testApplicationId             : com.example.alruiz.transitive_dependencies.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.alruiz.transitive_dependencies
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     DefaultConfig
         ProductFlavor
@@ -1774,7 +1776,9 @@ MODULE                        : project.library1
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library1.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     DefaultConfig
         ProductFlavor
@@ -2466,7 +2470,9 @@ MODULE                        : project.library2
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library2.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     DefaultConfig
         ProductFlavor

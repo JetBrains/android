@@ -27,7 +27,8 @@ import java.io.Serializable
 data class IdeBasicVariantImpl(
   override val name: String,
   override val applicationId: String?,
-  override val testApplicationId: String?
+  override val testApplicationId: String?,
+  override val buildType: String?,
 ) : IdeBasicVariant, Serializable
 
 data class IdeVariantCoreImpl(

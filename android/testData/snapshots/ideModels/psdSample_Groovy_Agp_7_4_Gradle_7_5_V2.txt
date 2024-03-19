@@ -2465,31 +2465,43 @@ MODULE                        : project.app
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
+        buildType                     : debug
     - basicVariant:               : basicOtherBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
+        buildType                     : debug
     - basicVariant:               : paidBarDebug
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.paid.test
+        buildType                     : debug
     - basicVariant:               : paidOtherBarDebug
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
         testApplicationId             : com.example.psd.sample.app.paid.test
+        buildType                     : debug
     - basicVariant:               : basicBarRelease
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix.suffix
+        buildType                     : release
     - basicVariant:               : basicOtherBarRelease
         applicationId                 : com.example.psd.sample.app.defaultSuffix.suffix
+        buildType                     : release
     - basicVariant:               : paidBarRelease
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix
+        buildType                     : release
     - basicVariant:               : paidOtherBarRelease
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.suffix
+        buildType                     : release
     - basicVariant:               : basicBarSpecialRelease
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
+        buildType                     : specialRelease
     - basicVariant:               : basicOtherBarSpecialRelease
         applicationId                 : com.example.psd.sample.app.defaultSuffix
+        buildType                     : specialRelease
     - basicVariant:               : paidBarSpecialRelease
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix.barSuffix
+        buildType                     : specialRelease
     - basicVariant:               : paidOtherBarSpecialRelease
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
+        buildType                     : specialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -3998,7 +4010,9 @@ MODULE                        : project.dyn_feature
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BaseFeature                   : :app
     ViewBindingOptions
@@ -4323,7 +4337,9 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5352,7 +5368,9 @@ MODULE                        : project.nested1
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5661,7 +5679,9 @@ MODULE                        : project.nested1.deep
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -5980,10 +6000,14 @@ MODULE                        : project.nested2
         AndroidResourcesEnabled       : true
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
+        buildType                     : debug
     - basicVariant:               : paidDebug
         testApplicationId             : com.example.nested2.test
+        buildType                     : debug
     - basicVariant:               : basicRelease
+        buildType                     : release
     - basicVariant:               : paidRelease
+        buildType                     : release
     FlavorDimensions              : foo
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -6439,7 +6463,9 @@ MODULE                        : project.nested2.deep
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -6760,7 +6786,9 @@ MODULE                        : project.nested2.trans.deep2
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

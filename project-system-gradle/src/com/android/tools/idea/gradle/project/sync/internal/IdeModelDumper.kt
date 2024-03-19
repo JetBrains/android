@@ -299,6 +299,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("applicationId") { ideBasicVariant.applicationId }
         prop("testApplicationId") { ideBasicVariant.testApplicationId }
+        prop("buildType") { ideBasicVariant.buildType }
       }
     }
 

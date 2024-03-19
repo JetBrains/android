@@ -1003,13 +1003,17 @@ MODULE                        : project.app
     - basicVariant:               : basicDebug
         applicationId                 : com.example.dependentmodules.app
         testApplicationId             : com.example.dependentmodules.app.test
+        buildType                     : debug
     - basicVariant:               : paidDebug
         applicationId                 : com.example.dependentmodules.app.paid
         testApplicationId             : com.example.dependentmodules.app.paid.test
+        buildType                     : debug
     - basicVariant:               : basicRelease
         applicationId                 : com.example.dependentmodules.app
+        buildType                     : release
     - basicVariant:               : paidRelease
         applicationId                 : com.example.dependentmodules.app.paid
+        buildType                     : release
     FlavorDimensions              : foo
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
@@ -2094,7 +2098,9 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.dependentmodules.lib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

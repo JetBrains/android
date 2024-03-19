@@ -466,8 +466,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : testData.namespaces
         testApplicationId             : testData.namespaces.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : testData.namespaces
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -796,7 +798,9 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1111,7 +1115,9 @@ MODULE                        : project.otherlib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.otherlib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

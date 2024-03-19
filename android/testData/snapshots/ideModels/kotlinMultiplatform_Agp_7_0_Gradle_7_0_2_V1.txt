@@ -1146,8 +1146,10 @@ MODULE                        : kotlinMultiPlatform.app
     - basicVariant:               : debug
         applicationId                 : com.example.android.kotlin
         testApplicationId             : com.example.android.kotlin.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.android.kotlin
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1809,7 +1811,9 @@ MODULE                        : kotlinMultiPlatform.module2
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.test.multiproject.module2.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

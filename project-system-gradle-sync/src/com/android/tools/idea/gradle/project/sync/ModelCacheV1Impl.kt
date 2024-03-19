@@ -129,6 +129,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_AARS
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_JARS
+import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -1271,11 +1272,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
   }
 
-  fun basicVariantFrom(name: String, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBasicVariantImpl {
+  fun basicVariantFrom(name: String, variantToBuildType: (String) -> String?, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBasicVariantImpl {
     return IdeBasicVariantImpl(
       name,
       applicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name),
-      testApplicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name + "AndroidTest")
+      testApplicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name + "AndroidTest"),
+      buildType = variantToBuildType(name),
     )
   }
 
@@ -1305,6 +1307,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = copyModel(project.defaultConfig, ::sourceProviderContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
+    val variantToBuildType: (String) -> String?
+    if (productFlavorCopy.isEmpty()) {
+      variantToBuildType = { variant -> variant.takeIf {buildTypesCopy.any { it.buildType.name == variant }} }
+    } else {
+      val suffixToBuildType = buildTypesCopy.map { it.buildType.name }.sortedByDescending { it.length }.associateBy { it.usLocaleCapitalize() }
+      variantToBuildType = { variant -> suffixToBuildType.entries.firstOrNull { variant.endsWith(it.key)}?.value }
+    }
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> =
       (
         if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
@@ -1312,7 +1321,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         else
           copy(project::getVariantNames, ::deduplicateString)
         )
-        .map { basicVariantFrom(it, legacyAndroidGradlePluginProperties) }
+        .map { basicVariantFrom(it, variantToBuildType, legacyAndroidGradlePluginProperties) }
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)

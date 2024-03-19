@@ -1748,13 +1748,17 @@ MODULE                        : MainActivity.app
     - basicVariant:               : localDebug
         applicationId                 : com.example.mainactivity
         testApplicationId             : com.example.mainactivity.test
+        buildType                     : debug
     - basicVariant:               : remoteDebug
         applicationId                 : com.example.mainactivity
         testApplicationId             : com.example.mainactivity.test
+        buildType                     : debug
     - basicVariant:               : localRelease
         applicationId                 : com.example.mainactivity
+        buildType                     : release
     - basicVariant:               : remoteRelease
         applicationId                 : com.example.mainactivity
+        buildType                     : release
     FlavorDimensions              : type
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
@@ -2743,7 +2747,9 @@ MODULE                        : MainActivity.lib
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

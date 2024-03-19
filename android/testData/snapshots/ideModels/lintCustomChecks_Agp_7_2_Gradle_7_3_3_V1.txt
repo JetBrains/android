@@ -834,8 +834,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.app
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1180,7 +1182,9 @@ MODULE                        : project.library
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1495,7 +1499,9 @@ MODULE                        : project.library-remote
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

@@ -915,8 +915,10 @@ MODULE                        : project.app
     - basicVariant:               : exampleDebug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
+        buildType                     : debug
     - basicVariant:               : exampleRelease
         applicationId                 : google.simpleapplication
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

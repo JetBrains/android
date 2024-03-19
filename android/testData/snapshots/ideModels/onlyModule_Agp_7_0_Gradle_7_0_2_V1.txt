@@ -997,10 +997,13 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.example.android.app
         testApplicationId             : com.example.android.app.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.android.app
+        buildType                     : release
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.app
+        buildType                     : benchmark
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1421,6 +1424,7 @@ MODULE                        : project.benchmark
         AndroidResourcesEnabled       : true
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.benchmark
+        buildType                     : benchmark
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1702,6 +1706,7 @@ MODULE                        : project.test
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
+        buildType                     : debug
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1963,6 +1968,7 @@ MODULE                        : project.test2
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
+        buildType                     : debug
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

@@ -461,7 +461,8 @@ class KotlinModelConverter {
         IdeBasicVariantImpl(
           name = kotlinMultiplatformAndroidVariantName,
           applicationId = null,
-          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace
+          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
+          buildType = null,
         )
       ),
       defaultVariantName = kotlinMultiplatformAndroidVariantName,

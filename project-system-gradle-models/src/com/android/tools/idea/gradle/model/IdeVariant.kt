@@ -29,6 +29,13 @@ interface IdeBasicVariant {
    * See [IdeAndroidArtifactCore.applicationId] for details.
    */
   val testApplicationId: String?
+
+  /**
+   * The name of the build type that contributed to this variant.
+   *
+   * Null if there are no build types, such as for the single-variant KMP, or if there's something broken about the project structure.
+   */
+  val buildType: String?
 }
 
 interface IdeVariantHeader {

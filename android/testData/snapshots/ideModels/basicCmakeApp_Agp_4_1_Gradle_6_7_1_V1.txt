@@ -248,8 +248,10 @@ MODULE                        : project.app
     - basicVariant:               : debug
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
         testApplicationId             : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false

@@ -1298,13 +1298,15 @@ internal fun modelCacheV2Impl(
       { it.sourceProvider.name },
       ::productFlavorContainerFrom
     )
-    val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map {
+    val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { variant ->
+      val basicVariant = basicProject.variants.find { it.name == variant.name } ?: error("Inconsistent models, variant ${variant.name} does not have corresponding basicvariant")
       IdeBasicVariantImpl(
-        name = it.name,
-        applicationId = getApplicationIdFromArtifact(modelVersions, it.mainArtifact, IdeArtifactName.MAIN, legacyAndroidGradlePluginProperties, it.name),
-        testApplicationId = it.androidTestArtifact?.let { androidTestArtifact ->
-          getApplicationIdFromArtifact(modelVersions, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, it.name)
-        }
+        name = variant.name,
+        applicationId = getApplicationIdFromArtifact(modelVersions, variant.mainArtifact, IdeArtifactName.MAIN, legacyAndroidGradlePluginProperties, variant.name),
+        testApplicationId = variant.androidTestArtifact?.let { androidTestArtifact ->
+          getApplicationIdFromArtifact(modelVersions, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, variant.name)
+        },
+        buildType = basicVariant.buildType,
       )
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()

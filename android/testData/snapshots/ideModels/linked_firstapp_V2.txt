@@ -1163,8 +1163,10 @@ MODULE                        : My_First_App.app
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.firstapp
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -2281,7 +2283,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
         AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
+        buildType                     : debug
     - basicVariant:               : release
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false

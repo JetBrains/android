@@ -1221,7 +1221,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
       IdeBasicVariantImpl(
         name = it.name,
         it.mainArtifact.applicationId,
-        it.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.applicationId
+        it.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.applicationId,
+        it.buildType,
       )
     },
     flavorDimensions = this.flavorDimensions.orEmpty(),
