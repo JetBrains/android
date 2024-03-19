@@ -19,7 +19,9 @@ import com.android.tools.idea.gradle.something.SomethingFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.containers.toArray
 
 class SomethingPsiFactory(private val project: Project) {
   private fun createFile(text: CharSequence): SomethingFile =
@@ -46,5 +48,20 @@ class SomethingPsiFactory(private val project: Project) {
 
   fun createBooleanLiteral(value: Boolean): SomethingLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Something Boolean from $value")
+
+  fun createNewline(): PsiElement = createToken("\n")
+
+  private fun createToken(token: String): PsiElement =
+    PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
+
+  fun createBlock(value: String): SomethingBlock =
+    createFromText("$value {\n}") ?: error("Failed to create Something Block with name $value")
+
+  fun createAssignment(key: String, value: Any): SomethingAssignment =
+    createFromText("$key = $value") ?: error("Failed to create SomethingAssignment `$key = $value`")
+
+  fun createFactory(identifier: String): SomethingFactory {
+    return createFromText("$identifier()") ?: error("Failed to create createFactory `$identifier( )`")
+  }
 
 }

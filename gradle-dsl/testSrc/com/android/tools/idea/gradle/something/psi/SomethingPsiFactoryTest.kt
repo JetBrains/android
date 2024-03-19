@@ -16,31 +16,66 @@
 package com.android.tools.idea.gradle.something.psi
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Test
 
-class SomethingPsiFactoryTest: LightPlatformTestCase() {
+class SomethingPsiFactoryTest : LightPlatformTestCase() {
   @Test
-  fun testCreateStringLiteral(){
+  fun testCreateStringLiteral() {
     val literal = SomethingPsiFactory(project).createStringLiteral("someLiteral")
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
     assertThat(literal.text).isEqualTo("\"someLiteral\"")
 
   }
+
   @Test
-  fun testCreateIntegerLiteral(){
+  fun testCreateIntegerLiteral() {
     val literal = SomethingPsiFactory(project).createIntLiteral(101)
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Number::class.java)
     assertThat(literal.text).isEqualTo("101")
 
   }
+
   @Test
-  fun testCreateBooleanLiteral(){
+  fun testCreateBooleanLiteral() {
     val literal = SomethingPsiFactory(project).createBooleanLiteral(true)
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Boolean::class.java)
     assertThat(literal.text).isEqualTo("true")
+  }
+
+  @Test
+  fun testCreateNewLine() {
+    val psi = SomethingPsiFactory(project).createNewline()
+    assertThat(psi).isNotNull()
+    assertThat(psi).isInstanceOf(LeafPsiElement::class.java)
+    assertThat(psi.text).isEqualTo("\n")
+  }
+
+  @Test
+  fun testAssignment() {
+    val assignment = SomethingPsiFactory(project).createAssignment("key", "\"value\"")
+    assertThat(assignment).isNotNull()
+    assertThat(assignment).isInstanceOf(SomethingAssignment::class.java)
+    assertThat(assignment.text).isEqualTo("key = \"value\"")
+  }
+
+  @Test
+  fun testBlock() {
+    val block = SomethingPsiFactory(project).createBlock("block")
+    assertThat(block).isNotNull()
+    assertThat(block).isInstanceOf(SomethingBlock::class.java)
+    assertThat(block.text).isEqualTo("block {\n}")
+  }
+
+  @Test
+  fun testFactory() {
+    val factory = SomethingPsiFactory(project).createFactory("factory")
+    assertThat(factory).isNotNull()
+    assertThat(factory).isInstanceOf(SomethingFactory::class.java)
+    assertThat(factory.text).isEqualTo("factory()")
   }
 }
