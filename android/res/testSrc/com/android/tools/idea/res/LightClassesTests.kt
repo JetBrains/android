@@ -176,7 +176,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 @RunsInEdt
 abstract class SingleModuleLightClassesTestBase {
 
-  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().withKotlin().onEdt()
 
   private val myFixture by lazy {
     androidProjectRule.fixture.apply {
