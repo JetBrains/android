@@ -51,6 +51,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
       switch (errno) {
         case EBADF:
         case EPIPE:
+          Log::I("Disconnected while writing to %s socket", socket_name_.c_str());
           return Result::DISCONNECTED;
 
         case EINTR:
@@ -64,10 +65,12 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
             Log::Fatal(SOCKET_IO_ERROR, "Error waiting for %s socket to start accepting data - %s", socket_name_.c_str(), strerror(errno));
           }
           if (ret == 0) {
+            Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
           timeout_micros -= duration_cast<microseconds>(steady_clock::now() - poll_start).count();
           if (timeout_micros <= 0) {
+            Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
           Log::W("Retrying writing to %s socket", socket_name_.c_str());
@@ -79,6 +82,9 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
       }
     }
     if (written == size1 + size2) {
+      if (was_blocked) {
+        Log::I("Writing to %s socket succeeded", socket_name_.c_str());
+      }
       return was_blocked ? Result::SUCCESS_AFTER_BLOCKING : Result::SUCCESS;
     }
     if (written < size1) {
