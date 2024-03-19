@@ -17,23 +17,64 @@ package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
+import com.android.tools.idea.gradle.something.psi.SomethingAssignment
+import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingFile
+import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.findParentOfType
 
 class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWriter, SomethingDslNameConverter {
 
   override fun getContext(): BuildModelContext = context
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    // TODO
-    return null;
+    if (element.isAlreadyCreated()) element.psiElement?.let { return it }
+    val parentPsiElement = element.parent?.create() ?: return null
+    val project = parentPsiElement.project
+    val factory = SomethingPsiFactory(project)
+    val name = element.name
+
+    val psiElement = when (element){
+      is GradleDslLiteral -> factory.createAssignment(name, "\"placeholder\"")
+      is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
+      else -> null
+    }
+    psiElement ?: return null
+
+    val anchor = getAnchor(parentPsiElement, element.anchor)
+    val addedElement = parentPsiElement.addAfter(psiElement, anchor)
+
+    when (parentPsiElement) {
+      is SomethingBlock -> addedElement.addAfter(factory.createNewline(), null)
+    }
+
+    element.psiElement = when (addedElement) {
+      is SomethingAssignment -> addedElement.value
+      else -> addedElement
+    }
+    return element.psiElement
+  }
+
+  private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
+    var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
+    if (anchor == null && parent is SomethingBlock) return parent.blockEntriesStart
+    while (anchor != null && anchor.parent != parent) {
+      anchor = anchor.parent
+    }
+    return anchor ?: parent
   }
 
   override fun deleteDslElement(element: GradleDslElement) {
@@ -80,7 +121,8 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
       oldName.setName(newName)
       element.nameElement.commitNameChange(oldName, this, element.parent)
     }
-
   }
+  private fun GradleDslElement.isAlreadyCreated(): Boolean = psiElement?.findParentOfType<SomethingFile>(strict = false) != null
+
 
 }

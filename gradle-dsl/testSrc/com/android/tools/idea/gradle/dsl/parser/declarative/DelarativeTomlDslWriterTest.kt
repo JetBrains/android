@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.blockOf
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.mapToProperties
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
@@ -114,44 +116,5 @@ class DeclarativeTomlDslWriterTest : LightPlatformTestCase() {
       VfsUtil.saveText(libsTomlFile, text)
     }
     return libsTomlFile
-  }
-  private fun mapToProperties(map: Map<String,Any>, dslFile: GradleDslFile) {
-    fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
-      when (value) {
-        is String -> element.setNewLiteral(key, value)
-        is Block<*,*> -> {
-          val block = TestBlockElement(element, key)
-          value.forEach { (k, v) -> populate(k as String, v as Any, block) }
-          element.setNewElement(block)
-        }
-        is List<*> -> {
-          val dslList = GradleDslExpressionList(element, GradleNameElement.create(key), true)
-          value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
-          element.setNewElement(dslList)
-        }
-        is Map<*,*> -> {
-          val dslMap = GradleDslExpressionMap(element, GradleNameElement.create(key))
-          value.forEach { (k, v) -> populate(k as String, v as Any, dslMap) }
-          element.setNewElement(dslMap)
-        }
-      }
-    }
-    map.forEach { (k, v) -> populate(k, v, dslFile) }
-  }
-
-  private class TestBlockElement(parent: GradleDslElement, name: String) : GradleDslBlockElement(parent, GradleNameElement.create(name))
-
-  private class Block<K,V> : HashMap<K,V>()
-
-  private fun <K, V> blockOf(vararg pairs: Pair<K, V>): Map<K, V> {
-    val b = Block<K,V>()
-    pairs.toMap(b)
-    return b
-  }
-
-  private fun <K,V> blockOf(pair: Pair<K, V>): Map<K, V> {
-    val b = Block<K,V>()
-    b[pair.first] =  pair.second
-    return b
   }
 }

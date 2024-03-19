@@ -75,6 +75,7 @@ block ::= block_head OP_LBRACE block_entry* OP_RBRACE {
    methods=[
        getEntries
        getFactory
+       getBlockEntriesStart
        factory=""
        assignment=""
        block=""

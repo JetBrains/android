@@ -32,4 +32,7 @@ public interface SomethingBlock extends SomethingEntry {
   @Nullable
   SomethingFactory getFactory();
 
+  @Nullable
+  PsiElement getBlockEntriesStart();
+
 }

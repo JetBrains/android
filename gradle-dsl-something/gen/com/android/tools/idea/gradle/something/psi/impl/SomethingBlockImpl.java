@@ -56,4 +56,10 @@ public class SomethingBlockImpl extends SomethingBlockMixin implements Something
     return PsiImplUtil.getFactory(this);
   }
 
+  @Override
+  @Nullable
+  public PsiElement getBlockEntriesStart() {
+    return PsiImplUtil.getBlockEntriesStart(this);
+  }
+
 }
