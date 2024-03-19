@@ -20,10 +20,6 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.ScenesOwner
 import com.android.tools.idea.common.surface.SurfaceScale
-import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import java.awt.Dimension
-import kotlin.math.min
 
 /**
  * [DesignSurfaceZoomController] for the [NlDesignSurface]. It contains all the zooming logic of
@@ -38,9 +34,7 @@ import kotlin.math.min
  * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 class NlDesignSurfaceZoomController(
-  private val viewPort: DesignSurfaceViewport,
-  private val sceneViewLayoutManagerProvider: () -> NlDesignSurfacePositionableContentLayoutManager,
-  private val sceneViewPeerPanelsProvider: () -> Collection<PositionableContent>,
+  private val fitScaleProvider: () -> Double,
   designerAnalyticsManager: DesignerAnalyticsManager?,
   selectionModel: SelectionModel?,
   scenesOwner: ScenesOwner?,
@@ -57,18 +51,7 @@ class NlDesignSurfaceZoomController(
 
   override var maxScale: Double = super.maxScale
 
-  override fun getFitScale(): Double {
-    val extent: Dimension = viewPort.extentSize
-    val positionableContents = sceneViewPeerPanelsProvider()
-    // If there is no content, use 100% as zoom-to-fit level.
-    val scale =
-      if (positionableContents.isEmpty()) {
-        1.0
-      } else {
-        sceneViewLayoutManagerProvider().getFitIntoScale(sceneViewPeerPanelsProvider(), extent)
-      }
-    return min(scale, maxZoomToFitScale)
-  }
+  override fun getFitScale(): Double = minOf(maxZoomToFitScale, fitScaleProvider())
 
   override fun canZoomToActual(): Boolean {
     @SurfaceScale val scaleOfActual = 1.0 / screenScalingFactor

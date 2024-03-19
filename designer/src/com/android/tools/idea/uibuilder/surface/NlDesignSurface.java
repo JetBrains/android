@@ -475,11 +475,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
-
     myZoomController = new NlDesignSurfaceZoomController(
-      getViewport(),
-      this::getSceneViewLayoutManager,
-      this::getPositionableContent,
+      () -> getSceneViewLayoutManager().getFitIntoScale(getPositionableContent(), getViewport().getExtentSize()),
       getAnalyticsManager(),
       getSelectionModel(),
       this,

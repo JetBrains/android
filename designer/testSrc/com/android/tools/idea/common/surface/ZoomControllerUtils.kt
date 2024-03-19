@@ -17,9 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceZoomController
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito
@@ -63,14 +61,11 @@ fun createDesignSurfaceZoomControllerFake(
 }
 
 fun createNlDesignSurfaceZoomController(
-  layoutManager: NlDesignSurfacePositionableContentLayoutManager = Mockito.mock(),
-  sceneViewPanelComponents: Collection<PositionableContent> = emptyList(),
   trackZoom: (ZoomType?) -> Unit = {},
+  fitScaleProvider: () -> Double = { 1.0 },
 ): DesignSurfaceZoomController {
   return NlDesignSurfaceZoomController(
-    viewPort = Mockito.mock(),
-    sceneViewLayoutManagerProvider = { layoutManager },
-    sceneViewPeerPanelsProvider = { sceneViewPanelComponents },
+    fitScaleProvider = fitScaleProvider,
     designerAnalyticsManager = createDesignerAnalyticsManagerFake(trackZoom),
     selectionModel = null,
     scenesOwner = null,

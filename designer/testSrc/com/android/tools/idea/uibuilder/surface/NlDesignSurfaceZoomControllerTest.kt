@@ -15,24 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.createNlDesignSurfaceZoomController
-import com.android.tools.idea.uibuilder.editor.multirepresentation.any
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Assert
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 class NlDesignSurfaceZoomControllerTest {
 
   @Test
   fun `test fit scale when the surface is empty`() {
     // There are no items to show in [NlDesignSurface]
-    val zoomController = createNlDesignSurfaceZoomController(sceneViewPanelComponents = emptyList())
+    val zoomController = createNlDesignSurfaceZoomController()
 
     // Fit scale remains with a value of 1.0
     assertEquals(1.0, zoomController.getFitScale())
@@ -41,19 +37,10 @@ class NlDesignSurfaceZoomControllerTest {
   }
 
   @Test
-  fun `test fit scale when the surface is not empty`() {
-    // [NlDesignSurface] contains 3 [SceneViewPeerPanel]s
-    val sceneViewPeerPanelsMock: Collection<PositionableContent> = (0..2).map { mock() }
-
-    // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit these 3
-    // panels
-    val layoutManagerMock =
-      mock<NlDesignSurfacePositionableContentLayoutManager>().apply {
-        whenever(getFitIntoScale(any(), any())).thenReturn(10.0)
-      }
-
-    val zoomController =
-      createNlDesignSurfaceZoomController(layoutManagerMock, sceneViewPeerPanelsMock)
+  fun `test fit scale when fitScale is changed`() {
+    // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit the panels
+    val fitScaleProvider = { 10.0 }
+    val zoomController = createNlDesignSurfaceZoomController(fitScaleProvider = fitScaleProvider)
 
     // Expected scale is the one returned by the [PositionableLayoutManager]
     assertEquals(10.0, zoomController.getFitScale())
@@ -227,7 +214,7 @@ class NlDesignSurfaceZoomControllerTest {
   @Test
   fun `can track zoom`() {
     var zoomTypeToTrack: ZoomType? = null
-    val zoomController = createNlDesignSurfaceZoomController { zoomTypeToTrack = it }
+    val zoomController = createNlDesignSurfaceZoomController({ zoomTypeToTrack = it })
 
     zoomController.zoom(ZoomType.IN)
     Assert.assertEquals(zoomTypeToTrack, ZoomType.IN)
