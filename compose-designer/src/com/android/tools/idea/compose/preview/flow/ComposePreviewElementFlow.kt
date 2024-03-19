@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.PsiComposePreviewElement
-import com.android.tools.idea.compose.preview.FilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposeFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
@@ -75,14 +75,14 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
 
 /**
  * Creates a new [Flow] containing all the [ComposePreviewElement]s contained in the given
- * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
+ * [psiFilePointer]. The given [ComposeFilePreviewElementFinder] is used to parse the file and obtain the
  * [ComposePreviewElement]s. This flow takes into account any changes in any Kotlin files since
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
 fun previewElementFlowForFile(
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
+  filePreviewElementProvider: () -> ComposeFilePreviewElementFinder = ::defaultFilePreviewElementFinder,
 ): Flow<FlowableCollection<PsiComposePreviewElement>> {
   return channelFlow {
       coroutineScope {

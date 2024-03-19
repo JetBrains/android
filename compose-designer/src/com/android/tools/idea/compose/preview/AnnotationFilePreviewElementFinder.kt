@@ -34,8 +34,8 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
 import org.jetbrains.uast.UMethod
 
-/** [FilePreviewElementFinder] that uses `@Preview` annotations. */
-object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
+/** [ComposeFilePreviewElementFinder] that uses `@Preview` annotations. */
+object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSE_PREVIEW_ANNOTATION_FQN, COMPOSE_PREVIEW_ANNOTATION_NAME)
 

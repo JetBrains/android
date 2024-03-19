@@ -19,14 +19,14 @@ import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-/** Default [FilePreviewElementFinder]. This will be used by default by production code */
+/** Default [ComposeFilePreviewElementFinder]. This will be used by default by production code */
 val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
 
 /**
  * Interface to be implemented by classes able to find [PsiComposePreviewElement]s on
  * [VirtualFile]s.
  */
-interface FilePreviewElementFinder {
+interface ComposeFilePreviewElementFinder {
   /**
    * Returns whether this Preview element finder might apply to the given Kotlin file. The main
    * difference with [findPreviewElements] is that method might be called on Dumb mode so it must

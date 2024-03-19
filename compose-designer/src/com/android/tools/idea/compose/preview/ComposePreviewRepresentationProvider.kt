@@ -149,7 +149,7 @@ class ComposeAdapterLightVirtualFile(
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder =
+  private val filePreviewElementProvider: () -> ComposeFilePreviewElementFinder =
     ::defaultFilePreviewElementFinder
 ) : PreviewRepresentationProvider {
 
