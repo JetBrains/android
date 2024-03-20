@@ -28,14 +28,14 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
 
-public class SomethingFactoryImpl extends ASTWrapperPsiElement implements SomethingFactory {
+public class SomethingArgumentsListImpl extends ASTWrapperPsiElement implements SomethingArgumentsList {
 
-  public SomethingFactoryImpl(@NotNull ASTNode node) {
+  public SomethingArgumentsListImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SomethingVisitor visitor) {
-    visitor.visitFactory(this);
+    visitor.visitArgumentsList(this);
   }
 
   @Override
@@ -45,15 +45,9 @@ public class SomethingFactoryImpl extends ASTWrapperPsiElement implements Someth
   }
 
   @Override
-  @Nullable
-  public SomethingArgumentsList getArgumentsList() {
-    return findChildByClass(SomethingArgumentsList.class);
-  }
-
-  @Override
   @NotNull
-  public SomethingIdentifier getIdentifier() {
-    return findNotNullChildByClass(SomethingIdentifier.class);
+  public List<PsiElement> getArguments() {
+    return PsiImplUtil.getArguments(this);
   }
 
 }

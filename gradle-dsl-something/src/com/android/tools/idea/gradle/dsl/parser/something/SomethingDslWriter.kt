@@ -33,8 +33,9 @@ import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.findParentOfType
+import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
+import com.android.tools.idea.gradle.something.psi.SomethingFactory
 
 class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWriter, SomethingDslNameConverter {
 
@@ -43,13 +44,20 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     if (element.isAlreadyCreated()) element.psiElement?.let { return it }
     val parentPsiElement = element.parent?.create() ?: return null
+
     val project = parentPsiElement.project
     val factory = SomethingPsiFactory(project)
     val name = element.name
 
-    val psiElement = when (element){
-      is GradleDslLiteral -> factory.createAssignment(name, "\"placeholder\"")
+    val psiElement = when (element) {
+      is GradleDslLiteral ->
+        if (parentPsiElement is SomethingArgumentsList)
+          factory.createLiteral(element.value)
+        else
+          factory.createAssignment(name, "\"placeholder\"")
+
       is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
+      is GradleDslMethodCall -> factory.createFactory(name)
       else -> null
     }
     psiElement ?: return null
@@ -71,6 +79,7 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
     if (anchor == null && parent is SomethingBlock) return parent.blockEntriesStart
+    if (anchor == null && parent is SomethingArgumentsList) return parent.firstChild
     while (anchor != null && anchor.parent != parent) {
       anchor = anchor.parent
     }
@@ -81,7 +90,14 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     element.delete()
   }
 
-  override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
+  override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
+    val call = createDslElement(methodCall)
+    methodCall.argumentsElement.psiElement = (call as SomethingFactory).argumentsList
+    methodCall.arguments.firstOrNull()?.let {
+      it.create()
+    }
+    return call
+  }
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)

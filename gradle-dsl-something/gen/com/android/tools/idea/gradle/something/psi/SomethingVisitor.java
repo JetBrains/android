@@ -23,6 +23,10 @@ import com.intellij.psi.PsiNamedElement;
 
 public class SomethingVisitor extends PsiElementVisitor {
 
+  public void visitArgumentsList(@NotNull SomethingArgumentsList o) {
+    visitElement(o);
+  }
+
   public void visitAssignment(@NotNull SomethingAssignment o) {
     visitEntry(o);
   }

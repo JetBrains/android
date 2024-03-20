@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.blockOf
+import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
 import com.intellij.openapi.application.runWriteAction
@@ -27,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.Mockito
 
-class SomethingDslWriterTest: LightPlatformTestCase() {
+class SomethingDslWriterTest : LightPlatformTestCase() {
 
   fun testAssignmentWithString() {
     val contents = mapOf("key1" to "value1")
@@ -82,8 +83,43 @@ class SomethingDslWriterTest: LightPlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testFactoryWithStringArgument() {
+    val contents = mapOf("factory" to factoryOf("value1"))
+    val expected = """
+      factory("value1")
+     """.trimIndent()
 
-  private fun doTest(contents: Map<String,Any>, expected: String) {
+    doTest(contents, expected)
+  }
+
+  fun testFactoryWithIntArgument() {
+    val contents = mapOf("factory" to factoryOf(123))
+    val expected = """
+      factory(123)
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testFactoryWithBooleanArgument() {
+    val contents = mapOf("factory" to factoryOf(true))
+    val expected = """
+      factory(true)
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testEmbeddedFactory() {
+    val contents = mapOf("factory" to factoryOf(mapOf("embeddedFactory" to factoryOf("value"))))
+    val expected = """
+      factory(embeddedFactory("value"))
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  private fun doTest(contents: Map<String, Any>, expected: String) {
     val file = writeSomethingFile("")
 
     val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}

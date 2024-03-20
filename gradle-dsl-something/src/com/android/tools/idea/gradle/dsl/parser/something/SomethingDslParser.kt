@@ -91,7 +91,7 @@ class SomethingDslParser(
           val name = psi.identifier.name ?: return
           val methodCall = GradleDslMethodCall(context, GradleNameElement.empty(), name)
 
-          psi.value?.accept(object : SomethingRecursiveVisitor() {
+          psi.argumentsList?.arguments?.firstOrNull()?.accept(object : SomethingRecursiveVisitor() {
             override fun visitLiteral(psi: SomethingLiteral) {
               methodCall.addNewArgument(GradleDslLiteral(methodCall, psi, GradleNameElement.empty(), psi, LITERAL))
             }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.something.parser
 
+import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
 import com.android.tools.idea.gradle.something.psi.SomethingBare
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
@@ -53,6 +54,11 @@ class PsiImplUtil {
     @JvmStatic
     fun getBlockEntriesStart(block: SomethingBlock): PsiElement? {
       return block.childLeafs.find { it.text == "{" }
+    }
+
+    @JvmStatic
+    fun getArguments(list: SomethingArgumentsList): List<PsiElement> {
+      return list.children.toList()
     }
   }
 }

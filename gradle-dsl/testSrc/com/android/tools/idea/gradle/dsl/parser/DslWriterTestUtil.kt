@@ -22,8 +22,26 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import java.util.LinkedList
 
 fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
+  fun populateFactoryAttributes(key: String, value: Any, factory: GradleDslMethodCall) {
+    when (value) {
+      is String, is Int, is Boolean -> factory.addNewArgument(factory.createLiteral(value))
+
+      is Factory<*> -> {
+        val newFactory = GradleDslMethodCall(factory, GradleNameElement.empty(), key)
+        value.forEachIndexed { i, v -> populateFactoryAttributes(i.toString(), v as Any, newFactory) }
+        factory.addNewArgument(newFactory)
+      }
+
+      is Map<*, *> -> {
+        value.forEach { (k, v) -> populateFactoryAttributes(k as String, v as Any, factory) }
+      }
+    }
+  }
   fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
     when (value) {
       is String -> element.setNewLiteral(key, value)
@@ -35,6 +53,11 @@ fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
         element.setNewElement(block)
       }
 
+      is Factory<*> -> {
+        val factory = GradleDslMethodCall(element, GradleNameElement.empty(), key)
+        value.forEachIndexed { i, v -> populateFactoryAttributes(i.toString(), v as Any, factory) }
+        element.setNewElement(factory)
+      }
       is List<*> -> {
         val dslList = GradleDslExpressionList(element, GradleNameElement.create(key), true)
         value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
@@ -49,6 +72,12 @@ fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
     }
   }
   map.forEach { (k, v) -> populate(k, v, dslFile) }
+}
+
+private fun GradleDslElement.createLiteral(value: Any): GradleDslLiteral {
+  val literal = GradleDslLiteral(this, GradleNameElement.empty())
+  literal.setValue(value)
+  return literal
 }
 
 class TestBlockElement(parent: GradleDslElement, name: String) : GradleDslBlockElement(parent, GradleNameElement.create(name))
@@ -69,4 +98,11 @@ fun <K, V> blockOf(pair: Pair<K, V>): Map<K, V> {
 
 fun blockOf(): Map<*, *> {
   return Block<Any,Any>()
+}
+class Factory<T> : LinkedList<T>()
+
+fun <T> factoryOf(vararg elements: T): List<T> {
+  val b = Factory<T>()
+  b.addAll(elements)
+  return b
 }
