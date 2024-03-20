@@ -35,7 +35,9 @@ import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.flow.filteredPreviewElementsFlow
 import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -95,13 +97,13 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
       // We can only apply a group filter if no filter existed before or if the current one is
       // already a group filter.
       val canApplyGroupFilter =
-        currentFilter == ComposePreviewElementsModel.Filter.Disabled ||
-          currentFilter is ComposePreviewElementsModel.Filter.Group
+        currentFilter is PreviewElementFilter.Disabled<PsiComposePreviewElementInstance> ||
+          currentFilter is PreviewElementFilter.Group<PsiComposePreviewElementInstance>
       filterFlow.value =
         if (group is PreviewGroup.Named && canApplyGroupFilter) {
-          ComposePreviewElementsModel.Filter.Group(group)
+          PreviewElementFilter.Group(group)
         } else {
-          ComposePreviewElementsModel.Filter.Disabled
+          PreviewElementFilter.Disabled()
         }
     }
 
@@ -127,8 +129,8 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
    * Current filter being applied to the preview. The filter allows to select one element or a group
    * of them.
    */
-  private val filterFlow: MutableStateFlow<ComposePreviewElementsModel.Filter> =
-    MutableStateFlow(ComposePreviewElementsModel.Filter.Disabled)
+  private val filterFlow: MutableStateFlow<PreviewElementFilter<PsiComposePreviewElementInstance>> =
+    MutableStateFlow(PreviewElementFilter.Disabled())
 
   /**
    * Preview element provider corresponding to the current state of the Preview. Different modes
@@ -156,18 +158,18 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
   override fun setSingleFilter(previewElement: PsiComposePreviewElementInstance?) {
     filterFlow.value =
       if (previewElement != null) {
-        ComposePreviewElementsModel.Filter.Single(previewElement)
+        PreviewElementFilter.Single(previewElement)
       } else {
-        ComposePreviewElementsModel.Filter.Disabled
+        PreviewElementFilter.Disabled()
       }
   }
 
   /**
-   * Gets the current value of [filterFlow] as a [ComposePreviewElementsModel.Filter.Group] or null
-   * if the current filter is of another type.
+   * Gets the current value of [filterFlow] as a [PreviewElementFilter.Group] or null if the current
+   * filter is of another type.
    */
-  fun getCurrentFilterAsGroup(): ComposePreviewElementsModel.Filter.Group? =
-    filterFlow.value as? ComposePreviewElementsModel.Filter.Group
+  fun getCurrentFilterAsGroup(): PreviewElementFilter.Group<PsiComposePreviewElementInstance>? =
+    filterFlow.value as? PreviewElementFilter.Group<PsiComposePreviewElementInstance>
 
   /**
    * Returns whether there are previews that have completed the render process, i.e. if
@@ -232,11 +234,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
       }
 
       launch(workerThread) {
-        val filteredPreviewsFlow =
-          ComposePreviewElementsModel.filteredPreviewElementsFlow(
-            allPreviewElementsFlow,
-            filterFlow,
-          )
+        val filteredPreviewsFlow = filteredPreviewElementsFlow(allPreviewElementsFlow, filterFlow)
 
         // Flow for Preview changes
         combine(allPreviewElementsFlow, filteredPreviewsFlow, uiCheckFilterFlow) {

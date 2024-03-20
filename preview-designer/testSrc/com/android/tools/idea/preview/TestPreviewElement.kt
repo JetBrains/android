@@ -25,13 +25,13 @@ import com.intellij.psi.SmartPsiElementPointer
 
 internal class TestBasePreviewElement<T>(
   displayName: String = "",
+  override val methodFqn: String = "TestMethod",
   groupName: String? = null,
   showDecorations: Boolean = false,
   showBackground: Boolean = false,
   backgroundColor: String? = null,
   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
 ) : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
-  override val methodFqn: String = "TestMethod"
   override val configuration = PreviewConfiguration.cleanAndGet()
   override val hasAnimations = false
   override val displaySettings =
