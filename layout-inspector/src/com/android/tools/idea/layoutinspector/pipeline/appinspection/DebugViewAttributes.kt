@@ -18,8 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.project.AndroidNotification
@@ -82,7 +80,7 @@ class DebugViewAttributes private constructor() {
     }
   }
 
-  private var abortDeleteRunnable: AbortAdbCommandRunnable? = null
+  private var flagSet = false
 
   /**
    * Enable debug view attributes for the current process.
@@ -94,7 +92,7 @@ class DebugViewAttributes private constructor() {
   @Slow
   fun set(project: Project, device: DeviceDescriptor): Boolean {
     // flag was already set - no need to set twice
-    if (abortDeleteRunnable != null) return false
+    if (flagSet) return false
 
     var errorMessage: String
     var settingsUpdated = false
@@ -110,22 +108,6 @@ class DebugViewAttributes private constructor() {
 
       if (errorMessage.isEmpty()) {
         settingsUpdated = true
-
-        // Later, we'll try to clear the setting via `clear`, but we also register additional logic
-        // to trigger automatically
-        // (a trap command) if the user forcefully closes the connection under us (e.g. closing the
-        // emulator or
-        // pulling their USB cable).
-        abortDeleteRunnable =
-          AbortAdbCommandRunnable(
-              adb,
-              device,
-              // This works by spawning a subshell which hangs forever (waiting for a read that
-              // never gets satisfied)
-              // but triggers the delete request when that shell is forcefully exited.
-              "sh -c 'trap \"${Command.Delete(PER_DEVICE_SETTING).get()}\" EXIT; read'",
-            )
-            .also { AndroidExecutors.getInstance().workerThreadExecutor.execute(it) }
       }
     } catch (ex: Exception) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(ex)
@@ -156,7 +138,7 @@ class DebugViewAttributes private constructor() {
   @Slow
   fun clear(project: Project, device: DeviceDescriptor) {
     // the flag was not set using this class, we should not turn it off
-    if (abortDeleteRunnable == null) return
+    if (!flagSet) return
 
     try {
       val adb = AdbUtils.getAdbFuture(project).get() ?: return
@@ -164,8 +146,7 @@ class DebugViewAttributes private constructor() {
         executeDelete(adb, device)
       }
     } catch (_: Exception) {} finally {
-      abortDeleteRunnable?.stop()
-      abortDeleteRunnable = null
+      flagSet = false
     }
   }
 

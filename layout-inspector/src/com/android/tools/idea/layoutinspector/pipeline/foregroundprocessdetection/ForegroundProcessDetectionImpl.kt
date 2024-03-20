@@ -407,8 +407,7 @@ class ForegroundProcessDetectionImpl(
 
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
               // when a device is disconnected we still want to call [DebugViewAttributes#clear],
-              // because this updates the state of the class. The flag will be turned off on the
-              // device by the trap command, we want to reflect this state in DebugViewAttributes.
+              // because this updates the state of the class.
               val debugViewAttributes = DebugViewAttributes.getInstance()
               debugViewAttributes.clear(project, streamDevice)
               deviceModel.selectedDevice = null
