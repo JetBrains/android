@@ -7,6 +7,7 @@ iml_module(
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/compose-ide-plugin/testData",
     ],
     test_jvm_flags = [
