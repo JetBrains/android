@@ -201,7 +201,7 @@ class LayoutInspectorTest {
       connectDevice(device1)
 
       val debugViewAttributes = DebugViewAttributes.getInstance()
-      val changed = debugViewAttributes.set(projectRule.project, fakeProcess)
+      val changed = debugViewAttributes.set(projectRule.project, device1.toDeviceDescriptor())
       assertThat(changed).isTrue()
 
       // test has device, no process

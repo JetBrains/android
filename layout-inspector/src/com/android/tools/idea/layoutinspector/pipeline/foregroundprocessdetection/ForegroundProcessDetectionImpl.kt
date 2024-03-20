@@ -410,9 +410,7 @@ class ForegroundProcessDetectionImpl(
               // because this updates the state of the class. The flag will be turned off on the
               // device by the trap command, we want to reflect this state in DebugViewAttributes.
               val debugViewAttributes = DebugViewAttributes.getInstance()
-              if (debugViewAttributes.usePerDeviceSettings()) {
-                debugViewAttributes.clear(project, streamDevice)
-              }
+              debugViewAttributes.clear(project, streamDevice)
               deviceModel.selectedDevice = null
             }
 

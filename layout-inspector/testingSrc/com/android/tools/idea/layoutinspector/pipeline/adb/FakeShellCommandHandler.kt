@@ -32,7 +32,6 @@ class SimpleCommand(val args: List<String>, val result: String?) {
  */
 class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewProperties {
   override var debugViewAttributes: String? = null
-  override var debugViewAttributesApplicationPackage: String? = null
   override var debugViewAttributesChangesCount: Int = 0
   val extraCommands = mutableListOf<SimpleCommand>()
 
@@ -75,7 +74,6 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     val variable =
       when (args.poll()) {
         "debug_view_attributes" -> this::debugViewAttributes
-        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
         else -> return null
       }
     val argument = if (args.isEmpty()) "" else args.poll()

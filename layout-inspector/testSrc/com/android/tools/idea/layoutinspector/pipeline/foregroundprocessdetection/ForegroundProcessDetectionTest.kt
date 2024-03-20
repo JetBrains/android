@@ -586,8 +586,7 @@ class ForegroundProcessDetectionTest {
       startTrackingSyncChannel.receive()
 
       val changed =
-        DebugViewAttributes.getInstance()
-          .set(projectRule.project, device1.toDeviceDescriptor().createProcess("fakeprocess"))
+        DebugViewAttributes.getInstance().set(projectRule.project, device1.toDeviceDescriptor())
       assertThat(changed).isTrue()
 
       disconnectDevice(device1)

@@ -187,9 +187,8 @@ private constructor(
       val selectedDevice = deviceModel?.selectedDevice
       if (selectedDevice != null) {
         val debugViewAttributes = DebugViewAttributes.getInstance()
-        if (debugViewAttributes.usePerDeviceSettings()) {
-          debugViewAttributes.clear(inspectorModel.project, selectedDevice)
-        }
+        debugViewAttributes.clear(inspectorModel.project, selectedDevice)
+
         foregroundProcessDetection?.stopPollingSelectedDevice()
       } else {
         processModel?.stop()

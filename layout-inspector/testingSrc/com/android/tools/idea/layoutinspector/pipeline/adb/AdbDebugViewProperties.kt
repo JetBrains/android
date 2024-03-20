@@ -22,5 +22,4 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 interface AdbDebugViewProperties {
   val debugViewAttributesChangesCount: Int
   var debugViewAttributes: String?
-  var debugViewAttributesApplicationPackage: String?
 }

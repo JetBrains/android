@@ -21,7 +21,6 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
@@ -86,48 +85,46 @@ class LayoutInspectorExecutionListenerTest {
   }
 
   @Test
-  fun testLaunchWithDebugAttributes() =
-    runWithFlagState(false) {
-      val device = attachDevice(MODERN_DEVICE)
-      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+  fun testLaunchWithDebugAttributes() {
+    val device = attachDevice(MODERN_DEVICE)
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-      // Start the process
-      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
-      AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
-      LayoutInspectorExecutionListener().processStarted("123", env, handler)
+    // Start the process
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+    AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-      // Make sure the debug attributes are set.
-      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+    // Make sure the debug attributes are set.
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-      // Kill process p1 and check that the debug attributes are reset.
-      handler.killProcess()
-      assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
-    }
+    // Kill process p1 and check that the per-device debug attributes are not reset.
+    handler.killProcess()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+  }
 
   @Test
-  fun testLaunchWithDebugAttributesAlreadySet() =
-    runWithFlagState(false) {
-      commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
+  fun testLaunchWithDebugAttributesAlreadySet() {
+    commandHandler.debugViewAttributes = "1"
 
-      val device = attachDevice(MODERN_DEVICE)
-      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
-      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+    val device = attachDevice(MODERN_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-      // Start the process
-      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
-      LayoutInspectorExecutionListener().processStarted("123", env, handler)
+    // Start the process
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-      // Make sure the debug attributes are untouched.
-      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+    // Make sure the debug attributes are untouched.
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
-      // Kill process p1 and check that the debug attributes are still untouched.
-      handler.killProcess()
-      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
-    }
+    // Kill process p1 and check that the debug attributes are still untouched.
+    handler.killProcess()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+  }
 
   @Test
   fun testLaunchWithDebugAttributesOnLegacyDevice() {
@@ -148,36 +145,24 @@ class LayoutInspectorExecutionListenerTest {
   }
 
   @Test
-  fun testPerDeviceViewDebugAttributesIsNotCleared() =
-    runWithFlagState(true) {
-      val device = attachDevice(MODERN_DEVICE)
-      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+  fun testPerDeviceViewDebugAttributesIsNotCleared() {
+    val device = attachDevice(MODERN_DEVICE)
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-      // Start the process
-      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
-      AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
-      LayoutInspectorExecutionListener().processStarted("123", env, handler)
+    // Start the process
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+    AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-      // Make sure the debug attributes are set.
-      assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+    // Make sure the debug attributes are set.
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-      // Kill process p1 and check that the debug attributes are not reset.
-      handler.killProcess()
+    // Kill process p1 and check that the debug attributes are not reset.
+    handler.killProcess()
 
-      assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-    }
-
-  private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
-    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-    val flagPreviousState = flag.get()
-    flag.override(desiredFlagState)
-
-    task()
-
-    // restore flag state
-    flag.override(flagPreviousState)
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
   }
 
   private fun attachDevice(device: DeviceDescriptor): IDevice {

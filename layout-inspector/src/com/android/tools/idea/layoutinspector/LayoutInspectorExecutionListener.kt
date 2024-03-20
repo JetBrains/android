@@ -80,14 +80,10 @@ class LayoutInspectorExecutionListener : ExecutionListener {
       }
     val debugViewAttributes = DebugViewAttributes.getInstance()
 
-    if (debugViewAttributes.set(project, process)) {
+    if (debugViewAttributes.set(project, descriptor)) {
       handler.addProcessListener(
         object : ProcessAdapter() {
-          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-            if (!debugViewAttributes.usePerDeviceSettings()) {
-              debugViewAttributes.clear(project, process)
-            }
-          }
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {}
         }
       )
     }
