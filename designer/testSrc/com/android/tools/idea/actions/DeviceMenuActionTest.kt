@@ -175,7 +175,7 @@ class DeviceMenuActionTest {
                   4.7" WXGA (640 × 360 dp, xhdpi)
                   5.1" WVGA (480 × 800 dp, mdpi)
                   5.4" FWVGA (480 × 854 dp, mdpi)
-                  Resizable (Experimental) (411 × 891 dp, 420dpi)
+                  Resizable (Experimental) (411 × 914 dp, 420dpi)
                   Medium Phone (411 × 914 dp, 420dpi)
                   6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
                   7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
