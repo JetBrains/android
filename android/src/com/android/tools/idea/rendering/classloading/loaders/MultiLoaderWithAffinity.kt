@@ -22,19 +22,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A [DelegatingClassLoader.Loader] that can use multiple delegate [DelegatingClassLoader.Loader].
- */
-class MultiLoader(val delegates: List<DelegatingClassLoader.Loader>) : DelegatingClassLoader.Loader {
-  constructor(vararg delegates: DelegatingClassLoader.Loader) : this(delegates.toList())
-
-  override fun loadClass(fqcn: String): ByteArray? =
-    delegates
-      .asSequence()
-      .mapNotNull { it.loadClass(fqcn) }
-      .firstOrNull()
-}
-
-/**
  * Utility method that returns all package prefixes in descending length order for the given class name.
  *
  * For example, for `a.b.c.D`, will return `a.b.c`, `a.b` and `a` in that order.
