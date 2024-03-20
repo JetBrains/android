@@ -38,6 +38,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableElementDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedImageDomFileDescription" rootTagName="animated-image"/>
 
     <!-- File descriptions for res/drawable: -->
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>

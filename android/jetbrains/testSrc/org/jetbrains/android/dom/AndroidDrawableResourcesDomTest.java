@@ -341,7 +341,9 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
                              // API 21:
                              "ripple", "vector", "animated-vector", "animated-selector", "drawable",
                              // API 26:
-                             "adaptive-icon");
+                             "adaptive-icon",
+                             // API 28:
+                             "animated-image");
   }
 
   public void testCustomDrawableRootTagCompletion() throws Throwable {
