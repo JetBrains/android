@@ -100,15 +100,13 @@ internal class EmbeddedCompilerClientImplTest {
     }
   }
 
-  /**
-   * At the moment one compilation request that involves files from multiple modules, is not supported.
-   * This ensures that the failure is handled gracefully.
-   */
   @Test
-  fun `multi module compilation request fails`() {
+  fun `multi module compilation request succeeds`() {
     val file = projectRule.fixture.addFileToProject(
       "app/src/main/java/com/test/Source.kt",
       """
+        package com.test
+
         fun testMethod() {
         }
 
@@ -119,6 +117,8 @@ internal class EmbeddedCompilerClientImplTest {
     val fileInLib = projectRule.fixture.addFileToProject(
       "lib/src/main/java/com/test/lib/Source.kt",
       """
+        package com.test.lib
+
         fun aLibMethod() {
         }
       """.trimIndent())
@@ -126,11 +126,12 @@ internal class EmbeddedCompilerClientImplTest {
     runBlocking {
       val module = readAction { file.module!! }
       val result = compiler.compileRequest(listOf(file, fileInLib), module, outputDirectory, EmptyProgressIndicator())
-      assertInstanceOf<CompilationResult.RequestException>(result)
-      assertInstanceOf<LiveEditUpdateException>((result as CompilationResult.RequestException).e)
-      assertEquals(
-        "KtFile outside targeted module found in code generation",
-        result.e!!.message)
+      assertInstanceOf<CompilationResult.Success>(result)
+      assertEquals("""
+        EmbeddedCompilerClientImplTest_multi module compilation request succeeds.app.main.kotlin_module
+        EmbeddedCompilerClientImplTest_multi module compilation request succeeds.lib.main.kotlin_module
+        SourceKt.class
+      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
     }
   }
 

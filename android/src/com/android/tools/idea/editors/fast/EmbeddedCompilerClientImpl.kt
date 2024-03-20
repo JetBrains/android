@@ -43,6 +43,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -115,14 +116,19 @@ class EmbeddedCompilerClientImpl private constructor(
   private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache()
 
   /**
-   * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
-   * will be updated in the given [ProgressIndicator].
+   * Compiles the given list of inputs. All inputs must belong to the same module.
+   * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
-  private suspend fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
-    log.debug("compileKtFile($inputs, $outputDirectory)")
+  private suspend fun compileModuleKtFiles(inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
+    log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
+
+    val moduleForAllInputs = readAction {
+      val modules = inputs.map { it.module }.toSet()
+      modules.singleOrNull() ?: throw LiveEditUpdateException.internalError("Multiple modules requested")
+    }
 
     if (isK2Plugin()) {
-      compileKtFilesForK2(inputs, module, outputDirectory)
+      compileKtFilesForK2(inputs, outputDirectory)
       return@withContext
     }
 
@@ -142,7 +148,7 @@ class EmbeddedCompilerClientImpl private constructor(
           ProgressManager.checkCanceled()
           log.debug("backCodeGen")
           try {
-            backendCodeGen(project, analysisResult, inputs, module, inlineCandidates)
+            backendCodeGen(project, analysisResult, inputs, moduleForAllInputs, inlineCandidates)
           }
           catch (e: LiveEditUpdateException) {
             if (e.isCompilationError() || e.cause.isCompilationError()) {
@@ -168,7 +174,7 @@ class EmbeddedCompilerClientImpl private constructor(
 
             // We will need to start using the new analysis for code gen.
             log.debug("backCodeGen retry")
-            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
+            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, moduleForAllInputs, inlineCandidates)
           }
         }
       }
@@ -177,13 +183,13 @@ class EmbeddedCompilerClientImpl private constructor(
     generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
   }
 
-  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, module: Module, outputDirectory: Path) {
+  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
       runWithCompileLock {
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
-          val result = backendCodeGenForK2(inputFile, module)
+          val result = backendCodeGenForK2(inputFile, inputFile.module)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
             it.writeTo(outputDirectory)
@@ -206,7 +212,7 @@ class EmbeddedCompilerClientImpl private constructor(
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult = coroutineScope {
     daemonLock.withLock(this) {
-      val inputs = files.filterIsInstance<KtFile>().toList()
+      val allKtInputs = files.filterIsInstance<KtFile>().toList()
       val result = CompletableDeferred<CompilationResult>()
       val compilationIndicator = ProgressWrapper.wrap(indicator)
 
@@ -226,7 +232,11 @@ class EmbeddedCompilerClientImpl private constructor(
       }
 
       try {
-        compileKtFiles(inputs, module, outputDirectory = outputDirectory)
+        allKtInputs
+          .groupBy { readAction { it.module } }
+          .forEach { (module, inputs) ->
+            compileModuleKtFiles(inputs, outputDirectory = outputDirectory)
+          }
         result.complete(CompilationResult.Success)
       }
       catch (t: CancellationException) {
