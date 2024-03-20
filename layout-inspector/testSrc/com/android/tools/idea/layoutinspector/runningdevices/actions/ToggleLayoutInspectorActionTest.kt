@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility
 import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
@@ -202,30 +201,6 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
     assertThat(fakeActionEvent.presentation.description).isEmpty()
-  }
-
-  @Test
-  fun testActionCantBeEnableOnApi29PlayStore() = withEmbeddedLayoutInspector {
-    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
-    toggleLayoutInspectorAction.checkForSystemImageCompatibility = { _, _, _, _ ->
-      Compatibility.Compatible
-    }
-
-    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent("device1")
-
-    toggleLayoutInspectorAction.update(fakeActionEvent)
-    assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
-
-    toggleLayoutInspectorAction.checkForSystemImageCompatibility = { _, _, _, _ ->
-      Compatibility.NotCompatible(Compatibility.NotCompatible.Reason.API_29_PLAY_STORE)
-    }
-
-    toggleLayoutInspectorAction.update(fakeActionEvent)
-    assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
-    assertThat(fakeActionEvent.presentation.description)
-      .isEqualTo(
-        "Embedded Layout Inspection is not available on API 29 Google Play images. Please use a different image."
-      )
   }
 
   private fun AnAction.getFakeActionEvent(

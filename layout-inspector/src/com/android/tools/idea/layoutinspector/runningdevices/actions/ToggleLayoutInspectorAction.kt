@@ -17,9 +17,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.checkSystemImageForAppInspectionCompatibility
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -34,10 +31,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
-import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.JComponent
-import org.jetbrains.annotations.VisibleForTesting
 
 /** Action used to turn Layout Inspector on and off in Running Devices tool window. */
 
@@ -57,19 +52,6 @@ class ToggleLayoutInspectorAction :
   TooltipLinkProvider {
 
   private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-
-  @VisibleForTesting
-  var checkForSystemImageCompatibility:
-    (isEmulator: Boolean, apiLevel: Int, serialNumber: String, project: Project) -> Compatibility =
-    { isEmulator, apiLevel, serialNumber, project ->
-      checkSystemImageForAppInspectionCompatibility(
-        isEmulator,
-        apiLevel,
-        serialNumber,
-        project,
-        sdkHandler,
-      )
-    }
 
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
@@ -120,25 +102,8 @@ class ToggleLayoutInspectorAction :
       e.presentation.isEnabled = false
       e.presentation.description = LayoutInspectorBundle.message("api.29.limit")
     } else {
-
-      val compatibility =
-        checkForSystemImageCompatibility(isEmulator, apiLevel, serialNumber, project)
-
-      when (compatibility) {
-        Compatibility.Compatible -> {
-          e.presentation.isEnabled = true
-          e.presentation.description = ""
-        }
-        is Compatibility.NotCompatible -> {
-          when (compatibility.reason) {
-            API_29_PLAY_STORE -> {
-              e.presentation.isEnabled = false
-              e.presentation.description =
-                LayoutInspectorBundle.message("api29.playstore.message.embedded.li")
-            }
-          }
-        }
-      }
+      e.presentation.isEnabled = true
+      e.presentation.description = ""
     }
 
     if (e.presentation.isVisible && e.presentation.isEnabled) {
