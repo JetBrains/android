@@ -30,6 +30,7 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
+import com.android.tools.deployer.UIService;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
@@ -37,7 +38,6 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
-import com.android.tools.idea.run.IdeService;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
@@ -122,7 +122,7 @@ public abstract class AbstractDeployTask {
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
 
     DeploymentService service = DeploymentService.getInstance();
-    IdeService ideService = new IdeService(myProject);
+    UIService ideService = myProject.getService(UIService.class);
 
     EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
     if (!myAlwaysInstallWithPm) {

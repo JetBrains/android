@@ -19,6 +19,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Deploy" displayType="BALLOON"/>
+    <projectService serviceInterface="com.android.tools.deployer.UIService"
+                    serviceImplementation="com.android.tools.idea.run.IdeService"/>
   </extensions>
 
 </idea-plugin>
