@@ -1182,7 +1182,7 @@ def intellij_platform(
         compress = is_release(),
         mac_bundle_name = spec.mac_bundle_name,
         studio_data = name + ".data",
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
         data = select({
@@ -1236,7 +1236,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
         }),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     # Expose build.txt from the prebuilt SDK
@@ -1248,7 +1248,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     # Expose product-info.json.
@@ -1260,7 +1260,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/product-info.json"],
             "//conditions:default": [src + "/linux/android-studio/product-info.json"],
         }),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     # Expose the default VM options file.
@@ -1272,7 +1272,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/bin/studio.vmoptions"],
             "//conditions:default": [src + "/linux/android-studio/bin/studio64.vmoptions"],
         }),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     # TODO: merge this into the intellij_platform rule.
@@ -1280,7 +1280,7 @@ def intellij_platform(
         name = name + "-full-linux",
         dir = "prebuilts/studio/intellij-sdk/" + src + "/linux/android-studio",
         files = native.glob([src + "/linux/android-studio/**"]),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     studio_data(
@@ -1303,13 +1303,13 @@ def intellij_platform(
         _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
             exports = [":" + jars_target_name],
-            visibility = ["//visibility:public"],
+            visibility = ["@intellij//:__subpackages__"],
         )
 
     jvm_import(
         name = name + "-updater",
         jars = [src + "/updater-full.jar"],
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
     # Expose the IntelliJ test framework separately, for consumption by tests only.
@@ -1321,7 +1321,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/testFramework.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/testFramework.jar"],
         }),
-        visibility = ["//visibility:public"],
+        visibility = ["@intellij//:__subpackages__"],
     )
 
 def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
