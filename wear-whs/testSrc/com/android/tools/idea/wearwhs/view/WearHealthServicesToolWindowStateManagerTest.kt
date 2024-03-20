@@ -73,7 +73,7 @@ class WearHealthServicesToolWindowStateManagerTest {
   private val stateManager by lazy {
     WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
       it.serialNumber = "test"
-      it.runPeriodicUpdates = true
+      it.runPeriodicUpdates = false
     }
   }
 
@@ -129,6 +129,8 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test state manager sets capabilities that are not returned by device manager to default state`() = runBlocking {
+    stateManager.runPeriodicUpdates = true
+
     stateManager.setCapabilityEnabled(capabilities[0], false)
     stateManager.setOverrideValue(capabilities[0], 3f)
 
@@ -250,6 +252,8 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test stateManager periodically updates the values from the device`() = runBlocking {
+    stateManager.runPeriodicUpdates = true
+
     stateManager.applyChanges()
 
     // Disable value on-device
@@ -261,6 +265,8 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test stateManager periodically updates the override values from the device`() = runBlocking {
+    stateManager.runPeriodicUpdates = true
+
     stateManager.applyChanges()
 
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
@@ -276,6 +282,8 @@ class WearHealthServicesToolWindowStateManagerTest {
 
   @Test
   fun `test stateManager periodically updates the exercise status from the device`() = runBlocking {
+    stateManager.runPeriodicUpdates = true
+
     stateManager.ongoingExercise.waitForValue(false)
     deviceManager.activeExercise = true
 
