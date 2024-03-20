@@ -30,7 +30,6 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -214,7 +213,6 @@ class ForegroundProcessDetectionTest {
     stopTrackingSyncChannel.close()
 
     transportClient.shutdown()
-    DebugViewAttributes.reset()
   }
 
   @Test
@@ -554,47 +552,6 @@ class ForegroundProcessDetectionTest {
     assertEqual(received2, device2, ForegroundProcess(2, "process2"))
     assertEqual(received3, device2, ForegroundProcess(3, "process3"))
   }
-
-  @Test
-  fun testDeviceViewAttributeResetAfterDeviceDisconnect() =
-    runBlockingWithFlagState(true) {
-      val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()
-      val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {
-        coroutineScope.launch { onDeviceDisconnectedSyncChannel.send(it) }
-      }
-
-      val (deviceModel, processModel) = createDeviceModel(device1)
-      val foregroundProcessDetection =
-        ForegroundProcessDetectionImpl(
-          projectRule.disposable,
-          projectRule.project,
-          deviceModel,
-          processModel,
-          transportClient,
-          mock(),
-          mock(),
-          coroutineScope,
-          streamManagerRule.streamManager,
-          workDispatcher,
-          onDeviceDisconnected,
-          pollingIntervalMs = 500L,
-        )
-      foregroundProcessDetection.start()
-
-      connectDevice(device1)
-      handshakeSyncChannel.receive()
-      startTrackingSyncChannel.receive()
-
-      val changed =
-        DebugViewAttributes.getInstance().set(projectRule.project, device1.toDeviceDescriptor())
-      assertThat(changed).isTrue()
-
-      disconnectDevice(device1)
-      onDeviceDisconnectedSyncChannel.receive()
-
-      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-      assertThat(adbProperties.debugViewAttributes).isNull()
-    }
 
   @Test
   fun testStopPollingDeviceOnlyIfNotSelectedByOtherProjects(): Unit = runBlocking {

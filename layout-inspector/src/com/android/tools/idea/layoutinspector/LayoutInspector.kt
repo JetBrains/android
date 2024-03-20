@@ -25,7 +25,6 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -179,16 +178,11 @@ private constructor(
    * is not selected, stops process inspection by setting the selected process to null.
    *
    * A process can be selected when a device does not support foreground process detection.
-   *
-   * This method also resets device-level DebugViewAttributes from the device.
    */
   fun stopInspector() {
     coroutineScope.launch(AndroidDispatchers.workerThread) {
       val selectedDevice = deviceModel?.selectedDevice
       if (selectedDevice != null) {
-        val debugViewAttributes = DebugViewAttributes.getInstance()
-        debugViewAttributes.clear(inspectorModel.project, selectedDevice)
-
         foregroundProcessDetection?.stopPollingSelectedDevice()
       } else {
         processModel?.stop()

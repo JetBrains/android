@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -28,12 +27,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -77,8 +72,6 @@ class LayoutInspectorTest {
   private val projectRule = ProjectRule()
 
   private val adbRule = FakeAdbRule()
-  private val adbProperties: AdbDebugViewProperties =
-    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   private val timer = FakeTimer()
@@ -172,66 +165,6 @@ class LayoutInspectorTest {
     verifyNoMoreInteractions(mockForegroundProcessDetection)
     assertThat(processModel.selectedProcess).isNull()
   }
-
-  @Test
-  fun testStopInspectorResetsDebugViewAttributes() =
-    runBlockingWithFlagState(true) {
-      val (deviceModel, processModel) = createDeviceModel(device1)
-      val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-      val mockClientSettings = mock<InspectorClientSettings>()
-      val mockLauncher = mock<InspectorClientLauncher>()
-      whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-      val inspectorModel = InspectorModel(projectRule.project, scope)
-      val mockTreeSettings = mock<TreeSettings>()
-      val layoutInspector =
-        LayoutInspector(
-          scope,
-          processModel,
-          deviceModel,
-          mockForegroundProcessDetection,
-          mockClientSettings,
-          mockLauncher,
-          inspectorModel,
-          NotificationModel(projectRule.project),
-          mockTreeSettings,
-        )
-
-      val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
-
-      connectDevice(device1)
-
-      val debugViewAttributes = DebugViewAttributes.getInstance()
-      val changed = debugViewAttributes.set(projectRule.project, device1.toDeviceDescriptor())
-      assertThat(changed).isTrue()
-
-      // test has device, no process
-      deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
-      processModel.selectedProcess = null
-
-      layoutInspector.stopInspector()
-
-      scope.coroutineContext.job.children.forEach { it.join() }
-
-      verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
-      assertThat(processModel.selectedProcess).isNull()
-
-      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-      assertThat(adbProperties.debugViewAttributes).isNull()
-
-      // test no device, has process
-      deviceModel.setSelectedDevice(null)
-      processModel.selectedProcess = fakeProcess
-
-      layoutInspector.stopInspector()
-
-      scope.coroutineContext.job.children.forEach { it.join() }
-
-      verifyNoMoreInteractions(mockForegroundProcessDetection)
-      assertThat(processModel.selectedProcess).isNull()
-      // the device is still connected, so the global flag should not be reset
-      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-      assertThat(adbProperties.debugViewAttributes).isNull()
-    }
 
   @Test
   fun updateRenderOnModelChanges() {

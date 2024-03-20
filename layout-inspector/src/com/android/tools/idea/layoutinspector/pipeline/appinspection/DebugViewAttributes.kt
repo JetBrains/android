@@ -131,25 +131,6 @@ class DebugViewAttributes private constructor() {
     return settingsUpdated
   }
 
-  /**
-   * Disable debug view attributes for the device passed as argument, if they were previously set
-   * using this class.
-   */
-  @Slow
-  fun clear(project: Project, device: DeviceDescriptor) {
-    // the flag was not set using this class, we should not turn it off
-    if (!flagSet) return
-
-    try {
-      val adb = AdbUtils.getAdbFuture(project).get() ?: return
-      if (shouldExecuteDelete(adb, device)) {
-        executeDelete(adb, device)
-      }
-    } catch (_: Exception) {} finally {
-      flagSet = false
-    }
-  }
-
   private fun shouldSetFlag(adb: AndroidDebugBridge, device: DeviceDescriptor): Boolean {
     return !isPerDeviceSettingOn(adb, device)
   }
@@ -169,10 +150,6 @@ class DebugViewAttributes private constructor() {
     putCommand: Command.Put,
   ): String {
     return adb.executeShellCommand(device, putCommand.get())
-  }
-
-  private fun executeDelete(adb: AndroidDebugBridge, device: DeviceDescriptor) {
-    adb.executeShellCommand(device, Command.Delete(PER_DEVICE_SETTING).get())
   }
 
   private fun isPerDeviceSettingOn(adb: AndroidDebugBridge, device: DeviceDescriptor): Boolean {

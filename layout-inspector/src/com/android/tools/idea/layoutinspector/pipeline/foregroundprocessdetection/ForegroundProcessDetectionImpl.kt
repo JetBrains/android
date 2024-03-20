@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
@@ -406,10 +405,6 @@ class ForegroundProcessDetectionImpl(
             handler?.post(HandshakeState.Disconnected)
 
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
-              // when a device is disconnected we still want to call [DebugViewAttributes#clear],
-              // because this updates the state of the class.
-              val debugViewAttributes = DebugViewAttributes.getInstance()
-              debugViewAttributes.clear(project, streamDevice)
               deviceModel.selectedDevice = null
             }
 

@@ -57,10 +57,6 @@ class DebugViewAttributesTest {
     assertThat(debugViewAttributes.set(projectRule.project, device)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-
-    debugViewAttributes.clear(projectRule.project, device)
-    assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
@@ -71,10 +67,6 @@ class DebugViewAttributesTest {
     assertThat(debugViewAttributes.set(projectRule.project, device)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-
-    debugViewAttributes.clear(projectRule.project, device)
-    assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
@@ -83,10 +75,6 @@ class DebugViewAttributesTest {
     commandHandler.debugViewAttributes = "1"
 
     assertThat(debugViewAttributes.set(projectRule.project, device)).isFalse()
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
-
-    debugViewAttributes.clear(projectRule.project, device)
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }
