@@ -9,7 +9,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.STANDARD_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
@@ -63,6 +62,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     return channelFlow {
       val logcatFormat = logcatFormat(sdk)
       val cutoffTimeSupported = sdk >= 21
+
       /** [AndroidVersion.VersionCodes.LOLLIPOP] */
       val command = buildString {
         append("logcat -v long")
@@ -159,9 +159,9 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     }
   }
 
-  override suspend fun clearLogcat(device: Device) {
+  override suspend fun clearLogcat(serialNumber: String) {
     deviceServices.shellAsText(
-      DeviceSelector.fromSerialNumber(device.serialNumber),
+      DeviceSelector.fromSerialNumber(serialNumber),
       "logcat -c",
       commandTimeout = Duration.ofSeconds(2),
     )

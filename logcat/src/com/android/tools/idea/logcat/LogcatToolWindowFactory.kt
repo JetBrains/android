@@ -25,8 +25,10 @@ import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceFinder
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.getDefaultFilter
+import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
@@ -59,20 +61,29 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun init(toolWindow: ToolWindow) {
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
-    project.messageBus
-      .connect(toolWindow.disposable)
-      .subscribe(
-        ShowLogcatListener.TOPIC,
-        object : ShowLogcatListener {
-          override fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?) {
-            showLogcat(toolWindow, deviceInfo, applicationId)
-          }
+    val messageBusConnection = project.messageBus.connect(toolWindow.disposable)
+    messageBusConnection.subscribe(
+      ShowLogcatListener.TOPIC,
+      object : ShowLogcatListener {
+        override fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?) {
+          showLogcat(toolWindow, deviceInfo, applicationId)
+        }
 
-          override fun showLogcatFile(path: Path, displayName: String?) {
-            openLogcatFile(toolWindow, path, displayName)
+        override fun showLogcatFile(path: Path, displayName: String?) {
+          openLogcatFile(toolWindow, path, displayName)
+        }
+      },
+    )
+    messageBusConnection.subscribe(
+      ClearLogcatListener.TOPIC,
+      ClearLogcatListener { serialNumber ->
+        if (logcatPresenters.none { it.getConnectedDevice()?.serialNumber == serialNumber }) {
+          AndroidCoroutineScope(toolWindow.disposable).launch {
+            LogcatService.getInstance(project).clearLogcat(serialNumber)
           }
-        },
-      )
+        }
+      },
+    )
 
     ApplicationManager.getApplication().executeOnPooledThread {
       project.getService(ProcessNameMonitor::class.java).start()

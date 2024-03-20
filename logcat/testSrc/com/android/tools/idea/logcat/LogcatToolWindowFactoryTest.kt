@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
@@ -61,6 +62,7 @@ class LogcatToolWindowFactoryTest {
   private val disposableRule = DisposableRule()
 
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
+  private val fakeLogcatService = FakeLogcatService()
 
   @get:Rule
   val rule =
@@ -71,6 +73,7 @@ class LogcatToolWindowFactoryTest {
         DeviceComboBoxDeviceTrackerFactory::class.java,
         DeviceComboBoxDeviceTrackerFactory { deviceTracker },
       ),
+      ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
       EdtRule(),
       disposableRule,
     )
@@ -81,11 +84,9 @@ class LogcatToolWindowFactoryTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val fakeLogcatService = FakeLogcatService()
-
   @Before
   fun setUp() {
-    project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
+    project.replaceService(LogcatService::class.java, this.fakeLogcatService, disposable)
   }
 
   @Test
@@ -218,6 +219,16 @@ class LogcatToolWindowFactoryTest {
     waitForCondition { logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile() != null }
     assertThat(content.tabName).isEqualTo("name")
     assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile()).isEqualTo(path)
+  }
+
+  @Test
+  fun clearLogcat_clearsLogcat() {
+    val toolWindow = MockToolWindow(project)
+    logcatToolWindowFactory().init(toolWindow)
+
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("serial")
+
+    waitForCondition { fakeLogcatService.clearRequests.contains("serial") }
   }
 
   private fun logcatToolWindowFactory(

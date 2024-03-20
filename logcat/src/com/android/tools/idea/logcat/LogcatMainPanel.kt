@@ -807,7 +807,7 @@ constructor(
           )
         } else {
           try {
-            logcatService.clearLogcat(device)
+            logcatService.clearLogcat(device.serialNumber)
           } catch (e: TimeoutException) {
             LOGGER.warn("Timed out executing logcat -c")
             systemMessages.add(

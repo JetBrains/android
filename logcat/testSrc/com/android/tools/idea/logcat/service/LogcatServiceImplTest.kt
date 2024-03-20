@@ -363,7 +363,7 @@ class LogcatServiceImplTest {
     fakeAdb.addDeviceCommandHandler(logcatHandler)
     fakeAdb.attachDevice(device.serialNumber, manufacturer = "", model = "", release = "", sdk = "")
 
-    val job = launch { service.clearLogcat(device) }
+    val job = launch { service.clearLogcat(device.serialNumber) }
     yieldUntil { logcatHandler.lastDeviceId == device.serialNumber }
     job.cancel()
 
