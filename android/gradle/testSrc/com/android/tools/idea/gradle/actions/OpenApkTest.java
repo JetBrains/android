@@ -35,28 +35,29 @@ import java.awt.Component;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link GoToBundleLocationTask}.
+ * Tests for {@link GoToApkLocationTask}.
  */
-public class OpenBundleAnalyzerTest extends HeavyPlatformTestCase {
+public class OpenApkTest extends HeavyPlatformTestCase {
   private File myTmpDir;
-  private File myBundle;
+  private File myApk;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     // In order not to violate the assertion in TestEditorManagerImpl.java
-    // that return of getDocument is not null, .aab extension is omitted here.
-    myBundle = createTempFile("myFooAppBundle", "foo..foo..foo..");
-    myTmpDir = myBundle.getParentFile();
+    // that return of getDocument is not null, .apk extension is omitted here.
+    myApk = createTempFile("myFooAppApk", "foo..foo..foo..");
+    myTmpDir = myApk.getParentFile();
   }
 
   public void testOpenAnalyzerOpenDir() {
-    VirtualFile target = findFileByIoFile(myBundle, true);
+    VirtualFile target = findFileByIoFile(myApk, true);
     IdeComponents ideComponents = new IdeComponents(getProject());
     ideComponents.replaceApplicationService(FileChooserFactory.class, new FileChooserFactoryImpl() {
       @NotNull
@@ -70,25 +71,67 @@ public class OpenBundleAnalyzerTest extends HeavyPlatformTestCase {
       }
     });
 
-    Map<String, File> bundlePathsMap = new HashMap<>();
-    bundlePathsMap.put("fooApp", myTmpDir);
+    Map<String, File> apkPathsMap = new HashMap<>();
+    apkPathsMap.put("fooApp", myTmpDir);
 
-    GoToBundleLocationTask.OpenFolderNotificationListener listener =
-      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap);
+    GoToApkLocationTask.OpenFolderNotificationListener listener =
+      new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));
   }
 
   public void testOpenAnalyzerOpenFile() {
-    VirtualFile target = findFileByIoFile(myBundle, true);
-    Map<String, File> bundlePathsMap = new HashMap<>();
-    bundlePathsMap.put("fooApp", myBundle);
+    VirtualFile target = findFileByIoFile(myApk, true);
+    Map<String, File> apkPathsMap = new HashMap<>();
+    apkPathsMap.put("fooApp", myApk);
 
-    GoToBundleLocationTask.OpenFolderNotificationListener listener =
-      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap);
+    GoToApkLocationTask.OpenFolderNotificationListener listener =
+      new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));
+  }
+
+  public void testOpenLocationOpenFile() {
+    Map<String, File> apkPathsMap = new HashMap<>();
+    apkPathsMap.put("fooApp", myApk);
+
+    PathOpener fileOpener = new PathOpener();
+    PathOpener dirOpener = new PathOpener();
+    GoToApkLocationTask.OpenFolderNotificationListener listener =
+      new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject,
+                                                             new GoToApkLocationTask.FileOrDirOpener(fileOpener, dirOpener));
+    HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "module:fooApp");
+    listener.hyperlinkActivated(mock(Notification.class), e);
+
+    assertTrue(fileOpener.invoked);
+    assertFalse(dirOpener.invoked);
+  }
+
+  public void testOpenLocationOpenDir() {
+    Map<String, File> apkPathsMap = new HashMap<>();
+    File dir = new File(myTmpDir, "foo_dir");
+    dir.mkdirs();
+    apkPathsMap.put("fooApp", dir);
+
+    PathOpener fileOpener = new PathOpener();
+    PathOpener dirOpener = new PathOpener();
+    GoToApkLocationTask.OpenFolderNotificationListener listener =
+      new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject,
+                                                             new GoToApkLocationTask.FileOrDirOpener(fileOpener, dirOpener));
+    HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "module:fooApp");
+    listener.hyperlinkActivated(mock(Notification.class), e);
+
+    assertTrue(dirOpener.invoked);
+    assertFalse(fileOpener.invoked);
+  }
+
+  static class PathOpener implements Consumer<File> {
+    boolean invoked = false;
+    @Override
+    public void accept(File file) {
+      invoked = true;
+    }
   }
 }

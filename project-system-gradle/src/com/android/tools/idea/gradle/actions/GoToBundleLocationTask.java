@@ -21,6 +21,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.actions.GoToApkLocationTask.FileOrDirOpener;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.project.AndroidNotification;
@@ -177,11 +178,20 @@ public class GoToBundleLocationTask {
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
     @NotNull private final Map<String, File> myBundlePathsPerModule;
+    @NotNull private final FileOrDirOpener myLocationOpener;
 
     OpenFolderNotificationListener(@NotNull Project project,
                                    @NotNull Map<String, File> myBuildsAndBundlePaths) {
+      this(project, myBuildsAndBundlePaths, new FileOrDirOpener());
+    }
+
+    @VisibleForTesting
+    OpenFolderNotificationListener(@NotNull Project project,
+                                   @NotNull Map<String, File> myBuildsAndBundlePaths,
+                                   @NotNull FileOrDirOpener locationOpener) {
       myProject = project;
       myBundlePathsPerModule = myBuildsAndBundlePaths;
+      myLocationOpener = locationOpener;
     }
 
     @Override
@@ -196,7 +206,8 @@ public class GoToBundleLocationTask {
         openBundleAnalyzer(description.substring(ANALYZE_URL_PREFIX.length()));
       }
       else if (description.startsWith(LOCATE_URL_PREFIX)) {
-        openBundleDirectory(description.substring(LOCATE_URL_PREFIX.length()));
+        File file = myBundlePathsPerModule.get(description.substring(LOCATE_URL_PREFIX.length()));
+        myLocationOpener.openLocation(file);
       }
     }
 
@@ -230,10 +241,6 @@ public class GoToBundleLocationTask {
       return FileChooser.chooseFile(descriptor, myProject, LocalFileSystem.getInstance().findFileByIoFile(bundleFile));
     }
 
-    private void openBundleDirectory(String path) {
-      showFileOrDirectory(myBundlePathsPerModule.get(path));
-    }
-
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -249,13 +256,6 @@ public class GoToBundleLocationTask {
     @Override
     public int hashCode() {
       return Objects.hash(myBundlePathsPerModule);
-    }
-
-    private static void showFileOrDirectory(@NotNull File file) {
-      if (file.isFile()) {
-        file = file.getParentFile();
-      }
-      RevealFileAction.openDirectory(file);
     }
   }
 
