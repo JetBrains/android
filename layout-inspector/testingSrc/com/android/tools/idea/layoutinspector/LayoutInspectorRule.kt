@@ -35,7 +35,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -323,8 +322,6 @@ class LayoutInspectorRule(
       dataProviderForLayoutInspector(inspector),
       projectRule.fixture.testRootDisposable,
     )
-
-    DebugViewAttributes.reset()
   }
 
   fun disconnect() {

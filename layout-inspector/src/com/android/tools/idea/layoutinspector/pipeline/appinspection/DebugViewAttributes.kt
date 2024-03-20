@@ -25,7 +25,6 @@ import com.google.common.html.HtmlEscapers
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Command that will be run on the device through adb shell. Used to put, delete and get the
@@ -61,26 +60,7 @@ private const val PER_DEVICE_SETTING = "debug_view_attributes"
  * limited capacity, it can only show images and the bounds of the root views, which on its own is
  * not very useful.
  */
-class DebugViewAttributes private constructor() {
-
-  companion object {
-    private var instance: DebugViewAttributes? = null
-
-    fun getInstance(): DebugViewAttributes {
-      if (instance == null) {
-        instance = DebugViewAttributes()
-      }
-
-      return instance!!
-    }
-
-    @TestOnly
-    fun reset() {
-      instance = null
-    }
-  }
-
-  private var flagSet = false
+object DebugViewAttributes {
 
   /**
    * Enable debug view attributes for the current process.
@@ -91,9 +71,6 @@ class DebugViewAttributes private constructor() {
    */
   @Slow
   fun set(project: Project, device: DeviceDescriptor): Boolean {
-    // flag was already set - no need to set twice
-    if (flagSet) return false
-
     var errorMessage: String
     var settingsUpdated = false
 

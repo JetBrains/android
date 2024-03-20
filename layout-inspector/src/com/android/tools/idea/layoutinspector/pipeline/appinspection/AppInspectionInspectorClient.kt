@@ -186,8 +186,7 @@ class AppInspectionInspectorClient(
 
         logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-        debugViewAttributesChanged =
-          DebugViewAttributes.getInstance().set(model.project, process.device)
+        debugViewAttributesChanged = DebugViewAttributes.set(model.project, process.device)
         if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
           showActivityRestartedInBanner(model.project, notificationModel, process)
         }

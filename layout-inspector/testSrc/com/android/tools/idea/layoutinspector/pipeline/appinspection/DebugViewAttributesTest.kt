@@ -52,29 +52,25 @@ class DebugViewAttributesTest {
 
   @Test
   fun testSetAndClear_perDeviceSetting() {
-    val debugViewAttributes = DebugViewAttributes.getInstance()
-
-    assertThat(debugViewAttributes.set(projectRule.project, device)).isTrue()
+    assertThat(DebugViewAttributes.set(projectRule.project, device)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
   }
 
   @Test
   fun testSetAndClearWhenPerDeviceIsZero_perDeviceSetting() {
-    val debugViewAttributes = DebugViewAttributes.getInstance()
     commandHandler.debugViewAttributes = "0"
 
-    assertThat(debugViewAttributes.set(projectRule.project, device)).isTrue()
+    assertThat(DebugViewAttributes.set(projectRule.project, device)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
   }
 
   @Test
   fun testSetAndClearWhenPerDeviceIsSet_perDeviceSetting() {
-    val debugViewAttributes = DebugViewAttributes.getInstance()
     commandHandler.debugViewAttributes = "1"
 
-    assertThat(debugViewAttributes.set(projectRule.project, device)).isFalse()
+    assertThat(DebugViewAttributes.set(projectRule.project, device)).isFalse()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }

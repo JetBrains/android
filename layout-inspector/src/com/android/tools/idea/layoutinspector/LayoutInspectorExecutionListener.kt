@@ -78,9 +78,8 @@ class LayoutInspectorExecutionListener : ExecutionListener {
         override val pid: Int = 0
         override val streamId: Long = 0L
       }
-    val debugViewAttributes = DebugViewAttributes.getInstance()
 
-    if (debugViewAttributes.set(project, descriptor)) {
+    if (DebugViewAttributes.set(project, descriptor)) {
       handler.addProcessListener(
         object : ProcessAdapter() {
           override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {}
