@@ -42,8 +42,8 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     override val actionName: String
       get() = when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> "Profile with low overhead"
-        ProfilingMode.DEBUGGABLE -> "Profile with complete data"
+        ProfilingMode.PROFILEABLE -> "Profile with low overhead (profileable)"
+        ProfilingMode.DEBUGGABLE -> "Profile with complete data (debuggable)"
         else -> "Profile"
       }
 
@@ -58,8 +58,8 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project) = true
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
-      ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
-      ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data"
+      ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead (profileable)"
+      ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data (debuggable)"
       else -> "Profile '$configurationName'"
     }
   }
