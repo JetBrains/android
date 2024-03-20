@@ -235,6 +235,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val id = myRequest.taskId
         val taskListener = myListener
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+        val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
         taskListener.onStart(id, gradleRootProjectPath)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
@@ -327,7 +328,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } else {
             (operation as BuildLauncher).forTasks(*ArrayUtil.toStringArray(gradleTasks))
           }
-          operation.withCancellationToken(cancellationTokenSource.token())
+          operation.withCancellationToken(cancellationToken)
           if (Registry.`is`("gradle.report.recently.saved.paths")) {
             ApplicationManager.getApplication()
               .getService(GradleFileModificationTracker::class.java)
@@ -360,7 +361,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               } else {
                 buildState.buildFinished(BuildStatus.FAILED)
               val buildEnvironment: BuildEnvironment? = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener,
-                                                                                                 cancellationTokenSource, executionSettings)
+                                                                                                  cancellationToken, executionSettings)
                 val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
               val userFriendlyError = projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
                 taskListener.onFailure(id, userFriendlyError)
