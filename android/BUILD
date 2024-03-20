@@ -359,6 +359,8 @@ filegroup(
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/base/app-inspection/inspectors/backgroundtask:agent",
         "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
+        "//tools/base/app-inspection/inspectors/database:agent",
+        "//tools/base/app-inspection/inspectors/database:database_inspector_java_proto",
         "//tools/base/app-inspection/inspectors/network:agent",
         "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
     ],
