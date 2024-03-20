@@ -287,6 +287,8 @@ class WearHealthServicesToolWindowStateManagerTest {
   fun `test periodic updates do not run if the tool window is not visible`() = runBlocking {
     stateManager.runPeriodicUpdates = false
 
+    stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
+
     deviceManager.activeExercise = true
 
     stateManager.forceUpdateState()
