@@ -34,8 +34,9 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.flow.previewElementFlowForFile
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -204,11 +205,13 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
+      val previewElementProvider =
+        FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
 
       launch(workerThread) {
         // Launch all the listeners that are bound to the current activation.
         ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
-            previewElementFlowForFile(psiFilePointer) { defaultFilePreviewElementFinder }
+            previewElementsOnFileChangesFlow(project) { previewElementProvider }
               .map {
                 when (it) {
                   is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized

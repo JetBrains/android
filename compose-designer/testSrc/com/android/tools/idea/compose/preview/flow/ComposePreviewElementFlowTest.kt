@@ -21,7 +21,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.preview.flow.previewElementFlowForFile
+import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
@@ -75,10 +76,12 @@ class ComposePreviewElementFlowTest {
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
     val previousElement = AtomicReference<Collection<ComposePreviewElement<*>>>(emptySet())
+    val previewElementProvider =
+      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
-        previewElementFlowForFile(psiFilePointer) { defaultFilePreviewElementFinder }
+        previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
           .map { it.asCollection() }
           .onEach { newValue ->
             val previousValue = previousElement.getAndSet(newValue)
@@ -184,11 +187,13 @@ class ComposePreviewElementFlowTest {
           .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val previewElementProvider =
+      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
 
     runBlocking {
       val flowScope = createChildScope()
       val flow =
-        previewElementFlowForFile(psiFilePointer) { defaultFilePreviewElementFinder }
+        previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
           .stateIn(flowScope)
       assertEquals(
         "Preview1 - A,Preview1 - B",

@@ -17,13 +17,12 @@ package com.android.tools.idea.preview.flow
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.preview.PreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiModificationTracker
 import kotlinx.coroutines.FlowPreview
@@ -71,15 +70,14 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
   }
 
 /**
- * Creates a new [Flow] containing all the [PreviewElement]s contained in the given
- * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
- * [PreviewElement]s. This flow takes into account any changes in any Kotlin files since
+ * Creates a new [Flow] returning all the [PreviewElement]s from a given [PreviewElementProvider]
+ * any time a file changes. This flow takes into account any changes in any Kotlin files since
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
-fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementFlowForFile(
-  psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  filePreviewElementProvider: () -> FilePreviewElementFinder<T>,
+fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementsOnFileChangesFlow(
+  project: Project,
+  previewElementProvider: () -> PreviewElementProvider<T>,
 ): Flow<FlowableCollection<T>> {
   return channelFlow {
       coroutineScope {
@@ -89,17 +87,11 @@ fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementFlowF
         // when the indexes are updated (they are not immediately ready after e.g. a project is
         // created) and we do not receive the required preview elements.
         val languageChangeFlow =
-          languageModificationFlow(
-              psiFilePointer.project,
-              setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE),
-            )
+          languageModificationFlow(project, setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE))
             // debounce to avoid many equality comparisons of the set
             .debounce(250)
         languageChangeFlow.collectLatest {
-          val previews =
-            filePreviewElementProvider()
-              .findPreviewElements(psiFilePointer.project, psiFilePointer.virtualFile)
-              .toSet()
+          val previews = previewElementProvider().previewElements().toSet()
           send(FlowableCollection.Present(previews))
         }
       }
