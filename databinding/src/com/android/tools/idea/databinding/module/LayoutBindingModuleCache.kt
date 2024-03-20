@@ -40,7 +40,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -185,37 +184,28 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
       ApplicationManager.getApplication().assertReadAccessAllowed()
 
       val project = module.project
-      return CachedValuesManager.getManager(project)
-        .getCachedValue(facet, BindingLayoutGroupCachedValueProvider(facet, project))
+      return CachedValuesManager.getManager(project).getCachedValue(facet) {
+        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
+        val modificationTracker = ModificationTracker { moduleResources.modificationCount }
+        val layoutResources =
+          moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+        val bindingLayoutGroups =
+          layoutResources
+            .values()
+            .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
+            .groupBy { info -> info.file.name }
+            .map { entry -> BindingLayoutGroup(entry.value) }
+            .toSet()
+
+        // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
+        // so we must incorporate both into the modification count (see b/283753328).
+        CachedValueProvider.Result(
+          bindingLayoutGroups,
+          modificationTracker,
+          BindingXmlIndexModificationTracker.getInstance(project),
+        )
+      }
     }
-
-  private class BindingLayoutGroupCachedValueProvider(
-    private val facet: AndroidFacet,
-    private val project: Project,
-  ) : CachedValueProvider<Set<BindingLayoutGroup>> {
-
-    override fun compute(): CachedValueProvider.Result<Set<BindingLayoutGroup>> {
-      val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-      val modificationTracker = ModificationTracker { moduleResources.modificationCount }
-      val layoutResources =
-        moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
-      val bindingLayoutGroups =
-        layoutResources
-          .values()
-          .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
-          .groupBy { info -> info.file.name }
-          .map { entry -> BindingLayoutGroup(entry.value) }
-          .toSet()
-
-      // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
-      // so we must incorporate both into the modification count (see b/283753328).
-      return CachedValueProvider.Result(
-        bindingLayoutGroups,
-        modificationTracker,
-        BindingXmlIndexModificationTracker.getInstance(project),
-      )
-    }
-  }
 
   /**
    * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
