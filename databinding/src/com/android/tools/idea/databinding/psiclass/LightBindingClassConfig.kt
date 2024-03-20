@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 
 /** All values needed to generate a specific [LightBindingClass] */
@@ -158,6 +159,13 @@ data class BindingClassConfig(
 
   override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() {
+      if (DumbService.isDumb(facet.module.project)) {
+        thisLogger().error("scopedViewIds: called while in dumb mode")
+      }
+      if (!application.isReadAccessAllowed) {
+        thisLogger().error("scopedViewIds: called without read access")
+      }
+
       val viewIds = mutableMapOf<BindingLayout, Collection<ViewIdData>>()
       for (layout in group.layouts) {
         val xmlFile = layout.toXmlFile()
