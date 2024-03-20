@@ -17,8 +17,10 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.projectsystem.isMainModule
-import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.PseudoLocalesToken
+import com.android.tools.idea.projectsystem.gradle.GradlePseudoLocalesToken
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,10 +28,6 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.RunManager
-import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.configurations.ModuleBasedConfiguration
-import com.intellij.openapi.project.modules
 import com.intellij.testFramework.EdtRule
 import org.junit.Before
 import org.junit.Rule
@@ -48,6 +46,17 @@ class AppLanguageServiceImplTest {
       AndroidModuleModelBuilder(":two", "debug", createApp("com.example.two")),
     ).onEdt()
 
+  private val pseudoLocalesToken = object : PseudoLocalesToken {
+    override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState =
+      when (applicationProjectContext.applicationId) {
+        "com.example.one" -> PseudoLocalesToken.PseudoLocalesState.DISABLED
+        "com.example.two" -> PseudoLocalesToken.PseudoLocalesState.ENABLED
+        else -> PseudoLocalesToken.PseudoLocalesState.UNKNOWN
+      }
+
+    override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
+  }
+
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
@@ -57,6 +66,9 @@ class AppLanguageServiceImplTest {
     projectRule.fixture.addFileToProject("one/res/values-da/strings.xml", createStringsFile("Hallo"))
     projectRule.fixture.addFileToProject("two/res/values/strings.xml", createStringsFile("Hello"))
     projectRule.fixture.addFileToProject("two/res/values-ru/strings.xml", createStringsFile("Привет"))
+    val extensionPoint = projectRule.project.extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
+    extensionPoint.unregisterExtension(GradlePseudoLocalesToken::class.java)
+    extensionPoint.registerExtension(pseudoLocalesToken, projectRule.testRootDisposable)
   }
 
   private fun createStringsFile(helloTranslation: String): String {
@@ -73,7 +85,11 @@ class AppLanguageServiceImplTest {
     val services = AppLanguageService.getInstance(projectRule.project)
     assertThat(services.getAppLanguageInfo()).containsExactly(
       AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da"))),
-      AppLanguageInfo("com.example.two", setOf(LocaleQualifier("ru"))),
+      AppLanguageInfo("com.example.two", setOf(
+        LocaleQualifier("ru"),
+        LocaleQualifier(null, "en", "XA", null),
+        LocaleQualifier(null, "ar", "XB", null))
+      ),
     )
   }
 
@@ -83,15 +99,4 @@ class AppLanguageServiceImplTest {
       mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
       applicationIdFor = { applicationId },
     )
-
-  private fun addConfig(name: String, moduleSuffix: String): RunnerAndConfigurationSettings {
-    val project = projectRule.project
-    val manager = RunManager.getInstance(project)
-    val settings = manager.createConfiguration(name, AndroidRunConfigurationType::class.java)
-    val config = settings.configuration as ModuleBasedConfiguration<*, *>
-    val module = project.modules.find { it.isMainModule() && it.name.endsWith(moduleSuffix) }!!
-    config.setModule(module)
-    manager.addConfiguration(settings)
-    return settings
-  }
 }

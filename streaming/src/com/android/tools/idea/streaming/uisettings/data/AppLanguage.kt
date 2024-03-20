@@ -18,12 +18,15 @@ package com.android.tools.idea.streaming.uisettings.data
 import com.android.ide.common.resources.LocaleManager
 import com.android.ide.common.resources.configuration.LocaleQualifier
 
-internal val DEFAULT_LANGUAGE = AppLanguage("", "System default")
+internal val DEFAULT_LANGUAGE = AppLanguage(null, "System default")
 
 /**
  * A language consisting of a locale [tag] like "en-US" or "" for the default locale and a human readable language name.
  */
-internal data class AppLanguage(val tag: String, val name: String) {
+internal data class AppLanguage(val locale: LocaleQualifier?, val name: String) {
+
+  val tag: String
+    get() = locale?.tag ?: ""
 
   /**
    * This is the value displayed by default in a dropdown with [AppLanguage] values.
@@ -36,7 +39,7 @@ internal data class AppLanguage(val tag: String, val name: String) {
  */
 internal fun convertFromLocaleConfig(localeConfig: Set<LocaleQualifier>): List<AppLanguage> {
   val result = mutableListOf<AppLanguage>()
-  localeConfig.mapNotNullTo(result) { createAppLanguageFromLocale(it) }.sortBy { it.name }
+  localeConfig.mapNotNullTo(result) { createAppLanguageFromLocale(it) }.sortWith(appLanguageComparator)
   result.add(index = 0, DEFAULT_LANGUAGE)
   return result
 }
@@ -44,8 +47,26 @@ internal fun convertFromLocaleConfig(localeConfig: Set<LocaleQualifier>): List<A
 private fun createAppLanguageFromLocale(locale: LocaleQualifier): AppLanguage? {
   val language = locale.language?.let { LocaleManager.getLanguageName(it) } ?: return null
   val region = locale.region?.let { LocaleManager.getRegionName(it) }
-  if (region == null) {
-    return AppLanguage(locale.tag, language)
+  return when {
+    region != null -> AppLanguage(locale, "$language in $region")
+    locale.isPseudoLocale -> AppLanguage(locale, "Pseudo $language")
+    else -> AppLanguage(locale, language)
   }
-  return AppLanguage(locale.tag, "$language in $region")
 }
+
+private val appLanguageComparator = Comparator<AppLanguage> { language1, language2 ->
+  val pseudo = language1.isPseudoLocale.compareTo(language2.isPseudoLocale)
+  when {
+    pseudo != 0 -> pseudo
+    language1.isPseudoLocale -> language1.locale?.region?.compareTo(language2.locale?.region ?: "") ?: -1
+    else -> language1.name.compareTo(language2.name)
+  }
+}
+
+private val PSEUDO_LOCALE_REGIONS = setOf("XA", "XB", "XC")
+
+private val LocaleQualifier.isPseudoLocale: Boolean
+  get() = region in PSEUDO_LOCALE_REGIONS
+
+private val AppLanguage.isPseudoLocale: Boolean
+  get() = locale?.isPseudoLocale ?: false

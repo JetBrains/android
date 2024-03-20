@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.testutil
 
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
 import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
 import com.android.tools.idea.streaming.emulator.DEFAULT_DENSITY
@@ -26,8 +27,8 @@ import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListener
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 
-internal val DANISH_LANGUAGE = AppLanguage("da", "Danish")
-internal val RUSSIAN_LANGUAGE = AppLanguage("ru", "Russian")
+internal val DANISH_LANGUAGE = AppLanguage(LocaleQualifier(null, "da", null, null), "Danish")
+internal val RUSSIAN_LANGUAGE = AppLanguage(LocaleQualifier(null, "ru", null, null), "Russian")
 
 /**
  * Sets up model property listeners in order to validate listeners in the device and emulator controller tests.
