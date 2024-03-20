@@ -27,11 +27,13 @@ import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndexModificationTracker
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
+import com.android.tools.idea.databinding.psiclass.EagerLightBindingClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -237,24 +239,32 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   private fun createLightBindingClasses(
     facet: AndroidFacet,
     group: BindingLayoutGroup,
-  ): List<LightBindingClass> = buildList {
-    // Always add a full "Binding" class.
-    val psiManager = PsiManager.getInstance(facet.module.project)
-    add(LightBindingClass(psiManager, BindingClassConfig(facet, group)).withMarkedBackingFile())
+  ): List<LightBindingClass> {
+    val configs = buildList {
+      // Always add a full "Binding" class.
+      add(BindingClassConfig(facet, group))
 
-    // "Impl" classes are only necessary if we have more than a single configuration.
-    // Also, only create "Impl" bindings for data binding; view binding does not generate them
-    if (
-      group.layouts.size > 1 &&
-        group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
-    ) {
-      for (layoutIndex in group.layouts.indices) {
-        add(
-          LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
-            .withMarkedBackingFile()
-        )
+      // "Impl" classes are only necessary if we have more than a single configuration.
+      // Also, only create "Impl" bindings for data binding; view binding does not generate them
+      if (
+        group.layouts.size > 1 &&
+          group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
+      ) {
+        for (layoutIndex in group.layouts.indices) {
+          add(BindingImplClassConfig(facet, group, layoutIndex))
+        }
       }
     }
+
+    // If we are evaluating config when it's constructed, wrap the above config objects in an
+    // implementation that will eagerly evaluate their data now.
+    val wrappedConfigs =
+      if (StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION.get())
+        configs.map(::EagerLightBindingClassConfig)
+      else configs
+
+    val psiManager = PsiManager.getInstance(facet.module.project)
+    return wrappedConfigs.map { LightBindingClass(psiManager, it).withMarkedBackingFile() }
   }
 
   override fun dispose() {}

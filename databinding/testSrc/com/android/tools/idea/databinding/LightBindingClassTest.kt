@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.flags.junit.FlagRule
 import com.android.resources.ResourceUrl
 import com.android.testutils.TestUtils
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
@@ -24,6 +25,7 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.databinding.viewbinding.LightViewBindingClassTest
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -40,6 +42,7 @@ import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
@@ -53,6 +56,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.util.application
 import java.io.File
 import org.junit.Before
 import org.junit.Rule
@@ -70,6 +74,8 @@ class LightBindingClassTest {
   // We want to run tests on EDT, but we also need to make sure the project rule is not initialized
   // on EDT.
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @get:Rule val flagRule = FlagRule(StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION)
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -1351,6 +1357,121 @@ class LightBindingClassTest {
 
     assertThat(lightBindingClass1).isNotSameAs(lightBindingClass2)
     assertThat(lightBindingClass1).isEqualTo(lightBindingClass2)
+  }
+
+  @Test
+  fun bindingConfigEvaluatedLazily() {
+    StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION.override(false)
+    val layoutBindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            <Button android:id="@+id/test_button" />
+          </LinearLayout>
+        </layout>
+        """
+          .trimIndent(),
+      )
+    waitForResourceRepositoryUpdates(facet)
+
+    val classBeforeUpdate = layoutBindingModuleCache.getLightBindingClasses().single()
+
+    application.runWriteAction {
+      file.virtualFile.writeText(
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            <Button android:id="@+id/test_button" />
+            <Button android:id="@+id/test_button2" />
+          </LinearLayout>
+        </layout>
+        """
+          .trimIndent()
+      )
+    }
+    waitForResourceRepositoryUpdates(facet)
+
+    val classAfterUpdate = layoutBindingModuleCache.getLightBindingClasses().single()
+
+    assertThat(classAfterUpdate).isNotSameAs(classBeforeUpdate)
+
+    // Since config is lazily evaluated, the class generated before the update will still have the
+    // fields from after the update, since it hasn't been evaluated yet.
+    assertThat(classBeforeUpdate.fields).hasLength(2)
+    assertThat(classBeforeUpdate.fields.map { it.name })
+      .containsExactly("testButton", "testButton2")
+
+    assertThat(classAfterUpdate.fields).hasLength(2)
+    assertThat(classAfterUpdate.fields.map { it.name }).containsExactly("testButton", "testButton2")
+  }
+
+  @Test
+  fun bindingConfigEvaluatedAtConstruction() {
+    StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION.override(true)
+    val layoutBindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            <Button android:id="@+id/test_button" />
+          </LinearLayout>
+        </layout>
+        """
+          .trimIndent(),
+      )
+    waitForResourceRepositoryUpdates(facet)
+
+    val classBeforeUpdate = layoutBindingModuleCache.getLightBindingClasses().single()
+
+    application.runWriteAction {
+      file.virtualFile.writeText(
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            <Button android:id="@+id/test_button" />
+            <Button android:id="@+id/test_button2" />
+          </LinearLayout>
+        </layout>
+        """
+          .trimIndent()
+      )
+    }
+    waitForResourceRepositoryUpdates(facet)
+
+    val classAfterUpdate = layoutBindingModuleCache.getLightBindingClasses().single()
+
+    assertThat(classAfterUpdate).isNotSameAs(classBeforeUpdate)
+
+    // Since config is evaluated right away, the class generated before the update will have fields
+    // corresponding to when it was constructed even though the fields aren't requested until now.
+    assertThat(classBeforeUpdate.fields).hasLength(1)
+    assertThat(classBeforeUpdate.fields.map { it.name }).containsExactly("testButton")
+
+    assertThat(classAfterUpdate.fields).hasLength(2)
+    assertThat(classAfterUpdate.fields.map { it.name }).containsExactly("testButton", "testButton2")
   }
 }
 

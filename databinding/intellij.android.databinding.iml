@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

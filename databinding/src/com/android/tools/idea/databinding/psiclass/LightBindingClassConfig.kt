@@ -236,3 +236,46 @@ data class BindingImplClassConfig(
 
   override fun settersShouldBeAbstract() = false
 }
+
+/**
+ * Implementation of [LightBindingClassConfig] that requires all data to be known at the time of
+ * construction.
+ *
+ * This is being used to address b/330744400. The hope is that by evaluating this data at
+ * construction, the contained data will never be out of date or fetched at the wrong time (ie,
+ * during indexing). If this works as intended, this class can be removed and the other config
+ * implementations can be updated to similarly evaluate their data on construction.
+ */
+data class EagerLightBindingClassConfig(
+  override val facet: AndroidFacet,
+  override val targetLayout: BindingLayout,
+  override val superName: String,
+  override val className: String,
+  override val qualifiedName: String,
+  override val rootType: String,
+  override val variableTags: List<Pair<VariableData, XmlTag>>,
+  override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>,
+  private val shouldGenerateGettersAndStaticMethods: Boolean,
+  private val settersShouldBeAbstract: Boolean,
+) : LightBindingClassConfig {
+
+  /** Creates a [LightBindingClassConfig] by eagerly evaluating another config class's data. */
+  constructor(
+    other: LightBindingClassConfig
+  ) : this(
+    other.facet,
+    other.targetLayout,
+    other.superName,
+    other.className,
+    other.qualifiedName,
+    other.rootType,
+    other.variableTags,
+    other.scopedViewIds,
+    other.shouldGenerateGettersAndStaticMethods(),
+    other.settersShouldBeAbstract(),
+  )
+
+  override fun shouldGenerateGettersAndStaticMethods() = shouldGenerateGettersAndStaticMethods
+
+  override fun settersShouldBeAbstract() = settersShouldBeAbstract
+}

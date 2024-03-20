@@ -1107,6 +1107,17 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION = new BooleanFlag(
+    EDITOR, "evaluate.binding.config.at.construction",
+    "Enable evaluating binding class config when it is constructed.",
+    "If enabled, binding class config is evaluated when it is constructed, rather than lazily when it is requested.",
+    true
+  );
+
+  //endregion
+
+  //region Essentials Mode
+
   public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
 
 
