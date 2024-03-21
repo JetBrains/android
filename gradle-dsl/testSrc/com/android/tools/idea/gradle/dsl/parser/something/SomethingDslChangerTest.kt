@@ -97,7 +97,7 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
     """.trimIndent()
     doTest(file, expected) {
       val call = (elements.first().value as DependenciesDslElement).elements.first().value as GradleDslMethodCall
-      call.methodName = "api"
+      call.nameElement.rename("api")
     }
   }
 

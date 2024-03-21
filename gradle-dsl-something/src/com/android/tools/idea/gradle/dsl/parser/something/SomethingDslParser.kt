@@ -90,7 +90,8 @@ class SomethingDslParser(
 
         override fun visitFactory(psi: SomethingFactory) {
           val name = psi.identifier.name ?: return
-          val methodCall = GradleDslMethodCall(context, GradleNameElement.empty(), name)
+          val nameElement = GradleNameElement.from(psi.identifier, this@SomethingDslParser)
+          val methodCall = GradleDslMethodCall(context, nameElement, name)
           methodCall.psiElement = psi
           methodCall.argumentsElement.psiElement = psi.argumentsList
 

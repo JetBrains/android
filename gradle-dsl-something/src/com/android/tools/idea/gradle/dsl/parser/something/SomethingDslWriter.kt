@@ -112,26 +112,14 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
     val call = createDslElement(methodCall)
     methodCall.argumentsElement.psiElement = (call as SomethingFactory).argumentsList
-    methodCall.arguments.firstOrNull()?.let {
-      it.create()
-    }
+    methodCall.arguments.firstOrNull()?.create()
     return call
   }
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {
-    maybeUpdateMethodName(methodCall)
+    maybeUpdateName(methodCall)
     methodCall.argumentsElement.applyChanges()
   }
 
-  private fun maybeUpdateMethodName(methodCall: GradleDslMethodCall){
-    val localName = methodCall.methodName
-    val nameElement = (methodCall.psiElement as? SomethingFactory)?.identifier ?: return
-    val oldName = nameElement.name ?: return
-    if (localName.isNullOrEmpty() || oldName == localName) return
-
-    val newName = GradleNameElement.unescape(localName)
-
-    nameElement.setName(newName)
-  }
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
 
