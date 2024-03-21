@@ -80,6 +80,7 @@ class SomethingDslParser(
           val name = psi.identifier?.name ?: return
           val description = context.getChildPropertiesElementDescription(this@SomethingDslParser, name) ?: return
           val block: GradlePropertiesDslElement = context.ensurePropertyElement(description)
+          block.psiElement = psi
           psi.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
         }
 
@@ -90,12 +91,15 @@ class SomethingDslParser(
         override fun visitFactory(psi: SomethingFactory) {
           val name = psi.identifier.name ?: return
           val methodCall = GradleDslMethodCall(context, GradleNameElement.empty(), name)
+          methodCall.psiElement = psi
+          methodCall.argumentsElement.psiElement = psi.argumentsList
 
           psi.argumentsList?.arguments?.firstOrNull()?.accept(object : SomethingRecursiveVisitor() {
             override fun visitLiteral(psi: SomethingLiteral) {
               methodCall.addNewArgument(GradleDslLiteral(methodCall, psi, GradleNameElement.empty(), psi, LITERAL))
             }
           })
+
           context.addParsedElement(methodCall)
         }
 

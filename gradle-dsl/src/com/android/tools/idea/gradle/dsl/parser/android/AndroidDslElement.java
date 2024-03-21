@@ -70,7 +70,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;

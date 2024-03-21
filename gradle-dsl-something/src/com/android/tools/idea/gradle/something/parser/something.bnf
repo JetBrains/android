@@ -62,6 +62,7 @@ private lvalue ::= identifier
 identifier ::= token {
    methods=[
      getName
+     setName
    ]
    mixin="com.android.tools.idea.gradle.something.psi.SomethingIdentifierMixin"
 }

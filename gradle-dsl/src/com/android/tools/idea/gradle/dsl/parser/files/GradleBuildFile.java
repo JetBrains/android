@@ -170,7 +170,7 @@ public class GradleBuildFile extends GradleScriptFile {
 
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     if (kind == GradleDslNameConverter.Kind.SOMETHING) {

@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.something
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription
 
 interface SomethingDslNameConverter : GradleDslNameConverter {
 
@@ -28,6 +32,30 @@ interface SomethingDslNameConverter : GradleDslNameConverter {
 
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
     return referenceText
+  }
+
+  override fun externalNameForPropertiesParent(modelName: String, context: GradlePropertiesDslElement): String {
+    val descriptions = context.getChildPropertiesElementsDescriptionMap(kind)
+    val instance = descriptions.toList().find { (_, v) -> v.name == modelName }
+    return instance?.first ?: modelName
+  }
+
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
+    val map = context.getExternalToModelMap(this)
+    val result = ExternalNameInfo(modelName, ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
+    for (e in map.entrySet) {
+      if (e.modelEffectDescription.property.name == modelName) {
+
+        if (e.versionConstraint?.isOkWith(this.context.agpVersion) == false) continue
+        when (e.modelEffectDescription.semantics) {
+          PropertySemanticsDescription.VAR -> return ExternalNameInfo(e.surfaceSyntaxDescription.name,
+                                                                      ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT)
+
+          else -> Unit
+        }
+      }
+    }
+    return result
   }
 
 }

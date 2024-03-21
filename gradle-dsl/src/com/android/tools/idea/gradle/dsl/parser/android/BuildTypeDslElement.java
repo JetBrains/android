@@ -143,7 +143,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
 
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;

@@ -27,15 +27,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
+import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
 import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.findParentOfType
-import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
-import com.android.tools.idea.gradle.something.psi.SomethingFactory
 
 class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWriter, SomethingDslNameConverter {
 
@@ -47,7 +48,7 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
 
     val project = parentPsiElement.project
     val factory = SomethingPsiFactory(project)
-    val name = element.name
+    val name = getNameTrimmedForParent(element)
 
     val psiElement = when (element) {
       is GradleDslLiteral ->
@@ -76,6 +77,20 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     return element.psiElement
   }
 
+  private fun getNameTrimmedForParent(element: GradleDslElement): String {
+    val defaultName = element.name // use this when other mechanisms fail
+    val externalNameInfo = maybeTrimForParent(element, this)
+    return externalNameInfo.externalNameParts.getOrElse(0){
+      // fallback to external naming mechanism for blocks
+      val parent = element.parent
+      if (parent is GradlePropertiesDslElement) {
+        val name = element.nameElement.fullNameParts().lastOrNull() ?: defaultName
+        externalNameForPropertiesParent(name, parent)
+      }
+      else defaultName
+    }
+  }
+
   private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
     if (anchor == null && parent is SomethingBlock) return parent.blockEntriesStart
@@ -98,9 +113,25 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     }
     return call
   }
-  override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
+  override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {
+    maybeUpdateMethodName(methodCall)
+    methodCall.argumentsElement.applyChanges()
+    //methodCall.nameElement.commitNameChange(nameElement, this, methodCall.parent)
+  }
+
+  private fun maybeUpdateMethodName(methodCall: GradleDslMethodCall){
+    val localName = methodCall.methodName
+    val nameElement = (methodCall.psiElement as? SomethingFactory)?.identifier ?: return
+    val oldName = nameElement.name ?: return
+    if (localName.isNullOrEmpty() || oldName == localName) return
+
+    val newName = GradleNameElement.unescape(localName)
+
+    nameElement.setName(newName)
+  }
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
+
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = maybeUpdateName(expressionMap)
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = maybeUpdateName(element)
 

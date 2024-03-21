@@ -61,6 +61,9 @@ class SomethingPsiFactory(private val project: Project) {
   private fun createToken(token: String): PsiElement =
     PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
 
+  fun createIdentifier(value: String): SomethingIdentifier =
+    createFromText("$value()") ?: error("Failed to create Something Identifier with name $value")
+
   fun createBlock(value: String): SomethingBlock =
     createFromText("$value {\n}") ?: error("Failed to create Something Block with name $value")
 

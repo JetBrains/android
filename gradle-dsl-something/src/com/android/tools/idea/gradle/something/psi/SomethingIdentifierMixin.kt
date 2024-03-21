@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.something.psi
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.annotations.NonNls
@@ -25,10 +26,8 @@ abstract class SomethingIdentifierMixin(node: ASTNode): ASTWrapperPsiElement(nod
 
   @Throws(IncorrectOperationException::class)
   override fun setName(@NonNls name: String): PsiElement {
-    // TODO create generator
-    // val generator = SomethingElementGenerator(getProject())
-    // getNameElement().replace(generator.createStringLiteral(StringUtil.unquoteString(name)))
-    // return this
-    throw IncorrectOperationException("setName for Something Identifier is not implemented yet")
+    val generator = SomethingPsiFactory(getProject())
+    replace(generator.createIdentifier(StringUtil.unquoteString(name)))
+    return this
   }
 }

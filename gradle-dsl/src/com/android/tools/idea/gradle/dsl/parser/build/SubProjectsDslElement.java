@@ -30,7 +30,7 @@ public class SubProjectsDslElement extends GradleDslBlockElement {
 
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return GradleBuildFile.CHILD_PROPERTIES_ELEMENTS_MAP;

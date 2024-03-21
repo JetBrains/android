@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
 import java.util.regex.Pattern;
@@ -122,6 +123,16 @@ public interface GradleDslNameConverter {
   @NotNull
   default ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     return new ExternalNameInfo("", UNKNOWN);
+  }
+
+  /**
+   * Returns external language name as a String, based on canonical name. Ie: `android` (canonical name) block for Something declarative
+   * has name `androidApplication` (external name). So we store it in model as `android` but need to get external language name
+   * once we about to write it to a file.
+   */
+  @NotNull
+  default String externalNameForPropertiesParent(@NotNull String modelName, @NotNull GradlePropertiesDslElement context) {
+    return modelName;
   }
 
   /**

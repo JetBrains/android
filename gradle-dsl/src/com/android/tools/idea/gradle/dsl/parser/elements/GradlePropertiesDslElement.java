@@ -408,7 +408,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * @return a map of external names to descriptions of the corresponding properties element.
    */
   @NotNull
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(GradleDslNameConverter.Kind kind) {
+  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(GradleDslNameConverter.Kind kind) {
     return NO_CHILD_PROPERTIES_ELEMENTS;
   }
 
