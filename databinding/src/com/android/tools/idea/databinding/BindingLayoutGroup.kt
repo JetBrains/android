@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.google.common.collect.ImmutableList
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * A collection of relevant information for one (or more) related layout XML files - that is, a base
@@ -41,17 +39,5 @@ class BindingLayoutGroup(layouts: Collection<BindingLayout>) {
 
   override fun hashCode(): Int {
     return layouts.hashCode()
-  }
-
-  private val lightBindingClasses = AtomicReference<List<LightBindingClass>>(emptyList())
-
-  fun getOrCreateLightBindingClasses(
-    classesSupplier: () -> List<LightBindingClass>
-  ): List<LightBindingClass> {
-    // The supplier should always return a non-empty list, so it's safe to assume an empty list is
-    // equivalent to "uninitialized".
-    return lightBindingClasses.updateAndGet { classes ->
-      classes.ifEmpty { classesSupplier.invoke() }
-    }
   }
 }

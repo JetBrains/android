@@ -176,40 +176,50 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * See also [getLightBindingClasses].
    */
   val bindingLayoutGroups: Collection<BindingLayoutGroup>
-    get() {
-      val facet = AndroidFacet.getInstance(module) ?: return emptySet()
+    get() = getLayoutGroupsAndLightClasses().keys
 
-      // This method is designed to occur only within a read action, so we know that dumb mode
-      // won't change on us in the middle of it.
-      ApplicationManager.getApplication().assertReadAccessAllowed()
+  private fun getLayoutGroupsAndLightClasses(): Map<BindingLayoutGroup, List<LightBindingClass>> {
+    val facet = AndroidFacet.getInstance(module) ?: return emptyMap()
 
-      val project = module.project
-      return CachedValuesManager.getManager(project).getCachedValue(facet) {
-        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-        val modificationTracker = ModificationTracker { moduleResources.modificationCount }
-        val layoutResources =
-          moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
-        val bindingLayoutGroups =
-          layoutResources
-            .values()
-            .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
-            .groupBy { info -> info.file.name }
-            .map { entry -> BindingLayoutGroup(entry.value) }
-            .toSet()
+    // This method is designed to occur only within a read action, so we know that dumb mode
+    // won't change on us in the middle of it.
+    ApplicationManager.getApplication().assertReadAccessAllowed()
 
-        // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
-        // so we must incorporate both into the modification count (see b/283753328).
-        CachedValueProvider.Result(
-          bindingLayoutGroups,
-          modificationTracker,
-          BindingXmlIndexModificationTracker.getInstance(project),
-        )
-      }
+    val project = module.project
+    return CachedValuesManager.getManager(project).getCachedValue(facet) {
+      val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
+      val modificationTracker = ModificationTracker { moduleResources.modificationCount }
+      val layoutResources =
+        moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+      val bindingLayoutGroups =
+        layoutResources
+          .values()
+          .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
+          .groupBy { info -> info.file.name }
+          .map { entry -> BindingLayoutGroup(entry.value) }
+          .toSet()
+
+      val groupsWithClasses =
+        bindingLayoutGroups.associateWith { createLightBindingClasses(facet, it) }
+
+      // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
+      // so we must incorporate both into the modification count (see b/283753328).
+      CachedValueProvider.Result(
+        groupsWithClasses,
+        modificationTracker,
+        BindingXmlIndexModificationTracker.getInstance(project),
+      )
     }
+  }
 
   /**
    * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
    * associated with this facet.
+   *
+   * If there is only one layout.xml for a given group (i.e. single configuration), this will return
+   * a single light class for that group (a "Binding"). If there are multiple layout.xmls (i.e.
+   * multi- configuration), this will return a main light class ("Binding") as well as several
+   * additional implementation light classes ("BindingImpl"s) for the group, one for each layout.
    *
    * The groupFilter function is used to filter the [BindingLayoutGroup]s that correspond to the
    * light classes; only classes for the filtered groups will be returned.
@@ -217,27 +227,11 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   fun getLightBindingClasses(
     groupFilter: ((BindingLayoutGroup) -> Boolean)? = null
   ): List<LightBindingClass> {
-    val groups =
-      if (groupFilter != null) bindingLayoutGroups.filter(groupFilter) else bindingLayoutGroups
-    return groups.flatMap(this::getLightBindingClasses)
-  }
+    val groupsAndClasses = getLayoutGroupsAndLightClasses()
+    val filteredGroupsAndClasses =
+      if (groupFilter != null) groupsAndClasses.filterKeys(groupFilter) else groupsAndClasses
 
-  /**
-   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files related
-   * to the passed-in [BindingLayoutGroup].
-   *
-   * If there is only one layout.xml (i.e. single configuration), this will return a single light
-   * class (a "Binding"). If there are multiple layout.xmls (i.e. multi- configuration), this will
-   * return a main light class ("Binding") as well as several additional implementation light
-   * classes ("BindingImpl"s), one for each layout.
-   *
-   * If this is the first time requesting this information, they will be created on the fly.
-   *
-   * @param group A group that you can get by calling [bindingLayoutGroups]
-   */
-  private fun getLightBindingClasses(group: BindingLayoutGroup): List<LightBindingClass> {
-    val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-    return group.getOrCreateLightBindingClasses { createLightBindingClasses(facet, group) }
+    return filteredGroupsAndClasses.values.flatten()
   }
 
   private fun createLightBindingClasses(
