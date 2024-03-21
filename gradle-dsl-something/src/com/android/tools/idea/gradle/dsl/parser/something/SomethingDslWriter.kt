@@ -44,6 +44,10 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     if (element.isAlreadyCreated()) element.psiElement?.let { return it }
+    if (element.isNewEmptyBlockElement()) {
+      return null // Avoid creation of an empty block statement.
+    }
+
     val parentPsiElement = element.parent?.create() ?: return null
 
     val project = parentPsiElement.project
@@ -116,7 +120,6 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {
     maybeUpdateMethodName(methodCall)
     methodCall.argumentsElement.applyChanges()
-    //methodCall.nameElement.commitNameChange(nameElement, this, methodCall.parent)
   }
 
   private fun maybeUpdateMethodName(methodCall: GradleDslMethodCall){

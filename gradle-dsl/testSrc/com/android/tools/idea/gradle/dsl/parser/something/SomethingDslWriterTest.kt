@@ -49,11 +49,7 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
 
   fun testEmptyBlock() {
     val contents = mapOf("block" to blockOf())
-    val expected = """
-      block {
-      }
-    """.trimIndent()
-
+    val expected = ""
     doTest(contents, expected)
   }
 
