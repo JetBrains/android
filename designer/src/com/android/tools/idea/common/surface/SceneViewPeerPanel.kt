@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.ScreenReader
@@ -234,7 +235,7 @@ class SceneViewPeerPanel(
         sceneViewStatusIconAction?.let {
           createToolbar(listOf(sceneViewStatusIconAction)) {
             (it as? ActionToolbarImpl)?.setForceMinimumSize(true)
-            it.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+            it.layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
           }
         }
       val sceneViewStatusIconSize = sceneViewStatusIcon?.minimumSize?.width ?: 0
