@@ -28,14 +28,12 @@ import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
 
 
-private val activityManagerCapabilitiesKey = CoroutineScopeCache.Key<ActivityManagerCapabilities.CapabilitiesResult>(
+private val activityManagerCapabilitiesKey = CoroutineScopeCache.Key<HashSet<String>>(
   "ActivityManagerCapabilities")
 
 class ActivityManagerCapabilities(val project: Project) {
@@ -55,26 +53,21 @@ class ActivityManagerCapabilities(val project: Project) {
   }
 
   private suspend fun checkCapability(device: IDevice, capability: String): Boolean {
-    val serial = device.serialNumber
-    val deviceCache = AdbLibService.getSession(project).deviceCache(serial)
-    val result = deviceCache.getOrPut(activityManagerCapabilitiesKey) { CapabilitiesResult() }
-    val caps = result.mutex.withLock {
-      result.capabilities ?: retrieveCapabilities(serial).also {
-        result.capabilities = it
-      }
+    val caps = kotlin.runCatching {
+      val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
+      val deviceCache = AdbLibService.getSession(project).deviceCache(deviceSelector)
+      deviceCache.getOrPutSuspending(activityManagerCapabilitiesKey) { retrieveCapabilities(deviceSelector) }
+    }.getOrElse { throwable ->
+      throw Exception("Error retrieving capabilities from the device ${device.serialNumber}", throwable)
     }
     return caps.contains(capability)
   }
 
-  private suspend fun retrieveCapabilities(serialNumber: String): HashSet<String> {
-    val result = runCatching {
-      AdbLibService.getSession(project).deviceServices
-        .shellCommand(DeviceSelector.fromSerialNumber(serialNumber), "am capabilities --protobuf")
-        .withCollector(ByteArrayShellCollector())
-        .executeAsSingleOutput { it }
-    }.getOrElse { throwable ->
-      throw Exception("Error retrieving capabilities from the device $serialNumber", throwable)
-    }
+  private suspend fun retrieveCapabilities(deviceSelector: DeviceSelector): HashSet<String> {
+    val result = AdbLibService.getSession(project).deviceServices
+      .shellCommand(deviceSelector, "am capabilities --protobuf")
+      .withCollector(ByteArrayShellCollector())
+      .executeAsSingleOutput { it }
 
     val protoCapabilities = try {
       Capabilities.parseFrom(result.stdout)
@@ -92,10 +85,4 @@ class ActivityManagerCapabilities(val project: Project) {
     }
     return capabilities
   }
-
-  class CapabilitiesResult(
-    val mutex: Mutex = Mutex(),
-    var capabilities: HashSet<String>? = null
-  )
-
 }
