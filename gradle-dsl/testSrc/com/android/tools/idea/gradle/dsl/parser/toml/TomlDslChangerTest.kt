@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -23,17 +22,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtil.findFile
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
+import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
 class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase() {
@@ -324,8 +321,12 @@ class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase()
   }
 
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
-    val libsTomlFile = writeLibsTomlFile(toml)
-    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
+    val libsTomlFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      fileName,
+      toml
+    )
+    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     changer(dslFile)
     WriteCommandAction.runWriteCommandAction(project) {
@@ -334,17 +335,5 @@ class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase()
     }
     val text = VfsUtil.loadText(libsTomlFile).replace("\r", "")
     assertEquals(expected, text)
-  }
-
-  private fun writeLibsTomlFile(text: String): VirtualFile {
-    lateinit var libsTomlFile: VirtualFile
-    runWriteAction {
-      val file: File = File(project.basePath, fileName).getCanonicalFile()
-      FileUtil.createParentDirs(file)
-      val parent = findFile(file.parentFile.toPath(), true)!!
-      libsTomlFile = parent.createChildData(this, file.name)
-      VfsUtil.saveText(libsTomlFile, text)
-    }
-    return libsTomlFile
   }
 }

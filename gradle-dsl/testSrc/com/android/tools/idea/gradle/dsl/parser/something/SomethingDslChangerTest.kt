@@ -28,6 +28,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil
 import com.jetbrains.rd.util.first
 import org.mockito.Mockito
 
@@ -102,7 +103,11 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
   }
 
   private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
-    val somethingFile = writeSomethingFile(text)
+    val somethingFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "build.gradle.something",
+      text
+    )
     val dslFile = object : GradleBuildFile(somethingFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     changer(dslFile)
@@ -112,15 +117,5 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
     }
     val text = VfsUtil.loadText(somethingFile).replace("\r", "")
     assertEquals(expected, text)
-  }
-
-  private fun writeSomethingFile(text: String): VirtualFile {
-    lateinit var somethingFile: VirtualFile
-    runWriteAction {
-      val baseDir = project.guessProjectDir()!!
-      somethingFile = baseDir.createChildData(this, "build.gradle.something")
-      VfsUtil.saveText(somethingFile, text)
-    }
-    return somethingFile
   }
 }

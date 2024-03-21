@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.catalog
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil.createFile
 import org.junit.Test
+import org.mockito.Mockito
 
 class CatalogTomlDslChangerTest : LightPlatformTestCase() {
 
@@ -85,8 +82,12 @@ class CatalogTomlDslChangerTest : LightPlatformTestCase() {
   }
 
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
-    val libsTomlFile = writeLibsTomlFile(toml)
-    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
+    val libsTomlFile = createFile(
+      project.guessProjectDir()!!,
+      "gradle/libs.versions.toml",
+      toml
+    )
+    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     changer(dslFile)
     WriteCommandAction.runWriteCommandAction(project) {
@@ -95,16 +96,5 @@ class CatalogTomlDslChangerTest : LightPlatformTestCase() {
     }
     val text = VfsUtil.loadText(libsTomlFile).replace("\r", "")
     assertEquals(expected, text)
-  }
-
-  private fun writeLibsTomlFile(text: String): VirtualFile {
-    lateinit var libsTomlFile: VirtualFile
-    runWriteAction {
-      val baseDir = project.guessProjectDir()!!
-      val gradlePath = VfsUtil.createDirectoryIfMissing(baseDir, "gradle")
-      libsTomlFile = gradlePath.createChildData(this, "libs.versions.toml")
-      VfsUtil.saveText(libsTomlFile, text)
-    }
-    return libsTomlFile
   }
 }

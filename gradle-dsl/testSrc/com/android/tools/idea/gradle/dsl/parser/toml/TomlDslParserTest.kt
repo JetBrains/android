@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -23,16 +22,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
+import org.mockito.Mockito.mock
 
 @RunWith(Parameterized::class)
 class TomlDslParserTest(private val fileName: String) : LightPlatformTestCase() {
@@ -352,22 +349,14 @@ class TomlDslParserTest(private val fileName: String) : LightPlatformTestCase() 
   }
 
   private fun doTest(text: String, expected: Map<String,Any>) {
-    val libsTomlFile = writeLibsTomlFile(text)
+    val libsTomlFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      fileName,
+      text
+    )
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}
     dslFile.parse()
     assertEquals(expected, propertiesToMap(dslFile))
-  }
-
-  private fun writeLibsTomlFile(text: String): VirtualFile {
-    lateinit var libsTomlFile: VirtualFile
-    runWriteAction {
-      val file: File = File(project.basePath, fileName).getCanonicalFile()
-      FileUtil.createParentDirs(file)
-      val parent = VfsUtil.findFile(file.parentFile.toPath(), true)!!
-      libsTomlFile = parent.createChildData(this, file.name)
-      VfsUtil.saveText(libsTomlFile, text)
-    }
-    return libsTomlFile
   }
 
   private fun propertiesToMap(dslFile: GradleDslFile): Map<String, Any> {

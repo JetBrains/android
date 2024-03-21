@@ -22,11 +22,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil
 import org.mockito.Mockito.mock
 import java.util.LinkedList
 
@@ -140,20 +138,14 @@ class SomethingDslParserTest : LightPlatformTestCase() {
   }
 
   private fun doTest(text: String, expected: Map<String, Any>) {
-    val somethingFile = writeSomethingFile(text)
+    val somethingFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "build.gradle.something",
+      text
+    )
     val dslFile = object : GradleBuildFile(somethingFile, project, ":", BuildModelContext.create(project, mock())) {}
     dslFile.parse()
     assertEquals(expected, propertiesToMap(dslFile))
-  }
-
-  private fun writeSomethingFile(text: String): VirtualFile {
-    lateinit var somethingFile: VirtualFile
-    runWriteAction {
-      val baseDir = project.guessProjectDir()!!
-      somethingFile = baseDir.createChildData(this, "build.gradle.something")
-      VfsUtil.saveText(somethingFile, text)
-    }
-    return somethingFile
   }
 
   private fun propertiesToMap(file: GradleDslFile): Map<String, Any> {

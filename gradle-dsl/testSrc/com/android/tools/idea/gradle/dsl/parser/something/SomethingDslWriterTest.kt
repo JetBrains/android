@@ -20,12 +20,11 @@ import com.android.tools.idea.gradle.dsl.parser.blockOf
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.VfsTestUtil
 import org.mockito.Mockito
 
 class SomethingDslWriterTest : LightPlatformTestCase() {
@@ -120,8 +119,11 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
   }
 
   private fun doTest(contents: Map<String, Any>, expected: String) {
-    val file = writeSomethingFile("")
-
+    val file = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "build.gradle.something",
+      ""
+    )
     val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
@@ -133,14 +135,4 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     assertEquals(expected, text)
   }
 
-  private fun writeSomethingFile(text: String): VirtualFile {
-    lateinit var somethingFile: VirtualFile
-    runWriteAction {
-      val baseDir = project.guessProjectDir()!!
-
-      somethingFile = baseDir.createChildData(this, "build.gradle.something")
-      VfsUtil.saveText(somethingFile, text)
-    }
-    return somethingFile
-  }
 }
