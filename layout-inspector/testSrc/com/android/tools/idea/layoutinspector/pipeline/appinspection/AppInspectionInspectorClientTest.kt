@@ -91,7 +91,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndWait
@@ -937,33 +936,6 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testNoActivityRestartBannerShownIfOptedOut() {
-    preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
-    PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    assertThat(banner.isVisible).isFalse()
-  }
-
-  @Test
-  fun testOptOutOfActivityRestartBanner() {
-    preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    val notification1 = inspectorRule.notificationModel.notifications.single()
-    notification1.actions[0].invoke(notification1)
-    assertThat(PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER))
-      .isTrue()
-  }
-
-  @Test
   fun testNoActivityRestartBannerShownDuringAutoConnect() {
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
@@ -1080,9 +1052,7 @@ class AppInspectionInspectorClientTest {
     val notification = inspectorRule.notificationModel.notifications.single()
     assertThat(notification.message)
       .isEqualTo(
-        "The activity was restarted. This can be avoided by selecting " +
-          "\"Enable view attribute inspection\" in the developer options on the device or " +
-          "by enabling \"Connect without restarting activity\" in the run configuration options."
+        "The Activity was restarted in order to enable view attributes inspection. This won't happen again until the setting is disabled from Developer Options."
       )
   }
 }

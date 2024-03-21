@@ -18,36 +18,29 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.util.PropertiesComponent
+import com.intellij.ide.BrowserUtil
 import com.intellij.ui.EditorNotificationPanel.Status
 
-const val ACTIVITY_RESTART_KEY = "activity.restart"
-
-@VisibleForTesting
-const val KEY_HIDE_ACTIVITY_RESTART_BANNER = "live.layout.inspector.activity.restart.banner.hide"
+private const val ACTIVITY_RESTART_KEY = "activity.restart"
+// TODO(b/330406958): replace with redirect URL
+// TODO(b/330406958): update documentation
+private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
+  "https://developer.android.com/studio/debug/layout-inspector#activity-restart"
 
 /**
  * Show a banner with "Activity Restarted" and a link to turn on "Layout inspection without an
  * activity restart".
  */
-// TODO(b/330406958): adapt banner to reflect absence of running configuration
 fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
-  if (PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)) {
-    // The user already opted out of this banner.
-    return
-  }
-
-  val doNotShowAgainAction =
-    StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
-      PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-      notificationModel.dismissAction.invoke(notification)
+  val learnMoreAction =
+    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
+      BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
     }
 
   notificationModel.addNotification(
     id = ACTIVITY_RESTART_KEY,
     text = LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
     status = Status.Info,
-    actions = listOf(doNotShowAgainAction, notificationModel.dismissAction),
+    actions = listOf(learnMoreAction, notificationModel.dismissAction),
   )
 }

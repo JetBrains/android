@@ -188,6 +188,9 @@ class AppInspectionInspectorClient(
 
         debugViewAttributesChanged = DebugViewAttributes.set(model.project, process.device)
         if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
+          // Show the banner only if debugViewAttributes has changed and if the process was not
+          // started from a fresh app deployment (in this case the Activity is restarted as soon as
+          // it starts, so there is no need to notify the user).
           showActivityRestartedInBanner(notificationModel)
         }
 
