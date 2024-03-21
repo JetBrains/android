@@ -112,10 +112,6 @@ object DebugViewAttributes {
     return !isPerDeviceSettingOn(adb, device)
   }
 
-  private fun shouldExecuteDelete(adb: AndroidDebugBridge, device: DeviceDescriptor): Boolean {
-    return isPerDeviceSettingOn(adb, device)
-  }
-
   /**
    * Turns on the flag.
    *
