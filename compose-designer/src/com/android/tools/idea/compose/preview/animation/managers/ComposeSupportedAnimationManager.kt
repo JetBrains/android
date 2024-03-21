@@ -71,13 +71,13 @@ private val LOG = Logger.getInstance(SupportedAnimationManager::class.java)
 private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
 open class ComposeSupportedAnimationManager(
-  override val animation: ComposeAnimation,
-  override val tabTitle: String,
+  final override val animation: ComposeAnimation,
+  final override val tabTitle: String,
   private val tracker: ComposeAnimationTracker,
-  private val animationClock: AnimationClock,
+  protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
   private val timelinePanel: TimelinePanel,
-  private val sceneManager: LayoutlibSceneManager?,
+  protected val sceneManager: LayoutlibSceneManager?,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -118,7 +118,7 @@ open class ComposeSupportedAnimationManager(
   val stateComboBox = animation.createState(tracker, animation.findCallback())
 
   /** State of animation, shared between single animation tab and coordination panel. */
-  override val elementState = MutableStateFlow(ElementState())
+  final override val elementState = MutableStateFlow(ElementState())
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =
