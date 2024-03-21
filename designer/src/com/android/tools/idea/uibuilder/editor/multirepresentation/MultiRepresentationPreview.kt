@@ -25,13 +25,13 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.FILE_EDITOR
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
@@ -435,7 +435,7 @@ open class MultiRepresentationPreview(
   private fun createActionToolbar(group: ActionGroup): ActionToolbarImpl {
     val toolbar = ActionManager.getInstance().createActionToolbar("top", group, true)
     toolbar.targetComponent = component
-    toolbar.layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.WRAP_STRATEGY
     if (group === ActionGroup.EMPTY_GROUP) {
       toolbar.component.isVisible = false
     }
