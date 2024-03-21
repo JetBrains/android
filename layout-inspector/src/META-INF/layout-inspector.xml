@@ -70,10 +70,4 @@
                     interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
-
-  <projectListeners>
-    <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"
-              topic="com.intellij.execution.ExecutionListener"/>
-  </projectListeners>
-
 </idea-plugin>

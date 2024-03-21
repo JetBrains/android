@@ -81,11 +81,8 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
-import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
@@ -94,7 +91,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -933,17 +929,15 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testActivityRestartBannerShown() {
-    setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    verifyActivityRestartBanner(runConfigActionExpected = true)
+    verifyActivityRestartBanner()
   }
 
   @Test
   fun testNoActivityRestartBannerShownIfOptedOut() {
-    setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
@@ -957,7 +951,6 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testOptOutOfActivityRestartBanner() {
-    setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -965,14 +958,13 @@ class AppInspectionInspectorClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     val notification1 = inspectorRule.notificationModel.notifications.single()
-    notification1.actions[1].invoke(notification1)
+    notification1.actions[0].invoke(notification1)
     assertThat(PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER))
       .isTrue()
   }
 
   @Test
   fun testNoActivityRestartBannerShownDuringAutoConnect() {
-    setUpRunConfiguration()
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -983,7 +975,6 @@ class AppInspectionInspectorClientTest {
   @Test
   fun testNoActivityRestartBannerShownWhenDebugAttributesAreAlreadySet() {
     inspectorRule.adbProperties.debugViewAttributes = "1"
-    setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
@@ -996,22 +987,20 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testActivityRestartBannerShownIfRunConfigAreAlreadySetButAttributeIsMissing() {
-    setUpRunConfiguration(enableInspectionWithoutRestart = true)
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    verifyActivityRestartBanner(runConfigActionExpected = false)
+    verifyActivityRestartBanner()
   }
 
   @Test
   fun testActivityRestartBannerShownFromOtherAppProcess() {
-    setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(OTHER_MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(OTHER_MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = OTHER_MODERN_PROCESS
-    verifyActivityRestartBanner(runConfigActionExpected = false)
+    verifyActivityRestartBanner()
   }
 
   @Test
@@ -1086,20 +1075,7 @@ class AppInspectionInspectorClientTest {
     assertThat(node.recompositions.skips).isEqualTo(0)
   }
 
-  private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {
-    addManifest(projectRule.fixture)
-    AndroidRunConfigurations.instance.createRunConfigurations(projectRule.project)
-    if (enableInspectionWithoutRestart) {
-      val runManager = RunManager.getInstance(inspectorRule.project)
-      val config =
-        runManager.allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().firstOrNull {
-          it.name == "app"
-        }
-      config!!.INSPECTION_WITHOUT_ACTIVITY_RESTART = true
-    }
-  }
-
-  private fun verifyActivityRestartBanner(runConfigActionExpected: Boolean) {
+  private fun verifyActivityRestartBanner() {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notification = inspectorRule.notificationModel.notifications.single()
     assertThat(notification.message)
@@ -1108,17 +1084,6 @@ class AppInspectionInspectorClientTest {
           "\"Enable view attribute inspection\" in the developer options on the device or " +
           "by enabling \"Connect without restarting activity\" in the run configuration options."
       )
-
-    if (runConfigActionExpected) {
-      assertThat(notification.actions.size).isEqualTo(3)
-      assertThat(notification.actions[0].name).isEqualTo("Open Run Configuration")
-      assertThat(notification.actions[1].name).isEqualTo("Don't Show Again")
-      assertThat(notification.actions[2].name).isEqualTo("Dismiss")
-    } else {
-      assertThat(notification.actions.size).isEqualTo(2)
-      assertThat(notification.actions[0].name).isEqualTo("Don't Show Again")
-      assertThat(notification.actions[1].name).isEqualTo("Dismiss")
-    }
   }
 }
 

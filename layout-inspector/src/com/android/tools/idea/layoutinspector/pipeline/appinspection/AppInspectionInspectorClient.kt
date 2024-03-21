@@ -188,7 +188,7 @@ class AppInspectionInspectorClient(
 
         debugViewAttributesChanged = DebugViewAttributes.set(model.project, process.device)
         if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
-          showActivityRestartedInBanner(model.project, notificationModel, process)
+          showActivityRestartedInBanner(notificationModel)
         }
 
         val completableDeferred = CompletableDeferred<Unit>()

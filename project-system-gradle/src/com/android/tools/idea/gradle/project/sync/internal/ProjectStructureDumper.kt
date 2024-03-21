@@ -223,7 +223,6 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
   prop("Module") { runConfiguration.configurationModule.module?.name }
   prop("ClearLogcat") { runConfiguration.CLEAR_LOGCAT.takeUnless { it == false }?.toString() }
   prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
-  prop("EnableInspectionWithoutActivityRestart") { runConfiguration.INSPECTION_WITHOUT_ACTIVITY_RESTART.takeUnless { !it }?.toString() }
   if (runConfiguration is AndroidTestRunConfiguration) {
     prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
     prop("MethodName") { runConfiguration.METHOD_NAME }

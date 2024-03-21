@@ -84,7 +84,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
-  public boolean INSPECTION_WITHOUT_ACTIVITY_RESTART = false; // set global attributes at launch time
 
   private final ProfilerState myProfilerState;
 
