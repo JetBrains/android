@@ -58,6 +58,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.SystemMessage(
               listOf(
@@ -76,8 +77,8 @@ class PromptBuilderTest : BasePlatformTestCase() {
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
             ),
-          )
-        )
+          ),
+        ),
       )
   }
 
@@ -115,6 +116,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("Write some Kotlin code.", emptyList()))
@@ -148,7 +150,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
                 ),
               )
             ),
-          )
+          ),
         )
       )
   }
@@ -231,6 +233,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.SystemMessage(
               listOf(Prompt.Message.TextChunk("You are Studio Bot", emptyList()))
@@ -244,9 +247,8 @@ class PromptBuilderTest : BasePlatformTestCase() {
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
             ),
-          )
+          ),
         )
       )
-
   }
 }

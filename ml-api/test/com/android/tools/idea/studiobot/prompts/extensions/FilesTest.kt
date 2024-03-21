@@ -56,6 +56,7 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -66,7 +67,7 @@ class FilesTest : BasePlatformTestCase() {
                 Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
-          )
+          ),
         )
       )
   }
@@ -83,6 +84,7 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -93,7 +95,7 @@ class FilesTest : BasePlatformTestCase() {
                 Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
-          )
+          ),
         )
       )
   }
@@ -117,6 +119,7 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -147,7 +150,7 @@ class FilesTest : BasePlatformTestCase() {
                 ),
               )
             )
-          )
+          ),
         )
       )
   }
@@ -170,6 +173,7 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
+          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -188,7 +192,7 @@ class FilesTest : BasePlatformTestCase() {
                 ),
               )
             )
-          )
+          ),
         )
       )
   }

@@ -26,7 +26,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting
-data class PromptImpl(override val messages: List<Prompt.Message>) : Prompt
+data class PromptImpl(
+  override val project: Project,
+  override val messages: List<Prompt.Message>,
+) : Prompt
 
 class PromptBuilderImpl(private val project: Project) : PromptBuilder {
   override val messages = mutableListOf<Prompt.Message>()
@@ -96,6 +99,6 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
     }
-    return PromptImpl(messages)
+    return PromptImpl(project, messages)
   }
 }

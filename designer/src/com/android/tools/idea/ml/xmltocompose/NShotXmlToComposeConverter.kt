@@ -72,10 +72,9 @@ private constructor(private val project: Project, private val nShots: List<Strin
       )
     }
     try {
-      val response =
-        studioBot.model(project).sendQuery(prompt, StudioBot.RequestSource.DESIGN_TOOLS).toList()
+      val response = studioBot.model(project).generateContent(prompt).toList()
       return ConversionResponse(
-        generatedCode = response.parseCode(),
+        generatedCode = response.map { it.text }.parseCode(),
         status = ConversionResponse.Status.SUCCESS,
       )
     } catch (t: Throwable) {

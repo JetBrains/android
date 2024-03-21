@@ -16,6 +16,7 @@
 package com.android.tools.idea.studiobot.prompts
 
 import com.intellij.lang.Language
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -24,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * See [buildPrompt] for information on the format and how to construct a prompt.
  */
 interface Prompt {
+  val project: Project
   val messages: List<Message>
 
   sealed class Message(open val chunks: List<Chunk>) {

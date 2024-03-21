@@ -66,12 +66,8 @@ class ComposeVisualLintAiFix(
       return "Studio Bot context sharing needs to be enabled for this feature"
     }
     try {
-      val response =
-        studioBot
-          .model(project)
-          .sendQuery(getPrompt(issue), StudioBot.RequestSource.DESIGN_TOOLS)
-          .toList()
-      return response.joinToString("\n")
+      val response = studioBot.model(project).generateContent(getPrompt(issue)).toList()
+      return response.joinToString("\n") { it.text }
     } catch (t: Throwable) {
       return "An error has occurred"
     }

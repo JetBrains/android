@@ -63,7 +63,7 @@ interface StudioBot {
    * true This service is used to send and receive text responses with a model directly, without
    * going through the chat UI.
    */
-  fun model(project: Project): LlmService
+  fun model(project: Project, modelType: ModelType = ModelType.CHAT): Model
 
   /** Used for gathering metrics, like how many queries come from each part of Android Studio. */
   enum class RequestSource {
@@ -88,11 +88,21 @@ interface StudioBot {
 
     override fun chat(project: Project): ChatService = ChatService.StubChatService()
 
-    override fun model(project: Project): LlmService = LlmService.StubLlmService()
+    override fun model(project: Project, modelType: ModelType): Model = StubModel()
   }
 
   companion object {
     fun getInstance(): StudioBot =
       ApplicationManager.getApplication().getService(StudioBot::class.java) ?: StubStudioBot()
   }
+}
+
+/**
+ * Currently, only text-to-text models are supported.
+ * When multimodal models are added, this enum will be expanded
+ * to cover different input and output types.
+ */
+enum class ModelType {
+  // Model used in Studio Bot chat. A chat model is guaranteed to be available.
+  CHAT
 }

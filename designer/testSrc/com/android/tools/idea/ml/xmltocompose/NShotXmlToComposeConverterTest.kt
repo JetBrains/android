@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.ml.xmltocompose
 
-import com.android.tools.idea.studiobot.LlmService
+import com.android.tools.idea.studiobot.Content
+import com.android.tools.idea.studiobot.GenerationConfig
+import com.android.tools.idea.studiobot.ModelType
+import com.android.tools.idea.studiobot.StubModel
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
@@ -41,13 +44,13 @@ class NShotXmlToComposeConverterTest {
 
       override fun isContextAllowed(project: Project) = contextAllowed
 
-      override fun model(project: Project) =
-        object : LlmService.StubLlmService() {
-          override suspend fun sendQuery(
-            prompt: Prompt,
-            source: StudioBot.RequestSource,
-          ): Flow<String> {
-            return flowOf("CITATIONS: Some citations here", "```kotlin\n${simpleKotlinCode()}\n```")
+      override fun model(project: Project, modelType: ModelType) =
+        object : StubModel() {
+          override fun generateContent(prompt: Prompt, config: GenerationConfig): Flow<Content> {
+            return flowOf(
+              Content("Here is your code"),
+              Content("```kotlin\n${simpleKotlinCode()}\n```"),
+            )
           }
         }
     }
