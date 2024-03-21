@@ -93,7 +93,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
@@ -188,9 +187,6 @@ class DeviceViewPanelWithFullInspectorTest {
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
     panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { toolbar ->
-      check(
-        toolbar is ActionToolbarImpl
-      ) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     }
     val toggle =

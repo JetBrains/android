@@ -41,7 +41,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Disposer
@@ -678,7 +677,6 @@ class AndroidTestSuiteViewTest {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
-      check(toolbar is ActionToolbarImpl) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     }
 
