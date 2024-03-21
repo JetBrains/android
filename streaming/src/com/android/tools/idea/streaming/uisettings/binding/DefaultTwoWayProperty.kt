@@ -59,4 +59,19 @@ internal open class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T
     listeners.add { property.setFromController(toTarget(it)) }
     return property
   }
+
+  override fun and(other: ReadOnlyProperty<Boolean>): ReadOnlyProperty<Boolean> {
+    if (actualValue !is Boolean) error("Boolean property required")
+    val result = DefaultTwoWayProperty((actualValue as Boolean) and other.value)
+    addControllerListener { result.setFromController((it as Boolean) and other.value) }
+    other.addControllerListener { result.setFromController((actualValue as Boolean) and it) }
+    return result
+  }
+
+  override fun not(): ReadOnlyProperty<Boolean> {
+    if (actualValue !is Boolean) error("Boolean property required")
+    val result = DefaultTwoWayProperty(!(actualValue as Boolean))
+    addControllerListener { result.setFromController(!(it as Boolean)) }
+    return result
+  }
 }

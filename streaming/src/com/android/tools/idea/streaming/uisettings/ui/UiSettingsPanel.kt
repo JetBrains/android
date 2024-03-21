@@ -50,6 +50,8 @@ internal const val FONT_SIZE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Screen Size:"
 internal const val RESET_BUTTON_TEXT = "Reset"
 private const val RESET_TITLE = "Reset to factory defaults"
+private const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
+private const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device is restarted."
 
 /**
  * Custom horizontal spacing between labels and controls.
@@ -107,6 +109,13 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButt
             .bindSliderMaximum(model.screenDensityMaxIndex)
             .apply { component.name = DENSITY_TITLE }
         }.visibleIf(model.screenDensitySettable)
+
+        row {
+          cell(BorderLayoutPanel().apply {
+            addToTop(JBLabel(PERMISSION_HINT_LINE1, UIUtil.ComponentStyle.MINI))
+            addToBottom(JBLabel(PERMISSION_HINT_LINE2, UIUtil.ComponentStyle.MINI))
+          })
+        }.visibleIf((model.fontSizeSettable.and(model.screenDensitySettable)).not())
 
         if (showResetButton) {
           row(label(RESET_TITLE)) {

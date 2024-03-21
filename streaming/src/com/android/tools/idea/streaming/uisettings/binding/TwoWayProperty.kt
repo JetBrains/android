@@ -41,6 +41,18 @@ internal interface ReadOnlyProperty<T> {
    * The controller should call this function to specify a new value.
    */
   fun setFromController(newValue: T)
+
+  /**
+   * Creates a boolean property that yields true only if both the
+   * current boolean property and [other] is true.
+   */
+  fun and(other: ReadOnlyProperty<Boolean>): ReadOnlyProperty<Boolean>
+
+  /**
+   * Creates a boolean property that yields the opposite value of the
+   * current boolean property.
+   */
+  fun not(): ReadOnlyProperty<Boolean>
 }
 
 /**
