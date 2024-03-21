@@ -18,12 +18,12 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
 import com.intellij.openapi.editor.impl.EditorImpl
@@ -131,7 +131,7 @@ class DetailsTabbedPane(
     val toolbar =
       ActionManager.getInstance().createActionToolbar(place, DefaultActionGroup(wrapAction), true)
     toolbar.targetComponent = targetComponent
-    toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
     toolbar.setReservePlaceAutoPopupIcon(false)
     toolbar.component.isOpaque = false
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
