@@ -15,8 +15,56 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.sdklib.devices.Abi
+import com.google.common.collect.Range
+
 class TestDeviceSource : DeviceSource {
   override val profiles = mutableListOf<DeviceProfile>()
+
+  data class Device(
+    override val source: DeviceSource,
+    override val apiRange: Range<Int>,
+    override val manufacturer: String,
+    override val name: String,
+    override val resolution: Resolution,
+    override val displayDensity: Int,
+    override val isVirtual: Boolean,
+    override val isRemote: Boolean,
+    override val abis: List<Abi>,
+    override val isAlreadyPresent: Boolean,
+    override val availabilityEstimateSeconds: Int,
+  ) : DeviceProfile
+
+  fun add(device: Device) {
+    profiles.add(device)
+  }
+
+  fun device(
+    apiRange: Range<Int> = Range.closed(24, 34),
+    manufacturer: String = "Google",
+    name: String,
+    resolution: Resolution = Resolution(2000, 1200),
+    displayDensity: Int = 300,
+    isVirtual: Boolean = true,
+    isRemote: Boolean = false,
+    abis: List<Abi> = listOf(Abi.ARM64_V8A),
+    isAlreadyPresent: Boolean = false,
+    availabilityEstimateSeconds: Int = 0,
+  ): Device =
+    Device(
+      this,
+      apiRange,
+      manufacturer,
+      name,
+      resolution,
+      displayDensity,
+      isVirtual,
+      isRemote,
+      abis,
+      isAlreadyPresent,
+      availabilityEstimateSeconds,
+    )
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {}
 }
