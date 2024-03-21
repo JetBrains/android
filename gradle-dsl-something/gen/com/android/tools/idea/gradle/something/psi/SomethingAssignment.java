@@ -23,8 +23,17 @@ import com.intellij.psi.PsiElement;
 
 public interface SomethingAssignment extends SomethingEntry {
 
+  @Nullable
+  SomethingFactory getFactory();
+
   @NotNull
   SomethingIdentifier getIdentifier();
+
+  @Nullable
+  SomethingLiteral getLiteral();
+
+  @Nullable
+  SomethingProperty getProperty();
 
   @Nullable
   SomethingValue getValue();

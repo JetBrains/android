@@ -52,12 +52,20 @@
      "com.intellij.psi.PsiNamedElement"
      "com.android.tools.idea.gradle.something.psi.SomethingElement"
   ]
+  implements("factory|property|literal")=[
+     "com.android.tools.idea.gradle.something.psi.SomethingValue"
+  ]
 }
 
 entries ::= entry*
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
 private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN)
-assignment ::= lvalue OP_EQ rvalue {pin=2}
+assignment ::= lvalue OP_EQ rvalue {
+   pin=2
+   methods=[
+      getValue
+   ]
+}
 private lvalue ::= identifier
 identifier ::= token {
    methods=[
@@ -67,7 +75,7 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.something.psi.SomethingIdentifierMixin"
 }
 literal ::= string | number | boolean
-rvalue ::= factory | property | literal {elementType = value}
+private rvalue ::= factory | property | literal
 property ::= qualified | bare {methods=[getField getReceiver]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
@@ -90,8 +98,8 @@ factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {pin=2}
 argumentsList ::= (factory | rvalue)? {
    methods=[
       getArguments
-      value=""
       factory=""
+      literal=""
+      property=""
    ]
 }
-fake value::=

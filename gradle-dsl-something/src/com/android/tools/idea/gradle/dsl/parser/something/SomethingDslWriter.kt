@@ -106,7 +106,7 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   }
 
   override fun deleteDslElement(element: GradleDslElement) {
-    element.delete()
+    element.psiElement?.delete()
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
@@ -146,8 +146,13 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     val psiElement = literal.psiElement ?: return
     maybeUpdateName(literal)
     val newElement = literal.unsavedValue ?: return
-
-    val element = psiElement.replace(newElement)
+    val element =
+      if (psiElement is SomethingAssignment) {
+        psiElement.value?.firstChild?.replace(newElement) ?: return
+      }
+      else {
+        psiElement.replace(newElement)
+      }
     literal.setExpression(element)
     literal.reset()
     literal.commit()

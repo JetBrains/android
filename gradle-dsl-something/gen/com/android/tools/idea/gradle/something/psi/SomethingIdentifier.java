@@ -21,6 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.util.IncorrectOperationException;
 
 public interface SomethingIdentifier extends PsiNamedElement, SomethingElement {
 
@@ -29,5 +30,8 @@ public interface SomethingIdentifier extends PsiNamedElement, SomethingElement {
 
   @Nullable
   String getName();
+
+  @NotNull
+  PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException;
 
 }

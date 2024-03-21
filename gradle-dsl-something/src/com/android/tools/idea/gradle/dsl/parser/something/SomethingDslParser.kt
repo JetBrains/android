@@ -104,7 +104,7 @@ class SomethingDslParser(
         }
 
         override fun visitLiteral(psi: SomethingLiteral) {
-          val literal = GradleDslLiteral(context, psi, nameElement, psi, LITERAL)
+          val literal = GradleDslLiteral(context, psi.parent, nameElement, psi, LITERAL)
           literal.externalSyntax = ASSIGNMENT
           context.addParsedElement(literal)
         }

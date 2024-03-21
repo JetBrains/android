@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingFactory extends SomethingEntry {
+public interface SomethingFactory extends SomethingEntry, SomethingValue {
 
   @Nullable
   SomethingArgumentsList getArgumentsList();

@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.something.parser
 
 import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
+import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBare
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifier
 import com.android.tools.idea.gradle.something.psi.SomethingProperty
 import com.android.tools.idea.gradle.something.psi.SomethingQualified
+import com.android.tools.idea.gradle.something.psi.SomethingValue
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.childLeafs
@@ -52,8 +54,13 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getValue(assignment: SomethingAssignment): SomethingValue? {
+      return assignment.children.firstNotNullOfOrNull { child -> (child as? SomethingValue).takeIf { it != null } }
+    }
+
+    @JvmStatic
     fun getBlockEntriesStart(block: SomethingBlock): PsiElement? {
-      return block.childLeafs.find { it.text == "{" }
+      return block.childLeafs().find { it.text == "{" }
     }
 
     @JvmStatic

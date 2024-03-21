@@ -34,7 +34,6 @@ public interface SomethingElementTypeHolder {
   IElementType LITERAL = new SomethingElementType("LITERAL");
   IElementType PROPERTY = new SomethingElementType("PROPERTY");
   IElementType QUALIFIED = new SomethingElementType("QUALIFIED");
-  IElementType VALUE = new SomethingElementType("VALUE");
 
   IElementType BOOLEAN = new SomethingTokenType("boolean");
   IElementType LINE_COMMENT = new SomethingTokenType("line_comment");
@@ -75,9 +74,6 @@ public interface SomethingElementTypeHolder {
       }
       else if (type == QUALIFIED) {
         return new SomethingQualifiedImpl(node);
-      }
-      else if (type == VALUE) {
-        return new SomethingValueImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

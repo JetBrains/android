@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.something.parser.SomethingElementTyp
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifierMixin;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
+import com.intellij.util.IncorrectOperationException;
 
 public class SomethingIdentifierImpl extends SomethingIdentifierMixin implements SomethingIdentifier {
 

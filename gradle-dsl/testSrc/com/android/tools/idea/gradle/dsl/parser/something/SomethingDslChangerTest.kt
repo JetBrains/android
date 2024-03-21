@@ -22,11 +22,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.intellij.openapi.application.runWriteAction
+import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import com.jetbrains.rd.util.first
@@ -102,6 +101,24 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  fun testDeleteAssignment() {
+    val file = """
+      androidApplication {
+        namespace = "abc"
+        compileSdk = 33
+      }
+    """.trimIndent()
+    val expected = """
+      androidApplication {
+        compileSdk = 33
+      }
+    """.trimIndent()
+    doTest(file, expected) {
+      val block = (elements.first().value as GradleDslBlockElement)
+      block.removeProperty("mNamespace")
+    }
+  }
+
   private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -115,7 +132,7 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
       dslFile.applyChanges()
       dslFile.saveAllChanges()
     }
-    val text = VfsUtil.loadText(somethingFile).replace("\r", "")
-    assertEquals(expected, text)
+    val newText = VfsUtil.loadText(somethingFile).replace("\r", "")
+    assertEquals(expected, newText)
   }
 }

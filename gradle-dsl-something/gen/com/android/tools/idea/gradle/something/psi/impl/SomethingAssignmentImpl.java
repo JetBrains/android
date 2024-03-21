@@ -45,6 +45,12 @@ public class SomethingAssignmentImpl extends ASTWrapperPsiElement implements Som
   }
 
   @Override
+  @Nullable
+  public SomethingFactory getFactory() {
+    return findChildByClass(SomethingFactory.class);
+  }
+
+  @Override
   @NotNull
   public SomethingIdentifier getIdentifier() {
     return findNotNullChildByClass(SomethingIdentifier.class);
@@ -52,8 +58,20 @@ public class SomethingAssignmentImpl extends ASTWrapperPsiElement implements Som
 
   @Override
   @Nullable
+  public SomethingLiteral getLiteral() {
+    return findChildByClass(SomethingLiteral.class);
+  }
+
+  @Override
+  @Nullable
+  public SomethingProperty getProperty() {
+    return findChildByClass(SomethingProperty.class);
+  }
+
+  @Override
+  @Nullable
   public SomethingValue getValue() {
-    return findChildByClass(SomethingValue.class);
+    return PsiImplUtil.getValue(this);
   }
 
 }
