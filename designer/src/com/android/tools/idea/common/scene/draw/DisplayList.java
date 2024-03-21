@@ -48,8 +48,10 @@ public class DisplayList {
   private final static boolean DEBUG = false;
   private ArrayList<DrawCommand> myCommands = new ArrayList<>();
   private Stack<UNClip> myUnClipStack = new Stack<>();
+  private CommandSet mySortedCommandSet;
 
   public void clear() {
+    mySortedCommandSet = null;
     myCommands.clear();
     myUnClipStack.clear();
   }
@@ -343,6 +345,8 @@ public class DisplayList {
   /////////////////////////////////////////////////////////////////////////////
 
   public void add(DrawCommand cmd) {
+    // Invalidate command set
+    mySortedCommandSet = null;
     myCommands.add(cmd);
   }
 
@@ -356,7 +360,7 @@ public class DisplayList {
     int w = context.getSwingDimensionDip(r.width);
     int h = context.getSwingDimensionDip(r.height);
     Clip c = new Clip(l, t, w, h);
-    myCommands.add(c);
+    add(c);
     myUnClipStack.add(new UNClip(c));
   }
 
@@ -369,7 +373,7 @@ public class DisplayList {
       return false;
     }
     if (!(c instanceof EmptyUNClip)) {
-      myCommands.add(c);
+      add(c);
     }
     return true;
   }
@@ -379,7 +383,7 @@ public class DisplayList {
     int t = context.getSwingYDip(r.y);
     int w = context.getSwingDimensionDip(r.width);
     int h = context.getSwingDimensionDip(r.height);
-    myCommands.add(new Rect(l, t, w, h, color));
+    add(new Rect(l, t, w, h, color));
   }
 
   public void addRect(SceneContext context,
@@ -439,8 +443,8 @@ public class DisplayList {
   /////////////////////////////////////////////////////////////////////////////
 
   static class CommandSet implements DrawCommand {
-    private ArrayList<DrawCommand> myCommands = new ArrayList<>();
-    private int myLevel;
+    private final ArrayList<DrawCommand> myCommands = new ArrayList<>();
+    private final int myLevel;
 
     public CommandSet(DrawCommand[] commands, int start, int end) {
       this(commands, start, end, COMPONENT_LEVEL);
@@ -520,7 +524,7 @@ public class DisplayList {
       return -1;
     }
 
-    public void sort() {
+    private void sort() {
       myCommands.sort(Comparator.comparingInt(DrawCommand::getLevel));
       myCommands.forEach(command -> {
         if (command instanceof CommandSet) ((CommandSet)command).sort();
@@ -562,6 +566,18 @@ public class DisplayList {
     }
   }
 
+  @NotNull
+  private CommandSet getSortedCommandSet() {
+    if (mySortedCommandSet == null) {
+      DrawCommand[] array = myCommands.toArray(new DrawCommand[0]);
+      CommandSet set = new CommandSet(array, 0, array.length - 1);
+      set.sort();
+      mySortedCommandSet = set;
+    }
+
+    return mySortedCommandSet;
+  }
+
   public void paint(Graphics2D g2, SceneContext sceneContext) {
     if (!myUnClipStack.isEmpty()) {
       Logger.getInstance(DisplayList.class).warn("There are still clippings in the clip stack.");
@@ -579,14 +595,7 @@ public class DisplayList {
       System.out.println("<");
     }
     Graphics2D g = (Graphics2D)g2.create();
-    DrawCommand[] array = myCommands.toArray(new DrawCommand[0]);
-    CommandSet set = new CommandSet(array, 0, array.length - 1);
-    set.sort();
-    if (DEBUG) {
-      set.print(">");
-      System.out.println("-end-");
-    }
-    set.paint(g, sceneContext);
+    getSortedCommandSet().paint(g, sceneContext);
     g.dispose();
   }
 
