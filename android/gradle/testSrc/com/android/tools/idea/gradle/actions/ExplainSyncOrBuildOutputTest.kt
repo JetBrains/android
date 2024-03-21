@@ -46,7 +46,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.writeText
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -56,16 +55,16 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
+import java.util.function.Supplier
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import java.util.function.Supplier
-import kotlin.test.assertTrue
 
 @RunsInEdt
 class ExplainSyncOrBuildOutputTest {
@@ -84,13 +83,19 @@ class ExplainSyncOrBuildOutputTest {
   }
 
   private val projectRule = ProjectRule()
-  private val project get() = projectRule.project
+  private val project
+    get() = projectRule.project
+
+  @get:Rule val tempDirRule = TemporaryDirectoryRule()
 
   @get:Rule
-  val tempDirRule = TemporaryDirectoryRule()
-
-  @get:Rule
-  val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, MockStudioBot()), EdtRule())
+  val rule =
+    RuleChain(
+      ApplicationRule(),
+      projectRule,
+      ApplicationServiceRule(StudioBot::class.java, MockStudioBot()),
+      EdtRule(),
+    )
 
   @Before
   fun setUp() {
@@ -104,7 +109,8 @@ class ExplainSyncOrBuildOutputTest {
     panel.setSelectionRow(5)
 
     val action = ExplainSyncOrBuildOutput()
-    val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+    val event =
+      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
 
@@ -123,11 +129,14 @@ class ExplainSyncOrBuildOutputTest {
         END CONTEXT
 
         Explain this error and how to fix it.
-      """.trimIndent(), emptyList())
+      """
+                .trimIndent(),
+              emptyList(),
+            )
           }
         },
         StudioBot.RequestSource.BUILD,
-        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)"
+        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
       )
   }
 
@@ -138,7 +147,8 @@ class ExplainSyncOrBuildOutputTest {
     panel.setSelectionRow(5)
 
     val action = ExplainSyncOrBuildOutput()
-    val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+    val event =
+      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
     verify(StudioBot.getInstance().chat(project))
@@ -152,7 +162,8 @@ class ExplainSyncOrBuildOutputTest {
   fun testActionUpdate() {
     val panel = createTree()
     val action = ExplainSyncOrBuildOutput()
-    val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+    val event =
+      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     assertTrue(event.presentation.isEnabled)
     // no selection
@@ -192,10 +203,12 @@ class ExplainSyncOrBuildOutputTest {
 
   @Test
   fun testGetErrorDescription() {
-    val event = object : MessageEventResult {
-      override fun getKind() = MessageEvent.Kind.INFO
+    val event =
+      object : MessageEventResult {
+        override fun getKind() = MessageEvent.Kind.INFO
 
-      override fun getDetails(): String = """
+        override fun getDetails(): String =
+          """
       We recommend using a newer Android Gradle plugin to use compileSdk = 34456
 
       This Android Gradle plugin (8.1.2) was tested up to compileSdk = 34.
@@ -212,9 +225,11 @@ class ExplainSyncOrBuildOutputTest {
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
       Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
       <a href="explain.issue">>> Ask Studio Bot</a>
-    """.trimIndent()
-    }
-    assertEquals("""
+    """
+            .trimIndent()
+      }
+    assertEquals(
+      """
       We recommend using a newer Android Gradle plugin to use compileSdk = 34456
 
       This Android Gradle plugin (8.1.2) was tested up to compileSdk = 34.
@@ -231,17 +246,21 @@ class ExplainSyncOrBuildOutputTest {
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
       Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
 
-      """.trimIndent(), getErrorShortDescription(event))
+      """
+        .trimIndent(),
+      getErrorShortDescription(event),
+    )
   }
 
   @Test
   fun getErrorDetailsForFailureResult() {
-    val node = object : ExecutionNode(null, null, false, Supplier { true }) {
-      override fun getResult(): EventResult = FailureResult {
-        listOf(
-          FailureImpl(
-            "Gradle Sync issues.",
-            """
+    val node =
+      object : ExecutionNode(null, null, false, Supplier { true }) {
+        override fun getResult(): EventResult = FailureResult {
+          listOf(
+            FailureImpl(
+              "Gradle Sync issues.",
+              """
             Could not find com.android.tools.build:gradle:123.456.789.
             Searched in the following locations:
               - file:/Users/username/dev/studio-main/out/repo/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
@@ -251,11 +270,12 @@ class ExplainSyncOrBuildOutputTest {
                 unspecified:unspecified:unspecified
             <a href="add.google.maven.repo">Add google Maven repository and sync project</a>
             <a href="open.plugin.build.file">Open File</a>
-          """.trimIndent()
+          """
+                .trimIndent(),
+            )
           )
-        )
+        }
       }
-    }
     assertEquals(
       """
         Error details:
@@ -268,25 +288,31 @@ class ExplainSyncOrBuildOutputTest {
             unspecified:unspecified:unspecified
         <a href="add.google.maven.repo">Add google Maven repository and sync project</a>
         <a href="open.plugin.build.file">Open File</a>
-      """.trimIndent(),
-      getErrorDetailsContext(node)
+      """
+        .trimIndent(),
+      getErrorDetailsContext(node),
     )
   }
 
   @Test
   fun getErrorDetailsForMessageEventResult() {
-    val node = object : ExecutionNode(null, null, false, Supplier { true }) {
-      override fun getResult(): EventResult = object : MessageEventResult {
-        override fun getKind() = MessageEvent.Kind.ERROR
-        override fun getDetails() = "e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration"
+    val node =
+      object : ExecutionNode(null, null, false, Supplier { true }) {
+        override fun getResult(): EventResult =
+          object : MessageEventResult {
+            override fun getKind() = MessageEvent.Kind.ERROR
+
+            override fun getDetails() =
+              "e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration"
+          }
       }
-    }
     assertEquals(
       """
         Error details:
         e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration
-      """.trimIndent(),
-      getErrorDetailsContext(node)
+      """
+        .trimIndent(),
+      getErrorDetailsContext(node),
     )
   }
 
@@ -300,18 +326,12 @@ class ExplainSyncOrBuildOutputTest {
         class MyClass {
           println("Hello")
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 
-    val navigatable = FileNavigatable(
-      project,
-      FilePosition(
-        file.toIoFile(),
-        1,
-        2
-      )
-    )
+    val navigatable = FileNavigatable(project, FilePosition(file.toIoFile(), 1, 2))
 
     assertEquals(
       Pair(
@@ -325,10 +345,11 @@ class ExplainSyncOrBuildOutputTest {
         --->   println("Hello")
              }
         ```
-      """.trimIndent(),
-        file
+      """
+          .trimIndent(),
+        file,
       ),
-      getErrorFileLocationContext(navigatable, project, AiExcludeService.StubAiExcludeService())
+      getErrorFileLocationContext(navigatable, project, AiExcludeService.FakeAiExcludeService()),
     )
   }
 
@@ -342,45 +363,40 @@ class ExplainSyncOrBuildOutputTest {
         class MyClass {
           println("Hello")
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 
-    val navigatable = FileNavigatable(
-      project,
-      FilePosition(
-        file.toIoFile(),
-        1,
-        2
-      )
-    )
+    val navigatable = FileNavigatable(project, FilePosition(file.toIoFile(), 1, 2))
 
     // An AiExcludeService that excludes all files
-    val aiExcludeService = object : AiExcludeService.StubAiExcludeService() {
-      override fun getFileExclusionStatus(project: Project, file: VirtualFile) = ExclusionStatus.EXCLUDED
-    }
+    val aiExcludeService =
+      AiExcludeService.FakeAiExcludeService().apply {
+        defaultStatus = AiExcludeService.ExclusionStatus.EXCLUDED
+      }
 
     val result = getErrorFileLocationContext(navigatable, project, aiExcludeService)
 
-    assertEquals(
-      null,
-      result
-    )
+    assertEquals(null, result)
   }
 
   private class TestBuildTreeStructure(val root: TestExecutionNode) : AbstractTreeStructure() {
     override fun getRootElement(): Any = root
 
-    override fun getChildElements(element: Any): Array<Any> = (element as ExecutionNode).childList.toTypedArray()
+    override fun getChildElements(element: Any): Array<Any> =
+      (element as ExecutionNode).childList.toTypedArray()
 
     override fun getParentElement(element: Any): Any? = (element as ExecutionNode).parent
 
-    override fun createDescriptor(element: Any, parentDescriptor: NodeDescriptor<*>?): NodeDescriptor<*> = element as ExecutionNode
+    override fun createDescriptor(
+      element: Any,
+      parentDescriptor: NodeDescriptor<*>?,
+    ): NodeDescriptor<*> = element as ExecutionNode
 
     override fun commit() {}
 
     override fun hasSomethingToCommit(): Boolean = false
-
   }
 
   private class TestExecutionNode(val payload: String, vararg val myChildren: TestExecutionNode) :
@@ -393,24 +409,33 @@ class ExplainSyncOrBuildOutputTest {
   }
 
   private fun createTree(): Tree {
-    val node = TestExecutionNode(
-      "",
+    val node =
       TestExecutionNode(
-        "failed",
+        "",
         TestExecutionNode(
-          ":app:compileDebugKotlin",
+          "failed",
           TestExecutionNode(
-            "SomeFile.kt",
+            ":app:compileDebugKotlin",
             TestExecutionNode(
-              "MainActivity.kt",
-              TestExecutionNode("Unexpected tokens (use ';' to separate expressions on the same line)")
-            )
-          )
-        )
+              "SomeFile.kt",
+              TestExecutionNode(
+                "MainActivity.kt",
+                TestExecutionNode(
+                  "Unexpected tokens (use ';' to separate expressions on the same line)"
+                ),
+              ),
+            ),
+          ),
+        ),
       )
-    )
     val eventDispatchThread = Invoker.forEventDispatchThread(projectRule.disposable)
-    val root = StructureTreeModel(TestBuildTreeStructure(node), null, eventDispatchThread, projectRule.disposable)
+    val root =
+      StructureTreeModel(
+        TestBuildTreeStructure(node),
+        null,
+        eventDispatchThread,
+        projectRule.disposable,
+      )
     val panel = Tree(root)
 
     for (i in 0 until 6) {

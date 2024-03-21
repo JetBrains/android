@@ -29,8 +29,8 @@ import org.jetbrains.annotations.TestOnly
  * Users can place files called .aiexclude throughout their project to block ai features from
  * accessing or being active in those files. In order to send queries directly to a model, clients
  * must consult aiexclude. When building queries, clients must check each file they read using
- * [isFileExcluded]. Then to send the query, construct a Prompt by passing your intended query
- * and the files used to construct it. This can then be sent to [ChatService.sendChatQuery] or
+ * [isFileExcluded]. Then to send the query, construct a Prompt by passing your intended query and
+ * the files used to construct it. This can then be sent to [ChatService.sendChatQuery] or
  * [LlmService.sendQuery].
  *
  * See
@@ -63,12 +63,17 @@ abstract class AiExcludeService {
   abstract fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile>
 
   @TestOnly
-  open class StubAiExcludeService : AiExcludeService() {
-    override fun getFileExclusionStatus(project: Project, file: VirtualFile): ExclusionStatus =
-      ExclusionStatus.ALLOWED
+  class FakeAiExcludeService : AiExcludeService() {
+    var defaultStatus: ExclusionStatus = ExclusionStatus.ALLOWED
+    var defaultBlockingFiles: List<VirtualFile> = listOf()
+    val fileStatus: MutableMap<VirtualFile, ExclusionStatus> = mutableMapOf()
+    val blockingFiles: MutableMap<VirtualFile, List<VirtualFile>> = mutableMapOf()
 
     override fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile> =
-      emptyList()
+      blockingFiles[file] ?: defaultBlockingFiles
+
+    override fun getFileExclusionStatus(project: Project, file: VirtualFile): ExclusionStatus =
+      fileStatus[file] ?: defaultStatus
   }
 
   enum class ExclusionStatus {

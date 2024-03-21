@@ -22,20 +22,23 @@ import com.intellij.openapi.project.Project
  * Entry point for Studio Bot functionality from android plugin. It mainly serves as a level of
  * indirection allowing the android plugin to not directly depend on Studio Bot.
  *
- * Before using Studio Bot APIs, you should first check if it is available by invoking [isAvailable].
+ * Before using Studio Bot APIs, you should first check if it is available by invoking
+ * [isAvailable].
  *
- * Studio Bot currently provides two main entry points: You can use [chat] to get access to the [ChatService].
- * Any calls made through this service will show the data being sent to and received from the backend in the Studio Bot chat window.
- * If you do not want to have your queries displayed in the chat window, then use the [model] API to get access to the raw language model.
- * In this case, you are expected to prompt the model appropriately.
+ * Studio Bot currently provides two main entry points: You can use [chat] to get access to the
+ * [ChatService]. Any calls made through this service will show the data being sent to and received
+ * from the backend in the Studio Bot chat window. If you do not want to have your queries displayed
+ * in the chat window, then use the [model] API to get access to the raw language model. In this
+ * case, you are expected to prompt the model appropriately.
  *
- * No matter which API you use, it is important that project specific details are not included in the prompts.
- * See [AiExcludeService] and [isContextAllowed] for more details.
+ * No matter which API you use, it is important that project specific details are not included in
+ * the prompts. See [AiExcludeService] and [isContextAllowed] for more details.
  */
 interface StudioBot {
   /**
-   * The maximum number of characters a query can contain before it starts getting cut off starting from the end.
-   * This is an approximate value derived from the number of tokens supported by the latest AIDA model.
+   * The maximum number of characters a query can contain before it starts getting cut off starting
+   * from the end. This is an approximate value derived from the number of tokens supported by the
+   * latest AIDA model.
    */
   val MAX_QUERY_CHARS: Int
 
@@ -43,29 +46,26 @@ interface StudioBot {
   fun isAvailable(): Boolean = false
 
   /**
-   * Returns whether the user has opted into sharing context from [project] in
-   * Studio Bot queries.
+   * Returns whether the user has opted into sharing context from [project] in Studio Bot queries.
    */
   fun isContextAllowed(project: Project): Boolean = false
 
   fun aiExcludeService(): AiExcludeService
 
   /**
-   * Returns an instance of the chat service, which is used to interface with the Studio Bot chat window.
-   * This should be called only if [isAvailable] is true.
-   *  */
+   * Returns an instance of the chat service, which is used to interface with the Studio Bot chat
+   * window. This should be called only if [isAvailable] is true.
+   */
   fun chat(project: Project): ChatService
 
   /**
-   * Returns an instance of the raw model service. This should be called only if [isAvailable] is true
-   * This service is used to send and receive text responses with a model directly, without going through
-   * the chat UI.
+   * Returns an instance of the raw model service. This should be called only if [isAvailable] is
+   * true This service is used to send and receive text responses with a model directly, without
+   * going through the chat UI.
    */
   fun model(project: Project): LlmService
 
-  /**
-   * Used for gathering metrics, like how many queries come from each part of Android Studio.
-   */
+  /** Used for gathering metrics, like how many queries come from each part of Android Studio. */
   enum class RequestSource {
     SYNC,
     BUILD,
@@ -77,12 +77,17 @@ interface StudioBot {
     OTHER
   }
 
-  open class StubStudioBot: StudioBot {
+  open class StubStudioBot : StudioBot {
     override val MAX_QUERY_CHARS = Int.MAX_VALUE
+
     override fun isAvailable(): Boolean = false
+
     override fun isContextAllowed(project: Project): Boolean = false
-    override fun aiExcludeService(): AiExcludeService = AiExcludeService.StubAiExcludeService()
+
+    override fun aiExcludeService(): AiExcludeService = AiExcludeService.FakeAiExcludeService()
+
     override fun chat(project: Project): ChatService = ChatService.StubChatService()
+
     override fun model(project: Project): LlmService = LlmService.StubLlmService()
   }
 

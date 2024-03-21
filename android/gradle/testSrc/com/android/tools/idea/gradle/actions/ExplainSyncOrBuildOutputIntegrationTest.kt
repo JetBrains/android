@@ -39,60 +39,67 @@ import org.junit.Test
 class ExplainSyncOrBuildOutputIntegrationTest {
 
   @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  val projectRule: IntegrationTestEnvironmentRule =
+    AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testAddDependencyAndSync() {
-    val preparedProject: PreparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val preparedProject: PreparedTestProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildFile = preparedProject.root.resolve(APP_PREFIX).resolve(FN_BUILD_GRADLE)
     buildFile.appendText("\nandroid.compileSdkVersion 341123")
     val eventResults = mutableListOf<EventResult>()
-    preparedProject.open(updateOptions = { projectOptions: OpenPreparedProjectOptions ->
-      projectOptions.copy(
-        expectedSyncIssues = setOf(IdeSyncIssue.TYPE_MISSING_SDK_PACKAGE),
-        overrideProjectGradleJdkPath = null,
-        syncViewEventHandler = { event: BuildEvent ->
-          when (event) {
-
-            is AndroidSyncIssueFileEvent -> {
-              eventResults += event.result
+    preparedProject.open(
+      updateOptions = { projectOptions: OpenPreparedProjectOptions ->
+        projectOptions.copy(
+          expectedSyncIssues = setOf(IdeSyncIssue.TYPE_MISSING_SDK_PACKAGE),
+          overrideProjectGradleJdkPath = null,
+          syncViewEventHandler = { event: BuildEvent ->
+            when (event) {
+              is AndroidSyncIssueFileEvent -> {
+                eventResults += event.result
+              }
+              else -> {}
             }
+          },
+        )
+      }
+    ) {}
 
-            else -> {}
-          }
-        }
-      )
-    }) {}
-
-    val actual = getErrorShortDescription(eventResults[1])!!.trimIndent()
-      .replace("\r\n", "\n")
-      .replace("\\", "/")
-    val absolutePath = buildFile.absolutePath
-      .replace("\\", "/")
-    assertEquals("""
+    val actual =
+      getErrorShortDescription(eventResults[1])!!
+        .trimIndent()
+        .replace("\r\n", "\n")
+        .replace("\\", "/")
+    val absolutePath = buildFile.absolutePath.replace("\\", "/")
+    assertEquals(
+      """
                 We recommend using a newer Android Gradle plugin to use compileSdk = 341123
                 
                 This Android Gradle plugin ($ANDROID_GRADLE_PLUGIN_VERSION) was tested up to compileSdk = 34.
-
+                
                 You are strongly encouraged to update your project to use a newer
                 Android Gradle plugin that has been tested with compileSdk = 341123.
-
+                
                 If you are already using the latest version of the Android Gradle plugin,
                 you may need to wait until a newer version with support for compileSdk = 341123 is available.
-
+                
                 To suppress this warning, add/update
                     android.suppressUnsupportedCompileSdk=341123
                 to this project's gradle.properties.
                 Affected Modules: <a href="openFile:$absolutePath">app</a>
-              """.trimIndent(), actual)
+              """
+        .trimIndent(),
+      actual,
+    )
   }
 
   @Test
   fun testGradleFilesContext() {
-    val preparedProject: PreparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val (contextString, files) = preparedProject.open {
-      getGradleFilesContext(it, AiExcludeService.StubAiExcludeService())
-    }!!
+    val preparedProject: PreparedTestProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val (contextString, files) =
+      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService()) }!!
 
     assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
     assertEquals(3, files.size)
