@@ -255,7 +255,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         }
         externalProjectInfo?.externalProjectStructure?.modules()?.forEach { moduleDataNode ->
           if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
-            moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
+            val isLinked = moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
+            if (!isLinked) {
+              requestSync("Not enough information to link all modules from: ${moduleDataNode.data.id}")
+            }
           }
         }
         val moduleVariants = project.getSelectedVariantAndAbis()
