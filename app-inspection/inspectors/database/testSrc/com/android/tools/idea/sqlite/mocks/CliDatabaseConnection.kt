@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -172,7 +173,7 @@ class CliDatabaseConnection(
           rowOffset: Int,
           rowBatchSize: Int,
           responseSizeByteLimitHint: Long?,
-        ): ListenableFuture<List<SqliteRow>> =
+        ): ListenableFuture<SqliteQueryResult> =
           Futures.immediateFuture(
             let {
               // simulate responseSizeByteLimitHint by hard-coding `2` rows per response - good
@@ -180,13 +181,15 @@ class CliDatabaseConnection(
               val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize
               // min(batchSize, rowBatchSize) ensures that both size [bytes] and row count limits
               // are enforced
-              rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
-                val cells =
-                  row.mapIndexed { ix, cell ->
-                    SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell))
-                  }
-                SqliteRow(cells)
-              }
+              val rows =
+                rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
+                  val cells =
+                    row.mapIndexed { ix, cell ->
+                      SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell))
+                    }
+                  SqliteRow(cells)
+                }
+              SqliteQueryResult(rows)
             }
           )
 

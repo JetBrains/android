@@ -531,7 +531,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
@@ -591,7 +591,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
@@ -651,7 +651,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny("foo"), rows.first().values[1].value)
@@ -711,7 +711,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(null), rows.first().values[1].value)

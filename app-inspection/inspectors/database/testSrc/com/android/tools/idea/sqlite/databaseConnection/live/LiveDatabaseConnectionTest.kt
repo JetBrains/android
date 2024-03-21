@@ -173,7 +173,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -246,7 +246,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -317,7 +317,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -399,7 +399,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(0, sqliteRows)
       assertSize(0, sqliteColumns)

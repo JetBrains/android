@@ -44,6 +44,7 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -1790,7 +1791,7 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable))
         )
       )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).rows.first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
@@ -1832,7 +1833,7 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
@@ -1867,7 +1868,7 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable))
         )
       )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).rows.first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
@@ -1931,7 +1932,7 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
@@ -2724,7 +2725,7 @@ class TableControllerTest : LightPlatformTestCase() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
     whenever(mockResultSet.getRowBatch(any(), any()))
-      .thenReturn(Futures.immediateFuture(emptyList()))
+      .thenReturn(Futures.immediateFuture(SqliteQueryResult(emptyList())))
     whenever(mockResultSet.totalRowCount).thenReturn(Futures.immediateFuture(0))
     whenever(mockResultSet.columns)
       .thenReturn(Futures.immediateFuture(listOf(ResultSetSqliteColumn("c1", null, null, null))))
@@ -2893,7 +2894,7 @@ class TableControllerTest : LightPlatformTestCase() {
           )
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(SqliteValue.StringValue("test value"), value)
     val executedUpdateStatement =

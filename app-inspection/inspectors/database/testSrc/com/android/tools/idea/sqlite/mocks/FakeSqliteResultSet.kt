@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
@@ -50,7 +51,7 @@ class FakeSqliteResultSet(
   override val totalRowCount: ListenableFuture<Int>
     get() = Futures.immediateFuture(rows.size)
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult> {
     assert(rowOffset >= 0)
     assert(rowBatchSize > 0)
 
@@ -58,7 +59,7 @@ class FakeSqliteResultSet(
 
     val rows = rows.subList(rowOffset, toIndex).toList()
     invocations.add(rows)
-    return Futures.immediateFuture(rows)
+    return Futures.immediateFuture(SqliteQueryResult(rows))
   }
 
   override fun dispose() {}

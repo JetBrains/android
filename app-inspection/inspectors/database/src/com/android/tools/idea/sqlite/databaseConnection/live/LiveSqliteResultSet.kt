@@ -19,7 +19,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
@@ -57,7 +57,7 @@ abstract class LiveSqliteResultSet(
   final override fun getRowBatch(
     rowOffset: Int,
     rowBatchSize: Int,
-  ): ListenableFuture<List<SqliteRow>> = getRowBatch(rowOffset, rowBatchSize, null)
+  ): ListenableFuture<SqliteQueryResult> = getRowBatch(rowOffset, rowBatchSize, null)
 
   /**
    * @param rowBatchSize
@@ -73,7 +73,7 @@ abstract class LiveSqliteResultSet(
     rowOffset: Int,
     rowBatchSize: Int,
     responseSizeByteLimitHint: Long? = null,
-  ): ListenableFuture<List<SqliteRow>>
+  ): ListenableFuture<SqliteQueryResult>
 
   override fun dispose() {}
 }

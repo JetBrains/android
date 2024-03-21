@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -44,19 +45,21 @@ class LazyLiveSqliteResultSet(
     rowOffset: Int,
     rowBatchSize: Int,
     responseSizeByteLimitHint: Long?,
-  ): ListenableFuture<List<SqliteRow>> {
+  ): ListenableFuture<SqliteQueryResult> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
     return sendQueryCommand(sqliteStatement, responseSizeByteLimitHint).transform(taskExecutor) {
       response ->
       val columnNames = response.query.columnNamesList
-      val rows = response.query.rowsList
-      rows.subList(rowOffset, minOf(rowOffset + rowBatchSize, rows.size)).map {
-        val sqliteColumnValues =
-          it.valuesList.mapIndexed { index, cellValue ->
-            cellValue.toSqliteColumnValue(columnNames[index])
-          }
-        SqliteRow(sqliteColumnValues)
-      }
+      val rowList = response.query.rowsList
+      val rows =
+        rowList.subList(rowOffset, minOf(rowOffset + rowBatchSize, rowList.size)).map {
+          val sqliteColumnValues =
+            it.valuesList.mapIndexed { index, cellValue ->
+              cellValue.toSqliteColumnValue(columnNames[index])
+            }
+          SqliteRow(sqliteColumnValues)
+        }
+      SqliteQueryResult(rows)
     }
   }
 }

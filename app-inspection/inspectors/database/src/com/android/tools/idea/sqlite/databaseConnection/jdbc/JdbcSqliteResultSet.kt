@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -68,7 +69,7 @@ abstract class JdbcSqliteResultSet(
   abstract override fun getRowBatch(
     rowOffset: Int,
     rowBatchSize: Int,
-  ): ListenableFuture<List<SqliteRow>>
+  ): ListenableFuture<SqliteQueryResult>
 
   protected fun getRowCount(
     sqliteStatement: SqliteStatement,
@@ -89,15 +90,16 @@ abstract class JdbcSqliteResultSet(
   protected fun getRowBatch(
     sqliteStatement: SqliteStatement,
     handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>,
-  ): ListenableFuture<List<SqliteRow>> {
+  ): ListenableFuture<SqliteQueryResult> {
     return columns
       .transform(taskExecutor) { columns ->
         check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
         check(!connection.isClosed) { "The connection has been closed." }
-
-        connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
-          preparedStatement.executeQuery().use { handleResponse(it, columns) }
-        }
+        val rows =
+          connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+            preparedStatement.executeQuery().use { handleResponse(it, columns) }
+          }
+        SqliteQueryResult(rows)
       }
       .cancelOnDispose(this)
   }

@@ -135,13 +135,13 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     assertThat(resultSet.hasColumn("author_id", SqliteAffinity.INTEGER)).isTrue()
 
     // Act
-    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
+    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3)).rows
 
     // Assert
     assertThat(rows.count()).isEqualTo(3)
 
     // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
     // Assert
     assertThat(rows.count()).isEqualTo(1)
@@ -165,13 +165,13 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     assertThat(resultSet.hasColumn("author_id", SqliteAffinity.INTEGER)).isFalse()
 
     // Act
-    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
+    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3)).rows
 
     // Assert
     assertThat(rows.count()).isEqualTo(3)
 
     // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
     // Assert
     assertThat(rows.count()).isEqualTo(1)
@@ -714,7 +714,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       )
 
     // Assert
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertEquals(SqliteValue.NullValue, rows.first().values[0].value)
     assertEquals(SqliteValue.StringValue("null"), rows.first().values[1].value)
   }
@@ -748,7 +748,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       pumpEventsAndWaitForFuture(
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertEquals(SqliteValue.fromAny(0), rows.first().values.first().value)
   }
 
@@ -781,7 +781,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       pumpEventsAndWaitForFuture(
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertEquals(SqliteValue.fromAny(0), rows.last().values.first().value)
   }
 
@@ -814,7 +814,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       pumpEventsAndWaitForFuture(
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"))
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(0, rows)
   }
 
@@ -844,7 +844,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       )
 
     // Assert
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertTrue(rows.isNotEmpty())
   }
 
@@ -874,7 +874,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       )
 
     // Assert
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertTrue(rows.isNotEmpty())
   }
 

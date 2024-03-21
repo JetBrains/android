@@ -167,7 +167,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       // Act
       // Since we are mocking the answer the values passed to getRowBatch don't matter.
       val rowsFromResultSet =
-        pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, Integer.MAX_VALUE))
+        pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, Integer.MAX_VALUE)).rows
 
       // Assert
       assertSize(1, rowsFromResultSet)

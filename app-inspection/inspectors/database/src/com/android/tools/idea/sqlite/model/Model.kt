@@ -98,6 +98,9 @@ data class SqliteTable(
   val isView: Boolean,
 )
 
+/** Representation of the Sqlite query result */
+data class SqliteQueryResult(val rows: List<SqliteRow>)
+
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
 

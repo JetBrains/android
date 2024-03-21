@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -45,7 +46,7 @@ class PagedLiveSqliteResultSet(
     rowOffset: Int,
     rowBatchSize: Int,
     responseSizeByteLimitHint: Long?,
-  ): ListenableFuture<List<SqliteRow>> {
+  ): ListenableFuture<SqliteQueryResult> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
     return sendQueryCommand(
         sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize),
@@ -53,13 +54,15 @@ class PagedLiveSqliteResultSet(
       )
       .transform(taskExecutor) { response ->
         val columnNames = response.query.columnNamesList
-        response.query.rowsList.map {
-          val sqliteColumnValues =
-            it.valuesList.mapIndexed { index, cellValue ->
-              cellValue.toSqliteColumnValue(columnNames[index])
-            }
-          SqliteRow(sqliteColumnValues)
-        }
+        val rows =
+          response.query.rowsList.map {
+            val sqliteColumnValues =
+              it.valuesList.mapIndexed { index, cellValue ->
+                cellValue.toSqliteColumnValue(columnNames[index])
+              }
+            SqliteRow(sqliteColumnValues)
+          }
+        SqliteQueryResult(rows)
       }
   }
 }

@@ -212,9 +212,9 @@ class TableController(
   private fun fetchAndDisplayRows(): ListenableFuture<Unit> {
     return resultSet
       .getRowBatch(rowOffset, rowBatchSize)
-      .transform(edtExecutor) { newRows ->
+      .transform(edtExecutor) { result ->
         val rowDiffOperations = mutableListOf<RowDiffOperation>()
-
+        val newRows = result.rows
         // Update the cells that already exist
         for (rowIndex in 0 until min(currentRows.size, newRows.size)) {
           val rowCellUpdates = performRowsDiff(currentRows[rowIndex], newRows[rowIndex], rowIndex)

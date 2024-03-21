@@ -492,14 +492,16 @@ class ExportToFileController(
       while (rowOffset < totalRowCount) {
         val batch =
           when (resultSet) {
-            is LiveSqliteResultSet ->
-              resultSet.getRowBatch(
-                rowOffset,
-                rowBatchSize = Integer.MAX_VALUE,
-                responseSizeByteLimitHint,
-              )
-            else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
-          }.await()
+              is LiveSqliteResultSet ->
+                resultSet.getRowBatch(
+                  rowOffset,
+                  rowBatchSize = Integer.MAX_VALUE,
+                  responseSizeByteLimitHint,
+                )
+              else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
+            }
+            .await()
+            .rows
         batch.forEach { emit(it) }
         rowOffset += batch.size
       }

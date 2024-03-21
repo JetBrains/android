@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection
 
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.transform
@@ -50,12 +50,12 @@ interface SqliteResultSet : Disposable {
   val totalRowCount: ListenableFuture<Int>
 
   /**
-   * Returns a list of [SqliteRow]s.
+   * Returns a [SqliteQueryResult].
    *
    * @param rowOffset The row from which the returned list of rows should start. Must be >= 0
    * @param rowBatchSize The maximum amount of rows returned. Must be > 0
    */
-  fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
+  fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult>
 }
 
 /** Checks that [rowOffset] is >= 0 and [rowBatchSize] is > 0. */
