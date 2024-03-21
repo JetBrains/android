@@ -1327,7 +1327,7 @@ class LightBindingClassTest {
     assertThat(layoutBindingModuleCache.bindingLayoutGroups).hasSize(1)
 
     val group1 = layoutBindingModuleCache.bindingLayoutGroups.single()
-    val lightBindingClass1 = layoutBindingModuleCache.getLightBindingClasses(group1).single()
+    val lightBindingClass1 = layoutBindingModuleCache.getLightBindingClasses().single()
     assertThat(lightBindingClass1).isInstanceOf(LightBindingClass::class.java)
 
     fixture.addFileToProject(
@@ -1345,8 +1345,8 @@ class LightBindingClassTest {
     waitForResourceRepositoryUpdates(facet)
     assertThat(layoutBindingModuleCache.bindingLayoutGroups).hasSize(2)
 
-    val group2 = layoutBindingModuleCache.bindingLayoutGroups.single { g -> g == group1 }
-    val lightBindingClass2 = layoutBindingModuleCache.getLightBindingClasses(group2).single()
+    val lightBindingClass2 =
+      layoutBindingModuleCache.getLightBindingClasses { it == group1 }.single()
     assertThat(lightBindingClass2).isInstanceOf(LightBindingClass::class.java)
 
     assertThat(lightBindingClass1).isNotSameAs(lightBindingClass2)

@@ -220,9 +220,16 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   /**
    * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
    * associated with this facet.
+   *
+   * The groupFilter function is used to filter the [BindingLayoutGroup]s that correspond to the
+   * light classes; only classes for the filtered groups will be returned.
    */
-  fun getLightBindingClasses(): List<LightBindingClass> {
-    return bindingLayoutGroups.flatMap(this::getLightBindingClasses)
+  fun getLightBindingClasses(
+    groupFilter: ((BindingLayoutGroup) -> Boolean)? = null
+  ): List<LightBindingClass> {
+    val groups =
+      if (groupFilter != null) bindingLayoutGroups.filter(groupFilter) else bindingLayoutGroups
+    return groups.flatMap(this::getLightBindingClasses)
   }
 
   /**
@@ -238,7 +245,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    *
    * @param group A group that you can get by calling [bindingLayoutGroups]
    */
-  fun getLightBindingClasses(group: BindingLayoutGroup): List<LightBindingClass> {
+  private fun getLightBindingClasses(group: BindingLayoutGroup): List<LightBindingClass> {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
     return group.getOrCreateLightBindingClasses { createLightBindingClasses(facet, group) }
   }

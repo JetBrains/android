@@ -62,11 +62,11 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   ): NonCodeUsageSearchInfo? {
     val resourceFile = element as PsiFile
     val facet = AndroidFacet.getInstance(element)!!
-    val cache = LayoutBindingModuleCache.getInstance(facet)
 
-    cache.bindingLayoutGroups
-      .filter { group -> group.layouts.any { layout -> layout.file == resourceFile.virtualFile } }
-      .flatMap { group -> cache.getLightBindingClasses(group) }
+    LayoutBindingModuleCache.getInstance(facet)
+      .getLightBindingClasses { group ->
+        group.layouts.any { layout -> layout.file == resourceFile.virtualFile }
+      }
       .forEach { bindingClass ->
         SafeDeleteProcessor.findGenericElementUsages(bindingClass, result, allElementsToDelete)
       }
