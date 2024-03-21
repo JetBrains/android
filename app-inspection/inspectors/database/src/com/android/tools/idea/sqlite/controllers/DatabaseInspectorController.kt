@@ -101,7 +101,7 @@ class DatabaseInspectorControllerImpl(
 
   private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
   private val workDispatcher = taskExecutor.asCoroutineDispatcher()
-  private val projectScope = AndroidCoroutineScope(project, uiDispatcher)
+  private val projectScope = AndroidCoroutineScope(this, uiDispatcher)
 
   private val view = viewFactory.createDatabaseInspectorView(project)
   private val tabsToRestore = mutableListOf<TabDescription>()
@@ -168,7 +168,7 @@ class DatabaseInspectorControllerImpl(
         view.updateDatabases(diffOperations)
 
         // enable refresh button if at least one live db is open
-        val hasLiveDb = openDatabaseIds.any { it is SqliteDatabaseId.LiveSqliteDatabaseId }
+        val hasLiveDb = openDatabaseIds.any { it is LiveSqliteDatabaseId }
         view.setRefreshButtonState(hasLiveDb)
 
         currentOpenDatabaseIds = openDatabaseIds
@@ -751,7 +751,7 @@ class DatabaseInspectorControllerImpl(
         when (databaseId) {
           is SqliteDatabaseId.FileSqliteDatabaseId ->
             AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-          is SqliteDatabaseId.LiveSqliteDatabaseId ->
+          is LiveSqliteDatabaseId ->
             AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
         }
 

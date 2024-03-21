@@ -32,10 +32,10 @@ class AndroidSqlFakePsiElementDescriptionProvider : ElementDescriptionProvider {
     location: ElementDescriptionLocation,
   ): String? {
     if (element is AndroidSqlFakePsiElement) {
-      when (location) {
-        UsageViewShortNameLocation.INSTANCE -> return element.name
-        UsageViewTypeLocation.INSTANCE -> return element.typeDescription
-        else -> return ""
+      return when (location) {
+        UsageViewShortNameLocation.INSTANCE -> element.name
+        UsageViewTypeLocation.INSTANCE -> element.typeDescription
+        else -> ""
       }
     }
     return null

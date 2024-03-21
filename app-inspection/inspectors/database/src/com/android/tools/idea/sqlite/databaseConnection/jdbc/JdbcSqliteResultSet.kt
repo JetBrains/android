@@ -28,7 +28,6 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.util.Disposer
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.ResultSet
@@ -39,6 +38,7 @@ abstract class JdbcSqliteResultSet(
   private val connection: Connection,
   private val sqliteStatement: SqliteStatement,
 ) : SqliteResultSet {
+  private var isDisposed = false
 
   override val columns
     get() =
@@ -77,7 +77,7 @@ abstract class JdbcSqliteResultSet(
   ): ListenableFuture<Int> {
     return taskExecutor
       .executeAsync {
-        check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+        check(!isDisposed) { "ResultSet has already been closed." }
         check(!connection.isClosed) { "The connection has been closed." }
 
         connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
@@ -93,7 +93,7 @@ abstract class JdbcSqliteResultSet(
   ): ListenableFuture<SqliteQueryResult> {
     return columns
       .transform(taskExecutor) { columns ->
-        check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+        check(!isDisposed) { "ResultSet has already been closed." }
         check(!connection.isClosed) { "The connection has been closed." }
         val rows =
           connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
@@ -116,5 +116,7 @@ abstract class JdbcSqliteResultSet(
     )
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    isDisposed = true
+  }
 }

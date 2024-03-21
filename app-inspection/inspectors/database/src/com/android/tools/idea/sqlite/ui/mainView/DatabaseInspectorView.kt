@@ -68,7 +68,7 @@ interface DatabaseInspectorView {
   fun setRefreshButtonState(state: Boolean)
 
   /**
-   * Shows a panel in the right side of the view that serves as loading indicator for offline mode
+   * Shows a panel on the right side of the view that serves as loading indicator for offline mode
    */
   fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int)
 

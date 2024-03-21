@@ -30,7 +30,9 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.SCHEMA_TREE_EXPORT_BUTTON
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.HelpTooltip
+import com.intellij.ide.actions.CollapseAllAction
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -47,7 +49,6 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
-import com.intellij.ui.treeStructure.actions.CollapseAllAction
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -88,7 +89,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   fun createCollapseTreeAction(): AnAction {
-    return CollapseAllAction(tree)
+    return CollapseAllAction { DefaultTreeExpander(tree) }
   }
 
   fun updateKeepConnectionOpenButton(enabled: Boolean) {
@@ -127,7 +128,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     treeModel.insertNodeInto(schemaNode, root, index)
 
     // if schema node has no children it cannot be expanded
-    // if we don't expand the root of the tree children are not visible, since the root itself is
+    // if we don't expand the root of the tree, children are not visible, since the root itself is
     // not visible
     if (schema == null) {
       tree.expandPath(TreePath(root))
@@ -500,8 +501,11 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
             append(userObject.name)
           }
           is SqliteColumn -> {
-            if (userObject.inPrimaryKey) icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
-            else icon = StudioIcons.DatabaseInspector.COLUMN
+            icon =
+              when (userObject.inPrimaryKey) {
+                true -> StudioIcons.DatabaseInspector.PRIMARY_KEY
+                false -> StudioIcons.DatabaseInspector.COLUMN
+              }
             append(userObject.name)
             append("  :  ", colorTextAttributes)
             append(userObject.affinity.name.uppercase(Locale.US), colorTextAttributes)

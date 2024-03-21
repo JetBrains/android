@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.model
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.application.ApplicationManager
 
-/** Class used to store and access [SqliteDatabase]s and their [SqliteSchema]s. */
+/** Class used to store and access [SqliteDatabaseId]s and their [SqliteSchema]s. */
 @UiThread
 interface DatabaseInspectorModel {
   fun getOpenDatabaseIds(): List<SqliteDatabaseId>

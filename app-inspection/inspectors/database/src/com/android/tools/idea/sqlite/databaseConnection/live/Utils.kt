@@ -124,7 +124,7 @@ internal fun handleError(
   logger: Logger,
 ) {
   // Ignore race conditions for short-lived dbs.
-  // Short lived dbs can be closed after the "db open" event is received and before the next command
+  // Short-lived dbs can be closed after the "db open" event is received and before the next command
   // is executed.
   if (
     errorContent.errorCode ==
@@ -185,7 +185,7 @@ private fun handleErrorContent(
 internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent): String {
   /**
    * Errors can be "recoverable", "unrecoverable" or "unknown if recoverable".
-   * 1. "Recoverable" errors are errors after which execution can continue as normal (eg. typo in
+   * 1. "Recoverable" errors are errors after which execution can continue as normal (e.g. typo in
    *    query).
    * 2. "Unrecoverable" errors are errors after which the state of on-device inspector is corrupted
    *    and app needs restart.

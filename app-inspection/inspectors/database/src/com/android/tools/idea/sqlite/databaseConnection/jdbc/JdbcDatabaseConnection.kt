@@ -56,7 +56,7 @@ class JdbcDatabaseConnection(
     Disposer.register(parentDisposable, this)
   }
 
-  val sequentialTaskExecutor =
+  private val sequentialTaskExecutor =
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor(
       "Sqlite JDBC service",
       pooledExecutor,

@@ -28,7 +28,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.fields.ExpandableTextField
-import com.intellij.util.Function
 import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -59,10 +58,7 @@ class ParametersBindingDialogViewImpl(
 
   private val statementLabel = JBLabel("Statement")
   private val statementTextField =
-    ExpandableTextField(
-      Function { value: String -> listOf(value) },
-      ParametersListUtil.DEFAULT_LINE_JOINER,
-    )
+    ExpandableTextField({ value: String -> listOf(value) }, ParametersListUtil.DEFAULT_LINE_JOINER)
 
   init {
     parameterResolutionPanelsContainer.layout =
@@ -74,7 +70,7 @@ class ParametersBindingDialogViewImpl(
     component.add(panel, BorderLayout.NORTH)
 
     isModal = false
-    title = "Query parameters"
+    title = "Query Parameters"
     setOKButtonText("Run")
     setCancelButtonText("Cancel")
 
@@ -115,7 +111,7 @@ class ParametersBindingDialogViewImpl(
 
   public override fun doOKAction() {
     val parametersNameValueMap =
-      parameterResolutionPanels.map { it.sqliteParameter to it.getValue() }.toMap()
+      parameterResolutionPanels.associate { it.sqliteParameter to it.getValue() }
     listeners.forEach { it.bindingCompletedInvoked(parametersNameValueMap) }
 
     super.doOKAction()
@@ -243,11 +239,11 @@ class ParametersBindingDialogViewImpl(
   }
 
   private class InputComponent(labelText: String, action: Action) {
-    internal val component = JPanel()
-    internal val nameLabel = JBLabel(labelText)
-    internal val valueTextField = JBTextField(20)
+    val component = JPanel()
+    val nameLabel = JBLabel(labelText)
+    val valueTextField = JBTextField(20)
 
-    internal var isNull = false
+    var isNull = false
       private set
 
     init {
@@ -314,7 +310,7 @@ class ParametersBindingDialogViewImpl(
       valueTextField.isEnabled = !isNull
     }
 
-    internal sealed class Action {
+    sealed class Action {
       internal abstract val description: String
       internal abstract val icon: Icon
       internal abstract val enabled: Boolean

@@ -48,8 +48,7 @@ import kotlinx.coroutines.launch
  * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must
  *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
-class DatabaseInspectorClient
-constructor(
+class DatabaseInspectorClient(
   private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,

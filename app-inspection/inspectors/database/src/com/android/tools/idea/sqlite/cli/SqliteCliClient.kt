@@ -20,9 +20,9 @@
 package com.android.tools.idea.sqlite.cli
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.sqlite.cli.SqliteQueries.SELECT_TABLE_NAMES
+import com.android.tools.idea.sqlite.cli.SqliteQueries.SELECT_VIEW_NAMES
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
-import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
-import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.Strings
 import java.io.BufferedReader
@@ -86,9 +86,9 @@ class SqliteCliArgs private constructor() {
       args.add(SqliteCliArg("${selectTableContents(tableName)};"))
     }
 
-    fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+    fun queryTableList() = apply { args.add(SqliteCliArg("$SELECT_TABLE_NAMES;")) }
 
-    fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
+    fun queryViewList() = apply { args.add(SqliteCliArg("$SELECT_VIEW_NAMES;")) }
 
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
     /**
@@ -109,9 +109,9 @@ class SqliteCliArgs private constructor() {
 }
 
 object SqliteQueries {
-  const val selectTableNames =
+  const val SELECT_TABLE_NAMES =
     "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
-  const val selectViewNames =
+  const val SELECT_VIEW_NAMES =
     "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
 
   fun selectTableContents(tableName: String) = "select * from '$tableName'"

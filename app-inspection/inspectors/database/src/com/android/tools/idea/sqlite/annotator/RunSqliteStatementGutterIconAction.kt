@@ -42,9 +42,10 @@ import javax.swing.Icon
 import javax.swing.JList
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 
 /**
- * Action triggered when [RunSqliteStatementGutterIconRenderer] is clicked.
+ * Action triggered when Run-Sqlite-Statement gutter icon is clicked.
  *
  * The action runs the SQLite statement on the open database. If multiple database are open a dialog
  * is shown to allow the user to select the database of interest.
@@ -59,6 +60,8 @@ class RunSqliteStatementGutterIconAction(
   private val databaseInspectorProjectService: DatabaseInspectorProjectService =
     DatabaseInspectorProjectService.getInstance(project),
 ) : AnAction() {
+  private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
+
   override fun actionPerformed(actionEvent: AnActionEvent) {
     val openDatabases = databaseInspectorProjectService.getOpenDatabases()
 
@@ -78,7 +81,7 @@ class RunSqliteStatementGutterIconAction(
         JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
       val popup =
         popupChooserBuilder
-          .setTitle("Choose database")
+          .setTitle("Choose Database")
           .setMovable(true)
           .setRenderer(SqliteQueryListCellRenderer())
           .withHintUpdateSupply()
@@ -126,7 +129,7 @@ class RunSqliteStatementGutterIconAction(
         .also {
           it.setUp()
           it.show()
-          Disposer.register(project, it)
+          Disposer.register(parentDisposable, it)
         }
     }
   }

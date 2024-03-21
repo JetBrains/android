@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.settings
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
@@ -71,7 +70,7 @@ private class DatabaseInspectorConfigurable : SearchableConfigurable {
   }
 
   override fun getDisplayName(): String {
-    return DatabaseInspectorBundle.message("database.inspector")
+    return message("database.inspector")
   }
 
   override fun getId() = "database.inspector"

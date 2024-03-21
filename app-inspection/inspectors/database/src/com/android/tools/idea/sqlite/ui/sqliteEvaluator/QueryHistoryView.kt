@@ -128,7 +128,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     listScroller.border = JBUI.Borders.empty()
     val instructionsLabel = JBLabel("Press Enter to insert")
     instructionsLabel.font = instructionsLabel.font.deriveFont(11f)
-    instructionsLabel.border = JBUI.Borders.empty(2, 8, 2, 8)
+    instructionsLabel.border = JBUI.Borders.empty(2, 8)
     instructionsLabel.isEnabled = false
 
     panel.add(listScroller, BorderLayout.CENTER)

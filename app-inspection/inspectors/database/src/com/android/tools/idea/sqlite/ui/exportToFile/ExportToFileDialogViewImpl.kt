@@ -62,7 +62,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 
 /** @see ExportToFileDialogView */
-class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogParams) :
+class ExportToFileDialogViewImpl(val project: Project, private val params: ExportDialogParams) :
   DialogWrapper(project, true), ExportToFileDialogView {
   private val listeners = mutableListOf<ExportToFileDialogView.Listener>()
   private val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
@@ -205,7 +205,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
     val dialog: FileSaverDialog =
       FileChooserFactory.getInstance()
         .createSaveFileDialog(
-          FileSaverDescriptor("Save as...", "", selectedFormatExtension()),
+          FileSaverDescriptor("Save As...", "", selectedFormatExtension()),
           contentPanel,
         )
 
@@ -304,7 +304,6 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
     return selectedFormat.fileExtension
   }
 
-  @Suppress("MoveVariableDeclarationIntoWhen")
   private fun selectedFormat(): ExportFormat {
     val buttonText = formatButtonGroup.elements.asSequence().firstOrNull { it.isSelected }?.text
     return when (buttonText) {

@@ -65,7 +65,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> =
     WorkBench(project, "Database Inspector", null, parentDisposable)
-  private val tabs = BorderedTabs(project, project)
+  private val tabs = BorderedTabs(project, parentDisposable)
 
   override val component: JComponent = workBench
 

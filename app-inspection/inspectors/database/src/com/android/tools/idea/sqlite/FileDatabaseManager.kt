@@ -32,6 +32,7 @@ import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 
 /** Class responsible for downloading and deleting file database data */
 interface FileDatabaseManager {
@@ -57,6 +58,7 @@ class FileDatabaseManagerImpl(
   private val deviceFileDownloaderService: DeviceFileDownloaderService =
     DeviceFileDownloaderService.getInstance(project),
 ) : FileDatabaseManager {
+  private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
 
   override suspend fun loadDatabaseFileData(
     packageName: String,
@@ -68,7 +70,7 @@ class FileDatabaseManagerImpl(
     val pathsToDownload = listOf(path, "$path-shm", "$path-wal")
 
     val disposableDownloadProgress = DisposableDownloadProgress(coroutineContext[Job]!!)
-    Disposer.register(project, disposableDownloadProgress)
+    Disposer.register(parentDisposable, disposableDownloadProgress)
 
     val files =
       try {

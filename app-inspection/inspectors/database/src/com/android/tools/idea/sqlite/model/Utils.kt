@@ -27,7 +27,7 @@ import java.util.LinkedList
  * Returns a valid [RowIdName] in the context of the list of columns passed as argument.
  *
  * The RowId column has different valid names: rowid, oid and _rowid_. Each one of these names stops
- * being valid for the RowId column if the table has a user-defined column using that name. eg.
+ * being valid for the RowId column if the table has a user-defined column using that name. e.g.
  * CREATE TABLE t (oid TEXT), here oid is a user-defined column and can't be used to get the RowId
  * column.
  *

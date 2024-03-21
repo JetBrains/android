@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -50,6 +51,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 
@@ -66,7 +68,7 @@ interface DatabaseInspectorProjectService {
   val sqliteInspectorComponent: JComponent
 
   /** The base coroutine scope for this [DatabaseInspectorProjectService]. */
-  val projectScope: CoroutineScope
+  val scope: CoroutineScope
 
   /**
    * Opens a connection to the database contained in the file passed as argument. The database is
@@ -135,6 +137,7 @@ class DatabaseInspectorProjectServiceImpl
 @TestOnly
 constructor(
   private val project: Project,
+  private val parentDisposable: Disposable = project.getService(ProjectDisposableScope::class.java),
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseRepository: DatabaseRepository =
@@ -162,11 +165,12 @@ constructor(
         )
         .also {
           it.setUp()
-          Disposer.register(project, it)
+          Disposer.register(parentDisposable, it)
         }
     },
 ) : DatabaseInspectorProjectService {
 
+  @Suppress("unused") // Used by plugin XML
   constructor(
     project: Project
   ) : this(
@@ -178,12 +182,9 @@ constructor(
 
   private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
-  override val projectScope = AndroidCoroutineScope(project, uiDispatcher)
+  override val scope = AndroidCoroutineScope(parentDisposable, uiDispatcher)
 
   private var appPackageName: String? = null
-
-  private val databaseInspectorAnalyticsTracker =
-    DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private val controller: DatabaseInspectorController by
     lazy @UiThread {
@@ -198,12 +199,12 @@ constructor(
 
   @AnyThread
   override fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit> =
-    projectScope.future {
+    scope.future {
       val databaseId =
         try {
           val databaseConnection =
             openJdbcDatabaseConnection(
-              project,
+              parentDisposable,
               databaseFileData.mainFile,
               taskExecutor,
               workerDispatcher,
@@ -224,7 +225,7 @@ constructor(
     databaseId: SqliteDatabaseId,
     databaseConnection: LiveDatabaseConnection,
   ): ListenableFuture<Unit> =
-    projectScope.future {
+    scope.future {
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
       controller.addSqliteDatabase(databaseId)
     }
@@ -274,12 +275,12 @@ constructor(
 
   @UiThread
   override fun handleDatabaseClosed(databaseId: SqliteDatabaseId) {
-    projectScope.launch { controller.closeDatabase(databaseId) }
+    scope.launch { controller.closeDatabase(databaseId) }
   }
 
   @UiThread
   override fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {
-    projectScope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
+    scope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
   }
 
   @UiThread override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
@@ -288,12 +289,12 @@ constructor(
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {
-    invokeAndWaitIfNeeded { controller.showError(message, throwable) }
+    @Suppress("UnstableApiUsage") invokeAndWaitIfNeeded { controller.showError(message, throwable) }
   }
 
   @AnyThread
   override fun databasePossiblyChanged() {
-    projectScope.launch { controller.databasePossiblyChanged() }
+    scope.launch { controller.databasePossiblyChanged() }
   }
 
   override fun getIdeServices(): AppInspectionIdeServices? {

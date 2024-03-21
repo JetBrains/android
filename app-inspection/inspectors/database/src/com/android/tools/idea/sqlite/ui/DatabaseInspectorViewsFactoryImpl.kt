@@ -28,10 +28,13 @@ import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 
+@Service
 class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
   companion object {
     @JvmStatic
@@ -64,5 +67,5 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
   ): ExportInProgressView = ExportInProgressViewImpl(project, job, taskDispatcher)
 
   override fun createDatabaseInspectorView(project: Project) =
-    DatabaseInspectorViewImpl(project, project)
+    DatabaseInspectorViewImpl(project, project.getService(ProjectDisposableScope::class.java))
 }

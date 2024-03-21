@@ -120,14 +120,14 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           onDatabasePossiblyChanged,
           onDatabaseClosed,
           taskExecutor,
-          databaseInspectorProjectService.projectScope,
+          databaseInspectorProjectService.scope,
           errorsSideChannel,
         )
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
-        databaseInspectorProjectService.projectScope.launch {
+        databaseInspectorProjectService.scope.launch {
           databaseInspectorProjectService.startAppInspectionSession(
             dbClient,
             ideServices,
