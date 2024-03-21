@@ -36,10 +36,27 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 @Suppress("UnstableApiUsage")
 @RunsInEdt
-class ImportProjectGradleSyncJdkIntegrationTest {
+@RunWith(Parameterized::class)
+class ImportProjectGradleSyncJdkIntegrationTest(private val jdkVersion: Int) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "jdk{0}")
+    fun data(): List<Int> {
+      // Add additional jdk version to run the test against
+      val jdkList = mutableListOf(17)
+      val currentJdk = Runtime.version().feature()
+      if (!jdkList.contains(currentJdk)) {
+        jdkList.add(currentJdk)
+      }
+      return jdkList
+    }
+  }
 
   @get:Rule
   val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
