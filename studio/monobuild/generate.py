@@ -359,66 +359,38 @@ def generate_intellij_source_map(intellij_root: Path, outfile: Path):
         sys.exit(f"ERROR: failed to build {outfile.name}. See build log at:\n\n\t{log_path}\n")
     print("Successfully built", outfile.name)
 
-dir_to_id = {}
-dir_to_id["c-clangd-plugin"] = "com.intellij.cidr.lang.clangd"
-dir_to_id["c-clangdBridge-plugin"] = "com.intellij.cidr.lang.clangdBridge"
-dir_to_id["c-plugin"] = "com.intellij.cidr.lang"
-dir_to_id["cidr-base-plugin"] = "com.intellij.cidr.base"
-dir_to_id["cidr-clangConfig-plugin"] = "org.jetbrains.plugins.clangConfig"
-dir_to_id["cidr-clangFormat-plugin"] = "org.jetbrains.plugins.clangFormat"
-dir_to_id["cidr-debugger-plugin"] = "com.intellij.cidr.debugger"
-dir_to_id["completionMlRanking"] = "com.intellij.completion.ml.ranking"
-dir_to_id["completionMlRankingModels"] = "com.intellij.completion.ml.ranking.models"
-dir_to_id["configurationScript"] = "com.intellij.configurationScript"
-dir_to_id["copyright"] = "com.intellij.copyright"
-dir_to_id["dev"] = "com.intellij.dev"
-dir_to_id["devkit"] = "DevKit"
-dir_to_id["editorconfig"] = "org.editorconfig.editorconfigjetbrains"
-dir_to_id["emojipicker"] = "org.jetbrains.plugins.emojipicker"
-dir_to_id["gradle-java"] = "org.jetbrains.plugins.gradle"
-dir_to_id["gradle"] = "com.intellij.gradle"
-dir_to_id["Groovy"] = "org.intellij.groovy"
-dir_to_id["html-tools"] = "HtmlTools"
-dir_to_id["java-coverage"] = "Coverage"
-dir_to_id["java-debugger-streams"] = "org.jetbrains.debugger.streams"
-dir_to_id["java-decompiler"] = "org.jetbrains.java.decompiler"
-dir_to_id["java-i18n"] = "com.intellij.java-i18n"
-dir_to_id["java-ide-customization"] = "com.intellij.java.ide"
-dir_to_id["java"] = "com.intellij.java"
-dir_to_id["junit"] = "JUnit"
-dir_to_id["keymap-eclipse"] = "com.intellij.plugins.eclipsekeymap"
-dir_to_id["keymap-netbeans"] = "com.intellij.plugins.netbeanskeymap"
-dir_to_id["keymap-visualStudio"] = "com.intellij.plugins.visualstudiokeymap"
-dir_to_id["Kotlin"] = "org.jetbrains.kotlin"
-dir_to_id["markdown"] = "org.intellij.plugins.markdown"
-dir_to_id["maven-model"] = "org.jetbrains.idea.maven.model"
-dir_to_id["maven-server"] = "org.jetbrains.idea.maven.server.api"
-dir_to_id["performanceTesting"] = "com.jetbrains.performancePlugin"
-dir_to_id["platform-images"] = "com.intellij.platform.images"
-dir_to_id["platform-langInjection"] = "org.intellij.intelliLang"
-dir_to_id["properties"] = "com.intellij.properties"
-dir_to_id["repository-search"] = "org.jetbrains.idea.reposearch"
-dir_to_id["rml-dfa-ide"] = "com.intellij.rml.dfa.ide"
-dir_to_id["sh"] = "com.jetbrains.sh"
-dir_to_id["tasks"] = "com.intellij.tasks"
-dir_to_id["terminal"] = "org.jetbrains.plugins.terminal"
-dir_to_id["testng"] = "TestNG-J"
-dir_to_id["textmate"] = "org.jetbrains.plugins.textmate"
-dir_to_id["toml"] = "org.toml.lang"
-dir_to_id["turboComplete"] = "com.intellij.turboComplete"
-dir_to_id["vcs-git"] = "Git4Idea"
-dir_to_id["vcs-github"] = "org.jetbrains.plugins.github"
-dir_to_id["vcs-gitlab"] = "org.jetbrains.plugins.gitlab"
-dir_to_id["vcs-hg"] = "hg4idea"
-dir_to_id["vcs-svn"] = "Subversion"
-dir_to_id["webp"] = "intellij.webp"
-dir_to_id["yaml"] = "org.jetbrains.plugins.yaml"
 
 # Parses intellij-source-map.json, and returns a map from intellij-sdk library names
 # to the corresponding sources in IntelliJ, in the form of <orderEntry> XML elements.
 def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str,list[ET.Element]]:
     source_map_text = read_jps_file(source_map_file, {"PROJECT_DIR": intellij.root})
     source_map = json.loads(source_map_text)
+
+    # Studio refers to plugins by their plugin ID. So, we need to find the plugin ID associated
+    # with each plugin (by querying the plugin.xml file inside each plugin directory).
+    plugin_dir_to_id = {}
+    for mapping in source_map:
+        path = Path(mapping["path"])
+        type = mapping["type"]
+        if not path.match("**/dist.all/plugins/*/lib/*.jar"):
+            continue  # Not a plugin.
+        if type != "module-output":
+            continue  # Not a module (there will be no plugin.xml file).
+        module_name = mapping["name"]
+        jps_module = next(m for m in intellij.modules if m.name == module_name)
+        srcs = jps_module.xml.findall('./component/content/sourceFolder')
+        for src in srcs:
+            if src.get("isTestSource") == "true":
+                continue
+            src_dir = Path(src.get("url").removeprefix("file://"))
+            plugin_xml = src_dir.joinpath("META-INF/plugin.xml")
+            if not plugin_xml.is_file():
+                continue
+            plugin_xml = ET.parse(plugin_xml)
+            id = plugin_xml.findtext("./id") or fail(f"Plugin ID not found in {plugin_xml}")
+            dir = path.parent.parent.name
+            plugin_dir_to_id[dir] = id
+            break
 
     res: dict[str,list[ET.Element]] = {}
     for mapping in source_map:
@@ -429,7 +401,8 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         elif path.match("**/dist.all/lib/*.jar") or path.match("**/dist.all/plugins/java/lib/*.jar"):
             intellij_sdk_lib = "studio-sdk"
         elif path.match("**/dist.all/plugins/*/lib/*.jar"):
-            plugin_id = dir_to_id[path.parent.parent.name]
+            plugin_dir = path.parent.parent.name
+            plugin_id = plugin_dir_to_id[plugin_dir]
             intellij_sdk_lib = f"studio-plugin-{plugin_id}"
         else:
             continue  # Can happen for non-classpath artifacts, e.g. java/lib/rt/debugger-agent.jar.
