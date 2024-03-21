@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -82,6 +83,7 @@ public final class Sdks {
       androidSdk = createAndroidSdk(parentDisposable, name, true, androidPlatformVersion);
     }
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    IndexingTestUtil.waitUntilIndexesAreReady(module.getProject());
     return androidSdk;
   }
 
