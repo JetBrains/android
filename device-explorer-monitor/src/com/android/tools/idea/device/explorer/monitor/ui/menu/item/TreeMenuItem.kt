@@ -38,7 +38,7 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
     }
 
   override val action: AnAction = object : AnAction(icon) {
-    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
