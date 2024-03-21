@@ -82,7 +82,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
-import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -314,8 +313,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val moduleSetupData: Collection<ModuleSetupData> =
     projectDataNodes.flatMap { projectData ->
-      val libraries =
-        ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
+      val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
       val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
       val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
       val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
