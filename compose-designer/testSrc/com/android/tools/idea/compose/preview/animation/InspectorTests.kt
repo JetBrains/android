@@ -75,7 +75,7 @@ open class InspectorTests {
     ComposePreviewAnimationManager.closeCurrentInspector()
   }
 
-  fun createAndOpenInspector(): AnimationPreview {
+  fun createAndOpenInspector(): ComposeAnimationPreview {
     Assert.assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
     ComposePreviewAnimationManager.createAnimationInspectorPanel(
       surface,

@@ -704,17 +704,17 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     } catch (ignored: NullPointerException) {}
   }
 
-  private fun AnimationPreview.tabCount(): Int = runBlocking(uiThread) { animations.size }
+  private fun ComposeAnimationPreview.tabCount(): Int = runBlocking(uiThread) { animations.size }
 
-  private fun AnimationPreview.getAnimationTitleAt(index: Int): String =
+  private fun ComposeAnimationPreview.getAnimationTitleAt(index: Int): String =
     findAllCards(this.component)[index].findLabel().text
 
-  private fun AnimationPreview.noAnimationsPanel() =
+  private fun ComposeAnimationPreview.noAnimationsPanel() =
     TreeWalker(this.component)
       .descendantStream()
       .filter { it.name == "Loading Animations Panel" }
       .getIfSingle()
 
-  private fun AnimationPreview.animationPreviewCardsCount(): Int =
+  private fun ComposeAnimationPreview.animationPreviewCardsCount(): Int =
     runBlocking(uiThread) { coordinationTab.cards.size }
 }

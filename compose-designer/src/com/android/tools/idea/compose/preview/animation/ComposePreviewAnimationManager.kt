@@ -39,15 +39,16 @@ import kotlinx.coroutines.Job
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
 /**
- * Responsible for opening the [AnimationPreview] and managing its state.
+ * Responsible for opening the [ComposeAnimationPreview] and managing its state.
  * `PreviewAnimationClockMethodTransform` intercepts calls to `subscribe` and `unsubscribe` calls on
  * `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
- * respectively. These methods will then update the [AnimationPreview] content accordingly, adding
- * tabs for newly subscribed animations and closing tabs corresponding to unsubscribed animations.
+ * respectively. These methods will then update the [ComposeAnimationPreview] content accordingly,
+ * adding tabs for newly subscribed animations and closing tabs corresponding to unsubscribed
+ * animations.
  */
 object ComposePreviewAnimationManager {
 
-  internal var currentInspector: AnimationPreview? = null
+  internal var currentInspector: ComposeAnimationPreview? = null
     private set
 
   @get:VisibleForTesting
@@ -71,10 +72,10 @@ object ComposePreviewAnimationManager {
     parent: Disposable,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     onNewInspectorOpen: () -> Unit,
-  ): AnimationPreview {
+  ): ComposeAnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
     val animationInspectorPanel =
-      AnimationPreview(
+      ComposeAnimationPreview(
         surface.project,
         ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
         { surface.sceneManager },
@@ -108,7 +109,7 @@ object ComposePreviewAnimationManager {
 
   /**
    * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
-   * tab in the [AnimationPreview].
+   * tab in the [ComposeAnimationPreview].
    */
   fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation): Job {
     if (clock == null) return CompletableDeferred(Unit)
@@ -140,7 +141,7 @@ object ComposePreviewAnimationManager {
 
   /**
    * Removes the animation from the subscribed list and removes the corresponding tab in the
-   * [AnimationPreview].
+   * [ComposeAnimationPreview].
    */
   fun onAnimationUnsubscribed(animation: ComposeAnimation): Job {
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
@@ -155,7 +156,7 @@ object ComposePreviewAnimationManager {
   /**
    * Invalidates the current animation inspector, so it doesn't display animations out-of-date. Only
    * invalidate for the same [psiFilePointer] as [invalidate] could be called from [Preview] without
-   * [AnimationPreview].
+   * [ComposeAnimationPreview].
    */
   fun invalidate(psiFilePointer: SmartPsiElementPointer<PsiFile>): Job {
     currentInspector?.let {

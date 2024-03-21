@@ -73,12 +73,12 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * properties (e.g. `ColorPropKeys`) being animated grouped by animation (e.g.
  * `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view that can be
  * controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The
- * [AnimationPreview] therefore allows a detailed inspection of Compose animations.
+ * [ComposeAnimationPreview] therefore allows a detailed inspection of Compose animations.
  *
  * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
  *   opened.
  */
-class AnimationPreview(
+class ComposeAnimationPreview(
   project: Project,
   val tracker: ComposeAnimationTracker,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
@@ -198,7 +198,7 @@ class AnimationPreview(
             )
           selected.selectedPropertiesCallback = { curve.timelineUnits = it }
           curve.timelineUnits = selected.selectedProperties
-          Disposer.register(this@AnimationPreview, curve)
+          Disposer.register(this@ComposeAnimationPreview, curve)
           AndroidCoroutineScope(curve).launch {
             curve.offsetPx.collect {
               selected.elementState.value =
@@ -209,7 +209,7 @@ class AnimationPreview(
         } else
           animations.toList().map { tab ->
             tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
-              Disposer.register(this@AnimationPreview, this)
+              Disposer.register(this@ComposeAnimationPreview, this)
               minY += heightScaled()
               if (tab is ComposeSupportedAnimationManager) {
                 tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
