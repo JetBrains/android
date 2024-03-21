@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -441,7 +442,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     actionToolbar.setMinimumButtonSize(myDefinition.getButtonSize());
     actionToolbar.setTargetComponent(myPanel);
-    actionToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    actionToolbar.setLayoutStrategy(ToolbarLayoutStrategy.NOWRAP_STRATEGY);
     actionToolbar.setReservePlaceAutoPopupIcon(false);
     actionToolbar.updateActionsImmediately();
     return actionToolbar;
