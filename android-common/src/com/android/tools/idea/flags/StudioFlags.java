@@ -2002,6 +2002,12 @@ public final class StudioFlags {
                 "Generation model context size in tokens",
                 APOLLO_GENERATION_MODEL_CONTEXT_SIZE);
 
+  public static final Flag<Boolean> STUDIOBOT_GENERATE_TEST_SCENARIOS =
+    new BooleanFlag(STUDIOBOT, "generate.test.scenarios",
+                    "Enable test scenario generation.",
+                    "When enabled, generate test scenarios and corresponding function names for the selected code.",
+                    ChannelDefault.enabledUpTo(CANARY));
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
