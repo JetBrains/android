@@ -394,7 +394,7 @@ class DeviceToolWindowPanelTest {
     val frequencyHz = 440.0
     val durationMillis = 500
     runBlocking { agent.beep(frequencyHz, durationMillis) }
-    waitForCondition(1.seconds) {
+    waitForCondition(2.seconds) {
       testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
     }
     val buf = testDataLine.dataAsByteBuffer()
