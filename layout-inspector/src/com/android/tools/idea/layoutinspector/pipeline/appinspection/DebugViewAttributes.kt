@@ -18,13 +18,18 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.project.AndroidNotification
 import com.google.common.html.HtmlEscapers
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel
 
 /**
  * Command that will be run on the device through adb shell. Used to put, delete and get the
@@ -131,4 +136,25 @@ object DebugViewAttributes {
     return adb.executeShellCommand(device, Command.Get(PER_DEVICE_SETTING).get()) !in
       listOf("null", "0")
   }
+}
+
+private const val ACTIVITY_RESTART_KEY = "activity.restart"
+// TODO(b/330406958): replace with redirect URL
+// TODO(b/330406958): update documentation
+private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
+  "https://developer.android.com/studio/debug/layout-inspector#activity-restart"
+
+/** Show a banner explaining why the activity was restarted after setting debug view attributes. */
+fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
+  val learnMoreAction =
+    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
+      BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
+    }
+
+  notificationModel.addNotification(
+    id = ACTIVITY_RESTART_KEY,
+    text = LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
+    status = EditorNotificationPanel.Status.Info,
+    actions = listOf(learnMoreAction, notificationModel.dismissAction),
+  )
 }
