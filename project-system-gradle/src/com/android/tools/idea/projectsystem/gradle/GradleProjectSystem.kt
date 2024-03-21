@@ -534,14 +534,6 @@ private fun IdeArtifactName.toKnownScopeType() =
  */
 class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
   override fun getApplicationProjectContext(client: Client): ApplicationProjectContext? {
-    // This hard code might not make b/305650392 feasible anymore
-    if (client.clientData.packageName == SANDBOX_SDK_APPLICATION_ID) {
-      return object : ApplicationProjectContext {
-        override val applicationId: String
-          get() = SANDBOX_SDK_APPLICATION_ID
-      }
-    }
-
     val result = FacetFinder.tryFindFacetForProcess(project, client.clientData) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
@@ -549,5 +541,3 @@ class GradleApplicationProjectContextProvider(val project: Project) : Applicatio
     )
   }
 }
-
-const val SANDBOX_SDK_APPLICATION_ID = "com.google.android.sdksandbox"
