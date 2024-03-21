@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import icons.StudioIcons
+import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
 
 @Composable
@@ -27,17 +29,20 @@ internal fun DeviceTable(
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
 ) {
+  val filterState = remember { DeviceFilterState(devices) }
+
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
       TableColumn("", 0.5f) {
         // TODO: Represent actual device type
         Icon("studio/icons/avd/device-mobile.svg", "", StudioIcons::class.java)
       },
-      TableTextColumn("Brand") { it.manufacturer },
+      TableTextColumn("OEM") { it.manufacturer },
       TableTextColumn("Name", 2f) { it.name },
       TableTextColumn("API") {
-        // TODO: Use latest API level supported or chosen API level
-        "27"
+        // This case is a bit strange, because we adjust the display based on the API filter.
+        // TODO: We will need a way to pass the API level on to the next stage.
+        (filterState.apiLevelFilter.apiLevel.apiLevel ?: it.apiRange.upperEndpoint()).toString()
       },
       TableTextColumn("Width") { it.resolution.width.toString() },
       TableTextColumn("Height") { it.resolution.height.toString() },
@@ -46,5 +51,20 @@ internal fun DeviceTable(
       TableTextColumn("Source") { if (it.isRemote) "Remote" else "Local" },
     )
   }
-  Table(columns, devices, { it }, tableSelectionState = tableSelectionState, modifier = modifier)
+
+  HorizontalSplitLayout(
+    first = { DeviceFilters(filterState, modifier = modifier then it) },
+    second = {
+      Table(
+        columns,
+        devices.filter(filterState::apply),
+        { it },
+        tableSelectionState = tableSelectionState,
+        modifier = modifier then it,
+      )
+    },
+    modifier = modifier.fillMaxSize(),
+    minRatio = 0.1f,
+    maxRatio = 0.5f,
+  )
 }
