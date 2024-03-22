@@ -34,29 +34,29 @@ class ComposePreviewElementTest {
           PreviewDisplaySettings("A name", null, false, false, null),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, true, null),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, true, "#000"),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, false, "#000"),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
-        )
+          PreviewConfiguration.cleanAndGet(),
+        ),
       )
 
     val factory = DocumentBuilderFactory.newDefaultInstance()
@@ -93,9 +93,22 @@ $t
       override val displaySettings: PreviewDisplaySettings,
       override val previewElementDefinition: Unit?,
       override val previewBody: Unit?,
-      override val configuration: PreviewConfiguration
+      override val configuration: PreviewConfiguration,
     ) : ComposePreviewElementInstance<Unit>() {
       override var hasAnimations = false
+
+      override fun createDerivedInstance(
+        displaySettings: PreviewDisplaySettings,
+        config: PreviewConfiguration,
+      ) =
+        TestComposePreviewElementInstance(
+          instanceId = instanceId,
+          methodFqn = methodFqn,
+          displaySettings = displaySettings,
+          previewElementDefinition = previewElementDefinition,
+          previewBody = previewBody,
+          configuration = config,
+        )
     }
 
     val composable0 =
@@ -104,7 +117,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, just a different instance
@@ -114,7 +127,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, but with a different name
@@ -124,7 +137,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, but with a different type
@@ -135,7 +148,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable2, but with a different display settings
@@ -146,7 +159,7 @@ $t
         PreviewDisplaySettings("B name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     assertEquals(composable0, composable0b)

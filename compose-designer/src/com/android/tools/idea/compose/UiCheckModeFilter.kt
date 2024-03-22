@@ -29,10 +29,6 @@ import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.ParametrizedComposePreviewElementInstance
-import com.android.tools.preview.PreviewConfiguration
-import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -235,34 +231,5 @@ private fun colorBlindPreviews(
         showDecoration = false,
       )
     baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
-  }
-}
-
-/**
- * Derives a new [ComposePreviewElementInstance] from an existing one, replacing the
- * [PreviewDisplaySettings] and the [PreviewConfiguration].
- */
-private fun PsiComposePreviewElementInstance.createDerivedInstance(
-  displaySettings: PreviewDisplaySettings,
-  config: PreviewConfiguration,
-): PsiComposePreviewElementInstance {
-  val singleInstance =
-    SingleComposePreviewElementInstance(
-      methodFqn,
-      displaySettings,
-      previewElementDefinition,
-      previewBody,
-      config,
-    )
-  return if (this is ParametrizedComposePreviewElementInstance) {
-    ParametrizedComposePreviewElementInstance(
-      singleInstance,
-      null,
-      providerClassFqn,
-      index,
-      maxIndex,
-    )
-  } else {
-    singleInstance
   }
 }

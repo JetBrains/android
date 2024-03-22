@@ -75,22 +75,21 @@ data class PreviewParameter(
 )
 
 /**
- * Definition of a Composable preview element. [T] represents a generic type specifying the
- * location of the code. See [PreviewElement] for more details.
+ * Definition of a Composable preview element. [T] represents a generic type specifying the location
+ * of the code. See [PreviewElement] for more details.
  */
 interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
   /**
-   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
-   * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
+   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A
+   * single [ComposePreviewElement] can produce multiple [ComposePreviewElementInstance]s for
+   * example if @Composable method has parameters.
    */
   fun resolve(): Sequence<ComposePreviewElementInstance<T>>
 }
 
 /** Definition of a preview element */
-abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlSerializable {
-  /** Unique identifier that can be used for filtering. */
-  abstract val instanceId: String
-
+abstract class ComposePreviewElementInstance<T> :
+  ComposePreviewElement<T>, XmlSerializable, PreviewElementInstance<T> {
   /**
    * Whether the Composable being previewed contains animations. If true, the Preview should allow
    * opening the animation inspector.
@@ -98,6 +97,11 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
   override var hasAnimations = false
 
   override fun resolve(): Sequence<ComposePreviewElementInstance<T>> = sequenceOf(this)
+
+  abstract override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ): ComposePreviewElementInstance<T>
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
@@ -116,7 +120,7 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
     if (displaySettings.showBackground) {
       xmlBuilder.androidAttribute(
         ATTR_BACKGROUND,
-        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND
+        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND,
       )
     }
 
@@ -153,6 +157,18 @@ class SingleComposePreviewElementInstance<T>(
 ) : ComposePreviewElementInstance<T>() {
   override val instanceId: String = methodFqn
 
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ) =
+    SingleComposePreviewElementInstance(
+      methodFqn,
+      displaySettings,
+      previewElementDefinition,
+      previewBody,
+      config,
+    )
+
   companion object {
     @JvmStatic
     @TestOnly
@@ -174,17 +190,16 @@ class SingleComposePreviewElementInstance<T>(
           showDecorations,
           showBackground,
           backgroundColor,
-          displayPositioning
+          displayPositioning,
         ),
         null,
         null,
-        configuration
+        configuration,
       )
   }
 }
 
-class
-ParametrizedComposePreviewElementInstance<T>(
+class ParametrizedComposePreviewElementInstance<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
   parameterName: String?,
   val providerClassFqn: String,
@@ -194,13 +209,34 @@ ParametrizedComposePreviewElementInstance<T>(
   override var hasAnimations = false
   override val instanceId: String = "$methodFqn#$parameterName$index"
 
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ): ParametrizedComposePreviewElementInstance<T> {
+    val singleInstance =
+      SingleComposePreviewElementInstance(
+        methodFqn,
+        displaySettings,
+        previewElementDefinition,
+        previewBody,
+        config,
+      )
+    return ParametrizedComposePreviewElementInstance(
+      singleInstance,
+      null,
+      providerClassFqn,
+      index,
+      maxIndex,
+    )
+  }
+
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
       getDisplayName(parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
-      basePreviewElement.displaySettings.backgroundColor
+      basePreviewElement.displaySettings.backgroundColor,
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -236,7 +272,8 @@ ParametrizedComposePreviewElementInstance<T>(
 open class ParametrizedComposePreviewElementTemplate<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
   val parameterProviders: Collection<PreviewParameter>,
-  private val parentClassLoader: ClassLoader = ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+  private val parentClassLoader: ClassLoader =
+    ParametrizedComposePreviewElementTemplate::class.java.classLoader,
   private val renderContextFactory: (ComposePreviewElement<T>) -> ModuleRenderContext?,
 ) : ComposePreviewElement<T> by basePreviewElement {
   /**
@@ -253,10 +290,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
 
     val moduleRenderContext = renderContextFactory(basePreviewElement) ?: return sequenceOf()
     ModuleClassLoaderManager.get()
-      .getPrivate(
-        parentClassLoader,
-        moduleRenderContext
-      )
+      .getPrivate(parentClassLoader, moduleRenderContext)
       .useWithClassLoader { classLoader ->
         return parameterProviders
           .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
@@ -299,7 +333,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
             parameterName = previewParameter.name,
             index = 0,
             maxIndex = 0,
-            providerClassFqn = previewParameter.providerClassFqn
+            providerClassFqn = previewParameter.providerClassFqn,
           )
         )
       } else {
@@ -310,7 +344,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
               parameterName = previewParameter.name,
               index = index,
               maxIndex = providerCount - 1,
-              providerClassFqn = previewParameter.providerClassFqn
+              providerClassFqn = previewParameter.providerClassFqn,
             )
           }
           .asSequence()
@@ -331,7 +365,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         PreviewDisplaySettings(basePreviewElement.displaySettings.name, null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
     )
   }
