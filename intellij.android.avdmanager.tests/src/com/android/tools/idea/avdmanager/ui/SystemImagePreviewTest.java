@@ -62,7 +62,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsMarshmallow.setAbi("x86");
+    detailsMarshmallow.getAbis().add("x86");
     detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
@@ -74,7 +74,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsPreview.setAbi("x86");
+    detailsPreview.getAbis().add("x86");
     detailsPreview.setVendor(IdDisplay.create("google", "Google"));
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
@@ -87,7 +87,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType detailsWearOs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWearOs.getTags().add(IdDisplay.create("android-wear", "Wear OS Image"));
-    detailsWearOs.setAbi("x86");
+    detailsWearOs.getAbis().add("x86");
     detailsWearOs.setVendor(IdDisplay.create("google", "Google"));
     detailsWearOs.setApiLevel(30);
     pkgWearOs.setTypeDetails((TypeDetails)detailsWearOs);
@@ -99,7 +99,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType detailsAndroidTv =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsAndroidTv.getTags().add(IdDisplay.create("android-tv", "Android TV"));
-    detailsAndroidTv.setAbi("x86");
+    detailsAndroidTv.getAbis().add("x86");
     detailsAndroidTv.setVendor(IdDisplay.create("google", "Google"));
     detailsAndroidTv.setApiLevel(30);
     pkgAndroidTv.setTypeDetails((TypeDetails)detailsAndroidTv);
@@ -111,7 +111,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType detailsGoogleTv =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsGoogleTv.getTags().add(IdDisplay.create("google-tv", "Google TV"));
-    detailsGoogleTv.setAbi("x86");
+    detailsGoogleTv.getAbis().add("x86");
     detailsGoogleTv.setVendor(IdDisplay.create("google", "Google"));
     detailsGoogleTv.setApiLevel(30);
     pkgGoogleTv.setTypeDetails((TypeDetails)detailsGoogleTv);

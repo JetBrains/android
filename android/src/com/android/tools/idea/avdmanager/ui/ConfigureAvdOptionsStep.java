@@ -742,7 +742,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       mySystemImageName.setIcon(icon);
 
-      String descriptionLabel = image.getName() + " " + image.getAbiType();
+      String descriptionLabel = image.getName() + " " + image.getPrimaryAbiType();
       if (!androidVersion.isBaseExtension() && androidVersion.getExtensionLevel() != null) {
         descriptionLabel += " (Extension Level " + androidVersion.getExtensionLevel() + ")";
       }
@@ -1375,7 +1375,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean supportsMultipleCpuCores() {
     assert getModel().systemImage().get().isPresent();
-    Abi abi = Abi.getEnum(getModel().systemImage().getValue().getAbiType());
+    Abi abi = Abi.getEnum(getModel().systemImage().getValue().getPrimaryAbiType());
     return abi != null && abi.supportsMultipleCpuCores();
   }
 

@@ -135,7 +135,7 @@ public class ChooseSystemImagePanel extends JPanel
   static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice,
                                                               boolean isArm64HostOs) {
 
-    Abi abi = Abi.getEnum(image.getAbiType());
+    Abi abi = Abi.getEnum(image.getPrimaryAbiType());
     assert abi != null;
 
     SystemImageClassification classification = getClassificationFromParts(abi,

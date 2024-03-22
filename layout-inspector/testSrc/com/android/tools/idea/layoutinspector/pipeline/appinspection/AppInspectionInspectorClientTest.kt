@@ -98,6 +98,7 @@ import com.intellij.util.ui.UIUtil
 import java.net.UnknownHostException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Collections
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
@@ -1193,7 +1194,15 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 
   private fun setUpAvd(sdkPackage: LocalPackage, tag: IdDisplay?, apiLevel: Int): AvdInfo {
     val systemImage =
-      SystemImage(sdkPackage.location, listOfNotNull(tag), null, "x86", arrayOf(), sdkPackage)
+      SystemImage(
+        sdkPackage.location,
+        listOfNotNull(tag),
+        null,
+        Collections.singletonList("x86"),
+        Collections.emptyList(),
+        arrayOf(),
+        sdkPackage,
+      )
     val properties = mutableMapOf<String, String>()
     if (tag != null) {
       properties[AvdManager.AVD_INI_TAG_ID] = tag.id

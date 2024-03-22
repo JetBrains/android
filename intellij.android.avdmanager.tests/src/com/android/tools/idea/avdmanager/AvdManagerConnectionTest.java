@@ -115,7 +115,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String g31Path = "system-images;android-31;google_apis;x86_64";
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
     SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    g31Details.setAbi(Abi.X86_64.toString());
+    g31Details.getAbis().add(Abi.X86_64.toString());
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -174,7 +174,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String g31Path = "system-images;android-31;google_apis;x86_64";
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
     SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    g31Details.setAbi(Abi.X86_64.toString());
+    g31Details.getAbis().add(Abi.X86_64.toString());
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -348,7 +348,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q1Path = "system-images;android-q1;google_apis;x86";
     FakeLocalPackage q1Package = new FakeLocalPackage(q1Path, mSdkRoot.resolve("mySysImg1"));
     SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q1Details.setAbi(Abi.X86.toString());
+    q1Details.getAbis().add(Abi.X86.toString());
     q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
     InMemoryFileSystems.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -357,7 +357,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2Path = "system-images;android-q2;google_apis;x86";
     FakeLocalPackage q2Package = new FakeLocalPackage(q2Path, mSdkRoot.resolve("mySysImg2"));
     SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2Details.setAbi(Abi.X86.toString());
+    q2Details.getAbis().add(Abi.X86.toString());
     q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
     InMemoryFileSystems.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -368,7 +368,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
     FakeLocalPackage q2_64Package = new FakeLocalPackage(q2_64Path, mSdkRoot.resolve("mySysImg3"));
     SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2_64Details.setAbi(Abi.X86.toString());
+    q2_64Details.getAbis().add(Abi.X86.toString());
     q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
     InMemoryFileSystems.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -511,7 +511,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
     SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    g31Details.setAbi(Abi.X86_64.toString());
+    g31Details.getAbis().add(Abi.X86_64.toString());
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 

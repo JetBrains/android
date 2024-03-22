@@ -184,7 +184,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   private static int abiRank(@NotNull SystemImageDescription image) {
-    Abi abi = Abi.getEnum(image.getAbiType());
+    Abi abi = Abi.getEnum(image.getPrimaryAbiType());
     if (abi != null && DEFAULT_ABI_SORT_ORDER.containsKey(abi)) {
       return DEFAULT_ABI_SORT_ORDER.get(abi);
     }

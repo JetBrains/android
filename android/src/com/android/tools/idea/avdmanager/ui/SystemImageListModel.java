@@ -232,18 +232,24 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return Comparator.comparing(SystemImageDescription::getVersion);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
+    new SystemImageColumnInfo("API", JBUI.scale(100)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUI.scale(80)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
-        return systemImage.getAbiType();
+        return systemImage.getPrimaryAbiType();
+      }
+    },
+    new SystemImageColumnInfo("xABI", JBUI.scale(80)) {
+      @Override
+      public @Nullable String valueOf(SystemImageDescription systemImage) {
+        return systemImage.getTranslatedAbiTypes().isEmpty() ? "" : systemImage.getTranslatedAbiTypes().get(0);
       }
     },
     new SystemImageColumnInfo("Target") {

@@ -33,8 +33,10 @@ import com.android.sdklib.repository.targets.PlatformTarget;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +108,8 @@ public final class SystemImageDescription {
     }
     return Objects.equal(this.getName(), other.getName()) &&
            Objects.equal(this.getVendor(), other.getVendor()) &&
-           Objects.equal(this.getAbiType(), other.getAbiType()) &&
+           Objects.equal(this.getAbiTypes(), other.getAbiTypes()) &&
+           Objects.equal(this.getTranslatedAbiTypes(), other.getTranslatedAbiTypes()) &&
            Objects.equal(this.getTags(), other.getTags());
   }
 
@@ -128,9 +131,17 @@ public final class SystemImageDescription {
     return mySystemImage.obsolete();
   }
 
+  public String getPrimaryAbiType() {
+    return mySystemImage.getPrimaryAbiType();
+  }
+
   @NotNull
-  public String getAbiType() {
-    return mySystemImage.getAbiType();
+  public List<String> getAbiTypes() {
+    return mySystemImage.getAbiTypes();
+  }
+
+  public List<String> getTranslatedAbiTypes() {
+    return mySystemImage.getTranslatedAbiTypes();
   }
 
   @NotNull
@@ -183,7 +194,8 @@ public final class SystemImageDescription {
     private final RemotePackage myRemotePackage;
     private final ImmutableList<IdDisplay> myTags;
     private final IdDisplay myVendor;
-    private final String myAbi;
+    private final List<String> myAbis;
+    private final List<String> myTranslatedAbis;
     private final AndroidVersion myAndroidVersion;
 
     public RemoteSystemImage(RemotePackage p) {
@@ -194,22 +206,25 @@ public final class SystemImageDescription {
       myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
 
       IdDisplay vendor = null;
-      String abi = "armeabi";
+      List<String> abis = Collections.singletonList("armeabi");
+      List<String> translatedAbis = Collections.emptyList();
 
       myTags = SystemImageTags.getTags(p);
 
       if (details instanceof DetailsTypes.AddonDetailsType) {
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
         if (myTags.contains(SystemImageTags.GOOGLE_APIS_X86_TAG)) {
-          abi = "x86";
+          abis = Collections.singletonList("x86");
         }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
+        abis = ((DetailsTypes.SysImgDetailsType)details).getAbis();
+        translatedAbis = ((DetailsTypes.SysImgDetailsType)details).getTranslatedAbis();
       }
       myVendor = vendor;
-      myAbi = abi;
+      myAbis = abis;
+      myTranslatedAbis = translatedAbis;
     }
 
     @NonNull
@@ -231,10 +246,22 @@ public final class SystemImageDescription {
       return myVendor;
     }
 
+    @NotNull
+    @Override
+    public String getPrimaryAbiType() {
+      return myAbis.get(0);
+    }
+
     @NonNull
     @Override
-    public String getAbiType() {
-      return myAbi;
+    public List<String> getAbiTypes() {
+      return myAbis;
+    }
+
+    @NotNull
+    @Override
+    public List<String> getTranslatedAbiTypes() {
+      return myTranslatedAbis;
     }
 
     @NonNull

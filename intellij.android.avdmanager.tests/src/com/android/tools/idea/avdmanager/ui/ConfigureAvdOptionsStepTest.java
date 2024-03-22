@@ -115,7 +115,7 @@ public final class ConfigureAvdOptionsStepTest {
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsQ.setAbi("x86");
+    detailsQ.getAbis().add("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails)detailsQ);
     InMemoryFileSystems.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -126,7 +126,7 @@ public final class ConfigureAvdOptionsStepTest {
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsMarshmallow.setAbi("x86");
+    detailsMarshmallow.getAbis().add("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
     InMemoryFileSystems.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -137,7 +137,7 @@ public final class ConfigureAvdOptionsStepTest {
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsPreview.setAbi("x86");
+    detailsPreview.getAbis().add("x86");
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
     pkgPreview.setTypeDetails((TypeDetails)detailsPreview);
@@ -150,7 +150,7 @@ public final class ConfigureAvdOptionsStepTest {
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsZulu.setAbi("x86");
+    detailsZulu.getAbis().add("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails)detailsZulu);
     InMemoryFileSystems.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -161,7 +161,7 @@ public final class ConfigureAvdOptionsStepTest {
     DetailsTypes.SysImgDetailsType detailsExtensions =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsExtensions.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
-    detailsExtensions.setAbi("x86");
+    detailsExtensions.getAbis().add("x86");
     detailsExtensions.setApiLevel(32);
     detailsExtensions.setExtensionLevel(3);
     detailsExtensions.setBaseExtension(false);

@@ -92,7 +92,7 @@ public class HaxmAlert extends JPanel {
   @VisibleForTesting
   public static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
                                                                  ProductDetails.CpuArchitecture arch) {
-    Abi abi = Abi.getEnum(description.getAbiType());
+    Abi abi = Abi.getEnum(description.getPrimaryAbiType());
     boolean isX86Host = arch == ProductDetails.CpuArchitecture.X86 || arch == ProductDetails.CpuArchitecture.X86_64;
     if (isX86Host && abi != Abi.X86 && abi != Abi.X86_64) {
       return "Consider using an x86 system image on an x86 host for better emulation performance.";

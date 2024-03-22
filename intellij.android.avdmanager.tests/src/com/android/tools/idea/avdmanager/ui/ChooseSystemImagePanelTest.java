@@ -74,7 +74,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType sysimgDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     sysimgDetails.getTags().add(tag);
-    sysimgDetails.setAbi(abi);
+    sysimgDetails.getAbis().add(abi);
     sysimgDetails.setVendor(vendor);
     sysimgDetails.setApiLevel(apiLevel);
     pkg.setTypeDetails((TypeDetails)sysimgDetails);
@@ -90,7 +90,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     DetailsTypes.SysImgDetailsType sysimgDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     sysimgDetails.getTags().add(tag);
-    sysimgDetails.setAbi(abi);
+    sysimgDetails.getAbis().add(abi);
     sysimgDetails.setVendor(vendor);
     sysimgDetails.setApiLevel(apiLevel);
     pkg.setTypeDetails((TypeDetails)sysimgDetails);

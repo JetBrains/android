@@ -58,7 +58,7 @@ public class SystemImagePreview {
   private JBLabel myReleaseIcon;
   private JBLabel myApiLevel;
   private JBLabel myAndroidVersion;
-  private JBLabel myAbi;
+  private JBLabel myAbis;
   private JBLabel myTagDisplay;
   private HyperlinkLabel myDocumentationLink;
   private JBLabel myVendor;
@@ -94,7 +94,7 @@ public class SystemImagePreview {
     myTagDisplay.setFont(AvdWizardUtils.TITLE_FONT);
     myVendor.setFont(AvdWizardUtils.TITLE_FONT);
     myDocumentationLink.setOpaque(false);
-    myAbi.setFont(AvdWizardUtils.TITLE_FONT);
+    myAbis.setFont(AvdWizardUtils.TITLE_FONT);
     myRootPanel.add(myMainPanel, MAIN_CONTENT);
     JPanel nonePanel = new JPanel(new BorderLayout());
     JBLabel noneLabel = new JBLabel(NO_SYSTEM_IMAGE_SELECTED);
@@ -168,7 +168,10 @@ public class SystemImagePreview {
       String tagDisplay = myImageDescription.getTags().stream().map(IdDisplay::getDisplay).collect(joining(" "));
       myTagDisplay.setText("<html>" + tagDisplay + "</html>");
 
-      myAbi.setText(myImageDescription.getAbiType());
+      String translatedAbi = myImageDescription.getTranslatedAbiTypes().isEmpty() ?
+                             "" :
+                             (" (translated: " + String.join("/", myImageDescription.getTranslatedAbiTypes()) + ")");
+      myAbis.setText("<html><b>" + String.join("/", myImageDescription.getAbiTypes()) + "</b>" + translatedAbi + "</html>");
     }
   }
 

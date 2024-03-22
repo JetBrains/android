@@ -99,7 +99,7 @@ public final class SkinCollector {
   @NotNull
   private Stream<Skin> systemImageSkins(@NotNull ISystemImage image) {
     var version = image.getAndroidVersion();
-    var abi = image.getAbiType();
+    var abi = image.getPrimaryAbiType();
 
     return Arrays.stream(image.getSkins())
       .map(myMap)

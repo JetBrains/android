@@ -56,7 +56,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, sdkRoot.resolve("26SysImg"));
     DetailsTypes.SysImgDetailsType detailsKnownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsKnownApi.setAbi(Abi.X86.toString());
+    detailsKnownApi.getAbis().add(Abi.X86.toString());
     detailsKnownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsKnownApi.setApiLevel(26);
     pkgKnownApi.setTypeDetails((TypeDetails) detailsKnownApi);
@@ -67,7 +67,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, sdkRoot.resolve("13SysImg"));
     DetailsTypes.SysImgDetailsType detailsDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsDeprecatedApi.setAbi(Abi.X86.toString());
+    detailsDeprecatedApi.getAbis().add(Abi.X86.toString());
     detailsDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsDeprecatedApi.setApiLevel(13);
     pkgDeprecatedApi.setTypeDetails((TypeDetails) detailsDeprecatedApi);
@@ -79,7 +79,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
       new FakePackage.FakeLocalPackage(justDeprecatedApiPath, sdkRoot.resolve("97SysImg"));
     DetailsTypes.SysImgDetailsType detailsJustDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsJustDeprecatedApi.setAbi(Abi.X86.toString());
+    detailsJustDeprecatedApi.getAbis().add(Abi.X86.toString());
     detailsJustDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsJustDeprecatedApi.setApiLevel(SdkVersionInfo.LOWEST_ACTIVE_API - 1);
     pkgJustDeprecatedApi.setTypeDetails((TypeDetails) detailsJustDeprecatedApi);
@@ -90,7 +90,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, sdkRoot.resolve("previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreviewApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsPreviewApi.setAbi(Abi.X86.toString());
+    detailsPreviewApi.getAbis().add(Abi.X86.toString());
     detailsPreviewApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsPreviewApi.setApiLevel(98);
     detailsPreviewApi.setCodename("Zwieback-preview"); // The codename makes it a "preview"
@@ -103,7 +103,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, sdkRoot.resolve("zSysImg"));
     DetailsTypes.SysImgDetailsType detailsUnknownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsUnknownApi.setAbi(Abi.X86.toString());
+    detailsUnknownApi.getAbis().add(Abi.X86.toString());
     detailsUnknownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsUnknownApi.setApiLevel(99);
     // (Leaving codename null)
@@ -116,7 +116,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
       new FakePackage.FakeLocalPackage(extentionsApiPath, sdkRoot.resolve("extensionSysImg"));
     DetailsTypes.SysImgDetailsType extensionsApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    extensionsApi.setAbi(Abi.X86.toString());
+    extensionsApi.getAbis().add(Abi.X86.toString());
     extensionsApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     extensionsApi.setApiLevel(99);
     extensionsApi.setBaseExtension(false);

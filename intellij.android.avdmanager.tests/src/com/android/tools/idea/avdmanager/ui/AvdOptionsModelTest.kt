@@ -66,7 +66,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val googlePlayDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     googlePlayDetails.tags.add(IdDisplay.create("google_apis_playstore", "Google Play"))
-    googlePlayDetails.abi = "x86"
+    googlePlayDetails.abis.add("x86")
     googlePlayDetails.apiLevel = 23
     googlePlayPkg.typeDetails = googlePlayDetails as TypeDetails
     googlePlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()
@@ -77,7 +77,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val nonPlayDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     nonPlayDetails.tags.add(IdDisplay.create("google_apis", "Google APIs"))
-    nonPlayDetails.abi = "x86"
+    nonPlayDetails.abis.add("x86")
     nonPlayDetails.apiLevel = 23
     nonPlayPkg.typeDetails = nonPlayDetails as TypeDetails
     nonPlayPkg.location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()

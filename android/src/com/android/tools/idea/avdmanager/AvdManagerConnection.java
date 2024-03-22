@@ -1215,7 +1215,7 @@ public class AvdManagerConnection {
     }
 
     public boolean updateRequired(@NotNull SystemImage image) {
-      return updateRequired(image.getAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
+      return updateRequired(image.getPrimaryAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
     }
 
     public boolean updateRequired(@NotNull String abiType, int featureLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {

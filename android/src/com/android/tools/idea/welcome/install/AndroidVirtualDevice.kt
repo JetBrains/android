@@ -93,7 +93,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
     val displayName = avdManager.getDefaultDeviceDisplayName(d, systemImageDescription.version)
     val internalName = AvdWizardUtils.cleanAvdName(avdManager, displayName, true)
-    val abi = Abi.getEnum(systemImageDescription.abiType)
+    val abi = Abi.getEnum(systemImageDescription.primaryAbiType)
     val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     val settings = getAvdSettings(displayName, internalName, d)
@@ -169,7 +169,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler!!)
     val avds = connection.getAvds(false)
     for (avd in avds) {
-      if (avd.abiType == desired.abiType && avd.androidVersion == desired.version) {
+      if (avd.abiType == desired.primaryAbiType && avd.androidVersion == desired.version) {
         // We have a similar avd already installed. Deselect by default.
         return false
       }
