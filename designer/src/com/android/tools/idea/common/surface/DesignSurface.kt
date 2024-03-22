@@ -910,7 +910,7 @@ abstract class DesignSurface<T : SceneManager>(
       val managers = sceneManagers
       if (managers.size == 1) {
         // Always return primary SceneView In single-model mode,
-        val manager: T = checkNotNull(model?.let { getSceneManager(it) })
+        val manager: T = model?.let { getSceneManager(it) } ?: return null
         return manager.sceneViews.firstOrNull()
       }
       val selection = selectionModel.selection

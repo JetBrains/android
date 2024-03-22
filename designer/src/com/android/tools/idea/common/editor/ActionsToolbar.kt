@@ -162,10 +162,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
    * wait the default 500ms automatic delay where toolbars are updated automatically.
    */
   private fun refreshToolbarState() {
-    northToolbar?.updateActionsImmediately()
-    northEastToolbar?.updateActionsImmediately()
-    eastToolbar?.updateActionsImmediately()
-    centerToolbar?.updateActionsImmediately()
+    UIUtil.invokeAndWaitIfNeeded {
+      northToolbar?.updateActionsImmediately()
+      northEastToolbar?.updateActionsImmediately()
+      eastToolbar?.updateActionsImmediately()
+      centerToolbar?.updateActionsImmediately()
+    }
   }
 
   fun updateActions() {
