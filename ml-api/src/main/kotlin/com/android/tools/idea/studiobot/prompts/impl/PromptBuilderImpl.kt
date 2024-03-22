@@ -16,6 +16,7 @@
 package com.android.tools.idea.studiobot.prompts.impl
 
 import com.android.tools.idea.studiobot.AiExcludeException
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
@@ -47,6 +48,10 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     /** Adds [code] as a formatted code block in the message, with optional [language] specified. */
     override fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>) {
       myChunks.add(Prompt.Message.CodeChunk(code, language, filesUsed))
+    }
+
+    override fun blob(base64Data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>) {
+      myChunks.add(Prompt.Message.BlobChunk(base64Data, mimeType, filesUsed))
     }
 
     fun build() = makeMessage(myChunks)

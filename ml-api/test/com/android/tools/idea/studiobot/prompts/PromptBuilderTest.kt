@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.studiobot.AiExcludeException
 import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
 import com.google.common.truth.Truth.assertThat
@@ -79,6 +80,32 @@ class PromptBuilderTest : BasePlatformTestCase() {
             ),
           ),
         ),
+      )
+  }
+
+  @Test
+  fun buildPrompt_withBlob() {
+    val data = ByteArray(10)
+    val prompt =
+      buildPrompt(project) {
+        userMessage {
+          text("What is in this image?", emptyList())
+          blob(data, MimeType.JPEG, emptyList())
+        }
+      }
+    assertThat(prompt)
+      .isEqualTo(
+        PromptImpl(
+          project,
+          listOf(
+            Prompt.UserMessage(
+              listOf(
+                Prompt.Message.TextChunk("What is in this image?", emptyList()),
+                Prompt.Message.BlobChunk(data, MimeType.JPEG, emptyList())
+              )
+            ),
+          ),
+        )
       )
   }
 

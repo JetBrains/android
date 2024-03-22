@@ -103,7 +103,10 @@ class NShotXmlToComposeConverterTest {
       query.messages
         .flatMap { it.chunks }
         .any {
-          it.text.contains("Create a subclass of androidx.lifecycle.ViewModel to store the states.")
+          it is Prompt.Message.TextChunk &&
+            it.text.contains(
+              "Create a subclass of androidx.lifecycle.ViewModel to store the states."
+            )
         }
     )
   }
@@ -119,20 +122,23 @@ class NShotXmlToComposeConverterTest {
     val chunks = query.messages.flatMap { it.chunks }
     assertTrue(
       chunks.any {
-        it.text.contains(
-          "The ViewModel must store data using objects of type androidx.lifecycle.LiveData. " +
-            "The Composable methods will use states derived from the data stored in the ViewModel."
-        )
+        it is Prompt.Message.TextChunk &&
+          it.text.contains(
+            "The ViewModel must store data using objects of type androidx.lifecycle.LiveData. " +
+              "The Composable methods will use states derived from the data stored in the ViewModel."
+          )
       }
     )
     assertTrue(
       chunks.any {
-        it.text.contains("Do not use androidx.compose.runtime.MutableState in the ViewModel.")
+        it is Prompt.Message.TextChunk &&
+          it.text.contains("Do not use androidx.compose.runtime.MutableState in the ViewModel.")
       }
     )
     assertTrue(
       chunks.any {
-        it.text.contains("Do not use kotlinx.coroutines.flow.StateFlow in the ViewModel.")
+        it is Prompt.Message.TextChunk &&
+          it.text.contains("Do not use kotlinx.coroutines.flow.StateFlow in the ViewModel.")
       }
     )
   }
@@ -149,7 +155,10 @@ class NShotXmlToComposeConverterTest {
     assertTrue(
       query.messages
         .flatMap { it.chunks }
-        .none { it.text.contains("The ViewModel must store data using objects of type") }
+        .none {
+          it is Prompt.Message.TextChunk &&
+            it.text.contains("The ViewModel must store data using objects of type")
+        }
     )
   }
 
@@ -165,7 +174,10 @@ class NShotXmlToComposeConverterTest {
     assertTrue(
       query.messages
         .flatMap { it.chunks }
-        .none { it.text.contains("The ViewModel must store data using objects of type") }
+        .none {
+          it is Prompt.Message.TextChunk &&
+            it.text.contains("The ViewModel must store data using objects of type")
+        }
     )
   }
 
@@ -177,7 +189,10 @@ class NShotXmlToComposeConverterTest {
     assertTrue(
       query.messages
         .flatMap { it.chunks }
-        .any { it.text.contains("Wrap any Custom Views in an AndroidView composable.") }
+        .any {
+          it is Prompt.Message.TextChunk &&
+            it.text.contains("Wrap any Custom Views in an AndroidView composable.")
+        }
     )
   }
 
@@ -190,7 +205,10 @@ class NShotXmlToComposeConverterTest {
     assertTrue(
       query.messages
         .flatMap { it.chunks }
-        .none { it.text.contains("Wrap any Custom Views in an AndroidView composable") }
+        .none {
+          it is Prompt.Message.TextChunk &&
+            it.text.contains("Wrap any Custom Views in an AndroidView composable")
+        }
     )
   }
 

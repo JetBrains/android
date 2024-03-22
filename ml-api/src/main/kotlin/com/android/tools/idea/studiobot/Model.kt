@@ -28,6 +28,12 @@ import java.io.IOException
  */
 interface Model {
   /**
+   * For multimodal models, returns the list of supported data types that can be contained
+   * in passed [Prompt]s. For text-only models, returns an empty list.
+   */
+  fun supportedBlobs(): List<MimeType> = emptyList()
+
+  /**
    * Sends a query to the model and returns the raw response.
    * This must only be called if [StudioBot.isContextAllowed] is true.
    *

@@ -104,5 +104,9 @@ interface StudioBot {
  */
 enum class ModelType {
   // Model used in Studio Bot chat. A chat model is guaranteed to be available.
-  CHAT
+  CHAT,
+
+  // Experimental model types, not guaranteed to be available and not guaranteed
+  // to be production-ready. Consult with the Studio Bot team before using these.
+  VISION
 }
