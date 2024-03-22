@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.idea.actions.TargetMenuAction.getRenderingTargetLabel
 import com.android.tools.idea.actions.createFilter
 import com.android.tools.idea.actions.getFrameworkThemeNames
 import com.android.tools.idea.actions.getProjectThemeNames
@@ -191,12 +192,21 @@ class CustomConfigurationAttributeCreationPalette(
 
   private fun createApiOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val apiLevels = ConfigurationManager.getOrCreateInstance(module).targets.reversed()
+    val targets = ConfigurationManager.getOrCreateInstance(module).targets
+    val levelToTargetMap = mutableMapOf<String, IAndroidTarget>()
+    targets.forEach { target ->
+      val name = getRenderingTargetLabel(target, true)
+      val existingTarget = levelToTargetMap[name]
+      if (existingTarget == null || existingTarget.revision < target.revision) {
+        levelToTargetMap[name] = target
+      }
+    }
+    val apiLevels = levelToTargetMap.values.reversed()
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
       panel.add(noApiLevelLabel, BorderLayout.CENTER)
     } else {
-      val boxModel = MyComboBoxModel<IAndroidTarget>(apiLevels, { it.version.apiLevel.toString() })
+      val boxModel = MyComboBoxModel(apiLevels, { getRenderingTargetLabel(it, true) })
       val box = CommonComboBox(boxModel)
       box.addActionListener { selectedApiTarget = boxModel.selectedValue }
       selectedApiTarget = boxModel.selectedValue
