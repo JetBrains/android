@@ -455,6 +455,28 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "MultipleDevicesInstrumentedTest",
+    timeout = "long",
+    data = [
+        ":instrumenttestapp",
+        ":run_instrumented_test_project_deps",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.MultipleDevicesInstrumentedTest",
+)
+
+iml_studio_test(
     name = "DebugJUnitTest",
     timeout = "long",
     data = [

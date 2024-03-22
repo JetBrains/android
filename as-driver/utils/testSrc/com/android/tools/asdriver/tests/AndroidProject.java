@@ -81,4 +81,9 @@ public class AndroidProject {
     }
     Files.writeString(localProperties, contentToWrite);
   }
+
+  public void inject(Path target, String contents) throws IOException {
+    Path targetFile = Files.createFile(targetProject.resolve(target));
+    Files.writeString(targetFile, contents);
+  }
 }

@@ -36,6 +36,7 @@ public class Emulator implements AutoCloseable {
   private final LogFile logCat;
   private final String portString;
   private final Process process;
+  private final String name;
 
   public static void createEmulator(TestFileSystem fileSystem, String name, Path systemImage) throws IOException {
     Path avdHome = getAvdHome(fileSystem);
@@ -153,16 +154,17 @@ public class Emulator implements AutoCloseable {
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
-    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process);
+    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process, name);
   }
 
-  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process) {
+  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process, String name) {
     this.fileSystem = fileSystem;
     this.sdk = sdk;
     this.logFile = logFile;
     this.logCat = logCat;
     this.portString = portString;
     this.process = process;
+    this.name = name;
   }
 
   public void waitForBoot() throws IOException, InterruptedException {
@@ -186,6 +188,10 @@ public class Emulator implements AutoCloseable {
 
   public String getPortString() {
     return portString;
+  }
+
+  public String getName() {
+    return name;
   }
 
   public String getSerialNumber() {
