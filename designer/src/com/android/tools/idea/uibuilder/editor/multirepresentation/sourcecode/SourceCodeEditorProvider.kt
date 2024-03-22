@@ -93,7 +93,13 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
         ThrowableComputable { PsiManager.getInstance(project).findFile(file)!! }
       )
 
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    val textEditor =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable {
+          TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+        }
+      )
+
     val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
 
     return SourceCodeEditorWithMultiRepresentationPreview(
@@ -117,9 +123,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       }
 
       // Persist the multi-preview state
-      serialize(state.previewState)?.let {
-        targetElement.addContent(it)
-      }
+      serialize(state.previewState)?.let { targetElement.addContent(it) }
 
       // Persist the current selected layout
       state.selectedLayout?.let {
