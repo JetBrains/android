@@ -118,7 +118,7 @@ public final class TestProjectPaths {
   public static final String TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST = "projects/testArtifacts/lintTestsDesugaring";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS = "projects/testArtifacts/versionCatalogNestedProjects";
-  public static final String TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG = "projects/testArtifacts/versionCatalogNestedProjects";
+  public static final String TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG = "projects/testArtifacts/versionCatalogSimilarDependencies";
   public static final String TEST_FIXTURES = "projects/testFixtures";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TEST_RESOURCES = "projects/testResources";
