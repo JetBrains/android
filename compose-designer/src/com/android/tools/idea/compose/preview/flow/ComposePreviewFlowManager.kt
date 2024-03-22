@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
@@ -43,6 +42,7 @@ import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable

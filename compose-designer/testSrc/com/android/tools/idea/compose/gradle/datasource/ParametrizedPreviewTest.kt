@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
@@ -36,6 +35,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT

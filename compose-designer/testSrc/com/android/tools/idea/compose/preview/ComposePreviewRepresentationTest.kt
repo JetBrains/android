@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.util.previewElement
@@ -51,6 +50,7 @@ import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.configuration.execution.findElementByText

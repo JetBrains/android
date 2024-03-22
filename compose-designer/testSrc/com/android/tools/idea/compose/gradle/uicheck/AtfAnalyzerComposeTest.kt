@@ -16,12 +16,12 @@
 package com.android.tools.idea.compose.gradle.uicheck
 
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.createNlModelForCompose
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent

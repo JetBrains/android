@@ -27,7 +27,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
@@ -80,6 +79,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
