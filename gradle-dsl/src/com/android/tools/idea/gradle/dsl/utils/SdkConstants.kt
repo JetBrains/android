@@ -23,9 +23,11 @@ package com.android.tools.idea.gradle.dsl.utils
 
 const val FN_BUILD_GRADLE = "build.gradle"
 const val FN_BUILD_GRADLE_KTS = "build.gradle.kts"
+const val FN_BUILD_GRADLE_DECLARATIVE = "build.gradle.something"
 const val FN_GRADLE_PROPERTIES = "gradle.properties"
 const val FN_SETTINGS_GRADLE = "settings.gradle"
 const val FN_SETTINGS_GRADLE_KTS = "settings.gradle.kts"
+const val FN_SETTINGS_GRADLE_DECLARATIVE = "settings.gradle.something"
 const val FN_DECLARATIVE_BUILD_GRADLE = "build.gradle.toml"
 const val FN_DECLARATIVE_SETTINGS_GRADLE = "settings.gradle.toml"
 

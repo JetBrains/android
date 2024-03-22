@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
@@ -25,11 +26,11 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.concurrency.AndroidIoManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.FileRelevanceKt;
-import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -77,6 +78,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -397,10 +399,14 @@ public class GradleFiles implements Disposable.Default {
     storeExternalBuildFiles(externalBuildFiles);
 
     String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
+    if (StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get()) {
+      fileNames = ArrayUtils.add(fileNames, FN_SETTINGS_GRADLE_DECLARATIVE);
+    }
     File rootFolderPath = getBaseDirPath(myProject);
     VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
+    final String[] finalFileNames = fileNames;
     Runnable projectWideFilesRunnable = () -> {
-      for (String fileName : fileNames) {
+      for (String fileName : finalFileNames) {
         ProgressManager.checkCanceled();
         File filePath = new File(rootFolderPath, fileName);
         if (filePath.isFile() && rootFolder != null) {

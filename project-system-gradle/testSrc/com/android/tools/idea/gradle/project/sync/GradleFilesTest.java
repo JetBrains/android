@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
@@ -29,6 +31,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler;
@@ -177,26 +180,6 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     }, true, buildFile);
   }
 
-  public void testModifiedWhenAddingTextChildInBuildFile() throws Exception {
-    loadSimpleApplication();
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true);
-  }
-
-  public void testNotModifiedWhenAddingWhitespaceInSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
-  }
-
-  public void testModifiedWhenAddingTextChildInSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                            virtualFile);
-  }
-
   public void testNotModifiedWhenAddingWhitespaceInPropertiesFile() throws Exception {
     loadSimpleApplication();
 
@@ -312,7 +295,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
     myGradleFiles.maybeProcessSyncStarted();
-    assertFalse(myGradleFiles.areGradleFilesModified());
+    assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
   }
 
   public void testModifiedWhenModifiedDuringSync() throws Exception {
@@ -322,7 +305,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    assertTrue(myGradleFiles.areGradleFilesModified());
+    assertThat(myGradleFiles.areGradleFilesModified()).isTrue();
   }
 
   public void testNotModifiedWhenChangedBackDuringSync() throws Exception {
@@ -354,12 +337,12 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   public void testIsGradleFileWithBuildDotGradleFile() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testIsGradleFileWithGradleDotPropertiesFile() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES);
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testIsGradleFileWithWrapperPropertiesFile() throws IOException {
@@ -367,25 +350,38 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testIsGradleFileWithKotlinSettings() {
     // We need to create a file with EventSystemEnabled == false to get the PsiFile to return a null virtual file.
     PsiFile psiFile = PsiFileFactory.getInstance(getProject())
       .createFileFromText(FN_SETTINGS_GRADLE_KTS, FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testIsGradleFileWithRenamedKts() {
     PsiFile psiFile = PsiFileFactory.getInstance(getProject())
       .createFileFromText("app.gradle.kts", FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+  }
+
+  public void testIsGradleFileWithDeclarativeGradleFile() {
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+  }
+
+  public void testIsGradleFileWithDeclarativeSettingsFile() {
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+      .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testIsGradleFileWithVersionsToml() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
-    assertTrue(myGradleFiles.isGradleFile(psiFile));
+    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
   public void testNothingInDefaultProject() {
@@ -401,23 +397,21 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     // Default projects are initialized during the IDE build for example to generate the searchable index.
     GradleFiles gradleFiles = GradleFiles.getInstance(ProjectManager.getInstance().getDefaultProject());
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES); // not in the default project
-    assertTrue(gradleFiles.isGradleFile(psiFile));
+    assertThat(gradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
-  /**
-   * Ensures hashes are not stored if the File does not exist.
-   */
+  // Ensures hashes are not stored if the File does not exist.
   public void testNoPhysicalFileExists() throws Exception {
     loadSimpleApplication();
     File path = VfsUtilCore.virtualToIoFile(getAppBuildFile());
     boolean deleted = path.delete();
-    assertTrue(deleted);
-    assertTrue(getAppBuildFile().exists());
+    assertThat(deleted).isTrue();
+    assertThat(getAppBuildFile().exists()).isTrue();
     myGradleFiles.maybeProcessSyncStarted();
     // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
     UIUtil.dispatchAllInvocationEvents();
-    assertFalse(myGradleFiles.areGradleFilesModified());
-    assertFalse(myGradleFiles.hasHashForFile(getAppBuildFile()));
+    assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
+    assertThat(myGradleFiles.hasHashForFile(getAppBuildFile())).isFalse();
   }
 
   public void testChangesAreNotDetectedWithNoListener() throws Exception {
@@ -439,6 +433,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   public void testCommentingOutTriggersModification() throws Exception {
     loadSimpleApplication();
+
     runFakeModificationTest(((factory, file) -> {
       PsiElement element = ProjectBuildModelHandler.Companion.getInstance(getProject()).read((model) -> {
         List<DependencyModel> dependencies = model.getModuleBuildModel(getModule("app")).dependencies().all();
@@ -449,6 +444,81 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       doc.insertString(element.getTextOffset(), "//");
       PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
     }), true);
+  }
+
+  public void testModifiedWhenAddingTextChildInBuildFile() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true);
+  }
+
+  public void testModifiedWhenAddingTextChildInSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
+                            virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
+                            virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInDeclarativeSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+
+  public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInDeclarativeBuildFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   @NotNull
@@ -538,35 +608,5 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     else {
       assertFalse(filesModified);
     }
-  }
-
-  public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
-  }
-
-  public void testModifiedWhenAddingTextChildInKotlinSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
-                            virtualFile);
-  }
-
-  public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
-  }
-
-  public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
-                            virtualFile);
   }
 }

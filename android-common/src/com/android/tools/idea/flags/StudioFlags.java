@@ -738,6 +738,14 @@ public final class StudioFlags {
     new BooleanFlag(GRADLE_IDE, "declarative.plugin.studio.support", "Studio support for AGP declarative plugin",
                 "Enable support for gradle.build.toml in PSD and Assistants", false);
 
+  public static final Flag<Boolean> GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT = new BooleanFlag(
+    GRADLE_IDE,
+    "gradle.declarative.ide.support",
+    "Studio support for Gradle declarative files",
+    "Enable support for gradle.build.something in Android Studio",
+    false
+  );
+
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 

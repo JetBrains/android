@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_DECLARATIVE_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_TOML;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -117,6 +119,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
   @NotNull private static final String DECLARATIVE_LANGUAGE = "Toml";
+
+  @NotNull private static final String GRADLE_DECLARATIVE_LANGUAGE = "Something";
   protected String myTestDataRelativePath;
   protected String myTestDataResolvedPath;
 
@@ -143,21 +147,20 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   @Parameters(name = "{1}")
   public static Collection languageExtensions() {
     return Arrays.asList(new Object[][]{
-      {".gradle", GROOVY_LANGUAGE}
-      ,
-      {".gradle.kts", KOTLIN_LANGUAGE}
-      ,
-      {".gradle.toml", DECLARATIVE_LANGUAGE}
+      {".gradle", GROOVY_LANGUAGE},
+      {".gradle.kts", KOTLIN_LANGUAGE},
+      {".gradle.toml", DECLARATIVE_LANGUAGE},
+      {".gradle.something", GRADLE_DECLARATIVE_LANGUAGE}
     });
   }
 
-  protected boolean isGroovy() {
-    return myLanguageName.equals(GROOVY_LANGUAGE);
-  }
+  protected boolean isGroovy() { return myLanguageName.equals(GROOVY_LANGUAGE); }
 
   protected boolean isKotlinScript() { return myLanguageName.equals(KOTLIN_LANGUAGE); }
 
   protected boolean isDeclarative() { return myLanguageName.equals(DECLARATIVE_LANGUAGE); }
+
+  protected boolean isGradleDeclarative() { return myLanguageName.equals(GRADLE_DECLARATIVE_LANGUAGE); }
 
   protected void isIrrelevantForGroovy(String reason) {
     assumeFalse("test irrelevant for Groovy: " + reason, isGroovy());
@@ -176,6 +179,10 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
    */
   protected void skipDeclarativeTemporary() {
     assumeFalse("Test is not yet support Declarative build", isDeclarative());
+  }
+
+  protected void skipGradleDeclarativeTemporary() {
+    assumeFalse("Test does not yet support Gradle Declarative build", isGradleDeclarative());
   }
 
   /**
@@ -226,6 +233,9 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     if(isDeclarative())
       assumeTrue("'Studio declarative support' flag is false - so test does not know/care about declarative build",
                  StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get());
+
+    // ignore Gradle declarative (Something) test cases
+    assumeFalse(isGradleDeclarative());
 
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
@@ -286,14 +296,13 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getSettingsFileName() {
     if (isGroovy()) {
       return FN_SETTINGS_GRADLE;
-    }
-    else if (isDeclarative()) {
+    } else if (isDeclarative()) {
       return FN_SETTINGS_GRADLE_TOML;
-    }
-    else if (isKotlinScript()) {
+    } else if (isKotlinScript()) {
       return FN_SETTINGS_GRADLE_KTS;
-    }
-    else {
+    } else if (isGradleDeclarative()) {
+      return FN_SETTINGS_GRADLE_DECLARATIVE;
+    } else {
       throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
     }
   }
@@ -302,14 +311,13 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getBuildFileName() {
     if (isGroovy()) {
       return FN_BUILD_GRADLE;
-    }
-    else if (isDeclarative()) {
+    } else if (isDeclarative()) {
       return FN_DECLARATIVE_BUILD_GRADLE;
-    }
-    else if (isKotlinScript()) {
+    } else if (isKotlinScript()) {
       return FN_BUILD_GRADLE_KTS;
-    }
-    else {
+    } else if (isGradleDeclarative()) {
+      return FN_BUILD_GRADLE_DECLARATIVE;
+    } else {
       throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
     }
   }
@@ -349,6 +357,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
 
     if(!testFile.exists()) skipDeclarativeTemporary(); // skip test if no file and in declarative mode
+    if(!testFile.exists()) skipGradleDeclarativeTemporary(); // skip test if no file and in declarative mode
 
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
