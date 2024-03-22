@@ -37,13 +37,11 @@ import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-@Ignore("b/330299116")
 class ComposeAnimationManagerTests(private val animationType: ComposeAnimationType) :
   InspectorTests() {
 
@@ -226,12 +224,12 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
         override val states = states
       }
 
-    val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
       ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
       assertTrue("No animation is added", 1 == inspector.animations.size)
       withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
         val cards = findAllCards(inspector.component)
