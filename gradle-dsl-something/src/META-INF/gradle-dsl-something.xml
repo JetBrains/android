@@ -24,6 +24,9 @@
 
     <psi.referenceContributor language="Something" implementation="com.android.tools.idea.gradle.something.SomethingVersionCatalogReferenceContributor"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.uast">
+    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.something.SomethingUastLanguagePlugin"/>
+  </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>
   </extensions>
