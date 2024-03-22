@@ -24,12 +24,14 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.server.am.Capabilities
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
 
 
@@ -43,11 +45,11 @@ class ActivityManagerCapabilities(val project: Project) {
     @WorkerThread
     fun suspendSupported(project: Project, device: IDevice): Boolean {
       return runBlocking {
-        withTimeout(Duration.ofSeconds(20).toMillis()) {
+        withTimeoutOrNull(Duration.ofSeconds(20).toMillis()) {
           // This value comes from
           // frameworks/base/services/core/java/com/android/server/am/ActivityManagerShellCommand.java
           ActivityManagerCapabilities(project).checkCapability(device, "start.suspend")
-        }
+        }?: throw AndroidExecutionException("OPERATION_TIMEOUT", "Unable to retrieve suspend capability")
       }
     }
   }
