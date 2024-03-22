@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import icons.StudioIcons
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun DeviceTable(
@@ -51,20 +58,34 @@ internal fun DeviceTable(
       TableTextColumn("Source") { if (it.isRemote) "Remote" else "Local" },
     )
   }
-
-  HorizontalSplitLayout(
-    first = { DeviceFilters(filterState, modifier = modifier then it) },
-    second = {
-      Table(
-        columns,
-        devices.filter(filterState::apply),
-        { it },
-        tableSelectionState = tableSelectionState,
-        modifier = modifier then it,
-      )
-    },
-    modifier = modifier.fillMaxSize(),
-    minRatio = 0.1f,
-    maxRatio = 0.5f,
-  )
+  Column(modifier) {
+    TextField(
+      filterState.textFilter.searchText,
+      onValueChange = { filterState.textFilter.searchText = it },
+      leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
+      placeholder = {
+        Text(
+          "Search for a device by name, model, or OEM",
+          fontWeight = FontWeight.Light,
+          modifier = Modifier.padding(start = 4.dp),
+        )
+      },
+      modifier = Modifier.fillMaxWidth().padding(4.dp),
+    )
+    HorizontalSplitLayout(
+      first = { DeviceFilters(filterState, modifier = it) },
+      second = {
+        Table(
+          columns,
+          devices.filter(filterState::apply),
+          { it },
+          tableSelectionState = tableSelectionState,
+          modifier = it,
+        )
+      },
+      modifier = Modifier.fillMaxSize(),
+      minRatio = 0.1f,
+      maxRatio = 0.5f,
+    )
+  }
 }

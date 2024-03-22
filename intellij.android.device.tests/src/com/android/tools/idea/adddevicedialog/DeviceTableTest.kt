@@ -18,10 +18,12 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasAnySibling
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.JewelTestTheme
 import org.junit.Rule
 import org.junit.Test
@@ -46,5 +48,22 @@ class DeviceTableTest {
 
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsNotDisplayed()
     composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun textSearch() {
+    composeTestRule.setContent {
+      JewelTestTheme {
+        val source = TestDeviceSource()
+        source.apply { allTestDevices.forEach { add(it) } }
+        DeviceTable(source.profiles)
+      }
+    }
+
+    composeTestRule.onNode(hasSetTextAction()).performTextReplacement("sam")
+
+    composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Galaxy S22", useUnmergedTree = true).assertIsDisplayed()
   }
 }

@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -43,12 +46,24 @@ internal class DeviceFilterState(profiles: List<DeviceProfile>) : RowFilter<Devi
 
   val apiLevelFilter = ApiLevelSelectionState()
 
+  val textFilter = TextFilterState()
+
   operator fun <V> get(attribute: DeviceAttribute<V>): SetFilterState<DeviceProfile, V> =
     setFilters.find { it.attribute == attribute } as SetFilterState<DeviceProfile, V>
 
   override fun apply(row: DeviceProfile): Boolean {
-    return setFilters.all { it.apply(row) } && apiLevelFilter.apply(row)
+    return setFilters.all { it.apply(row) } && apiLevelFilter.apply(row) && textFilter.apply(row)
   }
+}
+
+@Stable
+class TextFilterState : RowFilter<DeviceProfile> {
+  var searchText: String by mutableStateOf("")
+
+  override fun apply(row: DeviceProfile): Boolean =
+    searchText.isBlank() ||
+      row.manufacturer.contains(searchText.trim(), ignoreCase = true) ||
+      row.name.contains(searchText.trim(), ignoreCase = true)
 }
 
 private val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
