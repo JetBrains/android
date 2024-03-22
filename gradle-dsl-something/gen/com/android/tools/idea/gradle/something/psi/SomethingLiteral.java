@@ -32,4 +32,7 @@ public interface SomethingLiteral extends SomethingValue {
   @Nullable
   PsiElement getString();
 
+  @Nullable
+  Object getValue();
+
 }

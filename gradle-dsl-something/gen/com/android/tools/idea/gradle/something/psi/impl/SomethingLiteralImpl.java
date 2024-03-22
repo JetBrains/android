@@ -62,4 +62,10 @@ public class SomethingLiteralImpl extends ASTWrapperPsiElement implements Someth
     return findChildByType(STRING);
   }
 
+  @Override
+  @Nullable
+  public Object getValue() {
+    return PsiImplUtil.getValue(this);
+  }
+
 }

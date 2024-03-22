@@ -74,7 +74,7 @@ identifier ::= token {
    ]
    mixin="com.android.tools.idea.gradle.something.psi.SomethingIdentifierMixin"
 }
-literal ::= string | number | boolean
+literal ::= string | number | boolean {methods=[getValue]}
 private rvalue ::= factory | property | literal
 property ::= qualified | bare {methods=[getField getReceiver]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}

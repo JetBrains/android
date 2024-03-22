@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.something.psi.SomethingBare
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifier
+import com.android.tools.idea.gradle.something.psi.SomethingLiteral
 import com.android.tools.idea.gradle.something.psi.SomethingProperty
 import com.android.tools.idea.gradle.something.psi.SomethingQualified
 import com.android.tools.idea.gradle.something.psi.SomethingValue
@@ -67,5 +68,15 @@ class PsiImplUtil {
     fun getArguments(list: SomethingArgumentsList): List<PsiElement> {
       return list.children.toList()
     }
+
+    @JvmStatic
+    fun getValue(literal: SomethingLiteral): Any? = when {
+      literal.boolean != null -> literal.boolean?.text == "true"
+      literal.string != null -> literal.string?.text?.unquote()
+      literal.number != null -> literal.number?.text?.toIntOrNull()
+      else -> null
+    }
+    private fun String.unquote() = this.removePrefix("\"").removeSuffixIfPresent("\"")
+    private fun String.removeSuffixIfPresent(suffix: String) = if (this.endsWith(suffix)) this.dropLast(suffix.length) else this
   }
 }
