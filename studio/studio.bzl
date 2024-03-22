@@ -819,11 +819,22 @@ script_template = """\
 	echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${{debug_option##--wrapper_script_flag=--debug=}}" > "$options"
 	args=${{@:2}}
     fi
+
     unzip -q "{zip_file}" -d "$tmp_dir"
+    mkdir -p "{config_base_dir}/.config"
+    mkdir -p "{config_base_dir}/.plugins"
+    mkdir -p "{config_base_dir}/.system"
+    mkdir -p "{config_base_dir}/.log"
+    echo "idea.config.path={config_base_dir}/.config" >> "$tmp_dir/.properties"
+    echo "idea.plugins.path={config_base_dir}/.plugins" >> "$tmp_dir/.properties"
+    echo "idea.system.path={config_base_dir}/.system" >> "$tmp_dir/.properties"
+    echo "idea.log.path={config_base_dir}/.log" >> "$tmp_dir/.properties"
+    properties="$tmp_dir/.properties"
+
     if [ -z "$options" ]; then
-        {command} $args
+        STUDIO_PROPERTIES="$properties" {command} $args
     else
-        STUDIO_VM_OPTIONS="$options" {command} $args
+        STUDIO_VM_OPTIONS="$options" STUDIO_PROPERTIES="$properties" {command} $args
     fi
 """
 
@@ -849,6 +860,7 @@ def _android_studio_impl(ctx):
     script = ctx.actions.declare_file("%s-run" % ctx.label.name)
     script_content = script_template.format(
         zip_file = outputs[host_platform].short_path,
+        config_base_dir = ctx.attr.config_base_dir,
         command = {
             LINUX: "$tmp_dir/android-studio/bin/studio.sh",
             MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
@@ -868,6 +880,7 @@ def _android_studio_impl(ctx):
 
 _android_studio = rule(
     attrs = {
+        "config_base_dir": attr.string(),
         "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
@@ -991,9 +1004,11 @@ _android_studio = rule(
 # before patch 12. In such a case, the release_number would be 3.
 def android_studio(
         name,
+        config_base_dir = "~/.studio_dev",
         **kwargs):
     _android_studio(
         name = name,
+        config_base_dir = config_base_dir,
         compress = is_release(),
         host_platform_name = select({
             "@platforms//os:linux": LINUX.name,
