@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.AndroidProfilerBundle.message
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.intellij.execution.Executor
@@ -54,7 +56,12 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
     override val startActionText = "Profile"
     override fun canRun(profile: RunProfile) = true
-    override fun isApplicable(project: Project) = true
+
+    override fun isApplicable(project: Project): Boolean {
+      val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
+      return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
+    }
+
     @Nls
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
       ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.configuration.with.low.overhead", configurationName)

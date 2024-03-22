@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -40,7 +42,11 @@ class ProfileRunExecutor : DefaultRunExecutor() {
 
   override fun getHelpId(): String? = null
 
-  override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
+  override fun isApplicable(project: Project): Boolean {
+    val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
+    if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) return false
+    return AndroidUtils.hasAndroidFacets(project)
+  }
 
   companion object {
     const val EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID
