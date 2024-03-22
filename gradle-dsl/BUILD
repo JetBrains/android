@@ -70,6 +70,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
         "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 

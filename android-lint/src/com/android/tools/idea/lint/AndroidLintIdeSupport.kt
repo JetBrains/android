@@ -21,6 +21,7 @@ import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -121,6 +122,12 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     val facet = AndroidFacet.getInstance(module)
     if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
+
+    if (
+      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get() &&
+        file.name.endsWith(".gradle.something")
+    )
+      return true
 
     return when (file.fileType) {
       JavaFileType.INSTANCE,

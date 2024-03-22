@@ -35,6 +35,7 @@
     <externalAnnotator language="Groovy" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
     <externalAnnotator language="Properties" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
     <externalAnnotator language="TOML" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="Something" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
 
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" groupName="Android Lint: Correctness" displayName="Accidental Octal" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccidentalOctalInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAssertionSideEffect" groupName="Android Lint: Performance" displayName="Assertions with Side Effects" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAssertionSideEffectInspection"/>

@@ -32,5 +32,6 @@
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>
