@@ -21,6 +21,12 @@ import com.android.tools.idea.common.surface.SurfaceScale
 /** Applies zoom changes to a [Zoomable] surface. */
 interface ZoomController : Zoomable {
 
+  /**
+   * Id used when saving and restoring scale values associated with a ZoomController instance.
+   * Particularly needed when multiple surfaces come from the same file.
+   */
+  var storeId: String?
+
   /** The minimum scale allowed. */
   val minScale: Double
 

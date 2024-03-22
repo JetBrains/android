@@ -141,6 +141,8 @@ object DesignSurfaceTestUtil {
       override val screenScalingFactor: Double
         get() = 1.0
 
+      override var storeId: String? = null
+
       override val minScale: Double
         get() = 0.1
 
@@ -150,7 +152,7 @@ object DesignSurfaceTestUtil {
       override val maxZoomToFitLevel: Double
         get() = 1.0
 
-      override fun setScale(scale: Double, x: Int, y: Int): Boolean = true
+      override fun setScale(scale: Double, x: Int, y: Int) = true
 
       override fun zoomToFit(): Boolean = true
 

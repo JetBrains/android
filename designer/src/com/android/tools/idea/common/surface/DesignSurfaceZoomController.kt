@@ -60,6 +60,8 @@ abstract class DesignSurfaceZoomController(
   override val maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
 
+  override var storeId: String? = null
+
   override val minScale: Double = MIN_SCALE
 
   override val maxScale: Double = MAX_SCALE

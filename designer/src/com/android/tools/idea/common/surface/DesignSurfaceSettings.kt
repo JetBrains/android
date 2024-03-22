@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.ZoomController
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
@@ -60,7 +61,7 @@ class SurfaceState {
    * access its getter and setter. Do not access this field directly, use [saveFileScale] and
    * [loadFileScale] instead.
    */
-  var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
+  var filePathToZoomLevelMap: MutableMap<Pair<String, String?>, Double> = HashMap()
 
   /**
    * The map of file path and the drawable background type. We use path string here because
@@ -77,18 +78,22 @@ class SurfaceState {
   var lastSelectedDrawableBackgroundType: DrawableBackgroundType = DrawableBackgroundType.NONE
 
   @Transient
-  fun loadFileScale(project: Project, file: VirtualFile): Double? {
+  fun loadFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?): Double? {
     val relativePath = getRelativePathInProject(project, file) ?: return null
-    return filePathToZoomLevelMap[relativePath]
+
+    // If we don't find the zoom level with the [storeId] we fall back to the scale value of the
+    // sole file
+    return filePathToZoomLevelMap[relativePath to zoomController?.storeId]
+      ?: filePathToZoomLevelMap[relativePath to null]
   }
 
   @Transient
-  fun saveFileScale(project: Project, file: VirtualFile, scale: Double?) {
+  fun saveFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?) {
     val relativePath = getRelativePathInProject(project, file) ?: return
-    if (scale == null) {
-      filePathToZoomLevelMap.remove(relativePath)
+    if (zoomController?.scale == null) {
+      filePathToZoomLevelMap.remove(relativePath to zoomController?.storeId)
     } else {
-      filePathToZoomLevelMap[relativePath] = scale
+      filePathToZoomLevelMap[relativePath to zoomController.storeId] = zoomController.scale
     }
   }
 

@@ -1042,7 +1042,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    state.saveFileScale(myProject, model.getVirtualFile(), getZoomController().getScale());
+    state.saveFileScale(myProject, model.getVirtualFile(), getZoomController());
   }
 
   /**
@@ -1054,7 +1054,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return false;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    Double previousScale = state.loadFileScale(myProject, model.getVirtualFile());
+    Double previousScale = state.loadFileScale(myProject, model.getVirtualFile(), getZoomController());
     if (previousScale != null) {
       getZoomController().setScale(previousScale);
       return true;

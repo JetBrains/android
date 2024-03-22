@@ -202,6 +202,7 @@ class VisualizationForm(
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
     updateScreenMode()
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
+    surface.zoomController.storeId = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText("Loading...")
     myWorkBench.setToolContext(surface)
