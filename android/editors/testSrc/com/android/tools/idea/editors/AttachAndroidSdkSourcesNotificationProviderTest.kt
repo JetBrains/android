@@ -65,9 +65,6 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Before
   fun setup() {
-    // b/329143607: in order for `android.view.View` from the SDK to resolve, there has to be at least one file added to the project.
-    projectRule.fixture.addFileToProject("foo.java", "// Empty file")
-
     val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
     val repoManager = FakeRepoManager(sdkRoot, repositoryPackages)
     val sdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot.root.resolve("avd"), repoManager)

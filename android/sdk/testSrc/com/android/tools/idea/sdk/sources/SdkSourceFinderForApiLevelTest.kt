@@ -56,13 +56,6 @@ class SdkSourceFinderForApiLevelTest {
 
   private var originalLocalPackages: Collection<LocalPackage>? = null
 
-  @Before
-  fun setUp() {
-    // In order for `android.view.View` from the SDK to resolve, there has to be at least one file
-    // added to the project.
-    androidProjectRule.fixture.addFileToProject("foo.java", "// Empty file")
-  }
-
   @After
   fun tearDown() {
     restoreLocalTargetSdkPackages()

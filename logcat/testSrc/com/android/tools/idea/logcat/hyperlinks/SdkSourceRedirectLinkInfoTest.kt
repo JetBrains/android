@@ -57,9 +57,6 @@ class SdkSourceRedirectLinkInfoTest {
 
   @Test
   fun navigate_opensSdkFile() {
-    // In order for `android.view.View` from the SDK to resolve, there has to be at least one file
-    // added to the project.
-    androidProjectRule.fixture.addFileToProject("foo.java", "// Empty file")
     val file = getSdkFile("android.view.View")
     val info =
       SdkSourceRedirectLinkInfo(
