@@ -142,12 +142,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   /**
-   * If the difference between old and new scaling values is less than threshold, the scaling will be ignored.
-   */
-  @SurfaceZoomLevel
-  protected static final double SCALING_THRESHOLD = 0.005;
-
-  /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
    **/
   private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
