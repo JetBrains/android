@@ -23,7 +23,7 @@ import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.util.PsiTreeUtil
 
 class SomethingPsiFactory(private val project: Project) {
-  private fun createFile(text: CharSequence): SomethingFile =
+  fun createFile(text: CharSequence): SomethingFile =
     PsiFileFactory.getInstance(project)
       .createFileFromText(
         "placeholder.something",

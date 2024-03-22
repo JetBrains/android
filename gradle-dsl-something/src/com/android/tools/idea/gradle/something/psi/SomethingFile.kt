@@ -19,8 +19,12 @@ import com.android.tools.idea.gradle.something.SomethingLanguage
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
+import com.intellij.psi.util.PsiTreeUtil
 
 class SomethingFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, SomethingLanguage.INSTANCE) {
   private val fileType = viewProvider.fileType
   override fun getFileType(): FileType = fileType
+
+  fun getEntries(): List<SomethingEntry> = PsiTreeUtil.getChildrenOfTypeAsList(this, SomethingEntry::class.java)
+
 }
