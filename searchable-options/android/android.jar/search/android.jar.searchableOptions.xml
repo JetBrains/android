@@ -679,14 +679,6 @@
     <option name="replaces" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="style" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
-    <option name="180" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="device" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="duration" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="for" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="maximum" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="minutes" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="reserve" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="the" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
     <option name="data" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="identifier" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="reset" path="ActionManager" hit="Reset Data Sharing User Identifier" />
