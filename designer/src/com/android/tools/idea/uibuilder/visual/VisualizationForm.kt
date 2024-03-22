@@ -64,10 +64,12 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -485,7 +487,10 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, project)
+    val facet =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { AndroidFacet.getInstance(file, project) }
+      )
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -505,7 +510,10 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, project)
+    val facet =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { AndroidFacet.getInstance(file, project) }
+      )
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
