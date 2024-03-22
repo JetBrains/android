@@ -134,6 +134,7 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
     val rootComponent = surface.scene.sceneComponents.first()
 
     findResource(resourceName).click().drag()
+    findResource(resourceName).click().drag() //To reduce flakiness
     surface.drop(rootComponent.midPoint) // Drop in the middle of the surface.
     layoutEditor.waitForRenderToFinish()
     Wait.seconds(30L).expecting("Dragged resource in Layout Editor").until {
@@ -149,7 +150,7 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
    */
   fun dragResourceToXmlEditor(resourceName: String, before: String, after: String): ResourceExplorerFixture {
     findResource(resourceName).click().drag()
-
+    findResource(resourceName).click().drag() //To reduce flakiness
     IdeFrameFixture.find(robot()).editor.moveBetween(before, after)
     robot().releaseMouseButtons()
     return this

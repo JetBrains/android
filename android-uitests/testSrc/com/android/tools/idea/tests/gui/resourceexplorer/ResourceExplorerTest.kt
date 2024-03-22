@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.resourceexplorer
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ui.ClickableLabel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceValueDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -40,8 +39,6 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -128,10 +125,13 @@ class ResourceExplorerTest {
     }
 
     // 5. Switch the Layout Editor to Text mode, and drag a string resource into the text attribute value of an existing TextView.
-    ide.editor.selectEditorTab(EditorFixture.Tab.EDITOR).ideFrame.openResourceManager()
+    ide.editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR).ideFrame.openResourceManager()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    ide.editor.waitForFileToActivate()
     layoutEditor.findResourceExplorer()
       .selectTab("String")
       .dragResourceToXmlEditor("app_name", "android:text=\"Hello", " World!\"")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     val textViewContents = ide.editor.currentFileContents.substringAfter("<TextView").substringBefore("/>")
     require(textViewContents.contains("android:text=\"@string/app_name\""))
 
