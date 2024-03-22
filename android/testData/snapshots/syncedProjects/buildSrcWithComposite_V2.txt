@@ -727,9 +727,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
@@ -753,9 +750,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -780,9 +774,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
             -                             : file://<PROJECT>/buildSrc/lib1/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -807,9 +798,6 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
@@ -833,9 +821,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -859,9 +844,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
             -                             : file://<PROJECT>/buildSrc/lib2/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -885,9 +867,6 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.main
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -1006,9 +985,6 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
             -                             : file://<PROJECT>/buildSrc/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
     MODULE                        : BuildSrcWithComposite.buildSrc.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -1126,9 +1102,6 @@ PROJECT                       : BuildSrcWithComposite
             LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
-                REBUILD                       : <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:testClasses
-                COMPILE_JAVA                  : <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:testClasses
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
@@ -2359,9 +2332,9 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-            REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
+            ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
+            REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
+            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
             SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
