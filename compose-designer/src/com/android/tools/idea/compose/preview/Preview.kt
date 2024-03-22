@@ -564,7 +564,7 @@ class ComposePreviewRepresentation(
     postIssueUpdateListenerForUiCheck.deactivate()
     uiCheckFilterFlow.value.basePreviewInstance?.let { uiCheckPanelCleanup(it.instanceId) }
     (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStop()
-    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
+    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled()
     withContext(uiThread) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }

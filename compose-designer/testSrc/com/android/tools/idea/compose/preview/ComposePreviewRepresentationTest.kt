@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
@@ -254,7 +255,9 @@ class ComposePreviewRepresentationTest {
     val originalScale = 0.6
     mainSurface.zoomController.setScale(originalScale)
     val preview = createPreviewAndCompile()
-    assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
 
     val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
@@ -271,7 +274,9 @@ class ComposePreviewRepresentationTest {
       PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
     )
 
-    assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
     delayUntilCondition(250) {
       GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
@@ -374,7 +379,9 @@ class ComposePreviewRepresentationTest {
     // Stop UI Check mode
     setModeAndWaitForRefresh(PreviewMode.Default())
 
-    assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
     delayUntilCondition(250) {
       LIST_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
@@ -482,7 +489,9 @@ class ComposePreviewRepresentationTest {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val preview = createPreviewAndCompile()
-    assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
 
     val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
@@ -496,7 +505,9 @@ class ComposePreviewRepresentationTest {
     setModeAndWaitForRefresh(
       PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
     )
-    assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
 
     assertTrue(preview.atfChecksEnabled)
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
@@ -592,7 +603,9 @@ class ComposePreviewRepresentationTest {
 
     // Stop UI Check mode
     setModeAndWaitForRefresh(PreviewMode.Default())
-    assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+    assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+      preview.uiCheckFilterFlow.value
+    )
 
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",
@@ -752,7 +765,9 @@ class ComposePreviewRepresentationTest {
       }
 
       val contentManager =
-        ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)!!.contentManager
+        withContext(uiThread) {
+          ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)!!.contentManager
+        }
       delayUntilCondition(250) {
         contentManager.selectedContent?.tabName == uiCheckElement.instanceId
       }
@@ -896,7 +911,9 @@ class ComposePreviewRepresentationTest {
 
     runComposePreviewRepresentationTest(testPsiFile) {
       val preview = createPreviewAndCompile()
-      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+      assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+        preview.uiCheckFilterFlow.value
+      )
 
       val uiCheckElement = mainSurface.models.mapNotNull { it.dataContext.previewElement() }[0]
       val problemsView = ProblemsView.getToolWindow(project)!!
@@ -912,7 +929,9 @@ class ComposePreviewRepresentationTest {
         PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = true))
       )
 
-      assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
+      assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
+        preview.uiCheckFilterFlow.value
+      )
       delayUntilCondition(250) {
         GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
       }
@@ -962,7 +981,9 @@ class ComposePreviewRepresentationTest {
       // Stop UI Check mode
       setModeAndWaitForRefresh(PreviewMode.Default())
 
-      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+      assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
+        preview.uiCheckFilterFlow.value
+      )
     }
   }
 

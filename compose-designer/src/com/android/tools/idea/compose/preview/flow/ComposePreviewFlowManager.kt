@@ -138,7 +138,10 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
    * previews with reference devices. When exiting the mode and returning to static preview, the
    * element provider should be reset to [defaultPreviewElementProvider].
    */
-  val uiCheckFilterFlow = MutableStateFlow<UiCheckModeFilter>(UiCheckModeFilter.Disabled)
+  val uiCheckFilterFlow =
+    MutableStateFlow<UiCheckModeFilter<PsiComposePreviewElementInstance>>(
+      UiCheckModeFilter.Disabled()
+    )
 
   /**
    * Only for requests to refresh UI and notifications (without refreshing the preview contents).

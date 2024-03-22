@@ -28,7 +28,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -64,32 +64,31 @@ private val lightDarkModes =
  * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance
  * and generate multiple previews, one per reference device for the user to check.
  */
-sealed class UiCheckModeFilter {
+sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
   var modelsWithErrors: Set<NlModel>? = null
-  abstract val basePreviewInstance: ComposePreviewElementInstance<*>?
+  abstract val basePreviewInstance: T?
 
   abstract fun filterPreviewInstances(
-    previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
-  ): FlowableCollection<PsiComposePreviewElementInstance>
+    previewInstances: FlowableCollection<T>
+  ): FlowableCollection<T>
 
   abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
-  object Disabled : UiCheckModeFilter() {
+  class Disabled<T : PreviewElementInstance<*>> : UiCheckModeFilter<T>() {
     override val basePreviewInstance = null
 
     override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
-    ): FlowableCollection<PsiComposePreviewElementInstance> = previewInstances
+      previewInstances: FlowableCollection<T>
+    ): FlowableCollection<T> = previewInstances
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
   }
 
-  class Enabled(selected: PsiComposePreviewElementInstance, isWearPreview: Boolean) :
-    UiCheckModeFilter() {
+  class Enabled<T : PreviewElementInstance<*>>(selected: T, isWearPreview: Boolean) :
+    UiCheckModeFilter<T>() {
     override val basePreviewInstance = selected
 
-    private val uiCheckPreviews: Collection<PsiComposePreviewElementInstance> =
-      calculatePreviews(selected, isWearPreview)
+    private val uiCheckPreviews: Collection<T> = calculatePreviews(selected, isWearPreview)
 
     /** Calculate the groups. This will be all the groups available in [uiCheckPreviews] if any. */
     private val uiCheckPreviewGroups =
@@ -98,8 +97,8 @@ sealed class UiCheckModeFilter {
         .toSet()
 
     override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<PsiComposePreviewElementInstance>
-    ): FlowableCollection<PsiComposePreviewElementInstance> =
+      previewInstances: FlowableCollection<T>
+    ): FlowableCollection<T> =
       when (previewInstances) {
         is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
         is FlowableCollection.Present ->
@@ -113,54 +112,52 @@ sealed class UiCheckModeFilter {
 
     @VisibleForTesting
     companion object {
-      fun calculatePreviews(
-        base: PsiComposePreviewElementInstance?,
+      fun <T : PreviewElementInstance<*>> calculatePreviews(
+        base: T?,
         isWearPreview: Boolean,
-      ): Collection<PsiComposePreviewElementInstance> {
+      ): Collection<T> {
 
         if (base == null) {
           return emptyList()
         }
-        val composePreviewInstances = mutableListOf<PsiComposePreviewElementInstance>()
+        val previewInstances = mutableListOf<T>()
         if (isWearPreview) {
-          composePreviewInstances.addAll(wearPreviews(base))
+          previewInstances.addAll(wearPreviews(base))
         } else {
-          composePreviewInstances.addAll(deviceSizePreviews(base))
-          composePreviewInstances.addAll(fontSizePreviews(base))
-          composePreviewInstances.addAll(lightDarkPreviews(base))
+          previewInstances.addAll(deviceSizePreviews(base))
+          previewInstances.addAll(fontSizePreviews(base))
+          previewInstances.addAll(lightDarkPreviews(base))
 
           val isColorBlindModeUICheckEnabled =
             StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
           if (isColorBlindModeUICheckEnabled) {
-            composePreviewInstances.addAll(colorBlindPreviews(base))
+            previewInstances.addAll(colorBlindPreviews(base))
           }
         }
-        return composePreviewInstances
+        return previewInstances
       }
     }
   }
 }
 
-private fun wearPreviews(
-  baseInstance: PsiComposePreviewElementInstance
-): List<PsiComposePreviewElementInstance> {
+private fun <T : PreviewElementInstance<*>> wearPreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
-  return wearSpecToName.map { (deviceSpec, name) ->
-    val config = baseConfig.copy(deviceSpec = deviceSpec)
-    val displaySettings =
-      baseDisplaySettings.copy(
-        name = "$name - ${baseDisplaySettings.name}",
-        group = message("ui.check.mode.wear.group"),
-        showDecoration = true,
-      )
-    baseInstance.createDerivedInstance(displaySettings, config)
-  }
+  return wearSpecToName
+    .map { (deviceSpec, name) ->
+      val config = baseConfig.copy(deviceSpec = deviceSpec)
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "$name - ${baseDisplaySettings.name}",
+          group = message("ui.check.mode.wear.group"),
+          showDecoration = true,
+        )
+      baseInstance.createDerivedInstance(displaySettings, config)
+    }
+    .filterIsInstance(baseInstance::class.java)
 }
 
-private fun deviceSizePreviews(
-  baseInstance: PsiComposePreviewElementInstance
-): List<PsiComposePreviewElementInstance> {
+private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   val effectiveDeviceIds =
@@ -169,67 +166,69 @@ private fun deviceSizePreviews(
         "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
           DEVICE_CLASS_LANDSCAPE_PHONE_ID
       )
-  return effectiveDeviceIds.keys.map { device ->
-    val config = baseConfig.copy(deviceSpec = device)
-    val displaySettings =
-      baseDisplaySettings.copy(
-        name = "${idToName[effectiveDeviceIds[device]]} - ${baseDisplaySettings.name}",
-        group = message("ui.check.mode.screen.size.group"),
-        showDecoration = true,
-      )
-    baseInstance.createDerivedInstance(displaySettings, config)
-  }
+  return effectiveDeviceIds.keys
+    .map { device ->
+      val config = baseConfig.copy(deviceSpec = device)
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "${idToName[effectiveDeviceIds[device]]} - ${baseDisplaySettings.name}",
+          group = message("ui.check.mode.screen.size.group"),
+          showDecoration = true,
+        )
+      baseInstance.createDerivedInstance(displaySettings, config)
+    }
+    .filterIsInstance(baseInstance::class.java)
 }
 
-private fun fontSizePreviews(
-  baseInstance: PsiComposePreviewElementInstance
-): List<PsiComposePreviewElementInstance> {
+private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
-  return fontScales.map { (value, name) ->
-    val config = baseConfig.copy(fontScale = value)
-    val displaySettings =
-      baseDisplaySettings.copy(
-        name = "$name - ${baseDisplaySettings.name}",
-        group = message("ui.check.mode.font.scale.group"),
-      )
-    baseInstance.createDerivedInstance(displaySettings, config)
-  }
+  return fontScales
+    .map { (value, name) ->
+      val config = baseConfig.copy(fontScale = value)
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "$name - ${baseDisplaySettings.name}",
+          group = message("ui.check.mode.font.scale.group"),
+        )
+      baseInstance.createDerivedInstance(displaySettings, config)
+    }
+    .filterIsInstance(baseInstance::class.java)
 }
 
-private fun lightDarkPreviews(
-  baseInstance: PsiComposePreviewElementInstance
-): List<PsiComposePreviewElementInstance> {
+private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
-  return lightDarkModes.map { (value, name) ->
-    val config =
-      baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
-    val displaySettings =
-      baseDisplaySettings.copy(
-        name = "$name - ${baseDisplaySettings.name}",
-        group = message("ui.check.mode.light.dark.group"),
-      )
-    baseInstance.createDerivedInstance(displaySettings, config)
-  }
+  return lightDarkModes
+    .map { (value, name) ->
+      val config =
+        baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "$name - ${baseDisplaySettings.name}",
+          group = message("ui.check.mode.light.dark.group"),
+        )
+      baseInstance.createDerivedInstance(displaySettings, config)
+    }
+    .filterIsInstance(baseInstance::class.java)
 }
 
-private fun colorBlindPreviews(
-  baseInstance: PsiComposePreviewElementInstance
-): List<PsiComposePreviewElementInstance> {
+private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
-  return ColorBlindMode.values().map { colorBlindMode ->
-    val colorFilterBaseConfig =
-      baseConfig.copy(
-        imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) }
-      )
-    val displaySettings =
-      baseDisplaySettings.copy(
-        name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
-        group = message("ui.check.mode.screen.accessibility.group"),
-        showDecoration = false,
-      )
-    baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
-  }
+  return ColorBlindMode.values()
+    .map { colorBlindMode ->
+      val colorFilterBaseConfig =
+        baseConfig.copy(
+          imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) }
+        )
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
+          group = message("ui.check.mode.screen.accessibility.group"),
+          showDecoration = false,
+        )
+      baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
+    }
+    .filterIsInstance(baseInstance::class.java)
 }
