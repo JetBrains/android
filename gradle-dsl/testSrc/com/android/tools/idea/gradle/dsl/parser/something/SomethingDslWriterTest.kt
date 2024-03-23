@@ -57,8 +57,8 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to "value2"))
     val expected = """
       block {
-      key1 = "value1"
-      key2 = "value2"
+          key1 = "value1"
+          key2 = "value2"
       }
     """.trimIndent()
 
@@ -69,9 +69,9 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to 123, "key3" to true))
     val expected = """
       block {
-      key1 = "value1"
-      key2 = 123
-      key3 = true
+          key1 = "value1"
+          key2 = 123
+          key3 = true
       }
     """.trimIndent()
 

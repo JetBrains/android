@@ -8,6 +8,11 @@
     <lang.parserDefinition language="Something"
                            implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
     <lang.syntaxHighlighter language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingHighlighter"/>
+    <lang.formatter
+        language="Something"
+        implementationClass="com.android.tools.idea.gradle.something.formatting.SomethingFormattingModelBuilder"/>
+    <langCodeStyleSettingsProvider
+        implementation="com.android.tools.idea.gradle.something.formatting.settings.SomethingLanguageCodeStyleSettingsProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>

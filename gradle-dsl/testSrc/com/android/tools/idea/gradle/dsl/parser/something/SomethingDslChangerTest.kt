@@ -104,13 +104,13 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
   fun testDeleteAssignment() {
     val file = """
       androidApplication {
-        namespace = "abc"
-        compileSdk = 33
+          namespace = "abc"
+          compileSdk = 33
       }
     """.trimIndent()
     val expected = """
       androidApplication {
-        compileSdk = 33
+          compileSdk = 33
       }
     """.trimIndent()
     doTest(file, expected) {

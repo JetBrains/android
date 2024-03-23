@@ -1651,6 +1651,36 @@
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
   </configurable>
+  <configurable id="preferences.sourceCode.Something (Gradle Declarative Build DSL)" configurable_name="Something (Gradle Declarative Build DSL)">
+    <option name="continuation" path="Tabs and Indents" hit="Continuation indent:" />
+    <option name="indent" path="Tabs and Indents" hit="Continuation indent:" />
+    <option name="disable" hit="Disable" />
+    <option name="indent" path="Tabs and Indents" hit="Indent:" />
+    <option name="empty" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="indents" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="keep" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="lines" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="on" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="loading" hit="Loading..." />
+    <option name="scheme" hit="Scheme:" />
+    <option name="from" hit="Set from..." />
+    <option name="set" hit="Set from..." />
+    <option name="smart" path="Tabs and Indents" hit="Smart tabs" />
+    <option name="tabs" path="Tabs and Indents" hit="Smart tabs" />
+    <option name="build" hit="Something (Gradle Declarative Build DSL)" />
+    <option name="declarative" hit="Something (Gradle Declarative Build DSL)" />
+    <option name="dsl" hit="Something (Gradle Declarative Build DSL)" />
+    <option name="gradle" hit="Something (Gradle Declarative Build DSL)" />
+    <option name="something" hit="Something (Gradle Declarative Build DSL)" />
+    <option name="size" path="Tabs and Indents" hit="Tab size:" />
+    <option name="tab" path="Tabs and Indents" hit="Tab size:" />
+    <option name="and" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="indents" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="tabs" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="character" path="Tabs and Indents" hit="Use tab character" />
+    <option name="tab" path="Tabs and Indents" hit="Use tab character" />
+    <option name="use" path="Tabs and Indents" hit="Use tab character" />
+  </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit=" Note: These settings are for features that are considered experimental." />
     <option name="are" hit=" Note: These settings are for features that are considered experimental." />
