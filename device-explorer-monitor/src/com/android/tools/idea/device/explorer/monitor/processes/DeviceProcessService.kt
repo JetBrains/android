@@ -26,6 +26,9 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.intellij.execution.RunManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -33,6 +36,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -50,10 +54,9 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.
    */
   private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
+  private val uiThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-
     // Run this in a worker thread in case the device/adb is not responsive
     val clients = device.device.clients ?: emptyArray()
     return withContext(workerThreadDispatcher) {
@@ -97,8 +100,6 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * Kills the [process] on the [device][ProcessInfo.device]
    */
   suspend fun killProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
@@ -106,6 +107,9 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           device.kill(process.packageName)
         } else {
           thisLogger().debug("Kill process invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("kill process", "Couldn't find package name for process.")
+          }
         }
         process.killAction?.invoke()
       }
@@ -117,23 +121,22 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * Force stops the [process] on the [device][ProcessInfo.device]
    */
   suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
         if (process.packageName != null) {
           device.forceStop(process.packageName)
         } else {
-          thisLogger().debug("Kill process invoked on a null package name")
+          thisLogger().debug("Force stop invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("force stop", "Couldn't find package name for process.")
+          }
         }
       }
     }
   }
 
   suspend fun debugProcess(project: Project, process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-
     if (process.device.serialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
         val client = device.getClient(process.safeProcessName)
@@ -144,8 +147,18 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           connectDebuggerAction.invoke(debugger, client, config)
         } else {
           thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
+          withContext(uiThreadDispatcher) {
+            reportError("attach debugger", "Couldn't find process to attach or debugger to use.")
+          }
         }
       }
+    }
+  }
+
+  private fun reportError(title: String, messageToReport: String) {
+    val notification = Notification("Device Explorer", "Unable to $title", messageToReport, NotificationType.WARNING)
+    ApplicationManager.getApplication().invokeLater {
+      Notifications.Bus.notify(notification)
     }
   }
 
