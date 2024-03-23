@@ -11,6 +11,7 @@ import shutil
 import json
 import xml.etree.ElementTree as ET
 import intellij
+from collections import defaultdict
 
 ALL = "all"
 LINUX = "linux"
@@ -27,128 +28,55 @@ HOME_PATHS = {
     WIN: "/windows/android-studio",
 }
 
-def read_product_info(sdk, platform):
-  path = "/Resources/product-info.json" if platform in [MAC, MAC_ARM] else "/product-info.json"
-  product_info = sdk + HOME_PATHS[platform] + path
-  with open(product_info) as f:
-    return json.load(f)
-
-
-def list_sdk_jars(sdk):
-  sets = {}
-  for platform in PLATFORMS:
-    # Extract the runtime classpath from product-info.json.
-    product_info = read_product_info(sdk, platform)
-    (launch_config,) = product_info["launch"]
-    jars = ["/lib/" + jar for jar in launch_config["bootClassPathJarNames"]]
-    sets[platform] = set(jars)
-
-  sets[ALL] = sets[WIN] & sets[MAC] & sets[MAC_ARM] & sets[LINUX]
-  sets[LINUX] = sets[LINUX] - sets[ALL]
-  sets[WIN] = sets[WIN] - sets[ALL]
-  sets[MAC] = sets[MAC] - sets[ALL]
-  sets[MAC_ARM] = sets[MAC_ARM] - sets[ALL]
-
-  sdk_jars = {}
-  for platform in [ALL] + PLATFORMS:
-    sdk_jars[platform] = sorted(sets[platform])
-
-  return sdk_jars
-
-def _read_zip_entry(zip_path, entry):
-  with zipfile.ZipFile(zip_path) as zip:
-    if entry not in zip.namelist():
-      return None
-    data = zip.read(entry)
-  return data.decode("utf-8")
-  
-def _read_plugin_id(path):
-  for jar in os.listdir(path + "/lib"):
-    if jar.endswith(".jar"):
-      entry = _read_zip_entry(path + "/lib/" + jar, "META-INF/plugin.xml")
-      if entry:
-        xml = ET.fromstring(entry)
-        for id in xml.findall("id"):
-          return id.text
-  sys.exit("Failed to find plugin id")
-
-def list_plugin_jars(sdk):
-  all = {}
-  for platform in PLATFORMS:
-    idea_home = sdk + HOME_PATHS[platform]
-    all[platform] = {}
-    for plugin in os.listdir(idea_home + "/plugins"):
-      plugin_id = _read_plugin_id(idea_home + "/plugins/" + plugin)
-      path = "/plugins/" + plugin + "/lib/"
-      jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
-      all[platform][plugin_id] = set(jars)
-
-  plugins = sorted(set(all[MAC].keys()) | set(all[WIN].keys()) | set(all[LINUX].keys()))
-  plugin_jars = {}
-  plugin_jars[ALL] = {}
-  plugin_jars[MAC] = {}
-  plugin_jars[MAC_ARM] = {}
-  plugin_jars[WIN] = {}
-  plugin_jars[LINUX] = {}
-  for p in plugins:
-    if p in all[LINUX] and p in all[MAC] and p in all[MAC_ARM] and p in all[WIN]:
-      common = all[LINUX][p] & all[MAC][p] & all[MAC_ARM][p] & all[WIN][p]
-    else:
-      common = set()
-    plugin_jars[ALL][p] = sorted(common)
-    plugin_jars[MAC][p] = sorted(all[MAC][p] - common) if p in all[MAC] else []
-    plugin_jars[MAC_ARM][p] = sorted(all[MAC_ARM][p] - common) if p in all[MAC_ARM] else []
-    plugin_jars[WIN][p] = sorted(all[WIN][p] - common) if p in all[WIN] else []
-    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common) if p in all[LINUX] else []
-
-  return plugin_jars
-
-
-def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bundle_name):
-
-  suffix = {
-    ALL: "",
-    MAC: "_darwin",
-    MAC_ARM: "_darwin_aarch64",
-    WIN: "_windows",
-    LINUX: "_linux",
-  }
-
+def write_spec_file(out, mac_bundle_name, ides):
   sdk_versions = {}
-  for platform in [LINUX, WIN, MAC, MAC_ARM]:
-    sdk_version = intellij.extract_sdk_version(
-      f'{workspace}{sdk_rel}{HOME_PATHS[platform]}/lib/resources.jar')
-    sdk_versions[platform] = sdk_version
+  for platform, ide in ides.items():
+    sdk_versions[platform] = ide.version()
   if len(set(sdk_versions.values())) > 1:
     raise ValueError(f'Major and minor versions differ between OS platforms! {sdk_versions}')
-  sdk_version = sdk_versions[LINUX]
 
-  with open(workspace + sdk_rel + "/spec.bzl", "w") as file:
-    name = version.replace("-", "").replace(".", "_")
+  with open(out, "w") as file:
     file.write("# Auto-generated file, do not edit manually.\n")
-    file.write(name  + " = struct(\n" )
-    file.write(f'    major_version = "{sdk_version.major}",\n')
-    file.write(f'    minor_version = "{sdk_version.minor}",\n')
+    file.write("SPEC = struct(\n" )
+    file.write(f'    major_version = "{ide.major}",\n')
+    file.write(f'    minor_version = "{ide.minor}",\n')
 
-    for platform in [ALL] + PLATFORMS:
-      file.write(f"    jars{suffix[platform]} = [\n")
-      for jar in sdk_jars[platform]:
+    common_jars = set.intersection(*[ide.platform_jars for ide in ides.values()])
+    sdk_jars = {"_" + platform: ide.platform_jars - common_jars for platform, ide in ides.items()}
+    sdk_jars[""] = common_jars
+    for s, jars in sorted(sdk_jars.items()):
+      file.write(f"    jars{s} = [\n")
+      for jar in sorted(jars):
         file.write("        \"" + jar + "\",\n")
       file.write("    ],\n")
 
-    for platform in [ALL] + PLATFORMS:
-      file.write(f"    plugin_jars{suffix[platform]} = {{\n")
-      for plugin, jars in plugin_jars[platform].items():
+    all_plugin_ids = set.union(*[set(ide.plugin_jars.keys()) for ide in ides.values()])
+
+    common_plugin_jars = defaultdict(set)
+    for id in all_plugin_ids:
+      jar_sets = [ide.plugin_jars[id] if id in ide.plugin_jars else set() for ide in ides.values()]
+      common_plugin_jars[id] = set.intersection(*jar_sets)
+
+    plugin_jars = {}
+    plugin_jars[""] = common_plugin_jars
+    for platform, ide in ides.items():
+      plugin_jars["_" + platform] = {}
+      for id, jars in ide.plugin_jars.items():
+        plugin_jars["_" + platform][id] = jars - common_plugin_jars[id]
+
+    for s, pjars in sorted(plugin_jars.items()):
+      file.write(f"    plugin_jars{s} = {{\n")
+      for plugin in sorted(pjars.keys()):
+        jars = pjars[plugin]
         if jars:
           file.write("        \"" + plugin + "\": [\n")
-          for jar in jars:
+          for jar in sorted(jars):
             file.write("            \"" + jar[1:] + "\",\n")
           file.write("        ],\n")
       file.write("    },\n")
 
     file.write(f"    mac_bundle_name = \"{mac_bundle_name}\",\n")
     file.write(")\n")
-
 
 # When running in --existing_version mode, the mac bundle name must be extracted
 # from the preexisting spec.bzl file (since the original mac bundle artifact
@@ -194,12 +122,16 @@ def gen_platform_module(iml_file, libs):
     file.write(xml)
 
 
-def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
+def write_xml_files(workspace, sdk, ides):
   project_dir = os.path.join(workspace, "tools/adt/idea")
   rel_workspace = os.path.relpath(workspace, project_dir)
 
   # Add all jars, IJ will ignore the ones that don't exist
-  all_jars = sdk_jars[ALL] + sorted(set(sdk_jars[MAC] + sdk_jars[MAC_ARM] + sdk_jars[WIN] + sdk_jars[LINUX]))
+  all_jars = ides[LINUX].platform_jars & ides[MAC].platform_jars & ides[MAC_ARM].platform_jars & ides[WIN].platform_jars
+  sdk_jars = {platform: ides[platform].platform_jars - all_jars for platform in PLATFORMS}
+  sdk_jars[ALL] = all_jars
+
+  all_jars = sorted(sdk_jars[ALL]) + sorted(sdk_jars[MAC] | sdk_jars[MAC_ARM] | sdk_jars[WIN] | sdk_jars[LINUX])
   paths = [rel_workspace + sdk + "/$SDK_PLATFORM$" + j for j in all_jars]
   gen_lib(project_dir, "studio-sdk", paths, [workspace + sdk + "/android-studio-sources.zip"])
 
@@ -208,12 +140,17 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
-  for plugin, jars in plugin_jars[ALL].items():
-    add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[MAC_ARM][plugin] + plugin_jars[LINUX][plugin]))
-    paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars + add]
+  all_plugin_ids = set.union(*[set(ide.plugin_jars.keys()) for ide in ides.values()])
+  common_plugins_with_jars = set()
+  for plugin in all_plugin_ids:
+    sets = [ide.plugin_jars[plugin] if plugin in ide.plugin_jars else set() for ide in ides.values()]
+    if set.intersection(*sets):
+      common_plugins_with_jars.add(plugin)
+    jars = sorted(set.union(*sets))
+    paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
 
-  common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin, jars in plugin_jars[ALL].items() if jars]
+  common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin in sorted(common_plugins_with_jars)]
   gen_platform_module(f"{project_dir}/studio/studio-sdk-all-plugins.iml", common_platform_libs)
 
   updater_jar = rel_workspace + sdk + "/updater-full.jar"
@@ -227,11 +164,12 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 def update_files(workspace, version, mac_bundle_name):
   sdk = "/prebuilts/studio/intellij-sdk/" + version
 
-  sdk_jars = list_sdk_jars(workspace + sdk)
-  plugin_jars = list_plugin_jars(workspace + sdk)
+  ides = {}
+  for platform in PLATFORMS:
+    ides[platform] = intellij.IntelliJ.create(platform, f'{workspace}{sdk}/{platform}/android-studio')
 
-  write_xml_files(workspace, sdk, sdk_jars, plugin_jars)
-  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars, mac_bundle_name)
+  write_xml_files(workspace, sdk, ides)
+  write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)
 
 
 def check_artifacts(dir):

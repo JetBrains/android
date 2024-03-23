@@ -1229,24 +1229,22 @@ def intellij_platform(
         }),
     )
 
-    resource_jars = {
-        "mac": src + "/darwin/android-studio/Contents/lib/resources.jar",
-        "mac_arm": src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar",
-        "linux": src + "/linux/android-studio/lib/resources.jar",
-        "windows": src + "/windows/android-studio/lib/resources.jar",
+    ide_paths = {
+        "darwin": src + "/darwin/android-studio",
+        "darwin_aarch64": src + "/darwin_aarch64/android-studio",
+        "linux": src + "/linux/android-studio",
+        "windows": src + "/windows/android-studio",
     }
+
     native.py_test(
-        name = name + "_version_test",
-        srcs = ["//tools/adt/idea/studio:sdk_version_test.py"],
-        main = "sdk_version_test.py",
+        name = name + "_spec_test",
+        srcs = ["//tools/adt/idea/studio:intellij_test.py"],
+        main = "intellij_test.py",
         tags = ["no_test_windows", "no_test_mac"],
-        data = resource_jars.values(),
+        data = native.glob([src + "/**/lib/*.jar", "**/product-info.json"]),
         env = {
-            "expected_major_version": spec.major_version,
-            "expected_minor_version": spec.minor_version,
-            "intellij_resource_jars": ",".join(
-                [k + "=" + "$(execpath :" + v + ")" for k, v in resource_jars.items()],
-            ),
+            "spec": json.encode(spec),
+            "intellij_paths": ",".join([k + "=" + native.package_name() + "/" + v for k, v in ide_paths.items()]),
         },
         deps = ["//tools/adt/idea/studio:intellij"],
     )

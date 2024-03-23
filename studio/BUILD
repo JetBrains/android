@@ -1046,7 +1046,7 @@ iml_studio_test(
 )
 
 exports_files(
-    ["sdk_version_test.py"],
+    ["intellij_test.py"],
     visibility = ["//visibility:public"],
 )
 
