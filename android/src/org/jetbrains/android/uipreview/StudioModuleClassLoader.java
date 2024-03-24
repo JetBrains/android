@@ -17,7 +17,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
-import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
 import com.android.tools.rendering.classloading.RequestExecutorTransform;

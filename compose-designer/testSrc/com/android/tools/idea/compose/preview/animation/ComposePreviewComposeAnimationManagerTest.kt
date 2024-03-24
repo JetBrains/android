@@ -30,7 +30,7 @@ import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
-import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
+import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.rendering.classloading.NopClassLocator
 import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
