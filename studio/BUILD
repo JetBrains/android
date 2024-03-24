@@ -658,16 +658,16 @@ studio_plugin(
     name = "com.android.tools.studiobot",
     directory = "studio-bot",
     libs = [
-        "//tools/vendor/google/ml/sml-core:aida_grpc",
-        "//tools/vendor/google/ml/sml-core:aida_proto",
-        "//tools/vendor/google/ml/sml-core:aida_protobuf",
-        "//tools/vendor/google/ml/sml-core:studio_bot_proto",
+        "//tools/vendor/google/ml/aiplugin/core:aida_grpc",
+        "//tools/vendor/google/ml/aiplugin/core:aida_proto",
+        "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
+        "//tools/vendor/google/ml/aiplugin/core:studio_bot_proto",
         "//prebuilts/tools/common/m2:commonmark-0.20.0",
     ],
     modules = {
-        "sml.jar": [
-            "//tools/vendor/google/ml/sml-core:ml.sml-core",
-            "//tools/vendor/google/ml/sml-android:ml.sml-android",
+        "aiplugin.jar": [
+            "//tools/vendor/google/ml/aiplugin/core:aiplugin.core",
+            "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
         ],
     },
     visibility = ["//visibility:public"],
@@ -947,7 +947,7 @@ iml_module(
         "//tools/vendor/google/url-assistant[module]",
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
-        "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
+        "//tools/vendor/google/ml/aiplugin/android:aiplugin.android[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",

@@ -372,10 +372,10 @@
       <module fileurl="file://$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" filepath="$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/memory-usage/memory-usage.iml" filepath="$PROJECT_DIR$/memory-usage/memory-usage.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-ij-ce/ml.sml-ij-ce.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-ij-ce/ml.sml-ij-ce.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" filepath="$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />

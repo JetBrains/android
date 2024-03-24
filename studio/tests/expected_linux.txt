@@ -2773,7 +2773,7 @@ android-studio/plugins/studio-bot/lib/aida_grpc.jar
 android-studio/plugins/studio-bot/lib/aida_proto.jar
 android-studio/plugins/studio-bot/lib/aida_protobuf.jar
 android-studio/plugins/studio-bot/lib/commonmark-0.20.0.jar
-android-studio/plugins/studio-bot/lib/sml.jar
+android-studio/plugins/studio-bot/lib/aiplugin.jar
 android-studio/plugins/studio-bot/lib/studio_bot_proto.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar

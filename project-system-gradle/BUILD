@@ -36,7 +36,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
-        "//tools/vendor/google/ml/sml-android:ml.sml-android",
+        "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
         "//tools/adt/idea/designer:intellij.android.designer",

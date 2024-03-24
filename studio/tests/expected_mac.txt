@@ -2791,7 +2791,7 @@ Android Studio Preview.app/Contents/plugins/studio-bot/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/studio-bot/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/studio-bot/lib/aida_protobuf.jar
 Android Studio Preview.app/Contents/plugins/studio-bot/lib/commonmark-0.20.0.jar
-Android Studio Preview.app/Contents/plugins/studio-bot/lib/sml.jar
+Android Studio Preview.app/Contents/plugins/studio-bot/lib/aiplugin.jar
 Android Studio Preview.app/Contents/plugins/studio-bot/lib/studio_bot_proto.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
