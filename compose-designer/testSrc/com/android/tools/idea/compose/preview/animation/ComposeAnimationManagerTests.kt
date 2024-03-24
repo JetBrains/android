@@ -226,7 +226,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
 
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
       assertTrue("No animation is added", 1 == inspector.animations.size)
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })

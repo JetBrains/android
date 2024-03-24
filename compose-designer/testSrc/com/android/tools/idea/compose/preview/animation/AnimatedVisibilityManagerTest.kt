@@ -205,7 +205,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
 
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })

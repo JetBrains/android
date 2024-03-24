@@ -27,7 +27,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationInspectorManager
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
@@ -591,7 +591,7 @@ class ComposePreviewRepresentation(
       when {
         status().hasErrors || project.needsBuild -> null
         mode.value is PreviewMode.AnimationInspection ->
-          ComposePreviewAnimationManager.currentInspector?.component
+          ComposeAnimationInspectorManager.currentInspector?.component
         else -> null
       }
   }
@@ -800,7 +800,7 @@ class ComposePreviewRepresentation(
       composeWorkBench.updateProgress(message("panel.building"))
       // When building, invalidate the Animation Preview, since the animations are now obsolete and
       // new ones will be subscribed once build is complete and refresh is triggered.
-      ComposePreviewAnimationManager.invalidate(psiFilePointer)
+      ComposeAnimationInspectorManager.invalidate(psiFilePointer)
       requestVisibilityAndNotificationsUpdate()
     }
   }
@@ -1486,12 +1486,12 @@ class ComposePreviewRepresentation(
         )
       }
       is PreviewMode.AnimationInspection -> {
-        ComposePreviewAnimationManager.onAnimationInspectorOpened()
+        ComposeAnimationInspectorManager.onAnimationInspectorOpened()
         sceneComponentProvider.enabled = false
 
         withContext(uiThread) {
           // Open the animation inspection panel
-          ComposePreviewAnimationManager.createAnimationInspectorPanel(
+          ComposeAnimationInspectorManager.createAnimationInspectorPanel(
             surface,
             this@ComposePreviewRepresentation,
             psiFilePointer,
@@ -1531,7 +1531,7 @@ class ComposePreviewRepresentation(
         requestVisibilityAndNotificationsUpdate()
         withContext(uiThread) {
           // Close the animation inspection panel
-          ComposePreviewAnimationManager.closeCurrentInspector()
+          ComposeAnimationInspectorManager.closeCurrentInspector()
         }
         // Swap the components back
         updateAnimationPanelVisibility()

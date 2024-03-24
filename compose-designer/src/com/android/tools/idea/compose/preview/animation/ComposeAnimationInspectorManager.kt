@@ -21,8 +21,6 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
@@ -36,34 +34,19 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 
-private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
+private val LOG = Logger.getInstance(ComposeAnimationInspectorManager::class.java)
 
 /**
- * Responsible for opening the [ComposeAnimationPreview] and managing its state.
- * `PreviewAnimationClockMethodTransform` intercepts calls to `subscribe` and `unsubscribe` calls on
- * `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
- * respectively. These methods will then update the [ComposeAnimationPreview] content accordingly,
- * adding tabs for newly subscribed animations and closing tabs corresponding to unsubscribed
- * animations.
+ * Responsible for opening the [ComposeAnimationPreview] and managing its state. It passes
+ * [ComposeAnimationPreview] to [ComposeAnimationSubscriber] so that subscription events update the
+ * [ComposeAnimationPreview] content accordingly, adding tabs for newly subscribed animations and
+ * closing tabs corresponding to unsubscribed animations.
  */
-object ComposePreviewAnimationManager {
-
+object ComposeAnimationInspectorManager {
   internal var currentInspector: ComposeAnimationPreview? = null
     private set
 
-  @GuardedBy("subscribedAnimationsLock")
-  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
-  private val subscribedAnimationsLock = Any()
-
   private var newInspectorOpenedCallback: (() -> Unit)? = null
-
-  internal val onSubscribedUnsubscribedExecutor =
-    if (ApplicationManager.getApplication().isUnitTestMode) MoreExecutors.directExecutor()
-    else
-      AppExecutorUtil.createBoundedApplicationPoolExecutor(
-        "Animation Subscribe/Unsubscribe Callback Handler",
-        1,
-      )
 
   @UiThread
   fun createAnimationInspectorPanel(
@@ -84,6 +67,7 @@ object ComposePreviewAnimationManager {
     animationInspectorPanel.tracker.openAnimationInspector()
     Disposer.register(parent, animationInspectorPanel)
     currentInspector = animationInspectorPanel
+    ComposeAnimationSubscriber.setHandler(animationInspectorPanel)
     return animationInspectorPanel
   }
 
@@ -93,8 +77,9 @@ object ComposePreviewAnimationManager {
       it.tracker.closeAnimationInspector()
     }
     currentInspector = null
+    ComposeAnimationSubscriber.setHandler(null)
     newInspectorOpenedCallback = null
-    removeAllAnimations()
+    ComposeAnimationSubscriber.removeAllAnimations()
   }
 
   /**
@@ -105,56 +90,6 @@ object ComposePreviewAnimationManager {
   fun onAnimationInspectorOpened() {
     newInspectorOpenedCallback?.invoke()
   }
-
-  /**
-   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
-   * tab in the [ComposeAnimationPreview].
-   */
-  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation): Job {
-    if (clock == null) return CompletableDeferred(Unit)
-    val inspector = currentInspector ?: return CompletableDeferred(Unit)
-    if (inspector.animationClock == null) {
-      inspector.animationClock = AnimationClock(clock)
-    }
-
-    // Handle the case where the clock has changed while the inspector is open. That might happen
-    // when we were still processing a
-    // subscription from a previous inspector when the new inspector was open. In this case, we
-    // should unsubscribe all the previously
-    // subscribed animations, as they were tracked by the previous clock.
-    inspector.animationClock?.let {
-      if (it.clock != clock) {
-        // Make a copy of the list to prevent ConcurrentModificationException
-        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }
-          .forEach { animationToUnsubscribe -> onAnimationUnsubscribed(animationToUnsubscribe) }
-        // After unsubscribing the old animations, update the clock
-        inspector.animationClock = AnimationClock(clock)
-      }
-    }
-
-    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
-      return inspector.addAnimation(animation)
-    }
-    return CompletableDeferred(Unit)
-  }
-
-  /**
-   * Removes the animation from the subscribed list and removes the corresponding tab in the
-   * [ComposeAnimationPreview].
-   */
-  fun onAnimationUnsubscribed(animation: ComposeAnimation): Job {
-    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
-      return currentInspector?.removeAnimation(animation) ?: CompletableDeferred(Unit)
-    }
-    return CompletableDeferred(Unit)
-  }
-
-  /** Removes all the subscribed animations. */
-  private fun removeAllAnimations() {
-    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
-  }
-
-  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
 
   /** Whether the animation inspector is open. */
   fun isInspectorOpen() = currentInspector != null
@@ -177,23 +112,101 @@ object ComposePreviewAnimationManager {
   }
 }
 
-@Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
-fun animationSubscribed(clock: Any?, animation: Any?) {
-  if (LOG.isDebugEnabled) {
-    LOG.debug("Animation subscribed: $animation")
-  }
-  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
-    (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
-  }
-}
+/**
+ * Responsible for animation subscription events and passing them to [ComposeAnimationHandler].
+ * `PreviewAnimationClockMethodTransform` intercepts calls to `subscribe` and `unsubscribe` calls on
+ * `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
+ * respectively.
+ */
+object ComposeAnimationSubscriber {
+  private var animationHandler: ComposeAnimationHandler? = null
 
-@Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
-fun animationUnsubscribed(animation: Any?) {
-  if (LOG.isDebugEnabled) {
-    LOG.debug("Animation unsubscribed: $animation")
+  fun setHandler(handler: ComposeAnimationHandler?) {
+    animationHandler = handler
   }
-  if (animation == null) return
-  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
-    (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+
+  @GuardedBy("subscribedAnimationsLock")
+  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  private val subscribedAnimationsLock = Any()
+
+  private val onSubscribedUnsubscribedExecutor =
+    if (ApplicationManager.getApplication().isUnitTestMode) MoreExecutors.directExecutor()
+    else
+      AppExecutorUtil.createBoundedApplicationPoolExecutor(
+        "Animation Subscribe/Unsubscribe Callback Handler",
+        1,
+      )
+
+  /**
+   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
+   * tab in the [ComposeAnimationPreview].
+   */
+  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation): Job {
+    if (clock == null) return CompletableDeferred(Unit)
+    val handler = animationHandler ?: return CompletableDeferred(Unit)
+    if (handler.animationClock == null) {
+      handler.animationClock = AnimationClock(clock)
+    }
+
+    // Handle the case where the clock has changed while the inspector is open. That might happen
+    // when we were still processing a
+    // subscription from a previous inspector when the new inspector was open. In this case, we
+    // should unsubscribe all the previously
+    // subscribed animations, as they were tracked by the previous clock.
+    handler.animationClock?.let {
+      if (it.clock != clock) {
+        // Make a copy of the list to prevent ConcurrentModificationException
+        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }
+          .forEach { animationToUnsubscribe -> onAnimationUnsubscribed(animationToUnsubscribe) }
+        // After unsubscribing the old animations, update the clock
+        handler.animationClock = AnimationClock(clock)
+      }
+    }
+
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
+      return handler.addAnimation(animation)
+    }
+    return CompletableDeferred(Unit)
+  }
+
+  /**
+   * Removes the animation from the subscribed list and removes the corresponding tab in the
+   * [ComposeAnimationPreview].
+   */
+  fun onAnimationUnsubscribed(animation: ComposeAnimation): Job {
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
+      return animationHandler?.removeAnimation(animation) ?: CompletableDeferred(Unit)
+    }
+    return CompletableDeferred(Unit)
+  }
+
+  /** Removes all the subscribed animations. */
+  fun removeAllAnimations() {
+    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
+  }
+
+  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
+
+  @JvmStatic
+  @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
+  fun animationSubscribed(clock: Any?, animation: Any?) {
+    if (LOG.isDebugEnabled) {
+      LOG.debug("Animation subscribed: $animation")
+    }
+    onSubscribedUnsubscribedExecutor.execute {
+      (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+    }
+  }
+
+  @JvmStatic
+  @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
+  fun animationUnsubscribed(animation: Any?) {
+    if (LOG.isDebugEnabled) {
+      LOG.debug("Animation unsubscribed: $animation")
+    }
+    if (animation == null) return
+    onSubscribedUnsubscribedExecutor.execute {
+      (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+    }
   }
 }

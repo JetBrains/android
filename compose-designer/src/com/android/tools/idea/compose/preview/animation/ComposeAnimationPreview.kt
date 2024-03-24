@@ -51,7 +51,8 @@ class ComposeAnimationPreview(
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) :
-  AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, rootComponent, tracker) {
+  AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, rootComponent, tracker),
+  ComposeAnimationHandler {
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
@@ -60,7 +61,7 @@ class ComposeAnimationPreview(
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
    * to. Null when there are no animations.
    */
-  var animationClock: AnimationClock? = null
+  override var animationClock: AnimationClock? = null
 
   /** Update list of [TimelineElement] for selected [ComposeSupportedAnimationManager]s. */
   @UiThread
@@ -142,7 +143,7 @@ class ComposeAnimationPreview(
    * If this animation was already added, removes old [ComposeAnimationManager] first. Repaints
    * panel.
    */
-  fun addAnimation(animation: ComposeAnimation) =
+  override fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
       removeAnimation(animation).join()
       val tab = withContext(uiThread) { createAnimationManager(animation) }
@@ -214,7 +215,7 @@ class ComposeAnimationPreview(
    * Removes the [ComposeAnimationManager] card and tab corresponding to the given [animation] from
    * [tabbedPane].
    */
-  fun removeAnimation(animation: ComposeAnimation) =
+  override fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
       withContext(uiThread) {
         animations.find { it.animation == animation }?.let { removeAnimationManager(it) }

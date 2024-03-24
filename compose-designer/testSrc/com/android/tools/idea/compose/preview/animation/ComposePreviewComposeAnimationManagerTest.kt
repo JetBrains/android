@@ -91,29 +91,28 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     createAndOpenInspector()
 
     val animation = createComposeAnimation()
-    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
-    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animation).join()
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     val otherAnimation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(otherAnimation).join()
-    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(otherAnimation).join()
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
-    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation).join()
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
   @Test
   fun closingInspectorClearsSubscriptions() = runBlocking {
     createAndOpenInspector()
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
-      .join()
-    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation()).join()
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
-    ComposePreviewAnimationManager.closeCurrentInspector()
-    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    ComposeAnimationInspectorManager.closeCurrentInspector()
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
   @Test
@@ -129,33 +128,33 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     val clock = getClock()
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After subscribing an animation, we should display the tabbedPane
     val anotherAnimation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, anotherAnimation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, anotherAnimation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(2, inspector.tabCount())
 
     // After unsubscribing from one animation, animation panel still shown.
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no
     // animations panel
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(anotherAnimation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(anotherAnimation).join()
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
     assertEquals(0, inspector.tabCount())
 
     // After subscribing again to the animation, we should display the tabbedPane
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
@@ -169,15 +168,15 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
 
     val animation1 = createComposeAnimation()
     val clock = getClock()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1).join()
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val animation2 = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation2).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation2).join()
     assertEquals(2, inspector.tabCount())
 
-    ComposePreviewAnimationManager.onAnimationUnsubscribed(animation1).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation1).join()
     assertEquals(1, inspector.tabCount())
   }
 
@@ -188,36 +187,34 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     assertEquals(0, inspector.tabCount())
 
     val clock = getClock()
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation()).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, createComposeAnimation()).join()
     assertNotNull(inspector.tabbedPane.parent)
     assertEquals(1, inspector.tabCount())
 
     val anotherClock = getClock()
-    ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
-      .join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation()).join()
     assertEquals(1, inspector.tabCount())
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
-      .join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation()).join()
     assertEquals(2, inspector.tabCount())
   }
 
   @Test
   fun onOpenNewInspectorCallbackClearedWhenClosingInspector() {
     var callbackCalls = 0
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
       psiFilePointer,
     ) {
       callbackCalls++
     }
-    ComposePreviewAnimationManager.onAnimationInspectorOpened()
-    ComposePreviewAnimationManager.onAnimationInspectorOpened()
+    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
+    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
     assertEquals(2, callbackCalls)
 
-    ComposePreviewAnimationManager.closeCurrentInspector()
-    ComposePreviewAnimationManager.onAnimationInspectorOpened()
+    ComposeAnimationInspectorManager.closeCurrentInspector()
+    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
     assertEquals(2, callbackCalls)
   }
 
@@ -239,7 +236,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
@@ -270,7 +267,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
         .join()
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
@@ -304,7 +301,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
 
       withContext(uiThread) {
         // We can get any of the combo boxes, since "from" and "to" states should be the same.
@@ -343,7 +340,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
 
       withContext(uiThread) {
         val toolbars =
@@ -404,7 +401,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
     }
     inspector.component.setSize(
       inspector.component.size.width * 2,
@@ -423,7 +420,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       }
 
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
 
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
@@ -452,26 +449,26 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
 
     runBlocking {
       val animation1 = createComposeAnimation("repeatedLabel")
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1).join()
 
       val animationWithSameLabel = createComposeAnimation("repeatedLabel")
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithSameLabel).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animationWithSameLabel).join()
 
       val animatedValueWithNullLabel =
         createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedValueWithNullLabel).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedValueWithNullLabel).join()
 
       val transitionAnimationWithNullLabel =
         createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
         .join()
 
       val animatedVisibilityWithNullLabel =
         createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
         .join()
 
-      ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
         .join()
       assertEquals(5, inspector.tabCount())
       assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
@@ -500,7 +497,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     val clock = getClock()
 
     runBlocking {
-      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
 
       withContext(uiThread) {
         val cards = findAllCards(inspector.component)
@@ -530,7 +527,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     val inspector = createAndOpenInspector()
     val clock = getClock()
     runBlocking {
-      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
     }
 
     assertEquals(11, inspector.animations.size)
@@ -552,7 +549,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     val inspector = createAndOpenInspector()
     val clock = getClock()
     runBlocking {
-      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
       withContext(uiThread) {
         val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
         ui.updateToolbars()
@@ -592,7 +589,7 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       anotherPsiPointer = SmartPointerManager.createPointer(anotherPsiFile)
     }
 
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
       psiPointerOne,
@@ -600,21 +597,21 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
 
     val clock = getClock()
     runBlocking {
-      animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it).join() }
+      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
 
-      assertNotNull(ComposePreviewAnimationManager.currentInspector)
-      assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-      assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
+      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
 
-      ComposePreviewAnimationManager.invalidate(anotherPsiPointer).join()
-      assertNotNull(ComposePreviewAnimationManager.currentInspector)
-      assertEquals(11, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-      assertNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      ComposeAnimationInspectorManager.invalidate(anotherPsiPointer).join()
+      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
+      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
 
-      ComposePreviewAnimationManager.invalidate(psiPointerTwo).join()
-      assertNotNull(ComposePreviewAnimationManager.currentInspector)
-      assertEquals(0, ComposePreviewAnimationManager.currentInspector!!.tabCount())
-      assertNotNull(ComposePreviewAnimationManager.currentInspector!!.noAnimationsPanel())
+      ComposeAnimationInspectorManager.invalidate(psiPointerTwo).join()
+      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
+      assertEquals(0, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertNotNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
     }
   }
 
@@ -622,15 +619,14 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
   fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
     val inspector = createAndOpenInspector()
     runBlocking {
-      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
-        .join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation()).join()
 
       assertNotNull(inspector.tabbedPane.parent)
       assertEquals(1, inspector.tabCount())
       assertNull(inspector.noAnimationsPanel())
       assertEquals(1, inspector.animationPreviewCardsCount())
 
-      ComposePreviewAnimationManager.invalidate(psiFilePointer).join()
+      ComposeAnimationInspectorManager.invalidate(psiFilePointer).join()
       assertNotNull(inspector.noAnimationsPanel())
       assertNull(inspector.tabbedPane.parent)
       assertEquals(0, inspector.tabCount())
@@ -668,12 +664,12 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
     val animation = createComposeAnimation()
     notifySubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     val notifyUnsubscribe =
       previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
     notifyUnsubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
   @Test

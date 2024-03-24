@@ -75,17 +75,17 @@ open class InspectorTests {
 
   @After
   open fun tearDown() {
-    ComposePreviewAnimationManager.closeCurrentInspector()
+    ComposeAnimationInspectorManager.closeCurrentInspector()
   }
 
   fun createAndOpenInspector(): ComposeAnimationPreview {
-    Assert.assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+    Assert.assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
+    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
       surface,
       parentDisposable,
       psiFilePointer,
     ) {}
-    Assert.assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
-    return ComposePreviewAnimationManager.currentInspector!!
+    Assert.assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())
+    return ComposeAnimationInspectorManager.currentInspector!!
   }
 }
