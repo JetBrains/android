@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
+import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter
 import com.android.tools.idea.gradle.project.build.attribution.buildOutputLine
@@ -28,13 +28,13 @@ import com.android.tools.idea.gradle.run.createOutputBuildAction
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE
+import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN
+import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS
 import com.android.tools.idea.gradle.util.BuildMode.BUNDLE
 import com.android.tools.idea.gradle.util.BuildMode.CLEAN
 import com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA
 import com.android.tools.idea.gradle.util.BuildMode.REBUILD
 import com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN
-import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN
-import com.android.tools.idea.gradle.util.BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS
 import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
@@ -85,6 +85,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
+import com.intellij.openapi.vfs.newvfs.VfsImplUtil
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
@@ -535,19 +536,19 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
       // Schedule refresh of all compiler outputs (javac/kotlinc/R.jar outputs) when VFS is out of sync with the file system
       val allOutputs = CachedValuesManager.getManager(project).getCachedValue(
-        project,
-        CachedValueProvider {
-          CachedValueProvider.Result(
-            CompilerPaths.getOutputPaths(ModuleManager.getInstance(project).modules),
-            ProjectSyncModificationTracker.getInstance(project)
-          )
-        }
-      )
-      val fs = LocalFileSystem.getInstance();
+        project
+      ) {
+        CachedValueProvider.Result(
+          CompilerPaths.getOutputPaths(ModuleManager.getInstance(project).modules),
+          ProjectSyncModificationTracker.getInstance(project)
+        )
+      }
+      val fs = LocalFileSystem.getInstance()
       val toRefresh = mutableSetOf<VirtualFile>()
+      val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
 
       for (outputRoot in allOutputs) {
-        val attributes = FileSystemUtil.getAttributes(FileUtil.toSystemDependentName(outputRoot));
+        val attributes = FileSystemUtil.getAttributes(FileUtil.toSystemDependentName(outputRoot))
         val vFile = fs.findFileByPath(outputRoot)
 
         if (vFile == null) {
@@ -555,28 +556,27 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
             // do nothing - the file does not exist and it is not in VFS
           } else {
             // Output exists, but it is not in VFS. We'll refresh its parent.
-            val parent = fs.refreshAndFindFileByPath(PathUtil.getParentPath(outputRoot));
-            if (parent != null && toRefresh.add(parent)) {
-              @Suppress("UnusedVariable")
-              val unused = parent.getChildren();
+            VfsImplUtil.refreshAndFindFileByPath(LocalFileSystem.getInstance(), PathUtil.getParentPath(outputRoot)) { parent ->
+              if (parent != null) {
+               RefreshQueue.getInstance().refresh(isAsynchronous, false, null, parent)
+              }
             }
           }
         }
         else {
           if (attributes == null) {
             // file does not exist, but it is in VFS
-            toRefresh.add(vFile);
+            toRefresh.add(vFile)
           }
-          else if (attributes.isDirectory() != vFile.isDirectory()) {
+          else if (attributes.isDirectory != vFile.isDirectory) {
             // Refresh as file became a directory, or vice versa
-            toRefresh.add(vFile);
+            toRefresh.add(vFile)
           }
         }
       }
 
-      if (!toRefresh.isEmpty()) {
-        val asynchronous = !ApplicationManager.getApplication().isUnitTestMode
-        RefreshQueue.getInstance().refresh(asynchronous, false, null, toRefresh);
+      if (toRefresh.isNotEmpty()) {
+        RefreshQueue.getInstance().refresh(isAsynchronous, false, null, toRefresh)
       }
     }
 
