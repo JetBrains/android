@@ -242,8 +242,7 @@ local_generate_old_agp_tests_from_list(
             "agp_version": AGP_4_2,
             "gradle_version": GRADLE_6_7_1,
             "shard_count": 4,
-            #Disabled due to flakiness (b/330783605)
-            "tags": COMMON_OLD_AGP_TEST_TARGETS_TAGS + ["manual"],
+            "tags": COMMON_OLD_AGP_TEST_TARGETS_TAGS,
         },
         {
             "additional_jdks": ["11"],
