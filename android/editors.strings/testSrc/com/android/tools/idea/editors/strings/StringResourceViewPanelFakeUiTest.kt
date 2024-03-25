@@ -89,8 +89,10 @@ class StringResourceViewPanelFakeUiTest {
   }
 
   @Test
+  @RunsInEdt
   fun toolbarConstructedProperly() {
     val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     assertThat(toolbar.actions).hasSize(8)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)

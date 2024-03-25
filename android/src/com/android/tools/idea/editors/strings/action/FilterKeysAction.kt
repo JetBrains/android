@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRo
 import com.android.tools.idea.editors.strings.table.filter.TextRowFilter
 import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -39,6 +40,8 @@ class FilterKeysAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
