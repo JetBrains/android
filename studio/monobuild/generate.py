@@ -380,7 +380,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         jps_module = next(m for m in intellij.modules if m.name == module_name)
         srcs = jps_module.xml.findall('./component/content/sourceFolder')
         for src in srcs:
-            if src.get("isTestSource") == "true":
+            if src.get("isTestSource") == "true" or src.get("type") == "java-test-resource":
                 continue
             src_dir = Path(src.get("url").removeprefix("file://"))
             plugin_xml = src_dir.joinpath("META-INF/plugin.xml")
