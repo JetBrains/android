@@ -55,6 +55,7 @@ def main():
     intellij = load_project("IntelliJ", intellij_root)
     convert_intellij_sdk_libs(studio, intellij, source_map_file)
     rename_libraries_using_prefix(studio, "studio-lib")
+    remove_test_sources(intellij)
     move_project_kotlinc_opts_into_modules(intellij)
 
     # Merge the projects and write out the result.
@@ -190,6 +191,17 @@ def rename_libraries_using_prefix(project: JpsProject, prefix: str):
             lib_name = dep.get("name") or fail()
             if lib_name in defined_lib_set:
                 dep.set("name", f"{prefix}-{lib_name}")
+
+
+# Removes all test sources from the given project.
+def remove_test_sources(project: JpsProject):
+    for module in project.modules:
+        for content in module.xml.findall("./component[@name='NewModuleRootManager']/content"):
+            test_sources = content.findall("./sourceFolder[@isTestSource='true']")
+            test_resources = content.findall("./sourceFolder[@type='java-test-resource']")
+            for test_root in test_sources + test_resources:
+                # Mark test roots as "excluded" so that IntelliJ does not even bother indexing them.
+                test_root.tag = "excludeFolder"
 
 
 # Finds project-level Kotlinc opts, and moves them into modules instead.
