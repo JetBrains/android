@@ -20,6 +20,8 @@ import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.annotations.VisibleForTesting
@@ -35,7 +37,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.border.Border
-import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.math.max
 import kotlin.math.min
 
@@ -50,67 +51,22 @@ internal class HttpDataComponentFactory(
   private val httpData: HttpData
     get() = data as HttpData
 
-  private val requestRawComponent by
-    lazy(NONE) {
-      createRawDataComponent(
-        getPayload(ConnectionType.REQUEST),
-        getContentType(ConnectionType.REQUEST),
-        componentsProvider,
-      )
-    }
-  private val requestPrettyComponent by
-    lazy(NONE) {
-      createParsedDataComponent(
-        getPayload(ConnectionType.REQUEST),
-        getContentType(ConnectionType.REQUEST),
-        componentsProvider,
-      )
-    }
-  private val responseRawComponent by
-    lazy(NONE) {
-      createRawDataComponent(
-        getPayload(ConnectionType.RESPONSE),
-        getContentType(ConnectionType.RESPONSE),
-        componentsProvider,
-      )
-    }
-  private val responsePrettyComponent by
-    lazy(NONE) {
-      createParsedDataComponent(
-        getPayload(ConnectionType.RESPONSE),
-        getContentType(ConnectionType.RESPONSE),
-        componentsProvider,
-      )
-    }
-
-  private fun getRawDataComponent(type: ConnectionType) =
-    when (type) {
-      ConnectionType.REQUEST -> requestRawComponent
-      ConnectionType.RESPONSE -> responseRawComponent
-    }
-
-  private fun getPrettyComponent(type: ConnectionType) =
-    when (type) {
-      ConnectionType.REQUEST -> requestPrettyComponent
-      ConnectionType.RESPONSE -> responsePrettyComponent
-    }
-
   private fun getContentType(type: ConnectionType) =
     when (type) {
-      ConnectionType.REQUEST -> httpData.getRequestContentType()
-      ConnectionType.RESPONSE -> httpData.getResponseContentType()
+      REQUEST -> httpData.getRequestContentType()
+      RESPONSE -> httpData.getResponseContentType()
     }
 
   private fun getPayload(type: ConnectionType) =
     when (type) {
-      ConnectionType.REQUEST -> httpData.requestPayload
-      ConnectionType.RESPONSE -> httpData.getReadableResponsePayload()
+      REQUEST -> httpData.requestPayload
+      RESPONSE -> httpData.getReadableResponsePayload()
     }
 
   private fun getMimeTypeString(type: ConnectionType) =
     when (type) {
-      ConnectionType.REQUEST -> httpData.getRequestContentType().mimeType
-      ConnectionType.RESPONSE -> httpData.getResponseContentType().mimeType
+      REQUEST -> httpData.getRequestContentType().mimeType
+      RESPONSE -> httpData.getResponseContentType().mimeType
     }
 
   /**
@@ -135,17 +91,16 @@ internal class HttpDataComponentFactory(
     if (payload.isEmpty) {
       return createHideablePanel(getBodyTitle(type), JLabel("Not available"), null)
     }
-    val rawDataComponent = getRawDataComponent(type)
-    var bodyComponent = rawDataComponent
-    var northEastComponent: JComponent? = null
-    getPrettyComponent(type)?.let { parsedDataComponent ->
-      val switchingPanel =
-        SwitchingPanel(parsedDataComponent, "View Parsed", rawDataComponent, "View Source")
-      bodyComponent = switchingPanel
-      northEastComponent = switchingPanel.switcher
-    }
-    bodyComponent.name = type.bodyComponentId
-    return createHideablePanel(getBodyTitle(type), bodyComponent, northEastComponent)
+    val contentType = getContentType(type)
+    val rawView = createRawDataComponent(payload, contentType, componentsProvider)
+    val prettyView = createParsedDataComponent(payload, contentType, componentsProvider)
+    val (bodyView, northEastView) =
+      when {
+        prettyView == null -> rawView to null
+        else -> SwitchingPanel(prettyView, "View Parsed", rawView, "View Source").withSwitcher()
+      }
+    bodyView.name = type.bodyComponentId
+    return createHideablePanel(getBodyTitle(type), bodyView, northEastView)
   }
 
   override fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer {
@@ -380,3 +335,5 @@ internal class HttpDataComponentFactory(
     }
   }
 }
+
+private fun SwitchingPanel.withSwitcher() = this to switcher
