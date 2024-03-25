@@ -13,14 +13,21 @@ class MkSpecTest(unittest.TestCase):
     download = tempfile.mkdtemp()
     test_utils.create_all(download, {"lib/app.jar": {"__index__": "data"},
         "lib/resources.jar": {
-            "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
+            "idea/WhiteSpacerApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "plugins/only_linux/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.only_linux</id></xml>"},
-        "plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
-        "plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "plugins/foo/lib/foo.jar": {"META-INF/plugin.xml": "<idea-plugin><id>com.sample.foo</id></idea-plugin>"},
+        "plugins/bar/lib/bar.jar": {
+          "META-INF/plugin.xml": """<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+             <xi:include href="/META-INF/Other.xml" xpointer="xpointer(/idea-plugin/*)" />
+           </idea-plugin>""",
+          "META-INF/Other.xml": """<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+             <id>com.sample.bar</id>
+           </idea-plugin>"""},
+        "plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<idea-plugin><id>com.sample.common</id></idea-plugin>"},
         "product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
+                "additionalJvmArguments": ["-Didea.platform.prefix=WhiteSpacer"],
             }]
         },
     })
@@ -39,14 +46,14 @@ SPEC = struct(
     jars_linux = [
     ],
     plugin_jars = {
+        "com.sample.bar": [
+            "plugins/bar/lib/bar.jar",
+        ],
         "com.sample.common": [
             "plugins/common/lib/common.jar",
         ],
-        "com.sample.linux_windows": [
-            "plugins/linux_windows/lib/foo.jar",
-        ],
-        "com.sample.only_linux": [
-            "plugins/only_linux/lib/foo.jar",
+        "com.sample.foo": [
+            "plugins/foo/lib/foo.jar",
         ],
     },
     plugin_jars_linux = {

@@ -26,6 +26,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
+                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
     })
@@ -39,6 +40,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
+                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
         "android-studio/plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
@@ -55,6 +57,7 @@ class UpdateSdkTest(unittest.TestCase):
         "Android Studio.app/Contents/Resources/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
+                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
         "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
@@ -70,6 +73,7 @@ class UpdateSdkTest(unittest.TestCase):
         "Android Studio.app/Contents/Resources/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
+                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
         "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},

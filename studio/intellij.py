@@ -5,6 +5,7 @@ import json
 import xml.etree.ElementTree as ET
 import os
 import re
+import sys
 
 LINUX = "linux"
 WIN = "windows"
@@ -43,8 +44,9 @@ class IntelliJ:
     return self.major, self.minor
 
   def create(platform: str, path: str):
-    major, minor = read_version(path + _idea_home[platform] + "/lib/resources.jar")
     product_info = read_product_info(path + _idea_resources[platform] + "/product-info.json")
+    prefix = _read_platform_prefix(product_info)
+    major, minor = read_version(path + _idea_home[platform] + "/lib", prefix)
     jars = read_platform_jars(product_info)
     plugin_jars = _read_plugin_jars(path + _idea_home[platform])
     return IntelliJ(major, minor, jars, plugin_jars)
@@ -53,12 +55,19 @@ def read_product_info(path):
   with open(path) as f:
     return json.load(f)
 
-def read_version(resources_jar: str) -> (str, str):
-  contents = ""
-  with zipfile.ZipFile(resources_jar) as zip:
-    data = zip.read('idea/AndroidStudioApplicationInfo.xml')
-    contents = data.decode("utf-8")
-  m = re.search(r'<version.*major="(\d+)".*minor="(\d+)".*>', contents)
+def read_version(lib_dir: str, prefix: str) -> (str, str):
+  contents = None
+  for resources_jar in os.listdir(lib_dir):
+    if resources_jar.endswith(".jar"):
+      with zipfile.ZipFile(os.path.join(lib_dir, resources_jar)) as zip:
+        file_name = "idea/" + prefix + "ApplicationInfo.xml"
+        if file_name in zip.namelist():
+          data = zip.read(file_name)
+          contents = data.decode("utf-8")
+          break
+  if not contents:
+    sys.exit("Failed to find ApplicationInfo.xml for idea.prefix=" + prefix)
+  m = re.search(r'<version.*major="([\d\.]+)".*minor="([\d\.]+)".*>', contents)
   major = m.group(1)
   minor = m.group(2)
   return major, minor
@@ -69,6 +78,14 @@ def read_platform_jars(product_info):
   jars = ["/lib/" + jar for jar in launch_config["bootClassPathJarNames"]]
   return set(jars)
 
+def _read_platform_prefix(product_info):
+  launch_config = product_info["launch"][0]
+  for define in launch_config["additionalJvmArguments"]:
+    m = re.search("-Didea.platform.prefix=(.*)", define)
+    if m:
+      return m.group(1)
+  sys.exit("Failed to find platform prefix")
+
 def _read_zip_entry(zip_path, entry):
   with zipfile.ZipFile(zip_path) as zip:
     if entry not in zip.namelist():
@@ -77,13 +94,14 @@ def _read_zip_entry(zip_path, entry):
   return data.decode("utf-8")
 
 def _read_plugin_id(path):
+  files = []
   for jar in os.listdir(path + "/lib"):
     if jar.endswith(".jar"):
-      entry = _read_zip_entry(path + "/lib/" + jar, "META-INF/plugin.xml")
-      if entry:
-        xml = ET.fromstring(entry)
-        for id in xml.findall("id"):
-          return id.text
+      files.append(os.path.join(path + "/lib", jar))
+  xml = load_plugin_xml(files, [])
+  for id in xml.findall("id"):
+    return id.text
+
   sys.exit("Failed to find plugin id in " + path)
 
 def _read_plugin_jars(idea_home):

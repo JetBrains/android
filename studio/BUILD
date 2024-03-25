@@ -852,7 +852,6 @@ filegroup(
     srcs = [
         "intellij.py",
         "mkspec.py",
-        "update_sdk.py",
     ],
 )
 
