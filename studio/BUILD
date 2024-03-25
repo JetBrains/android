@@ -897,7 +897,10 @@ py_binary(
 
 py_binary(
     name = "check_plugin",
-    srcs = ["check_plugin.py"],
+    srcs = [
+        "check_plugin.py",
+        "intellij.py",
+    ],
     visibility = ["//visibility:public"],
 )
 
