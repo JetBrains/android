@@ -1022,15 +1022,19 @@ def android_studio(
 
 def _intellij_plugin_import_impl(ctx):
     files = {}
+    plugin_dir = "plugins/" + ctx.attr.target_dir
 
     # Note: platform plugins will have no files because they are already in intellij-sdk.
     if ctx.attr.files:
-        plugin_dir = "plugins/" + ctx.attr.target_dir
         for f in ctx.files.files:
             if not f.short_path.startswith(ctx.attr.strip_prefix):
                 fail("File " + f.short_path + " does not start with prefix " + ctx.attr.strip_prefix)
             relpath = f.short_path[len(ctx.attr.strip_prefix):]
             files[plugin_dir + "/" + relpath] = f
+    plugin_files_linux = _studio_plugin_os(ctx, LINUX, [], plugin_dir) | files
+    plugin_files_mac = _studio_plugin_os(ctx, MAC, [], plugin_dir) | files
+    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, [], plugin_dir) | files
+    plugin_files_win = _studio_plugin_os(ctx, WIN, [], plugin_dir) | files
 
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
@@ -1047,10 +1051,10 @@ def _intellij_plugin_import_impl(ctx):
             lib_deps = depset(ctx.attr.exports),
             licenses = depset(),
             plugin_files = struct(
-                linux = files,
-                mac = files,
-                mac_arm = files,
-                win = files,
+                linux = plugin_files_linux,
+                mac = plugin_files_mac,
+                mac_arm = plugin_files_mac_arm,
+                win = plugin_files_win,
             ),
             overwrite_plugin_version = False,
         ),
@@ -1065,6 +1069,8 @@ _intellij_plugin_import = rule(
         "files": attr.label_list(allow_files = True),
         "strip_prefix": attr.string(),
         "target_dir": attr.string(),
+        "resources": attr.label_list(allow_files = True),
+        "resources_dirs": attr.string_list(),
         "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
         "compress": attr.bool(),
         "_check_plugin": attr.label(
@@ -1079,13 +1085,16 @@ _intellij_plugin_import = rule(
     implementation = _intellij_plugin_import_impl,
 )
 
-def intellij_plugin_import(name, files, strip_prefix, target_dir, exports, **kwargs):
+def intellij_plugin_import(name, target_dir, exports, files = [], strip_prefix = "", resources = {}, **kwargs):
     """This macro is for prebuilt IntelliJ plugins that are not already part of intellij-sdk."""
+    resources_dirs, resources_list = _dict_to_lists(resources)
     _intellij_plugin_import(
         name = name,
         files = files,
         strip_prefix = strip_prefix,
         target_dir = target_dir,
+        resources = resources_list,
+        resources_dirs = resources_dirs,
         exports = exports,
         compress = is_release(),
         **kwargs
