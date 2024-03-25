@@ -22,8 +22,10 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -114,6 +116,11 @@ internal class AndroidAdbServerChannelProvider(private val host: AndroidAdbSessi
       projectProviders.values.firstNotNullOfOrNull { it.get() }
     }
     // Then application if nothing found
-    return file ?: applicationProvider.get() ?: throw IllegalStateException("ADB location has not been initialized")
+    try {
+      return file ?: applicationProvider.get() ?: throw IllegalStateException("ADB location has not been initialized")
+    }
+    catch (e: IllegalStateException) {
+      throw if (ApplicationManager.getApplication().isDisposed) CancellationException() else e
+    }
   }
 }
