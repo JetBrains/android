@@ -17,39 +17,36 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
-import com.intellij.util.ui.JBUI
-import javax.swing.JComponent
+import com.intellij.ui.components.JBTabbedPane
 
 /** Tab which shows a response's headers and payload. */
 internal class ResponseTabContent : TabContent() {
-  private val panel =
-    createVerticalPanel(TAB_SECTION_VGAP).apply {
-      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
-    }
+  private val tabs = JBTabbedPane()
 
-  override val title: String
-    get() = "Response"
+  override val title: String = "Response"
 
-  override fun createComponent(): JComponent {
-    return createVerticalScrollPane(panel)
-  }
+  override fun createComponent() = tabs
 
   override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
-    panel.removeAll()
+    val selectedTitle = tabs.getSelectedTabTitle()
+    tabs.removeAll()
     if (data == null) {
       return
     }
     val headersComponent = dataComponentFactory.createHeaderComponent(RESPONSE)
     if (headersComponent != null) {
-      panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
+      tabs.add(SECTION_TITLE_HEADERS, createVerticalScrollPane(headersComponent))
     }
     val trailersComponent = dataComponentFactory.createTrailersComponent()
     if (trailersComponent != null) {
-      panel.add(createHideablePanel(SECTION_TITLE_TRAILERS, trailersComponent, null))
+      tabs.add(SECTION_TITLE_TRAILERS, createVerticalScrollPane(trailersComponent))
     }
     val bodyComponent = dataComponentFactory.createBodyComponent(RESPONSE)
     if (bodyComponent != null) {
-      panel.add(bodyComponent)
+      tabs.add(SECTION_TITLE_BODY, bodyComponent)
+    }
+    if (selectedTitle != null) {
+      tabs.setSelectedTab(selectedTitle)
     }
   }
 }

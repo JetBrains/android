@@ -18,12 +18,13 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.adtui.ui.HideablePanel.ClickableComponent.NONE
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -50,21 +51,15 @@ val SCROLL_UNIT = scale(10)
 // Padding to be aligned with the tab title on the left.
 const val HORIZONTAL_PADDING = 15
 
-val TAB_SECTION_VGAP = scale(5)
-
 val PAGE_VGAP = scale(28)
 
 val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
 const val SECTION_TITLE_TRAILERS = "Trailers"
+const val SECTION_TITLE_BODY = "Body"
 
 const val REGEX_TEXT = "Regex"
-
-/** Creates a panel with a vertical flowing layout and a consistent style. */
-fun createVerticalPanel(verticalGap: Int): JPanel {
-  return JPanel(VerticalFlowLayout(0, verticalGap))
-}
 
 /** Creates a scroll panel that wraps a target component with a consistent style. */
 fun createScrollPane(component: JComponent): JBScrollPane {
@@ -84,8 +79,13 @@ fun createVerticalScrollPane(component: JComponent): JBScrollPane {
   return scrollPane
 }
 
-/** Creates a [HideablePanel] with a consistent style. */
-fun createHideablePanel(
+/**
+ * Creates a panel with a consistent style.
+ *
+ * We use a [HideablePanel] even though we make i non-hideable because it provides a consistent
+ * title with an option switcher component.
+ */
+fun createTitledPanel(
   title: String,
   content: JComponent,
   northEastComponent: JComponent?,
@@ -95,6 +95,7 @@ fun createHideablePanel(
     .setPanelBorder(JBUI.Borders.emptyTop(10))
     .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
     .setIsTitleBold(true)
+    .setClickableComponent(NONE)
     .build()
 }
 
@@ -221,6 +222,18 @@ fun JBCheckBox.withRegexLabel(): JPanel {
   return JPanel(HorizontalLayout(0)).apply {
     add(this@withRegexLabel)
     add(label)
+  }
+}
+
+internal fun JBTabbedPane.setSelectedTab(title: String) {
+  val index = (0 until tabCount).find { getTitleAt(it) == title } ?: return
+  selectedIndex = index
+}
+
+internal fun JBTabbedPane.getSelectedTabTitle(): String? {
+  return when (val i = selectedIndex) {
+    -1 -> null
+    else -> getTitleAt(i)
   }
 }
 

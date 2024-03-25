@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-alpha13" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-alpha13">
+<issues format="6" by="lint 8.5.0-alpha02" type="baseline" client="" dependencies="true" name="" variant="all" version="8.5.0-alpha02">
 
   <issue
       id="JbUiStored"
@@ -81,22 +81,11 @@
   <issue
       id="JbUiStored"
       message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-      errorLine1="val TAB_SECTION_VGAP = scale(5)"
-      errorLine2="                       ~~~~~">
-    <location
-        file="src/com/android/tools/idea/appinspection/inspectors/network/view/details/TabUiUtils.kt"
-        line="54"
-        column="24"/>
-  </issue>
-
-  <issue
-      id="JbUiStored"
-      message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
       errorLine1="val PAGE_VGAP = scale(28)"
       errorLine2="                ~~~~~">
     <location
         file="src/com/android/tools/idea/appinspection/inspectors/network/view/details/TabUiUtils.kt"
-        line="56"
+        line="54"
         column="17"/>
   </issue>
 
@@ -107,7 +96,7 @@
       errorLine2="                   ~~~~~">
     <location
         file="src/com/android/tools/idea/appinspection/inspectors/network/view/details/TabUiUtils.kt"
-        line="58"
+        line="56"
         column="20"/>
   </issue>
 
@@ -118,7 +107,7 @@
       errorLine2="                                    ~~~~~">
     <location
         file="src/com/android/tools/idea/appinspection/inspectors/network/view/ThreadsView.kt"
-        line="387"
+        line="380"
         column="37"/>
   </issue>
 
@@ -129,7 +118,7 @@
       errorLine2="                                                 ~~~~~">
     <location
         file="src/com/android/tools/idea/appinspection/inspectors/network/view/ThreadsView.kt"
-        line="388"
+        line="381"
         column="50"/>
   </issue>
 
@@ -140,7 +129,7 @@
       errorLine2="                                                ~~~~~">
     <location
         file="src/com/android/tools/idea/appinspection/inspectors/network/view/ThreadsView.kt"
-        line="389"
+        line="382"
         column="49"/>
   </issue>
 

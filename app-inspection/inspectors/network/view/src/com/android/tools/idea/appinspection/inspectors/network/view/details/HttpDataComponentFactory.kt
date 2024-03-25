@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
@@ -26,19 +24,11 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
-import java.awt.Component
-import java.awt.Container
-import java.awt.Dimension
-import java.awt.LayoutManager2
+import com.intellij.util.ui.components.BorderLayoutPanel
 import java.util.Locale
-import java.util.function.Function
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JScrollPane
 import javax.swing.border.Border
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * A factory which wraps a target [HttpData] and can create useful, shared UI components for
@@ -89,7 +79,7 @@ internal class HttpDataComponentFactory(
   override fun createBodyComponent(type: ConnectionType): JComponent {
     val payload = getPayload(type)
     if (payload.isEmpty) {
-      return createHideablePanel(getBodyTitle(type), JLabel("Not available"), null)
+      return createTitledPanel(getBodyTitle(type), JLabel("Not available"), null)
     }
     val contentType = getContentType(type)
     val rawView = createRawDataComponent(payload, contentType, componentsProvider)
@@ -100,7 +90,7 @@ internal class HttpDataComponentFactory(
         else -> SwitchingPanel(prettyView, "View Parsed", rawView, "View Source").withSwitcher()
       }
     bodyView.name = type.bodyComponentId
-    return createHideablePanel(getBodyTitle(type), bodyView, northEastView)
+    return createTitledPanel(getBodyTitle(type), bodyView, northEastView)
   }
 
   override fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer {
@@ -110,118 +100,6 @@ internal class HttpDataComponentFactory(
       DataViewer.Style.PRETTY,
       formatted,
     )
-  }
-
-  @VisibleForTesting
-  class CompressedVerticalLayout : LayoutManager2 {
-    private val minSize = Dimension(INVALID_SIZE, INVALID_SIZE)
-    private val preferredSize = Dimension(INVALID_SIZE, INVALID_SIZE)
-    private val maxSize = Dimension(INVALID_SIZE, INVALID_SIZE)
-    private var needsLayout = true
-
-    override fun minimumLayoutSize(parent: Container): Dimension {
-      // This layout manager doesn't respect minimum size.
-      return getSize(parent, { c -> c.minimumSize }, minSize)
-    }
-
-    override fun preferredLayoutSize(parent: Container): Dimension {
-      val parentWidth = parent.width
-      return getSize(
-        parent,
-        { c: Component ->
-          // Always resize prior to getting the preferred size, since we allow our components to be
-          // as large as possible.
-          c.setBounds(
-            0,
-            0,
-            parentWidth,
-            Short.MAX_VALUE.toInt(),
-          ) // Short.MAX_VALUE since that's what Swing uses (not Integer.MAX_VALUE).
-          c.preferredSize
-        },
-        preferredSize,
-      )
-    }
-
-    override fun maximumLayoutSize(parent: Container): Dimension {
-      return getSize(parent, { c: Component -> c.maximumSize }, maxSize)
-    }
-
-    override fun layoutContainer(parent: Container) {
-      if (!needsLayout) {
-        return
-      }
-      val componentCount = parent.componentCount
-      val totalWidth = parent.width
-      val totalHeight = parent.height
-      for (i in 0 until componentCount) {
-        val c = parent.getComponent(i)
-        if (c.isMaximumSizeSet) {
-          val maxDim = c.maximumSize
-          val width = min(totalWidth, maxDim.width)
-          c.setBounds(0, 0, width, maxDim.height)
-        }
-        val preferredDim = c.preferredSize
-        val width = min(totalWidth, preferredDim.width)
-        val height = min(totalHeight, preferredDim.height)
-        c.setBounds(0, 0, width, height)
-      }
-      needsLayout = false
-    }
-
-    override fun getLayoutAlignmentX(target: Container): Float {
-      return 0f
-    }
-
-    override fun getLayoutAlignmentY(target: Container): Float {
-      return 0.0f
-    }
-
-    override fun invalidateLayout(target: Container) {
-      invalidateLayout()
-    }
-
-    override fun addLayoutComponent(comp: Component, constraints: Any?) {
-      invalidateLayout()
-    }
-
-    override fun addLayoutComponent(name: String, comp: Component) {
-      invalidateLayout()
-    }
-
-    override fun removeLayoutComponent(comp: Component) {
-      invalidateLayout()
-    }
-
-    private fun invalidateLayout() {
-      minSize.setSize(INVALID_SIZE, INVALID_SIZE)
-      preferredSize.setSize(INVALID_SIZE, INVALID_SIZE)
-      maxSize.setSize(INVALID_SIZE, INVALID_SIZE)
-      needsLayout = true
-    }
-
-    companion object {
-      private const val INVALID_SIZE = -1
-
-      private fun getSize(
-        parent: Container,
-        componentSizeGetter: Function<Component, Dimension>,
-        resultDimension: Dimension,
-      ): Dimension {
-        if (resultDimension.width != INVALID_SIZE && resultDimension.height != INVALID_SIZE) {
-          return resultDimension
-        }
-        var w = 0
-        var h = 0
-        for (c in parent.components) {
-          val d = componentSizeGetter.apply(c)
-          w = max(w, d.width)
-          h += d.height
-        }
-        resultDimension.setSize(w, h)
-        return resultDimension
-      }
-    }
   }
 
   companion object {
@@ -249,9 +127,9 @@ internal class HttpDataComponentFactory(
       val viewerComponent = viewer.component
       viewerComponent.name = ID_PAYLOAD_VIEWER
       viewerComponent.border = PAYLOAD_BORDER
-      val compressedVerticalPanel = JPanel(CompressedVerticalLayout())
-      compressedVerticalPanel.add(viewerComponent)
-      return compressedVerticalPanel
+      val panel = BorderLayoutPanel()
+      panel.add(viewerComponent)
+      return panel
     }
 
     /**
@@ -297,15 +175,6 @@ internal class HttpDataComponentFactory(
       if (viewer.style == DataViewer.Style.PRETTY) {
         val viewerComponent = viewer.component
         viewerComponent.border = PAYLOAD_BORDER
-
-        // Slight hack: Currently, the viewer component embeds a scroll pane, which we want to
-        // disable here. A straightforward way to do this is to iterate through all scroll panes
-        // (there should only ever be one, but this code should still be harmless even if in the
-        // future there are 0 or several).
-        TreeWalker(viewerComponent).descendants().filterIsInstance<JScrollPane>().forEach {
-          scroller: JScrollPane ->
-          NestedScrollPaneMouseWheelListener.installOn(scroller)
-        }
         return viewerComponent
       }
       return null
