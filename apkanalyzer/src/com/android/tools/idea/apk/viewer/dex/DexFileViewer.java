@@ -33,6 +33,7 @@ import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -62,9 +63,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.LoadingNode;
@@ -128,6 +131,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     NotificationGroup.balloonGroup("APK Analyzer (Important)", PluginId.getId("org.jetbrains.android"));
 
   public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
+    Preconditions.checkArgument(dexFiles.length > 0 || apkFolder != null, "Must have at least one dex file or an APK folder");
     myDexFiles = dexFiles;
     myProject = project;
     myApkFolder = apkFolder;
@@ -223,13 +227,22 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     initDex();
   }
 
+  @Override
+  public VirtualFile getFile() {
+    if (myApkFolder != null) {
+      return myApkFolder;
+    }
+    return VirtualFileManager.getInstance().findFileByNioPath(myDexFiles[0]);
+  }
+
   @NotNull
   private ActionGroup createPopupActionGroup(@NotNull Tree tree) {
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(new ShowDisassemblyAction(tree, () -> {
       if (myDeobfuscateNames && myProguardMappings != null) {
         return myProguardMappings.map;
-      } else {
+      }
+      else {
         return null;
       }
     }));
