@@ -1,65 +1,18 @@
-import xml.etree.ElementTree as ET
 import os
-import io
-import sys
-import re
 import unittest
-import zipfile
 import subprocess
 import tempfile
-import shutil
-import zipfile
-import tarfile
-import os.path
-import json
 import glob
-
-def _generate(name, content):
-  if name.endswith(".zip") or name.endswith(".jar"):
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w") as output_zip:
-      for f, c in content.items():
-        data = _generate(f, c)
-        output_zip.writestr(f, data.getvalue())
-    return buffer
-  elif name.endswith(".tar.gz"):
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
-      for f, c in content.items():
-        data = _generate(f, c).getvalue()
-        tarinfo = tarfile.TarInfo(f)
-        tarinfo.size = len(data)
-        tar.addfile(tarinfo, io.BytesIO(data))
-    return buffer
-  elif name.endswith(".json"):
-    data = json.JSONEncoder().encode(content).encode("utf-8")
-    return io.BytesIO(data)
-  else:
-    data = content.encode('utf-8')
-    return io.BytesIO(data)
-
-def _create(name, content):
-    data = _generate(name, content)
-    with open(name, "wb") as f:
-        f.write(data.getvalue())
-
-def _readstr(path):
-  with open(path, 'r') as file:
-    return file.read()
+from tools.adt.idea.studio.tests import test_utils
 
 class UpdateSdkTest(unittest.TestCase):
 
   def test_update_sdk(self):
     deploy_files = os.environ['update_sdk_files'].split(" ")
-    deploy_dir = tempfile.mkdtemp()
-    for file in deploy_files:
-        rel = os.path.dirname(file)
-        os.makedirs(os.path.join(deploy_dir, rel), exist_ok=True)
-        shutil.copy(file, os.path.join(deploy_dir, file))
-
+    deploy_dir = test_utils.deploy_py("update_sdk_files")
 
     download = tempfile.mkdtemp()
-    _create(download + "/android-studio-1.2.3-no-jbr.tar.gz", {
+    test_utils.create(download + "/android-studio-1.2.3-no-jbr.tar.gz", {
         "android-studio/lib/app.jar": {
             "__index__": "data",
         },
@@ -76,7 +29,7 @@ class UpdateSdkTest(unittest.TestCase):
             }]
         },
     })
-    _create(download + "/android-studio-1.2.3-no-jbr.win.zip", {
+    test_utils.create(download + "/android-studio-1.2.3-no-jbr.win.zip", {
         "android-studio/lib/app.jar": {
             "__index__": "data",
         },
@@ -92,7 +45,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "android-studio/plugins/plugin-classpath.txt": "data",
     })
-    _create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip", {
+    test_utils.create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip", {
         "Android Studio.app/Contents/lib/app.jar": {
             "__index__": "data",
         },
@@ -107,7 +60,7 @@ class UpdateSdkTest(unittest.TestCase):
         "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
     })
-    _create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip", {
+    test_utils.create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip", {
         "Android Studio.app/Contents/lib/app.jar": {
             "__index__": "data",
         },
@@ -123,12 +76,12 @@ class UpdateSdkTest(unittest.TestCase):
         "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
     })
 
-    _create(download + "/android-studio-1.2.3-no-jbr.tar.gz.spdx.json", "")
-    _create(download + "/android-studio-1.2.3-no-jbr.win.zip.spdx.json", "")
-    _create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip.spdx.json", "")
-    _create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip.spdx.json", "")
-    _create(download + "/android-studio-1.2.3-sources.zip", {})
-    _create(download + "/updater-full.jar", {})
+    test_utils.create(download + "/android-studio-1.2.3-no-jbr.tar.gz.spdx.json", "")
+    test_utils.create(download + "/android-studio-1.2.3-no-jbr.win.zip.spdx.json", "")
+    test_utils.create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip.spdx.json", "")
+    test_utils.create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip.spdx.json", "")
+    test_utils.create(download + "/android-studio-1.2.3-sources.zip", {})
+    test_utils.create(download + "/updater-full.jar", {})
 
     workspace = tempfile.mkdtemp()
     os.makedirs(workspace + "/prebuilts/studio/intellij-sdk/AI")
@@ -267,7 +220,7 @@ SPEC = struct(
     self.assertEqual(sorted(expected.keys()), sorted(generated))
 
     for file, content in expected.items():
-        self.assertEqual(content, _readstr(workspace + "/" + file))
+        self.assertEqual(content, test_utils.readstr(workspace + "/" + file))
 
 if __name__ == "__main__":
   unittest.main()

@@ -824,17 +824,49 @@ filegroup(
     name = "update_sdk_files",
     srcs = [
         "intellij.py",
+        "mkspec.py",
         "update_sdk.py",
     ],
 )
 
 py_test(
     name = "test_update_sdk",
-    srcs = ["tests/test_update_sdk.py"],
+    srcs = [
+        "tests/test_update_sdk.py",
+        "tests/test_utils.py",
+    ],
     # Executing the script standalone, pass as data not as unit test library.
     data = [":update_sdk_files"],
     env = {
         "update_sdk_files": "$(locations :update_sdk_files)",
+    },
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "mkspec_files",
+    srcs = [
+        "intellij.py",
+        "mkspec.py",
+        "update_sdk.py",
+    ],
+)
+
+# Additional spec tests for downloaded IDEs
+py_test(
+    name = "test_mkspec",
+    srcs = [
+        "tests/test_mkspec.py",
+        "tests/test_utils.py",
+    ],
+    # Executing the script standalone, pass as data not as unit test library.
+    data = [":mkspec_files"],
+    env = {
+        "mkspec_files": "$(locations :mkspec_files)",
     },
     tags = [
         "no_mac",

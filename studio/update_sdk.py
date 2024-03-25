@@ -11,6 +11,7 @@ import shutil
 import json
 import xml.etree.ElementTree as ET
 import intellij
+import mkspec
 from collections import defaultdict
 
 ALL = "all"
@@ -27,56 +28,6 @@ HOME_PATHS = {
     MAC_ARM: "/darwin_aarch64/android-studio/Contents",
     WIN: "/windows/android-studio",
 }
-
-def write_spec_file(out, mac_bundle_name, ides):
-  sdk_versions = {}
-  for platform, ide in ides.items():
-    sdk_versions[platform] = ide.version()
-  if len(set(sdk_versions.values())) > 1:
-    raise ValueError(f'Major and minor versions differ between OS platforms! {sdk_versions}')
-
-  with open(out, "w") as file:
-    file.write("# Auto-generated file, do not edit manually.\n")
-    file.write("SPEC = struct(\n" )
-    file.write(f'    major_version = "{ide.major}",\n')
-    file.write(f'    minor_version = "{ide.minor}",\n')
-
-    common_jars = set.intersection(*[ide.platform_jars for ide in ides.values()])
-    sdk_jars = {"_" + platform: ide.platform_jars - common_jars for platform, ide in ides.items()}
-    sdk_jars[""] = common_jars
-    for s, jars in sorted(sdk_jars.items()):
-      file.write(f"    jars{s} = [\n")
-      for jar in sorted(jars):
-        file.write("        \"" + jar + "\",\n")
-      file.write("    ],\n")
-
-    all_plugin_ids = set.union(*[set(ide.plugin_jars.keys()) for ide in ides.values()])
-
-    common_plugin_jars = defaultdict(set)
-    for id in all_plugin_ids:
-      jar_sets = [ide.plugin_jars[id] if id in ide.plugin_jars else set() for ide in ides.values()]
-      common_plugin_jars[id] = set.intersection(*jar_sets)
-
-    plugin_jars = {}
-    plugin_jars[""] = common_plugin_jars
-    for platform, ide in ides.items():
-      plugin_jars["_" + platform] = {}
-      for id, jars in ide.plugin_jars.items():
-        plugin_jars["_" + platform][id] = jars - common_plugin_jars[id]
-
-    for s, pjars in sorted(plugin_jars.items()):
-      file.write(f"    plugin_jars{s} = {{\n")
-      for plugin in sorted(pjars.keys()):
-        jars = pjars[plugin]
-        if jars:
-          file.write("        \"" + plugin + "\": [\n")
-          for jar in sorted(jars):
-            file.write("            \"" + jar[1:] + "\",\n")
-          file.write("        ],\n")
-      file.write("    },\n")
-
-    file.write(f"    mac_bundle_name = \"{mac_bundle_name}\",\n")
-    file.write(")\n")
 
 # When running in --existing_version mode, the mac bundle name must be extracted
 # from the preexisting spec.bzl file (since the original mac bundle artifact
@@ -169,7 +120,7 @@ def update_files(workspace, version, mac_bundle_name):
     ides[platform] = intellij.IntelliJ.create(platform, f'{workspace}{sdk}/{platform}/android-studio')
 
   write_xml_files(workspace, sdk, ides)
-  write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)
+  mkspec.write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)
 
 
 def check_artifacts(dir):
