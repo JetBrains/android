@@ -24,7 +24,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.SyntaxErrorUpdate
-import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.concurrency.syntaxErrorFlow
@@ -34,15 +33,13 @@ import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.flow.filteredPreviewElementsFlow
-import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
-import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
@@ -58,7 +55,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
@@ -79,45 +75,6 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
   private val log = Logger.getInstance(ComposePreviewFlowManager::class.java)
 
   /**
-   * Flow containing all the [ComposePreviewElementInstance]s available in the current file. This
-   * flow is only updated when this Compose Preview representation is active.
-   */
-  override val allPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>>(
-      FlowableCollection.Uninitialized
-    )
-
-  override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
-    MutableStateFlow(emptySet())
-
-  override var groupFilter: PreviewGroup
-    get() = getCurrentFilterAsGroup()?.filterGroup ?: PreviewGroup.All
-    set(group) {
-      val currentFilter = filterFlow.value
-      // We can only apply a group filter if no filter existed before or if the current one is
-      // already a group filter.
-      val canApplyGroupFilter =
-        currentFilter is PreviewElementFilter.Disabled<PsiComposePreviewElementInstance> ||
-          currentFilter is PreviewElementFilter.Group<PsiComposePreviewElementInstance>
-      filterFlow.value =
-        if (group is PreviewGroup.Named && canApplyGroupFilter) {
-          PreviewElementFilter.Group(group)
-        } else {
-          PreviewElementFilter.Disabled()
-        }
-    }
-
-  /**
-   * Flow containing all the [ComposePreviewElementInstance]s available in the current file to be
-   * rendered. These are all the previews in [allPreviewElementsFlow] filtered using [filterFlow].
-   * This flow is only updated when this Compose Preview representation is active.
-   */
-  override val filteredPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>>(
-      FlowableCollection.Uninitialized
-    )
-
-  /**
    * Flow containing all the [ComposePreviewElementInstance]s that have completed rendering. These
    * are all the [filteredPreviewElementsFlow] that have rendered.
    */
@@ -125,12 +82,29 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
     MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>> =
     MutableStateFlow(FlowableCollection.Uninitialized)
 
+  /** Delegate [PreviewFlowManager] containing common flow logic with other types of previews. */
+  private val delegate = CommonPreviewFlowManager(renderedPreviewElementsInstancesFlow)
+
   /**
-   * Current filter being applied to the preview. The filter allows to select one element or a group
-   * of them.
+   * Flow containing all the [ComposePreviewElementInstance]s available in the current file. This
+   * flow is only updated when this Compose Preview representation is active.
    */
-  private val filterFlow: MutableStateFlow<PreviewElementFilter<PsiComposePreviewElementInstance>> =
-    MutableStateFlow(PreviewElementFilter.Disabled())
+  override val allPreviewElementsFlow = delegate.allPreviewElementsFlow
+
+  override val availableGroupsFlow = delegate.availableGroupsFlow
+
+  override var groupFilter: PreviewGroup
+    get() = delegate.groupFilter
+    set(group) {
+      delegate.groupFilter = group
+    }
+
+  /**
+   * Flow containing all the [ComposePreviewElementInstance]s available in the current file to be
+   * rendered. These are all the previews in [allPreviewElementsFlow] filtered using [filterFlow].
+   * This flow is only updated when this Compose Preview representation is active.
+   */
+  override val filteredPreviewElementsFlow = delegate.filteredPreviewElementsFlow
 
   /**
    * Preview element provider corresponding to the current state of the Preview. Different modes
@@ -138,10 +112,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
    * previews with reference devices. When exiting the mode and returning to static preview, the
    * element provider should be reset to [defaultPreviewElementProvider].
    */
-  val uiCheckFilterFlow =
-    MutableStateFlow<UiCheckModeFilter<PsiComposePreviewElementInstance>>(
-      UiCheckModeFilter.Disabled()
-    )
+  val uiCheckFilterFlow = delegate.uiCheckFilterFlow
 
   /**
    * Only for requests to refresh UI and notifications (without refreshing the preview contents).
@@ -159,20 +130,15 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
    * refresh.
    */
   override fun setSingleFilter(previewElement: PsiComposePreviewElementInstance?) {
-    filterFlow.value =
-      if (previewElement != null) {
-        PreviewElementFilter.Single(previewElement)
-      } else {
-        PreviewElementFilter.Disabled()
-      }
+    delegate.setSingleFilter(previewElement)
   }
 
   /**
-   * Gets the current value of [filterFlow] as a [PreviewElementFilter.Group] or null if the current
-   * filter is of another type.
+   * Gets the current filter applied to the flows as a [PreviewElementFilter.Group] or null if the
+   * current filter is of another type.
    */
   fun getCurrentFilterAsGroup(): PreviewElementFilter.Group<PsiComposePreviewElementInstance>? =
-    filterFlow.value as? PreviewElementFilter.Group<PsiComposePreviewElementInstance>
+    delegate.getCurrentFilterAsGroup()
 
   /**
    * Returns whether there are previews that have completed the render process, i.e. if
@@ -210,88 +176,19 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
-      val previewElementProvider =
-        FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
 
-      launch(workerThread) {
-        // Launch all the listeners that are bound to the current activation.
-        ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
-            previewElementsOnFileChangesFlow(project) { previewElementProvider }
-              .map {
-                when (it) {
-                  is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
-                  is FlowableCollection.Present ->
-                    FlowableCollection.Present(it.collection.sortByDisplayAndSourcePosition())
-                }
-              }
-          )
-          .collectLatest {
-            val previousElements = allPreviewElementsFlow.value
-            allPreviewElementsFlow.value = it
-            (previewModeManager.mode.value as? PreviewMode.Gallery)?.let { oldMode ->
-              oldMode
-                .newMode(it.asCollection().toSet(), previousElements.asCollection().toSet())
-                .let { newMode -> previewModeManager.setMode(newMode) }
-            }
-          }
-      }
-
-      launch(workerThread) {
-        val filteredPreviewsFlow = filteredPreviewElementsFlow(allPreviewElementsFlow, filterFlow)
-
-        // Flow for Preview changes
-        combine(allPreviewElementsFlow, filteredPreviewsFlow, uiCheckFilterFlow) {
-            allAvailablePreviews,
-            filteredPreviews,
-            uiCheckFilter ->
-            // Calculate groups
-            val allGroups =
-              allAvailablePreviews
-                .asCollection()
-                .mapNotNull {
-                  it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) }
-                }
-                .toSet()
-
-            // UI Check works in the output of one particular instance (similar to interactive
-            // preview).
-            // When enabled, UI Check will generate here a number of previews in different reference
-            // devices so, when filterPreviewInstances is called and uiCheck filter is Enabled, for
-            // 1 preview, multiple will be returned.
-            availableGroupsFlow.value = uiCheckFilter.filterGroups(allGroups)
-            uiCheckFilter.filterPreviewInstances(filteredPreviews)
-          }
-          .collectLatest { filteredPreviewElementsFlow.value = it }
-      }
-
-      // Trigger refreshes on available previews changes
-      launch(workerThread) {
-        filteredPreviewElementsFlow
-          .filter {
-            return@filter when (it) {
-              is FlowableCollection.Uninitialized -> false
-              is FlowableCollection.Present ->
-                if (
-                  it.collection.isEmpty() && previewModeManager.mode.value is PreviewMode.UiCheck
-                ) {
-                  // If there are no previews for UI Check mode, then the original composable
-                  // was renamed or removed. We should quit UI Check mode and filter out this
-                  // value from the flow
-                  restorePreviousMode()
-                  false
-                } else true
-            }
-          }
-          .filter {
-            // Filter the render if the rendered previews are already the same. This prevents
-            // the preview from refreshing again when the user is just switching back and forth
-            // the tab.
-            renderedPreviewElementsInstancesFlow.value != it
-          }
-          .collectLatest {
-            invalidate()
-            requestRefresh()
-          }
+      delegate.run {
+        initializeFlows(
+          previewModeManager = previewModeManager,
+          psiFilePointer = psiFilePointer,
+          invalidate = invalidate,
+          requestRefresh = requestRefresh,
+          restorePreviousMode = restorePreviousMode,
+          previewElementProvider =
+            FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder),
+          toInstantiatedPreviewElementsFlow =
+            ComposePreviewElementsModel::instantiatedPreviewElementsFlow,
+        )
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.

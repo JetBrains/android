@@ -263,7 +263,7 @@ class WearTilePreviewRepresentationTest {
   fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsEnabled() =
     runBlocking(workerThread) {
       EssentialsMode.setEnabled(true, project)
-      val preview = createWearTilePreviewRepresentation()
+      val preview = createWearTilePreviewRepresentation(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)
 
@@ -321,9 +321,11 @@ class WearTilePreviewRepresentationTest {
       field = value
     }
 
-  private suspend fun createWearTilePreviewRepresentation(): WearTilePreviewRepresentation {
+  private suspend fun createWearTilePreviewRepresentation(
+    expectedModelCount: Int = 2
+  ): WearTilePreviewRepresentation {
     val wearTileTestFile = createWearTilePreviewTestFile()
-    val modelRenderedLatch = CountDownLatch(2)
+    val modelRenderedLatch = CountDownLatch(expectedModelCount)
     val previewRepresentation =
       WearTilePreviewRepresentationProvider().createRepresentation(wearTileTestFile)
         as WearTilePreviewRepresentation
