@@ -398,7 +398,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         path = Path(mapping["path"])
         if path.match("**/dist.all/lib/testFramework.jar"):
             intellij_sdk_lib = "intellij-test-framework"
-        elif path.match("**/dist.all/lib/*.jar") or path.match("**/dist.all/plugins/java/lib/*.jar"):
+        elif path.match("**/dist.all/lib/*.jar"):
             intellij_sdk_lib = "studio-sdk"
         elif path.match("**/dist.all/plugins/*/lib/*.jar"):
             plugin_dir = path.parent.parent.name
