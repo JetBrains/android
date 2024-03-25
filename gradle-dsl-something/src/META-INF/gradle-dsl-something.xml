@@ -8,6 +8,8 @@
     <lang.parserDefinition language="Something"
                            implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
     <lang.syntaxHighlighter language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingHighlighter"/>
+    <lang.quoteHandler language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingQuoteHandler"/>
+    <lang.braceMatcher language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingPairedBraceMatcher"/>
     <lang.formatter
         language="Something"
         implementationClass="com.android.tools.idea.gradle.something.formatting.SomethingFormattingModelBuilder"/>
