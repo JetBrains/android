@@ -22,6 +22,8 @@ sealed class SqliteDatabaseId {
   abstract val path: String
   abstract val name: String
 
+  abstract fun key(): Key
+
   companion object {
     fun fromFileDatabase(databaseFileData: DatabaseFileData): SqliteDatabaseId {
       val path =
@@ -33,7 +35,11 @@ sealed class SqliteDatabaseId {
       return FileSqliteDatabaseId(path, name, databaseFileData)
     }
 
-    fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
+    fun fromLiveDatabase(
+      path: String,
+      connectionId: Int,
+      isForced: Boolean = false,
+    ): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
 
       /**
@@ -47,7 +53,7 @@ sealed class SqliteDatabaseId {
       val systemUserPath =
         path.replace("/user/0", "/data").replace("/storage/emulated/0", "/sdcard")
 
-      return LiveSqliteDatabaseId(systemUserPath, name, connectionId)
+      return LiveSqliteDatabaseId(systemUserPath, name, connectionId, isForced)
     }
   }
 
@@ -55,13 +61,20 @@ sealed class SqliteDatabaseId {
     override val path: String,
     override val name: String,
     val connectionId: Int,
-  ) : SqliteDatabaseId()
+    val isForced: Boolean = false,
+  ) : SqliteDatabaseId() {
+    override fun key() = Key(path, connectionId)
+  }
 
   data class FileSqliteDatabaseId(
     override val path: String,
     override val name: String,
     val databaseFileData: DatabaseFileData,
-  ) : SqliteDatabaseId()
+  ) : SqliteDatabaseId() {
+    override fun key() = Key(path, 0)
+  }
+
+  data class Key(val path: String, val id: Int)
 }
 
 fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {

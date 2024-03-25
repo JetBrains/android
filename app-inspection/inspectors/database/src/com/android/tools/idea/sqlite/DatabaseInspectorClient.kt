@@ -74,7 +74,11 @@ class DatabaseInspectorClient(
         val openedDatabase = event.databaseOpened
         invokeLater {
           val databaseId =
-            SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
+            SqliteDatabaseId.fromLiveDatabase(
+              openedDatabase.path,
+              openedDatabase.databaseId,
+              openedDatabase.isForcedConnection,
+            )
           val databaseConnection =
             LiveDatabaseConnection(
               parentDisposable,
