@@ -21,25 +21,34 @@ import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Test
 
 class SomethingPsiFactoryTest : LightPlatformTestCase() {
-  @Test
   fun testCreateStringLiteral() {
     val literal = SomethingPsiFactory(project).createStringLiteral("someLiteral")
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
     assertThat(literal.text).isEqualTo("\"someLiteral\"")
-
   }
 
-  @Test
+  fun testCreateLiteralString() {
+    val literal = SomethingPsiFactory(project).createLiteral("someOtherLiteral")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
+    assertThat(literal.text).isEqualTo("\"someOtherLiteral\"")
+  }
+
   fun testCreateIntegerLiteral() {
     val literal = SomethingPsiFactory(project).createIntLiteral(101)
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Number::class.java)
     assertThat(literal.text).isEqualTo("101")
-
   }
 
-  @Test
+  fun testCreateLiteralInteger() {
+    val literal = SomethingPsiFactory(project).createLiteral(102)
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Number::class.java)
+    assertThat(literal.text).isEqualTo("102")
+  }
+
   fun testCreateBooleanLiteral() {
     val literal = SomethingPsiFactory(project).createBooleanLiteral(true)
     assertThat(literal).isNotNull()
@@ -47,7 +56,20 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     assertThat(literal.text).isEqualTo("true")
   }
 
-  @Test
+  fun testCreateLiteralBoolean() {
+    val literal = SomethingPsiFactory(project).createLiteral(false)
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Boolean::class.java)
+    assertThat(literal.text).isEqualTo("false")
+  }
+
+  fun testCreateLiteralUnsupported() {
+    val factory = SomethingPsiFactory(project)
+    for (obj in listOf(listOf(""), mapOf("a" to 1), Any(), null)) {
+      assertThrows(IllegalStateException::class.java) { factory.createLiteral(obj) }
+    }
+  }
+
   fun testCreateNewLine() {
     val psi = SomethingPsiFactory(project).createNewline()
     assertThat(psi).isNotNull()
@@ -55,7 +77,6 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     assertThat(psi.text).isEqualTo("\n")
   }
 
-  @Test
   fun testAssignment() {
     val assignment = SomethingPsiFactory(project).createAssignment("key", "\"value\"")
     assertThat(assignment).isNotNull()
@@ -63,7 +84,6 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     assertThat(assignment.text).isEqualTo("key = \"value\"")
   }
 
-  @Test
   fun testBlock() {
     val block = SomethingPsiFactory(project).createBlock("block")
     assertThat(block).isNotNull()
@@ -71,7 +91,6 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     assertThat(block.text).isEqualTo("block {\n}")
   }
 
-  @Test
   fun testFactory() {
     val factory = SomethingPsiFactory(project).createFactory("factory")
     assertThat(factory).isNotNull()
