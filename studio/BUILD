@@ -820,6 +820,29 @@ py_test(
     tags = ["no_windows"],  # b/233968084
 )
 
+filegroup(
+    name = "update_sdk_files",
+    srcs = [
+        "intellij.py",
+        "update_sdk.py",
+    ],
+)
+
+py_test(
+    name = "test_update_sdk",
+    srcs = ["tests/test_update_sdk.py"],
+    # Executing the script standalone, pass as data not as unit test library.
+    data = [":update_sdk_files"],
+    env = {
+        "update_sdk_files": "$(locations :update_sdk_files)",
+    },
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 py_library(
     name = "utils",
     srcs = ["utils.py"],

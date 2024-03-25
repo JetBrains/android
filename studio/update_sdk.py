@@ -296,9 +296,9 @@ def extract(workspace, dir, delete_after, metadata):
   print("Patching app.jar to work around b/267679210")
   for platform in PLATFORMS:
     app_jar_path = path + HOME_PATHS[platform] + "/lib/app.jar"
-    os.system(f"jar xf {app_jar_path} __index__")
-    os.system(f"jar uf {app_jar_path} __index__")
-    os.remove("__index__")
+    os.system(f"unzip {app_jar_path} __index__ -d {workspace}")
+    os.system(f"jar uf {app_jar_path} -C {workspace} __index__")
+    os.remove(f"{workspace}/__index__")
 
   # TODO(b/328622823): IntelliJ normally loads plugins by consulting plugin-classpath.txt, but
   # this does not work for Android Studio because plugin-classpath.txt is missing our Android
@@ -363,9 +363,15 @@ if __name__ == "__main__":
       action="store_true",
       dest="debug_download",
       help="Keeps the downloaded artifacts for debugging")
-  workspace = os.path.join(
-      os.path.dirname(os.path.realpath(__file__)), "../../../..")
+  parser.add_argument(
+      "--workspace",
+      default="../../../..",
+      dest="workspace",
+      help="The workspace where to save all files")
+
   args = parser.parse_args()
+  workspace = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.workspace)
+
   options = [opt for opt in [args.version, args.download, args.path] if opt]
   if len(options) != 1:
     print("You must specify only one option")
