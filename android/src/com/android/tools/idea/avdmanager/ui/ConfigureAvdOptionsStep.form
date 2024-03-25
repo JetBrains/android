@@ -46,7 +46,7 @@
                     </constraints>
                     <properties>
                       <labelFor value="7be1e"/>
-                      <text value="AVD Name"/>
+                      <text value="AVD name:"/>
                     </properties>
                   </component>
                   <component id="7be1e" class="javax.swing.JTextField" binding="myAvdDisplayName">
@@ -72,7 +72,7 @@
                         </constraints>
                         <properties>
                           <labelFor value=""/>
-                          <text value="AVD Id"/>
+                          <text value="AVD ID:"/>
                         </properties>
                       </component>
                       <component id="7e00f" class="com.intellij.ui.components.JBLabel" binding="myAvdId">
@@ -152,7 +152,7 @@
                     <properties>
                       <enabled value="true"/>
                       <horizontalTextPosition value="10"/>
-                      <text value="&lt;html&gt;Startup orientation&lt;/html&gt;"/>
+                      <text value="Startup orientation:"/>
                     </properties>
                   </component>
                   <component id="ab901" class="javax.swing.JSeparator">
@@ -531,7 +531,7 @@
                           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text value="Internal Storage:"/>
+                          <text value="Internal storage:"/>
                         </properties>
                       </component>
                       <component id="95158" class="com.intellij.ui.components.JBLabel">
@@ -672,10 +672,10 @@
                     <children>
                       <component id="14ec1" class="com.intellij.ui.components.JBLabel" binding="mySkinDefinitionLabel">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text value="Custom skin definition"/>
+                          <text value="Custom skin definition:"/>
                         </properties>
                       </component>
                       <component id="61e9" class="com.intellij.ui.components.BrowserLink" binding="myHardwareSkinHelpLabel" custom-create="true">
@@ -831,7 +831,7 @@
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Preferred ABI"/>
+                      <text value="Preferred ABI:"/>
                     </properties>
                   </component>
                   <component id="c6e9f" class="javax.swing.JSeparator">
