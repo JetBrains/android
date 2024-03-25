@@ -50,7 +50,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.KtSymbolFromIndexProvider
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider.Companion.isK2Mode
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
@@ -189,8 +189,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     ProgressManager.checkCanceled()
 
     val nameExpression = createNameExpression(element)
-
-    if (isK2Plugin()) {
+    if (isK2Mode()) {
       analyze(nameExpression) {
         fillCompletionVariants(
           parameters,
@@ -376,13 +375,23 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun createNameExpression(originalElement: PsiElement): KtSimpleNameExpression {
     val originalFile = originalElement.containingFile as KtFile
 
-    val file =
-      KtPsiFactory.contextual(originalFile)
-        .createFile("temp.kt", "val x = $COMPOSE_MODIFIER_FQN.call")
-    return file
-      .getChildOfType<KtProperty>()!!
-      .getChildOfType<KtDotQualifiedExpression>()!!
-      .lastChild as KtSimpleNameExpression
+    val newExpressionAsString = "$COMPOSE_MODIFIER_FQN.call"
+
+    val newExpression =
+      if (isK2Mode()) {
+        // For K2, we have to create a code fragment to run analysis API on it.
+        // See https://b.corp.google.com/issues/330760992#comment3 for more information.
+        KtPsiFactory(originalFile.project)
+          .createExpressionCodeFragment(newExpressionAsString, originalFile)
+      } else {
+        requireNotNull(
+          KtPsiFactory.contextual(originalFile)
+            .createFile("temp.kt", "val x = $newExpressionAsString")
+            .getChildOfType<KtProperty>()
+        )
+      }
+    return requireNotNull(newExpression.getChildOfType<KtDotQualifiedExpression>()).lastChild
+      as KtSimpleNameExpression
   }
 
   private fun KtAnalysisSession.getExtensionFunctionsForModifier(
@@ -390,25 +399,22 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     originalPosition: PsiElement,
     prefixMatcher: PrefixMatcher,
   ): Collection<KtCallableSymbol> {
+    val modifierCallExpression =
+      nameExpression.parent as? KtDotQualifiedExpression ?: return emptyList()
+    val receiverExpression =
+      modifierCallExpression.receiverExpression as? KtExpression ?: return emptyList()
+    val receiverType = receiverExpression.getKtType() ?: return emptyList()
+
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.getFileSymbol()
 
-    val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
-    val receiverExpression = callTypeAndReceiver.receiver as? KtExpression ?: return emptyList()
-    val receiverType = receiverExpression.getKtType() ?: return emptyList()
-
-    return KtSymbolFromIndexProvider.createForElement(nameExpression)
+    return KtSymbolFromIndexProvider.createForElement(file)
       .getTopLevelExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
         listOf(receiverType),
       )
       .filter {
-        isVisible(
-          it as KtSymbolWithVisibility,
-          fileSymbol,
-          callTypeAndReceiver.receiver as? KtExpression,
-          originalPosition,
-        )
+        isVisible(it as KtSymbolWithVisibility, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
   }
@@ -520,7 +526,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     override fun handleInsert(context: InsertionContext) {
-      if (isK2Plugin()) {
+      if (isK2Mode()) {
         handleInsertK2(context)
         return
       }
