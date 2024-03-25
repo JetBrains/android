@@ -60,7 +60,6 @@ import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
@@ -96,6 +95,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.InternalDecorator
+import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
@@ -144,6 +144,10 @@ private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
 private val COLLATOR = Collator.getInstance()
 
 private val TAB_COMPARATOR = compareBy<Content, Any?>(COLLATOR) { it.tabName ?: "" }.thenBy { ID_KEY.get(it) }
+
+private val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
+@Suppress("UnstableApiUsage")
+private val LIVE_ICON = BadgeIconSupplier(INACTIVE_ICON).liveIndicatorIcon
 
 /**
  * Manages contents of the Running Devices tool window. Listens to device connections and
@@ -669,11 +673,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun showLiveIndicator() {
-    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.EMULATOR))
+    toolWindow.setIcon(LIVE_ICON)
   }
 
   private fun hideLiveIndicator() {
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.EMULATOR)
+    toolWindow.setIcon(INACTIVE_ICON)
   }
 
   @AnyThread
