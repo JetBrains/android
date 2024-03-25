@@ -139,10 +139,9 @@ object DebugViewAttributes {
 }
 
 private const val ACTIVITY_RESTART_KEY = "activity.restart"
-// TODO(b/330406958): replace with redirect URL
 // TODO(b/330406958): update documentation
 private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
-  "https://developer.android.com/studio/debug/layout-inspector#activity-restart"
+  "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
 fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
