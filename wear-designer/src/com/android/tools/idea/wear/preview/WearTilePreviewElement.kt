@@ -19,6 +19,7 @@ import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
@@ -29,8 +30,13 @@ data class WearTilePreviewElement<T>(
   override val previewBody: T?,
   override val methodFqn: String,
   override val configuration: PreviewConfiguration,
-  override val hasAnimations: Boolean = false
-) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>
-
+  override val hasAnimations: Boolean = false,
+  override val instanceId: String = methodFqn,
+) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ) = copy(displaySettings = displaySettings, configuration = config)
+}
 
 typealias PsiWearTilePreviewElement = WearTilePreviewElement<SmartPsiElementPointer<PsiElement>>

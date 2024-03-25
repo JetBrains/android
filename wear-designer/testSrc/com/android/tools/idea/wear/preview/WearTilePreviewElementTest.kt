@@ -20,9 +20,11 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,9 +34,11 @@ class WearTilePreviewElementTest {
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  @Test
-  fun twoPreviewElementsWithTheSameValuesShouldBeEqual() {
-    val psiFile =
+  private lateinit var psiFile: PsiFile
+
+  @Before
+  fun setup() {
+    psiFile =
       fixture.addFileToProjectAndInvalidate(
         "com/android/test/File.kt",
         // language=kotlin
@@ -51,7 +55,10 @@ class WearTilePreviewElementTest {
         """
           .trimIndent(),
       )
+  }
 
+  @Test
+  fun twoPreviewElementsWithTheSameValuesShouldBeEqual() {
     val previewElement1 =
       WearTilePreviewElement(
         displaySettings =
@@ -73,5 +80,38 @@ class WearTilePreviewElementTest {
       )
 
     assertEquals(previewElement1, previewElement2)
+  }
+
+  @Test
+  fun testCreateDerivedInstance() {
+    val originalPreviewElement =
+      WearTilePreviewElement(
+        displaySettings =
+          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+        previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
+        previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
+        methodFqn = "someMethodFqn",
+        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+      )
+
+    val newPreviewDisplaySettings =
+      PreviewDisplaySettings("derived name", "derived group", true, true, "0xffffff")
+    val newConfig =
+      PreviewConfiguration.cleanAndGet(
+        device = "id:wearos_square",
+        fontScale = 3f,
+        locale = "fr-FR",
+      )
+
+    val derivedPreviewElement =
+      originalPreviewElement.createDerivedInstance(newPreviewDisplaySettings, newConfig)
+
+    assertEquals(newPreviewDisplaySettings, derivedPreviewElement.displaySettings)
+    assertEquals(newConfig, derivedPreviewElement.configuration)
+    assertEquals(originalPreviewElement.methodFqn, derivedPreviewElement.methodFqn)
+    assertEquals(originalPreviewElement.instanceId, derivedPreviewElement.instanceId)
+    assertEquals(originalPreviewElement.previewElementDefinition, derivedPreviewElement.previewElementDefinition)
+    assertEquals(originalPreviewElement.previewBody, derivedPreviewElement.previewBody)
+    assertEquals(originalPreviewElement.hasAnimations, derivedPreviewElement.hasAnimations)
   }
 }
