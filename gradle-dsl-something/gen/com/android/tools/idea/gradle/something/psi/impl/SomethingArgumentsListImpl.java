@@ -46,7 +46,7 @@ public class SomethingArgumentsListImpl extends ASTWrapperPsiElement implements 
 
   @Override
   @NotNull
-  public List<PsiElement> getArguments() {
+  public List<SomethingValue> getArguments() {
     return PsiImplUtil.getArguments(this);
   }
 

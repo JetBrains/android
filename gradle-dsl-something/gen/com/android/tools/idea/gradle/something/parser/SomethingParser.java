@@ -56,22 +56,13 @@ public class SomethingParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // (factory | rvalue)?
+  // rvalue?
   public static boolean argumentsList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList")) return false;
     Marker m = enter_section_(b, l, _NONE_, ARGUMENTS_LIST, "<arguments list>");
-    argumentsList_0(b, l + 1);
+    rvalue(b, l + 1);
     exit_section_(b, l, m, true, false, null);
     return true;
-  }
-
-  // factory | rvalue
-  private static boolean argumentsList_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "argumentsList_0")) return false;
-    boolean r;
-    r = factory(b, l + 1);
-    if (!r) r = rvalue(b, l + 1);
-    return r;
   }
 
   /* ********************************************************** */

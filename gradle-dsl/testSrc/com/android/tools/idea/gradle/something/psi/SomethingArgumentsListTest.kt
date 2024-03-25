@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.gradle.something.psi
 
-// ATTENTION: This file has been automatically generated from something.bnf. Do not edit it manually.
-package com.android.tools.idea.gradle.something.psi;
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.LightPlatformTestCase
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface SomethingArgumentsList extends SomethingElement {
-
-  @NotNull
-  List<SomethingValue> getArguments();
-
+class SomethingArgumentsListTest : LightPlatformTestCase() {
+  fun testGetArguments() {
+    val psiFactory = SomethingPsiFactory(project)
+    val factory = psiFactory.createFactory("abc")
+    factory.argumentsList!!.add(psiFactory.createLiteral("def"))
+    val arguments = factory.argumentsList!!.arguments
+    assertThat(arguments).hasSize(1)
+  }
 }

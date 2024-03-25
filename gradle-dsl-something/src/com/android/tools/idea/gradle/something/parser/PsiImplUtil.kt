@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.something.psi.SomethingValue
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.childLeafs
+import com.intellij.psi.util.childrenOfType
 
 class PsiImplUtil {
   companion object {
@@ -65,8 +66,8 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getArguments(list: SomethingArgumentsList): List<PsiElement> {
-      return list.children.toList()
+    fun getArguments(list: SomethingArgumentsList): List<SomethingValue> {
+      return list.childrenOfType<SomethingValue>().toList()
     }
 
     @JvmStatic
