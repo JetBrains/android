@@ -7,12 +7,14 @@ import android.widget.TextView
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val label = TextView(this)
-        label.setText("Hello Minimal World!")
-        Log.i("MainActivity", "Hello Minimal World!")
-        setContentView(label)
+      super.onCreate(savedInstanceState)
+      val label = TextView(this)
+      label.setText("Hello Minimal World!")
+      Log.i("MainActivity", "Hello Minimal World!")
+      setContentView(label)
 
-        someMethodThatDoesNotExist()
+      someMethodThatDoesNotExist()
     }
+
+    val hello = Hello()
 }

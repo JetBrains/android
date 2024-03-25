@@ -48,8 +48,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -165,27 +167,40 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   @Override
   public void executeAction(ASDriver.ExecuteActionRequest request, StreamObserver<ASDriver.ExecuteActionResponse> responseObserver) {
     ASDriver.ExecuteActionResponse.Builder builder = ASDriver.ExecuteActionResponse.newBuilder();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      AnAction action = ActionManager.getInstance().getAction(request.getActionId());
-      if (action == null) {
-        builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
-        return;
-      }
+    builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
 
-      String projectName = request.hasProjectName() ? request.getProjectName() : null;
-      DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
-      if (dataContext == null) {
-        String errorMessage = "Could not get a DataContext for executeAction.";
-        System.err.println(errorMessage);
-        builder.setErrorMessage(errorMessage);
-        builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
-      }
-      else {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      @Nullable String errorMessage = null;
+      try {
+        AnAction action = ActionManager.getInstance().getAction(request.getActionId());
+        if (action == null) {
+          builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
+          return;
+        }
+
+        String projectName = request.hasProjectName() ? request.getProjectName() : null;
+        DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
+        if (dataContext == null) {
+          errorMessage = "Could not get a DataContext for executeAction.";
+          return;
+        }
+
         AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
         ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
+      } catch (Exception e) {
+        e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          errorMessage = e.getMessage();
+        }
+      } finally {
+        if (!StringUtil.isEmpty(errorMessage)) {
+          System.err.println(errorMessage);
+          builder.setErrorMessage(errorMessage);
+        }
       }
     });
+
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
@@ -616,6 +631,76 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void moveCaret(ASDriver.MoveCaretRequest request, StreamObserver<ASDriver.MoveCaretResponse> responseObserver) {
+    ASDriver.MoveCaretResponse.Builder builder = ASDriver.MoveCaretResponse.newBuilder();
+    builder.setResult(ASDriver.MoveCaretResponse.Result.ERROR);
+
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      @Nullable String errorMessage = null;
+      try {
+        Project project = getSingleProject();
+        FileEditor selectedEditor = FileEditorManager.getInstance(project).getSelectedEditor();
+        if (selectedEditor == null) {
+          errorMessage = "Selected editor not found.";
+          return;
+        }
+
+        if (!(selectedEditor instanceof TextEditor textEditor)) {
+          errorMessage = "Open editor is not a TextEditor";
+          return;
+        }
+
+        int offset = offsetForWindow(textEditor.getEditor().getDocument().getText(), request.getWindow());
+        if (offset == -1) {
+          errorMessage = "Offset not found in open document.";
+          return;
+        }
+
+        CaretModel caretModel = textEditor.getEditor().getCaretModel();
+        caretModel.moveToOffset(offset);
+
+        builder.setResult(ASDriver.MoveCaretResponse.Result.OK);
+      } catch (Exception e) {
+        e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          errorMessage = e.getMessage();
+        }
+      } finally {
+        if (!StringUtil.isEmpty(errorMessage)) {
+          System.err.println(errorMessage);
+          builder.setErrorMessage(errorMessage);
+        }
+      }
+    });
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  /**
+   * Find the offset for a given window within a text string.
+   *
+   * @param documentText the string in which to search.
+   * @param window the string indicating the offset to be found. The string needs to contain a `|` character surrounded by a prefix and/or
+   *               suffix. The text is searched for the concatenation of prefix and suffix strings and the position of `|` for the first
+   *               match is returned.
+   */
+  private int offsetForWindow(String documentText, String window) {
+    int delta = window.indexOf('|');
+    if (delta == -1) {
+      return -1;
+    }
+
+    String target = window.substring(0, delta) + window.substring(delta + 1);
+    int start = documentText.indexOf(target);
+    if (start == -1) {
+      return -1;
+    }
+
+    return start + delta;
   }
 
   @Override

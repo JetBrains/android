@@ -405,6 +405,27 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  /**
+   * Moves caret in the currently open editor to position indicated by the window string.
+   *
+   * @param window the string indicating where the cursor should be moved. The string needs to contain a `|` character surrounded by a
+   *               prefix and/or suffix to be found in the file. The file is searched for the concatenation of prefix and suffix strings
+   *               and the caret is placed at the first matching offset, between the prefix and suffix.
+   */
+  public void moveCaret(String window) {
+    ASDriver.MoveCaretRequest rq = ASDriver.MoveCaretRequest.newBuilder().setWindow(window).build();
+    ASDriver.MoveCaretResponse response = androidStudio.moveCaret(rq);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not move caret with window '%s'. %s",
+                                                      window, formatErrorMessage(response.getErrorMessage())));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
   /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/
   public void waitForComponentWithExactText(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();

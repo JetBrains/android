@@ -172,6 +172,19 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "GoToDeclarationTest",
+    timeout = "long",
+    data = [
+        ":languagehighlighting",
+        ":languagehighlighting_deps",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    module = ":intellij.android.core.integration",
+    test_class = "com.android.tools.idea.GoToDeclarationTest",
+)
+
+iml_studio_test(
     name = "LiveEditTest",
     timeout = "long",
     data = [
