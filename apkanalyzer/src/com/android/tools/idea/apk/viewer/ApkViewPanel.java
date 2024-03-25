@@ -255,7 +255,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Raw File Size")
+                   .setName("Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
