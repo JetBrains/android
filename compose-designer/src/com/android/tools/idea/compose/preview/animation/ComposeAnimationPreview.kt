@@ -20,6 +20,7 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
@@ -198,26 +199,28 @@ class ComposeAnimationPreview(
             )
           selected.selectedPropertiesCallback = { curve.timelineUnits = it }
           curve.timelineUnits = selected.selectedProperties
-          Disposer.register(this@ComposeAnimationPreview, curve)
-          AndroidCoroutineScope(curve).launch {
-            curve.offsetPx.collect {
-              selected.elementState.value =
-                selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
+          if (Disposer.tryRegister(this@ComposeAnimationPreview, curve)) {
+            AndroidCoroutineScope(curve).launch {
+              curve.offsetPx.collect {
+                selected.elementState.value =
+                  selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
+              }
             }
           }
           listOf(curve)
         } else
           animations.toList().map { tab ->
             tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
-              Disposer.register(this@ComposeAnimationPreview, this)
               minY += heightScaled()
-              if (tab is ComposeSupportedAnimationManager) {
-                tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-                tab.card.setDuration(tab.currentTransition.duration)
-                AndroidCoroutineScope(this).launch {
-                  offsetPx.collect {
-                    tab.elementState.value =
-                      tab.elementState.value.copy(valueOffset = getValueOffset(it))
+              if (Disposer.tryRegister(this@ComposeAnimationPreview, this)) {
+                if (tab is ComposeSupportedAnimationManager) {
+                  tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
+                  tab.card.setDuration(tab.currentTransition.duration)
+                  AndroidCoroutineScope(this).launch {
+                    offsetPx.collect {
+                      tab.elementState.value =
+                        tab.elementState.value.copy(valueOffset = getValueOffset(it))
+                    }
                   }
                 }
               }
