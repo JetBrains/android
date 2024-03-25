@@ -20,6 +20,7 @@ import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -28,6 +29,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.res.CacheableResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -38,6 +40,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -482,5 +485,16 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());
+  }
+
+  public void testNamespaceUpdatesReflectedInRepository() {
+    assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
+      .containsExactly(ResourceNamespace.RES_AUTO);
+
+    enableNamespacing(myFacet, "p1.p2");
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
+      .containsExactly(ResourceNamespace.fromPackageName("p1.p2"));
   }
 }
