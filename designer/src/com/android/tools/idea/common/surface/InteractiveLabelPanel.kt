@@ -18,7 +18,6 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
-import com.intellij.ui.JBColor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import kotlinx.coroutines.launch
@@ -36,7 +35,7 @@ class InteractiveLabelPanel(
     addMouseListener(
       object : MouseAdapter() {
         override fun mouseEntered(e: MouseEvent?) {
-          foreground = labelHoverColor
+          foreground = AdtUiUtils.HEADER_HOVER_COLOR
         }
 
         override fun mouseExited(e: MouseEvent?) {
@@ -48,9 +47,5 @@ class InteractiveLabelPanel(
         }
       }
     )
-  }
-
-  companion object {
-    val labelHoverColor = JBColor(0x5a5d6b, 0xf0f1f2)
   }
 }
