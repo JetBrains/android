@@ -24,25 +24,22 @@ import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
-import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 
 private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /** A [PreviewRepresentation] for glance [PreviewElement]s */
-internal class GlancePreviewRepresentation<
-  T : MethodPreviewElement<SmartPsiElementPointer<PsiElement>>
->(
+internal class GlancePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<T>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
+  previewProviderConstructor:
+    (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiGlancePreviewElement>,
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiGlancePreviewElement, NlModel>,
 ) :
-  CommonPreviewRepresentation<T>(
+  CommonPreviewRepresentation<PsiGlancePreviewElement>(
     adapterViewFqcn,
     psiFile,
     previewProviderConstructor,

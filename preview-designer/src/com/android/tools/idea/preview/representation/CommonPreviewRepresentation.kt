@@ -37,7 +37,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
-import com.android.tools.idea.preview.PsiPreviewElement
+import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -101,10 +101,10 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
-val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElement>("PreviewElement")
+val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
 
 /** A generic [PreviewElement] [PreviewRepresentation]. */
-open class CommonPreviewRepresentation<T : PsiPreviewElement>(
+open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<T>,
