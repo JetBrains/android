@@ -104,6 +104,49 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       )
   }
 
+  fun testStringHasOnlyOneLine() {
+    assertThat(
+      """
+          foo = "some\nstring
+          bar = 3
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+          FILE
+            SomethingAssignmentImpl(ASSIGNMENT)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.=)('=')
+              SomethingLiteralImpl(LITERAL)
+                PsiElement(SomethingTokenType.string)('"some\nstring')
+            SomethingAssignmentImpl(ASSIGNMENT)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('bar')
+              PsiElement(SomethingTokenType.=)('=')
+              SomethingLiteralImpl(LITERAL)
+                PsiElement(SomethingTokenType.number)('3')
+          """.trimIndent()
+      )
+  }
+
+  fun testStringHandleEscapeQuotes() {
+    assertThat(
+      """
+          foo = "some\"string\""
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+          FILE
+            SomethingAssignmentImpl(ASSIGNMENT)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.=)('=')
+              SomethingLiteralImpl(LITERAL)
+                PsiElement(SomethingTokenType.string)('"some\"string\""')
+          """.trimIndent()
+      )
+  }
+
   private fun String.toParseTreeText() = createPsiFile("in-memory", this.trimIndent()).let {
     toParseTreeText(it, true, false).trim()
   }

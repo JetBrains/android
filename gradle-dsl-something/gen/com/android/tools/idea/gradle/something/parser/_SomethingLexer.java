@@ -67,13 +67,14 @@ public class _SomethingLexer implements FlexLexer {
   private static final int [] ZZ_CMAP_BLOCKS = zzUnpackcmap_blocks();
 
   private static final String ZZ_CMAP_BLOCKS_PACKED_0 =
-    "\11\0\1\1\4\2\22\0\1\1\1\0\1\3\5\0"+
-    "\1\4\1\5\4\0\1\6\1\7\12\10\3\0\1\11"+
-    "\3\0\32\12\6\0\1\13\3\14\1\15\1\16\5\14"+
-    "\1\17\1\14\1\20\3\14\1\21\1\22\1\23\1\24"+
-    "\5\14\1\25\1\0\1\26\7\0\1\2\32\0\1\1"+
-    "\u01df\0\1\1\177\0\13\1\35\0\2\2\5\0\1\1"+
-    "\57\0\1\1\240\0\1\1\377\0\u0100\27";
+    "\11\0\1\1\1\2\2\3\1\2\22\0\1\1\1\0"+
+    "\1\4\5\0\1\5\1\6\4\0\1\7\1\10\12\11"+
+    "\3\0\1\12\3\0\32\13\1\0\1\14\4\0\1\15"+
+    "\3\16\1\17\1\20\5\16\1\21\1\16\1\22\3\16"+
+    "\1\23\1\24\1\25\1\26\5\16\1\27\1\0\1\30"+
+    "\7\0\1\3\32\0\1\1\u01df\0\1\1\177\0\13\1"+
+    "\35\0\2\3\5\0\1\1\57\0\1\1\240\0\1\1"+
+    "\377\0\u0100\31";
 
   private static int [] zzUnpackcmap_blocks() {
     int [] result = new int[1536];
@@ -100,9 +101,9 @@ public class _SomethingLexer implements FlexLexer {
   private static final int [] ZZ_ACTION = zzUnpackAction();
 
   private static final String ZZ_ACTION_PACKED_0 =
-    "\1\0\1\1\1\2\1\1\1\3\1\4\1\5\1\1"+
-    "\1\6\1\7\4\10\1\11\1\12\1\0\1\13\1\14"+
-    "\6\10\1\15\1\16";
+    "\1\0\1\1\1\2\1\3\1\4\1\5\1\6\1\1"+
+    "\1\7\1\10\4\11\1\12\1\13\1\3\1\0\1\14"+
+    "\6\11\1\15\1\16";
 
   private static int [] zzUnpackAction() {
     int [] result = new int[27];
@@ -130,10 +131,10 @@ public class _SomethingLexer implements FlexLexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\30\0\60\0\110\0\30\0\30\0\30\0\140"+
-    "\0\170\0\30\0\220\0\250\0\300\0\330\0\30\0\30"+
-    "\0\110\0\30\0\360\0\u0108\0\u0120\0\u0138\0\u0150\0\u0168"+
-    "\0\u0180\0\220\0\220";
+    "\0\0\0\32\0\64\0\116\0\32\0\32\0\32\0\150"+
+    "\0\202\0\32\0\234\0\266\0\320\0\352\0\32\0\32"+
+    "\0\32\0\u0104\0\u011e\0\u0138\0\u0152\0\u016c\0\u0186\0\u01a0"+
+    "\0\u01ba\0\234\0\234";
 
   private static int [] zzUnpackRowMap() {
     int [] result = new int[27];
@@ -159,21 +160,24 @@ public class _SomethingLexer implements FlexLexer {
   private static final int [] ZZ_TRANS = zzUnpacktrans();
 
   private static final String ZZ_TRANS_PACKED_0 =
-    "\1\2\2\3\1\4\1\5\1\6\1\7\1\10\1\11"+
-    "\1\12\1\2\3\13\1\14\1\13\1\15\2\13\1\16"+
-    "\1\13\1\17\1\20\1\2\31\0\2\3\25\0\3\21"+
-    "\1\22\24\21\7\0\1\23\30\0\1\11\27\0\1\13"+
-    "\1\0\13\13\13\0\1\13\1\0\1\13\1\24\11\13"+
-    "\13\0\1\13\1\0\12\13\1\25\13\0\1\13\1\0"+
-    "\7\13\1\26\3\13\3\0\2\23\1\0\24\23\11\0"+
-    "\1\13\1\0\5\13\1\27\5\13\13\0\1\13\1\0"+
-    "\5\13\1\30\5\13\13\0\1\13\1\0\12\13\1\31"+
-    "\13\0\1\13\1\0\10\13\1\31\2\13\13\0\1\13"+
-    "\1\0\5\13\1\32\5\13\13\0\1\13\1\0\3\13"+
-    "\1\33\7\13\3\0";
+    "\1\2\3\3\1\4\1\5\1\6\1\7\1\10\1\11"+
+    "\1\12\2\2\3\13\1\14\1\13\1\15\2\13\1\16"+
+    "\1\13\1\17\1\20\1\2\33\0\3\3\26\0\2\4"+
+    "\1\0\1\4\1\21\7\4\1\22\15\4\10\0\1\23"+
+    "\32\0\1\11\31\0\1\13\1\0\1\13\1\0\12\13"+
+    "\14\0\1\13\1\0\1\13\1\0\1\24\11\13\14\0"+
+    "\1\13\1\0\1\13\1\0\11\13\1\25\14\0\1\13"+
+    "\1\0\1\13\1\0\6\13\1\26\3\13\3\0\2\4"+
+    "\1\0\27\4\2\23\2\0\25\23\12\0\1\13\1\0"+
+    "\1\13\1\0\4\13\1\27\5\13\14\0\1\13\1\0"+
+    "\1\13\1\0\4\13\1\30\5\13\14\0\1\13\1\0"+
+    "\1\13\1\0\11\13\1\31\14\0\1\13\1\0\1\13"+
+    "\1\0\7\13\1\31\2\13\14\0\1\13\1\0\1\13"+
+    "\1\0\4\13\1\32\5\13\14\0\1\13\1\0\1\13"+
+    "\1\0\2\13\1\33\7\13\3\0";
 
   private static int [] zzUnpacktrans() {
-    int [] result = new int[408];
+    int [] result = new int[468];
     int offset = 0;
     offset = zzUnpacktrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -211,8 +215,8 @@ public class _SomethingLexer implements FlexLexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\1\0\1\11\2\1\3\11\2\1\1\11\4\1\2\11"+
-    "\1\0\1\11\11\1";
+    "\1\0\1\11\2\1\3\11\2\1\1\11\4\1\3\11"+
+    "\1\0\11\1";
 
   private static int [] zzUnpackAttribute() {
     int [] result = new int[27];
@@ -540,47 +544,47 @@ public class _SomethingLexer implements FlexLexer {
           // fall through
           case 16: break;
           case 3:
-            { return OP_LPAREN;
+            { return STRING;
             }
           // fall through
           case 17: break;
           case 4:
-            { return OP_RPAREN;
+            { return OP_LPAREN;
             }
           // fall through
           case 18: break;
           case 5:
-            { return OP_DOT;
+            { return OP_RPAREN;
             }
           // fall through
           case 19: break;
           case 6:
-            { return NUMBER;
+            { return OP_DOT;
             }
           // fall through
           case 20: break;
           case 7:
-            { return OP_EQ;
+            { return NUMBER;
             }
           // fall through
           case 21: break;
           case 8:
-            { return TOKEN;
+            { return OP_EQ;
             }
           // fall through
           case 22: break;
           case 9:
-            { return OP_LBRACE;
+            { return TOKEN;
             }
           // fall through
           case 23: break;
           case 10:
-            { return OP_RBRACE;
+            { return OP_LBRACE;
             }
           // fall through
           case 24: break;
           case 11:
-            { return STRING;
+            { return OP_RBRACE;
             }
           // fall through
           case 25: break;

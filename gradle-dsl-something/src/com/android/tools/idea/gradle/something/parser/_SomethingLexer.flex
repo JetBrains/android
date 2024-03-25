@@ -27,7 +27,7 @@ WHITE_SPACE=\s+
 
 LINE_COMMENT="//".*
 NUMBER=[0-9]+
-STRING=\"[^\"]*\"
+STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
 BOOLEAN=(true|false)
 TOKEN=[a-z][a-zA-Z0-9]*
 

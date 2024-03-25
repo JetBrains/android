@@ -39,7 +39,7 @@
 
     line_comment = "regexp://.*"
     number = "regexp:\d+"
-    string = "regexp:\"[^\"]*\""
+    string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
     boolean = "regexp:(true|false)"
     null = "null"
     token = "regexp:[a-z][a-zA-Z0-9]*"
