@@ -17,14 +17,11 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -82,8 +79,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s\n", ApplicationInfo.getInstance().getFullVersion()));
-      sb.append(String.format("Kotlin plugin: %1$s\n", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
-
       for (SendFeedbackDescriptionProvider provider : SendFeedbackDescriptionProvider.getProviders()) {
         provider.getDescription(project).forEach(str -> sb.append(str + "\n"));
       }
@@ -99,15 +94,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       LOG.info("Unable to prepopulate additional version information - proceeding with sending feedback anyway. ", e);
       return "(unable to retrieve additional version information)";
     }
-  }
-
-  private static String getKotlinPluginDetails() {
-    PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
-    IdeaPluginDescriptor kotlinPlugin = PluginManagerCore.getPlugin(kotlinPluginId);
-    if (kotlinPlugin != null) {
-      return kotlinPlugin.getVersion();
-    }
-    return "(kotlin plugin not found)";
   }
 
   @Override
