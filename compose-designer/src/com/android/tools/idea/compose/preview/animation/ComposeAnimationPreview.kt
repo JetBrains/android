@@ -29,10 +29,12 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AllTabPanel
+import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.BottomPanel
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.MINIMUM_TIMELINE_DURATION_MS
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
 import com.android.tools.idea.preview.animation.TimelinePanel
@@ -40,8 +42,8 @@ import com.android.tools.idea.preview.animation.Tooltip
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -53,7 +55,6 @@ import com.intellij.util.io.await
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.math.max
@@ -62,12 +63,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
-
-/**
- * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
- * duration allows to interact with timeline even for 0-duration animations.
- */
-private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the
@@ -85,9 +80,7 @@ class ComposeAnimationPreview(
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-) : Disposable {
-
-  @VisibleForTesting val scope = AndroidCoroutineScope(this)
+) : AnimationPreview<ComposeAnimationManager>(sceneManagerProvider, tracker) {
 
   private val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
@@ -122,9 +115,6 @@ class ComposeAnimationPreview(
       }
     }
   }
-
-  /** List of [AnimationManager], so all animation cards that are displayed in inspector. */
-  @VisibleForTesting val animations = mutableListOf<ComposeAnimationManager>()
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
@@ -209,7 +199,7 @@ class ComposeAnimationPreview(
           }
           listOf(curve)
         } else
-          animations.toList().map { tab ->
+          animations.map { tab ->
             tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).apply {
               minY += heightScaled()
               if (Disposer.tryRegister(this@ComposeAnimationPreview, this)) {
@@ -248,14 +238,10 @@ class ComposeAnimationPreview(
    * @param longTimeout set true to use a long timeout.
    * @param makeCopy set true to create a copy of the animation list while loading properties.
    */
-  private suspend fun setClockTime(
-    newValue: Int,
-    longTimeout: Boolean = false,
-    makeCopy: Boolean = false,
-  ) {
+  private suspend fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
-      sceneManagerProvider()?.executeInRenderSessionAsync(longTimeout) {
+      sceneManagerProvider()?.executeInRenderSession(longTimeout) {
         setClockTimes(
           animations.filterIsInstance<ComposeSupportedAnimationManager>().associate {
             val newTime =
@@ -266,11 +252,9 @@ class ComposeAnimationPreview(
         )
       }
 
-      // Load all properties.
-      // Make a copy of the list to prevent ConcurrentModificationException
-      (if (makeCopy) animations.toList() else animations)
-        .filterIsInstance<ComposeSupportedAnimationManager>()
-        .forEach { it.loadProperties() }
+      animations.filterIsInstance<ComposeSupportedAnimationManager>().forEach {
+        it.loadProperties()
+      }
       renderAnimation()
     }
   }
@@ -296,7 +280,7 @@ class ComposeAnimationPreview(
 
   private suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
     // Set the timeline to 0
-    setClockTime(0, longTimeout, makeCopy = true)
+    setClockTime(0, longTimeout)
     updateMaxDuration(longTimeout)
     // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
     // short timeout.
@@ -329,7 +313,7 @@ class ComposeAnimationPreview(
   private suspend fun updateMaxDuration(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
-    sceneManagerProvider()?.executeInRenderSessionAsync(longTimeout) {
+    sceneManagerProvider()?.executeInRenderSession(longTimeout) {
       maxDurationPerIteration.value = clock.getMaxDurationMsPerIteration()
     }
   }
@@ -408,7 +392,7 @@ class ComposeAnimationPreview(
   private fun addTab(animationTab: ComposeAnimationManager) {
     val isAddingFirstTab = tabbedPane.tabCount == 0
     coordinationTab.addCard(animationTab.card)
-    animations.add(animationTab)
+    addAnimation(animationTab)
 
     if (isAddingFirstTab) {
       // There are no tabs, and we're about to add one. Replace the placeholder panel with the
@@ -439,10 +423,11 @@ class ComposeAnimationPreview(
               tabbedPane.tabs
                 .find { it.component == tab.tabComponent }
                 ?.let { tabbedPane.removeTab(it) }
-            animations.remove(tab)
+            removeAnimation(tab)
             tab.destroy()
-            if (animations.size == 0) {
+            if (animations.isEmpty()) {
               tabbedPane.removeAllTabs()
+              tabNames.clear()
               // There are no more tabs. Replace the TabbedPane with the placeholder panel.
               showNoAnimationsPanel()
             } else if (tabbedPane.tabCount != 0) {
@@ -464,13 +449,11 @@ class ComposeAnimationPreview(
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
        * noAnimationsPanel when removing all tabs.
        */
-      animations.toList().forEach { removeAnimation(it.animation).join() }
-      tabNames.clear()
+      animations.forEach { removeAnimation(it.animation).join() }
     }
 
   override fun dispose() {
     scope.cancel()
-    animations.clear()
     tabNames.clear()
   }
 
@@ -531,12 +514,4 @@ class ComposeAnimationPreview(
       dragEndListeners.add { updateTimelineMaximum() }
     }
   }
-}
-
-suspend fun LayoutlibSceneManager.executeInRenderSessionAsync(
-  useLongTimeout: Boolean = false,
-  callback: () -> Unit,
-) {
-  this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS)
-    .await()
 }
