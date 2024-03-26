@@ -119,6 +119,25 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  fun testAppendDependencyToBlock(){
+    val file = """
+      declarativeDependencies {
+          api("someDependency")
+      }
+    """.trimIndent()
+    val expected = """
+      declarativeDependencies {
+          api("someDependency")
+          implementation("newDependency")
+      }
+    """.trimIndent()
+    doTest(file, expected) {
+      val block = (elements.first().value as DependenciesDslElement)
+      // new literal has externalSyntax = METHOD by default
+      block.setNewLiteral("implementation", "newDependency")
+    }
+  }
+
   private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,

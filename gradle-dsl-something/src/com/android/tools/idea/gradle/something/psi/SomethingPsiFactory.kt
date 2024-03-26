@@ -76,4 +76,8 @@ class SomethingPsiFactory(private val project: Project) {
     return factory ?: error("Failed to create createFactory `$identifier( )`")
   }
 
+  fun createOneParameterFactory(identifier: String, parameter: Any?): SomethingFactory {
+    val factory = createFromText<SomethingFactory>("$identifier($parameter)")
+    return factory ?: error("Failed to create createFactory `$identifier($parameter)`")
+  }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -58,8 +60,10 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
       is GradleDslLiteral ->
         if (parentPsiElement is SomethingArgumentsList)
           factory.createLiteral(element.value)
-        else
+        else if (element.externalSyntax == ASSIGNMENT)
           factory.createAssignment(name, "\"placeholder\"")
+        else
+          factory.createOneParameterFactory(name, "\"placeholder\"")
 
       is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
       is GradleDslMethodCall -> factory.createFactory(name)
@@ -135,11 +139,10 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     maybeUpdateName(literal)
     val newElement = literal.unsavedValue ?: return
     val element =
-      if (psiElement is SomethingAssignment) {
-        psiElement.value?.firstChild?.replace(newElement) ?: return
-      }
-      else {
-        psiElement.replace(newElement)
+      when(psiElement){
+        is SomethingAssignment -> psiElement.value?.firstChild?.replace(newElement) ?: return
+        is SomethingFactory -> psiElement.argumentsList?.arguments?.firstOrNull()?.replace(newElement) ?: return
+        else -> psiElement.replace(newElement)
       }
     literal.setExpression(element)
     literal.reset()

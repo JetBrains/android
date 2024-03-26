@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -42,11 +43,16 @@ fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
       }
     }
   }
+  fun GradlePropertiesDslElement.createAssignment(key: String, value: Any) {
+    val literal = setNewLiteral(key, value)
+    literal.externalSyntax = ASSIGNMENT
+  }
+
   fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
     when (value) {
-      is String -> element.setNewLiteral(key, value)
-      is Int -> element.setNewLiteral(key, value)
-      is Boolean -> element.setNewLiteral(key, value)
+      is String -> element.createAssignment(key, value)
+      is Int -> element.createAssignment(key, value)
+      is Boolean -> element.createAssignment(key, value)
       is Block<*, *> -> {
         val block = TestBlockElement(element, key)
         value.forEach { (k, v) -> populate(k as String, v as Any, block) }
