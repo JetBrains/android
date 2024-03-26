@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
@@ -56,7 +55,6 @@ import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
 import kotlin.math.max
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,11 +80,6 @@ class ComposeAnimationPreview(
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) : AnimationPreview<ComposeAnimationManager>(sceneManagerProvider, tracker) {
 
-  private val animationPreviewPanel =
-    JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
-
-  val component = TooltipLayeredPane(animationPreviewPanel)
-
   /**
    * Tabs panel where each tab represents a single animation being inspected. First tab is a
    * coordination tab. All tabs share the same [Timeline], but have their own playback toolbar and
@@ -99,7 +92,7 @@ class ComposeAnimationPreview(
     override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
       if (newSelection == oldSelection) return
 
-      val component = tabbedPane.selectedInfo?.component ?: return
+      val component = newSelection?.component ?: return
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
       val selected =
@@ -112,7 +105,6 @@ class ComposeAnimationPreview(
       } else {
         selected?.addTimeline(timeline)
       }
-      timeline.revalidate()
       scope.launch { updateTimelineElements() }
     }
   }

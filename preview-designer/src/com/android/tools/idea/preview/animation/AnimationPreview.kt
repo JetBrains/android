@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.preview.animation
 
+import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import javax.swing.JPanel
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
@@ -74,4 +77,9 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   override fun dispose() {}
+
+  protected val animationPreviewPanel =
+    JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
+
+  val component = TooltipLayeredPane(animationPreviewPanel)
 }
