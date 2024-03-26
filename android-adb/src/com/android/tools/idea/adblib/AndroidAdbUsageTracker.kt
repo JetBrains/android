@@ -54,6 +54,9 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
       AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.CONNECTION_CLOSED_ERROR ->
         AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.CONNECTION_CLOSED_ERROR
 
+      AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.IO_EXCEPTION ->
+        AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.IO_EXCEPTION
+
       AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.OTHER_ERROR ->
         AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.OTHER_ERROR
     }
