@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.ChangedConfiguratorFiles
+import org.jetbrains.kotlin.idea.configuration.KotlinProjectConfigurationService
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.configuration.buildSystemType
 import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
@@ -238,22 +239,31 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     @JvmSuppressWildcards
     override fun configure(project: Project, excludeModules: Collection<Module>) {
+        configureAndGetConfiguredModules(project, excludeModules)
+    }
+
+    @JvmSuppressWildcards
+    override fun configureAndGetConfiguredModules(project: Project, excludeModules: Collection<Module>): Set<Module> {
         // We override this, inlining the superclass method, in order to be able to trigger sync on undo and redo
         // across this operation.
         val dialog = ConfigureDialogWithModulesAndVersion(project, this, excludeModules, getMinimumSupportedVersion())
 
         dialog.show()
-        if (!dialog.isOK) return
-        val kotlinVersion = dialog.kotlinVersion ?: return
+        if (!dialog.isOK) return emptySet()
+        val kotlinVersion = dialog.kotlinVersion ?: return emptySet()
 
-        val collector = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(kotlinVersion))
+        val (collector, configuredModules) = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(kotlinVersion))
         collector.showNotification()
+        return configuredModules
     }
 
-    fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
+    private fun doConfigure(project: Project,
+                            modules: List<Module>,
+                            version: IdeKotlinVersion): Pair<NotificationMessageCollector, Set<Module>> {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val changedFiles = configureWithVersion(project, modules, version, collector, kotlinVersionsAndModules = emptyMap())
+            val (configuredModules, changedFiles) = configureWithVersion(project, modules, version, collector,
+                                                                         kotlinVersionsAndModules = emptyMap())
 
             for (file in changedFiles.getChangedFiles()) {
                 OpenFileAction.openFile(file.virtualFile, project)
@@ -269,7 +279,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                     project.getProjectSystem().getSyncManager().syncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
                 }
             })
-            collector
+            Pair(collector, configuredModules)
         }
     }
 
@@ -343,6 +353,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         // This is just a stub, for Android its own implementation is done in the fun addToPluginsManagementBlock
         return false
     }
+
+    override fun queueSyncIfNeeded(project: Project) {
+        // Do nothing; we queue syncs for Gradle and Maven projects for Kotlin stdlib to be loaded before Java to Kotlin conversion
+    }
+
 
     companion object {
         private const val NAME = "android-gradle"
