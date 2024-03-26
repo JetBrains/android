@@ -95,10 +95,6 @@ class ComposeAnimationPreview(
   @VisibleForTesting
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
 
-  /** Selected single animation. */
-  private var selectedAnimation: MutableStateFlow<ComposeSupportedAnimationManager?> =
-    MutableStateFlow(null)
-
   private inner class TabChangeListener : TabsListener {
     override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
       if (newSelection == oldSelection) return
@@ -106,13 +102,18 @@ class ComposeAnimationPreview(
       val component = tabbedPane.selectedInfo?.component ?: return
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
-      selectedAnimation.value =
+      val selected =
         animations.findIsInstanceAnd<ComposeSupportedAnimationManager> {
           it.tabComponent == component
         }
+      selectedAnimation(selected)
       if (component is AllTabPanel) { // If coordination tab is selected.
         coordinationTab.addTimeline(timeline)
+      } else {
+        selected?.addTimeline(timeline)
       }
+      timeline.revalidate()
+      scope.launch { updateTimelineElements() }
     }
   }
 
@@ -142,18 +143,7 @@ class ComposeAnimationPreview(
   private val bottomPanel =
     BottomPanel(rootComponent, tracker).apply {
       timeline.addChangeListener { scope.launch(uiThread) { clockTimeMs = timeline.value } }
-      addResetListener {
-        timeline.sliderUI.elements.forEach { it.reset() }
-        if (selectedAnimation.value == null) {
-          animations.filterIsInstance<ComposeSupportedAnimationManager>().forEach {
-            it.elementState.value = it.elementState.value.copy(valueOffset = 0)
-          }
-        } else {
-          selectedAnimation.value?.apply {
-            elementState.value = elementState.value.copy(valueOffset = 0)
-          }
-        }
-      }
+      addResetListener { scope.launch { resetTimelineAndUpdateWindowSize(false) } }
     }
 
   @VisibleForTesting
@@ -175,8 +165,8 @@ class ComposeAnimationPreview(
       timeline.repaint()
       timeline.sliderUI.elements.forEach { it.dispose() }
       timeline.sliderUI.elements = run {
-        val selected = selectedAnimation.value
-        if (selected != null) {
+        val selected = selectedAnimation
+        if (selected is ComposeSupportedAnimationManager) {
           // Paint single selected animation.
           val state = selected.elementState.value
           val curve =
@@ -471,20 +461,6 @@ class ComposeAnimationPreview(
           animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
           animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
         }
-      }
-    }
-    scope.launch {
-      selectedAnimation.collect {
-        if (it != null) {
-          // Swing components cannot be placed into different containers, so we add the shared
-          // timeline to the active tab on tab change.
-          withContext(uiThread) {
-            it.addTimeline(timeline)
-            timeline.revalidate()
-          }
-          it.loadProperties()
-        }
-        updateTimelineElements()
       }
     }
     scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }

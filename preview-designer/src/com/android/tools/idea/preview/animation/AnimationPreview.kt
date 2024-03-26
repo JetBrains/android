@@ -57,7 +57,20 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   protected fun removeAnimation(animation: T) {
-    synchronized(animations) { animations = animations.filterNot { it == animation } }
+    synchronized(animations) {
+      animations = animations.filterNot { it == animation }
+      if (selectedAnimation == animation) {
+        selectedAnimation = null
+      }
+    }
+  }
+
+  /** Holds the currently selected animation (for focused inspection on a single tab).* */
+  protected var selectedAnimation: SupportedAnimationManager? = null
+    private set
+
+  protected fun selectedAnimation(animation: SupportedAnimationManager?) {
+    selectedAnimation = animation
   }
 
   override fun dispose() {}
