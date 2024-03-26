@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -52,7 +53,7 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public List<File> findAndroidStudioLocalMavenRepoPaths() {
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode() && StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()) {
       return ImmutableList.of();
     }
     return doFindAndroidStudioLocalMavenRepoPaths();
@@ -84,19 +85,19 @@ public class EmbeddedDistributionPaths {
   @NotNull
   static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
     List<File> repoPaths = new ArrayList<>();
-    // Add prebuilt offline repo
+
+    List<String> studioFlagOfflineRepos = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get());
+    for (String offlineRepo : studioFlagOfflineRepos) {
+      validateAndAdd(offlineRepo, repoPaths);
+    }
+
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+      return repoPaths;
+    }
+
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      try {
-        Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
-        if (!Files.isDirectory(customRepoPath)) {
-          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
-        }
-        repoPaths.add(customRepoPath.toFile());
-      }
-      catch (IOException e) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable", e);
-      }
+      validateAndAdd(studioCustomRepo, repoPaths);
     }
 
     if (StudioPathManager.isRunningFromSources()) {
@@ -115,6 +116,20 @@ public class EmbeddedDistributionPaths {
     }
 
     return ImmutableList.copyOf(repoPaths);
+  }
+
+  private static void validateAndAdd(String studioCustomRepo, List<File> repoPaths) {
+    try {
+      Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
+      if (!Files.isDirectory(customRepoPath)) {
+        Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo + " is not a directory.");
+        return;
+      }
+      repoPaths.add(customRepoPath.toFile());
+    }
+    catch (IOException e) {
+      Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo, e);
+    }
   }
 
   /**

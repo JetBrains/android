@@ -35,6 +35,7 @@ import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -659,8 +660,16 @@ public final class StudioFlags {
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Uses the development offline repositories " +
     "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
-    "in the new project templates and for determining which versions of AGP are avaliable for the upgrade assistant.",
+    "in the new project templates and for determining which versions of AGP are available for the upgrade assistant.\n" +
+    "Note: repositories set in gradle.ide.development.offline.repo.location are always respected, even if this flag is disabled.",
     StudioPathManager.isRunningFromSources());
+
+  public static final Flag<String> DEVELOPMENT_OFFLINE_REPO_LOCATION = new StringFlag(
+    GRADLE_IDE, "development.offline.repo.location", "Development offline repository location",
+    "Set a location for additional injected development maven repositories to use for projects.\n" +
+    "Multiple repositories can be separated by the path separator char " + File.pathSeparator,
+    ""
+  );
 
   public static final Flag<Boolean> INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT = new BooleanFlag(
     GRADLE_IDE, "inject.repos.with.init.script",
