@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -65,9 +64,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
         ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
-        String feedbackUrl = StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
-                             ? getNewFeedbackUrl()
-                             : applicationInfo.getFeedbackUrl();
+        String feedbackUrl = getFeedbackUrlTemplate();
 
         String version = getVersion(applicationInfo);
         feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
@@ -150,7 +147,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     return ActionUpdateThread.BGT;
   }
 
-  private static String getNewFeedbackUrl() {
+  private static String getFeedbackUrlTemplate() {
     String instructions = """
       ####################################################
 

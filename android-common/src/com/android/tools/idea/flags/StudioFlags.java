@@ -1709,11 +1709,6 @@ public final class StudioFlags {
 
   // region NEW_COLLECT_LOGS_DIALOG
   private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
-  public static final Flag<Boolean> ENABLE_NEW_COLLECT_LOGS_DIALOG = new BooleanFlag(
-    NEW_COLLECT_LOGS_DIALOG, "enable.new.collect.logs.dialog", "Enable new collect logs dialog",
-    "Enable the collect logs dialog",
-    true
-  );
   // endregion NEW_COLLECT_LOGS_DIALOG
 
   // region TargetSDKVersion Upgrade Assistant
