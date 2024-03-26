@@ -24,7 +24,7 @@ import java.awt.Point
 import kotlin.math.max
 
 /** The minumum height what should be available for the preview. */
-private const val minumumPreviewHeightPx = 100
+private const val minumumPreviewHeightPx = 65
 
 /**
  * This layout puts the previews in the same group together and list them vertically. It shows every
@@ -53,7 +53,7 @@ class GroupedListSurfaceLayoutManager(
     val contentToFit =
       if (PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
         // Take into consideration only height.
-        content.take(availableHeight / minumumPreviewHeightPx)
+        content.take(max(1, availableHeight / minumumPreviewHeightPx))
       } else content
 
     // Use binary search to find the proper zoom-to-fit value.

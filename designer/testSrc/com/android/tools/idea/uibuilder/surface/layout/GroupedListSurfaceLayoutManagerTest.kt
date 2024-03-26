@@ -16,14 +16,27 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
+import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Before
 import org.junit.Test
 
 class GroupedListSurfaceLayoutManagerTest {
+
+  @Before
+  fun setUp() {
+    PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(false)
+  }
+
+  @After
+  fun tearDown() {
+    PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
+  }
 
   @Test
   fun testLayoutVertically() {
@@ -495,9 +508,5 @@ class GroupedListSurfaceLayoutManagerTest {
       val size = manager.getRequiredSize(content, width, height, null)
       assertEquals(Dimension(0, 0), size)
     }
-  }
-
-  companion object {
-    private const val PREVIEW_LEFT_PADDING = 25
   }
 }

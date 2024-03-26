@@ -130,7 +130,7 @@ open class GroupedGridSurfaceLayoutManager(
     val contentToFit =
       if (StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
         // Take into consideration both height and width
-        content.take(availableWidth * availableHeight / minumumPreviewSpacePx)
+        content.take(max(1, availableWidth * availableHeight / minumumPreviewSpacePx))
       } else content
 
     // Use binary search to find the proper zoom-to-fit value.
