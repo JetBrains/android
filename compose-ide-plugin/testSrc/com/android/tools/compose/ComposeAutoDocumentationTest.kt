@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.compose.ComposeAutoDocumentation.Companion.shouldShowDocumentation
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule

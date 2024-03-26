@@ -64,8 +64,6 @@
     <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
-    <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-
     <completion.contributor language="kotlin"
                             id="ComposeCompletionContributor"
                             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
