@@ -74,6 +74,6 @@ public class LintCheckWithKotlinTest {
       .clickButton("Analyze")
       .getResults();
 
-    assertThat(inspectionResults).contains("String literal in 'setText' can not be translated. Use Android resources instead.");
+    assertThat(inspectionResults).contains("String literal in setText can not be translated. Use Android resources instead.");
   }
 }
