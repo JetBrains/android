@@ -33,15 +33,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.util.SlowOperations
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.base.util.module
 
 /** Action to run a Compose Preview on a device/emulator. */
 internal class DeployToDeviceAction :
   AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     e.dataContext.previewElement()?.let {
@@ -56,11 +54,8 @@ internal class DeployToDeviceAction :
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isTestFile =
-      e.dataContext.previewElement()?.previewBody?.let {
-        SlowOperations.allowSlowOperations(
-          ThrowableComputable { isTestFile(it.project, it.virtualFile) }
-        )
-      } ?: false
+      e.dataContext.previewElement()?.previewBody?.let { isTestFile(it.project, it.virtualFile) }
+        ?: false
     e.presentation.apply {
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isTestFile && !isEssentialsModeEnabled
