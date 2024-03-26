@@ -31,6 +31,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil.isEmpty
 import com.intellij.psi.formatter.FormatterUtil
 import com.intellij.psi.tree.IFileElementType
+import com.intellij.psi.tree.TokenSet
 
 class SomethingFormatBlock(
   private val node: ASTNode,
@@ -62,7 +63,10 @@ class SomethingFormatBlock(
     ctx.spacingBuilder.getSpacing(this, child1, child2)
 
   override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
-    return ChildAttributes(Indent.getNoneIndent(), null)
+    return if (TokenSet.create(BLOCK).contains(node.getElementType())) {
+      ChildAttributes(Indent.getNormalIndent(), null)
+    }
+    else ChildAttributes(Indent.getNoneIndent(), null)
   }
 
   override fun isLeaf(): Boolean = node.firstChildNode == null

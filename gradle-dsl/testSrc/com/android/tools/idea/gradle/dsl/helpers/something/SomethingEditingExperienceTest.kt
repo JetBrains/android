@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.helpers.something
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
-class SomethingQuoteHandlerTest : BasePlatformTestCase() {
+class SomethingEditingExperienceTest : BasePlatformTestCase() {
   fun testQuotes() {
     myFixture.configureByText("build.gradle.something", """
     androidApplication {
@@ -31,6 +31,21 @@ class SomethingQuoteHandlerTest : BasePlatformTestCase() {
         androidApplication {
             namespace = "<caret>"
         }
+    """.trimIndent())
+  }
+
+  fun testBlockIntentOnEnter() {
+    myFixture.configureByText("build.gradle.something", """
+    androidApplication {<caret>
+    }
+    """.trimIndent())
+
+    myFixture.type('\n')
+
+    myFixture.checkResult("""
+    androidApplication {
+        <caret>
+    }
     """.trimIndent())
   }
 }
