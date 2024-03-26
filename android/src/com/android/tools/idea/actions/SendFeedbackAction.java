@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -64,13 +65,13 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
         ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
-        String feedbackUrl = getFeedbackUrlTemplate();
-
+        String feedbackUrlTemplate = getFeedbackUrlTemplate();
         String version = getVersion(applicationInfo);
-        feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
-
-        String description = getDescription(project);
-        com.intellij.ide.actions.SendFeedbackAction.submit(project, feedbackUrl, description + extraDescriptionDetails);
+        String description = getDescription(project) + extraDescriptionDetails;
+        String feedbackUrl = feedbackUrlTemplate
+          .replace("$STUDIO_VERSION", URLUtil.encodeURIComponent(version))
+          .replace("$DESCR", URLUtil.encodeURIComponent(description));
+        BrowserUtil.browse(feedbackUrl, project);
       }
     }.setCancelText("Cancel").queue();
   }
