@@ -73,6 +73,7 @@ import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.android.tools.idea.wizard.ui.WizardUtils
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
@@ -369,22 +370,35 @@ class ConfigureTemplateParametersStep(
   private fun validateAllParameters(): String? {
     val sourceProvider = model.template.get().getSourceProvider()
 
+    return getSortedStringParametersForValidation(parameters).firstNotNullOfOrNull { parameter ->
+      val property =
+        parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullOfOrNull null
+      parameter.validate(
+        project,
+        model.module,
+        sourceProvider,
+        model.packageName.get(),
+        property.get(),
+        getRelatedValues(parameter),
+      )
+    }
+  }
+
+  /**
+   * Returns the template's parameters, with parameters containing the PACKAGE constraint first.
+   * This is sort of a hack to make validation check PACKAGE constraints first, before CLASS
+   * constraints. CLASS checks for whether the fully qualified name is valid, while PACKAGE only
+   * checks the package name, so we should check PACKAGE first to display more relevant error
+   * messages.
+   */
+  @VisibleForTesting
+  fun getSortedStringParametersForValidation(
+    parameters: Collection<Parameter<*>>
+  ): List<StringParameter> {
     return parameters
       .filterIsInstance<StringParameter>()
       .filter { it.isVisibleAndEnabled }
-      .firstNotNullOfOrNull { parameter ->
-        val property =
-          parameterRows[parameter as Parameter<in Any>]?.property
-            ?: return@firstNotNullOfOrNull null
-        parameter.validate(
-          project,
-          model.module,
-          sourceProvider,
-          model.packageName.get(),
-          property.get(),
-          getRelatedValues(parameter),
-        )
-      }
+      .sortedByDescending { it.constraints.contains(PACKAGE) }
   }
 
   override fun getComponent(): JComponent = rootPanel
