@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
@@ -243,7 +244,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
       boolean isAndroid = testScopes != null && openedFile != null && testScopes.isAndroidTestSource(openedFile);
-      return isAndroid ? ANDROID_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION;
+      boolean isScreenshotTest = testScopes != null && openedFile != null && testScopes.isScreenshotTestSource(openedFile);
+      return isAndroid ? ANDROID_TEST_IMPLEMENTATION : (isScreenshotTest ? SCREENSHOT_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION);
     }
     return IMPLEMENTATION;
   }
