@@ -21,6 +21,8 @@ import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.intellij.gradle.toolingExtension.impl.model.projectModel.GradleExternalProjectModelProvider
+import com.intellij.gradle.toolingExtension.impl.model.sourceSetDependencyModel.GradleSourceSetDependencyModelProvider
+import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.GradleSourceSetModelProvider
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -116,6 +118,8 @@ internal class AndroidExtraModelProviderWorker(
             )
             safeActionRunner.runAction { controller ->
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
+              GradleSourceSetModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
+              GradleSourceSetDependencyModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
               GradleExternalProjectModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
             }
             NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
