@@ -38,7 +38,9 @@ interface Model {
    * This must only be called if [StudioBot.isContextAllowed] is true.
    *
    * @throws IllegalStateException if context sharing is not enabled
-   * @throws ModelError if the model endpoint throws an exception
+   * @throws IOException if the model endpoint throws an exception. To identify the cause of the error, use [ExceptionUtil.getRootCause].
+   *  The result should be an [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see [CopyableThrowable]),
+   *  the cause exception can end up nested a layer deeper than expected, but using getRootCause avoids this problem.
    */
   fun generateContent(prompt: Prompt, config: GenerationConfig = GenerationConfig()): Flow<Content>
 
@@ -51,27 +53,11 @@ interface Model {
    *
    * @param prompt The prompt to generate code for.
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
-   * @throws ModelError if the model endpoint throws an exception
+   * @throws IOException if the model endpoint throws an exception. To identify the cause of the error, use [ExceptionUtil.getRootCause].
+   *  The result should be an [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see [CopyableThrowable]),
+   *  the cause exception can end up nested a layer deeper than expected, but using getRootCause avoids this problem.
    */
   suspend fun generateCode(prompt: Prompt, language: Language, config: GenerationConfig = GenerationConfig(samples = 4)): List<Content>
-}
-
-/**
- * The exception thrown by all [Model] methods.
- *
- *  This wrapper class is needed to work around a coroutines issue when
- *  -Dkotlinx.coroutines.debug=on. Flows that are closed or cancelled with an exception of type T
- *  whose cause is set to another exception of type TT end up getting malformed in coroutines
- *  internals, and are emitted as a throwable of type T with cause also of type T, and the cause's cause
- *  is the throwable of type TT.
- *
- *  By implementing [createCopy] as null we avoid this issue, and callers consuming the flow returned by
- *  [Model.generateContent] can catch a [ModelError] and retrieve its [io.grpc.StatusRuntimeException] cause
- *  directly.
- */
-@OptIn(ExperimentalCoroutinesApi::class)
-class ModelError(override val cause: io.grpc.StatusRuntimeException, override val message: String? = cause.message): CopyableThrowable<ModelError>, IOException(cause) {
-  override fun createCopy(): ModelError? = null
 }
 
 /**
