@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -52,6 +54,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -85,7 +88,7 @@ constructor(
     project.service<DeviceProvisionerService>().deviceProvisioner.devices,
     project.service<DeviceProvisionerService>().deviceProvisioner.templates,
     Clock.System,
-    adbFlow(),
+    adbDeviceLookupFlow(),
     launchCompatibilityCheckerFlow(project),
   )
 
@@ -245,15 +248,30 @@ constructor(
   }
 }
 
-private fun adbFlow(): Flow<DdmlibDeviceLookup?> = callbackFlow {
-  val listener =
-    AndroidDebugBridge.IDebugBridgeChangeListener { bridge ->
-      trySendBlocking(bridge?.asDdmlibDeviceLookup())
-    }
+/** A flow that tracks the current [AndroidDebugBridge] instance. */
+private fun adbFlow(): Flow<AndroidDebugBridge?> = callbackFlow {
+  val listener = AndroidDebugBridge.IDebugBridgeChangeListener { bridge -> trySendBlocking(bridge) }
   trySendBlocking(null)
   AndroidDebugBridge.addDebugBridgeChangeListener(listener)
   awaitClose { AndroidDebugBridge.removeDebugBridgeChangeListener(listener) }
 }
+
+/**
+ * A [DdmlibDeviceLookup] that just uses the current value of [AndroidDebugBridge] at lookup time,
+ * rather than holding a reference that may go stale.
+ */
+internal object AdbDeviceLookup : DdmlibDeviceLookup {
+  override suspend fun findDdmlibDevice(connectedDevice: ConnectedDevice): IDevice =
+    AndroidDebugBridge.getBridge()?.asDdmlibDeviceLookup()?.findDdmlibDevice(connectedDevice)
+      ?: throw IllegalStateException("No ADB connection")
+}
+
+/**
+ * A flow that emits [AdbDeviceLookup] whenever [AndroidDebugBridge] is not null, and null
+ * otherwise.
+ */
+private fun adbDeviceLookupFlow() =
+  adbFlow().map { if (it == null) null else AdbDeviceLookup }.distinctUntilChanged()
 
 /** Ignore the dumb mode switch unless it lasts for a little while. */
 private fun debouncedDumbModeFlow(project: Project): Flow<DumbModeStatus> =

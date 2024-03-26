@@ -32,7 +32,6 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import java.util.EnumSet
@@ -230,7 +229,7 @@ private fun DeviceError?.toLaunchCompatibility(): LaunchCompatibility =
 
 private suspend fun DeviceProvisionerAndroidDevice.DdmlibDeviceLookup.findDdmlibDeviceWithTimeout(
   connectedDevice: ConnectedDevice,
-  timeout: Duration = 1.seconds,
+  timeout: Duration = 10.seconds,
 ): IDevice {
   return withTimeoutOrNull(timeout) { findDdmlibDevice(connectedDevice) }
     ?: throw IllegalStateException("IDevice not found for ${connectedDevice.serialNumber}")
