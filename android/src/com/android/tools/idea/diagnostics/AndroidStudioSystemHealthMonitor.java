@@ -832,7 +832,7 @@ public final class AndroidStudioSystemHealthMonitor {
     // Show the prompt only once per session
     myTooManyExceptionsPromptShown = true;
 
-    AnAction sendFeedback = ActionManager.getInstance().getAction("SendFeedback");
+    AnAction sendFeedback = ActionManager.getInstance().getAction("ReportProblem");
     NotificationAction notificationAction = NotificationAction.create(
       AndroidBundle.message("sys.health.send.feedback"),
       (event, notification) -> sendFeedback.actionPerformed(event)
