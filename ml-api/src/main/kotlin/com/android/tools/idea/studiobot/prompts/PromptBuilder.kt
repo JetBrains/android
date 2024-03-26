@@ -112,9 +112,9 @@ interface PromptBuilder {
      * Adds data of a given type, for multi-modal models.
      *
      * @param mimeType The type of the data.
-     * @param base64Data The data, encoded as a Base64 [ByteArray].
+     * @param data The raw data bytes.
      */
-    fun blob(base64Data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>)
+    fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>)
   }
 
   interface UserMessageBuilder : MessageBuilder {

@@ -19,6 +19,7 @@ import com.android.tools.idea.studiobot.MimeType
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.util.Base64
 
 /**
  * A well-formed prompt that can be understood by the models used by Studio Bot,
@@ -38,8 +39,10 @@ interface Prompt {
     data class CodeChunk(val text: String, val language: Language?, override val filesUsed: Collection<VirtualFile>)
       : Chunk(filesUsed)
 
-    data class BlobChunk(val data: ByteArray, val mimeType: MimeType, override val filesUsed: Collection<VirtualFile>)
-      : Chunk(filesUsed)
+    class BlobChunk(data: ByteArray, val mimeType: MimeType, override val filesUsed: Collection<VirtualFile>)
+      : Chunk(filesUsed) {
+        val base64Data: ByteArray = Base64.getEncoder().encode(data)
+      }
   }
 
   data class SystemMessage(override val chunks: List<Chunk>) : Message(chunks)

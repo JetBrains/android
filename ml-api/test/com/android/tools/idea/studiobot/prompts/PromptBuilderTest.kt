@@ -31,6 +31,8 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.assertFailsWith
 
 @RunWith(JUnit4::class)
@@ -83,9 +85,11 @@ class PromptBuilderTest : BasePlatformTestCase() {
       )
   }
 
+  @OptIn(ExperimentalEncodingApi::class)
   @Test
   fun buildPrompt_withBlob() {
     val data = ByteArray(10)
+    val base64data = Base64.encodeToByteArray(data)
     val prompt =
       buildPrompt(project) {
         userMessage {
@@ -93,20 +97,17 @@ class PromptBuilderTest : BasePlatformTestCase() {
           blob(data, MimeType.JPEG, emptyList())
         }
       }
-    assertThat(prompt)
-      .isEqualTo(
-        PromptImpl(
-          project,
-          listOf(
-            Prompt.UserMessage(
-              listOf(
-                Prompt.Message.TextChunk("What is in this image?", emptyList()),
-                Prompt.Message.BlobChunk(data, MimeType.JPEG, emptyList())
-              )
-            ),
-          ),
-        )
+    assertThat(prompt.messages.size).isEqualTo(1)
+    val chunks = prompt.messages.single().chunks
+    assertThat(chunks.size).isEqualTo(2)
+    assertThat(chunks[0]).isEqualTo(
+      Prompt.Message.TextChunk(
+        "What is in this image?",
+        emptyList()
       )
+    )
+    assertThat(chunks[1]).isInstanceOf(Prompt.Message.BlobChunk::class.java)
+    assertThat((chunks[1] as Prompt.Message.BlobChunk).base64Data).isEqualTo(base64data)
   }
 
   @Test
