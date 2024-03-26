@@ -37,6 +37,8 @@ interface Model {
    * Sends a query to the model and returns the raw response.
    * This must only be called if [StudioBot.isContextAllowed] is true.
    *
+   * @param prompt The prompt to generate code for.
+   * @param config Configuration options for the backend.
    * @throws IllegalStateException if context sharing is not enabled
    * @throws IOException if the model endpoint throws an exception. To identify the cause of the error, use [ExceptionUtil.getRootCause].
    *  The result should be an [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see [CopyableThrowable]),
@@ -52,24 +54,32 @@ interface Model {
    * Use the samples parameter of [GenerationConfig] to request a certain number of generations.
    *
    * @param prompt The prompt to generate code for.
+   * @param language The language to generate code in.
+   * @param config Configuration options for the backend.
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
    * @throws IOException if the model endpoint throws an exception. To identify the cause of the error, use [ExceptionUtil.getRootCause].
    *  The result should be an [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see [CopyableThrowable]),
    *  the cause exception can end up nested a layer deeper than expected, but using getRootCause avoids this problem.
    */
-  suspend fun generateCode(prompt: Prompt, language: Language, config: GenerationConfig = GenerationConfig(samples = 4)): List<Content>
+  suspend fun generateCode(prompt: Prompt, language: Language, config: GenerationConfig = GenerationConfig(candidateCount = 4)): List<Content>
 }
 
 /**
  * Configuration options for generation.
+ * Note that not all parameters may be configurable for every model.
  *
- * @param samples The number of samples to generate. Currently, this is only used by the [Model.generateCode] API
+ * @param candidateCount The number of samples to generate. This isn't supported by streaming APIs like [Model.generateContent], but is for some
+ *  implementations of [Model.generateCode].
  * @param temperature Model temperature. If left unset, the backend will use a default value that may vary from model to model.
- *  Note that not all backends may support customizing the temperature.
+ * @param maxOutputTokens The maximum number of tokens to include in a candidate.
+ * @param stopSequences The set of character sequences that will stop output generation.
+ *  If specified, the API will stop at the first appearance of a stop sequence. The stop sequence will not be included as part of the response.
  */
 data class GenerationConfig(
-  val samples: Int = 1,
-  val temperature: Float? = null
+  val candidateCount: Int = 1,
+  val temperature: Float? = null,
+  val maxOutputTokens: Int? = null,
+  val stopSequences: List<String> = emptyList()
 )
 
 /**
