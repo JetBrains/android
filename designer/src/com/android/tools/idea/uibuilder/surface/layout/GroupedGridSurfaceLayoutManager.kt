@@ -51,7 +51,7 @@ private const val minumumPreviewSpacePx = 100 * 100
  * ---------
  * @param padding layout paddings
  */
-class GroupedGridSurfaceLayoutManager(
+open class GroupedGridSurfaceLayoutManager(
   private val padding: GroupPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {

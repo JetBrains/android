@@ -19,6 +19,7 @@ import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
@@ -145,7 +146,7 @@ private val organizationGridPadding =
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
-    GroupedGridSurfaceLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
+    GalleryLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
   )

@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
+import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
@@ -57,6 +58,7 @@ class PreviewCanvasTrackerImpl(
     try {
       val layoutName =
         when (layout) {
+          is GalleryLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GALLERY
           is SingleDirectionLayoutManager -> ComposePreviewCanvasEvent.LayoutName.LIST
           is GridSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GRID
           is GroupedListSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GROUPED_LIST
