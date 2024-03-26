@@ -40,6 +40,7 @@ private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debu
 fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
 
 fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
+  checkCancelled()
   val project = this.externalSystemTaskId.findProject() ?: let {
     thisLogger().error("Cannot find a project for $externalSystemTaskId", Throwable())
     return null // We can't be helpful if the current project is not available.
