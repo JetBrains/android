@@ -23,7 +23,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
@@ -47,8 +46,6 @@ import org.jetbrains.annotations.Nullable;
 public class SendFeedbackAction extends AnAction implements DumbAware {
   private static final Logger LOG = Logger.getInstance(SendFeedbackAction.class);
 
-  private static final String UNKNOWN_VERSION = "Unknown";
-
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     submit(e.getProject());
@@ -64,9 +61,8 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
-        ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
         String feedbackUrlTemplate = getFeedbackUrlTemplate();
-        String version = getVersion(applicationInfo);
+        String version = ApplicationInfo.getInstance().getStrictVersion();
         String description = getDescription(project) + extraDescriptionDetails;
         String feedbackUrl = feedbackUrlTemplate
           .replace("$STUDIO_VERSION", URLUtil.encodeURIComponent(version))
@@ -74,27 +70,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         BrowserUtil.browse(feedbackUrl, project);
       }
     }.setCancelText("Cancel").queue();
-  }
-
-  private static String getVersion(ApplicationInfoEx applicationInfo) {
-    String major = applicationInfo.getMajorVersion();
-    if (major == null) {
-      return UNKNOWN_VERSION;
-    }
-    String minor = applicationInfo.getMinorVersion();
-    if (minor == null) {
-      return UNKNOWN_VERSION;
-    }
-    String micro = applicationInfo.getMicroVersion();
-    if (micro == null) {
-      return UNKNOWN_VERSION;
-    }
-    String patch = applicationInfo.getPatchVersion();
-    if (patch == null) {
-      return UNKNOWN_VERSION;
-    }
-
-    return String.join(".", major, minor, micro, patch);
   }
 
   @Slow
