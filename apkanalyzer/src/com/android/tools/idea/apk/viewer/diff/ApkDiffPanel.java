@@ -25,6 +25,7 @@ import com.android.tools.apk.analyzer.internal.ApkDiffParser;
 import com.android.tools.apk.analyzer.internal.ApkEntry;
 import com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -91,23 +92,41 @@ public class ApkDiffPanel {
   }
 
   private void constructFbfTree(){
-    if (myFbfTreeStructureFuture == null) {
-      myFbfTreeStructureFuture = ourExecutorService.submit(() -> {
-        try (ArchiveContext archiveContext1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
-             ArchiveContext archiveContext2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
-          return ApkFileByFileDiffParser.createTreeNode(archiveContext1, archiveContext2);
-        }
-      });
-    }
-
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    FutureCallback<DefaultMutableTreeNode> setRootNode = new FutureCallback<>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
         myCalculateFileByFileCheckBox.setEnabled(true);
       }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        myCalculateFileByFileCheckBox.setEnabled(true);
+        myCalculateFileByFileCheckBox.setSelected(false);
+        // Reset the future so we can trigger recalculation.
+        myFbfTreeStructureFuture = null;
+      }
     };
+
+    FileByFileProgressDialog progressDialog = null;
+    if (myFbfTreeStructureFuture == null) {
+      FileByFileProgressDialog dialog = new FileByFileProgressDialog(this::cancel);
+      progressDialog = dialog;
+      myFbfTreeStructureFuture = ourExecutorService.submit(() -> {
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+        try (ArchiveContext context1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+             ArchiveContext context2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+          return ApkFileByFileDiffParser.createTreeNode(context1, context2, dialog::onUpdate);
+        }
+        finally {
+          dialog.closeDialog();
+        }
+      });
+    }
     Futures.addCallback(myFbfTreeStructureFuture, setRootNode, EdtExecutorService.getInstance());
+    if (progressDialog != null) {
+      progressDialog.showDialog();
+    }
   }
 
   private void constructDiffTree(){
@@ -197,6 +216,12 @@ public class ApkDiffPanel {
     myTree.setRootVisible(true);
     myTree.expandPath(new TreePath(root));
     myTree.setModel(myTreeModel);
+  }
+
+  private void cancel() {
+    if (myFbfTreeStructureFuture != null) {
+      myFbfTreeStructureFuture.cancel(true);
+    }
   }
 
   // Duplicated from ApkViewPanel.SizeRenderer until the diff entries are unified into the ArchiveEntry data class.
