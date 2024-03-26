@@ -393,7 +393,10 @@ class VitalsIssueDetailsPanel(
 
   override fun updateUI() {
     super.updateUI()
-    emptyText?.setFont(StartupUiUtil.labelFont)
+    // This can be called from the superclass's constructor, while our fields haven't been
+    // initialized yet.
+    @Suppress("UNNECESSARY_SAFE_CALL") emptyText?.setFont(StartupUiUtil.labelFont)
+    @Suppress("UNNECESSARY_SAFE_CALL") stackTraceConsole?.updateUI()
   }
 }
 

@@ -37,7 +37,10 @@ import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.isDefaultForTheme
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -105,6 +108,21 @@ class StackTraceConsole(
         PROJECT_SYSTEM_SYNC_TOPIC,
         ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
       )
+    updateUI()
+  }
+
+  fun updateUI() {
+    (consoleView?.editor as? EditorEx)?.apply {
+      if (
+        EditorColorsManager.getInstance()
+          .globalScheme
+          .isDefaultForTheme(LafManager.getInstance().currentUIThemeLookAndFeel)
+      ) {
+        backgroundColor = primaryContentBackground
+      } else {
+        backgroundColor = EditorColorsManager.getInstance().globalScheme.defaultBackground
+      }
+    }
   }
 
   private fun clearResolvedInfoCacheAndRehighlight() {
@@ -213,7 +231,6 @@ class StackTraceConsole(
       InsightsAttachInlayDiffLinkFilter(resolvedInfoCache, consoleView, tracker)
     )
     (consoleView.editor as EditorEx).apply {
-      backgroundColor = primaryContentBackground
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
       setVerticalScrollbarVisible(false)
