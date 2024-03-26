@@ -258,7 +258,6 @@ fun Project.requiresAndroidModel(): Boolean {
   return ContainerUtil.exists(androidFacets) { facet: AndroidFacet -> AndroidModel.isRequired(facet) }
 }
 
-// TODO(karimai): Add utility for ScreenshotTest scope checks.
 fun isAndroidTestFile(project: Project, file: VirtualFile?) = runReadAction {
   val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) } ?: false
@@ -269,4 +268,10 @@ fun isUnitTestFile(project: Project, file: VirtualFile?) = runReadAction {
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isUnitTestSource(file) } ?: false
 }
 
-fun isTestFile(project: Project, file: VirtualFile?) = isUnitTestFile(project, file) || isAndroidTestFile(project, file)
+fun isScreenshotTestFile(project: Project, file: VirtualFile?) = runReadAction {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isScreenshotTestSource(file) } ?: false
+}
+
+fun isTestFile(project: Project, file: VirtualFile?) =
+  isUnitTestFile(project, file) || isAndroidTestFile(project, file) || isScreenshotTestFile(project, file)
