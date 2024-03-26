@@ -1014,6 +1014,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/common/build/libs/common-jvm.jar [-]
                     configurationArtifacts
                         allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - archives                    : <ROOT>/common/build/libs/common-metadata.jar [-]
                         commonMainApi                 : <empty>
@@ -1512,7 +1513,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
+                        allInstrumentedTestSourceSetsCompileDependenciesMetadata    : <empty>
                         allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         androidApis                   : <empty>
                         androidDebugAndroidTestCompilationApi   : <empty>
                         androidDebugAndroidTestCompilationCompileOnly     : <empty>
@@ -1980,6 +1983,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             configurationArtifacts
                                 allSourceSetsCompileDependenciesMetadata          : <empty>
+                                allTestSourceSetsCompileDependenciesMetadata      : <empty>
                                 annotationProcessor           : <empty>
                                 - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
@@ -5164,9 +5168,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - fragmentRefines             : androidDebug:commonMain
-                    - fragmentRefines             : androidMain:commonMain
                     - fragments                   : androidDebug
-                    - fragments                   : androidMain
                     - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5237,7 +5239,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - fragments                   : androidInstrumentedTestDebug
-                    - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5311,9 +5312,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - fragmentRefines             : androidUnitTestDebug:commonTest
-                    - fragmentRefines             : androidUnitTest:commonTest
                     - fragments                   : androidUnitTestDebug
-                    - fragments                   : androidUnitTest
                     - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar

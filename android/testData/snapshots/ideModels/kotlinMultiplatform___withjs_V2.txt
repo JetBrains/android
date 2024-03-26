@@ -946,7 +946,9 @@
                             _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                             _internal-unified-test-platform-core    : <empty>
                             _internal-unified-test-platform-launcher          : <empty>
+                            allInstrumentedTestSourceSetsCompileDependenciesMetadata    : <empty>
                             allSourceSetsCompileDependenciesMetadata          : <empty>
+                            allTestSourceSetsCompileDependenciesMetadata      : <empty>
                             androidApis                   : <empty>
                             androidDebugAndroidTestCompilationApi   : <empty>
                             androidDebugAndroidTestCompilationCompileOnly     : <empty>
@@ -2307,7 +2309,7 @@
         kotlinMppGradleModel          : {main=main, test=test} (KotlinMPPGradleModelImpl)
             dependencyMap
                 1                             : DefaultExternalLibraryDependency
-                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/2.0.0-Beta4/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/2.0.0-Beta5/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 10                            : DefaultFileCollectionDependency
                     - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
                 11                            : DefaultFileCollectionDependency
@@ -2391,7 +2393,6 @@ Required by:
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
                             - unknownArgs                 : -meta-info
-                            - unknownArgs                 : -module-kind
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
@@ -2402,13 +2403,11 @@ Required by:
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
                         explicitApi                   : disable
-                        - fragments                   : main
                         - freeArgs                    : call
-                        - freeArgs                    : umd
                         - freeArgs                    : jsModule
                         - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/main
                         - freeArgs                    : never
-                        - freeArgs                    : v5
+                        - freeArgs                    : es5
                         useFirLT                      : true
                     - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 3
@@ -2454,7 +2453,6 @@ Required by:
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
                             - unknownArgs                 : -meta-info
-                            - unknownArgs                 : -module-kind
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
@@ -2465,13 +2463,11 @@ Required by:
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
                         explicitApi                   : disable
-                        - fragments                   : test
                         - freeArgs                    : call
-                        - freeArgs                    : umd
                         - freeArgs                    : jsModule_test
                         - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/test
                         - freeArgs                    : never
-                        - freeArgs                    : v5
+                        - freeArgs                    : es5
                         useFirLT                      : true
                     - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 7
@@ -2983,9 +2979,7 @@ Required by:
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
                         - fragmentRefines             : androidDebug:commonMain
-                        - fragmentRefines             : androidMain:commonMain
                         - fragments                   : androidDebug
-                        - fragments                   : androidMain
                         - fragments                   : commonMain
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3056,7 +3050,6 @@ Required by:
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
                         - fragments                   : androidInstrumentedTestDebug
-                        - fragments                   : androidInstrumentedTest
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3130,9 +3123,7 @@ Required by:
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
                         - fragmentRefines             : androidUnitTestDebug:commonTest
-                        - fragmentRefines             : androidUnitTest:commonTest
                         - fragments                   : androidUnitTestDebug
-                        - fragments                   : androidUnitTest
                         - fragments                   : commonTest
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
