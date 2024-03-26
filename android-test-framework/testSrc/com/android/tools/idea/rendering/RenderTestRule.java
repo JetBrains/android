@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.openapi.application.ApplicationManager;
 import org.junit.rules.ExternalResource;
 
 /**
  * Rule for unit tests which perform rendering; this rule will make sure that the render threads are correctly
  * cleaned up after the test.
  */
-public class RenderTest extends ExternalResource {
+public class RenderTestRule extends ExternalResource {
 
   @Override
   protected void before() throws Throwable {
@@ -33,7 +34,7 @@ public class RenderTest extends ExternalResource {
   @Override
   protected void after() {
     try {
-      RenderTestUtil.afterRenderTestCase();
+      ApplicationManager.getApplication().invokeAndWait(RenderTestUtil::afterRenderTestCase);
     }
     finally {
       super.after();

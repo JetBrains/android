@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -37,6 +38,8 @@ open class InspectorTests {
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
+  @get:Rule val renderRule = RenderTestRule()
 
   lateinit var parentDisposable: Disposable
 
