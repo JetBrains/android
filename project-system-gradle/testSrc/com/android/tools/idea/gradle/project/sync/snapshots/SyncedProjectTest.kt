@@ -270,6 +270,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
 
+  @Test
+  fun testGradleDeclarative() = testProject(TestProject.GRADLE_DECLARATIVE)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }

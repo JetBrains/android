@@ -122,6 +122,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       ),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.PSD_SAMPLE_GROOVY),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.GRADLE_DECLARATIVE)
     )
   }
 }
