@@ -543,7 +543,15 @@ public class EditorFixture {
         }
       });
 
-    selectEditorTab(tab);
+    // Wait for the requested file tab is opened.
+    if(tab != Tab.DEFAULT){
+      waitForFileOpen
+        .expecting("selected tab '" + tab.myTabName +"' to be opened")
+        .until(() -> {
+          selectEditorTab(tab);
+          return getSelectedTab() == tab.myTabName;
+        });
+    }
 
     waitForFileOpen
       .expecting("file '" + file.getPath() + "' to be opened and loaded")
