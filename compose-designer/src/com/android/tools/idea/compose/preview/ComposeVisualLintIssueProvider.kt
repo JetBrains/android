@@ -84,7 +84,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
       )
     )
 
-    if (StudioFlags.NELE_COMPOSE_UI_CHECK_AI_QUICK_FIX.get()) {
+    if (StudioFlags.COMPOSE_UI_CHECK_AI_QUICK_FIX.get()) {
       issue.addFix(
         Issue.Fix(
           message("ui.check.mode.quick.fix.ai.title"),
