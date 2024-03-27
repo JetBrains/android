@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.something.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.ContributedReferenceHost;
 
 public class SomethingVisitor extends PsiElementVisitor {
 
@@ -57,6 +58,7 @@ public class SomethingVisitor extends PsiElementVisitor {
 
   public void visitProperty(@NotNull SomethingProperty o) {
     visitValue(o);
+    // visitContributedReferenceHost(o);
   }
 
   public void visitQualified(@NotNull SomethingQualified o) {

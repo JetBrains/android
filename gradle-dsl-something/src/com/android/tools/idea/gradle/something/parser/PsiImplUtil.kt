@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.something.psi.SomethingValue
 import com.android.tools.idea.gradle.something.psi.unescape
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiReference
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.childrenOfType
 
@@ -45,6 +47,13 @@ class PsiImplUtil {
       is SomethingQualified -> property.identifier!!
       else -> error("foo")
     }
+
+    @JvmStatic
+    fun getReference(property: SomethingProperty): PsiReference? = getReferences(property).firstOrNull()
+
+    @JvmStatic
+    fun getReferences(property: SomethingProperty): Array<PsiReference> =
+      ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
     @JvmStatic
     fun getName(property: SomethingIdentifier): String? {

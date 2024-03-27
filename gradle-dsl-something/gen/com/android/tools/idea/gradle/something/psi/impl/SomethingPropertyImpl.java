@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.something.parser.SomethingElementTyp
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
+import com.intellij.psi.PsiReference;
 
 public abstract class SomethingPropertyImpl extends ASTWrapperPsiElement implements SomethingProperty {
 
@@ -54,6 +55,18 @@ public abstract class SomethingPropertyImpl extends ASTWrapperPsiElement impleme
   @Nullable
   public SomethingProperty getReceiver() {
     return PsiImplUtil.getReceiver(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiReference getReference() {
+    return PsiImplUtil.getReference(this);
+  }
+
+  @Override
+  @NotNull
+  public PsiReference[] getReferences() {
+    return PsiImplUtil.getReferences(this);
   }
 
 }

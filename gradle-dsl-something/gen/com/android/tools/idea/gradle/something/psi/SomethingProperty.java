@@ -20,13 +20,21 @@ package com.android.tools.idea.gradle.something.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.ContributedReferenceHost;
+import com.intellij.psi.PsiReference;
 
-public interface SomethingProperty extends SomethingValue {
+public interface SomethingProperty extends SomethingValue, ContributedReferenceHost {
 
   @NotNull
   SomethingIdentifier getField();
 
   @Nullable
   SomethingProperty getReceiver();
+
+  @Nullable
+  PsiReference getReference();
+
+  @NotNull
+  PsiReference[] getReferences();
 
 }

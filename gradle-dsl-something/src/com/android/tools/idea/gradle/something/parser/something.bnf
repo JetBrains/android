@@ -65,6 +65,9 @@
   implements("factory|property|literal")=[
      "com.android.tools.idea.gradle.something.psi.SomethingValue"
   ]
+  implements("property")=[
+     "com.intellij.psi.ContributedReferenceHost"
+  ]
 }
 
 entries ::= entry*
@@ -86,7 +89,7 @@ identifier ::= token {
 }
 literal ::= string | number | boolean {methods=[getValue]}
 private rvalue ::= factory | property | literal
-property ::= qualified | bare {methods=[getField getReceiver]}
+property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
 block ::= block_head OP_LBRACE block_entry* OP_RBRACE {
