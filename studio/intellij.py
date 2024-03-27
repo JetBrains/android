@@ -29,7 +29,7 @@ _idea_resources = {
 # TODO(b/265207847) Use dataclasses to remove boilerplate methods
 class IntelliJ:
 
-  def __init__(self, major: str, minor: str, platform_jars: set[str] = [], plugin_jars: dict[str,set[str]] = {}):
+  def __init__(self, major, minor, platform_jars = [], plugin_jars = {}):
     self.major = major
     self.minor = minor
     self.platform_jars = platform_jars
@@ -38,7 +38,7 @@ class IntelliJ:
   def version(self):
     return self.major, self.minor
 
-  def create(platform: str, path: str):
+  def create(platform, path):
     product_info = read_product_info(path + _idea_resources[platform] + "/product-info.json")
     prefix = _read_platform_prefix(product_info)
     major, minor = read_version(path + _idea_home[platform] + "/lib", prefix)
@@ -50,7 +50,7 @@ def read_product_info(path):
   with open(path) as f:
     return json.load(f)
 
-def read_version(lib_dir: str, prefix: str) -> (str, str):
+def read_version(lib_dir, prefix):
   contents = None
   for resources_jar in os.listdir(lib_dir):
     if resources_jar.endswith(".jar"):
