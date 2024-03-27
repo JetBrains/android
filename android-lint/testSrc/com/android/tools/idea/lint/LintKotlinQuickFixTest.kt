@@ -27,10 +27,15 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import java.io.IOException
-import junit.framework.Assert.*
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.junit.Assume
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 // Migrated tests from org.jetbrains.kotlin.android.quickfix.AndroidLintQuickfixTestGenerated
+@RunWith(JUnit4::class)
 class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
 
   private fun check(
@@ -110,7 +115,10 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
 
   // Test Parcelable quickfixes
 
+  @Test
   fun testParcelableMissingCreator() {
+    // Parcelable is no longer supported in K2. Use Parcelize.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
     check(
       """
         import android.os.Parcel
@@ -154,7 +162,10 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testParcelableNoImplementation() {
+    // Parcelable is no longer supported in K2. Use Parcelize.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
     check(
       """
       import android.os.Parcelable
@@ -198,6 +209,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   // Test Add Requires Api quickfixes
 
   @Suppress("RemoveEmptyClassBody")
+  @Test
   fun testRequiresApiAnnotation() {
     check(
       source =
@@ -217,6 +229,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiCompanion() {
     check(
       """
@@ -245,6 +258,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiDefaultParameter() {
     check(
       """
@@ -270,6 +284,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("RemoveEmptyClassBody")
+  @Test
   fun testRequiresApiExtend() {
     check(
       """
@@ -294,6 +309,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiFunctionLiteral() {
     check(
       """
@@ -323,6 +339,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiInlineConstant() {
     check(
       """
@@ -347,6 +364,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiMethod() {
     check(
       """
@@ -375,6 +393,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("PropertyName")
+  @Test
   fun testRequiresApiProperty() {
     check(
       """
@@ -400,6 +419,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiTopLevelProperty() {
     check(
       """
@@ -424,6 +444,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testRequiresApiWhen() {
     check(
       """
@@ -458,6 +479,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
 
   // Test Suppress Lint quickfixes
 
+  @Test
   fun testSuppressLintActivityMethod() {
     check(
       """
@@ -482,6 +504,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintAddToExistingAnnotation() {
     check(
       """
@@ -507,6 +530,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintConstructorParameter() {
     check(
       """
@@ -525,6 +549,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintDestructuringDeclaration() {
     check(
       """
@@ -548,6 +573,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintLambdaArgument() {
     check(
       """
@@ -575,6 +601,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("RemoveEmptyParenthesesFromLambdaCall")
+  @Test
   fun testSuppressLintLambdaArgumentProperty() {
     check(
       """
@@ -597,6 +624,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintMethodParameter() {
     check(
       """
@@ -615,6 +643,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testSuppressLintPropertyWithLambda() {
     check(
       """
@@ -634,6 +663,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("MayBeConstant")
+  @Test
   fun testSuppressLintSimpleProperty() {
     check(
       """
@@ -655,6 +685,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   // Quickfixes for add target api annotation
 
   @Suppress("RemoveEmptyClassBody")
+  @Test
   fun testAddTargetApiAnnotation() {
     check(
       """
@@ -673,6 +704,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiCompanion() {
     check(
       """
@@ -700,6 +732,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiDefaultParameter() {
     check(
       """
@@ -724,6 +757,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("RemoveEmptyClassBody")
+  @Test
   fun testAddTargetApiExtend() {
     check(
       """
@@ -747,6 +781,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiFunctionLiteral() {
     check(
       """
@@ -776,6 +811,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiInlinedConstant() {
     check(
       """
@@ -800,6 +836,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiMethod() {
     check(
       """
@@ -828,6 +865,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("PropertyName")
+  @Test
   fun testAddTargetApiProperty() {
     check(
       """
@@ -853,6 +891,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("PropertyName")
+  @Test
   fun testAddTargetApiTopLevelProperty() {
     check(
       """
@@ -877,6 +916,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetApiWhen() {
     check(
       """
@@ -910,6 +950,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Suppress("RemoveEmptyClassBody")
+  @Test
   fun testAddTargetVersionCheckAnnotation() {
     check(
       """
@@ -928,6 +969,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckDefaultParameter() {
     check(
       """
@@ -942,6 +984,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckDestructuringDeclaration() {
     check(
       """
@@ -976,6 +1019,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckExpressionBody() {
     check(
       """
@@ -1005,6 +1049,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckFunctionLiteral() {
     check(
       """
@@ -1039,6 +1084,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckGetterWithExpressionBody() {
     check(
       """
@@ -1066,6 +1112,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckIf() {
     check(
       """
@@ -1100,6 +1147,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckIfWithBlock() {
     check(
       """
@@ -1135,6 +1183,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckInlinedConstant() {
     check(
       """
@@ -1164,6 +1213,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckMethod() {
     check(
       """
@@ -1196,6 +1246,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
   fun testAddTargetVersionCheckWhen() {
     check(
       """
