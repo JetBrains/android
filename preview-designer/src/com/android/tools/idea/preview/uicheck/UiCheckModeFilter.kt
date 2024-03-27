@@ -128,8 +128,7 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
           previewInstances.addAll(fontSizePreviews(base))
           previewInstances.addAll(lightDarkPreviews(base))
 
-          val isColorBlindModeUICheckEnabled =
-            StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
+          val isColorBlindModeUICheckEnabled = StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
           if (isColorBlindModeUICheckEnabled) {
             previewInstances.addAll(colorBlindPreviews(base))
           }
