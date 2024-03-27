@@ -1871,6 +1871,12 @@ public final class StudioFlags {
                     "Enables the \"Analyze Thread Safety\" button in the Project tool window",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
+    new BooleanFlag(STUDIOBOT, "attachments",
+                    "Enable action to add attachments",
+                    "When enabled, enables the actions to manage attachments",
+                    false);
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
