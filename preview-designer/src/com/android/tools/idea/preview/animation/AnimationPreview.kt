@@ -21,7 +21,14 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.TabsListener
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.launch
+import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
@@ -72,14 +79,69 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected var selectedAnimation: SupportedAnimationManager? = null
     private set
 
-  protected fun selectedAnimation(animation: SupportedAnimationManager?) {
-    selectedAnimation = animation
-  }
+  /**
+   * Set clock time, driving the animation's state.
+   *
+   * Usually does some invocations via reflection on androidx side.
+   *
+   * @param newValue new clock time in milliseconds.
+   * @param longTimeout set true to use a long timeout.
+   */
+  protected abstract suspend fun setClockTime(newValue: Int, longTimeout: Boolean = false)
 
-  override fun dispose() {}
+  /** Repaints [TimelineElement] on selected tab. */
+  protected abstract suspend fun updateTimelineElements()
 
   protected val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
 
   val component = TooltipLayeredPane(animationPreviewPanel)
+
+  protected val timeline = Timeline(animationPreviewPanel, component)
+
+  // *******************
+  // Nested Classes
+  // *******************
+  protected inner class TabChangeListener : TabsListener {
+    override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+      if (newSelection == oldSelection) return
+
+      val component = newSelection?.component ?: return
+      // If single supported animation tab is selected.
+      // We assume here only supported animations could be opened.
+      selectedAnimation =
+        animations.findIsInstanceAnd<SupportedAnimationManager> { it.tabComponent == component }
+      if (component is AllTabPanel) { // If coordination tab is selected.
+        component.addTimeline(timeline)
+      } else {
+        selectedAnimation?.addTimeline(timeline)
+      }
+      scope.launch { updateTimelineElements() }
+    }
+  }
+
+  /**
+   * Timeline panel ranging from 0 to the max duration (in ms) of the animations being inspected,
+   * listing all the animations and their corresponding range as well. The timeline should respond
+   * to mouse commands, allowing users to jump to specific points, scrub it, etc.
+   */
+  protected inner class Timeline(owner: JComponent, pane: TooltipLayeredPane) :
+    TimelinePanel(Tooltip(owner, pane), tracker) {
+    var cachedVal = -1
+
+    init {
+      addChangeListener {
+        if (value == cachedVal) return@addChangeListener // Ignore repeated values
+        cachedVal = value
+        scope.launch { setClockTime(value) }
+      }
+      addComponentListener(
+        object : ComponentAdapter() {
+          override fun componentResized(e: ComponentEvent?) {
+            scope.launch { updateTimelineElements() }
+          }
+        }
+      )
+    }
+  }
 }

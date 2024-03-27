@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
@@ -36,8 +35,6 @@ import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.MINIMUM_TIMELINE_DURATION_MS
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SliderClockControl
-import com.android.tools.idea.preview.animation.TimelinePanel
-import com.android.tools.idea.preview.animation.Tooltip
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -49,18 +46,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
-import com.intellij.ui.tabs.TabsListener
 import com.intellij.util.io.await
 import java.awt.BorderLayout
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import kotlin.math.max
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the
@@ -88,27 +81,6 @@ class ComposeAnimationPreview(
   @VisibleForTesting
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
 
-  private inner class TabChangeListener : TabsListener {
-    override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
-      if (newSelection == oldSelection) return
-
-      val component = newSelection?.component ?: return
-      // If single supported animation tab is selected.
-      // We assume here only supported animations could be opened.
-      val selected =
-        animations.findIsInstanceAnd<ComposeSupportedAnimationManager> {
-          it.tabComponent == component
-        }
-      selectedAnimation(selected)
-      if (component is AllTabPanel) { // If coordination tab is selected.
-        coordinationTab.addTimeline(timeline)
-      } else {
-        selected?.addTimeline(timeline)
-      }
-      scope.launch { updateTimelineElements() }
-    }
-  }
-
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
 
@@ -125,8 +97,6 @@ class ComposeAnimationPreview(
    * animation tabs are added.
    */
   private val loadingPanelVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
-
-  private val timeline = Timeline()
 
   private val clockControl = SliderClockControl(timeline)
 
@@ -150,7 +120,7 @@ class ComposeAnimationPreview(
   private var maxDurationPerIteration = MutableStateFlow(DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS)
 
   /** Update list of [TimelineElement] for selected [ComposeSupportedAnimationManager]s. */
-  private suspend fun updateTimelineElements() {
+  override suspend fun updateTimelineElements() {
     var minY = InspectorLayout.timelineHeaderHeightScaled()
     // Call once to update all sizes as all curves / lines required it.
     withContext(uiThread) {
@@ -218,9 +188,8 @@ class ComposeAnimationPreview(
    *
    * @param newValue new clock time in milliseconds.
    * @param longTimeout set true to use a long timeout.
-   * @param makeCopy set true to create a copy of the animation list while loading properties.
    */
-  private suspend fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
+  override suspend fun setClockTime(newValue: Int, longTimeout: Boolean) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
       sceneManagerProvider()?.executeInRenderSession(longTimeout) {
@@ -456,30 +425,6 @@ class ComposeAnimationPreview(
       }
     }
     scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
-  }
-
-  /**
-   * Timeline panel ranging from 0 to the max duration (in ms) of the animations being inspected,
-   * listing all the animations and their corresponding range as well. The timeline should respond
-   * to mouse commands, allowing users to jump to specific points, scrub it, etc.
-   */
-  private inner class Timeline : TimelinePanel(Tooltip(animationPreviewPanel, component), tracker) {
-    var cachedVal = -1
-
-    init {
-      addChangeListener {
-        if (value == cachedVal) return@addChangeListener // Ignore repeated values
-        cachedVal = value
-        scope.launch { setClockTime(value) }
-      }
-      addComponentListener(
-        object : ComponentAdapter() {
-          override fun componentResized(e: ComponentEvent?) {
-            scope.launch { updateTimelineElements() }
-          }
-        }
-      )
-      dragEndListeners.add { updateTimelineMaximum() }
-    }
+    timeline.dragEndListeners.add { updateTimelineMaximum() }
   }
 }
