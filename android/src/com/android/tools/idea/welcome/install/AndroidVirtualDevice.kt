@@ -17,11 +17,11 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
 import com.android.repository.api.RemotePackage
-import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
@@ -31,25 +31,24 @@ import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.tools.analytics.CommonMetricsData.osArchitecture
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
+import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Objects
 import com.google.common.collect.ImmutableSet
+import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
-import java.nio.file.Path
-import com.google.wireless.android.sdk.stats.ProductDetails
-
-import com.android.tools.analytics.CommonMetricsData.osArchitecture
 import com.intellij.util.system.CpuArch
+import java.nio.file.Path
 
 
 /**
@@ -79,7 +78,6 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     return SystemImageDescription(systemImages.iterator().next())
   }
 
-  @VisibleForTesting
   @Throws(WizardException::class)
   fun createAvd(connection: AvdManagerConnection, sdkHandler: AndroidSdkHandler): AvdInfo? {
     val d = getDevice(sdkHandler.location!!)
@@ -138,14 +136,17 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    myProgressStep.progressIndicator.isIndeterminate = true
-    myProgressStep.progressIndicator.text = "Creating Android virtual device"
-    installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
     try {
-      val avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdkHandler), sdkHandler)
-                ?: throw WizardException("Unable to create Android virtual device")
-      val successMessage = "Android virtual device ${avd.name} was successfully created\n"
-      installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
+      val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
+      // Create an AVD only if there are no AVDs defined.
+      if (avdManager.getAvds(true).isEmpty()) {
+        myProgressStep.progressIndicator.isIndeterminate = true
+        myProgressStep.progressIndicator.text = "Creating Android virtual device"
+        installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+        val avd = createAvd(avdManager, sdkHandler) ?: throw WizardException("Unable to create Android virtual device")
+        val successMessage = "Android virtual device ${avd.name} was successfully created\n"
+        installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
+      }
     }
     catch (e: WizardException) {
       LOG.error(e)
@@ -222,10 +223,11 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       result[AvdWizardUtils.AVD_INI_NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
       result[AvdManager.AVD_INI_AVD_ID] = internalName
       result[AvdManager.AVD_INI_DISPLAY_NAME] = displayName
-      result[AvdManagerConnection.AVD_INI_HW_LCD_DENSITY] = Density.XXHIGH.dpiValue.toString()
       setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true)
       setStorageSizeKey(result, AvdManager.AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
       setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, EmulatedProperties.DEFAULT_INTERNAL_STORAGE, false)
+      val deviceHwProperties: MutableMap<String, String> = DeviceManager.getHardwareProperties(device)
+      result.putAll(deviceHwProperties)
       return result
     }
 

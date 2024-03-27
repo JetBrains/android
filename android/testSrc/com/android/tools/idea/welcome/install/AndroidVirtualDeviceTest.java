@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -38,24 +38,36 @@ import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.TemporaryDirectoryRule;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.NioFiles;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RuleChain;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+/** Tests for {@link AndroidVirtualDevice}. */
+@RunsInEdt
 public final class AndroidVirtualDeviceTest {
   private static final String DEVICE_ID =  "pixel_3a";
 
@@ -77,9 +89,9 @@ public final class AndroidVirtualDeviceTest {
     builder.put("hw.gps", "yes");
     builder.put("hw.gpu.enabled", "yes");
     builder.put("hw.keyboard", "yes");
-    builder.put("hw.lcd.density", "480");
+    builder.put("hw.lcd.density", "440");
     builder.put("hw.mainKeys", "no");
-    builder.put("hw.ramSize", "1536");
+    builder.put("hw.ramSize", "4096");
     builder.put("hw.sdCard", "yes");
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
@@ -96,17 +108,18 @@ public final class AndroidVirtualDeviceTest {
     return builder.build();
   }
 
-  private AndroidSdkHandler sdkHandler;
   private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
-  @Rule
-  public AndroidLocationsSingletonRule environmentRule = new AndroidLocationsSingletonRule(sdkRoot.getFileSystem());
-
-  @Rule
+  public final TemporaryDirectoryRule tempDirectoryRule = new TemporaryDirectoryRule();
+  public final AndroidLocationsSingletonRule environmentRule = new AndroidLocationsSingletonRule(sdkRoot.getFileSystem());
   public final DisposableRule disposableRule = new DisposableRule();
+  public final ApplicationRule applicationRule = new ApplicationRule();
 
   @Rule
-  public final ApplicationRule applicationRule = new ApplicationRule();
+  public RuleChain ruleChain = new RuleChain(applicationRule, environmentRule, tempDirectoryRule, new EdtRule(), disposableRule);
+
+  private AndroidSdkHandler sdkHandler;
+  ProgressStep progressStep;
 
   @Before
   public void setUp() throws Exception {
@@ -123,25 +136,32 @@ public final class AndroidVirtualDeviceTest {
     AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
     when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, disposableRule.getDisposable());
+    progressStep = new ProgressStep(disposableRule.getDisposable(), "test") {
+      @Override
+      protected void execute() {}
+    };
   }
 
   @Test
-  public void testCreateDevice() throws Exception {
-
+  public void testCreateAvd() throws Exception {
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    Map<String, RemotePackage> remotes = Maps.newHashMap();
+    Map<String, RemotePackage> remotes = new HashMap<>();
     remotes.put("platforms;android-23", remotePlatform);
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
-    final AvdInfo avdInfo = createAvd(avd, sdkHandler);
+    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
+    AvdInfo avdInfo = createAvd(avdCreator, sdkHandler);
+    assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
     for (Map.Entry<String, String> entry : referenceMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue(), FileUtil.toSystemIndependentName(properties.get(entry.getKey())));
+      String key = entry.getKey();
+      String property = properties.get(key);
+      assertThat(property).isNotNull();
+      assertThat(FileUtil.toSystemIndependentName(property)).isEqualTo(entry.getValue());
     }
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.
@@ -150,8 +170,24 @@ public final class AndroidVirtualDeviceTest {
   }
 
   @Test
-  public void testRequiredSysimgPath() {
+  public void testNoAvdIsCreatedIfThereAreExistingOnes() throws Exception {
+    createPlaceholderAvd();
 
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+
+    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(23);
+    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+    Map<String, RemotePackage> remotes = new HashMap<>();
+    remotes.put("platforms;android-23", remotePlatform);
+    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
+    AvdInfo avdInfo = createAvd(avdCreator, sdkHandler);
+    assertThat(avdInfo).isNull();
+  }
+
+  @Test
+  public void testRequiredSysimgPath() {
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
@@ -201,7 +237,6 @@ public final class AndroidVirtualDeviceTest {
 
   @Test
   public void testSelectedByDefault() throws Exception {
-
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
@@ -368,16 +403,31 @@ public final class AndroidVirtualDeviceTest {
                            + "</ns3:sdk-sys-img>\n");
   }
 
-  @NotNull
-  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+  @Nullable
+  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
     Path avdFolder = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
     AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
-    final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
-    assertNotNull(avdInfo);
-    Disposer.register(disposableRule.getDisposable(), () -> connection.deleteAvd(avdInfo));
-    connection.getAvds(true); // Force refresh
-
-    return avdInfo;
+    Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));
+    avdCreator.init(progressStep);
+    InstallContext context = new InstallContext(tempDirectoryRule.newPath().toFile(), progressStep);
+    avdCreator.configure(context, sdkHandler);
+    List<AvdInfo> newAvds = connection.getAvds(true);
+    for (AvdInfo avd : newAvds) {
+      if (!existingAvds.contains(avd)) {
+        return avd;
+      }
+    }
+    return null;
   }
 
+  private void createPlaceholderAvd() throws Exception {
+    String avdId = "Pixel_3_XL_API_34";
+    Path parentDir = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
+    Path avdFolder = parentDir.resolve(avdId + ".avd");
+
+    NioFiles.createDirectories(avdFolder);
+    Files.writeString(avdFolder.resolve("config.ini"), "AvdId=" + avdId);
+    Files.writeString(avdFolder.resolve("hardware-qemu.ini"), "");
+    Files.writeString(avdFolder.getParent().resolve(avdId + ".ini"), "path=" + avdFolder);
+  }
 }
