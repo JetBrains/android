@@ -259,26 +259,6 @@ public final class StudioFlags {
     "Allow running accessibility checks for Compose using ATF.",
     true);
 
-  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_MODE = new BooleanFlag(
-    NELE, "compose.ui.check.mode", "Enable UI Check mode for Compose preview",
-    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
-    true);
-
-  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
-    NELE, "compose.ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
-    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
-    ChannelDefault.enabledUpTo(CANARY));
-
-  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
-    NELE, "compose.ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
-    "Enable colorblind Check mode in UI Check Mode for Compose preview",
-    true);
-
-  public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
-    NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",
-    "Enable so that visual lint runs on previews in the Compose Preview.",
-    true);
-
   public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = new BooleanFlag(
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress",
@@ -1387,6 +1367,26 @@ public final class StudioFlags {
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
     "Enable a Studio Bot context-menu action that generates sample data for a given Composable function",
     false);
+
+  public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
+    COMPOSE, "ui.check.mode", "Enable UI Check mode for Compose preview",
+    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
+    true);
+
+  public static final Flag<Boolean> COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
+    COMPOSE, "ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
+    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
+    ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
+    COMPOSE, "ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
+    "Enable colorblind Check mode in UI Check Mode for Compose preview",
+    true);
+
+  public static final Flag<Boolean> COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
+    COMPOSE, "visual.lint.run", "Enable visual lint for Compose Preview",
+    "Enable so that visual lint runs on previews in the Compose Preview.",
+    true);
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_AI_QUICK_FIX = new BooleanFlag(
     COMPOSE, "ui.check.mode.ai.quickfix", "Enable AI-powered quick fix action for UI Check",

@@ -39,11 +39,11 @@ class EnableUiCheckAction :
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
+    val isUiCheckModeEnabled = StudioFlags.COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     val disableForWear =
       HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
-        !StudioFlags.NELE_COMPOSE_UI_CHECK_FOR_WEAR.get()
+        !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = isUiCheckModeEnabled
     e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !disableForWear
     e.presentation.text =

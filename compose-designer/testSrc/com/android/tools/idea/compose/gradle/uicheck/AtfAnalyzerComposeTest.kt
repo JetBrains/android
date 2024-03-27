@@ -40,14 +40,14 @@ class AtfAnalyzerComposeTest {
 
   @After
   fun tearDown() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
   }
 
   @Test
   fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOff() {
     // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
     // is fully enabled
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -67,7 +67,7 @@ class AtfAnalyzerComposeTest {
 
   @Test
   fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOn() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -90,7 +90,7 @@ class AtfAnalyzerComposeTest {
   fun testNoColorErrorOnColorblindPreviewWhenColorblindFlagIsOff() {
     // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
     // is fully enabled
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -108,7 +108,7 @@ class AtfAnalyzerComposeTest {
 
   @Test
   fun testOneColorblindProblemFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -142,7 +142,7 @@ class AtfAnalyzerComposeTest {
 
   @Test
   fun testTwoColorblindProblemsFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -177,7 +177,7 @@ class AtfAnalyzerComposeTest {
 
   @Test
   fun testThreeColorblindProblemsFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(

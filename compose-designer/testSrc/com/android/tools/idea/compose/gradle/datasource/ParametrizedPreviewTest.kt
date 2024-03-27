@@ -109,7 +109,7 @@ class ParametrizedPreviewTest {
   @After
   fun tearDown() {
     StudioRenderService.setForTesting(projectRule.project, null)
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
@@ -261,7 +261,7 @@ class ParametrizedPreviewTest {
 
   @Test
   fun testUiCheckForParametrizedPreview(): Unit = runBlocking {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val project = projectRule.project
 
