@@ -68,7 +68,7 @@ public class ResourceTablePanel {
 
     myPackageCombo.setModel(new CollectionComboBoxModel<>(ImmutableList.copyOf(packages)));
     myPackageCombo.setRenderer(SimpleListCellRenderer.create("<No Resources>", PackageChunk::getPackageName));
-    myPackageCombo.setMinimumAndPreferredWidth(JBUIScale.scale(150));
+    myPackageCombo.setMinimumAndPreferredWidth(JBUIScale.scale(250));
 
     if (!packages.isEmpty()) {
       PackageChunk packageChunk = packages.stream().findFirst().get();
