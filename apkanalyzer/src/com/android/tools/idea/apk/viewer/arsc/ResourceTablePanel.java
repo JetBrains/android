@@ -21,10 +21,13 @@ import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.ScrollPaneFactory;
@@ -43,6 +46,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.table.TableRowSorter;
+import org.jdesktop.swingx.sort.RowFilters.GeneralFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class ResourceTablePanel {
@@ -50,6 +55,7 @@ public class ResourceTablePanel {
   private ComboBox<PackageChunk> myPackageCombo;
 
   private Splitter mySplitter;
+  private JPanel myHeader;
   private JBList<TypeSpecChunk> myTypesList;
   private JBTable myResourceTypeTable;
   private SimpleColoredComponent myResourceTableHeader;
@@ -80,8 +86,11 @@ public class ResourceTablePanel {
           return;
         }
 
-        myResourceTypeTable
-          .setModel(new ResourceTypeTableModel(resourceTableChunk.getStringPool(), packageChunk, selectedValue));
+        ResourceTypeTableModel model = new ResourceTypeTableModel(resourceTableChunk.getStringPool(), packageChunk, selectedValue);
+        myResourceTypeTable.setModel(model);
+
+        TableRowSorter<ResourceTypeTableModel> rowSorter = new TableRowSorter<>(model);
+        myResourceTypeTable.setRowSorter(rowSorter);
 
         myResourceTypeTable.getColumnModel().getColumn(0).setMinWidth(100); // resource id column
         myResourceTypeTable.getColumnModel().getColumn(1).setMinWidth(250); // resource name column
@@ -99,6 +108,19 @@ public class ResourceTablePanel {
       });
     }
 
+    EditorTextField myFilter = new EditorTextField();
+    myHeader.add(myFilter);
+    myFilter.setPlaceholder("Enter filter text...");
+    myFilter.setPreferredWidth(JBUIScale.scale(300));
+    myFilter.addDocumentListener(new DocumentListener() {
+      @Override
+      public void documentChanged(@NotNull DocumentEvent event) {
+        TableRowSorter<?> sorter = (TableRowSorter<?>)myResourceTypeTable.getRowSorter();
+        if (sorter != null) {
+          sorter.setRowFilter(new ResourceFilter(myFilter.getText()));
+        }
+      }
+    });
   }
 
   private void createUIComponents() {
@@ -128,5 +150,19 @@ public class ResourceTablePanel {
 
   public JComponent getPanel() {
     return myContainer;
+  }
+
+  private static class ResourceFilter extends GeneralFilter {
+
+    private final String myFilter;
+
+    protected ResourceFilter(String filter) {
+      myFilter = filter.toLowerCase();
+    }
+
+    @Override
+    protected boolean include(Entry<?, ?> value, int index) {
+      return value.getStringValue(index).toLowerCase().contains(myFilter);
+    }
   }
 }
