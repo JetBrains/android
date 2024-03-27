@@ -330,6 +330,29 @@ public final class ConfigureAvdOptionsStepTest {
   }
 
   @Test
+  public void customSkinDefinitionComboBoxDisablesWhenEnableDeviceFrameCheckboxIsDeselected() {
+    // Arrange
+    var step = new ConfigureAvdOptionsStep(myRule.getProject(), new AvdOptionsModel(myQAvdInfo), newSkinComboBox());
+    var checkbox = step.getDeviceFrameCheckbox();
+    var comboBox = step.getSkinComboBox();
+
+    // Act
+    var wizard = new ModelWizard.Builder(step).build();
+    Disposer.register(myRule.getTestRootDisposable(), wizard);
+
+    checkbox.setSelected(true);
+
+    // Assert
+    assertTrue(comboBox.isEnabled());
+
+    // Act
+    checkbox.setSelected(false);
+
+    // Assert
+    assertFalse(comboBox.isEnabled());
+  }
+
+  @Test
   public void updateSystemImageData() {
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 

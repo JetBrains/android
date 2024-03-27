@@ -61,6 +61,7 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.ObservableOptional;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
+import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -983,12 +984,17 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), ObjectProperty.wrap(getModel().sdCardStorage()));
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
-    myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
+
+    var deviceFrameEnabled = new SelectedProperty(myDeviceFrameCheckbox);
+    myBindings.bindTwoWay(deviceFrameEnabled, getModel().hasDeviceFrame());
+
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
     myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
     myBindings.bindTwoWay(new SelectedProperty(myChooseBootRadioButton), getModel().useChosenSnapshotBoot());
 
+    myBindings.bind(new EnabledProperty(mySkinComboBox), deviceFrameEnabled);
     myBindings.bindTwoWay(new SkinComboBoxProperty(mySkinComboBox), getModel().getAvdDeviceData().customSkinFile());
+
     myBindings.bindTwoWay(new SelectedItemProperty<>(myChosenSnapshotComboBox), getModel().getAvdDeviceData().selectedSnapshotFile());
     myOrientationToggle.addListSelectionListener(event -> {
       var orientation = Objects.requireNonNullElse(myOrientationToggle.getSelectedElement(), ScreenOrientation.PORTRAIT);
