@@ -219,6 +219,54 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.NativeAllocationsTaskTest",
 )
 
+iml_studio_test(
+    name = "SessionBasedProfilingWithApkTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/260867011
+    ],
+    tags_mac = [
+        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
+    ],
+    tags_windows = [
+        # TODO(b/287284693): Add Windows support for this test.
+        "no_windows",
+    ],
+    test_class = "com.android.tools.profilers.integration.sessionbased.SessionBasedProfilingWithApkTest",
+)
+
+iml_studio_test(
+    name = "TaskBasedProfilingWithApkTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/260867011
+    ],
+    tags_mac = [
+        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
+    ],
+    tags_windows = [
+        # TODO(b/287284693): Add Windows support for this test.
+        "no_windows",
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
+)
+
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
@@ -240,4 +288,9 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+)
+
+filegroup(
+    name = "helloworldapk",
+    srcs = glob(["testData/helloworldapk/**"]),
 )

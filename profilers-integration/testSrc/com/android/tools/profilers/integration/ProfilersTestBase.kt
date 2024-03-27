@@ -17,6 +17,7 @@ package com.android.tools.profilers.integration
 
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidProject
+import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
@@ -44,6 +45,7 @@ open class ProfilersTestBase {
 
   private val testProjectMinAppPath = "tools/adt/idea/profilers-integration/testData/minapp"
   private val testMinAppRepoManifest = "tools/adt/idea/profilers-integration/minapp_deps.manifest"
+  private val testProjectApk = "tools/adt/idea/profilers-integration/testData/helloworldapk"
 
   @JvmField
   @Rule
@@ -124,6 +126,43 @@ open class ProfilersTestBase {
     }
   }
 
+  protected fun profileAppUsingApk(systemImage: Emulator.SystemImage,
+                                   enableTaskBasedProfiling: Boolean,
+                                   testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
+    system.installation.addVmOption("-Dprofiler.testing.mode=true")
+    if (enableTaskBasedProfiling) {
+      system.installation.addVmOption("-Dprofiler.task.based.ux=true")
+    } else {
+      system.installation.addVmOption("-Dprofiler.task.based.ux=false")
+    }
+    // Running an APK directly means that Android Studio won't try setting up the JDK table, and
+    // even if it did, it would do so with the latest API level. Both of those issues would cause
+    // failures in this test, so we force auto-creation at the API level that we expect.
+    system.installation.addVmOption("-Dtesting.android.platform.to.autocreate=31")
+
+    system.installation.setGlobalSdk(system.sdk)
+
+    val project = AndroidProjectWithoutGradle(testProjectApk)
+
+    system.runAdb { adb ->
+      system.runEmulator(systemImage) { emulator ->
+        getLogger().info("Waiting for boot")
+        emulator.waitForBoot()
+        getLogger().info("Waiting for device")
+        adb.waitForDevice(emulator)
+
+        system.runStudioFromApk(project) { studio ->
+          studio.waitForIndex()
+          getLogger().info("Finished waiting for index");
+          studio.waitForProjectInit();
+
+          getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+          testFunction.invoke(studio, adb)
+        }
+      }
+    }
+  }
+
   protected fun verifyIdeaLog(regexText: String, timeOut: Long) {
     system.installation.ideaLog.waitForMatchingLine(
       regexText,
@@ -133,6 +172,10 @@ open class ProfilersTestBase {
 
   protected fun invokeProfilerToolWindow(studio: AndroidStudio) {
     studio.showToolWindow("Android Profiler")
+    waitForProfilerTaskBasedToolWindowToBeActivated(studio)
+  }
+
+  protected fun waitForProfilerTaskBasedToolWindowToBeActivated(studio: AndroidStudio) {
     studio.waitForComponentByClass("TaskHomeTabComponent")
   }
 
@@ -142,9 +185,12 @@ open class ProfilersTestBase {
 
   protected fun deployApp(studio: AndroidStudio, adb: Adb) {
     studio.executeAction("Run")
+    waitForAppToBeDeployed(adb, ".*Hello Minimal World!.*")
+  }
 
+  protected fun waitForAppToBeDeployed(adb: Adb, regex: String) {
     adb.runCommand("logcat") {
-      waitForLog(".*Hello Minimal World!.*", 300.seconds);
+      waitForLog(regex, 300.seconds);
     }
   }
 
@@ -166,7 +212,7 @@ open class ProfilersTestBase {
 
   protected fun stopProfilingSession(studio: AndroidStudio) {
     studio.executeAction("Android.StopProfilingSession")
-    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=.*", 180)
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=.*", 600)
   }
 
   protected fun startSystemTrace(studio: AndroidStudio) {
@@ -231,5 +277,9 @@ open class ProfilersTestBase {
 
   protected fun setProfilingStartingPointToProcessStart(studio: AndroidStudio) {
     studio.executeAction("Android.SetProfilingStartingPointToProcessStart")
+  }
+
+  protected fun profileAction(studio: AndroidStudio) {
+    studio.executeAction("Android.Profile")
   }
 }
