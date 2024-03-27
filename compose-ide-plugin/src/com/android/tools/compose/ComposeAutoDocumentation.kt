@@ -67,32 +67,32 @@ class ComposeAutoDocumentation(
     override fun activeLookupChanged(oldLookup: Lookup?, newLookup: Lookup?) {
       if (newLookup == null) return
       val file = FileDocumentManager.getInstance().getFile(newLookup.editor.document) ?: return
-      getInstance(project).coroutineScope.launch {
-        // Register this listener on spec. If we wind up not needing it, we can unregister. If we
-        // do need it, it will already be registered so it can capture any missed events so we
-        // can re-trigger them after we activate below.
-        val listener =
-          object : LookupListener {
-            private var active = false
-            private var missedEvent: LookupEvent? = null
+      // Register the listener on spec. If we wind up not needing it, we can unregister. If we
+      // do need it, it will already be registered, can capture any missed events, and we
+      // can re-trigger them after we activate below.
+      val listener =
+        object : LookupListener {
+          private var active = false
+          private var missedEvent: LookupEvent? = null
 
-            suspend fun activate() {
-              withContext(Dispatchers.EDT) {
-                // We're on the EDT, so we can't race with ourselves in
-                // currentItemChanged below.
-                if (active) return@withContext
-                active = true
-                missedEvent?.let(::currentItemChanged)
-                missedEvent = null
-              }
-            }
-
-            override fun currentItemChanged(event: LookupEvent) {
-              if (!active) missedEvent = event else getInstance(project).showJavaDoc(newLookup)
+          suspend fun activate() {
+            withContext(Dispatchers.EDT) {
+              // We're on the EDT, so we can't race with ourselves in
+              // currentItemChanged below.
+              if (active) return@withContext
+              active = true
+              missedEvent?.let(::currentItemChanged)
+              missedEvent = null
             }
           }
-        newLookup.addLookupListener(listener)
 
+          override fun currentItemChanged(event: LookupEvent) {
+            if (!active) missedEvent = event else getInstance(project).showJavaDoc(newLookup)
+          }
+        }
+      newLookup.addLookupListener(listener)
+
+      getInstance(project).coroutineScope.launch {
         // This is a @Slow operation and must be kept off the EDT.
         val module =
           withContext(Dispatchers.Default) {
