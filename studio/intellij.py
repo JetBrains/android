@@ -28,11 +28,6 @@ _idea_resources = {
 
 # TODO(b/265207847) Use dataclasses to remove boilerplate methods
 class IntelliJ:
-  platform: str
-  major: str
-  minor: str
-  platform_jars: set[str]
-  plugin_jars: dict[str,set[str]]
 
   def __init__(self, major: str, minor: str, platform_jars: set[str] = [], plugin_jars: dict[str,set[str]] = {}):
     self.major = major
