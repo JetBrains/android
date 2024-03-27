@@ -101,7 +101,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit.SECONDS
 
-
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
  * tool window.
@@ -544,8 +543,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         )
       }
       val fs = LocalFileSystem.getInstance()
-      val toRefresh = mutableSetOf<VirtualFile>()
-      val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
+      val outputVirtualFilesToRefresh = mutableSetOf<VirtualFile>()
+      val outputPathsToRefresh = mutableSetOf<String>()
 
       for (outputRoot in allOutputs) {
         val attributes = FileSystemUtil.getAttributes(FileUtil.toSystemDependentName(outputRoot))
@@ -556,27 +555,25 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
             // do nothing - the file does not exist and it is not in VFS
           } else {
             // Output exists, but it is not in VFS. We'll refresh its parent.
-            VfsImplUtil.refreshAndFindFileByPath(LocalFileSystem.getInstance(), PathUtil.getParentPath(outputRoot)) { parent ->
-              if (parent != null) {
-               RefreshQueue.getInstance().refresh(isAsynchronous, false, null, parent)
-              }
-            }
+            outputPathsToRefresh.add(outputRoot)
           }
         }
         else {
           if (attributes == null) {
             // file does not exist, but it is in VFS
-            toRefresh.add(vFile)
+            outputVirtualFilesToRefresh.add(vFile)
           }
           else if (attributes.isDirectory != vFile.isDirectory) {
             // Refresh as file became a directory, or vice versa
-            toRefresh.add(vFile)
+            outputVirtualFilesToRefresh.add(vFile)
           }
         }
       }
 
-      if (toRefresh.isNotEmpty()) {
-        RefreshQueue.getInstance().refresh(isAsynchronous, false, null, toRefresh)
+      outputVirtualFilesToRefresh.addAll(refreshParentFilesSynchronously(outputPathsToRefresh))
+      if (outputVirtualFilesToRefresh.isNotEmpty()) {
+        val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
+        RefreshQueue.getInstance().refresh(isAsynchronous, false, null, outputVirtualFilesToRefresh)
       }
     }
 
@@ -657,6 +654,23 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     override fun actionPerformed(e: AnActionEvent) {
       buildStopper.attemptToStopBuild(myRequest.taskId, null)
     }
+  }
+
+  private fun refreshParentFilesSynchronously(filesParentToRefresh: Set<String>): Set<VirtualFile> {
+    val refreshedParents = mutableSetOf<VirtualFile>()
+    val latch = CountDownLatch(filesParentToRefresh.size)
+
+    filesParentToRefresh.forEach {
+      VfsImplUtil.refreshAndFindFileByPath(LocalFileSystem.getInstance(), PathUtil.getParentPath(it)) { parent ->
+        if (parent != null) {
+          refreshedParents.add(parent)
+        }
+        latch.countDown()
+      }
+    }
+
+    latch.await()
+    return refreshedParents
   }
 
   companion object {
