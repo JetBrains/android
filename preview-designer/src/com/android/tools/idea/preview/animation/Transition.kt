@@ -25,5 +25,5 @@ package com.android.tools.idea.preview.animation
 data class Transition(val properties: Map<Int, AnimatedProperty<Double>?> = mutableMapOf()) {
   val startMillis = properties.values.filterNotNull().minOfOrNull { it.startMs }
   val endMillis = properties.values.filterNotNull().maxOfOrNull { it.endMs }
-  val duration = if (startMillis != null) endMillis?.minus(startMillis) else 0
+  val duration = if (startMillis != null) endMillis?.minus(startMillis) ?: 0 else 0
 }

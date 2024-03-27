@@ -87,10 +87,10 @@ class AnimationCard(
 
   private var durationLabel: Component? = null
 
-  override fun setDuration(durationMillis: Int?) {
+  override fun setDuration(durationMillis: Int) {
     durationLabel?.let { firstRow.remove(it) }
     durationLabel =
-      JBLabel("${durationMillis ?: "_"}ms")
+      JBLabel("${durationMillis}ms")
         .apply { foreground = UIUtil.getContextHelpForeground() }
         .also { firstRow.add(it, TabularLayout.Constraint(0, 2)) }
   }
@@ -107,7 +107,7 @@ class AnimationCard(
         listOf(ExpandAction()),
       )
     firstRow.add(expandButton.component, TabularLayout.Constraint(0, 0))
-    firstRow.add(JBLabel(title ?: "_"), TabularLayout.Constraint(0, 1))
+    firstRow.add(JBLabel(title), TabularLayout.Constraint(0, 1))
 
     val secondRowToolbar =
       createToolbarWithNavigation(

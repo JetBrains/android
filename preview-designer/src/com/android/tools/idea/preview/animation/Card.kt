@@ -31,5 +31,5 @@ interface Card {
   var expandedSize: Int
 
   /** Set duration of the animation. */
-  fun setDuration(durationMillis: Int?)
+  fun setDuration(durationMillis: Int)
 }
