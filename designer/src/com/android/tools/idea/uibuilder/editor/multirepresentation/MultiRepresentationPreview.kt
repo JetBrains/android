@@ -255,8 +255,10 @@ open class MultiRepresentationPreview(
     synchronized(representations) {
       if (representations.isEmpty()) {
         currentRepresentationName = ""
-      } else if (!representations.containsKey(currentRepresentationName)) {
-        val representationsWithPreviews = representations.filter { it.value.hasPreviewsCached() }
+        return@synchronized
+      }
+      val representationsWithPreviews = representations.filter { it.value.hasPreviewsCached() }
+      if (currentRepresentationName !in representationsWithPreviews.keys) {
         // Prefer selecting a representation with previews.
         currentRepresentationName =
           if (representationsWithPreviews.isNotEmpty()) {

@@ -771,6 +771,54 @@ class MultiRepresentationPreviewTest {
       Logger.setFactory(previousFactory)
     }
   }
+
+  @Test
+  fun testSwitchesToRepresentationWithPreviews() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    val accept = AtomicBoolean(false)
+
+    val defaultProvider =
+      object : PreviewRepresentationProvider {
+        override val displayName: RepresentationName = "Default representation without previews"
+
+        override suspend fun accept(project: Project, psiFile: PsiFile) = true
+
+        override suspend fun createRepresentation(psiFile: PsiFile) =
+          object : TestPreviewRepresentation() {
+            override fun hasPreviewsCached() = false
+          }
+      }
+
+    val provider =
+      object : PreviewRepresentationProvider {
+        override val displayName: RepresentationName = "Representation with previews"
+
+        override suspend fun accept(project: Project, psiFile: PsiFile) = accept.get()
+
+        override suspend fun createRepresentation(psiFile: PsiFile) = TestPreviewRepresentation()
+      }
+
+    multiPreview =
+      UpdatableMultiRepresentationPreview(
+        sampleFile,
+        myFixture.editor,
+        listOf(defaultProvider, provider),
+      )
+
+    // Essentially the same as Init but async
+    multiPreview.updateRepresentationsInTestAsync().await()
+
+    assertEquals("Default representation without previews", multiPreview.currentRepresentationName)
+
+    // now simulate adding some previews to the other provider
+    accept.set(true)
+    multiPreview.updateRepresentationsInTestAsync().await()
+
+    // We should switch to the representation that actually has previews
+    assertEquals("Representation with previews", multiPreview.currentRepresentationName)
+  }
 }
 
 fun <T> any(): T = Mockito.any<T>()
