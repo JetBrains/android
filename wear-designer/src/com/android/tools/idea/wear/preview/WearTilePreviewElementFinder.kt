@@ -74,6 +74,7 @@ private fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
   this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
 }
 
+@Slow
 private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   uMethod: UMethod
 ): PsiWearTilePreviewElement? {
