@@ -102,7 +102,10 @@ def _read_plugin_id(path):
 def _read_plugin_jars(idea_home):
   plugins = {}
   for plugin in os.listdir(idea_home + "/plugins"):
-    plugin_id = _read_plugin_id(idea_home + "/plugins/" + plugin)
+    plugin_path = idea_home + "/plugins/" + plugin
+    if not os.path.isdir(plugin_path):
+      continue
+    plugin_id = _read_plugin_id(plugin_path)
     path = "/plugins/" + plugin + "/lib/"
     jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
     plugins[plugin_id] = set(jars)

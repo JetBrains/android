@@ -17,6 +17,7 @@ PluginInfo = provider(
         "licenses": "",
         "plugin_files": "A map from the final studio location to the file it goes there.",
         "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
+        "platform": "The platform this plugin was compiled against",
     },
 )
 
@@ -263,6 +264,7 @@ def _studio_plugin_impl(ctx):
             lib_deps = depset(ctx.attr.libs),
             licenses = depset(ctx.files.licenses),
             overwrite_plugin_version = True,
+            platform = ctx.attr._intellij_platform,
         ),
         # Force 'chkplugin' to run by marking its output as a validation output.
         # See https://bazel.build/extending/rules#validation_actions for details.
@@ -295,6 +297,10 @@ _studio_plugin = rule(
             default = Label("//tools/adt/idea/studio:check_plugin"),
             cfg = "host",
             executable = True,
+        ),
+        "_intellij_platform": attr.label(
+            default = Label("//tools/base/intellij-bazel:intellij_platform"),
+            cfg = "host",
         ),
     },
     outputs = {
@@ -434,10 +440,7 @@ _studio_data = rule(
         "files_mac": attr.label_list(allow_files = True),
         "files_mac_arm": attr.label_list(allow_files = True),
         "files_win": attr.label_list(allow_files = True),
-        "mappings": attr.string_dict(
-            mandatory = True,
-            allow_empty = False,
-        ),
+        "mappings": attr.string_dict(mandatory = True),
     },
     executable = False,
     implementation = _studio_data_impl,
@@ -1106,6 +1109,8 @@ def _intellij_platform_impl_os(ctx, platform, data, zip_out):
     base = []
     plugins = {}
     for file in files:
+        if file not in data.mappings:
+            fail("file %s not found in mappings" % file.path)
         rel = data.mappings[file]
         if not rel.startswith(plugin_dir):
             # This is not a plugin file
@@ -1182,6 +1187,51 @@ _intellij_platform = rule(
     provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,
 )
+
+# For platforms that are only used to build standalone plugins against
+def intellij_platform_import(name, spec):
+    _intellij_platform(
+        name = name,
+        exports = [":" + name + "_jars"],
+        studio_data = name + ".data",
+        visibility = ["//visibility:public"],
+    )
+
+    jvm_import(
+        name = name + "_jars",
+        jars = [jar[1:] for jar in spec.jars + spec.jars_linux],
+        visibility = ["//visibility:public"],
+    )
+
+    studio_data(
+        name = name + ".data",
+    )
+
+    native.filegroup(
+        name = name + "-product-info",
+        srcs = ["product-info.json"],
+        visibility = ["//visibility:public"],
+    )
+
+    for plugin, jars in spec.plugin_jars.items():
+        jars_target_name = "%s-plugin-%s-jars" % (name, plugin)
+        jvm_import(
+            name = jars_target_name,
+            jars = jars,
+            visibility = ["//visibility:public"],
+        )
+        intellij_plugin_import(
+            name = name + "-plugin-%s" % plugin,
+            exports = [":" + jars_target_name],
+            target_dir = "",
+            visibility = ["//visibility:public"],
+        )
+
+    jvm_import(
+        name = name + "-test-framework",
+        jars = ["lib/testFramework.jar"],
+        visibility = ["//visibility:public"],
+    )
 
 def intellij_platform(
         name,
