@@ -24,14 +24,14 @@ import org.jetbrains.kotlin.analysis.api.components.KtDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 object DirectiveBasedActionUtils {
-  val FRONTEND get() = if (isK2Plugin()) "K2" else "K1"
+  val FRONTEND get() = if (KotlinPluginModeProvider.isK2Mode()) "K2" else "K1"
 
   private fun Array<out String>.expandByFrontend(separator: Char, prefix: String): List<String> {
     val frontend = FRONTEND
@@ -75,10 +75,9 @@ object DirectiveBasedActionUtils {
       return
     }
 
-    val kotlinFrontendSpecificPrefix = if (isK2Plugin()) "K2" else "K1"
     val expected =
       InTextDirectivesUtils.findLinesWithPrefixesRemoved(
-        file.text, "// ERROR:", "// ${kotlinFrontendSpecificPrefix}-ERROR:"
+        file.text, "// ERROR:", "// $FRONTEND-ERROR:"
       ).sorted()
     val actual = diagnosticsCollectAndRenderer(file)
 

@@ -43,7 +43,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
@@ -128,7 +128,7 @@ class EmbeddedCompilerClientImpl private constructor(
       modules.singleOrNull() ?: throw LiveEditUpdateException.internalError("Multiple modules requested")
     }
 
-    if (isK2Plugin()) {
+    if (KotlinPluginModeProvider.isK2Mode()) {
       compileKtFilesForK2(inputs, outputDirectory)
       return@withContext
     }

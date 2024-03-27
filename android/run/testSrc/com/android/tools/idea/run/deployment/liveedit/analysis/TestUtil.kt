@@ -40,7 +40,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.utils.editor.commitToPsi
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
@@ -114,7 +114,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
   return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
     runWithCompileLock {
       val output = mutableListOf<ByteArray>()
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         inputFiles.forEach { inputFile ->
           val result = backendCodeGenForK2(inputFile, inputFile.module)
           result.output.filter { it.path.endsWith(".class") } .forEach { output.add(it.content) }

@@ -47,7 +47,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -235,7 +235,7 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
         )!!
     // Analysis APIs are stricter regarding module structure, i.e., source/binary roots.
     // Merged roots may cause inconsistent module error (like b/279943223#comment2).
-    val (classesRoot, sourceRoot) = if (!isK2Plugin() || completionType.language == JAVA) {
+    val (classesRoot, sourceRoot) = if (!KotlinPluginModeProvider.isK2Mode() || completionType.language == JAVA) {
       listOf(jarRoot) to listOf(jarRoot)
     } else {
       val extensions = listOf("kt", "java", "class")

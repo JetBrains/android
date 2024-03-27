@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.name.ClassId
@@ -65,7 +65,7 @@ private val COMPOSABLE_ANNOTATION_FQNAME = FqName(COMPOSABLE_ANNOTATION)
  * Runs the block in an analysis session, if the K2 plugin is in use, or under a null session if K1.
  */
 private inline fun <T> analyzeIfK2(startElement: KtElement, block: KtAnalysisSession?.() -> T) =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     analyze(startElement) { block() }
   } else {
     (null as KtAnalysisSession?).block()

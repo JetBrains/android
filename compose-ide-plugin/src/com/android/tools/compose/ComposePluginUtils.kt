@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -106,7 +106,7 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
 }
 
 internal fun KtDeclaration.returnTypeFqName(): FqName? =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     if (this !is KtCallableDeclaration) null
     else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
   } else {
@@ -115,7 +115,7 @@ internal fun KtDeclaration.returnTypeFqName(): FqName? =
 
 @OptIn(KtAllowAnalysisOnEdt::class)
 internal fun KtElement.callReturnTypeFqName() =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
         val call =
@@ -134,7 +134,7 @@ internal fun KtAnalysisSession.asFqName(type: KtType) =
   type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     hasAnnotation(ComposeClassIds.Composable)
   } else {
     descriptor?.hasComposableAnnotation() == true

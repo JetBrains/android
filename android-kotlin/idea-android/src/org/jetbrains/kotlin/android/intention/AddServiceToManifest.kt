@@ -17,22 +17,10 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Application
-import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.Service
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.android.isSubclassOf
-import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.psi.KtClass
-
 
 class AddServiceToManifest : AbstractRegisterComponentAction<Service>(
     text = "Add service to manifest",

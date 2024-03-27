@@ -57,7 +57,7 @@ import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
@@ -193,7 +193,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
-    if (isK2Plugin()) {
+    if (KotlinPluginModeProvider.isK2Mode()) {
       val element = psiElement
       analyze(element) {
         val functionSymbol = element.getFunctionLikeSymbol()
@@ -225,7 +225,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     val callType = parent.inferCallType()
     if (!validCallTypes.contains(callType)) return null
 
-    return if (isK2Plugin()) {
+    return if (KotlinPluginModeProvider.isK2Mode()) {
       ComposeInsertHandlerForK2(functionInfo, callType)
     } else {
       val descriptor = getFunctionDescriptor() ?: return null

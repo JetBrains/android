@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -80,7 +80,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
       Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
 
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         analyze(parentFunction) {
           // `KtCallExpression.resolveCall()` expects the call to be successful always, or throws.
           // Instead, we should use `KtElement.resolveCall()` that allows an unresolved call.

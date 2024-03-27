@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
@@ -98,7 +98,7 @@ class LiveEditCompiler(val project: Project,
         }
         try {
           // Compiler pass
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             LiveEditCompilerForK2(inlineCandidateCache, irClassCache, this.outputBuilder).compile(file, input, outputBuilder)
           } else {
             compileKtFile(file, input, outputBuilder)

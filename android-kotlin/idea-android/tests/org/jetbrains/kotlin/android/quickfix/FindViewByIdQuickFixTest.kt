@@ -11,7 +11,7 @@ import com.intellij.testFramework.TestDataPath
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 @TestDataPath("\$PROJECT_ROOT/android-kotlin")
@@ -116,7 +116,7 @@ class FindViewByIdQuickFixTest : KotlinAndroidTestCase() {
                             ?: myFixture.getAvailableIntention(oldLabel)
                             ?: error("Failed to find intention")
             myFixture.launchAction(intention)
-            if (isK2Plugin() && File(testDataPath, "$path.k2.expected").isFile) {
+            if (KotlinPluginModeProvider.isK2Mode() && File(testDataPath, "$path.k2.expected").isFile) {
                 myFixture.checkResultByFile("$path.k2.expected")
             }
             else {

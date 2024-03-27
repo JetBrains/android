@@ -23,7 +23,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Assert
@@ -423,7 +423,7 @@ class BasicCompileTest {
       Assert.fail("A.kt contains a call to an invisible function invisibleFunction()")
     }
     catch (e: LiveEditUpdateException) {
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         Assert.assertEquals("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'.", e.message)
       } else {
         Assert.assertTrue(e.message?.contains("Analyze Error. INVISIBLE_MEMBER") == true)

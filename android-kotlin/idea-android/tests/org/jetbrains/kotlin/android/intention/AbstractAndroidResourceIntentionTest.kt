@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
@@ -91,7 +91,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
     private fun getExpectedDirectoryName(): String {
         val baseExpectedDirectory = "expected"
-        val suffix = if (isK2Plugin()) "k2" else "k1"
+        val suffix = if (KotlinPluginModeProvider.isK2Mode()) "k2" else "k1"
 
         return if (File("${myFixture.testDataPath}/${baseExpectedDirectory}.${suffix}").isDirectory) {
             "${baseExpectedDirectory}.${suffix}"

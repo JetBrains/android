@@ -27,7 +27,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
@@ -906,7 +906,7 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       myFixture.checkResult(
         // language=kotlin
         """
@@ -982,7 +982,7 @@ class ComposeCompletionContributorTest {
     )
 
     val parameterWithComposeAnnotation =
-      if (isK2Plugin()) "@Composable (() -> Unit)" else "() -> Unit"
+      if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "() -> Unit"
     val expectedLookupItems =
       listOf(
         "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",

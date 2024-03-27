@@ -22,7 +22,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,7 +90,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
     val expectedTextForFE10 = expectedText + '\n'
 
     // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
-    if (isK2Plugin()) myFixture.checkResult(expectedText.trimIndent())
+    if (KotlinPluginModeProvider.isK2Mode()) myFixture.checkResult(expectedText.trimIndent())
     else myFixture.checkResult(expectedTextForFE10.trimIndent())
   }
 
@@ -123,7 +123,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
     }
 
     // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
-    if (isK2Plugin()) {
+    if (KotlinPluginModeProvider.isK2Mode()) {
       myFixture.checkResult(
         // language=kotlin
         """
@@ -245,7 +245,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
 
-    val extraEmptyLine = if (isK2Plugin()) "" else "\n"
+    val extraEmptyLine = if (KotlinPluginModeProvider.isK2Mode()) "" else "\n"
     myFixture.checkResult(
       // language=kotlin
       """

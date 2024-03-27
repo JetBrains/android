@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
@@ -147,7 +147,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             analyze(expression) {
               val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
@@ -277,7 +277,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             analyze(expression) {
               val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol

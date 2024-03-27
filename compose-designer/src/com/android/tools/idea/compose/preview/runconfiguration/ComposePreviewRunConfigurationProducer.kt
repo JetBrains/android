@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -77,7 +77,7 @@ open class ComposePreviewRunConfigurationProducer :
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       ktNamedFunction.valueParameters.forEach { parameter ->
-        if (isK2Plugin()) {
+        if (KotlinPluginModeProvider.isK2Mode()) {
           parameter.providerClassNameK2()?.let { providerClass ->
             configuration.providerClassFqn = providerClass
             return@forEach

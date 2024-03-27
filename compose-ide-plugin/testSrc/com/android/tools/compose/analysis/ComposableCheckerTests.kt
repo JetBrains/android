@@ -19,7 +19,7 @@ import com.android.tools.compose.COMPOSABLE_CALL_TEXT_TYPE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import junit.framework.Assert.assertEquals
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -228,7 +228,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testGenericComposableInference1() {
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
         import androidx.compose.runtime.Composable
@@ -244,7 +244,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testGenericComposableInference2() {
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
         import androidx.compose.runtime.Composable
@@ -261,7 +261,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testGenericComposableInference3() {
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
         import androidx.compose.runtime.Composable
@@ -278,7 +278,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testGenericComposableInference4() {
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
         import androidx.compose.runtime.Composable
@@ -294,7 +294,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testGenericComposableInference5() {
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
         import androidx.compose.runtime.Composable
@@ -391,7 +391,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     @Composable fun B() {}
 
     @Composable fun C() {
-        A { <error descr="[CAPTURED_COMPOSABLE_INVOCATION] Composable calls are not allowed inside the lambda parameter of ${if(isK2Plugin()) "A" else "inline fun A(lambda: () -> Unit): Unit"}">B</error>() }
+        A { <error descr="[CAPTURED_COMPOSABLE_INVOCATION] Composable calls are not allowed inside the lambda parameter of ${if(KotlinPluginModeProvider.isK2Mode()) "A" else "inline fun A(lambda: () -> Unit): Unit"}">B</error>() }
     }
     """
     )
@@ -528,7 +528,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testComposableReporting018() {
     val errorDescription =
-      if (!isK2Plugin()) {
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
         "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'."
@@ -694,7 +694,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testComposableReporting028() {
     val errorDescription =
-      if (!isK2Plugin()) {
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
         "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'."
@@ -769,13 +769,13 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testComposableReporting034() {
     val initializerTypeMismatchMessage =
-      if (!isK2Plugin()) {
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected"
       } else {
         "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', actual 'kotlin.Function0<kotlin.Unit>'."
       }
     val argumentTypeMismatchMessage =
-      if (!isK2Plugin()) {
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
         "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but 'kotlin.Function0<kotlin.Unit>' was expected."
@@ -935,7 +935,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       """
           import androidx.compose.runtime.*
           fun foo(<error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'value parameter'${
-        if (isK2Plugin()) "." else ""
+        if (KotlinPluginModeProvider.isK2Mode()) "." else ""
       }">@Composable</error> bar: ()->Unit) {
               println(bar)
           }
@@ -1128,7 +1128,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
   fun testDisallowComposableCallPropagationWithInvoke() {
     // The frontend distinguishes between implicit and explicit invokes, which is why this test
     // fails in K1.
-    assumeTrue(isK2Plugin())
+    assumeTrue(KotlinPluginModeProvider.isK2Mode())
     doTest(
       """
             import androidx.compose.runtime.*
@@ -1396,7 +1396,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testComposableCallInsideNonComposableNonInlinedLambda() {
     val errorMessage =
-      if (!isK2Plugin()) {
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "<</error><error descr=\"[DEBUG] Reference is not resolved to anything, but is not marked unresolved\">!</error><error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference: COMPOSABLE_INVOCATION\">"
       } else {
         "<</error>!<error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference 'COMPOSABLE_INVOCATION'.\">"

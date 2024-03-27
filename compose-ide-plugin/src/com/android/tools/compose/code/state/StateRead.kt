@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.analysis.api.types.KtType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
@@ -135,7 +135,7 @@ private fun KtAnalysisSession.isStateType(type: KtType, stateClassId: ClassId): 
 
 @OptIn(KtAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) { getKtType()?.let { isStateType(it, stateClassId) } ?: false }
     }

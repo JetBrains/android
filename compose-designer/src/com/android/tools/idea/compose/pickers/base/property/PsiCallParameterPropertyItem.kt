@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -86,7 +86,7 @@ internal open class PsiCallParameterPropertyItem(
     get() =
       SlowOperations.allowSlowOperations(
         ThrowableComputable {
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             allowAnalysisOnEdt {
               argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
             }

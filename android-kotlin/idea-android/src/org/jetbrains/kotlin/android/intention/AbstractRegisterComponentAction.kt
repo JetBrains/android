@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.ClassId
@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.isAbstract
 import org.jetbrains.kotlin.psi.psiUtil.isPrivate
 import org.jetbrains.kotlin.psi.psiUtil.isProtected
-
 
 abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(
     text: String,
@@ -72,7 +71,7 @@ abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(
 
     @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtClass.isSubclassOfComponentType(): Boolean =
-        if (isK2Plugin()) {
+        if (KotlinPluginModeProvider.isK2Mode()) {
             allowAnalysisOnEdt {
                 @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
                 allowAnalysisFromWriteAction {

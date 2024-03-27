@@ -26,10 +26,8 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.IdeaTestUtil
-import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import java.io.File
 import java.nio.file.Path
 

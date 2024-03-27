@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -70,7 +70,7 @@ private val COMPOSABLE_CLASS_ID =
 
 @OptIn(KtAllowAnalysisOnEdt::class)
 fun PsiElement.isComposableFunction(): Boolean =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
       allowAnalysisOnEdt { analyze(annotationEntry) { isComposableAnnotation(annotationEntry) } }
     } != null
@@ -197,7 +197,7 @@ private fun KtElement.possibleComposableScope(): KtExpression? =
     ?.takeIf { it !is KtClassInitializer }
 
 private fun KtModifierListOwner.hasComposableAnnotation(): Boolean =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     hasAnnotation(COMPOSABLE_CLASS_ID)
   } else {
     when (this) {

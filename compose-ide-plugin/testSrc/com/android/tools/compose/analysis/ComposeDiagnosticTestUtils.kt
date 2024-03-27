@@ -19,7 +19,7 @@ import androidx.compose.compiler.plugins.kotlin.ComposeCommandLineProcessor
 import androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrar
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 
 // Kotlin compiler diagnostics to suppress
@@ -42,7 +42,7 @@ private val suppressKotlinVersionCheckOption =
 }=true"
 
 internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     KotlinCommonCompilerArgumentsHolder.getInstance(project).update {
       this.pluginClasspaths = arrayOf(composeCompilerPluginPath.toString())
       this.pluginOptions = arrayOf(suppressKotlinVersionCheckOption)
@@ -52,10 +52,10 @@ internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
 
 internal fun wrongAnnotationTargetError(target: String) =
   "[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target '$target'${
-  if (isK2Plugin()) "." else ""
+  if (KotlinPluginModeProvider.isK2Mode()) "." else ""
 }"
 
 internal val nothingToInline =
   "[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of ${
-    if (!isK2Plugin()) "functional types" else "function types."
+    if (!KotlinPluginModeProvider.isK2Mode()) "functional types" else "function types."
   }"

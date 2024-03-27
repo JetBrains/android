@@ -24,7 +24,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.k2.refactoring.move.processor.K2MoveFilesHandler
 import org.jetbrains.kotlin.idea.refactoring.move.moveFilesOrDirectories.MoveKotlinFileHandler
 import org.jetbrains.kotlin.idea.util.sourceRoots
@@ -65,7 +65,7 @@ class AndroidModularizeKotlinRefactoringTest : AndroidTestCase() {
     )
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
-    val moveHandler = if (isK2Plugin()) K2MoveFilesHandler() else MoveKotlinFileHandler()
+    val moveHandler = if (KotlinPluginModeProvider.isK2Mode()) K2MoveFilesHandler() else MoveKotlinFileHandler()
 
     @OptIn(KtAllowAnalysisOnEdt::class)
     allowAnalysisOnEdt {

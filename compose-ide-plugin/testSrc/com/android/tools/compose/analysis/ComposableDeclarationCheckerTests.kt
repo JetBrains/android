@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.analysis
 
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Test
 
 /** Tests for [ComposableDeclarationChecker] */
@@ -35,7 +35,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testComposableFunctionReferences() {
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       doTest(
         """
       import androidx.compose.runtime.Composable
@@ -83,7 +83,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
     // composable function type is expected. In K2, we can promote non-composable function
     // types to composable function types (as this matches the behavior for suspend functions),
     // but we explicitly forbid composable function references.
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       doTest(
         """
         import androidx.compose.runtime.Composable
@@ -172,7 +172,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testSuspendComposable() {
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       doTest(
         """
       import androidx.compose.runtime.Composable
@@ -224,7 +224,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   fun testMissingComposableOnOverride() {
     // In K1, we report the `CONFLICTING_OVERLOADS` error on properties as well as property
     // accessors. In K2 we only report the error on property accessors.
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       doTest(
         """
       import androidx.compose.runtime.Composable
@@ -411,7 +411,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testOverrideWithoutComposeAnnotation() {
-    if (!isK2Plugin()) {
+    if (!KotlinPluginModeProvider.isK2Mode()) {
       doTest(
         """
                 import androidx.compose.runtime.Composable
@@ -475,7 +475,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testMissingOverrideComposableLambda() {
     val functionDeclarationWithError =
-      if (!isK2Plugin())
+      if (!KotlinPluginModeProvider.isK2Mode())
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
       else
         "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [fun invoke(): Unit, @Composable() fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
@@ -493,7 +493,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testWrongOverrideLambda() {
     val functionDeclarationWithError =
-      if (!isK2Plugin())
+      if (!KotlinPluginModeProvider.isK2Mode())
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
       else
         "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
@@ -511,12 +511,12 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testMultipleOverrideLambda() {
     val functionDeclarationWithError =
-      if (!isK2Plugin())
+      if (!KotlinPluginModeProvider.isK2Mode())
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
       else
         "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
     val mixingFunctionalKindsInSupertypes =
-      if (!isK2Plugin()) "() -> Unit, @Composable (Int) -> Unit"
+      if (!KotlinPluginModeProvider.isK2Mode()) "() -> Unit, @Composable (Int) -> Unit"
       else
         "<error descr=\"[MIXING_FUNCTIONAL_KINDS_IN_SUPERTYPES] Mixing supertypes of different functional kinds ([Function, @Composable]) is not allowed.\" textAttributesKey=\"ERRORS_ATTRIBUTES\">() -> Unit, @Composable (Int) -> Unit</error>"
     doTest(

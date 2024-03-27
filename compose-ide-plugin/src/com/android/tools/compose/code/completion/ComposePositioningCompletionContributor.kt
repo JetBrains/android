@@ -35,7 +35,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.allScope
@@ -144,7 +144,7 @@ private data class ClassWithDeclarationsToSuggest(
           // Add import in addition to filling in the completion.
           val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
           val ktFile = context.file as KtFile
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             ktFile.addImport(FqName(classToImport))
             psiDocumentManager.commitAllDocuments()
             psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)

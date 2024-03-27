@@ -55,7 +55,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
@@ -485,7 +485,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
     val receiverExpr =
       (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
-    if (isK2Plugin()) {
+    if (KotlinPluginModeProvider.isK2Mode()) {
       allowAnalysisOnEdt {
         analyze(receiverExpr) {
           (receiverExpr.getKtType() as? KtNonErrorClassType)?.classId?.asFqNameString()?.let {

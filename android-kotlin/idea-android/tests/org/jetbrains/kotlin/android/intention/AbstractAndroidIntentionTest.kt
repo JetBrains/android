@@ -23,10 +23,9 @@ import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
-
 
 abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
@@ -34,7 +33,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         val intentionClassName = InTextDirectivesUtils.findStringWithPrefixes(testFileText, "// INTENTION_CLASS: ")
                                  ?: error("Intention class not found!")
 
-        if (isK2Plugin() && InTextDirectivesUtils.isDirectiveDefined(testFileText, "// SKIP_K2")) {
+        if (KotlinPluginModeProvider.isK2Mode() && InTextDirectivesUtils.isDirectiveDefined(testFileText, "// SKIP_K2")) {
             return
         }
 
