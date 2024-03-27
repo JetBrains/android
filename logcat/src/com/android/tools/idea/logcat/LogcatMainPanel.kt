@@ -41,7 +41,6 @@ import com.android.tools.idea.logcat.actions.IgnoreTagAction
 import com.android.tools.idea.logcat.actions.ImportLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
-import com.android.tools.idea.logcat.actions.LogcatScrollToTheEndToolbarAction
 import com.android.tools.idea.logcat.actions.LogcatSplitterActions
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
@@ -127,6 +126,7 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
+import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
@@ -653,7 +653,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(ClearLogcatAction())
       add(PauseLogcatAction())
       add(RestartLogcatAction())
-      add(LogcatScrollToTheEndToolbarAction(editor))
+      add(ScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(LogcatToggleUseSoftWrapsToolbarAction())
