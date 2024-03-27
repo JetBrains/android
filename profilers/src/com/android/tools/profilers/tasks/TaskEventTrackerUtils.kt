@@ -145,6 +145,7 @@ class TaskMetadataStatus {
         TrackStatus.Status.NOT_PROFILING -> TaskFailedMetadata.AllocationTrackStatus.Status.NOT_PROFILING
         TrackStatus.Status.FAILURE_UNKNOWN -> TaskFailedMetadata.AllocationTrackStatus.Status.FAILURE_UNKNOWN
         TrackStatus.Status.UNRECOGNIZED -> TaskFailedMetadata.AllocationTrackStatus.Status.UNRECOGNIZED
+        TrackStatus.Status.AGENT_UNATTACHABLE -> TaskFailedMetadata.AllocationTrackStatus.Status.AGENT_UN_ATTACHABLE
       }
 
       return TaskFailedMetadata.AllocationTrackStatus.newBuilder()

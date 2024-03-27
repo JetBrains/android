@@ -239,7 +239,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     // Set agent status unattachable
     transportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build())
     profilers.setProcess(device, process)
-    stage.setAllocationTrackingError()
+    stage.stopTrackingDueToUnattachableAgent()
     val subComponentsOfView = stageView.component.components
     Assert.assertTrue(subComponentsOfView[0] is JPanel)
 

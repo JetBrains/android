@@ -99,7 +99,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
             profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
           // Agent is currently unattachable. This indicates that the allocation stage has not begun allocation tracking, suggesting the
           // agent has moved from unspecified to unattachable state.
-          (profilers.stage as AllocationStage).setAllocationTrackingError()
+          (profilers.stage as AllocationStage).stopTrackingDueToUnattachableAgent()
         }
       }
       else -> try {

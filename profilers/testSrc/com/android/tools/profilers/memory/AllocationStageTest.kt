@@ -88,8 +88,8 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     // Verify allocation not started for taskBasedux when the agent is not attached
     assertFalse { stage.hasStartedTracking }
 
-    // Call setAllocationTrackingError to mark agent has error and end tracking
-    stage.setAllocationTrackingError()
+    // Call stopTrackingDueToUnattachableAgent to mark agent has error and end tracking
+    stage.stopTrackingDueToUnattachableAgent()
     assertTrue { stage.hasEndedTracking }
     assertTrue { stage.hasAgentError }
   }

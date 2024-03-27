@@ -127,7 +127,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
   val isAgentAttached get() = studioProfilers.isAgentAttached
 
-  fun setAllocationTrackingError() {
+  fun stopTrackingDueToUnattachableAgent() {
     stopTracking()
     hasAgentError = true
     TaskEventTrackerUtils.trackStartTaskFailed(
@@ -135,14 +135,13 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       studioProfilers.sessionsManager.isSessionAlive,
       TaskStartFailedMetadata(
         allocationTrackStatus = TrackStatus.newBuilder().setStatus(
-          // TODO(b/331311303): Add an enum for agent error in base for use in below case (rather than UNSPECIFIED)
-          TrackStatus.Status.UNSPECIFIED).build(), traceStartStatus = null, heapDumpStatus = null))
+          TrackStatus.Status.AGENT_UNATTACHABLE).build(), traceStartStatus = null, heapDumpStatus = null))
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
   }
 
   fun startTracking() {
     if (Common.AgentData.Status.UNATTACHABLE == studioProfilers.agentData.status) {
-      setAllocationTrackingError()
+      stopTrackingDueToUnattachableAgent()
       return
     }
 
