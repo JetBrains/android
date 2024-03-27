@@ -52,7 +52,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -111,7 +110,6 @@ class BuildVariantsIntegrationTest {
     }
   }
 
-  @Ignore("b/330783260")
   @Test
   fun testSwitchVariants_symlinks() {
     assumeNotWindows()

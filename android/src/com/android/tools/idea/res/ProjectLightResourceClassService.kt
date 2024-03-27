@@ -108,7 +108,11 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       PROJECT_SYSTEM_SYNC_TOPIC,
       ProjectSystemSyncManager.SyncResultListener {
         moduleClassesCache.invalidateAll()
-        runInEdt { PsiManager.getInstance(project).dropPsiCaches() }
+        runInEdt {
+          if (!project.isDisposed) {
+            PsiManager.getInstance(project).dropPsiCaches()
+          }
+        }
       },
     )
 
