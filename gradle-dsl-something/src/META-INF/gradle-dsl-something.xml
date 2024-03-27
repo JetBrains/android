@@ -21,6 +21,7 @@
                            id="EnableAutoPopupInSomethingCompletion"
                            implementationClass="com.android.tools.idea.gradle.something.EnableAutoPopupInSomethingCompletion" />
 
+    <psi.referenceContributor language="Something" implementation="com.android.tools.idea.gradle.something.SomethingVersionCatalogReferenceContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>

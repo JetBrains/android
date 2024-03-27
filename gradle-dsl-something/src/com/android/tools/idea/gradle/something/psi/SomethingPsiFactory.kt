@@ -85,6 +85,9 @@ class SomethingPsiFactory(private val project: Project) {
   fun createAssignment(key: String, value: Any): SomethingAssignment =
     createFromText("$key = $value") ?: error("Failed to create SomethingAssignment `$key = $value`")
 
+  fun createProperty(value: String): SomethingProperty =
+    createFromText("placeholder = $value") ?: error("Failed to create SomethingProperty `$value`")
+
   fun createFactory(identifier: String): SomethingFactory {
     val factory = createFromText<SomethingFactory>("$identifier()")
     return factory ?: error("Failed to create createFactory `$identifier( )`")

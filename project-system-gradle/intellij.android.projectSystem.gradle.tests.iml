@@ -58,5 +58,6 @@
     <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.something" scope="TEST" />
   </component>
 </module>
