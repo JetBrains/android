@@ -15,37 +15,26 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.adtui.swing.popup.FakeBalloon
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
-import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
-import org.mockito.Mockito.doAnswer
 import java.awt.Dimension
-import java.awt.event.WindowFocusListener
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
-import javax.swing.JPanel
 import javax.swing.JSlider
-import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
 class UiSettingsPanelTest {
@@ -173,39 +162,5 @@ class UiSettingsPanelTest {
     val button = panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }
     button.doClick()
     waitForCondition(1.seconds) { lastCommand == "reset" }
-  }
-
-  @Test
-  fun testCreatePicker() {
-    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
-    FakeUi(component, createFakeWindow = true)
-    val balloon = panel.createPicker(component, projectRule.disposable) as FakeBalloon
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-  }
-
-  @Test
-  fun testPickerClosesWhenWindowCloses() {
-    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
-    FakeUi(component, createFakeWindow = true)
-    val window = SwingUtilities.windowForComponent(component)
-    val listeners = mutableListOf<WindowFocusListener>()
-    doAnswer { invocation ->
-      listeners.add(invocation.arguments[0] as WindowFocusListener)
-    }.whenever(window).addWindowFocusListener(any())
-    val balloon = panel.createPicker(component, projectRule.disposable) as FakeBalloon
-    listeners.forEach { it.windowLostFocus(mock()) }
-    assertThat(balloon.isDisposed).isTrue()
-  }
-
-  @Test
-  fun testPickerClosesWithParentDisposable() {
-    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
-    FakeUi(component, createFakeWindow = true)
-    val parentDisposable = Disposer.newDisposable()
-    Disposer.register(projectRule.disposable, parentDisposable)
-    val balloon = panel.createPicker(component, parentDisposable) as FakeBalloon
-
-    Disposer.dispose(parentDisposable)
-    assertThat(balloon.isDisposed).isTrue()
   }
 }

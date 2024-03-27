@@ -120,6 +120,8 @@ class FakeBalloon(
     private set
   var ui: FakeUi? = null
     private set
+  var isShowing: Boolean = false
+    private set
   private var originalFocusOwner: Component? = null
   private var isDisposed = false
   private val listeners = mutableListOf<JBPopupListener>()
@@ -168,6 +170,7 @@ class FakeBalloon(
       originalFocusOwner = focusManager?.focusOwner
       focusManager?.focusOwner = component
     }
+    isShowing = true
   }
 
   override fun getPreferredSize(): Dimension {
@@ -195,6 +198,7 @@ class FakeBalloon(
     component.isVisible = false
     dispose()
     listeners.forEach { it.onClosed(mock()) }
+    isShowing = false
   }
 
   override fun setAnimationEnabled(enabled: Boolean) {

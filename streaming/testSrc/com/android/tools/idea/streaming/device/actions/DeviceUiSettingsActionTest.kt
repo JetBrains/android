@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
@@ -29,17 +32,28 @@ import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.awt.RelativePoint
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.event.MouseEvent
+import java.awt.event.WindowFocusListener
+import javax.swing.JComponent
+import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
 class DeviceUiSettingsActionTest {
@@ -60,6 +74,11 @@ class DeviceUiSettingsActionTest {
 
   private val testRootDisposable
     get() = agentRule.disposable
+
+  @After
+  fun after() {
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+  }
 
   @Test
   fun testUpdateWhenUnused() {
@@ -93,8 +112,30 @@ class DeviceUiSettingsActionTest {
     action.actionPerformed(event)
     waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
     val balloon = popupFactory.getNextBalloon()
-    Disposer.register(agentRule.disposable, balloon)
+    waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
+    assertThat((balloon.target as RelativePoint).originalComponent).isInstanceOf(ActionButton::class.java)
+    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(8, 8))
+  }
+
+  @Test
+  fun testActiveActionFromActionButtonInPopup() {
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val action = DeviceUiSettingsAction()
+    val view = connectDeviceAndCreateView()
+    val event = createTestMouseEvent(action, view)
+    (event.inputEvent?.component as? JComponent)?.putClientProperty(JBPopup.KEY, FakeJBPopup<String>(listOf()))
+
+    action.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
+    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
+    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
   }
 
   @Test
@@ -108,9 +149,57 @@ class DeviceUiSettingsActionTest {
 
     action.actionPerformed(event)
     waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupRule.fakePopupFactory.getNextBalloon()
-    Disposer.register(agentRule.disposable, balloon)
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
+    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
+    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point())
+  }
+
+  @Test
+  fun testPickerClosesWhenWindowCloses() {
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val action = DeviceUiSettingsAction()
+    val view = connectDeviceAndCreateView()
+    val event = createTestKeyEvent(view)
+    action.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+
+    runInEdtAndWait { FakeUi(view, createFakeWindow = true, parentDisposable = testRootDisposable) }
+    val window = SwingUtilities.windowForComponent(view)
+    val listeners = mutableListOf<WindowFocusListener>()
+    Mockito.doAnswer { invocation ->
+      listeners.add(invocation.arguments[0] as WindowFocusListener)
+    }.whenever(window).addWindowFocusListener(MockitoKt.any())
+
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+
+    listeners.forEach { it.windowLostFocus(MockitoKt.mock()) }
+    assertThat(balloon.isDisposed).isTrue()
+  }
+
+  @Test
+  fun testPickerClosesWithParentDisposable() {
+    val parentDisposable = Disposer.newDisposable()
+    Disposer.register(testRootDisposable, parentDisposable)
+
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val action = DeviceUiSettingsAction()
+    val view = connectDeviceAndCreateView(parentDisposable = parentDisposable)
+    val event = createTestMouseEvent(action, view)
+    action.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+
+    Disposer.dispose(parentDisposable)
+    assertThat(balloon.isDisposed).isTrue()
   }
 
   private fun createTestMouseEvent(action: AnAction, view: DeviceView): AnActionEvent {
@@ -123,9 +212,9 @@ class DeviceUiSettingsActionTest {
   private fun createTestKeyEvent(view: DeviceView): AnActionEvent =
     createTestEvent(view, project)
 
-  private fun connectDeviceAndCreateView(apiLevel: Int = 33): DeviceView {
+  private fun connectDeviceAndCreateView(apiLevel: Int = 33, parentDisposable: Disposable = testRootDisposable): DeviceView {
     val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1344, 2992), screenDensity = 480)
-    val view = createDeviceView(device)
+    val view = createDeviceView(device, parentDisposable)
     view.setBounds(0, 0, 600, 800)
     waitForFrame(view)
     return view
@@ -136,12 +225,12 @@ class DeviceUiSettingsActionTest {
     action.templatePresentation.clone(),
     ActionPlaces.TOOLBAR,
     Dimension(16, 16)
-  )
+  ).apply { size = Dimension(16, 16) }
 
-  private fun createDeviceView(device: FakeDevice): DeviceView {
+  private fun createDeviceView(device: FakeDevice, parentDisposable: Disposable): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
-    Disposer.register(testRootDisposable, deviceClient)
-    return DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
+    Disposer.register(parentDisposable, deviceClient)
+    return DeviceView(parentDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
   }
 
   private fun waitForFrame(view: DeviceView) {
