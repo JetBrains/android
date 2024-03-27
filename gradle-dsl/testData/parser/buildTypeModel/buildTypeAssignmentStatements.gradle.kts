@@ -26,3 +26,5 @@ android.buildTypes.getByName("xyz").isUseJack = true
 android.buildTypes.getByName("xyz").isUseProguard = true
 android.buildTypes.getByName("xyz").versionNameSuffix = "abc"
 android.buildTypes.getByName("xyz").isZipAlignEnabled = true
+android.buildTypes.getByName("xyz").enableUnitTestCoverage = true
+android.buildTypes.getByName("xyz").enableAndroidTestCoverage = true

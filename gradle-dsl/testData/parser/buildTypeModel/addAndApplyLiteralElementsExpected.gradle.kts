@@ -18,6 +18,8 @@ android {
       isUseProguard = false
       versionNameSuffix = "def"
       isZipAlignEnabled = false
+      enableUnitTestCoverage = false
+      enableAndroidTestCoverage = false
     }
   }
 }

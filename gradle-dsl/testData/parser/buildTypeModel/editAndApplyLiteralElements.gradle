@@ -18,6 +18,8 @@ android {
       useProguard true
       versionNameSuffix "abc"
       zipAlignEnabled true
+      enableUnitTestCoverage true
+      enableAndroidTestCoverage true
     }
   }
 }

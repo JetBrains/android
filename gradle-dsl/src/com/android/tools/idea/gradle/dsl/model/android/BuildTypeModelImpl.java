@@ -39,6 +39,8 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls public static final String TEST_COVERAGE_ENABLED = "mTestCoverageEnabled";
   @NonNls public static final String USE_PROGUARD = "mUseProguard";
   @NonNls public static final String ZIP_ALIGN_ENABLED = "mZipAlignEnabled";
+  @NonNls public static final String ENABLE_UNIT_TEST_COVERAGE = "mEnableUnitTestCoverage";
+  @NonNls public static final String ENABLE_ANDROID_TEST_COVERAGE = "mEnableAndroidTestCoverage";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
     super(dslElement);
@@ -121,4 +123,10 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   public ResolvedPropertyModel zipAlignEnabled() {
     return getModelForProperty(ZIP_ALIGN_ENABLED);
   }
+
+  @Override
+  public @NotNull ResolvedPropertyModel enableUnitTestCoverage() { return getModelForProperty(ENABLE_UNIT_TEST_COVERAGE); }
+
+  @Override
+  public @NotNull ResolvedPropertyModel enableAndroidTestCoverage() { return getModelForProperty(ENABLE_ANDROID_TEST_COVERAGE); }
 }

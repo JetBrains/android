@@ -58,5 +58,9 @@ public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel zipAlignEnabled();
 
+  @NotNull
+  ResolvedPropertyModel enableUnitTestCoverage();
 
+  @NotNull
+  ResolvedPropertyModel enableAndroidTestCoverage();
 }

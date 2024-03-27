@@ -82,6 +82,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -111,6 +113,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -142,6 +146,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -175,6 +181,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     }
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -206,6 +214,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     }
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -266,6 +276,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
+
 
     buildType.applicationIdSuffix().delete();
     buildType.removeAllBuildConfigFields();
@@ -289,6 +302,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().delete();
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
+    buildType.enableUnitTestCoverage().delete();
+    buildType.enableAndroidTestCoverage().delete();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
@@ -311,6 +326,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     buildModel.resetState();
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -337,6 +354,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -362,6 +381,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
 
     buildType.applicationIdSuffix().setValue("mySuffix-1");
     buildType.crunchPngs().setValue(false);
@@ -380,6 +401,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
+    buildType.enableUnitTestCoverage().setValue(false);
+    buildType.enableAndroidTestCoverage().setValue(false);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("crunchPngs", Boolean.FALSE, buildType.crunchPngs());
@@ -398,6 +421,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     buildModel.resetState();
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -417,6 +442,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -447,6 +474,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     buildType.applicationIdSuffix().setValue("mySuffix-1");
     buildType.crunchPngs().setValue(false);
@@ -465,6 +494,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
+    buildType.enableUnitTestCoverage().setValue(false);
+    buildType.enableAndroidTestCoverage().setValue(false);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("crunchPngs", Boolean.FALSE, buildType.crunchPngs());
@@ -483,6 +514,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     buildModel.resetState();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
@@ -507,6 +540,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -724,6 +759,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals(isGroovy()?"zipAlignEnabled":"isZipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals(isGroovy()?"enableUnitTestCoverage":"isUnitTestCoverageEnabled", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals(isGroovy()?"enableAndroidTestCoverage":"isAndroidTestCoverageEnabled", Boolean.TRUE, buildType.enableAndroidTestCoverage());
 
     // Remove all the properties except the applicationIdSuffix.
     buildType.removeAllBuildConfigFields();
@@ -747,6 +784,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().delete();
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
+    buildType.enableUnitTestCoverage().delete();
+    buildType.enableAndroidTestCoverage().delete();
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
@@ -773,6 +812,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_ELEMENTS_EXPECTED);
@@ -803,6 +844,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     buildModel.reparse();
     android = buildModel.android();
@@ -834,6 +877,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     // Now remove the applicationIdSuffix and build type and see that the whole android block is removed as it would be an empty block.
 
@@ -884,6 +929,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.TRUE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.TRUE, buildType.enableAndroidTestCoverage());
 
     buildType.applicationIdSuffix().setValue("mySuffix-1");
     buildType.crunchPngs().setValue(false);
@@ -902,6 +949,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
+    buildType.enableUnitTestCoverage().setValue(false);
+    buildType.enableAndroidTestCoverage().setValue(false);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("crunchPngs", Boolean.FALSE, buildType.crunchPngs());
@@ -920,6 +969,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
@@ -941,6 +992,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     buildModel.reparse();
     buildType = getXyzBuildType(buildModel);
@@ -961,6 +1014,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
   }
 
   @Test
@@ -991,6 +1046,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("enableUnitTestCoverage", buildType.enableUnitTestCoverage());
+    assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     buildType.applicationIdSuffix().setValue("mySuffix-1");
     buildType.crunchPngs().setValue(false);
@@ -1009,6 +1066,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
+    buildType.enableUnitTestCoverage().setValue(false);
+    buildType.enableAndroidTestCoverage().setValue(false);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("crunchPngs", Boolean.FALSE, buildType.crunchPngs());
@@ -1027,6 +1086,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
@@ -1048,6 +1109,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
 
     buildModel.reparse();
     buildType = getXyzBuildType(buildModel);
@@ -1068,6 +1131,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("enableUnitTestCoverage", Boolean.FALSE, buildType.enableUnitTestCoverage());
+    assertEquals("enableAndroidTestCoverage", Boolean.FALSE, buildType.enableAndroidTestCoverage());
   }
 
   @Test

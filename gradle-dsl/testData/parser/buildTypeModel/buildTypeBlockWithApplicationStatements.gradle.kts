@@ -21,6 +21,8 @@ android {
       setUseProguard(true)
       versionNameSuffix = "abc"
       isZipAlignEnabled = true
+      enableUnitTestCoverage = true
+      enableAndroidTestCoverage = true
     }
   }
 }

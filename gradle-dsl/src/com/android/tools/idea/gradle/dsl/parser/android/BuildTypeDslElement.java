@@ -61,7 +61,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"isUseProguard", property, USE_PROGUARD, VAR},
     {"setUseProguard", exactly(1), USE_PROGUARD, SET},
     {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
-    {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
+    {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.ktsToModelNameMap));
 
   private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -91,7 +93,11 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"useProguard", property, USE_PROGUARD, VAR},
     {"useProguard", exactly(1), USE_PROGUARD, SET},
     {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
-    {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
+    {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableUnitTestCoverage", exactly(1), ENABLE_UNIT_TEST_COVERAGE, SET},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", exactly(1), ENABLE_ANDROID_TEST_COVERAGE, SET},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
   private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -109,6 +115,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"testCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
     {"useProguard", property, USE_PROGUARD, VAR},
     {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
   @Nullable
