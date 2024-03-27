@@ -657,12 +657,12 @@ MODULE                        : project
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
                 tasks
-                    screenshotTestDebugScreenshotTest       : screenshotTestDebugScreenshotTest (DefaultExternalTask)
-                        qName                         : :app:screenshotTestDebugScreenshotTest
-                    screenshotTestReleaseScreenshotTest     : screenshotTestReleaseScreenshotTest (DefaultExternalTask)
-                        qName                         : :app:screenshotTestReleaseScreenshotTest
+                    testDebugScreenshotTest       : testDebugScreenshotTest (DefaultExternalTask)
+                        qName                         : :app:testDebugScreenshotTest
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
+                    testReleaseScreenshotTest     : testReleaseScreenshotTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseScreenshotTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
