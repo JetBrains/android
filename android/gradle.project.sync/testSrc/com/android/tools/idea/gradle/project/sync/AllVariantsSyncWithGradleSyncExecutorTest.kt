@@ -29,9 +29,12 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
+import com.intellij.openapi.progress.coroutineToIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -85,7 +88,13 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
-    val gradleModules = syncExecutor.fetchGradleModels()
+    val gradleModules = runBlocking {
+      withBackgroundProgress(project, "Test Android Gradle Sync") {
+        coroutineToIndicator {
+          syncExecutor.fetchGradleModels()
+        }
+      }
+    }
     val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModelData::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
