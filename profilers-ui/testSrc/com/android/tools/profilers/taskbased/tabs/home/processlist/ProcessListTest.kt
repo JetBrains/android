@@ -25,6 +25,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.JewelTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -32,7 +33,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
@@ -82,7 +82,7 @@ class ProcessListTest {
       title = "Testing TaskGridView",
     ) {
       populateVisualTestData()
-      JewelThemedComposableWrapper(isDark = false) {
+      JewelTestTheme (darkMode = false) {
         ProcessList(processListModel)
       }
     }
@@ -108,7 +108,7 @@ class ProcessListTest {
                                                                                         device2.deviceId), myTransportService, myTimer)
 
 
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         ProcessList(processListModel)
       }
     }
@@ -117,7 +117,7 @@ class ProcessListTest {
   @Test
   fun `device dropdown selection sets and renders the selected device's processes`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         ProcessList(processListModel)
       }
     }
@@ -148,7 +148,7 @@ class ProcessListTest {
   fun `process selection reflects in data model`() {
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
         TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
@@ -178,7 +178,7 @@ class ProcessListTest {
   @Test
   fun testNoDevicesTitleAndMessage() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         ProcessList(processListModel)
       }
     }
@@ -193,7 +193,7 @@ class ProcessListTest {
   @Test
   fun testMultipleDevicesTitleAndMessage() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         ProcessList(processListModel)
       }
     }

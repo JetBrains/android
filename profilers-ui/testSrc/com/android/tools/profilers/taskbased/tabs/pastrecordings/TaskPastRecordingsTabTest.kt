@@ -26,6 +26,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.JewelTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -36,7 +37,6 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
@@ -61,10 +61,10 @@ class TaskPastRecordingsTabTest {
   val ignoreTestRule = IgnoreTestRule()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+  val applicationRule = ApplicationRule()
 
   @get:Rule
-  val applicationRule = ApplicationRule()
+  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -93,7 +93,7 @@ class TaskPastRecordingsTabTest {
     singleWindowApplication(
       title = "Testing TaskPastRecordingTab",
     ) {
-      JewelThemedComposableWrapper(isDark = false) {
+      JewelTestTheme(darkMode = false) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -105,7 +105,7 @@ class TaskPastRecordingsTabTest {
     singleWindowApplication(
       title = "Testing TaskPastRecordingTab",
     ) {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme(darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -114,7 +114,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `selecting recording and task enable open profiler task button`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -152,7 +152,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of non-exportable recording does not enable the export button click action`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -185,7 +185,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of exportable recording enables export button click action`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -228,7 +228,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of deletable recording enables delete recording button click action`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -258,7 +258,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test deletion of selected recording updates rendered list`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -284,8 +284,8 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the deletion of Recording 1.
     assertThat(recordingListModel.recordingList.value).hasSize(0)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("RecordingListRow").assertIsNotDisplayed()
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(0)
+    composeTestRule.onNodeWithTag("RecordingListRow").assertDoesNotExist()
 
     // Because the selecting recording was deleted, the selection was revoked and thus the export and delete button should be disabled.
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()

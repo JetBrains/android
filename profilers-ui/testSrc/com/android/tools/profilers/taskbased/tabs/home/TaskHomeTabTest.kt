@@ -33,6 +33,7 @@ import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.JewelTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -41,7 +42,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
@@ -103,7 +103,7 @@ class TaskHomeTabTest {
     singleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
-      JewelThemedComposableWrapper(isDark = false) {
+      JewelTestTheme(darkMode = false) {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -115,7 +115,7 @@ class TaskHomeTabTest {
     singleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme(darkMode = true) {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -124,7 +124,7 @@ class TaskHomeTabTest {
   @Test
   fun `selecting device, process, and task enable start profiler task button`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -171,7 +171,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -213,7 +213,7 @@ class TaskHomeTabTest {
   fun `test selecting an alive, non preferred process and startup capable task`() {
     // should not allow for startup dropdown option to be present
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -255,7 +255,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -292,7 +292,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, profileable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -332,7 +332,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, debuggable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -383,7 +383,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting profileable process and debuggable only task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -434,7 +434,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task enables profiler task start button`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -474,7 +474,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive preferred process and startup capable task`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -550,7 +550,7 @@ class TaskHomeTabTest {
   @Test
   fun `test recording type dropdown appears for applicable tasks only`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }

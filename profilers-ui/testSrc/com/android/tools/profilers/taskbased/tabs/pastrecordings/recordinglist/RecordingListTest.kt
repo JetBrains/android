@@ -16,34 +16,22 @@
 package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.JewelTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItemWithSystemTraceArtifact
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.Utils
-import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
-import com.android.tools.profilers.taskbased.selections.recordings.RecordingListModelTest
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
@@ -94,7 +82,7 @@ class RecordingListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         RecordingList(recordingListModel = recordingListModel)
       }
     }
@@ -103,7 +91,7 @@ class RecordingListTest {
   @Test
   fun `test import file renders in UI and is reflected in data model`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme (darkMode = true) {
         RecordingList(recordingListModel)
       }
     }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -46,8 +45,8 @@ class DeviceTableTest {
 
     composeTestRule.onNode(hasText("Google") and hasAnySibling(hasText("OEM"))).performClick()
 
-    composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertDoesNotExist()
+    composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
   }
 
   @Test
@@ -62,8 +61,8 @@ class DeviceTableTest {
 
     composeTestRule.onNode(hasSetTextAction()).performTextReplacement("sam")
 
-    composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertDoesNotExist()
+    composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Galaxy S22", useUnmergedTree = true).assertIsDisplayed()
   }
 }

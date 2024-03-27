@@ -24,6 +24,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.JewelTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -31,7 +32,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
@@ -84,7 +84,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
-      JewelThemedComposableWrapper(isDark = false) {
+      JewelTestTheme(darkMode = false) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
         val recordingScreenModel = stage.recordingScreenModel!!
@@ -101,7 +101,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme(darkMode = true) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
         val recordingScreenModel = stage.recordingScreenModel!!
@@ -118,7 +118,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
-      JewelThemedComposableWrapper(isDark = false) {
+      JewelTestTheme(darkMode = false) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -132,7 +132,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme(darkMode = true) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -144,7 +144,7 @@ class RecordingScreenTest {
   fun `test stoppable (CPU) recording screen`() {
     val stage = CpuProfilerStage(myProfilers)
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         setupRecording(isStoppable = true)
         val recordingScreenModel = stage.recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -162,7 +162,7 @@ class RecordingScreenTest {
   @Test
   fun `test non stoppable (memory) recording screen`() {
     composeTestRule.setContent {
-      JewelThemedComposableWrapper(isDark = true) {
+      JewelTestTheme {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)

@@ -22,9 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.dark
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
-import org.jetbrains.jewel.intui.standalone.theme.defaultTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.light
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.ui.ComponentStyling
@@ -46,7 +46,7 @@ fun JewelTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
       Font(resource = "fonts/inter/Inter-Black.ttf", weight = FontWeight.Black),
     )
 
-  val textStyle = JewelTheme.defaultTextStyle.copy(fontFamily = fontFamily)
+  val textStyle = JewelTheme.createDefaultTextStyle().copy(fontFamily = fontFamily)
 
   val themeDefinition =
     if (darkMode) {
