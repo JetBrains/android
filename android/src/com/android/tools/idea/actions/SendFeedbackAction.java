@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.URLUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -75,13 +76,9 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
     // so let's not make that process prone to exceptions)
     return safeCall(() -> {
-      StringBuilder sb = new StringBuilder(SendFeedbackActionJavaShim.INSTANCE.getDescription(null));
-      // Add Android Studio custom information we want to see prepopulated in the bug reports
-      sb.append("\n\n");
+      var sb = new StringBuilder();
       sb.append(String.format("AS: %1$s\n", ApplicationInfo.getInstance().getFullVersion()));
-      for (SendFeedbackDescriptionProvider provider : SendFeedbackDescriptionProvider.getProviders()) {
-        provider.getDescription(project).forEach(str -> sb.append(str + "\n"));
-      }
+      sb.append(StringUtil.trimLeading(SendFeedbackActionJavaShim.INSTANCE.getDescription(project)));
       return sb.toString();
     });
   }
@@ -152,7 +149,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
            "&description=" +
            "%60%60%60%0A" +
            URLUtil.encodeURIComponent(instructions) + "%0A" +
-           "Build%3A%20" + buildNumber + "%2C%20" + strDate +
+           "Build%3A%20" + buildNumber + "%2C%20" + strDate + "%0A" +
            "$DESCR" +
            "%60%60%60";
   }

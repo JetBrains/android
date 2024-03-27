@@ -35,6 +35,7 @@
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
+    <feedbackDescriptionProvider implementation="com.android.tools.idea.feedback.GradleAndNdkFeedbackDescriptionProvider" />
     <registryKey key="unknown.sdk"  defaultValue="false" description="Check for unknown SDKs and provide automatic fixes or smart suggestions"/>
     <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start"/>
     <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>

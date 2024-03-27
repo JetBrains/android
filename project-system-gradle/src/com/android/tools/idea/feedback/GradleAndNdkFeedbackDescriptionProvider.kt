@@ -23,7 +23,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.actions.SendFeedbackAction.safeCall
-import com.android.tools.idea.actions.SendFeedbackDescriptionProvider
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet.Companion.getInstance
@@ -39,6 +38,7 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.ide.FeedbackDescriptionProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -56,10 +56,11 @@ import java.util.Properties
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
-private val LOG = Logger.getInstance(GradleAndNdkSendFeedbackDescriptionProvider::class.java)
+private val LOG = Logger.getInstance(GradleAndNdkFeedbackDescriptionProvider::class.java)
 
-class GradleAndNdkSendFeedbackDescriptionProvider : SendFeedbackDescriptionProvider {
-  override fun getDescription(project: Project?): Collection<String> {
+class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
+
+  override suspend fun getDescription(project: Project?): String? {
     val progress: ProgressIndicator = StudioLoggerProgressIndicator(SendFeedbackAction::class.java)
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
@@ -84,20 +85,21 @@ class GradleAndNdkSendFeedbackDescriptionProvider : SendFeedbackDescriptionProvi
       return if (project == null) getDefaultJdkDetails() else getProjectJdkDetails(project)
     }
 
-    fun item(prefix: String, getter: () -> String?): String? {
-      return safeCall { getter() }?.let { "$prefix: $it" }
-    }
-
     fun getNdkDetails(): String = getNdkDetails(project, sdkHandler, progress)
     fun getCMakeDetails(): String = getCMakeDetails(project, sdkHandler, progress)
 
-    return listOfNotNull(
-      item("Android Gradle Plugin", ::getGradlePluginDetails),
-      item("Gradle", ::getGradleDetails),
-      item("Gradle JDK", ::getJdkDetails),
-      item("NDK", ::getNdkDetails),
-      item("CMake", ::getCMakeDetails),
-    )
+    fun StringBuilder.item(prefix: String, getter: () -> String?) {
+      safeCall(getter)?.let { appendLine("$prefix: $it") }
+    }
+
+    val description = buildString {
+      item("Android Gradle Plugin", ::getGradlePluginDetails)
+      item("Gradle", ::getGradleDetails)
+      item("Gradle JDK", ::getJdkDetails)
+      item("NDK", ::getNdkDetails)
+      item("CMake", ::getCMakeDetails)
+    }
+    return description.ifEmpty { null }
   }
 }
 

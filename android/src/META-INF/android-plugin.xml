@@ -662,8 +662,6 @@
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.execution.common.debug.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
                     interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
-                    interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler"/>
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
