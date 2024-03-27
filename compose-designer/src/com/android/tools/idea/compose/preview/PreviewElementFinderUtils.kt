@@ -46,30 +46,6 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.tryResolve
 
-/**
- * In Multipreview, every annotation is traversed in the DFS for finding Previews. This list is used
- * as an optimization to avoid traversing annotations which fqcn starts with any of these prefixes,
- * as those annotations will never lead to a Preview.
- */
-private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx.", "java.")
-
-/**
- * Returns true if one of the following is true:
- * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
- *    contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or
- *    'package androidx.preview.example')
- * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
- *    [NON_MULTIPREVIEW_PREFIXES].
- */
-@Slow
-private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
-  return runReadAction { this.qualifiedName }
-    ?.let { fqcn ->
-      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
-      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
-    } == true
-}
-
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =
   ReadAction.compute<Boolean, Throwable> {
@@ -157,8 +133,7 @@ private fun getPreviewNodes(
                 node.toMultiPreviewNode(multiPreviewNodesByFqn, composableFqn) ?: return@onTraversal
               multiPreviewNodesByFqn[annotationFqn] = multiPreviewNode
             }
-          else null,
-        shouldTraverse = ::shouldTraverse,
+          else null
       ) {
         it.isPreviewAnnotation()
       }
@@ -206,14 +181,6 @@ private fun UAnnotation.getPreviewNodes(
  */
 private fun UElement.directPreviewChildrenCount() =
   runReadAction { getUAnnotations() }.count { it.isPreviewAnnotation() }
-
-/**
- * Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation.
- */
-@Slow
-private fun shouldTraverse(annotation: UAnnotation): Boolean =
-  annotation.isPsiValid &&
-    (annotation.isPreviewAnnotation() || annotation.couldBeMultiPreviewAnnotation())
 
 private fun buildParentAnnotationInfo(parent: NodeInfo<UAnnotationSubtreeInfo>?): String? {
   val parentAnnotation = parent?.element as? UAnnotation ?: return null

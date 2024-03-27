@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.annotations
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
@@ -312,6 +313,161 @@ class AnnotationsGraphFinderTest {
         "MyTestPreview",
         "MyTestPreview",
         "Intermediate2",
+      ),
+      traversedNodeNames,
+    )
+  }
+
+  @Test
+  fun testFindMultiPreviewsInAndroidx() {
+    fixture.addFileToProjectAndInvalidate(
+      "src/ThePreview.kt",
+      // language=kotlin
+      """
+        package androidx
+
+        // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
+        annotation class MyTestPreview
+        """
+        .trimIndent(),
+    )
+    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with a valid
+    // package name.
+    fixture.addFileToProjectAndInvalidate(
+      "src/File1.kt",
+      // language=kotlin
+      """
+        package androidx.preview.valid.package
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyValidAnnotation1
+        """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File2.kt",
+      // language=kotlin
+      """
+        package androidx.valid.preview.package
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyValidAnnotation2
+        """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File3.kt",
+      // language=kotlin
+      """
+        package androidx.valid.package.preview
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyValidAnnotation3
+        """
+        .trimIndent(),
+    )
+
+    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with an
+    // invalid package name.
+    fixture.addFileToProjectAndInvalidate(
+      "src/File4.kt",
+      // language=kotlin
+      """
+        // Doesn't contain preview
+        package androidx.invalid.package
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyInvalidAnnotation1
+        """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File5.kt",
+      // language=kotlin
+      """
+        // 'mypreview' is not valid
+        package androidx.invalid.mypreview.package
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyInvalidAnnotation2
+        """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/File6.kt",
+      // language=kotlin
+      """
+        // 'pre.view' is not valid
+        package androidx.invalid.pre.view.package
+
+        import androidx.MyTestPreview
+
+        @MyTestPreview
+        annotation class MyInvalidAnnotation3
+        """
+        .trimIndent(),
+    )
+
+    val previewTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        package com.example.test
+
+        import androidx.MyTestPreview
+        import androidx.preview.valid.package.MyValidAnnotation1
+        import androidx.valid.preview.package.MyValidAnnotation2
+        import androidx.valid.package.preview.MyValidAnnotation3
+        import androidx.invalid.package.MyInvalidAnnotation1
+        import androidx.invalid.mypreview.package.MyInvalidAnnotation2
+        import androidx.invalid.pre.view.package.MyInvalidAnnotation3
+
+        @MyTestPreview
+        @MyValidAnnotation1
+        @MyValidAnnotation2
+        @MyInvalidAnnotation1
+        @MyInvalidAnnotation2
+        @MyValidAnnotation3
+        @MyInvalidAnnotation3
+        fun Preview1() {
+        }
+        """
+          .trimIndent(),
+      )
+
+    val rootMethod = previewTest.getMethodAnnotatedBy("MyTestPreview")
+
+    val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
+    rootMethod
+      .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
+        runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
+      }
+      .toList()
+
+    val traversedNodeNames =
+      traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
+    // the order should be post-order
+    assertEquals(
+      //
+      listOf(
+        "MyTestPreview",
+        "MyTestPreview",
+        "MyValidAnnotation1",
+        "MyTestPreview",
+        "MyValidAnnotation2",
+        "MyTestPreview",
+        "MyValidAnnotation3",
       ),
       traversedNodeNames,
     )

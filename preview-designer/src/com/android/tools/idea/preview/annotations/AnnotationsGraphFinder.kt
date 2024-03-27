@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.annotations
 
 import com.android.annotations.concurrency.Slow
+import com.intellij.openapi.application.runReadAction
 import com.intellij.util.containers.sequenceOfNotNull
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -113,7 +114,7 @@ private class UAnnotationResultFactory(private val filter: (UAnnotation) -> Bool
  */
 @Slow
 fun UElement.findAllAnnotationsInGraph(
-  shouldTraverse: (UAnnotation) -> Boolean = { true },
+  shouldTraverse: (UAnnotation) -> Boolean = ::shouldTraverse,
   onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
   filter: (UAnnotation) -> Boolean,
 ): Sequence<NodeInfo<UAnnotationSubtreeInfo>> {
@@ -124,7 +125,38 @@ fun UElement.findAllAnnotationsInGraph(
     )
   return annotationsGraph.traverse(
     listOf(this),
-    annotationFilter = { _, annotation -> shouldTraverse(annotation) },
+    annotationFilter = { _, annotation -> shouldTraverse(annotation) || filter(annotation) },
     isLeafAnnotation = { filter(it) },
   )
 }
+
+/**
+ * In Multipreview, every annotation is traversed in the DFS for finding Previews. This list is used
+ * as an optimization to avoid traversing annotations which fqcn starts with any of these prefixes,
+ * as those annotations will never lead to a Preview.
+ */
+private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx.", "java.")
+
+/**
+ * Returns true if one of the following is true:
+ * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
+ *    contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or
+ *    'package androidx.preview.example')
+ * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
+ *    [NON_MULTIPREVIEW_PREFIXES].
+ */
+@Slow
+private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
+  return runReadAction { this.qualifiedName }
+    ?.let { fqcn ->
+      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
+      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+    } == true
+}
+
+/**
+ * Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation.
+ */
+@Slow
+private fun shouldTraverse(annotation: UAnnotation): Boolean =
+  runReadAction { annotation.isPsiValid } && annotation.couldBeMultiPreviewAnnotation()
