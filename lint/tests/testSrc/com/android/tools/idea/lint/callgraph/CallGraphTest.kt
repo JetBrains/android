@@ -38,20 +38,19 @@ import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
 
 fun buildInterproceduralAnalysesForTest(
-    virtualFile: VirtualFile,
-    project: Project): Triple<ClassHierarchy, IntraproceduralDispatchReceiverEvaluator, CallGraph> {
+  virtualFile: VirtualFile,
+  project: Project,
+): Triple<ClassHierarchy, IntraproceduralDispatchReceiverEvaluator, CallGraph> {
   val uastContext = project.getService(UastContext::class.java)
-  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
-  val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
-  val cha = ClassHierarchyVisitor()
-      .also { file.accept(it) }
-      .classHierarchy
-  val receiverEval = IntraproceduralDispatchReceiverVisitor(cha)
-      .also { file.accept(it) }
-      .receiverEval
-  val graph = CallGraphVisitor(receiverEval, cha)
-      .also { file.accept(it) }
-      .callGraph
+  val psiFile =
+    PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
+  val file =
+    uastContext.convertWithParent<UFile>(psiFile)
+      ?: throw Error("Failed to convert PsiFile to UFile")
+  val cha = ClassHierarchyVisitor().also { file.accept(it) }.classHierarchy
+  val receiverEval =
+    IntraproceduralDispatchReceiverVisitor(cha).also { file.accept(it) }.receiverEval
+  val graph = CallGraphVisitor(receiverEval, cha).also { file.accept(it) }.callGraph
   return Triple(cha, receiverEval, graph)
 }
 
@@ -69,7 +68,8 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
       public interface Consumer<T> {
           void accept(T t);
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -78,14 +78,17 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testKotlinCallGraph() = doTest(".kt")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
+    myFixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
     val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph$ext", "src/CallGraph$ext")
-    val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
+    val (_, receiverEval, graph) =
+      buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val contextualGraph = graph.buildContextualCallGraph(receiverEval)
     val nodeMap = graph.nodes.associateBy { it.shortName }
 
     fun String.assertCalls(vararg callees: String) {
-      val node = nodeMap[this] ?: if (callees.isEmpty()) return else throw Error("No node found for ${this}")
+      val node =
+        nodeMap[this] ?: if (callees.isEmpty()) return else throw Error("No node found for ${this}")
       val actual = node.likelyEdges.map { it.node.shortName }.toSet().toList()
       TestCase.assertEquals("Unexpected callees for ${this}", callees.sorted(), actual.sorted())
     }
@@ -97,37 +100,43 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
       return paths.firstOrNull()?.map { (contextualNode, _) -> contextualNode.node.shortName }
     }
 
-    fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach $callee", this.findPath(callee))
-    fun String.assertDoesNotReach(callee: String) = TestCase.assertNull("${this} should not reach $callee", this.findPath(callee))
+    fun String.assertReaches(callee: String) =
+      TestCase.assertNotNull("${this} should reach $callee", this.findPath(callee))
+    fun String.assertDoesNotReach(callee: String) =
+      TestCase.assertNull("${this} should not reach $callee", this.findPath(callee))
 
     // Check simple call chains.
-    "Trivial#empty".assertCalls(/*nothing*/)
+    "Trivial#empty".assertCalls(/*nothing*/ )
     for (kind in listOf("static", "private", "public")) {
       val prefix = "Trivial#$kind"
       "${prefix}1".assertCalls("${prefix}2")
       "${prefix}2".assertCalls("${prefix}3")
-      "${prefix}3".assertCalls(/*nothing*/)
+      "${prefix}3".assertCalls(/*nothing*/ )
       "${prefix}1".assertReaches("${prefix}3")
       "${prefix}3".assertDoesNotReach("${prefix}1")
     }
 
     // Check calls relying on call hierarchy analysis and type estimates for local variables.
-    "SimpleLocal#notUnique".assertCalls(/*nothing*/)
+    "SimpleLocal#notUnique".assertCalls(/*nothing*/ )
     "SimpleLocal#unique".assertCalls("Impl#implUnique")
     "SimpleLocal#typeEvidencedSubImpl".assertCalls("SubImpl#f", "SubImpl#SubImpl")
     "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#Impl")
-    // In K1, `it` is of `It`, the explicit type, since assignments of `Impl` and `SubImpl` are aggregated.
-    // Therefore, the resolution of `it.f()` started from `It#f` and traced all the overrides: `Impl#f` and `SubImpl#f`.
-    // In contrast, in K2, the last assignment is tracked properly in DFA, so the resolution goes directly to `SubImpl#f`.
+    // In K1, `it` is of `It`, the explicit type, since assignments of `Impl` and `SubImpl` are
+    // aggregated.
+    // Therefore, the resolution of `it.f()` started from `It#f` and traced all the overrides:
+    // `Impl#f` and `SubImpl#f`.
+    // In contrast, in K2, the last assignment is tracked properly in DFA, so the resolution goes
+    // directly to `SubImpl#f`.
     if (KotlinPluginModeProvider.isK2Mode() && ext == ".kt") {
       "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f")
     } else {
-      "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f", "Impl#f")
+      "SimpleLocal#typeEvidencedBoth"
+        .assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f", "Impl#f")
     }
 
     // Check calls through fields and array elements.
     for (kind in listOf("Field", "Array")) {
-      "Simple$kind#notUnique".assertCalls(/*nothing*/)
+      "Simple$kind#notUnique".assertCalls(/*nothing*/ )
       "Simple$kind#unique".assertCalls("Impl#implUnique")
       "Simple$kind#typeEvidencedSubImpl".assertCalls("SubImpl#f")
       "Simple$kind#typeEvidencedImpl".assertCalls("Impl#f")
@@ -143,7 +152,8 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
     "SubSubSubSpecial#SubSubSubSpecial".assertCalls("SubSubSpecial#SubSubSpecial")
 
     // Test class and field initializers.
-    "Initializers#Initializers".assertCalls("Object#Object", "Nested#f", "Empty#Empty", "Inner#Inner", "Nested#g")
+    "Initializers#Initializers"
+      .assertCalls("Object#Object", "Nested#f", "Empty#Empty", "Inner#Inner", "Nested#g")
     "Inner#Inner".assertCalls("Object#Object")
     "Nested#Nested".assertCalls("Nested#h", "Object#Object")
 
@@ -195,9 +205,12 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
     "Contextual#run3".assertDoesNotReach("Contextual#g")
 
     // Test contextual paths involving lambda captures.
-    // TODO(kotlin-uast-cleanup): Due to the current issues with Kotlin UAST (hashing and name resolution),
-    //   invocations of captured functional variables in Kotlin is not supported yet. It's better to wait until the Kotlin
-    //   UAST issues are fixed than to pollute the code with the hacks/workarounds that would be required.
+    // TODO(kotlin-uast-cleanup): Due to the current issues with Kotlin UAST (hashing and name
+    // resolution),
+    //   invocations of captured functional variables in Kotlin is not supported yet. It's better to
+    // wait until the Kotlin
+    //   UAST issues are fixed than to pollute the code with the hacks/workarounds that would be
+    // required.
     if (ext == ".java") {
       "Contextual#d".assertReaches("Contextual#f")
       "Contextual#d".assertDoesNotReach("Contextual#g")
@@ -207,8 +220,7 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
       "Contextual#h".assertDoesNotReach("Contextual#f")
       "Contextual#runWrappedMulti".assertReaches("Contextual#f")
       "Contextual#runWrappedMulti".assertReaches("Contextual#g")
-    }
-    else {
+    } else {
       assert(ext == ".kt")
     }
 
@@ -218,8 +230,7 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
       "CallGraphKt#topLevelB".assertCalls("CallGraphKt#topLevelC")
       "CallGraphKt#topLevelA".assertReaches("CallGraphKt#topLevelC")
       "CallGraphKt#topLevelC".assertDoesNotReach("CallGraphKt#topLevelA")
-    }
-    else {
+    } else {
       assert(ext == ".java")
     }
   }
