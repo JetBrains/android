@@ -18,6 +18,7 @@ package com.android.tools.compose.analysis
 import com.android.tools.compose.COMPOSABLE_CALL_TEXT_TYPE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.testFramework.ExpectedHighlightingData
 import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assume.assumeTrue
@@ -1266,55 +1267,62 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testComposableValueOperator() {
-    doTest(
+    val testCode =
       """
-            import androidx.compose.runtime.Composable
-            import kotlin.reflect.KProperty
+      import androidx.compose.runtime.Composable
+      import kotlin.reflect.KProperty
 
-            class Foo
-            class FooDelegate {
-                @Composable
-                operator fun getValue(thisObj: Any?, property: KProperty<*>) {}
-                @Composable
-                operator fun <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
-            }
-            @Composable operator fun Foo.getValue(thisObj: Any?, property: KProperty<*>) {}
-            @Composable operator fun Foo.<error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+      class Foo
+      class FooDelegate {
+          @Composable
+          operator fun getValue(thisObj: Any?, property: KProperty<*>) {}
+          @Composable
+          operator fun <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+      }
+      @Composable operator fun Foo.getValue(thisObj: Any?, property: KProperty<*>) {}
+      @Composable operator fun Foo.<error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
 
-            fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">nonComposable</error>() {
-                val fooValue = Foo()
-                val foo by fooValue
-                val fooDelegate by FooDelegate()
-                var mutableFoo by <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">fooValue</error>
-                val bar = Bar()
+      fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">nonComposable</error></error></error></error>() {
+          val fooValue = Foo()
+          val foo by fooValue
+          val fooDelegate by FooDelegate()
+          var mutableFoo by <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">fooValue</error></error>
+          val bar = Bar()
 
-                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
-                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">fooDelegate</error>)
-                println(bar.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
+          println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
+          println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">fooDelegate</error>)
+          println(bar.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
 
-                <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">mutableFoo</error> = Unit
-            }
+          <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">mutableFoo</error> = Unit
+      }
 
-            @Composable
-            fun TestComposable() {
-                val fooValue = Foo()
-                val foo by fooValue
-                val fooDelegate by FooDelegate()
-                val bar = Bar()
+      @Composable
+      fun TestComposable() {
+          val fooValue = Foo()
+          val foo by fooValue
+          val fooDelegate by FooDelegate()
+          val bar = Bar()
 
-                println(foo)
-                println(fooDelegate)
-                println(bar.foo)
-            }
+          println(foo)
+          println(fooDelegate)
+          println(bar.foo)
+      }
 
-            class Bar {
-                val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">foo</error> by Foo()
+      class Bar {
+          val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">foo</error> by Foo()
 
-                @get:Composable
-                val foo2 by Foo()
-            }
-            """
-    )
+          @get:Composable
+          val foo2 by Foo()
+      }
+      """
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      // As explained in https://b.corp.google.com/issues/301340542#comment12, we have duplicated
+      // errors because we have 3 different reasons to report the diagnostic. Technically, it is
+      // not wrong, but it can be inconvenient to users.
+      ExpectedHighlightingData.expectedDuplicatedHighlighting { doTest(testCode) }
+    } else {
+      doTest(testCode)
+    }
   }
 
   @Test

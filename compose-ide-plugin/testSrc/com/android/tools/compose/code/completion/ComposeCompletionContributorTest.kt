@@ -906,44 +906,23 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
-    if (!KotlinPluginModeProvider.isK2Mode()) {
-      myFixture.checkResult(
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun Test() {
-        ObjectWithComposables.TestMethod {
-
-        }
-      }
+    myFixture.checkResult(
+      // language=kotlin
       """
-          .trimIndent(),
-        true,
-      )
-    } else {
-      myFixture.checkResult(
-        // language=kotlin
-        """
-      package com.example
+    package com.example
 
-      import androidx.compose.runtime.Composable
-      import com.example.ObjectWithComposables.TestMethod
+    import androidx.compose.runtime.Composable
 
-      @Composable
-      fun Test() {
-          TestMethod {
+    @Composable
+    fun Test() {
+      ObjectWithComposables.TestMethod {
 
-          }
       }
-      """
-          .trimIndent(),
-        true,
-      )
     }
+    """
+        .trimIndent(),
+      true,
+    )
   }
 
   /**

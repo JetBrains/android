@@ -68,7 +68,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       fun doSomething(fn: () -> Unit) { print(fn) }
       @Composable fun B(content: @Composable () -> Unit) {
           content()
-          doSomething(::<error descr="[UNRESOLVED_REFERENCE] Unresolved reference 'A'." textAttributesKey="WRONG_REFERENCES_ATTRIBUTES">A</error>)
+          doSomething(::<error descr="[INAPPLICABLE_CANDIDATE] Inapplicable candidate(s): @Composable() fun A(): Unit" textAttributesKey="ERRORS_ATTRIBUTES">A</error>)
           B(<error descr="[COMPOSABLE_FUNCTION_REFERENCE] Function References of @Composable functions are not currently supported" textAttributesKey="ERRORS_ATTRIBUTES">::A</error>)
       }
         """
@@ -274,7 +274,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       object FakeFoo : Foo {
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() get(): Boolean, get(): Boolean]">@Composable get()</error> = true
+          override val nonComposableProperty: Boolean get() = true
       }
 
       interface Bar {
@@ -287,7 +287,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
       object FakeBar : Bar {
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
-          override val composableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [get(): Boolean, @Composable() get(): Boolean]">get()</error> = true
+          override val composableProperty: Boolean get() = true
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
           override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() get(): Boolean, get(): Boolean]">@Composable get()</error> = true
       }
@@ -434,7 +434,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
                     fun compose(content: () -> Unit)
                 }
 
-                <error descr="[ABSTRACT_MEMBER_NOT_IMPLEMENTED] 'Class Impl' is not abstract and does not implement abstract member 'compose'." textAttributesKey="ERRORS_ATTRIBUTES">class Impl</error> : Base {
+                <error descr="[ABSTRACT_MEMBER_NOT_IMPLEMENTED] Class 'Impl' is not abstract and does not implement abstract member 'compose'." textAttributesKey="ERRORS_ATTRIBUTES">class Impl</error> : Base {
                     <error descr="[NOTHING_TO_OVERRIDE] 'compose' overrides nothing." textAttributesKey="ERRORS_ATTRIBUTES">override</error> fun compose(content: @Composable () -> Unit) {}
                 }
             """
