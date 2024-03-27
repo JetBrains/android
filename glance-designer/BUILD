@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
 )
 

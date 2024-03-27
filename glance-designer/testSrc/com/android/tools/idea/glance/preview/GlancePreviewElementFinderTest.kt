@@ -50,6 +50,17 @@ class GlancePreviewElementFinderTest {
         .trimIndent(),
     )
 
+    fixture.addFileToProjectAndInvalidate(
+      "androidx/compose/runtime/Composable.kt",
+      // language=kotlin
+      """
+        package androidx.compose.runtime
+
+        annotation class Composable
+        """
+        .trimIndent(),
+    )
+
     sourceFileAppWidgets =
       fixture.addFileToProjectAndInvalidate(
         "com/android/test/SourceFileWidget.kt",
@@ -58,8 +69,10 @@ class GlancePreviewElementFinderTest {
         package com.android.test
 
         import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
 
         @Preview
+        @Composable
         fun Foo31() { }
         """
           .trimIndent(),
@@ -73,8 +86,10 @@ class GlancePreviewElementFinderTest {
         package com.android.test
 
         import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
 
         @Preview(widthDp = 1234, heightDp = 5678)
+        @Composable
         fun Foo41() { }
         """
           .trimIndent(),
@@ -88,7 +103,9 @@ class GlancePreviewElementFinderTest {
         package com.android.test
 
         import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
 
+        @Composable
         fun Foo51() { }
         """
           .trimIndent(),
@@ -125,5 +142,62 @@ class GlancePreviewElementFinderTest {
           .map { it.methodFqn },
       )
     }
+  }
+
+  @Test
+  fun testFindsMultiPreviews() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/test/SomeGlancePreviews.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+
+        @Preview(widthDp = 1234, heightDp = 5678)
+        @Preview
+        annotation class MultiPreviewFromOtherFile
+        """
+        .trimIndent(),
+    )
+
+    val multipreviewTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/MultiPreviewTest.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Preview(widthDp = 2, heightDp = 2)
+        annotation class MultiPreviewLevel2
+
+        @Preview(widthDp = 1, heightDp = 1)
+        @MultiPreviewLevel2
+        annotation class MultiPreviewLevel1
+
+        @MultiPreviewFromOtherFile
+        @Preview(widthDp = 0, heightDp = 0)
+        @MultiPreviewLevel1
+        @Composable
+        fun GlancePreviewFun() { }
+        """
+          .trimIndent(),
+      )
+
+    Assert.assertTrue(
+      AppWidgetPreviewElementFinder.hasPreviewElements(project, multipreviewTest.virtualFile)
+    )
+
+    val previewElements =
+      AppWidgetPreviewElementFinder.findPreviewElements(project, multipreviewTest.virtualFile)
+
+    Assert.assertEquals(5, previewElements.size)
+    Assert.assertEquals(
+      listOf("com.android.test.MultiPreviewTestKt.GlancePreviewFun"),
+      previewElements.map { it.methodFqn }.distinct(),
+    )
   }
 }
