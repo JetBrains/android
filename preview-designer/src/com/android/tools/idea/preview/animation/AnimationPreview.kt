@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
 import java.awt.event.ComponentAdapter
@@ -47,12 +48,30 @@ const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * T is subclass of AnimationManager AnimationPreview can work with.
  */
 abstract class AnimationPreview<T : AnimationManager>(
+  project: Project,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val tracker: AnimationTracker,
 ) : Disposable {
 
   protected val scope = AndroidCoroutineScope(this)
 
+  // ******************
+  // Properties: UI Components
+  // *******************
+  protected val animationPreviewPanel =
+    JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
+  val component = TooltipLayeredPane(animationPreviewPanel)
+  /**
+   * Tabs panel where each tab represents a single animation being inspected. First tab is a
+   * coordination tab. All tabs share the same [Timeline], but have their own playback toolbar and
+   * from/to state combo boxes.
+   */
+  @VisibleForTesting
+  val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
+
+  // ************************
+  // Properties: State Management
+  // *************************
   /**
    * List of [AnimationManager], so all animation cards that are displayed in inspector. Please keep
    * it immutable to avoid [ConcurrentModificationException] as multiple threads can access and
@@ -61,7 +80,18 @@ abstract class AnimationPreview<T : AnimationManager>(
   @VisibleForTesting
   var animations: List<T> = emptyList()
     private set
+  /** Holds the currently selected animation (for focused inspection on a single tab).* */
+  protected var selectedAnimation: SupportedAnimationManager? = null
+    private set
 
+  // *****************
+  // Properties: Timeline
+  // *****************
+  protected val timeline = Timeline(animationPreviewPanel, component)
+
+  // ************************
+  // Protected Methods: Animation Control
+  // *************************
   protected fun addAnimation(animation: T) {
     synchronized(animations) { animations = animations.plus(animation) }
   }
@@ -74,11 +104,6 @@ abstract class AnimationPreview<T : AnimationManager>(
       }
     }
   }
-
-  /** Holds the currently selected animation (for focused inspection on a single tab).* */
-  protected var selectedAnimation: SupportedAnimationManager? = null
-    private set
-
   /**
    * Set clock time, driving the animation's state.
    *
@@ -91,13 +116,6 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   /** Repaints [TimelineElement] on selected tab. */
   protected abstract suspend fun updateTimelineElements()
-
-  protected val animationPreviewPanel =
-    JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
-
-  val component = TooltipLayeredPane(animationPreviewPanel)
-
-  protected val timeline = Timeline(animationPreviewPanel, component)
 
   // *******************
   // Nested Classes

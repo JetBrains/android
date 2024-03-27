@@ -28,7 +28,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.BottomPanel
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
@@ -71,15 +70,7 @@ class ComposeAnimationPreview(
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-) : AnimationPreview<ComposeAnimationManager>(sceneManagerProvider, tracker) {
-
-  /**
-   * Tabs panel where each tab represents a single animation being inspected. First tab is a
-   * coordination tab. All tabs share the same [Timeline], but have their own playback toolbar and
-   * from/to state combo boxes.
-   */
-  @VisibleForTesting
-  val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
+) : AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, tracker) {
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
