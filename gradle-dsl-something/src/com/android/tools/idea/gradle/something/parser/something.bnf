@@ -38,7 +38,7 @@
     OP_RPAREN = ")"
 
     line_comment = "regexp://.*"
-    number = "regexp:\d+"
+    number = "regexp:\d(\d|_+\d)*[Ll]?"
     string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
     boolean = "regexp:(true|false)"
     null = "null"

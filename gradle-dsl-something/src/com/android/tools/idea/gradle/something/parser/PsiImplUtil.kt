@@ -75,10 +75,21 @@ class PsiImplUtil {
     fun getValue(literal: SomethingLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.string != null -> literal.string?.text?.unquote()?.unescape()
-      literal.number != null -> literal.number?.text?.toIntOrNull()
+      literal.number != null -> literal.number?.text?.toIntegerOrNull()
       else -> null
     }
     private fun String.unquote() = this.removePrefix("\"").removeSuffixIfPresent("\"")
     private fun String.removeSuffixIfPresent(suffix: String) = if (this.endsWith(suffix)) this.dropLast(suffix.length) else this
+    private fun String.toIntegerOrNull(): Any? {
+      if (isEmpty()) return null
+      val longIndicator = last().lowercaseChar() == 'l'
+      if (longIndicator) return dropLast(1).replace("_", "").toLongOrNull()
+      return when (val answer = replace("_", "").toLongOrNull()) {
+        null -> null
+        in Int.MIN_VALUE..Int.MAX_VALUE -> answer.toInt()
+        else -> answer
+      }
+
+    }
   }
 }

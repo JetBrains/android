@@ -62,7 +62,26 @@ class SomethingLiteralTest : LightPlatformTestCase() {
 
   fun testLiteralIntegerValue() {
     val literal = SomethingPsiFactory(project).createLiteral(42)
+    assertThat(literal.value).isInstanceOf(java.lang.Integer::class.java)
     assertThat(literal.value).isEqualTo(42)
+  }
+
+  fun testLiteralLongValue() {
+    val literal = SomethingPsiFactory(project).createLiteral(42L)
+    assertThat(literal.value).isInstanceOf(java.lang.Long::class.java)
+    assertThat(literal.value).isEqualTo(42)
+  }
+
+  fun testLiteralLargeLongValue() {
+    val literal = SomethingPsiFactory(project).createLiteral(281474976710656)
+    assertThat(literal.value).isInstanceOf(java.lang.Long::class.java)
+    assertThat(literal.value).isEqualTo(281474976710656)
+  }
+
+  fun testLiteralLargeLongValueWithUnderscores() {
+    val literal = SomethingPsiFactory(project).createLiteralFromText("281_474_976_710_656")
+    assertThat(literal.value).isInstanceOf(java.lang.Long::class.java)
+    assertThat(literal.value).isEqualTo(281474976710656)
   }
 
   fun testLiteralBooleanValue() {

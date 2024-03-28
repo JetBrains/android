@@ -37,7 +37,7 @@ class SomethingLexerTest : LexerTestCase() {
   fun testNumber() {
     doTest(
       """
-        1 23 456
+        1 23 456 7_8 9__10L
       """.trimIndent(),
       """
         SomethingTokenType.number ('1')
@@ -45,6 +45,10 @@ class SomethingLexerTest : LexerTestCase() {
         SomethingTokenType.number ('23')
         WHITE_SPACE (' ')
         SomethingTokenType.number ('456')
+        WHITE_SPACE (' ')
+        SomethingTokenType.number ('7_8')
+        WHITE_SPACE (' ')
+        SomethingTokenType.number ('9__10L')
       """.trimIndent()
     )
   }
