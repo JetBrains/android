@@ -28,14 +28,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 
 /** [CompletionContributor] that filters private resources from autocomplete. */
-class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
+sealed class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
     resultSet: CompletionResultSet,
   ) {
-    super.fillCompletionVariants(parameters, resultSet)
     val position = parameters.position
     val facet = AndroidFacet.getInstance(position) ?: return
     val filterPrivateResources = shouldFilterPrivateResources(position, facet)
@@ -43,28 +43,58 @@ class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
       if (!filterPrivateResources || !isForPrivateResource(it, facet)) resultSet.passResult(it)
     }
   }
+
+  protected abstract fun shouldFilterPrivateResources(
+    position: PsiElement,
+    facet: AndroidFacet,
+  ): Boolean
 }
 
-private fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
-  // Filter out private resources when completing R.type.name expressions, if any.
-  val r =
-    (position.parent as? PsiReferenceExpression)
-      ?.qualifierReferenceExpression
-      ?.qualifierReferenceExpression
-      ?.takeIf { it.referenceName == SdkConstants.R_CLASS } ?: return false
-  // We do the filtering only on the R class of this module, users who explicitly reference other R
-  // classes are assumed to know
-  // what they're doing. So if R is unqualified or is qualified by the package or test package name,
-  // then filter.
-  val rQualifier = r.qualifierExpression ?: return true
-  val rQualifierName = (rQualifier as? PsiReferenceExpression)?.qualifiedName ?: return false
-  return facet.getModuleSystem().let {
-    it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName
+/** [CompletionContributor] that filters private resources from autocomplete in Java files. */
+class AndroidJavaPrivateResourceCompletionContributor :
+  AndroidPrivateResourceCompletionContributor() {
+  override fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
+    // Filter out private resources when completing R.type.name expressions, if any.
+    val r =
+      (position.parent as? PsiReferenceExpression)
+        ?.qualifierReferenceExpression
+        ?.qualifierReferenceExpression
+        ?.takeIf { it.referenceName == SdkConstants.R_CLASS } ?: return false
+    // We do the filtering only on the R class of this module, users who explicitly reference other
+    // R classes are assumed to know what they're doing. So if R is unqualified or is qualified by
+    // the package or test package name, then filter.
+    val rQualifier = r.qualifierExpression ?: return true
+    val rQualifierName = (rQualifier as? PsiReferenceExpression)?.qualifiedName ?: return false
+    return facet.getModuleSystem().let {
+      it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName
+    }
+  }
+
+  private val PsiReferenceExpression.qualifierReferenceExpression: PsiReferenceExpression?
+    get() = qualifierExpression as? PsiReferenceExpression
+}
+
+/** [CompletionContributor] that filters private resources from autocomplete in Kotlin files. */
+class AndroidKotlinPrivateResourceCompletionContributor :
+  AndroidPrivateResourceCompletionContributor() {
+  override fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
+    // Filter out private resources when completing R.type.name expressions, if any.
+    val grandparent = position.parent.parent as? KtDotQualifiedExpression ?: return false
+    val r =
+      (grandparent.receiverExpression as? KtDotQualifiedExpression)?.receiverExpression?.takeIf {
+        it.text.substringAfterLast('.') == SdkConstants.R_CLASS
+      } ?: return false
+    // We do the filtering only on the R class of this module, users who explicitly reference other
+    // R classes are assumed to know what they're doing. So if R is unqualified or is qualified by
+    // the package or test package name, then filter.
+    val rQualifierName =
+      (r as? KtDotQualifiedExpression)?.receiverExpression?.text?.filterNot(Char::isWhitespace)
+        ?: return true
+    return facet.getModuleSystem().let {
+      it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName
+    }
   }
 }
-
-private val PsiReferenceExpression.qualifierReferenceExpression: PsiReferenceExpression?
-  get() = qualifierExpression as? PsiReferenceExpression
 
 /**
  * Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource
@@ -72,7 +102,7 @@ private val PsiReferenceExpression.qualifierReferenceExpression: PsiReferenceExp
  */
 private fun isForPrivateResource(result: CompletionResult, facet: AndroidFacet): Boolean {
   // First get the field itself, e.g. R.foo.bar
-  val psiField = result.lookupElement.getObject() as? PsiField ?: return false
+  val psiField = result.lookupElement.psiElement as? PsiField ?: return false
   // Now extract the type "foo", provided it is under "R".
   val resourceType =
     psiField.containingClass

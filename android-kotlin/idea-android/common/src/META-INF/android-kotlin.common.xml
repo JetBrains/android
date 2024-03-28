@@ -21,10 +21,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <completion.contributor language="kotlin"
-                            implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor"
-                            order="first, before KotlinCompletionContributor"/>
-
     <lang.foldingBuilder language="kotlin"
                          implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
