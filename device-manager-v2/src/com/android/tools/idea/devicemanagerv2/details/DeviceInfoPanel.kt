@@ -81,6 +81,9 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
   val resolutionDpLabel = LabeledValue("Resolution (dp)")
   var resolutionDp by resolutionDpLabel
 
+  val densityLabel = LabeledValue("Density")
+  var density by densityLabel
+
   val abiListLabel = LabeledValue("ABI list")
   var abiList by abiListLabel
 
@@ -98,6 +101,7 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
         powerLabel,
         resolutionLabel,
         resolutionDpLabel,
+        densityLabel,
         abiListLabel,
         availableStorageLabel,
         sizeOnDiskLabel,
@@ -232,6 +236,7 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   resolution = properties.resolution?.toString() ?: "Unknown"
   val resolutionDp = properties.resolutionDp
   this.resolutionDp = resolutionDp?.toString() ?: "Unknown"
+  density = properties.density?.let { "$it dpi" } ?: "Unknown"
   screenDiagram.setDimensions(resolutionDp?.width ?: 0, resolutionDp?.height ?: 0)
 
   if (properties is LocalEmulatorProperties) {

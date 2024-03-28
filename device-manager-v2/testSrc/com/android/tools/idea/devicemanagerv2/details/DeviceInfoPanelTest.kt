@@ -157,6 +157,7 @@ class DeviceInfoPanelTest {
         assertThat(panel.power).isEqualTo("Battery: 83")
         assertThat(panel.resolution).isEqualTo("1080 × 2280")
         assertThat(panel.resolutionDp).isEqualTo("393 × 830")
+        assertThat(panel.density).isEqualTo("440 dpi")
         assertThat(panel.abiList).isEqualTo("Unknown")
         assertThat(panel.availableStorage).isEqualTo("2,542 MB")
       }
