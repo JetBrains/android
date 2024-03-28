@@ -36,12 +36,12 @@ struct VideoPacketHeader {
   int64_t presentation_timestamp_us;  // Zero means a config packet.
   int32_t packet_size;
 
-  std::string ToDebugString() const;
+  [[nodiscard]] std::string ToDebugString() const;
 
   // Device display is round.
-  static constexpr int FLAG_DISPLAY_ROUND = 0x01;
+  static constexpr int16_t FLAG_DISPLAY_ROUND = 0x01;
   // Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value.
-  static constexpr int FLAG_BIT_RATE_REDUCED = 0x02;
+  static constexpr int16_t FLAG_BIT_RATE_REDUCED = 0x02;
 
   static size_t SIZE;  // Similar to sizeof(VideoPacketHeader) but without the trailing alignment.
 };
