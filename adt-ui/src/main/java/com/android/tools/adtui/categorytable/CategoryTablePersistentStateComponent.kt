@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.PersistentStateComponent
 import javax.swing.SortOrder
@@ -44,7 +46,7 @@ abstract class CategoryTablePersistentStateComponent :
 
   override fun loadState(state: CategoryTableState) {
     this.state = state
-    table?.let { serializer.readState(it, state) }
+    table?.let { runInEdt { serializer.readState(it, state) } }
   }
 }
 
@@ -104,6 +106,7 @@ class CategoryTableStateSerializer(val attributeSerializers: List<AttributeSeria
     state.groupByAttributes.addAll(table.groupByAttributes.mapNotNull { it.name() })
   }
 
+  @UiThread
   fun <T : Any> readState(table: CategoryTable<T>, state: CategoryTableState) {
     table.setSortOrder(state.columnSorters.mapNotNull { it.toColumnSortOrder() })
 

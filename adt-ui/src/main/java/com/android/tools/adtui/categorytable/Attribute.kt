@@ -54,6 +54,7 @@ interface Attribute<in T, C> {
 
   object Unit : Attribute<Any, kotlin.Unit> {
     override val sorter = null
+
     override fun value(t: Any) = kotlin.Unit
   }
 
@@ -61,17 +62,17 @@ interface Attribute<in T, C> {
     fun <T> stringAttribute(
       sorter: Comparator<in String> = Collator.getInstance(),
       isGroupable: Boolean = true,
-      valueFn: (t: T) -> String
+      valueFn: (t: T) -> String,
     ): Attribute<T, String> =
       object : Attribute<T, String> {
         override val sorter = sorter
+
         override fun value(t: T) = valueFn(t)
+
         override val isGroupable = isGroupable
       }
   }
 }
-
-typealias AttributeList<T> = List<Attribute<T, *>>
 
 /**
  * A Category is a specific value of an attribute. For example, "Form factor: Tablet" or "API: 33".

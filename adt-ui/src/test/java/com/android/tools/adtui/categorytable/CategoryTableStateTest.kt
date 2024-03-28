@@ -20,13 +20,17 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import javax.swing.SortOrder
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class CategoryTableStateTest {
-  @get:Rule val projectRule: ProjectRule = ProjectRule()
+  @get:Rule val edtRule = EdtRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Service(Service.Level.PROJECT)
   @State(name = "CategoryTableStateTest", storages = [Storage("categoryTableStateTest.xml")])

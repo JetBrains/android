@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.ui.components.JBPanel
@@ -40,7 +41,12 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableColumnModelEvent
 import javax.swing.event.TableColumnModelListener
-import kotlin.collections.ArrayList
+import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.mutate
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.plus
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -110,11 +116,15 @@ class CategoryTable<T : Any>(
   private val hiddenRows = mutableSetOf<Any>()
 
   /** The columns we are grouping by, in order. */
-  var groupByAttributes: AttributeList<T> = emptyList()
+  @get:AnyThread
+  @Volatile
+  var groupByAttributes = persistentListOf<Attribute<T, *>>()
     private set
 
   /** We sort groups of leaf rows in the table by these sorters, in order. */
-  var columnSorters: List<ColumnSortOrder<T>> = emptyList()
+  @get:AnyThread
+  @Volatile
+  var columnSorters = persistentListOf<ColumnSortOrder<T>>()
     private set(value) {
       field = value
       groupAndSortValues()
@@ -122,7 +132,10 @@ class CategoryTable<T : Any>(
       header.repaint()
     }
 
-  val collapsedNodes = mutableSetOf<CategoryList<T>>()
+  @get:AnyThread
+  @Volatile
+  var collapsedNodes = persistentSetOf<CategoryList<T>>()
+    private set
 
   val selection = CategoryTableSingleSelection(this)
 
@@ -215,7 +228,7 @@ class CategoryTable<T : Any>(
         when {
           selectedKeys.contains(c.rowKey) -> selectedPresentation
           else -> unselectedPresentation
-        }
+        },
       )
     }
   }
@@ -250,7 +263,7 @@ class CategoryTable<T : Any>(
   }
 
   fun setSortOrder(columnSortOrder: List<ColumnSortOrder<T>>) {
-    columnSorters = columnSortOrder.toList()
+    columnSorters = columnSortOrder.toPersistentList()
   }
 
   fun <C> toggleSortOrder(attribute: Attribute<T, C>) {
@@ -263,7 +276,7 @@ class CategoryTable<T : Any>(
         }
       // Move the toggled column to the front, followed by the rest.
       columnSorters =
-        listOf(ColumnSortOrder(attribute, newSortOrder)) +
+        persistentListOf(ColumnSortOrder(attribute, newSortOrder)) +
           currentSortOrders.filter { it.attribute != attribute }
     }
   }
@@ -277,7 +290,7 @@ class CategoryTable<T : Any>(
       .find { it.attribute == attribute && !it.visibleWhenGrouped }
       ?.let { header.removeColumn(attribute) }
 
-    groupByAttributes = groupByAttributes + attribute
+    groupByAttributes += attribute
     groupAndSortValues()
     updateComponents()
   }
@@ -287,7 +300,7 @@ class CategoryTable<T : Any>(
   }
 
   fun <C> removeGrouping(attribute: Attribute<T, C>) {
-    groupByAttributes = groupByAttributes - attribute
+    groupByAttributes -= attribute
     groupAndSortValues()
     updateComponents()
 
@@ -463,7 +476,7 @@ class CategoryTable<T : Any>(
   }
 
   private fun updateCollapsedNodes(update: MutableSet<CategoryList<T>>.() -> Unit) {
-    collapsedNodes.update()
+    collapsedNodes = collapsedNodes.mutate(update)
     categoryRows.values.forEach { it.isExpanded = !collapsedNodes.contains(it.path) }
     updateComponents()
   }
@@ -494,6 +507,7 @@ class CategoryTable<T : Any>(
   // Just documenting that these are never called:
   override fun getMinimumSize(): Dimension =
     throw UnsupportedOperationException("Not needed in scroll panes")
+
   override fun getMaximumSize(): Dimension =
     throw UnsupportedOperationException("Not needed in scroll panes")
 
@@ -560,14 +574,14 @@ class CategoryTable<T : Any>(
   override fun getScrollableUnitIncrement(
     visibleRect: Rectangle?,
     orientation: Int,
-    direction: Int
+    direction: Int,
   ) = JBUI.scale(16)
 
   // TODO: refine this
   override fun getScrollableBlockIncrement(
     visibleRect: Rectangle?,
     orientation: Int,
-    direction: Int
+    direction: Int,
   ) = JBUI.scale(48)
 
   override fun getScrollableTracksViewportWidth() = true
@@ -626,7 +640,7 @@ class CategoryTable<T : Any>(
     val selectedForeground: Color,
     val selectedBackground: Color,
     val unselectedForeground: Color,
-    val unselectedBackground: Color
+    val unselectedBackground: Color,
   )
 }
 
@@ -652,7 +666,7 @@ open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeade
   override fun columnHeaderClicked(
     e: MouseEvent,
     table: CategoryTable<T>,
-    column: Column<T, *, *>
+    column: Column<T, *, *>,
   ) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       table.toggleSortOrder(column.attribute)
@@ -667,7 +681,7 @@ open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeade
 internal fun <T> groupAndSort(
   values: List<T>,
   groupByAttributes: List<Attribute<T, *>>,
-  attributeSorters: List<ColumnSortOrder<T>>
+  attributeSorters: List<ColumnSortOrder<T>>,
 ): List<T> =
   (groupByAttributes.map { attribute ->
       val sortOrder =
@@ -675,5 +689,4 @@ internal fun <T> groupAndSort(
       checkNotNull(attribute.valueSorter(sortOrder)) { "Groupable attributes must be sortable" }
     } + attributeSorters.mapNotNull { it.attribute.valueSorter(it.sortOrder) })
     .reduceOrNull { a, b -> a.then(b) }
-    ?.let { values.sortedWith(it) }
-    ?: values
+    ?.let { values.sortedWith(it) } ?: values
