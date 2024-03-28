@@ -128,6 +128,7 @@ Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Si
 }
 
 AMediaCodec* CreateCodec(const string& codec_name, int display_id) {
+  Log::D("Display %d: creating codec", display_id);
   AMediaCodec* codec = AMediaCodec_createCodecByName(codec_name.c_str());
   if (codec == nullptr) {
     Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder", display_id, codec_name.c_str());
@@ -269,7 +270,11 @@ void DisplayStreamer::Run() {
         int32_t y = (video_size.height - height) / 2;
         SurfaceControl::ConfigureProjection(jni, display_token_, surface, display_info, {0, y, video_size.width, height });
       }
-      AMediaCodec_start(codec);
+      Log::D("Display %d: starting codec", display_id_);
+      status = AMediaCodec_start(codec);
+      if (status != AMEDIA_OK) {
+        Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);
+      }
       running_codec_ = codec;
       Size display_size = display_info.NaturalSize();  // The display dimensions in the canonical orientation.
       packet_header.display_width = display_size.width;
@@ -287,7 +292,11 @@ void DisplayStreamer::Run() {
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
     ReleaseVirtualDisplay(jni);
-    AMediaCodec_delete(codec);
+    Log::D("Display %d: deleting codec", display_id_);
+    media_status_t status = AMediaCodec_delete(codec);
+    if (status != AMEDIA_OK) {
+      Log::W("Display %d: AMediaCodec_delete returned %d", display_id_, status);
+    }
     ANativeWindow_release(surface);
   }
 
@@ -425,7 +434,10 @@ void DisplayStreamer::StopCodecUnlocked() {
     codec_stop_pending_ = true;
   } else {
     Log::D("Display %d: stopping codec", display_id_);
-    AMediaCodec_stop(running_codec_);
+    media_status_t status = AMediaCodec_stop(running_codec_);
+    if (status != AMEDIA_OK) {
+      Log::W("Display %d: AMediaCodec_stop returned %d", display_id_, status);
+    }
     running_codec_ = nullptr;
     consequent_deque_error_count_ = 0;
   }

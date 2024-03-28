@@ -36,6 +36,7 @@ CodecOutputBuffer::~CodecOutputBuffer() {
 }
 
 bool CodecOutputBuffer::Deque(int64_t timeout_us) {
+  Log::D("%sCalling AMediaCodec_dequeueOutputBuffer", log_prefix_.c_str());
   index_ = AMediaCodec_dequeueOutputBuffer(codec_, &info_, timeout_us);
   if (index_ < 0) {
     Log::W("%sAMediaCodec_dequeueOutputBuffer returned %ld", log_prefix_.c_str(), static_cast<long>(index_));
@@ -47,7 +48,7 @@ bool CodecOutputBuffer::Deque(int64_t timeout_us) {
   }
   buffer_ = AMediaCodec_getOutputBuffer(codec_, static_cast<size_t>(index_), nullptr);
   if (buffer_ == nullptr) {
-    Log::W("%sAMediaCodec_getOutputBuffer(codec, %ld, &size) returned null", log_prefix_.c_str(), static_cast<long>(index_));
+    Log::W("%sAMediaCodec_getOutputBuffer(codec, %ld, nullptr) returned null", log_prefix_.c_str(), static_cast<long>(index_));
     return false;
   }
   return true;
