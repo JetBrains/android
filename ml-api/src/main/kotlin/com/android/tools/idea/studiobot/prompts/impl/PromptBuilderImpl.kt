@@ -28,7 +28,6 @@ import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting
 data class PromptImpl(
-  override val project: Project,
   override val messages: List<Prompt.Message>,
 ) : Prompt
 
@@ -104,6 +103,6 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
     }
-    return PromptImpl(project, messages)
+    return PromptImpl(messages)
   }
 }

@@ -41,6 +41,7 @@ class FilesTest : BasePlatformTestCase() {
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, mockStudioBot, testRootDisposable)
     whenever(mockStudioBot.aiExcludeService()).thenReturn(mockAiExcludeService)
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
   }
 
   @Test
@@ -56,7 +57,6 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -84,7 +84,6 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -119,7 +118,6 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.UserMessage(
               listOf(
@@ -173,7 +171,6 @@ class FilesTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.UserMessage(
               listOf(

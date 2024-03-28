@@ -35,11 +35,9 @@ interface Model {
 
   /**
    * Sends a query to the model and returns the raw response.
-   * This must only be called if [StudioBot.isContextAllowed] is true.
    *
    * @param prompt The prompt to generate code for.
    * @param config Configuration options for the backend.
-   * @throws IllegalStateException if context sharing is not enabled
    * @throws IOException if the model endpoint throws an exception. To identify the cause of the error, use [ExceptionUtil.getRootCause].
    *  The result should be an [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see [CopyableThrowable]),
    *  the cause exception can end up nested a layer deeper than expected, but using getRootCause avoids this problem.
@@ -50,7 +48,6 @@ interface Model {
    * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
    * generateCode endpoint.
    *
-   * Currently, this API must only be called if [StudioBot.isContextAllowed] is true.
    * Use the samples parameter of [GenerationConfig] to request a certain number of generations.
    *
    * @param prompt The prompt to generate code for.

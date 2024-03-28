@@ -17,16 +17,20 @@ package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
 import com.android.tools.idea.studiobot.MimeType
+import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.lang.Language
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
  * Each part of the prompt must declare which files from the user's project, if any, it uses.
  *
- * No files may be used if the context sharing setting is disabled: check it with
- * `StudioBot.isContextAllowed(project)`
+ * Prompts that used files as context cannot be constructed if the context sharing setting is not enabled:
+ * check it with `StudioBot.isContextAllowed(project)`. If it is not enabled, an [IllegalStateException]
+ * will be thrown.
  *
  * Additionally, each file must be allowed by aiexclude. Check files using
  * AiExcludeService.isFileExcluded. If a file is not allowed, an AiExcludeException will be thrown.
@@ -77,7 +81,15 @@ import com.intellij.openapi.vfs.VirtualFile
 inline fun buildPrompt(project: Project, existingPrompt: Prompt? = null, builderAction: PromptBuilder.() -> Unit): Prompt {
   val builder = PromptBuilderImpl(project)
   existingPrompt?.let { builder.addAll(existingPrompt) }
-  return builder.apply(builderAction).build()
+  val prompt = builder.apply(builderAction).build()
+  val usedAnyFiles = prompt.messages.any { it.chunks.any { chunk -> chunk.filesUsed.isNotEmpty() } }
+  if (usedAnyFiles) {
+    // Enforce the context sharing setting
+    check(StudioBot.getInstance().isContextAllowed(project)) {
+      "User has not enabled context sharing. This setting must be checked before building a prompt that used any files as context."
+    }
+  }
+  return prompt
 }
 
 /** Utility for constructing prompts for ML models. */

@@ -45,6 +45,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, mockStudioBot, testRootDisposable)
     whenever(mockStudioBot.aiExcludeService()).thenReturn(mockAiExcludeService)
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
   }
 
   @Test
@@ -61,7 +62,6 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.SystemMessage(
               listOf(
@@ -144,7 +144,6 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("Write some Kotlin code.", emptyList()))
@@ -261,7 +260,6 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
-          project,
           listOf(
             Prompt.SystemMessage(
               listOf(Prompt.Message.TextChunk("You are Studio Bot", emptyList()))
@@ -278,5 +276,29 @@ class PromptBuilderTest : BasePlatformTestCase() {
           ),
         )
       )
+  }
+
+  @Test
+  fun buildPrompt_enforcesContextSharingSettingIfFilesUsed() {
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(false)
+    val file = myFixture.addFileToProject("MyFile.kt", "").virtualFile
+    try {
+      buildPrompt(project) { userMessage { text("Hello", listOf(file)) } }
+      fail("Expected an IllegalStateException")
+    } catch (e: IllegalStateException) {
+      assertThat(e.message)
+        .isEqualTo(
+          "User has not enabled context sharing. This setting must be checked before building a prompt that used any files as context."
+        )
+    }
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
+  }
+
+  @Test
+  fun buildPrompt_filesOkWhenContextAllowed() {
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
+    val file = myFixture.addFileToProject("MyFile.kt", "").virtualFile
+    buildPrompt(project) { userMessage { text("Hello", listOf(file)) } }
+    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(false)
   }
 }
