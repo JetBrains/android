@@ -96,13 +96,14 @@ public class CLionIntegrationTest {
     // Check declaration.
     editor.moveBetween("BUFFER_", "OFFSET")
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
-    Wait.seconds(5).expecting("Native header file is opened for navigating to definition")
+    Wait.seconds(10).expecting("Native header file is opened for navigating to definition")
       .until(() -> NATIVE_C_HEADER_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
+    editor.waitForFileToActivate();
     String currentLine = ideFrame.getEditor().getCurrentLine();
     assertThat(currentLine).isEqualTo("#define BUFFER_OFFSET(i) ((char*)NULL + (i))\n");
 
     // Check errors.
-    List<String> errors = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR)
+    List<String> errors = ideFrame.getEditor().open(NATIVE_C_FILE_PATH)
       .moveBetween("BUFFER_OFFSET(kid_age);", "")
       .typeText("\nNOT_DEFINED_FUNC();")
       .getHighlights(HighlightSeverity.ERROR);
