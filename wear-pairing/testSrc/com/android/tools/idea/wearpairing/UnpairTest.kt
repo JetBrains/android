@@ -18,9 +18,6 @@ package com.android.tools.idea.wearpairing
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
-import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnWindows
 import com.intellij.testFramework.ApplicationRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
@@ -32,9 +29,6 @@ import java.nio.file.Paths
 class UnpairTest {
   @get:Rule
   val applicationRule = ApplicationRule()
-
-  @get:Rule
-  val ignoreTestsRule = IgnoreTestRule()
 
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
@@ -48,7 +42,6 @@ class UnpairTest {
     state = ConnectionState.ONLINE
   )
 
-  @IgnoreWithCondition(reason = "b/308744730", condition = OnWindows::class)
   @Test
   fun unpairPixelDevice() = runBlocking {
     var clearedCompanion = false
