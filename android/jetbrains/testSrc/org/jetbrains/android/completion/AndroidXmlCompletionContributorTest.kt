@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package org.jetbrains.android.completion
 
-import com.android.SdkConstants
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
-import org.jetbrains.android.dom.APP_PACKAGE_NAME
+import org.jetbrains.android.AndroidTestCase
 
 class AndroidXmlCompletionContributorTest : AndroidTestCase() {
   fun testNamespaceCodeCompletion() {

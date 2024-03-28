@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package org.jetbrains.android.completion
 
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.psi.PsiNamedElement
+import org.jetbrains.android.AndroidTestCase
 
 class AndroidJavaCompletionContributorTest : AndroidTestCase() {
   fun testDeprecationFiltersApplied() {

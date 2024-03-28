@@ -74,12 +74,12 @@ import com.intellij.usageView.UsageInfo
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor
-import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
+import org.jetbrains.android.completion.AndroidNonTransitiveRClassJavaCompletionContributor
+import org.jetbrains.android.completion.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.junit.Before
