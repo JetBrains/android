@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Document
+import com.jetbrains.rd.util.AtomicReference
 import java.time.Clock
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -61,12 +62,23 @@ constructor(
     autoStart = true,
   )
 
+  private val context = AtomicReference<Any?>(null)
+
   private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
 
   init {
     if (autoStart) {
       start()
     }
+  }
+
+  /**
+   * The context is set when the user changes the device combo selection.
+   *
+   * We use this value to prevent us from adding messages from the previously selected device.
+   */
+  fun context(context: Any) {
+    this.context.getAndSet(context)
   }
 
   internal suspend fun appendMessages(messages: List<LogcatMessage>): List<LogcatMessage> {
@@ -116,7 +128,7 @@ constructor(
             numMessages > maxMessagesPerBatch
         ) {
           val timeInAppendMessages = measureTimeMillis {
-            logcatPresenter.appendMessages(textAccumulator)
+            logcatPresenter.appendMessages(textAccumulator, context.get())
           }
           LOGGER.debug {
             val timeSinceStart = now - startTime

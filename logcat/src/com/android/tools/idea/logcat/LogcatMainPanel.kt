@@ -483,11 +483,17 @@ constructor(
 
     coroutineScope.launch(workerThread) {
       deviceComboBox.trackSelected().collect { item ->
+        messageProcessor.context(item)
         pausedBanner.isVisible = false
         if (item is DeviceItem) {
-          when {
-            item.device.isOnline -> logcatServiceChannel.send(StartLogcat(item.device))
-            else -> logcatServiceChannel.send(StopLogcat)
+          if (item.device.isOnline) {
+            logcatServiceChannel.send(StartLogcat(item.device))
+          } else {
+            logcatServiceChannel.send(StopLogcat)
+            withContext(uiThread) {
+              document.setText("")
+              noLogsBanner.isVisible = false
+            }
           }
         } else if (item is FileItem) {
           logcatServiceChannel.send(StopLogcat)
@@ -630,12 +636,16 @@ constructor(
     )
   }
 
-  override suspend fun appendMessages(textAccumulator: TextAccumulator) =
+  override suspend fun appendMessages(textAccumulator: TextAccumulator, context: Any?) {
     withContext(uiThread(ModalityState.any())) {
       LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
       if (!isActive) {
         return@withContext
       }
+      if (deviceComboBox.item != context) {
+        return@withContext
+      }
+
       // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
       val shouldStickToEnd = !ignoreCaretAtBottom && isCaretAtBottom()
       ignoreCaretAtBottom =
@@ -662,6 +672,7 @@ constructor(
         scrollToEnd()
       }
     }
+  }
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
