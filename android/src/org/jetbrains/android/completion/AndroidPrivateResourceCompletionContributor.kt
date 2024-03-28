@@ -31,7 +31,10 @@ import org.jetbrains.android.facet.AndroidFacet
 
 /** [CompletionContributor] that filters private resources from autocomplete. */
 class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
-  override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
+  override fun fillCompletionVariants(
+    parameters: CompletionParameters,
+    resultSet: CompletionResultSet,
+  ) {
     super.fillCompletionVariants(parameters, resultSet)
     val position = parameters.position
     val facet = AndroidFacet.getInstance(position) ?: return
@@ -40,37 +43,45 @@ class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
       if (!filterPrivateResources || !isForPrivateResource(it, facet)) resultSet.passResult(it)
     }
   }
+}
 
-  companion object {
-    private fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
-      // Filter out private resources when completing R.type.name expressions, if any.
-      val r = (position.parent as? PsiReferenceExpression)
-                ?.qualifierReferenceExpression
-                ?.qualifierReferenceExpression
-                ?.takeIf { it.referenceName == SdkConstants.R_CLASS}
-              ?: return false
-      // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
-      // what they're doing. So if R is unqualified or is qualified by the package or test package name, then filter.
-      val rQualifier = r.qualifierExpression ?: return true
-      val rQualifierName = (rQualifier as? PsiReferenceExpression)?.qualifiedName ?: return false
-      return facet.getModuleSystem().let { it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName }
-    }
-
-    private val PsiReferenceExpression.qualifierReferenceExpression : PsiReferenceExpression?
-      get() = qualifierExpression as? PsiReferenceExpression
-
-    /** Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource is private. */
-    fun isForPrivateResource(result: CompletionResult, facet: AndroidFacet): Boolean {
-      // First get the field itself, e.g. R.foo.bar
-      val psiField = result.lookupElement.getObject() as? PsiField ?: return false
-      // Now extract the type "foo", provided it is under "R".
-      val resourceType = psiField.containingClass
-                           ?.takeIf { it.containingClass?.name == SdkConstants.R_CLASS } // Don't bother if it's not under R.
-                           ?.name
-                           ?.let { ResourceType.fromClassName(it) }
-                         ?: return false  // If there's no type, we can't look it up, so return false.
-      val namespace = StudioResourceRepositoryManager.getInstance(facet).namespace
-      return !isAccessible(namespace, resourceType, psiField.name, facet)
-    }
+private fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
+  // Filter out private resources when completing R.type.name expressions, if any.
+  val r =
+    (position.parent as? PsiReferenceExpression)
+      ?.qualifierReferenceExpression
+      ?.qualifierReferenceExpression
+      ?.takeIf { it.referenceName == SdkConstants.R_CLASS } ?: return false
+  // We do the filtering only on the R class of this module, users who explicitly reference other R
+  // classes are assumed to know
+  // what they're doing. So if R is unqualified or is qualified by the package or test package name,
+  // then filter.
+  val rQualifier = r.qualifierExpression ?: return true
+  val rQualifierName = (rQualifier as? PsiReferenceExpression)?.qualifiedName ?: return false
+  return facet.getModuleSystem().let {
+    it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName
   }
+}
+
+private val PsiReferenceExpression.qualifierReferenceExpression: PsiReferenceExpression?
+  get() = qualifierExpression as? PsiReferenceExpression
+
+/**
+ * Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource
+ * is private.
+ */
+private fun isForPrivateResource(result: CompletionResult, facet: AndroidFacet): Boolean {
+  // First get the field itself, e.g. R.foo.bar
+  val psiField = result.lookupElement.getObject() as? PsiField ?: return false
+  // Now extract the type "foo", provided it is under "R".
+  val resourceType =
+    psiField.containingClass
+      ?.takeIf {
+        it.containingClass?.name == SdkConstants.R_CLASS
+      } // Don't bother if it's not under R.
+      ?.name
+      ?.let { ResourceType.fromClassName(it) }
+      ?: return false // If there's no type, we can't look it up, so return false.
+  val namespace = StudioResourceRepositoryManager.getInstance(facet).namespace
+  return !isAccessible(namespace, resourceType, psiField.name, facet)
 }
