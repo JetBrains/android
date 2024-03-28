@@ -28,6 +28,20 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     assertThat(literal.text).isEqualTo("\"someLiteral\"")
   }
 
+  fun testCreateStringSingleEscapes() {
+    val literal = SomethingPsiFactory(project).createStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
+    assertThat(literal.text).isEqualTo("\"a\\tb\\bc\\nd\\re\\'f\\\"g\\\\h\\\$i\"")
+  }
+
+  fun testCreateStringUnicodeEscapes() {
+    val literal = SomethingPsiFactory(project).createStringLiteral("\u201cHello, World!\u201d")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
+    assertThat(literal.text).isEqualTo("\"“Hello, World!”\"")
+  }
+
   fun testCreateLiteralString() {
     val literal = SomethingPsiFactory(project).createLiteral("someOtherLiteral")
     assertThat(literal).isNotNull()
@@ -68,6 +82,27 @@ class SomethingPsiFactoryTest : LightPlatformTestCase() {
     for (obj in listOf(listOf(""), mapOf("a" to 1), Any(), null)) {
       assertThrows(IllegalStateException::class.java) { factory.createLiteral(obj) }
     }
+  }
+
+  fun testCreateStringLiteralFromText() {
+    val literal = SomethingPsiFactory(project).createLiteralFromText("\"\\u201bHello, World!\\u201c\"")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.String::class.java)
+    assertThat(literal.text).isEqualTo("\"\\u201bHello, World!\\u201c\"")
+  }
+
+  fun testCreateIntegerLiteralFromText() {
+    val literal = SomethingPsiFactory(project).createLiteralFromText("42")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Number::class.java)
+    assertThat(literal.text).isEqualTo("42")
+  }
+
+  fun testCreateBooleanLiteralFromText() {
+    val literal = SomethingPsiFactory(project).createLiteralFromText("true")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(SomethingLiteralKind.Boolean::class.java)
+    assertThat(literal.text).isEqualTo("true")
   }
 
   fun testCreateNewLine() {

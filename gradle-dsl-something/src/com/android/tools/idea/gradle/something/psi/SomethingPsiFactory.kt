@@ -39,8 +39,11 @@ class SomethingPsiFactory(private val project: Project) {
   private inline fun <reified T : PsiElement> PsiElement.descendantOfType(): T? =
     PsiTreeUtil.findChildOfType(this, T::class.java, false)
 
+  fun createLiteralFromText(value: String): SomethingLiteral =
+    createFromText("placeholder = $value") ?: error("Failed to create Something literal from text \"$value\"")
+
   fun createLiteral(value: Any?): SomethingLiteral =
-    when(value){
+    when(value) {
       is String -> createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Boolean -> createBooleanLiteral(value)
@@ -48,7 +51,7 @@ class SomethingPsiFactory(private val project: Project) {
     }
 
   fun createStringLiteral(value: String): SomethingLiteral =
-    createFromText("placeholder = \"$value\"") ?: error("Failed to create Something string from $value")
+    createFromText("placeholder = \"${value.escape()}\"") ?: error("Failed to create Something string from $value")
 
   fun createIntLiteral(value: Int): SomethingLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Something Int from $value")

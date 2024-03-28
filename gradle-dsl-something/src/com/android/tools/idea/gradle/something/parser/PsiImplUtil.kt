@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.something.psi.SomethingLiteral
 import com.android.tools.idea.gradle.something.psi.SomethingProperty
 import com.android.tools.idea.gradle.something.psi.SomethingQualified
 import com.android.tools.idea.gradle.something.psi.SomethingValue
+import com.android.tools.idea.gradle.something.psi.unescape
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.childLeafs
@@ -73,7 +74,7 @@ class PsiImplUtil {
     @JvmStatic
     fun getValue(literal: SomethingLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
-      literal.string != null -> literal.string?.text?.unquote()
+      literal.string != null -> literal.string?.text?.unquote()?.unescape()
       literal.number != null -> literal.number?.text?.toIntOrNull()
       else -> null
     }
