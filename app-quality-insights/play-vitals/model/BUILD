@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -18,6 +19,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -28,8 +30,6 @@ iml_module(
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

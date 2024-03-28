@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
@@ -54,7 +55,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
-import com.intellij.util.application
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await
@@ -242,8 +242,8 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   companion object {
     private val LOG = Logger.getInstance(VitalsGrpcClientImpl::class.java)
 
+    @WorkerThread
     fun create(parentDisposable: Disposable, interceptor: ClientInterceptor): VitalsGrpcClientImpl {
-      application.assertIsNonDispatchThread()
       val address = StudioFlags.PLAY_VITALS_GRPC_SERVER.get()
       LOG.info("Play Vitals gRpc server connected at $address")
       return VitalsGrpcClientImpl(
