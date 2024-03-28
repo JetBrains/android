@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.flow
+package com.android.tools.idea.preview.flow
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.disposableCallbackFlow
@@ -22,13 +22,14 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 /** A [Flow] for receiving [ResourceNotificationManager.ResourceChangeListener] updates. */
 fun resourceChangedFlow(
-  module: com.intellij.openapi.module.Module,
+  module: Module,
   parentDisposable: Disposable,
   logger: Logger? = null,
   onConnected: (() -> Unit)? = null,

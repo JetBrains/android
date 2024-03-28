@@ -37,6 +37,7 @@ import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.flow.filteredPreviewElementsFlow
+import com.android.tools.idea.preview.flow.resourceChangedFlow
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
