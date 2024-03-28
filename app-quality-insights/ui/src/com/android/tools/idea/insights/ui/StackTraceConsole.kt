@@ -50,6 +50,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.unscramble.AnalyzeStacktraceUtil
+import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -108,6 +109,7 @@ class StackTraceConsole(
         PROJECT_SYSTEM_SYNC_TOPIC,
         ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
       )
+    consoleView.editor.setBorder(JBUI.Borders.empty())
     updateUI()
   }
 

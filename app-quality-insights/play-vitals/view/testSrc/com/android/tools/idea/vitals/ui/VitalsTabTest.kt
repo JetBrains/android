@@ -56,6 +56,7 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBTabbedPane
 import icons.StudioIcons
 import java.awt.Dimension
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
@@ -223,10 +224,10 @@ class VitalsTabTest {
       val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
       assertThat(tabbedPane.tabCount).isEqualTo(1)
       assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
-      assertThat(tabbedPane.getComponentAt(0)).isInstanceOf(ConsoleViewImpl::class.java)
+      assertThat(tabbedPane.getComponentAtIdx(0)).isInstanceOf(ConsoleViewImpl::class.java)
 
       // Stack trace
-      val consoleView = tabbedPane.getComponentAt(0) as ConsoleViewImpl
+      val consoleView = tabbedPane.getComponentAtIdx(0) as ConsoleViewImpl
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """
@@ -360,4 +361,7 @@ class VitalsTabTest {
         } != null
       }
     }
+
+  private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
+    (getComponentAt(idx) as JComponent).components.last()
 }
