@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
@@ -126,7 +127,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   renderingTopic: RenderingTopic,
-  isEssentialsModeEnabled: () -> Boolean,
+  private val isEssentialsModeEnabled: () -> Boolean,
   useCustomInflater: Boolean = true,
 ) :
   PreviewRepresentation,
@@ -238,6 +239,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
+
+  private val psiCodeFileChangeDetectorService =
+    PsiCodeFileChangeDetectorService.getInstance(project)
 
   private var renderedElementsFlow =
     MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
@@ -536,11 +540,17 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       // Initialize flows
       previewFlowManager.run {
         initializeFlows(
+          disposable = this@CommonPreviewRepresentation,
           previewModeManager = previewModeManager,
+          psiCodeFileChangeDetectorService = psiCodeFileChangeDetectorService,
           psiFilePointer = psiFilePointer,
           invalidate = ::invalidate,
           requestRefresh = ::requestRefresh,
+          isFastPreviewAvailable = { false },
+          // TODO(b/326420149) support fast preview
+          requestFastPreviewRefresh = {},
           restorePreviousMode = ::restorePrevious,
+          isEssentialsModeEnabled = isEssentialsModeEnabled,
           previewElementProvider = previewElementProvider,
         ) {
           it

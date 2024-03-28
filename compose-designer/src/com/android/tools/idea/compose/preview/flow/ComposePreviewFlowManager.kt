@@ -23,28 +23,18 @@ import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
-import com.android.tools.idea.concurrency.SyntaxErrorUpdate
-import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
-import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
-import com.android.tools.idea.editors.build.outOfDateKtFiles
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.flow.filteredPreviewElementsFlow
-import com.android.tools.idea.preview.flow.resourceChangedFlow
 import com.android.tools.idea.preview.groups.PreviewGroup
-import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
@@ -57,15 +47,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
@@ -84,7 +66,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
     MutableStateFlow(FlowableCollection.Uninitialized)
 
   /** Delegate [PreviewFlowManager] containing common flow logic with other types of previews. */
-  private val delegate = CommonPreviewFlowManager(renderedPreviewElementsInstancesFlow)
+  private val delegate = CommonPreviewFlowManager(renderedPreviewElementsInstancesFlow, log)
 
   /**
    * Flow containing all the [ComposePreviewElementInstance]s available in the current file. This
@@ -180,11 +162,16 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
 
       delegate.run {
         initializeFlows(
+          disposable = disposable,
           previewModeManager = previewModeManager,
+          psiCodeFileChangeDetectorService = psiCodeFileChangeDetectorService,
           psiFilePointer = psiFilePointer,
           invalidate = invalidate,
           requestRefresh = requestRefresh,
+          isFastPreviewAvailable = { isFastPreviewAvailable(project) },
+          requestFastPreviewRefresh = requestFastPreviewRefresh,
           restorePreviousMode = restorePreviousMode,
+          isEssentialsModeEnabled = ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
           previewElementProvider =
             FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder),
           toInstantiatedPreviewElementsFlow =
@@ -222,90 +209,6 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
             else -> requestRefresh()
           }
         }
-      }
-
-      // Flow handling file changes and syntax error changes.
-      launch(workerThread) {
-        val resourceChangedFlow =
-          if (COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE.get()) {
-            readAction { psiFilePointer.element?.module }
-              ?.let { module ->
-                resourceChangedFlow(module, disposable, log, null)
-                  .filter { reasons ->
-                    reasons.contains(ResourceNotificationManager.Reason.EDIT) ||
-                      reasons.contains(ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED)
-                  }
-                  .onEach {
-                    // Invalidate the preview to re-inflate the layouts when resources have
-                    // changed. This ensures the new values are correctly loaded.
-                    invalidate()
-                  }
-              } ?: emptyFlow()
-          } else emptyFlow()
-        merge(
-            psiFileChangeFlow(project, this@launch)
-              // filter only for the file we care about
-              .filter { it.language == KotlinLanguage.INSTANCE }
-              .onEach {
-                // Invalidate the preview to detect for changes in any annotation even in
-                // other files as long as they are Kotlin.
-                // We do not refresh at this point. If the change is in the preview file
-                // currently
-                // opened, the change flow below will
-                // detect the modification and trigger a refresh if needed.
-                invalidate()
-              }
-              .debounce {
-                // The debounce timer is smaller when running with Fast Preview so the changes
-                // are more responsive to typing.
-                if (isFastPreviewAvailable(project)) 250L else 1000L
-              },
-            resourceChangedFlow,
-            syntaxErrorFlow(project, disposable, log, null)
-              // Detect when problems disappear
-              .filter { it is SyntaxErrorUpdate.Disappeared }
-              .map { it.file }
-              // We listen for problems disappearing so we know when we need to re-trigger a
-              // Fast Preview compile.
-              // We can safely ignore this events if:
-              //  - No files are out of date or it's not a relevant file
-              //  - Fast Preview is not active, we do not need to detect files having
-              // problems removed.
-              .filter {
-                isFastPreviewAvailable(project) &&
-                  psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
-              }
-              .filter { file ->
-                // We only care about this in Kotlin files when they are out of date.
-                psiCodeFileChangeDetectorService.outOfDateKtFiles
-                  .map { it.virtualFile }
-                  .any { it == file }
-              },
-          )
-          .conflate()
-          .collect {
-            // If Fast Preview is enabled and there are Kotlin files out of date,
-            // trigger a compilation. Otherwise, we will just refresh normally.
-            if (
-              isFastPreviewAvailable(project) &&
-                psiCodeFileChangeDetectorService.outOfDateKtFiles.isNotEmpty()
-            ) {
-              try {
-                requestFastPreviewRefresh()
-                return@collect
-              } catch (_: Throwable) {
-                // Ignore any cancellation exceptions
-              }
-            }
-
-            if (
-              !EssentialsMode.isEnabled() &&
-                previewModeManager.mode.value !is PreviewMode.Interactive &&
-                previewModeManager.mode.value !is PreviewMode.AnimationInspection &&
-                !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            )
-              requestRefresh()
-          }
       }
     }
   }
