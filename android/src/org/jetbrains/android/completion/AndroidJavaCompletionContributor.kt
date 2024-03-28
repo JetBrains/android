@@ -24,15 +24,10 @@ import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResult
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.codeInsight.lookup.LookupElementDecorator
-import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.psi.PsiDocCommentOwner
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.inspections.AndroidDeprecationInspection
 
 /**
  * [CompletionContributor] that currently does two things: removing deprecation warnings in code where the element was not yet
@@ -47,15 +42,7 @@ class AndroidJavaCompletionContributor : CompletionContributor() {
     val facet = AndroidFacet.getInstance(position) ?: return
     val filterPrivateResources = shouldFilterPrivateResources(position, facet)
     resultSet.runRemainingContributors(parameters) {
-      if (!filterPrivateResources || !isForPrivateResource(it, facet)) resultSet.passResult(fixDeprecationPresentation(it, parameters))
-    }
-  }
-
-  /** Wrapper around a [LookupElement] that removes the text strikeout. */
-  private class RemoveStrikeoutDecorator(delegate: LookupElement) : LookupElementDecorator<LookupElement?>(delegate) {
-    override fun renderElement(presentation: LookupElementPresentation) {
-      super.renderElement(presentation)
-      presentation.isStrikeout = false
+      if (!filterPrivateResources || !isForPrivateResource(it, facet)) resultSet.passResult(it)
     }
   }
 
@@ -76,24 +63,6 @@ class AndroidJavaCompletionContributor : CompletionContributor() {
 
     private val PsiReferenceExpression.qualifierReferenceExpression : PsiReferenceExpression?
       get() = qualifierExpression as? PsiReferenceExpression
-
-    /**
-     * Removes the deprecation strikeout if the result is not actually deprecated at the specific location, e.g. when we are in a code
-     * branch specific to an old SDK where a given [PsiElement] was not yet deprecated.
-     *
-     * @see AndroidDeprecationInspection.DeprecationFilter
-     */
-    fun fixDeprecationPresentation(
-      result: CompletionResult,
-      parameters: CompletionParameters
-    ): CompletionResult {
-      val deprecatedObj = (result.lookupElement.getObject() as? PsiDocCommentOwner)?.takeIf { it.isDeprecated } ?: return result
-      // If any filters say we shouldn't consider this deprecated at this position, remove the text strikeout.
-      if (AndroidDeprecationInspection.getFilters().any { it.isExcluded(deprecatedObj, parameters.position, null) }) {
-        return result.withLookupElement(RemoveStrikeoutDecorator(result.lookupElement))
-      }
-      return result
-    }
 
     /** Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource is private. */
     fun isForPrivateResource(result: CompletionResult, facet: AndroidFacet): Boolean {

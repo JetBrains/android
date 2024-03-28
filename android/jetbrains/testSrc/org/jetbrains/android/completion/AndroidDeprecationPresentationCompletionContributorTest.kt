@@ -70,6 +70,69 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
     )
   }
 
+  // This contributor actually should not do anything in Kotlin currently, because we don't
+  // strikeout deprecated items. But if we start doing that, then we will need to fix this.
+  // This test exists mostly, to make sure that the contributor isn't currently interfering
+  // with the results and passing them through as normal. It also checks that if we ever
+  // start striking out deprecated items in Kotlin, that the filters also implement the
+  // functionality to let us filter them out in contexts where they are not deprecated.
+  fun testDeprecationFiltersApplied_kotlin() {
+    myFixture.loadNewFile(
+      "src/p1/p2/SomeActivity.kt",
+      // language=kotlin
+      """
+      package p1.p2
+
+      import android.text.Html
+      import android.os.Build
+
+      class SomeActivity {
+        fun foo() {
+          /* all API levels */
+
+          if (Build.VERSION.SDK_INT > 24) {
+            /* 24+ */
+          }
+        }
+      }
+      """
+    )
+
+    myFixture.moveCaret("/* all API levels */|")
+    myFixture.type("Html.")
+    myFixture.completeBasic()
+
+    // If this assertion starts failing, it may mean that we have started striking out deprecated
+    // items in Kotlin, but that the `isExcluded` functionality of the DeprecationFilter is not
+    // correctly implemented. We should fix this, as we will be showing items as struck-out even in
+    // contexts where they should not be considered deprecated.
+    assertThat(getRelevantLookupElements()).containsExactly(
+      "fromHtml(source: String!, flags: Int)",
+      "fromHtml(source: String!, flags: Int, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
+      "fromHtml(source: String!, flags: Int, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+      // Deprecated since 24:
+      "fromHtml(source: String!)",
+      "fromHtml(source: String!, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
+      "fromHtml(source: String!, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+    )
+
+    myFixture.moveCaret("/* 24+ */|")
+    myFixture.type("Html.")
+    myFixture.completeBasic()
+
+    // If this assertion starts failing, it may mean that we started striking out deprecated items in
+    // completion for Kotlin. If so, the last three items need to have " [deprecated]" appended to them.
+    assertThat(getRelevantLookupElements()).containsExactly(
+      "fromHtml(source: String!, flags: Int)",
+      "fromHtml(source: String!, flags: Int, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
+      "fromHtml(source: String!, flags: Int, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+      // Deprecated since 24:
+      "fromHtml(source: String!)",
+      "fromHtml(source: String!, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
+      "fromHtml(source: String!, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+    )
+  }
+
   private fun getRelevantLookupElements(): List<String> {
     return myFixture.lookupElements
       .orEmpty()

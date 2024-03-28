@@ -343,6 +343,14 @@
                             id="AndroidJavaCompletionContributor"
                             implementationClass="org.jetbrains.android.completion.AndroidJavaCompletionContributor"
                             order="first"/>
+    <completion.contributor language="JAVA"
+                            id="JavaAndroidDeprecationPresentationCompletionContributor"
+                            implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
+                            order="first, before AndroidJavaCompletionContributor"/>
+    <completion.contributor language="kotlin"
+                            id="KotlinAndroidDeprecationPresentationCompletionContributor"
+                            implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
+                            order="first"/>
     <completion.contributor language="kotlin"
                             id="ResourceCompletionContributor"
                             implementationClass="com.android.tools.idea.res.completion.ResourceCompletionContributor"
