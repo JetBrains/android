@@ -483,6 +483,7 @@ constructor(
 
     coroutineScope.launch(workerThread) {
       deviceComboBox.trackSelected().collect { item ->
+        pausedBanner.isVisible = false
         if (item is DeviceItem) {
           when {
             item.device.isOnline -> logcatServiceChannel.send(StartLogcat(item.device))

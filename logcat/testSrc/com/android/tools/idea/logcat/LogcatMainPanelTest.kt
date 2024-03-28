@@ -1225,6 +1225,21 @@ class LogcatMainPanelTest {
   }
 
   @Test
+  fun switchDevice_hidesBanner(): Unit = runBlocking {
+    deviceTracker.addDevices(device1, device2)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() == device1 } }
+    }
+    logcatMainPanel.pauseLogcat()
+
+    logcatMainPanel.headerPanel.deviceComboBox.selectedIndex = 1
+    waitForCondition { logcatMainPanel.getSelectedDevice() == device2 }
+
+    val findBanner = logcatMainPanel.findBanner("Logcat is paused")
+    waitForCondition { !findBanner.isVisible }
+  }
+
+  @Test
   fun missingApplicationIds_showsBanner(): Unit = runBlocking {
     val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
     val logcatMainPanel = runInEdtAndGet {
