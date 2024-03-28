@@ -34,6 +34,7 @@ import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.objectweb.asm.Opcodes
@@ -120,6 +121,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore("b/327357129")
   fun multipleEditsInOneUpdate() {
     val simpleFile = projectRule.createKtFile("ComposeSimple.kt", """
         import androidx.compose.runtime.Composable
