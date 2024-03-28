@@ -14,7 +14,9 @@
   ~ limitations under the License.
   -->
 
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="/META-INF/android-lint.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+
   <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAaptCrash" groupName="Android Lint: Correctness" displayName="Potential AAPT crash" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAaptCrashInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAcceptsUserCertificates" groupName="Android Lint: Security" displayName="Allowing User Certificates" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAcceptsUserCertificatesInspection"/>
@@ -396,23 +398,6 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" groupName="Android Lint: Correctness" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidLintBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongViewCast" groupName="Android Lint: Correctness" displayName="Mismatched view type" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" groupName="Android Lint: Correctness" displayName="Missing XML Escape" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintXmlEscapeNeededInspection"/>
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.ImplementParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.RemoveParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.RedoParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintEditedTargetSdkVersion" groupName="Android Lint: Correctness" displayName="Manually Edited TargetSdkVersion" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintEditedTargetSdkVersionInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProviderReadPermissionOnly" groupName="Android Lint: Security" displayName="Provider with readPermission only and implemented write APIs" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProviderReadPermissionOnlyInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWearPasswordInput" groupName="Android Lint: Usability" displayName="Wear OS: Using password input" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWearPasswordInputInspection"/>
