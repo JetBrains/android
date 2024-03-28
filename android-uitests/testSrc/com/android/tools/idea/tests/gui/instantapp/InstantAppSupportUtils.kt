@@ -42,7 +42,7 @@ class InstantAppSupportUtils {
 
   private fun updateManifestFileToEnableInstantAppSupport(ideFrame: IdeFrameFixture) {
     ideFrame.editor
-      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/AndroidManifest.xml")
       .moveBetween("tools\"",">")
       .enterText("\n")
       .enterText("""xmlns:dist="http://schemas.android.com/apk/distribution"""")

@@ -67,7 +67,7 @@ public class AddLocaleTest {
     FileSystem fileSystem = FileSystems.getDefault();
     Path myStringsXmlPath = fileSystem.getPath("app", "src", "main", "res", "values", "strings.xml");
     EditorNotificationPanelFixture notificationPanel =
-      editor.open(myStringsXmlPath, EditorFixture.Tab.EDITOR)
+      editor.open(myStringsXmlPath)
             .awaitNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
