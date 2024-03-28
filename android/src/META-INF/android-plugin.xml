@@ -340,13 +340,13 @@
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
     <completion.contributor language="JAVA"
-                            id="AndroidJavaCompletionContributor"
-                            implementationClass="org.jetbrains.android.completion.AndroidJavaCompletionContributor"
+                            id="AndroidPrivateResourceCompletionContributor"
+                            implementationClass="org.jetbrains.android.completion.AndroidPrivateResourceCompletionContributor"
                             order="first"/>
     <completion.contributor language="JAVA"
                             id="JavaAndroidDeprecationPresentationCompletionContributor"
                             implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
-                            order="first, before AndroidJavaCompletionContributor"/>
+                            order="first, before AndroidPrivateResourceCompletionContributor"/>
     <completion.contributor language="kotlin"
                             id="KotlinAndroidDeprecationPresentationCompletionContributor"
                             implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
@@ -374,7 +374,7 @@
                             order="first, before KotlinCompletionContributor"/>
     <completion.contributor language="JAVA"
                             implementationClass="com.android.tools.idea.lang.typedef.JavaTypeDefCompletionContributor"
-                            order="first, before AndroidJavaCompletionContributor"/>
+                            order="first, before AndroidPrivateResourceCompletionContributor"/>
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.completion.AndroidNonTransitiveRClassJavaCompletionContributor"
                             order="last, before javaLegacy"/>

@@ -29,13 +29,8 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * [CompletionContributor] that currently does two things: removing deprecation warnings in code where the element was not yet
- * deprecated (e.g. limited by SDK level) and filtering out private resources.
- *
- * TODO(b/292553413): See if we can unify this private resource logic with the similar code in `AndroidKotlinCompletionContributor`.
- */
-class AndroidJavaCompletionContributor : CompletionContributor() {
+/** [CompletionContributor] that filters private resources from autocomplete. */
+class AndroidPrivateResourceCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     super.fillCompletionVariants(parameters, resultSet)
     val position = parameters.position
