@@ -74,6 +74,10 @@ fun ToggleButton(
         button.isEnabled = false
       }
     }
+    button.toolTipText =
+      if (state.buttonState.permission != Permission.FULL)
+        "You don't have the necessary permissions to open/close issues."
+      else if (state.buttonState.mode == ConnectionMode.OFFLINE) "AQI is offline." else null
   }
 
   button.addActionListener {
