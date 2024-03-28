@@ -43,6 +43,7 @@ import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -157,12 +158,12 @@ public class ResourceTablePanel {
     private final String myFilter;
 
     protected ResourceFilter(String filter) {
-      myFilter = filter.toLowerCase();
+      myFilter = filter.toLowerCase(Locale.getDefault());
     }
 
     @Override
     protected boolean include(Entry<?, ?> value, int index) {
-      return value.getStringValue(index).toLowerCase().contains(myFilter);
+      return value.getStringValue(index).toLowerCase(Locale.getDefault()).contains(myFilter);
     }
   }
 }
