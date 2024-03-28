@@ -22,7 +22,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.psi.PsiNamedElement
 import org.jetbrains.android.AndroidTestCase
 
-class AndroidJavaCompletionContributorTest : AndroidTestCase() {
+class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase() {
   fun testDeprecationFiltersApplied() {
     myFixture.loadNewFile(
       "src/p1/p2/SomeActivity.java",
