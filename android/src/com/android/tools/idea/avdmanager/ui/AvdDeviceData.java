@@ -34,6 +34,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition;
+import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -56,6 +57,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +105,7 @@ public final class AvdDeviceData {
   private final BoolProperty myHasGps = new BoolValueProperty();
   private final BoolProperty myHasProximitySensor = new BoolValueProperty();
   private final BoolProperty myHasSdCard = new BoolValueProperty();
-  private final OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<>();
+  private final OptionalProperty<@NotNull Path> myCustomSkinFile = new OptionalValueProperty<>();
   private final OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private final BoolValueProperty myIsAutomotive = new BoolValueProperty();
@@ -159,7 +161,7 @@ public final class AvdDeviceData {
           return true;
         }
 
-        Dimension dimension = getSkinDimension(myCustomSkinFile.getValueOrNull());
+        var dimension = getSkinDimension(myCustomSkinFile.get().map(Path::toFile).orElse(null));
         return dimension == null ||
                (dimension.getWidth() >= myScreenResolutionWidth.get() && dimension.getHeight() >= myScreenResolutionHeight.get()) ||
                (dimension.getHeight() >= myScreenResolutionWidth.get() && dimension.getWidth() >= myScreenResolutionHeight.get());
@@ -378,8 +380,7 @@ public final class AvdDeviceData {
     return mySoftware;
   }
 
-  @NotNull
-  public OptionalProperty<File> customSkinFile() {
+  @NotNull OptionalProperty<@NotNull Path> customSkinFile() {
     return myCustomSkinFile;
   }
 
@@ -574,7 +575,7 @@ public final class AvdDeviceData {
     File defaultHardwareSkinFile = defaultHardware.getSkinFile();
     File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardwareSkinFile == null ? null : defaultHardwareSkinFile.toPath(),
                                                       systemImage);
-    myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
+    myCustomSkinFile.setValue(skinFile == null ? SkinUtils.noSkin() : skinFile.toPath());
   }
 
   @NotNull

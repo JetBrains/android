@@ -277,7 +277,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val model = AvdOptionsModel(avd)
 
     // Assert
-    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(noSkin.toFile())
+    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(noSkin)
   }
 
   fun testAvdCommandLineOptions_StudioFlagEnabled() {

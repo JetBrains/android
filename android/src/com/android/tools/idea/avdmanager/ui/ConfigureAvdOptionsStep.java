@@ -47,6 +47,7 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdNameVerifier;
 import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
@@ -59,7 +60,6 @@ import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.ObservableOptional;
-import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
@@ -87,7 +87,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -635,7 +634,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean shouldEnableDeviceFrameCheckbox() {
     // Enable the checkbox iff the AVD has the custom skin to use when the checkbox is turned on.
-    return !FileUtil.filesEqual(getModel().getAvdDeviceData().customSkinFile().getValueOr(AvdWizardUtils.NO_SKIN), AvdWizardUtils.NO_SKIN);
+    var skin = getModel().getAvdDeviceData().customSkinFile().get();
+    return skin.isPresent() && !skin.orElseThrow().equals(SkinUtils.noSkin());
   }
 
   @VisibleForTesting
@@ -680,15 +680,15 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     deviceProperties.add(getModel().systemImage());
     myListeners.listenAll(deviceProperties).with(() -> {
       AvdOptionsModel model = getModel();
-      OptionalProperty<File> customSkinFileProperty = model.getAvdDeviceData().customSkinFile();
+      var customSkinFileProperty = model.getAvdDeviceData().customSkinFile();
 
       ObservableOptional<SystemImageDescription> systemImageProperty = model.systemImage();
-      Optional<File> optionalCustomSkinFile = customSkinFileProperty.get();
+      var optionalCustomSkinFile = customSkinFileProperty.get();
 
       if (systemImageProperty.get().isPresent() && optionalCustomSkinFile.isPresent()) {
-        File skin = AvdWizardUtils.pathToUpdatedSkins(customSkinFileProperty.getValue().toPath(), systemImageProperty.getValue());
+        var skin = AvdWizardUtils.pathToUpdatedSkins(customSkinFileProperty.getValue(), systemImageProperty.getValue()).toPath();
         customSkinFileProperty.setValue(skin);
-        myDeviceFrameCheckbox.setSelected(!FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN));
+        myDeviceFrameCheckbox.setSelected(!skin.equals(SkinUtils.noSkin()));
       }
 
       boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
@@ -1169,10 +1169,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   protected void onProceeding() {
     AvdOptionsModel model = getModel();
 
-    SettableValue<Optional<File>> customSkinDefinitionProperty = model.getAvdDeviceData().customSkinFile();
+    var customSkinDefinitionProperty = model.getAvdDeviceData().customSkinFile();
     SettableValue<Optional<File>> customSkinDefinitionBackupProperty = model.backupSkinFile();
 
-    Path customSkinDefinition = customSkinDefinitionProperty.get().map(File::toPath).orElse(null);
+    var customSkinDefinition = customSkinDefinitionProperty.get().orElse(null);
     Path customSkinDefinitionBackup = customSkinDefinitionBackupProperty.get().map(File::toPath).orElse(null);
 
     CustomSkinDefinitionResolver resolver = new CustomSkinDefinitionResolver(FileSystems.getDefault(),
@@ -1180,7 +1180,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                                                                              customSkinDefinition,
                                                                              customSkinDefinitionBackup);
 
-    customSkinDefinitionProperty.set(resolver.getCustomSkinDefinition().map(Path::toFile));
+    customSkinDefinitionProperty.set(resolver.getCustomSkinDefinition());
     customSkinDefinitionBackupProperty.set(resolver.getCustomSkinDefinitionBackup().map(Path::toFile));
 
     if (getSelectedApiLevel() < 16 || model.hostGpuMode().getValueOrNull() == GpuMode.OFF) {
@@ -1382,8 +1382,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setSelectedElement(IsDevicePresent ? device.getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT);
 
     toggleOrientationPanel();
-    File customSkin = getModel().getAvdDeviceData().customSkinFile().getValueOrNull();
-    File backupSkin = getModel().backupSkinFile().getValueOrNull();
+    var customSkin = getModel().getAvdDeviceData().customSkinFile().get().orElse(null);
+    var backupSkin = getModel().backupSkinFile().get().map(File::toPath).orElse(null);
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
     if (backupSkin != null && customSkin == null) {
       getModel().hasDeviceFrame().set(false);
@@ -1404,8 +1404,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       if (backupSkin != null) {
         customSkin = backupSkin;
       }
-      else {
-        customSkin = hardwareSkin;
+      else if (hardwareSkin != null) {
+        customSkin = hardwareSkin.toPath();
       }
     }
 

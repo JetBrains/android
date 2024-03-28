@@ -17,8 +17,7 @@ package com.android.tools.idea.avdmanager.ui;
 
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
-import com.android.tools.idea.avdmanager.ui.SkinComboBoxProperty;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,10 +32,10 @@ public final class SkinComboBoxPropertyTest {
     var comboBox = Mockito.mock(SkinComboBox.class);
 
     var property = new SkinComboBoxProperty(comboBox);
-    var file = Optional.<File>empty();
+    var path = Optional.<Path>empty();
 
     // Act
-    property.setDirectly(file);
+    property.setDirectly(path);
 
     // Assert
     Mockito.verify(comboBox).addItem(NoSkin.INSTANCE);

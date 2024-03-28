@@ -38,6 +38,7 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -67,6 +68,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -596,9 +598,9 @@ public final class AvdOptionsModel extends WizardModel {
 
     String skinPath = properties.get(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY);
     if (skinPath != null) {
-      File skinFile = (skinPath.equals(AvdWizardUtils.NO_SKIN.getPath())) ? AvdWizardUtils.NO_SKIN : new File(skinPath);
+      var skinFile = Path.of(skinPath);
 
-      if (skinFile.isDirectory() || FileUtil.filesEqual(skinFile, AvdWizardUtils.NO_SKIN)) {
+      if (Files.isDirectory(skinFile) || skinFile.equals(SkinUtils.noSkin())) {
         myAvdDeviceData.customSkinFile().setValue(skinFile);
       }
     }
@@ -798,9 +800,8 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }));
 
-    File skinFile = (myAvdDeviceData.customSkinFile().get().isPresent())
-                    ? myAvdDeviceData.customSkinFile().getValue()
-                    : AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile().toPath(), systemImage);
+    var skinFile = myAvdDeviceData.customSkinFile().get()
+      .orElseGet(() -> AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile().toPath(), systemImage).toPath());
 
     if (myBackupSkinFile.get().isPresent()) {
       hardwareProperties.put(AvdManager.AVD_INI_BACKUP_SKIN_PATH, myBackupSkinFile.getValue().getPath());
@@ -855,10 +856,10 @@ public final class AvdOptionsModel extends WizardModel {
 
     ProgressManager.getInstance().runProcessWithProgressSynchronously(
       () -> {
-        myCreatedAvd = connection.createOrUpdateAvd(
-          myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-          isCircular, sdCardFinal, skinFile == null ? null : skinFile.toPath(),
-          hardwareProperties, userSettings, myRemovePreviousAvd.get());
+        myCreatedAvd =
+          connection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCardFinal,
+                                       skinFile, hardwareProperties, userSettings, myRemovePreviousAvd.get());
+
         if (myAvdCreatedCallback != null) {
           myAvdCreatedCallback.run();
         }

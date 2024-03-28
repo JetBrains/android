@@ -18,11 +18,11 @@ package com.android.tools.idea.avdmanager.ui;
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.observable.core.OptionalProperty;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class SkinComboBoxProperty extends OptionalProperty<File> {
+final class SkinComboBoxProperty extends OptionalProperty<Path> {
   @NotNull
   private final SkinComboBox myComboBox;
 
@@ -32,9 +32,8 @@ final class SkinComboBoxProperty extends OptionalProperty<File> {
   }
 
   @Override
-  protected void setDirectly(@NotNull Optional<File> file) {
-    var skin = file
-      .map(File::toPath)
+  protected void setDirectly(@NotNull Optional<@NotNull Path> path) {
+    var skin = path
       .map(myComboBox::getSkin)
       .orElse(NoSkin.INSTANCE);
 
@@ -42,9 +41,8 @@ final class SkinComboBoxProperty extends OptionalProperty<File> {
     myComboBox.setSelectedItem(skin);
   }
 
-  @NotNull
   @Override
-  public Optional<File> get() {
-    return Optional.of(myComboBox.getSelectedItem().path().toFile());
+  public @NotNull Optional<@NotNull Path> get() {
+    return Optional.of(myComboBox.getSelectedItem().path());
   }
 }

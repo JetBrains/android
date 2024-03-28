@@ -99,7 +99,7 @@ public final class AvdHardwareData {
     }
 
     if (myDeviceData.customSkinFile().getValueOrNull() != null) {
-      hardware.setSkinFile(myDeviceData.customSkinFile().getValue());
+      hardware.setSkinFile(myDeviceData.customSkinFile().getValue().toFile());
     }
 
     hardware.setRam(myDeviceData.ramStorage().get());

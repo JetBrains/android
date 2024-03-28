@@ -18,20 +18,19 @@ package com.android.tools.idea.avdmanager.ui;
 import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.avdmanager.SkinUtils;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class CustomSkinValidator implements Validator<Optional<File>> {
+final class CustomSkinValidator implements Validator<Optional<Path>> {
   @Override
-  public @NotNull Result validate(@NotNull Optional<File> optionalCustomSkin) {
+  public @NotNull Result validate(@NotNull Optional<@NotNull Path> optionalCustomSkin) {
     if (optionalCustomSkin.isEmpty()) {
       return Result.OK;
     }
 
-    Path customSkin = optionalCustomSkin.get().toPath();
+    var customSkin = optionalCustomSkin.get();
 
     if (customSkin.equals(SkinUtils.noSkin())) {
       return Result.OK;
