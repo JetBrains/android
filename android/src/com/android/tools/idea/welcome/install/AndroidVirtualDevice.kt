@@ -41,20 +41,17 @@ import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Objects
-import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.system.CpuArch
+import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
-
 
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
+class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
@@ -179,29 +176,24 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
 
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDevice::class.java)
-    private const val DEFAULT_DEVICE_ID = "pixel_3a"
-    private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs")
+    private const val DEFAULT_DEVICE_ID = "pixel_fold"
+    private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis_playstore", "Google Play")
     private val ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC")
-    private val DEFAULT_RAM_SIZE = Storage(1536, Storage.Unit.MiB)
-    private val DEFAULT_HEAP_SIZE = Storage(256, Storage.Unit.MiB)
-    private val ENABLED_HARDWARE: Set<String> = ImmutableSet
-      .of(HardwareProperties.HW_ACCELEROMETER, HardwareProperties.HW_AUDIO_INPUT, HardwareProperties.HW_BATTERY,
-          HardwareProperties.HW_GPS, HardwareProperties.HW_KEYBOARD, HardwareProperties.HW_ORIENTATION_SENSOR,
-          HardwareProperties.HW_PROXIMITY_SENSOR, HardwareProperties.HW_SDCARD,
-          AvdManager.AVD_INI_GPU_EMULATION)
-    private val DISABLED_HARDWARE: Set<String> = setOf(
+    private val DEFAULT_RAM_SIZE = Storage(2, Storage.Unit.GiB)
+    private val DEFAULT_HEAP_SIZE = Storage(336, Storage.Unit.MiB)
+    private val ENABLED_HARDWARE = setOf(
+        HardwareProperties.HW_ACCELEROMETER, HardwareProperties.HW_AUDIO_INPUT, HardwareProperties.HW_BATTERY,
+        HardwareProperties.HW_GPS, HardwareProperties.HW_KEYBOARD, HardwareProperties.HW_ORIENTATION_SENSOR,
+        HardwareProperties.HW_PROXIMITY_SENSOR, HardwareProperties.HW_SDCARD,
+        AvdManager.AVD_INI_GPU_EMULATION)
+    private val DISABLED_HARDWARE = setOf(
       HardwareProperties.HW_DPAD, HardwareProperties.HW_MAINKEYS, HardwareProperties.HW_TRACKBALL, AvdManager.AVD_INI_SNAPSHOT_PRESENT
     )
 
     @Throws(WizardException::class)
     private fun getDevice(sdkPath: Path): Device {
-      val devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices
-      for (device in devices) {
-        if (Objects.equal(device.id, DEFAULT_DEVICE_ID)) {
-          return device
-        }
-      }
-      throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
+      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find { it.id == DEFAULT_DEVICE_ID } ?:
+          throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
 
     private fun getAvdSettings(displayName: String, internalName: String, device: Device): MutableMap<String, String> {
@@ -213,27 +205,24 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       for (key in DISABLED_HARDWARE) {
         result[key] = HardwareProperties.BOOLEAN_NO
       }
-      for (key in ImmutableSet.of(AvdManager.AVD_INI_CAMERA_BACK,
-                                  AvdManager.AVD_INI_CAMERA_FRONT)) {
-        result[key] = "emulated"
-      }
+      result[AvdManager.AVD_INI_CAMERA_BACK] = "virtualscene"
+      result[AvdManager.AVD_INI_CAMERA_FRONT] = "emulated"
       result[AvdManager.AVD_INI_DEVICE_NAME] = device.id
       result[AvdManager.AVD_INI_DEVICE_MANUFACTURER] = device.manufacturer
       result[AvdWizardUtils.AVD_INI_NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
       result[AvdWizardUtils.AVD_INI_NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
       result[AvdManager.AVD_INI_AVD_ID] = internalName
       result[AvdManager.AVD_INI_DISPLAY_NAME] = displayName
-      setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true)
+      setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, false)
+      setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, DEFAULT_RAM_SIZE, false)
       setStorageSizeKey(result, AvdManager.AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
-      setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, EmulatedProperties.DEFAULT_INTERNAL_STORAGE, false)
-      val deviceHwProperties: MutableMap<String, String> = DeviceManager.getHardwareProperties(device)
-      result.putAll(deviceHwProperties)
+      val hardwareProperties = DeviceManager.getHardwareProperties(device)
+      result.putAll(hardwareProperties)
+
       return result
     }
 
-    private fun setStorageSizeKey(
-      result: MutableMap<String, String>, key: String, size: Storage, convertToMb: Boolean
-    ) {
+    private fun setStorageSizeKey(result: MutableMap<String, String>, key: String, size: Storage, convertToMb: Boolean) {
       result[key] = AvdOptionsModel.toIniString(size, convertToMb)
     }
   }
