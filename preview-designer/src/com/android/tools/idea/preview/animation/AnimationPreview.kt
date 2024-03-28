@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.animation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -50,6 +51,7 @@ const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 abstract class AnimationPreview<T : AnimationManager>(
   project: Project,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  rootComponent: JComponent,
   private val tracker: AnimationTracker,
 ) : Disposable {
 
@@ -69,6 +71,10 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   @VisibleForTesting
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
+  protected val bottomPanel =
+    BottomPanel(rootComponent, tracker).apply {
+      addResetListener { timeline.sliderUI.elements.forEach { it.reset() } }
+    }
 
   // ************************
   // Properties: State Management
@@ -89,7 +95,15 @@ abstract class AnimationPreview<T : AnimationManager>(
   // *****************
   // Properties: Timeline
   // *****************
-  protected val timeline = Timeline(animationPreviewPanel, component)
+  /**
+   * An interactive timeline where users scrub or jump within an animation. Visual ranges display
+   * the durations of individual animations on the timeline.
+   */
+  protected val timeline: Timeline =
+    Timeline(animationPreviewPanel, component).apply {
+      addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
+    }
+  protected val clockControl = SliderClockControl(timeline)
 
   // ************************
   // Protected Methods: Animation Control
@@ -148,7 +162,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   protected inner class Timeline(owner: JComponent, pane: TooltipLayeredPane) :
     TimelinePanel(Tooltip(owner, pane), tracker) {
-    var cachedVal = -1
+    var cachedVal = 0
 
     init {
       addChangeListener {

@@ -28,12 +28,10 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.BottomPanel
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.MINIMUM_TIMELINE_DURATION_MS
 import com.android.tools.idea.preview.animation.PlaybackControls
-import com.android.tools.idea.preview.animation.SliderClockControl
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -70,7 +68,8 @@ class ComposeAnimationPreview(
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-) : AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, tracker) {
+) :
+  AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, rootComponent, tracker) {
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
@@ -89,15 +88,7 @@ class ComposeAnimationPreview(
    */
   private val loadingPanelVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
-  private val clockControl = SliderClockControl(timeline)
-
   private val playbackControls = PlaybackControls(clockControl, tracker, rootComponent, this)
-
-  private val bottomPanel =
-    BottomPanel(rootComponent, tracker).apply {
-      timeline.addChangeListener { scope.launch(uiThread) { clockTimeMs = timeline.value } }
-      addResetListener { scope.launch { resetTimelineAndUpdateWindowSize(false) } }
-    }
 
   @VisibleForTesting
   val coordinationTab = AllTabPanel(this).apply { addPlayback(playbackControls.createToolbar()) }
@@ -265,9 +256,6 @@ class ComposeAnimationPreview(
     loadingPanelVisible.value = true
     // Reset tab names, so when new tabs are added they start as #1
     tabNames.clear()
-    // Reset the timeline cached value, so when new tabs are added, any new value will trigger an
-    // update
-    timeline.cachedVal = -1
     // The animation panel might not have the focus when the "No animations" panel is displayed,
     // i.e. when code has changed in the editor using Fast Preview, and we need to refresh the
     // animation preview, so it displays the most up-to-date animations. For that reason, we need to
