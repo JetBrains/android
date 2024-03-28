@@ -178,7 +178,7 @@ public final class AndroidVirtualDeviceTest {
     Map<String, RemotePackage> remotes = new HashMap<>();
     remotes.put("platforms;android-34", remotePlatform);
     AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
-    AvdInfo avdInfo = createAvd(avdCreator, sdkHandler);
+    AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
@@ -213,7 +213,7 @@ public final class AndroidVirtualDeviceTest {
     Map<String, RemotePackage> remotes = new HashMap<>();
     remotes.put("platforms;android-34", remotePlatform);
     AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
-    AvdInfo avdInfo = createAvd(avdCreator, sdkHandler);
+    AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNull();
   }
 
@@ -293,7 +293,7 @@ public final class AndroidVirtualDeviceTest {
     assertTrue(avd.isSelectedByDefault());
 
     // SDK installed, System image, matching AVD -> Not selected by default
-    createAvd(avd, sdkHandler);
+    createAvdIfNeeded(avd, sdkHandler);
 
     assertFalse(avd.isSelectedByDefault());
   }
@@ -433,8 +433,11 @@ public final class AndroidVirtualDeviceTest {
                            + "</ns3:sdk-sys-img>\n");
   }
 
-  @Nullable
-  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+  private @Nullable AvdInfo createAvdIfNeeded(
+      @NotNull AndroidVirtualDevice avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+    if (!avdCreator.isAvdCreationNeeded(sdkHandler)) {
+      return null;
+    }
     Path avdFolder = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
     AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
     Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));

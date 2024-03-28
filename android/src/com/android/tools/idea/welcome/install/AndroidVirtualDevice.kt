@@ -75,8 +75,14 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     return SystemImageDescription(systemImages.iterator().next())
   }
 
+  fun isAvdCreationNeeded(sdkHandler: AndroidSdkHandler): Boolean {
+    val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
+    return avdManager.getAvds(true).isEmpty()
+  }
+
   @Throws(WizardException::class)
-  fun createAvd(connection: AvdManagerConnection, sdkHandler: AndroidSdkHandler): AvdInfo? {
+  fun createAvd(sdkHandler: AndroidSdkHandler): AvdInfo? {
+    val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
@@ -85,8 +91,8 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
         DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
       }
 
-    val displayName = connection.getDefaultDeviceDisplayName(d, systemImageDescription.version)
-    val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
+    val displayName = avdManager.getDefaultDeviceDisplayName(d, systemImageDescription.version)
+    val internalName = AvdWizardUtils.cleanAvdName(avdManager, displayName, true)
     val abi = Abi.getEnum(systemImageDescription.abiType)
     val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
@@ -94,7 +100,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     if (useRanchu) {
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
-    return connection.createOrUpdateAvd(
+    return avdManager.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
       hardwareSkinPath, settings, null, true
     )
@@ -134,16 +140,13 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
+      myProgressStep.progressIndicator.isIndeterminate = true
+      myProgressStep.progressIndicator.text = "Creating Android virtual device"
+      installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
       val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
-      // Create an AVD only if there are no AVDs defined.
-      if (avdManager.getAvds(true).isEmpty()) {
-        myProgressStep.progressIndicator.isIndeterminate = true
-        myProgressStep.progressIndicator.text = "Creating Android virtual device"
-        installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
-        val avd = createAvd(avdManager, sdkHandler) ?: throw WizardException("Unable to create Android virtual device")
-        val successMessage = "Android virtual device ${avd.name} was successfully created\n"
-        installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
-      }
+      val avd = createAvd(sdkHandler) ?: throw WizardException("Unable to create Android virtual device")
+      val successMessage = "Android virtual device ${avd.name} was successfully created\n"
+      installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
     }
     catch (e: WizardException) {
       LOG.error(e)
