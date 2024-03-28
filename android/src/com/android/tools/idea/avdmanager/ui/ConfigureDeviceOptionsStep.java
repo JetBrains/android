@@ -151,36 +151,36 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void attachBindingsAndValidators() {
-    final AvdDeviceData deviceModel = getModel().getDeviceData();
-    myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
+    var device = getModel().getDeviceData();
+    myBindings.bindTwoWay(new TextProperty(myDeviceName), device.name());
 
-    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagonalScreenSizeAdapter);
-    myBindings.bind(deviceModel.screenResolutionWidth(), myScreenResWidthAdapter);
-    myBindings.bind(deviceModel.screenResolutionHeight(), myScreenResHeightAdapter);
+    myBindings.bind(device.diagonalScreenSize(), myDiagonalScreenSizeAdapter);
+    myBindings.bind(device.screenResolutionWidth(), myScreenResWidthAdapter);
+    myBindings.bind(device.screenResolutionHeight(), myScreenResHeightAdapter);
 
-    myBindings.bindTwoWay(myRamField.storage(), deviceModel.ramStorage());
+    myBindings.bindTwoWay(myRamField.storage(), device.ramStorage());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), deviceModel.hasHardwareButtons());
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), deviceModel.hasHardwareKeyboard());
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myNavigationControlsCombo), deviceModel.navigation());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), device.hasHardwareButtons());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), device.hasHardwareKeyboard());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myNavigationControlsCombo), device.navigation());
 
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), deviceModel.supportsLandscape());
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), deviceModel.supportsPortrait());
-    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), deviceModel.hasBackCamera());
-    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), deviceModel.hasFrontCamera());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), device.supportsLandscape());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), device.supportsPortrait());
+    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), device.hasBackCamera());
+    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), device.hasFrontCamera());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), deviceModel.hasAccelerometer());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), deviceModel.hasGyroscope());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGps), deviceModel.hasGps());
-    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), deviceModel.hasProximitySensor());
-    myBindings.bindTwoWay(new SkinComboBoxProperty(myCustomSkinPath), deviceModel.customSkinFile());
+    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), device.hasAccelerometer());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), device.hasGyroscope());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGps), device.hasGps());
+    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), device.hasProximitySensor());
+    myBindings.bindTwoWay(new SkinComboBoxProperty(myCustomSkinPath), device.customSkinFile());
 
     SelectedProperty isScreenRound = new SelectedProperty(myIsScreenRound);
-    myBindings.bindTwoWay(isScreenRound, deviceModel.isScreenRound());
+    myBindings.bindTwoWay(isScreenRound, device.isScreenRound());
     myListeners.listen(isScreenRound, this::isScreenRoundChanged);
 
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<>(myDeviceTypeComboBox);
-    myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
+    myBindings.bindTwoWay(selectedDeviceType, device.deviceType());
 
     myListeners.listen(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
@@ -199,34 +199,36 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerTest(deviceModel.name().isEmpty().not(),
-                                  "Please write a name for the new device.");
+    myValidatorPanel.registerTest(device.name().isEmpty().not(), "Please write a name for the new device.");
 
     myValidatorPanel.registerTest(
-      myDiagonalScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagonalScreenSizeAdapter)),
+      myDiagonalScreenSizeAdapter.inSync().and(device.diagonalScreenSize().isEqualTo(myDiagonalScreenSizeAdapter)),
       "Please enter a non-zero positive floating point value for the screen size.");
 
+    myValidatorPanel.registerTest(myScreenResWidthAdapter.inSync().and(device.screenResolutionWidth().isEqualTo(myScreenResWidthAdapter)),
+                                  "Please enter a valid value for the screen width.");
     myValidatorPanel.registerTest(
-      myScreenResWidthAdapter.inSync().and(deviceModel.screenResolutionWidth().isEqualTo(myScreenResWidthAdapter)),
-      "Please enter a valid value for the screen width.");
-    myValidatorPanel.registerTest(
-      myScreenResHeightAdapter.inSync().and(deviceModel.screenResolutionHeight().isEqualTo(myScreenResHeightAdapter)),
+      myScreenResHeightAdapter.inSync().and(device.screenResolutionHeight().isEqualTo(myScreenResHeightAdapter)),
       "Please enter a valid value for the screen height.");
 
-    myValidatorPanel.registerValidator(
-      deviceModel.ramStorage(),
-      value -> (value.getSize() > 0) ? Result.OK : new Result(Validator.Severity.ERROR, "Please specify a non-zero amount of RAM."));
+    myValidatorPanel.registerValidator(device.ramStorage(), value -> (value.getSize() > 0)
+                                                                     ? Result.OK
+                                                                     : new Result(Validator.Severity.ERROR,
+                                                                                  "Please specify a non-zero amount of RAM."));
 
-    myValidatorPanel.registerTest(deviceModel.screenDpi().isGreaterThan(0),
+    myValidatorPanel.registerTest(device.screenDpi().isGreaterThan(0),
                                   "The given resolution and screen size specified have a DPI that is too low.");
 
-    myValidatorPanel.registerTest(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
+    myValidatorPanel.registerTest(device.supportsLandscape().or(device.supportsPortrait()),
                                   "A device must support at least one orientation (Portrait or Landscape).");
 
-    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), new CustomSkinValidator());
+    var selectedSkinLargeEnough = device.compatibleSkinSize();
 
-    myValidatorPanel.registerTest(getModel().getDeviceData().compatibleSkinSize(),
-                                  Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
+    var validator = new CustomSkinValidator.Builder()
+      .setSelectedSkinLargeEnough(selectedSkinLargeEnough)
+      .build();
+
+    myValidatorPanel.registerValidator(device.customSkinFile(), validator, selectedSkinLargeEnough);
   }
 
   private void createUIComponents() {

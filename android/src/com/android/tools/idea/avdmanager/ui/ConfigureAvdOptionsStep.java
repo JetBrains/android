@@ -1037,7 +1037,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
   private void addValidators() {
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<>() {
+    var model = getModel();
+    var device = model.getAvdDeviceData();
+
+    myValidatorPanel.registerValidator(device.ramStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage ram) {
@@ -1047,7 +1050,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(model.vmHeapStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage heap) {
@@ -1057,7 +1060,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(model.internalStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage internalMem) {
@@ -1072,7 +1075,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     });
 
     // If we're using an external SD card, make sure it exists
-    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<>() {
+    myValidatorPanel.registerValidator(model.externalSdCardLocation(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull String path) {
@@ -1080,10 +1083,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                ? new Result(Severity.ERROR, "The specified SD image file must be a valid image file")
                : Result.OK;
       }
-    }, getModel().useExternalSdCard());
+    }, model.useExternalSdCard());
 
     // If we are using an internal SD card, make sure it has enough memory.
-    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(model.sdCardStorage(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Storage> value) {
@@ -1108,11 +1111,18 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new CustomSkinValidator());
+    var selectedSkinLargeEnough = device.compatibleSkinSize();
+    var enableDeviceFrame = model.hasDeviceFrame();
 
-    myOriginalName = getModel().avdDisplayName().get();
+    var validator = new CustomSkinValidator.Builder()
+      .setSelectedSkinLargeEnough(selectedSkinLargeEnough)
+      .setEnableDeviceFrame(enableDeviceFrame)
+      .build();
 
-    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<>() {
+    myValidatorPanel.registerValidator(device.customSkinFile(), validator, selectedSkinLargeEnough, enableDeviceFrame);
+    myOriginalName = model.avdDisplayName().get();
+
+    myValidatorPanel.registerValidator(model.avdDisplayName(), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull String value) {
@@ -1137,7 +1147,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<>() {
+    myValidatorPanel.registerValidator(model.device().isPresent().and(model.systemImage().isPresent()), new Validator<>() {
       @NotNull
       @Override
       public Result validate(@NotNull Boolean deviceAndImageArePresent) {
@@ -1160,9 +1170,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         return Result.OK;
       }
     });
-
-    myValidatorPanel.registerTest(getModel().getAvdDeviceData().compatibleSkinSize(),
-                                  Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   @Override
