@@ -687,10 +687,7 @@ internal class DeviceClient(
     }
 
     fun setMaxVideoResolution(requester: Any, maxOutputSize: Dimension) {
-      if (requestedVideoResolutions.put(requester, maxOutputSize) == null) {
-        requestedVideoResolutions.remove(requester)
-      }
-      else {
+      if (requestedVideoResolutions.replace(requester, maxOutputSize) != null) {
         sendUpdatedVideoSize()
       }
     }
