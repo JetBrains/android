@@ -79,7 +79,8 @@ def _read_platform_prefix(product_info):
     m = re.search("-Didea.platform.prefix=(.*)", define)
     if m:
       return m.group(1)
-  sys.exit("Failed to find platform prefix")
+  # IJ ultimate has a platform prefix if "", so it's not added here. If not found assume it's empty.
+  return ""
 
 def _read_zip_entry(zip_path, entry):
   with zipfile.ZipFile(zip_path) as zip:
@@ -94,14 +95,24 @@ def _read_plugin_id(path):
     if jar.endswith(".jar"):
       files.append(os.path.join(path + "/lib", jar))
   xml = load_plugin_xml(files, [])
-  for id in xml.findall("id"):
-    return id.text
 
-  sys.exit("Failed to find plugin id in " + path)
+  # The id of a plugin is defined as the id tag and if missing, the name tag.
+  ids = xml.findall("id")
+  if len(ids) > 1:
+    sys.exit("Too many plugin ids found in plugin: " + path)
+  if len(ids) == 1:
+    return ids[0].text
+  names = xml.findall("name")
+  if len(names) > 1:
+    sys.exit("Too many plugin names found (for plugin without id): " + path)
+  if len(names) == 1:
+    return names[0].text
+  sys.exit("Cannot find plugin id or name tag for plugin: " + path)
 
 def _read_plugin_jars(idea_home):
   plugins = {}
-  for plugin in os.listdir(idea_home + "/plugins"):
+  plugin_names = os.listdir(idea_home + "/plugins") if os.path.exists(idea_home + "/plugins") else []
+  for plugin in plugin_names:
     plugin_path = idea_home + "/plugins/" + plugin
     if not os.path.isdir(plugin_path):
       continue
