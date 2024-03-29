@@ -176,9 +176,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private static boolean isBetter(@NotNull SystemImageDescription image, @Nullable SystemImageDescription bestSoFar) {
     return bestSoFar == null || 0 < ComparisonChain.start()
       .compareTrueFirst(image.isRemote(), bestSoFar.isRemote())
-      .compare(abiRank(image), abiRank(bestSoFar))
+      .compareTrueFirst(image.getVersion().isPreview(), bestSoFar.getVersion().isPreview())
       .compare(image.getVersion(), bestSoFar.getVersion())
       .compareFalseFirst(image.hasGoogleApis(), bestSoFar.hasGoogleApis())
+      .compare(abiRank(image), abiRank(bestSoFar))
       .result();
   }
 
