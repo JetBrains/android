@@ -127,15 +127,6 @@ Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Si
   return Size { width, height };
 }
 
-AMediaCodec* CreateCodec(const string& codec_name, int display_id) {
-  Log::D("Display %d: creating codec", display_id);
-  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_name.c_str());
-  if (codec == nullptr) {
-    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder", display_id, codec_name.c_str());
-  }
-  return codec;
-}
-
 Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, int32_t bit_rate,
                     AMediaFormat* media_format, const DisplayInfo& display_info, int32_t display_id) {
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
@@ -192,6 +183,7 @@ void DisplayStreamer::Stop() {
     if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
       thread_.join();
     }
+    DeleteCodec();
     ReleaseVirtualDisplay(Jvm::GetJni());
   }
 }
@@ -225,7 +217,7 @@ void DisplayStreamer::Run() {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
-    AMediaCodec* codec = CreateCodec(codec_info_->name, display_id_);
+    CreateCodec();
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
     if (Agent::feature_level() >= 34) {
       virtual_display_ = DisplayManager::CreateVirtualDisplay(
@@ -240,10 +232,10 @@ void DisplayStreamer::Run() {
     ANativeWindow* surface = nullptr;
     {
       unique_lock lock(mutex_);
-      if (codec_stop_pending_) {
+      if (codec_ == nullptr || codec_stop_pending_) {
         codec_stop_pending_ = false;
         ReleaseVirtualDisplay(jni);
-        AMediaCodec_delete(codec);
+        DeleteCodec();
         continue;  // Start another loop to refresh display information.
       }
       display_info_ = display_info;
@@ -255,10 +247,10 @@ void DisplayStreamer::Run() {
         rotation_correction = 2;
       }
       Size video_size = ConfigureCodec(
-          codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
+          codec_, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
       Log::D("Display %d: rotation=%d rotation_correction=%d video_size=%dx%d",
              display_id_, display_info.rotation, rotation_correction, video_size.width, video_size.height);
-      media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
+      media_status_t status = AMediaCodec_createInputSurface(codec_, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Display %d: AMediaCodec_createInputSurface returned %d", display_id_, status);
       }
@@ -270,12 +262,8 @@ void DisplayStreamer::Run() {
         int32_t y = (video_size.height - height) / 2;
         SurfaceControl::ConfigureProjection(jni, display_token_, surface, display_info, {0, y, video_size.width, height });
       }
-      Log::D("Display %d: starting codec", display_id_);
-      status = AMediaCodec_start(codec);
-      if (status != AMEDIA_OK) {
-        Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);
-      }
-      running_codec_ = codec;
+      StartCodecUnlocked();
+      codec_running_ = true;
       Size display_size = display_info.NaturalSize();  // The display dimensions in the canonical orientation.
       packet_header.display_width = display_size.width;
       packet_header.display_height = display_size.height;
@@ -288,15 +276,11 @@ void DisplayStreamer::Run() {
     }
     AMediaFormat* sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
-    continue_streaming = ProcessFramesUntilCodecStopped(codec, &packet_header, sync_frame_request);
+    continue_streaming = ProcessFramesUntilCodecStopped(&packet_header, sync_frame_request);
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
+    DeleteCodec();
     ReleaseVirtualDisplay(jni);
-    Log::D("Display %d: deleting codec", display_id_);
-    media_status_t status = AMediaCodec_delete(codec);
-    if (status != AMEDIA_OK) {
-      Log::W("Display %d: AMediaCodec_delete returned %d", display_id_, status);
-    }
     ANativeWindow_release(surface);
   }
 
@@ -309,12 +293,11 @@ void DisplayStreamer::Run() {
   }
 }
 
-bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
-                                                     const AMediaFormat* sync_frame_request) {
+bool DisplayStreamer::ProcessFramesUntilCodecStopped( VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
   bool continue_streaming = true;
   bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
-    CodecOutputBuffer codec_buffer(codec, StringPrintf("Display %d: ", display_id_));
+    CodecOutputBuffer codec_buffer(codec_, StringPrintf("Display %d: ", display_id_));
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
@@ -338,7 +321,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     if (request_sync_frame) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
-      media_status_t status = AMediaCodec_setParameters(codec, sync_frame_request);
+      media_status_t status = AMediaCodec_setParameters(codec_, sync_frame_request);
       if (status != AMEDIA_OK) {
         Log::E("Display %d: AMediaCodec_setParameters returned %d", display_id_, status);
       }
@@ -424,28 +407,60 @@ DisplayInfo DisplayStreamer::GetDisplayInfo() {
   return display_info_;
 }
 
+void DisplayStreamer::CreateCodec() {
+  if (codec_ != nullptr) {
+    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: video encoder already created", display_id_);
+  }
+  Log::D("Display %d: creating codec", display_id_);
+  codec_ = AMediaCodec_createCodecByName(codec_info_->name.c_str());
+  if (codec_ == nullptr) {
+    Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
+               display_id_, codec_info_->name.c_str());
+  }
+}
+
+void DisplayStreamer::DeleteCodec() {
+  if (codec_ != nullptr) {
+    Log::D("Display %d: deleting codec", display_id_);
+    media_status_t status = AMediaCodec_delete(codec_);
+    codec_ = nullptr;
+    if (status != AMEDIA_OK) {
+      Log::W("Display %d: AMediaCodec_delete returned %d", display_id_, status);
+    }
+  }
+}
+
+void DisplayStreamer::StartCodecUnlocked() {
+  Log::D("Display %d: starting codec", display_id_);
+  media_status_t status = AMediaCodec_start(codec_);
+  if (status != AMEDIA_OK) {
+    Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);
+  }
+  codec_running_ = true;
+}
+
 void DisplayStreamer::StopCodec() {
   unique_lock lock(mutex_);
   StopCodecUnlocked();
 }
 
 void DisplayStreamer::StopCodecUnlocked() {
-  if (running_codec_ == nullptr) {
-    codec_stop_pending_ = true;
-  } else {
+  if (codec_running_) {
     Log::D("Display %d: stopping codec", display_id_);
-    media_status_t status = AMediaCodec_stop(running_codec_);
+    media_status_t status = AMediaCodec_stop(codec_);
     if (status != AMEDIA_OK) {
       Log::W("Display %d: AMediaCodec_stop returned %d", display_id_, status);
     }
-    running_codec_ = nullptr;
+    codec_running_ = false;
     consequent_deque_error_count_ = 0;
+  } else {
+    codec_stop_pending_ = true;
   }
 }
 
 bool DisplayStreamer::IsCodecRunning() {
   unique_lock lock(mutex_);
-  return running_codec_ != nullptr;
+  return codec_running_;
 }
 
 bool DisplayStreamer::ReduceBitRate() {

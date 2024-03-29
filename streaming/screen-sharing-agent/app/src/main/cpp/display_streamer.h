@@ -79,7 +79,7 @@ public:
 
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
-    DisplayRotationWatcher(DisplayStreamer* display_streamer);
+    explicit DisplayRotationWatcher(DisplayStreamer* display_streamer);
 
     void OnRotationChanged(int rotation) override;
 
@@ -91,7 +91,12 @@ private:
 
   void Run();
   // Returns true if the streaming should continue, otherwise false.
-  bool ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
+  bool ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
+  void CreateCodec();
+  // Deletes the codec if it was created. The codec should not be running when this method is called. Safe to call multiple times.
+  void DeleteCodec();
+  void StartCodecUnlocked();  // REQUIRES(mutex_)
+  // Stops the codec before deleting if it is running. Safe to call multiple times.
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
@@ -101,9 +106,9 @@ private:
   // Safe to call multiple times.
   void ReleaseVirtualDisplay(Jni jni);
 
-  virtual void OnDisplayAdded(int32_t display_id);
-  virtual void OnDisplayRemoved(int32_t display_id);
-  virtual void OnDisplayChanged(int32_t display_id);
+  void OnDisplayAdded(int32_t display_id) override;
+  void OnDisplayRemoved(int32_t display_id) override;
+  void OnDisplayChanged(int32_t display_id) override;
 
   std::thread thread_;
   DisplayRotationWatcher display_rotation_watcher_;
@@ -118,11 +123,12 @@ private:
   VirtualDisplay virtual_display_;
   JObject display_token_;
 
+  AMediaCodec* codec_ = nullptr;
   std::recursive_mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
   int32_t video_orientation_;  // GUARDED_BY(mutex_)
-  AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
+  bool codec_running_ = false;  // GUARDED_BY(mutex_)
   bool codec_stop_pending_ = false;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DisplayStreamer);

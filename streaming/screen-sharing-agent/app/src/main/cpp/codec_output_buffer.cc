@@ -36,7 +36,6 @@ CodecOutputBuffer::~CodecOutputBuffer() {
 }
 
 bool CodecOutputBuffer::Deque(int64_t timeout_us) {
-  Log::D("%sCalling AMediaCodec_dequeueOutputBuffer", log_prefix_.c_str());
   index_ = AMediaCodec_dequeueOutputBuffer(codec_, &info_, timeout_us);
   if (index_ < 0) {
     Log::W("%sAMediaCodec_dequeueOutputBuffer returned %ld", log_prefix_.c_str(), static_cast<long>(index_));
