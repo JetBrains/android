@@ -49,7 +49,7 @@ constexpr char MIME_TYPE[] = "audio/opus";
 const char* CODEC_NAME = MIME_TYPE + sizeof("audio/") - 1;
 constexpr int SOCKET_TIMEOUT_MICROS = 10000000;
 
-static AMediaFormat* CreateMediaFormat() {
+AMediaFormat* CreateMediaFormat() {
   AMediaFormat* media_format = AMediaFormat_new();
   AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, MIME_TYPE);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_CHANNEL_COUNT, CHANNEL_COUNT);
