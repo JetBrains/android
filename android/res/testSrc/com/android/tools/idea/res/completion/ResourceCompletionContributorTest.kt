@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.res.completion
 
+import com.android.SdkConstants
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.lookup.LookupElementRenderer
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import java.awt.Color
@@ -48,7 +50,8 @@ class ResourceCompletionContributorTest {
 
   @get:Rule val restoreFlagRule = FlagRule(StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED)
 
-  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val fixture by lazy { projectRule.fixture }
+  private val module by lazy { projectRule.projectRule.module }
 
   @Before
   fun setUp() {
@@ -84,6 +87,39 @@ class ResourceCompletionContributorTest {
         .trimIndent()
 
     fixture.addFileToProject("res/values/colors.xml", contents)
+
+    // Add some private resources
+    addAarDependency(fixture, module, "aarLib", "com.example.aarLib") { resDir ->
+      resDir.parentFile
+        .resolve(SdkConstants.FN_RESOURCE_TEXT)
+        .writeText(
+          """
+          int color publicColor 0x7f010001
+          int color privateColor 0x7f010002
+          """
+            .trimIndent()
+        )
+      resDir.parentFile
+        .resolve(SdkConstants.FN_PUBLIC_TXT)
+        .writeText(
+          """
+          color publicColor
+          """
+            .trimIndent()
+        )
+      resDir
+        .resolve("values/colors.xml")
+        .writeText(
+          // language=XML
+          """
+          <resources>
+            <color name="publicColor">#008577</color>
+            <color name="privateColor">#DEADBE</color>
+          </resources>
+          """
+            .trimIndent()
+        )
+    }
     projectRule.projectRule.waitForResourceRepositoryUpdates()
   }
 
@@ -233,6 +269,145 @@ class ResourceCompletionContributorTest {
         assertThat(icon?.sampleMiddlePoint()).isEqualTo(expectedColor.rgb)
       }
     }
+  }
+
+  @Test
+  fun privateResourcesFiltered_java() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.java",
+          """
+          package com.example;
+          class Foo {
+            public void bar() {
+              int color = R.color.col
+            }
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor")
+  }
+
+  @Test
+  fun privateResourcesFiltered_withPackage_java() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.java",
+          """
+          package com.example;
+          class Foo {
+            public void bar() {
+              int color = com.example.R.color.col
+            }
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor")
+  }
+
+  @Test
+  fun privateResourcesNotFiltered_java() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.java",
+          """
+          package com.example;
+          class Foo {
+            public void bar() {
+              int color = com.example.aarLib.R.color.col
+            }
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString))
+      .containsExactly("publicColor", "privateColor")
+  }
+
+  @Test
+  fun privateResourcesFiltered_kotlin() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          """
+          package com.example
+          fun bar() {
+            val color = R.color.col
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor")
+  }
+
+  @Test
+  fun privateResourcesFiltered_withPackage_kotlin() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          """
+          package com.example
+          fun bar() {
+            val color = com.example.R.color.col
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor")
+  }
+
+  @Test
+  fun privateResourcesNotFiltered_kotlin() {
+    val file =
+      fixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          """
+          package com.example
+          fun bar() {
+            val color = com.example.aarLib.R.color.col
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+
+    fixture.openFileInEditor(file)
+    fixture.moveCaret("R.color.col|")
+    val lookupElements = fixture.completeBasic().toList()
+    assertThat(lookupElements.map(LookupElement::getLookupString))
+      .containsExactly("publicColor", "privateColor")
   }
 
   private fun Array<LookupElement>.toExpectedColors(): List<Int> = map { elt ->
