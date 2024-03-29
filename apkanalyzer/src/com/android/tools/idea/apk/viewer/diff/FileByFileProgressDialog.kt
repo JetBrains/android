@@ -31,7 +31,7 @@ import javax.swing.JProgressBar
  * @param onCancel A cancel [Runnable] to execute if the `Cancel` is clicked. We use a Runnable
  *   rather than a Kotlin `() -> Unit` lambda because we need to be callable from Java.
  */
-internal class FileByFileProgressDialog(onCancel: Runnable) {
+internal class FileByFileProgressDialog {
   private val status = JLabel("Initializing...")
   private val progressBar = JProgressBar().apply { isIndeterminate = true }
 
@@ -47,14 +47,16 @@ internal class FileByFileProgressDialog(onCancel: Runnable) {
       setTitle("Analyzing Diffs")
       setCenterPanel(panel)
       addCancelAction()
+    }
+
+  fun showDialog(onCancel: Runnable) {
+    with(dialogBuilder) {
       setCancelOperation {
         onCancel.run()
         dialogWrapper.close(CANCEL_EXIT_CODE)
       }
+      show()
     }
-
-  fun showDialog() {
-    dialogBuilder.show()
   }
 
   fun closeDialog() {
