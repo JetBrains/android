@@ -59,6 +59,10 @@ class BuildAndRunTest {
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
+
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
+
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
 
@@ -66,9 +70,7 @@ class BuildAndRunTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.minapp",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") {
-            waitForLog(".*Hello Minimal World!.*", 30.seconds);
-          }
+          emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
         }
       }
     }
