@@ -18,7 +18,6 @@ package com.android.tools.idea.studiobot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.intellij.lang.Language
 import kotlinx.coroutines.CopyableThrowable
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.io.IOException
@@ -81,10 +80,39 @@ data class GenerationConfig(
 
 /**
  * The common data type returned by all models.
+ *
+ * @param text The text content of the response.
+ * @param citations The list of citations identified for the response content. Inspect each citation's [CitationAction]
+ * to see what the necessary action to take is.
+ * @param metadata Arbitrary metadata attached to the response. Mostly to be used internally.
  */
 class Content(
-  val text: String
+  val text: String,
+  val citations: List<Citation> = emptyList(),
+  val metadata: Map<String, Any> = emptyMap()
 )
+
+/**
+ * A citation identified for a particular response.
+ * @param action The necessary action that must be taken in response to this citation:
+ *  * If it is [CitationAction.BLOCK] the content and url should be blank, and so you can either choose to do nothing with it,
+ *    or indicate to the user that a response was received but was blocked.
+ *  * If it is [CitationAction.CITE], the content will still be present, but the citation url should be shown alongside it when
+ *    presented to the user.
+ * @param url The url source that should be cited if the action is [CitationAction.CITE]
+ */
+data class Citation(
+  val action: CitationAction,
+  val url: String? = null,
+)
+
+/**
+ * See [Citation]
+ */
+enum class CitationAction {
+  CITE,
+  BLOCK
+}
 
 open class StubModel: Model {
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()

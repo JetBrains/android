@@ -24,7 +24,7 @@ import java.util.Base64
 /**
  * A well-formed prompt that can be understood by the models used by Studio Bot,
  * and has been validated to conform to aiexclude rules and context sharing setting
- * in the project. See [buildPrompt] for information on the format and how to construct 
+ * in the project. See [buildPrompt] for information on the format and how to construct
  * a prompt.
  */
 interface Prompt {
@@ -39,7 +39,7 @@ interface Prompt {
     data class CodeChunk(val text: String, val language: Language?, override val filesUsed: Collection<VirtualFile>)
       : Chunk(filesUsed)
 
-    class BlobChunk(data: ByteArray, val mimeType: MimeType, override val filesUsed: Collection<VirtualFile>)
+    data class BlobChunk(private val data: ByteArray, val mimeType: MimeType, override val filesUsed: Collection<VirtualFile>)
       : Chunk(filesUsed) {
         val base64Data: ByteArray = Base64.getEncoder().encode(data)
       }
