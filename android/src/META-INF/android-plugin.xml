@@ -356,12 +356,12 @@
                             implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
                             order="first, before AndroidKotlinPrivateResourceCompletionContributor"/>
     <completion.contributor language="kotlin"
-                            id="ResourceCompletionContributor"
-                            implementationClass="com.android.tools.idea.res.completion.ResourceCompletionContributor"
+                            id="KotlinResourceCompletionContributor"
+                            implementationClass="com.android.tools.idea.res.completion.KotlinResourceCompletionContributor"
                             order="first" />
     <completion.contributor language="JAVA"
-                            id="ResourceCompletionContributor"
-                            implementationClass="com.android.tools.idea.res.completion.ResourceCompletionContributor"
+                            id="JavaResourceCompletionContributor"
+                            implementationClass="com.android.tools.idea.res.completion.JavaResourceCompletionContributor"
                             order="first" />
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"

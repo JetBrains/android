@@ -45,7 +45,8 @@ import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * [CompletionContributor] for Kotlin vs. Java-agnostic transformations and filtering of resources.
+ * [CompletionContributor] base class for Kotlin vs. Java-agnostic transformations and filtering of
+ * resources.
  *
  * Currently, does the following:
  * * Decorates [LookupElement]s for `Drawable` resources with an [Icon] rendered from the
@@ -53,7 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * * Decorates [LookupElement]s for `Color` resources with an [Icon] of the appropriate color, and
  *   with tail text showing the hex code of the color.
  */
-class ResourceCompletionContributor : CompletionContributor() {
+sealed class ResourceCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
     resultSet: CompletionResultSet,
@@ -87,6 +88,12 @@ class ResourceCompletionContributor : CompletionContributor() {
     return completionResult.withLookupElement(decorated)
   }
 }
+
+/** [CompletionContributor] for Java-specific transformations and filtering of resources. */
+class JavaResourceCompletionContributor : ResourceCompletionContributor()
+
+/** [CompletionContributor] for Kotlin-specific transformations and filtering of resources. */
+class KotlinResourceCompletionContributor : ResourceCompletionContributor()
 
 /** Returns a [LookupElementDecorator] for decorating the `Color` [LookupElement]. */
 private fun decorateColor(
