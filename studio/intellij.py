@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 import os
 import re
 import sys
+from dataclasses import dataclass, field
 
 LINUX = "linux"
 WIN = "windows"
@@ -26,31 +27,30 @@ _idea_resources = {
   MAC_ARM: "/Contents/Resources",
 }
 
-# TODO(b/265207847) Use dataclasses to remove boilerplate methods
+@dataclass(frozen=True)
 class IntelliJ:
-
-  def __init__(self, major, minor, platform_jars = [], plugin_jars = {}):
-    self.major = major
-    self.minor = minor
-    self.platform_jars = platform_jars
-    self.plugin_jars = plugin_jars
+  major: str
+  minor: str
+  platform: str = ""
+  platform_jars: set[str] = field(default_factory=lambda: set())
+  plugin_jars: dict[str,set[str]] = field(default_factory=lambda: dict())
 
   def version(self):
     return self.major, self.minor
 
-  def create(platform, path):
+  def create(platform: str, path: str):
     product_info = read_product_info(path + _idea_resources[platform] + "/product-info.json")
     prefix = _read_platform_prefix(product_info)
     major, minor = read_version(path + _idea_home[platform] + "/lib", prefix)
     jars = read_platform_jars(product_info)
     plugin_jars = _read_plugin_jars(path + _idea_home[platform])
-    return IntelliJ(major, minor, jars, plugin_jars)
+    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars)
 
 def read_product_info(path):
   with open(path) as f:
     return json.load(f)
 
-def read_version(lib_dir, prefix):
+def read_version(lib_dir: str, prefix: str) -> (str, str):
   contents = None
   for resources_jar in os.listdir(lib_dir):
     if resources_jar.endswith(".jar"):
