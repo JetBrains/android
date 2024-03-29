@@ -297,6 +297,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
     ShadersDefaultRefactoringProcessor(this),
+    MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

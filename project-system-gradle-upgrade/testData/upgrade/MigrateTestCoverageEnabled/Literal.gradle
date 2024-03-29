@@ -1,0 +1,19 @@
+android {
+  buildTypes {
+    release {
+      testCoverageEnabled false
+    }
+    debug {
+      testCoverageEnabled true
+    }
+    otherF {
+      testCoverageEnabled false
+    }
+    otherT {
+      testCoverageEnabled true
+    }
+    otherMissing {
+
+    }
+  }
+}
