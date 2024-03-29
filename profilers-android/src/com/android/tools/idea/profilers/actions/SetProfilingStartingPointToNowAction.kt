@@ -25,10 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class SetProfilingStartingPointToNowAction : ProfilerTaskActionBase(
-  "Set Profiling Process Starting Point To Now",
-  "Set a profiling process starting point for the task to now",
-) {
+class SetProfilingStartingPointToNowAction : ProfilerTaskActionBase() {
   override fun actionPerformed(e: AnActionEvent) {
     setProfilingProcessStartingPoint(e.project!!, TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
   }

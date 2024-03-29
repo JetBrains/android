@@ -26,10 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class ProfilerSelectDeviceAction : ProfilerTaskActionBase(
-  "Select First Device for Profiler Task",
-  "Select the first device in Task based profiler tool window",
-) {
+class ProfilerSelectDeviceAction : ProfilerTaskActionBase() {
   override fun actionPerformed(e: AnActionEvent) {
     val myTaskHomeModel = getTaskHomeTabModel(e.project!!)
 

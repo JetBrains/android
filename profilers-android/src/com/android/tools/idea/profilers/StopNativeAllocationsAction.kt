@@ -15,37 +15,15 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-class StopNativeAllocationsAction : DumbAwareAction(
-  "Stop Native Allocations",
-  "Stop a native allocations in the current profiling session",
-  null
-) {
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    val project = e.project
-    val profilers = project?.let { AndroidProfilerToolWindowFactory.getProfilerToolWindow(it)?.profilers }
-    e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() &&
-      project != null &&
-      profilers != null &&
-      profilers.sessionsManager.isSessionAlive == true &&
-      profilers.stage is MainMemoryProfilerStage &&
-      (profilers.stage as MainMemoryProfilerStage).recordingOptionsModel.canStop()
-  }
-
+class StopNativeAllocationsAction : AnAction(){
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
     (profilers.stage as MainMemoryProfilerStage).stopMemoryRecording()
   }
-
 }

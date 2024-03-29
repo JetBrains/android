@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.profilers.actions
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
 /**
  * These profiler task actions are to be performed in a sequential format:
@@ -28,10 +24,7 @@ import com.intellij.openapi.project.DumbAwareAction
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class StopProfilerTaskAction : ProfilerTaskActionBase(
-  "Stop Profiler Task",
-  "Stop a task in the current profiling session"
-) {
+class StopProfilerTaskAction : ProfilerTaskActionBase() {
   /**
    * This action is purely for testing purposes, the action stops the current profiling task, and is only limited to stopping
    * profiling tasks: System Trace, Callstack sample, Native Allocations, Java/Kotlin trace.

@@ -25,11 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class SelectCallstackSampleTaskAction : ProfilerTaskActionBase(
-  "Select Callstack Sample Task",
-  "Select a callstack sample task in the current profiling session"
-) {
-
+class SelectCallstackSampleTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.CALLSTACK_SAMPLE)

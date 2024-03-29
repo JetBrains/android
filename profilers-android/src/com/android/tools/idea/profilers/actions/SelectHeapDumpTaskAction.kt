@@ -25,11 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class SelectHeapDumpTaskAction : ProfilerTaskActionBase(
-  "Select Heap Dump Task",
-  "Select a heap dump task in the current profiling session",
-) {
-
+class SelectHeapDumpTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.HEAP_DUMP)

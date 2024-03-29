@@ -25,11 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class SelectNativeAllocationsTaskAction : ProfilerTaskActionBase(
-  "Select Native Allocations Task",
-  "Select a native allocations task in the current profiling session"
-) {
-
+class SelectNativeAllocationsTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.NATIVE_ALLOCATIONS)

@@ -25,11 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class SelectSystemTraceTaskAction : ProfilerTaskActionBase(
-  "Select System Trace Task",
-  "Select a system trace task in the current profiling session",
-) {
-
+class SelectSystemTraceTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.SYSTEM_TRACE)

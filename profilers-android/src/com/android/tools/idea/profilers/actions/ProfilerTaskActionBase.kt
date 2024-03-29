@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.profilers.actions
 
-import com.android.annotations.Nullable
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 
 /**
@@ -31,21 +27,7 @@ import com.intellij.openapi.project.Project
  *
  * All Profiler task actions should extend this class.
  */
-abstract class ProfilerTaskActionBase(@Nullable text:String, @Nullable description: String) :
-  DumbAwareAction (
-    text,
-    description,
-    null)
-{
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() &&
-      StudioFlags.PROFILER_TASK_BASED_UX.get() &&
-      e.project != null
-  }
+abstract class ProfilerTaskActionBase : AnAction() {
 
   protected fun getStudioProfilers(project: Project) =
     AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers

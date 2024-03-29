@@ -24,11 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class StartProfilerTaskAction : ProfilerTaskActionBase(
-  "Start Profiler Task",
-  "Start a task in the current profiling session"
-) {
-
+class StartProfilerTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     getTaskHomeTabModel(e.project!!).onEnterTaskButtonClick()

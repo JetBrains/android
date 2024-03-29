@@ -19,26 +19,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
-import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-class StartSystemTraceAction : DumbAwareAction(
-  "Start System Trace",
-  "Start a system trace in the current profiling session",
-  null
-) {
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    val project = e.project
-    e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() &&
-      project != null &&
-      AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
-  }
-
+class StartSystemTraceAction : AnAction() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!

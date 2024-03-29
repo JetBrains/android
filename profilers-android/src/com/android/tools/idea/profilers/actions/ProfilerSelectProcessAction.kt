@@ -26,10 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
  * StartProfilerTaskAction -> StopProfilerTaskAction
  */
-class ProfilerSelectProcessAction : ProfilerTaskActionBase(
-  "Select Process for Profiler Task",
-  "Select a process in Task based profiler tool window",
-) {
+class ProfilerSelectProcessAction : ProfilerTaskActionBase() {
   override fun actionPerformed(e: AnActionEvent) {
     val myTaskHomeModel = getTaskHomeTabModel(e.project!!)
 

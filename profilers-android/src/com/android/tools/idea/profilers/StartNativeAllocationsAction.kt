@@ -15,29 +15,11 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-class StartNativeAllocationsAction : DumbAwareAction(
-  "Start Native Allocations",
-  "Start a native allocations in the current profiling session",
-  null
-) {
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    val project = e.project
-    e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() &&
-      project != null &&
-      AndroidProfilerToolWindowFactory
-        .getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
-  }
-
+class StartNativeAllocationsAction : AnAction() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
