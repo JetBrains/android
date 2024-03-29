@@ -874,31 +874,45 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.TASK_FAILED).setTaskFailedMetadata(taskMetadataBuilder.build()).track();
   }
 
-  private TaskFailedMetadata.TaskProcessingFailedMetadata buildStatsTaskProcessingFailedMetadata(TaskProcessingFailedMetadata metadata) {
-    return TaskFailedMetadata.TaskProcessingFailedMetadata.newBuilder()
-      .setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata())).build();
+  TaskFailedMetadata.TaskProcessingFailedMetadata buildStatsTaskProcessingFailedMetadata(TaskProcessingFailedMetadata metadata) {
+    TaskFailedMetadata.TaskProcessingFailedMetadata.Builder result = TaskFailedMetadata.TaskProcessingFailedMetadata.newBuilder();
+    if (metadata.getCpuCaptureMetadata() != null) {
+      result.setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata()));
+    }
+    return result.build();
   }
 
-  private TaskFailedMetadata.TaskStopFailedMetadata buildStatsTaskStopFailedMetadata(TaskStopFailedMetadata metadata) {
-    return TaskFailedMetadata.TaskStopFailedMetadata.newBuilder()
-      .setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata()))
-      .setTraceStopStatus(Companion.getTaskFailedTraceStopStatus(metadata.getTraceStopStatus()))
-      .setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()))
-      .build();
+  TaskFailedMetadata.TaskStopFailedMetadata buildStatsTaskStopFailedMetadata(TaskStopFailedMetadata metadata) {
+    TaskFailedMetadata.TaskStopFailedMetadata.Builder result = TaskFailedMetadata.TaskStopFailedMetadata.newBuilder();
+    if (metadata.getCpuCaptureMetadata() != null) {
+      result.setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata()));
+    }
+    else if (metadata.getTraceStopStatus() != null) {
+      result.setTraceStopStatus(Companion.getTaskFailedTraceStopStatus(metadata.getTraceStopStatus()));
+    }
+    else if (metadata.getAllocationTrackStatus() != null) {
+      result.setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()));
+    }
+    return result.build();
   }
 
-  private TaskFailedMetadata.TaskStartFailedMetadata buildStatsTaskStartFailedMetadata(TaskStartFailedMetadata metadata) {
-    return TaskFailedMetadata.TaskStartFailedMetadata.newBuilder()
-      .setTraceStartStatus(Companion.getTaskFailedTraceStartStatus(metadata.getTraceStartStatus()))
-      .setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()))
-      .setHeapDumpStartStatus(Companion.getTaskFailedHeapDumpStatus(metadata.getHeapDumpStatus()))
-      .build();
+  TaskFailedMetadata.TaskStartFailedMetadata buildStatsTaskStartFailedMetadata(TaskStartFailedMetadata metadata) {
+    TaskFailedMetadata.TaskStartFailedMetadata.Builder result = TaskFailedMetadata.TaskStartFailedMetadata.newBuilder();
+    if (metadata.getTraceStartStatus() != null) {
+      result.setTraceStartStatus(Companion.getTaskFailedTraceStartStatus(metadata.getTraceStartStatus()));
+    }
+    else if (metadata.getAllocationTrackStatus() != null) {
+      result.setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()));
+    }
+    else if (metadata.getHeapDumpStatus() != null) {
+      result.setHeapDumpStartStatus(Companion.getTaskFailedHeapDumpStatus(metadata.getHeapDumpStatus()));
+    }
+    return result.build();
   }
 
   private TaskFailedMetadata.Builder getTaskFailedMetadata(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
                                                            FailingPoint failingPoint) {
-    return TaskFailedMetadata.newBuilder()
-      .setTaskData(buildStatsTaskMetadata(taskMetadata))
+    return TaskFailedMetadata.newBuilder().setTaskData(buildStatsTaskMetadata(taskMetadata))
       .setFailingPoint(Objects.requireNonNull(TASK_FAILED_STATE_MAP.getOrDefault(failingPoint, FailingPoint.FAILING_POINT_UNSPECIFIED)));
   }
 

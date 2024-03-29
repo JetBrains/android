@@ -221,11 +221,8 @@ public class CpuCaptureParser {
   }
 
   // Added this method in this class (outside TraceResultHandler) to also be accessible in CpuProfilerStage
-  public static com.google.wireless.android.sdk.stats.CpuCaptureMetadata getCpuCaptureMetadata(CpuCaptureMetadata metadata) {
-    if (metadata == null) {
-      return  null;
-    }
-
+  @NotNull
+  public static com.google.wireless.android.sdk.stats.CpuCaptureMetadata getCpuCaptureMetadata(@NotNull CpuCaptureMetadata metadata) {
     com.google.wireless.android.sdk.stats.CpuCaptureMetadata.Builder result =
       com.google.wireless.android.sdk.stats.CpuCaptureMetadata.newBuilder()
         .setCaptureStatus(metadata.getStatus() != null ? valueOf(metadata.getStatus().name()): UNKNOWN_STATUS)
@@ -241,9 +238,7 @@ public class CpuCaptureParser {
       result.setCpuProfilerEntryPoint(
         com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CpuProfilerEntryPoint.valueOf(metadata.getCpuProfilerEntryPoint().name()));
     }
-
-    com.google.wireless.android.sdk.stats.CpuCaptureMetadata cpuCaptureMetadata = result.build();
-    return cpuCaptureMetadata;
+    return result.build();
   }
 
   /**
