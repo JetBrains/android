@@ -365,7 +365,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       return;
     }
 
-    Path systemImageLocation = model.systemImage().getValue().getSystemImage().getLocation();
+    SystemImageDescription sysImgDesc = model.systemImage().getValueOrNull();
+    if (sysImgDesc == null) {
+      return;
+    }
+    Path systemImageLocation = sysImgDesc.getSystemImage().getLocation();
     PathFileWrapper buildPropFile = new PathFileWrapper(systemImageLocation.resolve(FN_BUILD_PROP));
     if (!buildPropFile.exists()) {
       return;
@@ -781,6 +785,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     return mySystemImageName == null ? null : mySystemImageName.getIcon();
   }
 
+  @VisibleForTesting
+  @NotNull
+  Component getAdvancedOptionsButton() {
+    return myShowAdvancedSettingsButton;
+  }
+
   @NotNull
   @VisibleForTesting
   String getSystemImageDetailsText() {
@@ -1033,6 +1043,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (StudioFlags.RISC_V.get()) {
       myBindings.bindTwoWay(new SelectedItemProperty<>(myPreferredAbi), getModel().preferredAbi());
     }
+    myBindings.bind(new EnabledProperty(myShowAdvancedSettingsButton), getModel().systemImage().isPresent());
   }
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
@@ -1316,12 +1327,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     String result = Joiner.on(' ')
       .join(getModel().device().getValue().getDefaultHardware().getScreen().getDiagonalLength(), dimensionString, densityString);
     myDeviceDetails.setText(result);
-  }
-
-  private String getSelectedApiString() {
-    assert getModel().systemImage().get().isPresent();
-    AndroidVersion version = getModel().systemImage().getValue().getVersion();
-    return version.getApiString();
   }
 
   private void registerAdvancedOptionsVisibility() {

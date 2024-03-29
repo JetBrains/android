@@ -22,6 +22,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.emulator.snapshot.SnapshotOuterClass;
@@ -42,6 +43,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.avdmanager.skincombobox.Skin;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel;
@@ -99,6 +101,7 @@ public final class ConfigureAvdOptionsStepTest {
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
   private AvdInfo myExtensionsAvdInfo;
+  private AvdInfo myNoSystemImageAvdInfo;
 
   @Before
   public void setUp() {
@@ -196,6 +199,7 @@ public final class ConfigureAvdOptionsStepTest {
     myPreviewAvdInfo = new AvdInfo("name", ini, folder, NPreviewImage, myPropertiesMap);
     myZuluAvdInfo = new AvdInfo("name", ini, folder, ZuluImage, myPropertiesMap);
     myExtensionsAvdInfo = new AvdInfo("name", ini, folder, extensionsImage, myPropertiesMap);
+    myNoSystemImageAvdInfo = new AvdInfo("No Sysimg", ini, folder, null, myPropertiesMap, AvdInfo.AvdStatus.ERROR_IMAGE_MISSING);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -392,6 +396,31 @@ public final class ConfigureAvdOptionsStepTest {
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     assertEquals("Android 12L x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
+  }
+
+
+  @Test
+  public void nullSystemImage() {
+    AvdOptionsModel optionsModel = new AvdOptionsModel(myNoSystemImageAvdInfo);
+
+    var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
+    optionsModel.device().setNullableValue(myFoldable);
+    Disposer.register(myRule.getTestRootDisposable(), new ModelWizard.Builder(optionsStep).build());
+    Disposer.register(myRule.getTestRootDisposable(), optionsStep);
+
+    optionsStep.updateSystemImageData();
+    Icon icon = optionsStep.getSystemImageIcon();
+    assertNull(icon);
+
+    assertThat(optionsStep.canGoForward().get()).isFalse();
+    assertThat(optionsStep.getAdvancedOptionsButton().isEnabled()).isFalse();
+    optionsModel.systemImage().setValue(new SystemImageDescription(mySnapshotSystemImage));
+    optionsStep.updateSystemImageData();
+
+    icon = optionsStep.getSystemImageIcon();
+    assertNotNull(icon);
+    assertThat(optionsStep.getAdvancedOptionsButton().isEnabled()).isTrue();
+    assertThat(optionsStep.canGoForward().get()).isTrue();
   }
 
   @Test
