@@ -109,7 +109,7 @@ class AppInsightsIssuesTableView(
                   clear()
                   appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
                   appendSecondaryText(
-                    "You don't have any issues yet. Keep up the good work!",
+                    "It can take 24-48 hours for crashes to appear",
                     EMPTY_STATE_TEXT_FORMAT,
                     null,
                   )
