@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
 import com.intellij.icons.AllIcons
+import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.NamedColorUtil
@@ -111,7 +112,7 @@ fun getFatalityIcon(
     }
   return if (icon == null) {
     null
-  } else if (selected) {
+  } else if (selected && !NewUI.isEnabled()) {
     ColoredIconGenerator.generateColoredIcon(icon, foreground)
   } else {
     icon
