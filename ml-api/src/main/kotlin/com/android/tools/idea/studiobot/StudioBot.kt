@@ -98,15 +98,22 @@ interface StudioBot {
 }
 
 /**
- * Currently, only text-to-text models are supported.
- * When multimodal models are added, this enum will be expanded
- * to cover different input and output types.
+ * The type of the model to use. Currently, only text to text models are available
+ * for production use.
  */
 enum class ModelType {
   // Model used in Studio Bot chat. A chat model is guaranteed to be available.
   CHAT,
 
-  // Experimental model types, not guaranteed to be available and not guaranteed
-  // to be production-ready. Consult with the Studio Bot team before using these.
-  VISION
+  // Experimental model types: these require some additional set up to use.
+  // Consult with the Studio Bot team before using these.
+  // Currently, these models cannot be served in production and are for experimental
+  // purposes only.
+
+  // Gemini 1.0 Pro Vision model via the Gemini API. This requires an API key to use.
+  // It does not support multi-turn conversations or a system message in the prompt.
+  EXPERIMENTAL_VISION,
+
+  // Gemini 1.5 Pro Long Context model via the Gemini API. This requires an API key to use.
+  EXPERIMENTAL_LONG_CONTEXT,
 }
