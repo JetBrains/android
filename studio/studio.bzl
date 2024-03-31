@@ -806,6 +806,94 @@ def _android_studio_os(ctx, platform, out):
 
     attrs = _get_external_attributes(all_files)
     _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
+    return all_files
+
+experimental_runner_template = """\
+#!/usr/bin/env python3
+
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+runfiles={{
+    {runfiles}
+}}
+
+config_dir = tempfile.mkdtemp(prefix = "android-studio-")
+args = sys.argv[1:]
+env = os.environ
+
+if len(args) > 0:
+    m = re.search("--wrapper_script_flag=--debug=(\\d+)", args[0])
+    if args[0] == "--debug" or m:
+        port = m.group(1) if m else "5005"
+        options = os.path.join(config_dir, ".debug.vmptions")
+        with open(options, "w") as f:
+            f.write("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:%s\\n" % port)
+        env["STUDIO_VM_OPTIONS"] = options
+        args = args[1:]
+
+config_dirs = {{
+    "idea.config.path": ".config",
+    "idea.plugins.path": ".plugins",
+    "idea.system.path": ".system",
+    "idea.log.path": ".log",
+}}
+properties = os.path.join(config_dir, ".properties")
+with open(properties, "w") as f:
+    for p, v in config_dirs.items():
+        d = os.path.join(config_dir, v)
+        os.mkdir(d)
+        f.write("%s=%s\\n" % (p, d))
+env["STUDIO_PROPERTIES"] = properties
+
+rule_dir = os.path.dirname(os.path.realpath(__file__))
+ide_dir = os.path.join(rule_dir, "{name}")
+for root, _, files in os.walk(os.path.join(ide_dir, "android-studio")):
+    for file in files:
+        absolute_path = os.path.join(root, file)
+        relative_path = os.path.relpath(absolute_path, ide_dir)
+        if relative_path not in runfiles:
+            print("Removing obsolete file: " + relative_path)
+            os.remove(absolute_path)
+
+sys.exit(subprocess.call([os.path.join(ide_dir, "android-studio/bin/studio.sh")] + args, env=env))
+"""
+
+def _experimental_runner(ctx, name, target_to_file, out):
+    files = []
+    expected = []
+    for target, src in target_to_file.items():
+        dst = ctx.actions.declare_file(name + "/" + target)
+        files.append(dst)
+        expected.append(target)
+        ctx.actions.run_shell(
+            inputs = [src],
+            outputs = [dst],
+            command = "cp -f \"$1\" \"$2\"",
+            arguments = [src.path, dst.path],
+            mnemonic = "CopyFile",
+            progress_message = "Copying files",
+            use_default_shell_env = True,
+        )
+
+    file_list = ctx.actions.declare_file(name + "/files.lst")
+    ctx.actions.write(file_list, "\n".join(expected))
+    files.append(file_list)
+
+    # Creating runfiles would work, but we have files with spaces, and to avoid having all the needed
+    # files as ouputs of the list, we set them as sources of the final script.
+    ctx.actions.run_shell(
+        inputs = [ctx.file._studio_launcher] + files,
+        outputs = [out],
+        command = "cp -f \"$1\" \"$2\"",
+        arguments = [ctx.file._studio_launcher.path, out.path],
+        mnemonic = "CopyFile",
+        progress_message = "Copying files",
+        use_default_shell_env = True,
+    )
 
 script_template = """\
     #!/bin/bash
@@ -858,31 +946,45 @@ def _android_studio_impl(ctx):
         MAC_ARM: ctx.outputs.mac_arm,
         WIN: ctx.outputs.win,
     }
+    all_files = {}
     for (platform, output) in outputs.items():
-        _android_studio_os(ctx, platform, output)
+        all_files[platform] = _android_studio_os(ctx, platform, output)
 
     _produce_update_message_html(ctx)
 
     host_platform = platform_by_name[ctx.attr.host_platform_name]
+    if ctx.attr.experimental_runner:
+        script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
+        _experimental_runner(
+            ctx,
+            ctx.attr.name,
+            all_files[host_platform],
+            script,
+        )
+        default_files = depset([script, ctx.outputs.manifest, ctx.outputs.update_message])
+        default_runfiles = None
+    else:
+        script = ctx.actions.declare_file("%s-run" % ctx.label.name)
+        script_content = script_template.format(
+            zip_file = outputs[host_platform].short_path,
+            command = {
+                LINUX: "$tmp_dir/android-studio/bin/studio.sh",
+                MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
+                MAC_ARM: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC_ARM) + "\"",
+                WIN: "$tmp_dir/android-studio/bin/studio64",
+            }[host_platform],
+        )
+        ctx.actions.write(script, script_content, is_executable = True)
+        runfiles = ctx.runfiles(files = [outputs[host_platform]])
 
-    script = ctx.actions.declare_file("%s-run" % ctx.label.name)
-    script_content = script_template.format(
-        zip_file = outputs[host_platform].short_path,
-        command = {
-            LINUX: "$tmp_dir/android-studio/bin/studio.sh",
-            MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
-            MAC_ARM: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC_ARM) + "\"",
-            WIN: "$tmp_dir/android-studio/bin/studio64",
-        }[host_platform],
-    )
-    ctx.actions.write(script, script_content, is_executable = True)
-    runfiles = ctx.runfiles(files = [outputs[host_platform]])
+        default_files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest, ctx.outputs.update_message])
+        default_runfiles = runfiles
 
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
         executable = script,
-        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest, ctx.outputs.update_message]),
-        runfiles = runfiles,
+        files = default_files,
+        runfiles = default_runfiles,
     )
 
 _android_studio = rule(
@@ -890,6 +992,7 @@ _android_studio = rule(
         "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
+        "experimental_runner": attr.bool(default = False),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
@@ -949,6 +1052,10 @@ _android_studio = rule(
             default = Label("//tools/adt/idea/studio/rules:update_resources_jar"),
             cfg = "exec",
             executable = True,
+        ),
+        "_studio_launcher": attr.label(
+            allow_single_file = True,
+            default = Label("//tools/adt/idea/studio:studio.py"),
         ),
     },
     outputs = {

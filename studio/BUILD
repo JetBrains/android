@@ -703,6 +703,7 @@ studio_plugin(
 
 exports_files([
     "codesign/entitlements.xml",
+    "studio.py",
 ])
 
 android_studio(
