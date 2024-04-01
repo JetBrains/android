@@ -1770,11 +1770,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
     new BooleanFlag(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
 
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
-                    "When enabled, inline code completion suggestions will be shown.",
-                    true);
-
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
