@@ -21,8 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.SupportLevel
-import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth
 
 object TaskHandlerTestUtils {
@@ -64,23 +62,6 @@ object TaskHandlerTestUtils {
     else if (exposureLevel == Common.Process.ExposureLevel.PROFILEABLE) {
       Truth.assertThat(profilers.selectedSessionSupportLevel).isEqualTo(SupportLevel.PROFILEABLE)
     }
-  }
-
-  private fun stopSession(sessionsManager: SessionsManager, timer: FakeTimer) {
-    sessionsManager.endCurrentSession()
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-  }
-
-  fun startAndStopSession(exposureLevel: Common.Process.ExposureLevel,
-                          profilers: StudioProfilers,
-                          sessionsManager: SessionsManager,
-                          transportService: FakeTransportService,
-                          timer: FakeTimer,
-                          taskType: Common.ProfilerTaskType) {
-    startSession(exposureLevel, profilers, transportService, timer, taskType)
-    Truth.assertThat(sessionsManager.isSessionAlive)
-    stopSession(sessionsManager, timer)
-    Truth.assertThat(!sessionsManager.isSessionAlive)
   }
 
   fun createDevice(versionCode: Int): Common.Device = Common.Device.newBuilder().setFeatureLevel(versionCode).build()

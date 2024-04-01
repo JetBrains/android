@@ -183,9 +183,6 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
@@ -206,9 +203,6 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
@@ -227,9 +221,6 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskWithNullTaskArgsArtifact() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 

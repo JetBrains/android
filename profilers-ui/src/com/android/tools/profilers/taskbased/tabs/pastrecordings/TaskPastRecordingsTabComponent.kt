@@ -23,13 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
+import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
-import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
-import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 
 @Composable
 fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) {
@@ -39,17 +37,9 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     val recordingListModel = pastRecordingsTabModel.recordingListModel
-
-    HorizontalSplitLayout(
-      minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
-      maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
-      first = {
-        RecordingList(recordingListModel, ideProfilerComponents, it)
-      },
-      second = {
-        TaskGridAndBars(pastRecordingsTabModel, it)
-      }
-    )
+    RecordingList(recordingListModel, Modifier.weight(1f))
+    ToolWindowHorizontalDivider()
+    TaskActionBar(pastRecordingsTabModel, ideProfilerComponents)
   }
 }
 

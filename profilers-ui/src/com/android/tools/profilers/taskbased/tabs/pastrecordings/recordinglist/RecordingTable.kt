@@ -47,6 +47,7 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
@@ -54,7 +55,7 @@ import org.jetbrains.jewel.ui.component.Divider
 fun RecordingListRow(selectedRecording: SessionItem?,
                      onRecordingSelection: (SessionItem?) -> Unit,
                      recording: SessionItem,
-                     supportedTasks: String) {
+                     supportedTask: ProfilerTaskType) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -77,7 +78,7 @@ fun RecordingListRow(selectedRecording: SessionItem?,
     leftAlignedColumnText(recording.name, rowScope = this)
     rightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
                            colWidth = RECORDING_TIME_COL_WIDTH_DP)
-    rightAlignedColumnText(text = supportedTasks, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
+    rightAlignedColumnText(text = supportedTask.description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
@@ -101,10 +102,10 @@ fun RecordingListHeader() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit,
-                   createStringOfSupportedTasks: (SessionItem) -> String) {
+                   getSupportedTask: (SessionItem) -> ProfilerTaskType) {
   val listState = rememberLazyListState()
 
-  Box(modifier = Modifier.fillMaxSize()) {
+  Box {
     LazyColumn(
       state = listState
     ) {
@@ -113,7 +114,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
       items(items = recordingList) { recording ->
-        RecordingListRow(selectedRecording, onRecordingSelection, recording, createStringOfSupportedTasks(recording))
+        RecordingListRow(selectedRecording, onRecordingSelection, recording, getSupportedTask(recording))
       }
     }
 

@@ -174,9 +174,6 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
@@ -193,9 +190,6 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
@@ -210,9 +204,6 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskWithNullTaskArgsArtifact() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 

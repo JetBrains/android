@@ -48,7 +48,8 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   fun onRecordingSelection(newRecording: SessionItem?) {
-    resetTaskSelection()
+    val recordingTaskType = newRecording?.let { getSupportedTask(it) } ?: ProfilerTaskType.UNSPECIFIED
+    setTaskSelection(recordingTaskType)
     _selectedRecording.value = newRecording
     updateTaskSelection()
   }
@@ -73,14 +74,17 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   /**
-   * Constructs and returns a comma separated string of tasks that can be launched from a given recording.
+   * Returns the task or viewer that can be launched from a given recording.
+   *
+   * Note: A "viewer" is essentially the same as a task, but it specifies the context in which the task is used when opening an imported or
+   * past recording. This method assumes a one-to-one mapping between each recording or artifact and each corresponding task or viewer.
    */
-  fun createStringOfSupportedTasks(recording: SessionItem): String {
+  fun getSupportedTask(recording: SessionItem): ProfilerTaskType {
     val supportedTaskTypes = taskHandlers.filter { (taskType, taskHandler) ->
       TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, recording)
     }.keys
 
-    return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }
+    return if (supportedTaskTypes.size == 1) supportedTaskTypes.first() else ProfilerTaskType.UNSPECIFIED
   }
 
   private fun updateTaskSelection() {

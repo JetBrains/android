@@ -148,9 +148,6 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.HEAP_DUMP)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
@@ -167,9 +164,6 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.HEAP_DUMP)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
@@ -184,9 +178,6 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNullTaskArgsArtifact() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.HEAP_DUMP)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 

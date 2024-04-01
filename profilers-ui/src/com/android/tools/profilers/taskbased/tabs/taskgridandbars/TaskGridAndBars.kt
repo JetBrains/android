@@ -18,13 +18,10 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
-import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
@@ -61,19 +58,5 @@ fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
     taskActionBar = {
       TaskActionBar(taskHomeTabModel)
     },
-    modifier = modifier)
-}
-
-@Composable
-fun TaskGridAndBars(pastRecordingsTabModel: PastRecordingsTabModel, modifier: Modifier) {
-  val taskHandlers = pastRecordingsTabModel.taskHandlers
-  val taskGridModel = pastRecordingsTabModel.taskGridModel
-  val recordingListModel = pastRecordingsTabModel.recordingListModel
-  val selectedRecording by recordingListModel.selectedRecording.collectAsState()
-
-  TaskGridAndBarsContainer(
-    taskGrid = { TaskGrid(taskGridModel = taskGridModel, selectedRecording = selectedRecording, taskHandlers = taskHandlers) },
-    topBar = { TopBar() },
-    taskActionBar = { TaskActionBar(pastRecordingsTabModel) },
     modifier = modifier)
 }

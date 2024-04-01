@@ -34,6 +34,7 @@ import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -134,8 +135,8 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(systemTraceArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("System Trace")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
   }
 
   @Test
@@ -147,8 +148,8 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(callstackSampleArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Callstack Sample")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
   }
 
   @Test
@@ -160,8 +161,8 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinMethodArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Method Recording")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
   }
 
   @Test
@@ -170,8 +171,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(heapDumpArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Heap Dump")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.HEAP_DUMP)
   }
 
   @Test
@@ -180,8 +181,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val nativeAllocationsArtifact = SessionArtifactUtils.createHeapProfdSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(nativeAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Native Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.NATIVE_ALLOCATIONS)
   }
 
   @Test
@@ -190,8 +191,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val javaKotlinAllocationsArtifact = SessionArtifactUtils.createAllocationSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
   }
 
   @Test
@@ -200,8 +201,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val legacyJavaKotlinAllocationsArtifact = SessionArtifactUtils.createLegacyAllocationsSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(legacyJavaKotlinAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
   }
 
   @Test
@@ -209,16 +210,16 @@ class RecordingListModelTest {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Live View")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.LIVE_VIEW)
   }
 
   @Test
   fun `recording with invalid artifacts no task available`() {
     val sessionItem = MockitoKt.mock<SessionItem>()
     MockitoKt.whenever(sessionItem.getChildArtifacts()).thenReturn(listOf(MockitoKt.mock <SessionArtifact<Memory.AllocationsInfo>>()))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("No tasks available")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 
   @Test

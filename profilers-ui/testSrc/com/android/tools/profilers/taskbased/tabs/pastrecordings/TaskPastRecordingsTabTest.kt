@@ -17,8 +17,8 @@ package com.android.tools.profilers.taskbased.tabs.pastrecordings
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -43,6 +43,7 @@ import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabMod
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -61,6 +62,9 @@ class TaskPastRecordingsTabTest {
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -143,5 +147,148 @@ class TaskPastRecordingsTabTest {
 
     // Make sure at this point, the open profiler task button is enabled as recording and task selection have been made,
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()
+  }
+
+  @Test
+  fun `test selection of non-exportable recording does not enable the export button click action`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
+      }
+    }
+
+    val recordingListModel = pastRecordingsTabModel.recordingListModel
+
+    // Session with no artifacts (indicative of live task) is a non-exportable recording.
+    val recording = SessionArtifactUtils.createSessionItem(myProfilers, 1L, "Recording 1", listOf())
+    recordingListModel.setRecordingList(listOf(recording))
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Assert export button is disabled as no selection is made.
+    assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
+
+    // Select the recording.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Assert the recording selection was registered.
+    assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(recording)
+
+    // Assert export button is not enabled as a selection of a non-exportable artifact was made.
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
+  }
+
+  @Test
+  fun `test selection of exportable recording enables export button click action`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
+      }
+    }
+
+    val recordingListModel = pastRecordingsTabModel.recordingListModel
+
+    // System trace artifact is exportable.
+    val recording = SessionArtifactUtils.createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)
+    recordingListModel.setRecordingList(listOf(recording))
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Assert export button is disabled as no selection is made.
+    assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
+
+    // Select the recording.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Assert the recording selection was registered.
+    assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(recording)
+
+    // Assert export button is enabled as a selection of an exportable artifact is made.
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsEnabled()
+
+    // Click the recording again to de-select it.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Assert that the de-selection of the recording was registered.
+    assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(null)
+
+    // Assert export button is now disabled as the selection of an exportable artifact was revoked.
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
+  }
+
+  @Test
+  fun `test selection of deletable recording enables delete recording button click action`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
+      }
+    }
+
+    val recordingListModel = pastRecordingsTabModel.recordingListModel
+
+    // Non-null session item is deletable.
+    recordingListModel.setRecordingList(listOf(
+      SessionArtifactUtils.createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Assert delete button is disabled as no selection is made.
+    assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsNotEnabled()
+
+    // Select the recording.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Assert delete button is enabled as a selection of a deletable recording is made.
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled()
+  }
+
+  @Test
+  fun `test deletion of selected recording updates rendered list`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
+      }
+    }
+
+    val recordingListModel = pastRecordingsTabModel.recordingListModel
+
+    // Create a complete live task recording. To invoke the delete session functionality, a real session must be started and finished.
+    SessionArtifactUtils.generateLiveTaskRecording(myManager)
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Select Recording 1.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Invoke delete button is enabled as a selection of a deletable recording is made.
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled().assertHasClickAction()
+    // Because there is a confirmation dialog when invoking the deletion button, we will simulate the user confirming the deletion
+    // by performing the recording deletion explicitly.
+    recordingListModel.doDeleteSelectedRecording()
+
+    // Assert both the data model and the UI reflect the deletion of Recording 1.
+    assertThat(recordingListModel.recordingList.value).hasSize(0)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onNodeWithTag("RecordingListRow").assertIsNotDisplayed()
+
+    // Because the selecting recording was deleted, the selection was revoked and thus the export and delete button should be disabled.
+    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsNotEnabled()
   }
 }

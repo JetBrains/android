@@ -25,12 +25,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.buttons.OpenTaskButton
 import com.android.tools.profilers.taskbased.common.buttons.StartTaskButton
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_SETTINGS_DROPDOWN_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
+import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingActionGroup
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskRecordingTypeDropdown
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskStartingPointDropdown
 
@@ -39,13 +41,20 @@ import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.optio
  * recording and task selection.
  */
 @Composable
-fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel) {
-  val selectedRecording by pastRecordingsTabModel.recordingListModel.selectedRecording.collectAsState()
+fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) {
+  val recordingListModel = pastRecordingsTabModel.recordingListModel
+  val selectedRecording by recordingListModel.selectedRecording.collectAsState()
+  val isRecordingExportable = recordingListModel.isSelectedRecordingExportable()
+  val isRecordingSelected = recordingListModel.isRecordingSelected()
   val selectedTaskType by pastRecordingsTabModel.taskGridModel.selectedTaskType.collectAsState()
 
   Row(
     modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP)
   ) {
+    RecordingActionGroup(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
+                         isRecordingSelected = isRecordingSelected,
+                         doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
+                         profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
     Spacer(modifier = Modifier.weight(1f))
     // The enter task button.
     OpenTaskButton(selectedTaskType = selectedTaskType, selectedRecording = selectedRecording,
@@ -71,15 +80,11 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val selectedDevice by processListModel.selectedDevice.collectAsState()
   val selectedProcess by processListModel.selectedProcess.collectAsState()
 
-  Row(
-    modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
-    verticalAlignment = Alignment.CenterVertically,
-
-  ) {
+  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
     TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
                               isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled)
     if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
-      Spacer(modifier = Modifier.width(TASK_ACTION_BAR_SETTINGS_DROPDOWN_HORIZONTAL_SPACE_DP))
+      Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
       TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
     }
     Spacer(modifier = Modifier.weight(1f))

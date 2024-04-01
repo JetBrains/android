@@ -26,6 +26,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.sessions.SessionsManager
 import perfetto.protos.PerfettoConfig
 
 object SessionArtifactUtils {
@@ -102,6 +103,14 @@ object SessionArtifactUtils {
   }
 
   fun createSessionItem(profilers: StudioProfilers,
+                        sessionId: Long,
+                        sessionName: String,
+                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    return createSessionItem(profilers, session, sessionId, sessionName, childArtifacts)
+  }
+
+  fun createSessionItem(profilers: StudioProfilers,
                         initialSession: Common.Session,
                         sessionId: Long,
                         sessionName: String,
@@ -118,5 +127,19 @@ object SessionArtifactUtils {
                                                                         TraceConfiguration.newBuilder().setPerfettoOptions(
                                                                           PerfettoConfig.TraceConfig.getDefaultInstance()).build())
     return createSessionItem(profilers, session, sessionId, name, listOf(systemTraceArtifact))
+  }
+
+  /**
+   * Generates the session start and stop events in the transport pipeline to simulate a real live task recording.
+   *
+   * Note: A live task recording is simply a completed session (start and stop session events) with no underlying recording artifact.
+   */
+  fun generateLiveTaskRecording(sessionsManager: SessionsManager) {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
+    sessionsManager.beginSession(1, device, process, Common.ProfilerTaskType.LIVE_VIEW, false)
+    sessionsManager.update()
+    sessionsManager.endCurrentSession()
+    sessionsManager.update()
   }
 }
