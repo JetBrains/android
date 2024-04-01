@@ -196,8 +196,6 @@
       <reference ref="android.device.overview.button"/>
       <separator/>
       <reference ref="android.streaming.ui.settings"/>
-      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module. -->
-      <group id="android.device.wear.whs.placeholder"/>
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
@@ -234,5 +232,8 @@
 
     <!-- This action group and the corresponding toolbar are intended for external contributions -->
     <group id="StreamingToolbarSecondary"/>
+
+    <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module. -->
+    <group id="android.device.wear.whs.placeholder"/>
   </actions>
 </idea-plugin>
