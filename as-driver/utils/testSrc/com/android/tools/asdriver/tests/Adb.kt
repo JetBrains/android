@@ -110,6 +110,7 @@ class Adb private constructor(
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
       waitForLog("([0-9a-f]{4})?${emulator.serialNumber}\tdevice", duration)
     }
+    runCommand("shell", "svc", "wifi", "disable")
   }
 
   @Throws(IOException::class)
