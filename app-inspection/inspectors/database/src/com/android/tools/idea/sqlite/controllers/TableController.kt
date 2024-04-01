@@ -234,6 +234,7 @@ class TableController(
           rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
         }
 
+        view.updateIsForcedBanner(result.isForced)
         view.setRowOffset(rowOffset)
         view.updateRows(rowDiffOperations)
         view.setEditable(isEditable())

@@ -77,6 +77,8 @@ interface TableView {
   /** If [state] is false, it prevents the refresh button from ever becoming enabled */
   fun setRefreshButtonState(state: Boolean)
 
+  fun updateIsForcedBanner(show: Boolean)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
 

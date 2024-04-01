@@ -112,7 +112,7 @@ data class SqliteTable(
 )
 
 /** Representation of the Sqlite query result */
-data class SqliteQueryResult(val rows: List<SqliteRow>)
+data class SqliteQueryResult(val rows: List<SqliteRow>, val isForced: Boolean = false)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)

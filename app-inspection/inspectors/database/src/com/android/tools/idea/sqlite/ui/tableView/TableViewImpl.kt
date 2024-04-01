@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -43,6 +44,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Color
@@ -86,10 +88,11 @@ class TableViewImpl : TableView {
 
   private var columns: List<ViewColumn>? = null
 
-  private val rootPanel = JPanel(BorderLayout())
+  private val rootPanel = JPanel(null).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
   override val component: JComponent = rootPanel
 
   private val readOnlyLabel = JLabel("Results are read-only")
+  private val isForcedBanner = IsForcedConnectionBanner()
 
   private val firstRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_START)
   private val lastRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_END)
@@ -135,8 +138,10 @@ class TableViewImpl : TableView {
   init {
     val tableActionsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
-    rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
-    rootPanel.add(centerPanel, BorderLayout.CENTER)
+    isForcedBanner.isVisible = false
+    rootPanel.add(isForcedBanner)
+    rootPanel.add(tableActionsPanel)
+    rootPanel.add(centerPanel)
 
     centerPanel.background = primaryContentBackground
 
@@ -447,6 +452,10 @@ class TableViewImpl : TableView {
     listeners.remove(listener)
   }
 
+  override fun updateIsForcedBanner(show: Boolean) {
+    isForcedBanner.isVisible = show
+  }
+
   private fun setControlButtonsEnabled(enabled: Boolean) {
     liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
     refreshButton.isEnabled = refreshEnabled && enabled
@@ -737,6 +746,19 @@ class TableViewImpl : TableView {
       fun fromSqliteRow(sqliteRow: SqliteRow): MyRow {
         return MyRow(sqliteRow.values.map { it.value }.toMutableList())
       }
+    }
+  }
+
+  private class IsForcedConnectionBanner : EditorNotificationPanel(WARNING_BACKGROUND) {
+    init {
+      text =
+        "Non-native connection. This database has not yet been opened by the app so it may contain an outdated schema."
+      minimumSize = preferredSize
+      border =
+        BorderFactory.createCompoundBorder(
+          JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+          border,
+        )
     }
   }
 }

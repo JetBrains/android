@@ -49,8 +49,9 @@ class LazyLiveSqliteResultSet(
     checkOffsetAndSize(rowOffset, rowBatchSize)
     return sendQueryCommand(sqliteStatement, responseSizeByteLimitHint).transform(taskExecutor) {
       response ->
-      val columnNames = response.query.columnNamesList
-      val rowList = response.query.rowsList
+      val query = response.query
+      val columnNames = query.columnNamesList
+      val rowList = query.rowsList
       val rows =
         rowList.subList(rowOffset, minOf(rowOffset + rowBatchSize, rowList.size)).map {
           val sqliteColumnValues =
@@ -59,7 +60,7 @@ class LazyLiveSqliteResultSet(
             }
           SqliteRow(sqliteColumnValues)
         }
-      SqliteQueryResult(rows)
+      SqliteQueryResult(rows, query.isForcedConnection)
     }
   }
 }

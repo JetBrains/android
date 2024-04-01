@@ -53,16 +53,17 @@ class PagedLiveSqliteResultSet(
         responseSizeByteLimitHint,
       )
       .transform(taskExecutor) { response ->
-        val columnNames = response.query.columnNamesList
+        val query = response.query
+        val columnNames = query.columnNamesList
         val rows =
-          response.query.rowsList.map {
+          query.rowsList.map {
             val sqliteColumnValues =
               it.valuesList.mapIndexed { index, cellValue ->
                 cellValue.toSqliteColumnValue(columnNames[index])
               }
             SqliteRow(sqliteColumnValues)
           }
-        SqliteQueryResult(rows)
+        SqliteQueryResult(rows, query.isForcedConnection)
       }
   }
 }

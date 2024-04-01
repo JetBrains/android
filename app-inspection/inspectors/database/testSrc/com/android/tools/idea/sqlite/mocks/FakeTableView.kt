@@ -28,7 +28,7 @@ open class FakeTableView : TableView {
 
   val listeners = mutableListOf<TableView.Listener>()
 
-  override val component = mock(JComponent::class.java)
+  override val component: JComponent = mock(JComponent::class.java)
 
   override fun resetView() {}
 
@@ -71,4 +71,6 @@ open class FakeTableView : TableView {
   override fun setRefreshButtonState(state: Boolean) {}
 
   override fun showPageSizeValue(maxRowCount: Int) {}
+
+  override fun updateIsForcedBanner(show: Boolean) {}
 }
