@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.IN_PROGRESS
 import com.android.tools.idea.sqlite.cli.SqliteCliArg
 import com.android.tools.idea.sqlite.cli.SqliteCliArgs
-import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
@@ -59,13 +58,12 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
-import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLines
 import com.android.tools.idea.sqlite.utils.unzipTo
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
@@ -76,18 +74,18 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.mock.MockVirtualFile
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
@@ -99,7 +97,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
@@ -126,7 +123,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
@@ -169,11 +165,22 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       )
   }
 
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val analyticsTracker = mock<DatabaseInspectorAnalyticsTracker>()
 
-  // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
-  // initialized on the EDT.
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      disposableRule,
+      ProjectServiceRule(
+        projectRule,
+        DatabaseInspectorAnalyticsTracker::class.java,
+        analyticsTracker,
+      ),
+      EdtRule(),
+    )
 
   /** Keeps connection ids unique */
   private val nextConnectionId: () -> Int = run {
@@ -181,79 +188,61 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     { next++ }
   }
 
-  private lateinit var exportInProgressListener: (Job) -> Unit
-  private lateinit var exportProcessedListener: ExportProcessedListener
+  // TODO(aalbert): Maybe replace with `TemporaryFolder` rule. This would require making some
+  //  changes regarding use of VirtualFile in production code.
+  private val tempDirTestFixture =
+    IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+  private val exportInProgressListener: (Job) -> Unit = mock()
+  private val exportProcessedListener = ExportProcessedListener()
+  private val databaseDownloadTestFixture by lazy {
+    DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath())
+  }
+  private val edtExecutor = EdtExecutorService.getInstance()
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
+  private val databaseRepository by lazy { OpenDatabaseRepository(project, taskExecutor) }
+  private val databaseLockingTestFixture by lazy { DatabaseLockingTestFixture(databaseRepository) }
+  private val sqliteCliClient by lazy {
+    SqliteCliClientImpl(
+      SqliteCliProviderImpl(project).getSqliteCli()!!,
+      taskExecutor.asCoroutineDispatcher(),
+    )
+  }
 
-  private lateinit var tempDirTestFixture: TempDirTestFixture
-  private lateinit var databaseDownloadTestFixture: DatabaseDownloadTestFixture
-  private lateinit var databaseLockingTestFixture: DatabaseLockingTestFixture
+  private val view = FakeExportToFileDialogView()
+  private val controller by lazy {
+    ExportToFileController(
+      project,
+      AndroidCoroutineScope(project, edtExecutor.asCoroutineDispatcher()),
+      view,
+      databaseRepository,
+      databaseDownloadTestFixture::downloadDatabase,
+      { databaseDownloadTestFixture.deleteDatabase(it) },
+      { databaseLockingTestFixture.acquireDatabaseLock(it) },
+      { databaseLockingTestFixture.releaseDatabaseLock(it) },
+      taskExecutor,
+      edtExecutor,
+      exportInProgressListener,
+      exportProcessedListener::onExportComplete,
+      exportProcessedListener::onExportError,
+    )
+  }
 
-  private lateinit var edtExecutor: Executor
-  private lateinit var taskExecutor: Executor
+  private val project
+    get() = projectRule.project
 
-  private lateinit var databaseRepository: DatabaseRepository
-  private lateinit var sqliteCliClient: SqliteCliClient
-
-  private lateinit var analyticsTracker: DatabaseInspectorAnalyticsTracker
-  private lateinit var view: FakeExportToFileDialogView
-  private lateinit var controller: ExportToFileController
-
-  private lateinit var project: Project
-  private lateinit var testRootDisposable: Disposable
+  private val disposable
+    get() = disposableRule.disposable
 
   @Before
   fun setUp() {
-    project = projectRule.project
-    testRootDisposable = projectRule.fixture.testRootDisposable
-
-    exportInProgressListener = mock()
-    exportProcessedListener = ExportProcessedListener()
-
-    tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
-    tempDirTestFixture.setUp()
-
-    edtExecutor = EdtExecutorService.getInstance()
-    taskExecutor = PooledThreadExecutor.INSTANCE
-
-    databaseDownloadTestFixture = DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath())
-    databaseDownloadTestFixture.setUp()
-
     initAdbFileProvider(project)
-    sqliteCliClient =
-      SqliteCliClientImpl(
-        SqliteCliProviderImpl(project).getSqliteCli()!!,
-        taskExecutor.asCoroutineDispatcher(),
-      )
-    OpenDatabaseRepository(project, taskExecutor).let {
-      databaseRepository = it
-      databaseLockingTestFixture = DatabaseLockingTestFixture(it)
-      databaseLockingTestFixture.setUp()
-    }
-
-    analyticsTracker = mock()
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
-
-    view = FakeExportToFileDialogView()
-    controller =
-      ExportToFileController(
-        project,
-        AndroidCoroutineScope(project, edtExecutor.asCoroutineDispatcher()),
-        view,
-        databaseRepository,
-        databaseDownloadTestFixture::downloadDatabase,
-        { databaseDownloadTestFixture.deleteDatabase(it) },
-        { databaseLockingTestFixture.acquireDatabaseLock(it) },
-        { databaseLockingTestFixture.releaseDatabaseLock(it) },
-        taskExecutor,
-        edtExecutor,
-        exportInProgressListener,
-        exportProcessedListener::onExportComplete,
-        exportProcessedListener::onExportError,
-      )
+    databaseDownloadTestFixture.setUp()
+    databaseLockingTestFixture.setUp()
+    tempDirTestFixture.setUp()
     controller.setUp()
-    controller.responseSizeByteLimitHint =
-      16 // 16 bytes - simulates scenarios where a query returns more rows than we allow in a batch
-    Disposer.register(testRootDisposable, controller)
+    // 16 bytes - simulates scenarios where a query returns more rows than we allow in a batch
+    controller.responseSizeByteLimitHint = 16
+    Disposer.register(disposable, controller)
   }
 
   @After
@@ -817,11 +806,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   private fun createFileDatabaseConnection(databaseFile: VirtualFile): DatabaseConnection =
     runDispatching {
-      getJdbcDatabaseConnection(
-          testRootDisposable,
-          databaseFile,
-          FutureCallbackExecutor.wrap(taskExecutor),
-        )
+      getJdbcDatabaseConnection(disposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor))
         .await()
     }
 

@@ -19,11 +19,31 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.utils.toSqliteValues
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import java.util.LinkedList
 import junit.framework.TestCase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class UtilsTest : LightPlatformTestCase() {
+@RunWith(JUnit4::class)
+@RunsInEdt
+class UtilsTest {
+  private val projectRule = ProjectRule()
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
+
+  private val project
+    get() = projectRule.project
+
+  @Test
   fun testReplaceParametersNothingIsReplaced() {
     // Prepare
     val psiFile =
@@ -37,6 +57,7 @@ class UtilsTest : LightPlatformTestCase() {
     assertEmpty(parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplaceParametersNamedParameter1() {
     // Prepare
     val psiFile =
@@ -50,6 +71,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter(":anId")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplaceParametersNamedParameters1() {
     // Prepare
     val psiFile =
@@ -69,6 +91,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplaceParametersNamedParameter2() {
     // Prepare
     val psiFile =
@@ -82,6 +105,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("@anId")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplaceParametersNamedParameters2() {
     // Prepare
     val psiFile =
@@ -101,6 +125,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplaceParametersNamedParameter3() {
     // Prepare
     val psiFile =
@@ -114,6 +139,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("\$anId")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplaceParametersNamedParameters3() {
     // Prepare
     val psiFile =
@@ -133,6 +159,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplaceParametersMixedNamedParameters() {
     // Prepare
     val psiFile =
@@ -155,6 +182,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplacePositionalParameter1() {
     // Prepare
     val psiFile =
@@ -168,6 +196,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplacePositionalParameters1() {
     // Prepare
     val psiFile =
@@ -187,6 +216,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplacePositionalParameter2() {
     // Prepare
     val psiFile =
@@ -200,6 +230,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplacePositionalParameters2() {
     // Prepare
     val psiFile =
@@ -219,6 +250,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testReplacePositionalParameterInComparison() {
     // Prepare
     val psiFile =
@@ -232,6 +264,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testReplacePositionalParameterInExpressionAndComparison() {
     // Prepare
     val psiFile =
@@ -245,6 +278,7 @@ class UtilsTest : LightPlatformTestCase() {
     TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
+  @Test
   fun testGetSqliteStatementType() {
     assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(project, "SELECT * FROM tab"))
     assertEquals(
@@ -351,6 +385,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testGetWrappableStatement() {
     assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1"))
     assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1;"))
@@ -367,6 +402,7 @@ class UtilsTest : LightPlatformTestCase() {
     )
   }
 
+  @Test
   fun testHasParsingError() {
     assertTrue(hasParsingError(project, "random string"))
     assertTrue(hasParsingError(project, "SELECT"))
@@ -388,6 +424,7 @@ class UtilsTest : LightPlatformTestCase() {
     assertFalse(hasParsingError(project, "EXPLAIN SELECT * FROM t1"))
   }
 
+  @Test
   fun testInlineParameters() {
     assertEquals(
       "SELECT * FROM t1",
