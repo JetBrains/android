@@ -200,9 +200,9 @@ private fun StorageGroup(
     )
   }
 
-  Row {
-    Text("Expanded storage")
+  Row { Text("Expanded storage") }
 
+  Row {
     val existingImageFieldState = storageGroupState.existingImageFieldState
     val fileSystem = LocalFileSystem.current
 
