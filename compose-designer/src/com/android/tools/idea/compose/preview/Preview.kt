@@ -765,7 +765,11 @@ class ComposePreviewRepresentation(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
+      val isZoomToFitInMode = !surface.zoomController.canZoomToFit()
       surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
+      if (isZoomToFitInMode) {
+        surface.zoomController.zoomToFit()
+      }
     }
   }
 
