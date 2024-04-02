@@ -1270,12 +1270,13 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // name
+  // name | TEMP
   public static boolean database_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "database_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, DATABASE_NAME, "<database name>");
     result = name(builder, level + 1);
+    if (!result) result = consumeToken(builder, TEMP);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
