@@ -85,7 +85,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
       "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
       "declarativeDependencies" to DependenciesDslElement.DEPENDENCIES,
-      "ext" to ExtDslElement.EXT,
       "java" to JavaDslElement.JAVA,
       "repositories" to RepositoriesDslElement.REPOSITORIES,
       "subprojects" to SubProjectsDslElement.SUBPROJECTS,

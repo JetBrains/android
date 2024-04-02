@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.build;
 
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.SOMETHING;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -39,12 +40,23 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
     {"ext", ExtDslElement.EXT}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"dependencies", DependenciesDslElement.DEPENDENCIES},
+    {"repositories", RepositoriesDslElement.REPOSITORIES},
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+
   @Override
   @NotNull
-  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
-    return CHILD_PROPERTIES_ELEMENTS_MAP;
+    if (kind == SOMETHING) {
+      return SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+    else {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
   }
 
   public BuildScriptDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
