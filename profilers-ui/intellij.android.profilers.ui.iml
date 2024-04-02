@@ -65,5 +65,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="perfetto-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork-compose" />
   </component>
 </module>

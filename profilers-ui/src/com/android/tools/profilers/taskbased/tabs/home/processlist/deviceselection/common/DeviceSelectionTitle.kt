@@ -30,23 +30,26 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.getDeviceIconPainter
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
+import icons.StudioIcons
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import javax.swing.Icon
 
 @Composable
-fun DeviceSelectionTitle(selectedDevice: ProfilerDeviceSelection?, selectedDevicesCount: Int) {
+fun DeviceSelectionContent(selectedDevice: ProfilerDeviceSelection?, selectedDevicesCount: Int) {
   Box(modifier = Modifier.height(TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP).padding(
     vertical = TaskBasedUxDimensions.DEVICE_SELECTION_VERTICAL_PADDING_DP,
     horizontal = TaskBasedUxDimensions.DEVICE_SELECTION_HORIZONTAL_PADDING_DP), contentAlignment = Alignment.BottomStart) {
     when (selectedDevicesCount) {
-      0 -> InvalidDeviceSelectionText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
+      0 -> DeviceText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
       1 -> {
-        if (selectedDevice != null) DeviceSelectionText(selectedDevice)
+        if (selectedDevice != null) SingleDeviceSelectionContent(selectedDevice)
         else throw IllegalStateException("If there count of devices selected is one, then the selected device must be non-null.")
       }
-      in 2..Int.MAX_VALUE -> InvalidDeviceSelectionText(
-        "${TaskBasedUxStrings.MULTIPLE_DEVICES_SELECTED_TITLE} ($selectedDevicesCount)")
+      in 2..Int.MAX_VALUE -> MultipleDeviceSelectionContent(selectedDevicesCount)
 
       else -> throw IllegalStateException("Negative toolbar selection count is not possible")
     }
@@ -54,41 +57,77 @@ fun DeviceSelectionTitle(selectedDevice: ProfilerDeviceSelection?, selectedDevic
 }
 
 @Composable
-fun DeviceSelectionText(selectedDevice: ProfilerDeviceSelection) {
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(TaskBasedUxDimensions.DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP),
-    verticalAlignment = Alignment.Bottom
-  ) {
-    // TODO (b/309866927): Add Icon for respective device type here.
-    Text(text = selectedDevice.name, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp), maxLines = 1,
-         overflow = TextOverflow.Ellipsis)
-    val deviceSelectionInfo = if (selectedDevice.isRunning) {
-      // If the 'device' field of a running device still has a default instance of Common.Device, this is indicative that the selected
-      // device is actually running, but the profiler-side device data has not found the running device yet. This brief state of waiting
-      // for the device information to arrive to the profiler will be communicated via a "Loading" subtext next to the selected device name.
-      if (selectedDevice.device == Common.Device.getDefaultInstance()) {
-        TaskBasedUxStrings.LOADING_SELECTED_DEVICE_INFO
-      }
-      else {
-        "Android ${selectedDevice.device.version}, API ${selectedDevice.device.apiLevel}"
-      }
-    }
-    else {
-      TaskBasedUxStrings.SELECTED_DEVICE_OFFLINE
-    }
-    DeviceSelectionInfoText(deviceSelectionInfo)
+fun DeviceText(text: String) {
+  Text(text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp), maxLines = 1,
+       overflow = TextOverflow.Ellipsis)
+}
+
+@Composable
+private fun DeviceIcon(icon: Icon?, description: String) {
+  val iconPainter = getDeviceIconPainter(icon)?.getPainter()?.value
+  iconPainter?.let {
+    Icon(painter = it, contentDescription = description)
   }
 }
 
 @Composable
-fun DeviceSelectionInfoText(text: String) {
+private fun DeviceStatusText(text: String) {
   Text(text = text, fontSize = TextUnit(12f, TextUnitType.Sp), lineHeight = TextUnit(16f, TextUnitType.Sp), color = Color.Gray,
        maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
 @Composable
-fun InvalidDeviceSelectionText(text: String) {
-  Text(text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp), maxLines = 1,
-       overflow = TextOverflow.Ellipsis)
+private fun DeviceSelectionContentContainer(content: @Composable () -> Unit) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(TaskBasedUxDimensions.DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    content()
+  }
+}
+
+@Composable
+private fun DeviceSelectionTextContainer(content: @Composable () -> Unit) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(TaskBasedUxDimensions.DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP),
+    verticalAlignment = Alignment.Bottom
+  ) {
+    content()
+  }
+}
+
+@Composable
+fun SingleDeviceSelectionContent(selectedDevice: ProfilerDeviceSelection) {
+  DeviceSelectionContentContainer {
+    DeviceIcon(selectedDevice.icon, selectedDevice.name)
+    DeviceSelectionTextContainer {
+      DeviceText(selectedDevice.name)
+      val deviceSelectionInfo = if (selectedDevice.isRunning) {
+        // If the 'device' field of a running device still has a default instance of Common.Device, this is indicative that the selected
+        // device is actually running, but the profiler-side device data has not found the running device yet. This brief state of waiting
+        // for the device information to arrive to the profiler will be communicated via a "Loading" subtext next to the selected device name.
+        if (selectedDevice.device == Common.Device.getDefaultInstance()) {
+          TaskBasedUxStrings.LOADING_SELECTED_DEVICE_INFO
+        }
+        else {
+          "Android ${selectedDevice.device.version}, API ${selectedDevice.device.apiLevel}"
+        }
+      }
+      else {
+        TaskBasedUxStrings.SELECTED_DEVICE_OFFLINE
+      }
+      DeviceStatusText(deviceSelectionInfo)
+    }
+  }
+}
+
+@Composable
+private fun MultipleDeviceSelectionContent(numDevices: Int) {
+  DeviceSelectionContentContainer {
+    val selectionText = "${TaskBasedUxStrings.MULTIPLE_DEVICES_SELECTED_TITLE} ($numDevices)"
+    DeviceIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, selectionText)
+    DeviceText(selectionText)
+  }
 }

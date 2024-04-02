@@ -20,9 +20,9 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioProfilers
-import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.swing.Icon
 
 class ProcessListModel(val profilers: StudioProfilers, private val updateProfilingProcessStartingPoint: () -> Unit) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
@@ -206,19 +206,24 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
    *    - Profiler-level selection with device name, marked as not running, and a default Common.Device instance.
    */
   fun onDeviceSelection(deviceSelection: ToolbarDeviceSelection) {
+    val deviceName = deviceSelection.name
+    val featureLevel = deviceSelection.featureLevel
+    val icon = deviceSelection.icon
+
     if (deviceSelection.isRunning) {
       val device = deviceList.value.find { it.serial == deviceSelection.serial }
 
       if (device == null) {
         // Running device, but corresponding device from the pipeline not fetched yet.
-        doDeviceSelection(deviceSelection.name, deviceSelection.featureLevel, true, Common.Device.getDefaultInstance())
+        doDeviceSelection(deviceName, featureLevel, true, Common.Device.getDefaultInstance(), icon)
       } else {
         // Running device with corresponding device from the pipeline found.
-        doDeviceSelection(deviceSelection.name, deviceSelection.featureLevel, true, device)
+        doDeviceSelection(deviceName, featureLevel, true, device, icon)
       }
-    } else {
+    }
+    else {
       // Offline devices have no mapped Common.Device, so use a default instance. Display device name to the user.
-      doDeviceSelection(deviceSelection.name, deviceSelection.featureLevel, false, Common.Device.getDefaultInstance())
+      doDeviceSelection(deviceName, featureLevel, false, Common.Device.getDefaultInstance(), icon)
     }
   }
 
@@ -226,11 +231,15 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
    * Performs selection of Common.Device selected from standalone profiler device dropdown.
    */
   fun onDeviceSelection(newDevice: Common.Device) {
-    doDeviceSelection(newDevice.model, newDevice.featureLevel, true, newDevice)
+    doDeviceSelection(newDevice.model, newDevice.featureLevel, true, newDevice, null)
   }
 
-  private fun doDeviceSelection(name: String, featureLevel: Int, isRunning: Boolean, device: Common.Device) {
-    _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, device)
+  private fun doDeviceSelection(name: String,
+                                featureLevel: Int,
+                                isRunning: Boolean,
+                                device: Common.Device,
+                                icon: Icon?) {
+    _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, device, icon)
     setSelectedDevicesCount(1)
     onDeviceChange()
   }
@@ -286,7 +295,9 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     val featureLevel: Int,
     val isRunning: Boolean,
     // The 'serial' field is only set to a non-empty string if isRunning is true, otherwise it will be an empty string.
-    val serial: String
+    val serial: String,
+    // The icon can be null if there is no icon found. Default is set to null for tests that do not require/test the icon.
+    val icon: Icon? = null
   )
 
   data class ProfilerDeviceSelection(
@@ -297,5 +308,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     // The 'device' field is only set to a non default value when isRunning is true and the corresponding device in the transport pipeline
     // is found.
     val device: Common.Device,
+    // The icon can be null if there is no icon found. Default is set to null for tests that do not require/test the icon.
+    val icon: Icon? = null
   )
 }

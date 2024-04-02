@@ -140,7 +140,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     try {
       val selections = devices.map {
         ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning,
-                               if (it.isRunning) it.launchedDevice.get().serialNumber else "")
+                               if (it.isRunning) it.launchedDevice.get().serialNumber else "", it.icon)
       }
       return selections
     }

@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,4 +125,9 @@ public interface AndroidDevice {
    * Returns whether this device is debuggable or not.
    */
   boolean isDebuggable();
+
+  @Nullable
+  default Icon getIcon() {
+    return null;
+  }
 }

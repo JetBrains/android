@@ -15,9 +15,12 @@
  */
 package com.android.tools.profilers.taskbased.common.constants
 
+import androidx.compose.runtime.Composable
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.intellij.icons.AllIcons
 import icons.StudioIcons
+import icons.StudioIconsCompose
+import org.jetbrains.jewel.ui.painter.ResourcePainterProvider
 import javax.swing.Icon
 
 object TaskBasedUxIcons {
@@ -85,6 +88,30 @@ object TaskBasedUxIcons {
   /** The following are the AllIcons used in the Task-Based UX Profiler. **/
   val IMPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/import.svg", AllIcons::class.java)
   val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java)
+
+  @Composable
+  fun getDeviceIconPainter(swingIcon: Icon?): ResourcePainterProvider? {
+    return when (swingIcon) {
+      // Phone + Tablet
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone()
+      StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE -> StudioIconsCompose.DeviceExplorer.PhysicalDevicePhone()
+      StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE -> StudioIconsCompose.DeviceExplorer.FirebaseDevicePhone()
+      // Watch
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear()
+      StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceWear()
+      StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR -> StudioIconsCompose.DeviceExplorer.FirebaseDeviceWear()
+      // TV
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv()
+      StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceTv()
+      StudioIcons.DeviceExplorer.FIREBASE_DEVICE_TV -> StudioIconsCompose.DeviceExplorer.FirebaseDeviceTv()
+      // Auto
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar()
+      StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceCar()
+      StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.FirebaseDeviceCar()
+      // Icon not found
+      else -> null
+    }
+  }
 
   /** The following are values used for enabled and disabled icon buttons. **/
   const val ENABLED_ICON_ALPHA = 1.0f

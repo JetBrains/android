@@ -23,7 +23,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
-import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.DeviceSelectionTitle
+import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.DeviceSelectionContent
 
 @Composable
 fun DeviceSelection(deviceList: List<Common.Device>,
@@ -35,7 +35,7 @@ fun DeviceSelection(deviceList: List<Common.Device>,
       DeviceSelectionDropdown(deviceList = deviceList, selectedDevice = selectedDevice, onDeviceSelection = onDeviceSelection)
     }
     else {
-      DeviceSelectionTitle(selectedDevice, selectedDevicesCount)
+      DeviceSelectionContent(selectedDevice, selectedDevicesCount)
       ToolWindowHorizontalDivider()
     }
   }

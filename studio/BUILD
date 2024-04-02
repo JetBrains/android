@@ -258,6 +258,7 @@ studio_plugin(
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
+            "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         ],
         "repository.jar": [
             "//tools/base/repository:studio.android.sdktools.repository",

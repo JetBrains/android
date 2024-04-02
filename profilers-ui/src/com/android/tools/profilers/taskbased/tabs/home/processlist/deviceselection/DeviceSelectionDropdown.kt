@@ -29,8 +29,8 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.NO_SUPPORTED_DEVICES_TITLE
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
-import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.DeviceSelectionText
-import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.InvalidDeviceSelectionText
+import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.DeviceText
+import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.SingleDeviceSelectionContent
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
@@ -66,10 +66,10 @@ fun DeviceSelectionDropdown(deviceList: List<Common.Device>,
   ) {
     Box(modifier = Modifier.padding(vertical = DEVICE_SELECTION_VERTICAL_PADDING_DP)) {
       if (selectedDevice == null) {
-        InvalidDeviceSelectionText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
+        DeviceText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
       }
       else {
-        DeviceSelectionText(selectedDevice)
+        SingleDeviceSelectionContent(selectedDevice)
       }
     }
   }

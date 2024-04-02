@@ -45,8 +45,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import javax.swing.Icon
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -115,6 +115,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   override fun getName() = properties.title
 
   override fun isDebuggable() = properties.isDebuggable == true
+
+  override fun getIcon() = properties.icon
 }
 
 class DeviceTemplateAndroidDevice(
