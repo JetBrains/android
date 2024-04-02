@@ -106,7 +106,7 @@ suspend fun requestFastPreviewRefreshAndTrack(
   launcher: UniqueTaskCoroutineLauncher,
   trackedForceRefresh: suspend (String) -> Unit,
 ): CompilationResult = coroutineScope {
-  // We delay the reporting of compilationSucceded until we have the amount of time the refresh
+  // We delay the reporting of compilationSucceeded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
   // refreshFailed should be called.
   val delegateRequestTracker =

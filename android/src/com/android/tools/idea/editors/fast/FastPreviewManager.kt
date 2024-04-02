@@ -465,7 +465,7 @@ class FastPreviewManager private constructor(
   }
 
   /**
-   * Sends a compilation request for the a single [file]. See [FastPreviewManager.compileRequest].
+   * Sends a compilation request for a single [file]. See [FastPreviewManager.compileRequest].
    */
   suspend fun compileRequest(file: PsiFile,
                              module: Module,
