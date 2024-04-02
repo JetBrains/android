@@ -260,6 +260,8 @@ maven_repository(
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_2.0.0-Beta5",
+        "@maven//:org.jetbrains.kotlin.kotlin-native-prebuilt_2.0.0-Beta5",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.21",

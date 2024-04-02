@@ -31,6 +31,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -226,12 +227,33 @@ class GradleTaskFinderWorker private constructor(
         }
       }
 
+      moduleToProcess.isKmpModule -> {
+        when (moduleToProcess.buildMode) {
+          BuildMode.ASSEMBLE -> ModuleTasks(
+            module = moduleToProcess.module,
+            cleanTasks = emptySet(),
+            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
+          )
+          BuildMode.REBUILD -> ModuleTasks(
+            module = moduleToProcess.module,
+            cleanTasks = setOf(GradleBuilds.CLEAN_TASK_NAME),
+            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
+          )
+          BuildMode.COMPILE_JAVA -> ModuleTasks(
+            module = moduleToProcess.module,
+            cleanTasks = emptySet(),
+            tasks = setOf(JavaPlugin.COMPILE_JAVA_TASK_NAME)
+          )
+          else -> null
+        }
+      }
+
       moduleToProcess.isGradleJavaModule -> {
         ModuleTasks(
           module = moduleToProcess.module,
           cleanTasks = when (moduleToProcess.buildMode) {
             BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
-            BuildMode.REBUILD -> setOf("clean")
+            BuildMode.REBUILD -> setOf(GradleBuilds.CLEAN_TASK_NAME)
             BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE -> emptySet()
           },
           tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.testCompileMode)
@@ -287,6 +309,7 @@ private data class ModuleAndMode(
   val expand: Boolean = true
 ) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
+  val isKmpModule: Boolean = module.isMultiPlatformModule
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
 }
 

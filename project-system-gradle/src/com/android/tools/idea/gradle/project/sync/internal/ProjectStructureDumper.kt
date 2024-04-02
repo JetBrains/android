@@ -300,7 +300,7 @@ private fun ProjectDumper.dump(library: Library) {
         .getUrls(type)
         .filterNot { file ->
           // Do not allow sources and java docs coming from cache sources as their content may change.
-          (file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+          (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
           (type == OrderRootType.DOCUMENTATION ||
            type == OrderRootType.SOURCES ||
            type == JavadocOrderRootType.getInstance())
