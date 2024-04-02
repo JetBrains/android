@@ -16,12 +16,17 @@
 package com.android.tools.idea.preview.representation
 
 import com.android.testutils.waitForCondition
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
+import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
@@ -33,22 +38,32 @@ import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.preview.waitUntilRefreshStarts
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.testing.executeAndSave
+import com.android.tools.idea.testing.insertText
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.DumbModeTestUtils
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
+import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -92,9 +107,10 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
 }
 
 class CommonPreviewRepresentationTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
+  private lateinit var psiFile: PsiFile
 
   private val fixture
     get() = projectRule.fixture
@@ -104,6 +120,7 @@ class CommonPreviewRepresentationTest {
 
   @Before
   fun setup() {
+    setUpComposeInProjectFixture(projectRule)
     runBlocking(uiThread) {
       val surfaceBuilder = NlDesignSurface.builder(project, fixture.testRootDisposable)
       previewView =
@@ -117,29 +134,26 @@ class CommonPreviewRepresentationTest {
         myScope,
         RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
       )
+
+    psiFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+        fun MyFun() {
+          println("Hello world!")
+        }
+      """
+          .trimIndent(),
+      )
+    }
   }
 
   @Test
   fun testFullRefreshIsTriggeredOnSuccessfulBuild() =
     runBlocking(workerThread) {
       val previewRepresentation = createPreviewRepresentation()
-
-      // wait for smart mode and status to be needs build
-      DumbModeTestUtils.waitForSmartMode(fixture.project)
-      waitForCondition(10.seconds) {
-        previewRepresentation.getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild
-      }
-
-      // Activate and wait for build listener setup to finish
-      assertFalse(previewRepresentation.hasBuildListenerSetupFinishedForTest())
-      previewRepresentation.onActivate()
-      waitForCondition(10.seconds) { previewRepresentation.hasBuildListenerSetupFinishedForTest() }
-      assertTrue(previewRepresentation.isInvalidatedForTest())
-
-      // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
-      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-      waitForCondition(10.seconds) { !previewRepresentation.isInvalidatedForTest() }
-      assertFalse(previewRepresentation.isInvalidatedForTest())
+      previewRepresentation.compileAndWaitForRefresh()
 
       // block the refresh manager with a high priority refresh that won't finish
       TestPreviewRefreshRequest.log = StringBuilder()
@@ -161,7 +175,7 @@ class CommonPreviewRepresentationTest {
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-      waitForCondition(10.seconds) { previewRepresentation.isInvalidatedForTest() }
+      waitForCondition(20.seconds) { previewRepresentation.isInvalidatedForTest() }
       assertTrue(previewRepresentation.isInvalidatedForTest())
 
       // unblock the refresh manager
@@ -185,19 +199,57 @@ class CommonPreviewRepresentationTest {
       assertFalse(previewRepresentation.isInvalidatedForTest())
     }
 
-  private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
-    val psiFile = runWriteActionAndWait {
-      fixture.addFileToProjectAndInvalidate(
-        "Test.kt",
-        // language=kotlin
-        """
-        fun MyFun() {
-          println("Hello world!")
+  @Test
+  fun testFastPreviewIsRequested() = runBlocking {
+    val requestCompleted = CompletableDeferred<Unit>()
+    val testTracker =
+      TestFastPreviewTrackerManager(showTimes = false) { requestCompleted.complete(Unit) }
+    val fastPreviewManager = FastPreviewManager.getInstance(project)
+    assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
+
+    project.replaceService(
+      FastPreviewTrackerManager::class.java,
+      testTracker,
+      fixture.testRootDisposable,
+    )
+
+    val previewRepresentation = createPreviewRepresentation()
+    previewRepresentation.compileAndWaitForRefresh()
+
+    val compileDeferred = CompletableDeferred<CompilationResult>()
+    val fastPreviewManagerListener =
+      object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {}
+
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+          // We expect a successful compilation, but some cancelled results can be received here
+          // if for some reason a compilation is started while another one was already happening
+          if (result.isSuccess) compileDeferred.complete(result)
         }
-      """
-          .trimIndent(),
-      )
+      }
+    fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
+    runWriteActionAndWait {
+      projectRule.fixture.openFileInEditor(psiFile.virtualFile)
+      projectRule.fixture.moveCaret("println(\"Hello world!\")|")
+      projectRule.fixture.editor.executeAndSave {
+        insertText("\nprintln(\"added during test execution\")")
+      }
+      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
     }
+
+    val result = compileDeferred.await()
+    assertTrue(result.isSuccess)
+
+    withTimeout(10.seconds) {
+      // Wait for the tracking request to be submitted
+      requestCompleted.await()
+    }
+
+    assertEquals("compilationSucceeded (compiledFiles=1)", testTracker.logOutput())
+  }
+
+  private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
     val previewElement = PsiTestPreviewElement()
     val previewElementProvider = TestPreviewElementProvider(previewElement)
     val previewElementModelAdapter = TestPreviewElementModelAdapter(previewElement)
@@ -215,5 +267,22 @@ class CommonPreviewRepresentationTest {
       )
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
+  }
+
+  private fun CommonPreviewRepresentation<PsiTestPreviewElement>.compileAndWaitForRefresh() {
+    // wait for smart mode and status to be needs build
+    waitForSmartMode(fixture.project)
+    waitForCondition(10.seconds) { getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild }
+
+    // Activate and wait for build listener setup to finish
+    assertFalse(hasBuildListenerSetupFinishedForTest())
+    onActivate()
+    waitForCondition(10.seconds) { hasBuildListenerSetupFinishedForTest() }
+    assertTrue(isInvalidatedForTest())
+
+    // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+    waitForCondition(10.seconds) { !isInvalidatedForTest() }
+    assertFalse(isInvalidatedForTest())
   }
 }

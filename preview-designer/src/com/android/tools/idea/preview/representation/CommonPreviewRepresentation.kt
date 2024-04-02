@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
@@ -41,6 +42,8 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
+import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.CommonGalleryEssentialsModeManager
@@ -133,7 +136,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   PreviewRepresentation,
   AndroidCoroutinesAware,
   UserDataHolderEx by UserDataHolderBase(),
-  PreviewModeManager {
+  PreviewModeManager,
+  FastPreviewSurface {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -227,7 +231,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
-      isFastPreviewSupported = false,
+      isFastPreviewSupported = isFastPreviewAvailable(),
       isEssentialsModeEnabled,
       ::invalidate,
       ::requestRefresh,
@@ -300,6 +304,15 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
+  private val delegateFastPreviewSurface =
+    CommonFastPreviewSurface(
+      parentDisposable = this,
+      lifecycleManager = lifecycleManager,
+      psiFilePointer = psiFilePointer,
+      previewStatusProvider = ::previewViewModel,
+      delegateRefresh = ::invalidateAndRefresh,
+    )
+
   override val component: JComponent
     get() = previewView.component
 
@@ -322,6 +335,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   override fun setMode(mode: PreviewMode) {
     previewModeManager.setMode(mode)
   }
+
+  override fun requestFastPreviewRefreshAsync() =
+    delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
 
   private fun onInit() {
     LOG.debug("onInit")
@@ -546,9 +562,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           psiFilePointer = psiFilePointer,
           invalidate = ::invalidate,
           requestRefresh = ::requestRefresh,
-          isFastPreviewAvailable = { false },
-          // TODO(b/326420149) support fast preview
-          requestFastPreviewRefresh = {},
+          isFastPreviewAvailable = ::isFastPreviewAvailable,
+          requestFastPreviewRefresh = delegateFastPreviewSurface::requestFastPreviewRefreshSync,
           restorePreviousMode = ::restorePrevious,
           isEssentialsModeEnabled = isEssentialsModeEnabled,
           previewElementProvider = previewElementProvider,
@@ -645,4 +660,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
     }
   }
+
+  /**
+   * Whether fast preview is available. In addition to checking its normal availability from
+   * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
+   * should not be available in this case.
+   */
+  private fun isFastPreviewAvailable() =
+    FastPreviewManager.getInstance(project).isAvailable && !isEssentialsModeEnabled()
 }
