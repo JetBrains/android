@@ -19,6 +19,7 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.OutOfProcessCompilerDaemonClient
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.log.IJLogger
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -116,7 +117,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
       IdeSdks.getInstance().jdk?.homePath?.let { javaHomePath -> "$javaHomePath/bin/java" }
         ?: throw IllegalStateException("No SDK found"),
       findDaemonJarRootPath(),
-      log,
+      IJLogger(log),
       StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get(),
     )
 

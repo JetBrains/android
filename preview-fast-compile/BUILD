@@ -6,5 +6,9 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.preview-fast-compile.iml"],
     visibility = ["//visibility:public"],
-    deps = ["@intellij//:intellij-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+    ],
 )

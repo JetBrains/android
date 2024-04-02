@@ -15,7 +15,7 @@
  */
 package com.android.tools.compile.fast
 
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.environment.Logger
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Path
