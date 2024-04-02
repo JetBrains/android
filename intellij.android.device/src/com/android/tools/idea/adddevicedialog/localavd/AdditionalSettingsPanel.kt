@@ -16,7 +16,6 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -203,74 +202,70 @@ private fun StorageGroup(
   Row { Text("Expanded storage") }
 
   Row {
+    RadioButtonRow(
+      RadioButton.CUSTOM,
+      storageGroupState.selectedRadioButton,
+      onClick = {
+        storageGroupState.selectedRadioButton = RadioButton.CUSTOM
+
+        val custom = storageGroupState.custom.withMaxUnit()
+        onDeviceChange(device.copy(expandedStorage = Custom(custom)))
+      },
+      Modifier.testTag("CustomRadioButton"),
+    )
+
+    StorageCapacityField(
+      storageGroupState.custom,
+      onValueChange = {
+        storageGroupState.custom = it
+        onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
+      },
+      storageGroupState.selectedRadioButton == RadioButton.CUSTOM,
+    )
+  }
+
+  Row {
     val existingImageFieldState = storageGroupState.existingImageFieldState
     val fileSystem = LocalFileSystem.current
 
-    Column {
-      RadioButtonRow(
-        RadioButton.CUSTOM,
-        storageGroupState.selectedRadioButton,
-        onClick = {
-          storageGroupState.selectedRadioButton = RadioButton.CUSTOM
+    RadioButtonRow(
+      RadioButton.EXISTING_IMAGE,
+      storageGroupState.selectedRadioButton,
+      onClick = {
+        storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
 
-          val custom = storageGroupState.custom.withMaxUnit()
-          onDeviceChange(device.copy(expandedStorage = Custom(custom)))
-        },
-        Modifier.testTag("CustomRadioButton"),
-      )
+        if (existingImageFieldState.valid) {
+          val image = fileSystem.getPath(existingImageFieldState.value)
+          onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
+        }
+      },
+      Modifier.testTag("ExistingImageRadioButton"),
+    )
 
-      RadioButtonRow(
-        RadioButton.EXISTING_IMAGE,
-        storageGroupState.selectedRadioButton,
-        onClick = {
-          storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
+    ExistingImageField(
+      existingImageFieldState,
+      storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
+      onStateChange = {
+        storageGroupState.existingImageFieldState = it
 
-          if (existingImageFieldState.valid) {
-            val image = fileSystem.getPath(existingImageFieldState.value)
-            onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
-          }
-        },
-        Modifier.testTag("ExistingImageRadioButton"),
-      )
+        if (it.valid) {
+          val image = fileSystem.getPath(it.value)
+          onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
+        }
 
-      RadioButtonRow(
-        RadioButton.NONE,
-        storageGroupState.selectedRadioButton,
-        onClick = {
-          storageGroupState.selectedRadioButton = RadioButton.NONE
-          onDeviceChange(device.copy(expandedStorage = None))
-        },
-      )
-    }
-
-    Column {
-      Row {
-        StorageCapacityField(
-          storageGroupState.custom,
-          onValueChange = {
-            storageGroupState.custom = it
-            onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
-          },
-          storageGroupState.selectedRadioButton == RadioButton.CUSTOM,
-        )
-      }
-
-      ExistingImageField(
-        existingImageFieldState,
-        storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
-        onStateChange = {
-          storageGroupState.existingImageFieldState = it
-
-          if (it.valid) {
-            val image = fileSystem.getPath(it.value)
-            onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
-          }
-
-          // TODO Else image is not valid. Disable the Add button.
-        },
-      )
-    }
+        // TODO Else image is not valid. Disable the Add button.
+      },
+    )
   }
+
+  RadioButtonRow(
+    RadioButton.NONE,
+    storageGroupState.selectedRadioButton,
+    onClick = {
+      storageGroupState.selectedRadioButton = RadioButton.NONE
+      onDeviceChange(device.copy(expandedStorage = None))
+    },
+  )
 }
 
 @Composable
