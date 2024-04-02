@@ -451,15 +451,4 @@ public final class BuildModelContext {
     return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
   }
 
-  public @Nullable VirtualFile getVersionCatalogFile(@NotNull File dirPath, @NotNull String name) {
-    File versionCatalogFilePath = new File(dirPath, name + "." + EXT_VERSIONS_TOML);
-    VirtualFile result = findFileByIoFile(versionCatalogFilePath, false);
-    return (result != null && result.isValid()) ? result : null;
-  }
-
-  public @Nullable VirtualFile getVersionCatalogFile(@NotNull String name) {
-    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
-    if (rootPath == null) return null;
-    return getVersionCatalogFile(new File(toSystemDependentName(rootPath), "gradle"), name);
-  }
 }
