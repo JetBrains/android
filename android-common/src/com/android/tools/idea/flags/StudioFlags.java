@@ -1406,6 +1406,11 @@ public final class StudioFlags {
     COMPOSE, "ui.check.mode.ai.quickfix", "Enable AI-powered quick fix action for UI Check",
     "Enable an AI-powered quick fix action for UI Check issues.",
     false);
+
+  public static final Flag<Boolean> COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT = new BooleanFlag(
+    COMPOSE, "send.preview.to.studio.bot", "Enable action to send Compose Previews to Studio Bot",
+    "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
+    false);
   //endregion
 
   // region Wear surfaces

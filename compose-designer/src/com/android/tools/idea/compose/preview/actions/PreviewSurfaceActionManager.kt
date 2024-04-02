@@ -23,8 +23,10 @@ import com.android.tools.idea.common.surface.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
@@ -73,6 +75,10 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
+    // Send Preview to Studio Bot and ask to fix it
+    if (StudioFlags.COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT.get()) {
+      actionGroup.add(SendPreviewToStudioBotAction())
+    }
 
     return actionGroup
   }
