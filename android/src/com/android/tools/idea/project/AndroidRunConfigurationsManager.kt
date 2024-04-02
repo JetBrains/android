@@ -21,9 +21,9 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.ThreadingAssertions
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
+import org.jetbrains.annotations.TestOnly
 
 class AndroidRunConfigurationsManager(private val project: Project) {
 
@@ -31,24 +31,30 @@ class AndroidRunConfigurationsManager(private val project: Project) {
 
   fun createProjectRunConfigurations() {
     val futureTaskOperation = CompletableFuture<Task>()
-    val taskCreateRunConfigurations = object : Task.Backgroundable(project, "Setting up run configurations...") {
-      override fun run(indicator: ProgressIndicator) {
-        AndroidRunConfigurations.instance.createRunConfigurations(project)
-      }
+    val taskCreateRunConfigurations =
+      object : Task.Backgroundable(project, "Setting up run configurations...") {
+        override fun run(indicator: ProgressIndicator) {
+          AndroidRunConfigurations.instance.createRunConfigurations(project)
+        }
 
-      override fun onFinished() {
-        super.onFinished()
-        futureTaskOperation.complete(this)
-      }
+        override fun onFinished() {
+          super.onFinished()
+          futureTaskOperation.complete(this)
+        }
 
-      override fun isHeadless(): Boolean {
-        return false
+        override fun isHeadless(): Boolean {
+          return false
+        }
       }
-    }
 
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      operationsStates.removeIf { it.isDone }
-      operationsStates.add(futureTaskOperation)
+
+      // Note: it is deadlock-safe to call "isDone" below as we know that isDone function is from
+      // CompletableFuture class - with simple implementation and no calls to "external" code
+      synchronized(operationsStates) {
+        operationsStates.removeIf { it.isDone }
+        operationsStates.add(futureTaskOperation)
+      }
     }
 
     ProgressManager.getInstance().run(taskCreateRunConfigurations)
@@ -59,7 +65,11 @@ class AndroidRunConfigurationsManager(private val project: Project) {
   fun consumeBulkOperationsState(stateConsumer: (Future<*>) -> Unit) {
     ThreadingAssertions.assertEventDispatchThread()
     assert(ApplicationManager.getApplication().isUnitTestMode)
-    for (operationsState in operationsStates) {
+
+    // operationsStates could be modified in separate thread
+    // create list copy to iterate on
+    val statesCopy = synchronized(operationsStates) { operationsStates.toList() }
+    for (operationsState in statesCopy) {
       stateConsumer.invoke(operationsState)
     }
   }
