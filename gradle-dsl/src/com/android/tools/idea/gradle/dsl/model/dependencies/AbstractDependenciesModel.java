@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.EXT_DECLARATIVE_TOML;
-
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;

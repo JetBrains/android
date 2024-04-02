@@ -141,7 +141,7 @@ public interface GradleDslNameConverter {
   // TODO(b/173698662): improve the regexp patterns for complex injections.
   default @Nullable Pattern getPatternForUnwrappedVariables() {
     return null;
-  };
+  }
 
   /**
    * Returns the regex pattern for the syntax needing to be wrapped by {}  when injected.
@@ -149,7 +149,7 @@ public interface GradleDslNameConverter {
   // TODO(b/173698662): improve the regexp patterns for complex injections.
   default @Nullable Pattern getPatternForWrappedVariables() {
     return null;
-  };
+  }
 
   /**
    * Converts a single external name part to a description of the Model property it is associated with.

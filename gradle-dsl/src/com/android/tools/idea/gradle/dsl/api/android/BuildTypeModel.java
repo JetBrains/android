@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 

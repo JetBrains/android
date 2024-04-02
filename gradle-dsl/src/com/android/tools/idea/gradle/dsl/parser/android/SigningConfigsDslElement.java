@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
-
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
