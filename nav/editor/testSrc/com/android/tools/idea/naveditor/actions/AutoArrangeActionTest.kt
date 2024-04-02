@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
