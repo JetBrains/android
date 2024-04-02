@@ -18,11 +18,12 @@ package com.android.tools.idea.wearwhs.action
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorId
+import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindow
 import com.android.tools.idea.wearwhs.widget.WearHealthServicesToolWindowFactory
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
@@ -31,12 +32,15 @@ import com.intellij.openapi.wm.ToolWindowManager
 /**
  * Opens the Wear Health Services Tool Window
  */
-class OpenWearHealthServicesPanelAction : AnAction() {
+class OpenWearHealthServicesPanelAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 33 }) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-  override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = StudioFlags.SYNTHETIC_HAL_PANEL.get()
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    if (!StudioFlags.SYNTHETIC_HAL_PANEL.get()) {
+      event.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

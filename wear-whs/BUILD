@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "@intellij//:test-framework[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

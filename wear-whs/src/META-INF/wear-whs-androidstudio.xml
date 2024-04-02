@@ -20,7 +20,7 @@
       <add-to-group group-id="Streaming"/>
     </action>
     <reference ref="android.device.wear.whs">
-      <add-to-group group-id="android.device.wear.whs.placeholder"/>
+      <add-to-group group-id="StreamingToolbarSecondary"/>
     </reference>
   </actions>
 
