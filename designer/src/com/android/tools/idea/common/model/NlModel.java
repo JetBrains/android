@@ -129,6 +129,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   private ChangeType myModificationTrigger;
   /** Executor used for asynchronous updates. */
   private final @NotNull ExecutorService myUpdateExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModel", 1);
+  /** Executor used from NlComponents to run background tasks for this model. */
+  private final @NotNull ExecutorService myNlComponentExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModelComponentExecutor", 4);
   private final @NotNull AtomicReference<Disposable> myThemeUpdateComputation = new AtomicReference<>();
   private boolean myDisposed;
 
@@ -1005,5 +1008,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   public void setModelUpdater(@NotNull NlModelUpdaterInterface modelUpdater) {
     myModelUpdater = modelUpdater;
+  }
+
+  /**
+   * Returns an {@link ExecutorService} to be used by the {@link NlComponent} to run background tasks.
+   * This ensures that all components in one model share the same pool, and they are limited to an specific number
+   * of threads.
+   */
+  @NotNull
+  ExecutorService getNlComponentExecutor() {
+    return myNlComponentExecutor;
   }
 }

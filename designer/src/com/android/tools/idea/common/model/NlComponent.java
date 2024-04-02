@@ -60,7 +60,6 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -535,10 +534,15 @@ public class NlComponent implements NlAttributesHolder {
         return null;
       }
 
+      ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
+      if (resNamespace == null) {
+        return null;
+      }
+
       ResourceResolver resolver = null;
       try {
         resolver =
-          Futures.getChecked(AppExecutorUtil.getAppExecutorService().submit(() -> myModel.getConfiguration().getResourceResolver()),
+          Futures.getChecked(myModel.getNlComponentExecutor().submit(() -> myModel.getConfiguration().getResourceResolver()),
                              ExecutionException.class,
                              500,
                              TimeUnit.MILLISECONDS);
@@ -550,10 +554,6 @@ public class NlComponent implements NlAttributesHolder {
       }
       StyleResourceValue styleResValue = resolver.getStyle(styleRef);
       if (styleResValue == null) {
-        return null;
-      }
-      ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
-      if (resNamespace == null) {
         return null;
       }
       StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
