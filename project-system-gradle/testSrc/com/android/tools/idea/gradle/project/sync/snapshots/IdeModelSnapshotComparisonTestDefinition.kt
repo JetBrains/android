@@ -129,6 +129,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_WITHJS, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_IOS, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE, skipV1toV2Comparison = true),

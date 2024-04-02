@@ -628,9 +628,9 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION> [=]
         BUILD_TASKS
-                ASSEMBLE                      : :jsModule:assemble, :jsModule:testClasses
-                REBUILD                       : :jsModule:assemble, :jsModule:clean, :jsModule:testClasses
-                COMPILE_JAVA                  : :jsModule:compileJava, :jsModule:testClasses
+                ASSEMBLE                      : :jsModule:assemble
+                REBUILD                       : :jsModule:assemble, :jsModule:clean
+                COMPILE_JAVA                  : :jsModule:compileJava
     MODULE                        : kotlinMultiPlatform.jsModule.test
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -683,9 +683,9 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : kotlinMultiPlatform.jsModule.main
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :jsModule:assemble, :jsModule:testClasses
-                REBUILD                       : :jsModule:assemble, :jsModule:clean, :jsModule:testClasses
-                COMPILE_JAVA                  : :jsModule:compileJava, :jsModule:testClasses
+                ASSEMBLE                      : :jsModule:assemble
+                REBUILD                       : :jsModule:assemble, :jsModule:clean
+                COMPILE_JAVA                  : :jsModule:compileJava
     MODULE                        : kotlinMultiPlatform.module2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2

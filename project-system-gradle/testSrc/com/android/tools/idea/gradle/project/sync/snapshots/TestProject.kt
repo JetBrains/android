@@ -237,6 +237,12 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, addJsModule = true) }
   ),
+  KOTLIN_MULTIPLATFORM_IOS(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "ios",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { patchMppProject(it, addIosTo = listOf("module2")) }
+  ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",

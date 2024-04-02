@@ -514,9 +514,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.common.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble, :common:testClasses
-                REBUILD                       : :common:assemble, :common:clean, :common:testClasses
-                COMPILE_JAVA                  : :common:compileJava, :common:testClasses
+                ASSEMBLE                      : :common:assemble
+                REBUILD                       : :common:assemble, :common:clean
+                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -581,9 +581,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble, :common:testClasses
-                REBUILD                       : :common:assemble, :common:clean, :common:testClasses
-                COMPILE_JAVA                  : :common:compileJava, :common:testClasses
+                ASSEMBLE                      : :common:assemble
+                REBUILD                       : :common:assemble, :common:clean
+                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -644,9 +644,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             -                             : file://<PROJECT>/common/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/common/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble, :common:testClasses
-                REBUILD                       : :common:assemble, :common:clean, :common:testClasses
-                COMPILE_JAVA                  : :common:compileJava, :common:testClasses
+                ASSEMBLE                      : :common:assemble
+                REBUILD                       : :common:assemble, :common:clean
+                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -713,9 +713,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble, :common:testClasses
-                REBUILD                       : :common:assemble, :common:clean, :common:testClasses
-                COMPILE_JAVA                  : :common:compileJava, :common:testClasses
+                ASSEMBLE                      : :common:assemble
+                REBUILD                       : :common:assemble, :common:clean
+                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.desktop
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -2433,9 +2433,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2500,9 +2500,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2565,9 +2565,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
             -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2635,9 +2635,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet

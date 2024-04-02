@@ -87,6 +87,7 @@ class ProjectDumper(
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
   private val transformFolderPattern = Regex("/transforms-\\d/")
+  private val konanFolderPathRegex = Regex("^/([_/0-9a-z])+\\.konan")
 
   fun File.normalizeCxxPath(variantName: String?): String {
     val cxxSegment = findCxxSegment(this) ?: return this.path
@@ -204,6 +205,7 @@ class ProjectDumper(
       .replaceAgpVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
+      .replace(konanFolderPathRegex, "<KONAN>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")

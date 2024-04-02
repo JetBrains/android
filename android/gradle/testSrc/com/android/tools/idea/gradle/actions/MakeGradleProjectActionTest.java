@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -50,6 +48,6 @@ public class MakeGradleProjectActionTest extends HeavyPlatformTestCase {
     myAction.doPerform(TestActionEvent.createTestEvent(), getProject());
 
     // Verify.
-    verify(myBuildInvoker).assemble(eq(ModuleManager.getInstance(myProject).getModules()));
+    verify(myBuildInvoker).assemble();
   }
 }
