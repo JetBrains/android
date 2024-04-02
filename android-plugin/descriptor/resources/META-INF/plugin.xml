@@ -11,6 +11,11 @@
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
 
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Iguana Stable.
+    For detailed information, please refer to the release notes available at: Learn more in the <a href="https://android-developers.googleblog.com/2024/02/android-studio-iguana-is-stable.html">Android Studio Iguana Stable</a>.]]>
+  </change-notes>
+
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
