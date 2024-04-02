@@ -104,7 +104,11 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
 import junit.framework.TestCase.fail
-import kotlin.io.path.*
+import kotlin.io.path.createFile
+import kotlin.io.path.exists
+import kotlin.io.path.fileSize
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -129,20 +133,26 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 
 private const val nonAsciiSuffix = " ąę"
-private const val table1 = "t1$nonAsciiSuffix"
-private const val table2 = "t2$nonAsciiSuffix"
-private const val table3 = "t3$nonAsciiSuffix"
+// Tests running from IntelliJ have a JNU encoding that doesn't support paths with non-ascii chars.
+private val fileSuffix =
+  when (System.getProperty("sun.jnu.encoding")) {
+    "UTF-8" -> nonAsciiSuffix
+    else -> ""
+  }
+
+private val table1 = "t1$fileSuffix"
+private val table2 = "t2$fileSuffix"
+private val table3 = "t3$fileSuffix"
 private const val view1 = "v1$nonAsciiSuffix"
 private const val view2 = "v2$nonAsciiSuffix"
 private const val column1 = "c1$nonAsciiSuffix"
 private const val column2 = "c2$nonAsciiSuffix"
-private const val databaseDir = "db-dir-$nonAsciiSuffix"
-private const val databaseFileName = "db$nonAsciiSuffix.db"
-private const val outputFileName = "output$nonAsciiSuffix.out"
-private const val downloadFolderName = "downloaded$nonAsciiSuffix"
+private val databaseDir = "db-dir-$fileSuffix"
+private val databaseFileName = "db$fileSuffix.db"
+private val outputFileName = "output$fileSuffix.out"
+private val downloadFolderName = "downloaded$fileSuffix"
 
 // TODO(161081452): add in-memory database test coverage
-@Suppress("IncorrectParentDisposable")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class ExportToFileControllerTest(private val testConfig: TestConfig) {
@@ -418,7 +428,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   ) {
     // Using captors below to go the opposite way than the prod code: from analytics values to
     // export-request values.
-    // Otherwise we'd end up with a copy of production code in the tests (which would be of
+    // Otherwise, we'd end up with a copy of production code in the tests (which would be of
     // questionable value).
     val sourceCaptor = ArgumentCaptor.forClass(Source::class.java)
     val sourceFormatCaptor = ArgumentCaptor.forClass(SourceFormat::class.java)
@@ -901,7 +911,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
     val src =
       Paths.get(
         db.path
-      ) // in test setup the database will already be on disk (i.e. not on a device)
+      ) // in test set up the database will already be on disk (i.e. not on a device)
     val dbFileName = src.fileName.toString()
 
     val mainFile = createFile(dbFileName)

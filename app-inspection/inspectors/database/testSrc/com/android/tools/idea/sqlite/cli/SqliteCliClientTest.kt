@@ -42,6 +42,13 @@ class SqliteCliClientTest : LightPlatformTestCase() {
   private val taskExecutor = PooledThreadExecutor.INSTANCE
 
   private val trickyChars = " ąę  ść źż"
+  // Tests running from IntelliJ have a JNU encoding that doesn't support paths with non-ascii
+  // chars.
+  private val pathTrickyChars =
+    when (System.getProperty("sun.jnu.encoding")) {
+      "UTF-8" -> trickyChars
+      else -> ""
+    }
   private val table1 = "t1$trickyChars"
   private val table2 = "t2$trickyChars"
   private val view1 = "v1$trickyChars"
@@ -51,10 +58,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
   private val column11 = "c11$trickyChars"
   private val column22 = "c22$trickyChars"
   private val column33 = "c33$trickyChars"
-  private val dbPath = "db $trickyChars"
-  private val dbClonePath = "$dbPath clone $trickyChars"
-  private val outputFile1 = "of1$trickyChars"
-  private val outputFile2 = "of2$trickyChars"
+  private val dbPath = "db $pathTrickyChars"
+  private val dbClonePath = "$dbPath clone $pathTrickyChars"
+  private val outputFile1 = "of1$pathTrickyChars"
+  private val outputFile2 = "of2$pathTrickyChars"
 
   override fun setUp() {
     super.setUp()
@@ -141,7 +148,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
   }
 
   /**
-   * Tests a large output printed to std-out which if not handled property would hang on Windows.
+   * Tests a large output printed to std-out which, if not handled property would hang on Windows.
    * Uses:
    * - [SqliteCliArgs.Builder.database]
    * - [SqliteCliArgs.Builder.queryTableContents]
