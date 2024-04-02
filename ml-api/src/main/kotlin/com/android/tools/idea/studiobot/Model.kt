@@ -16,16 +16,15 @@
 package com.android.tools.idea.studiobot
 
 import com.android.tools.idea.studiobot.prompts.Prompt
-import com.intellij.lang.Language
+import java.io.IOException
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import java.io.IOException
 
 /** A generative language model capable of generating content given a prompt. */
 interface Model {
   /** Model's configuration. */
-  fun config() : ModelConfig
+  fun config(): ModelConfig
 
   /**
    * Sends a query to the model and returns the raw response.
@@ -65,9 +64,11 @@ interface Model {
 
 /**
  * Static information about a model.
+ *
  * @property supportedBlobTypes mime types supported in input prompts for multi-modal models.
  * @property inputTokenLimit maximum number of tokens allowed in the input prompt for this model.
- * @property outputTokenLimit maximum allowed value for [GenerationConfig.maxOutputTokens] for this model.
+ * @property outputTokenLimit maximum allowed value for [GenerationConfig.maxOutputTokens] for this
+ *   model.
  */
 data class ModelConfig(
   val supportedBlobTypes: Set<MimeType> = emptySet(),
@@ -130,10 +131,7 @@ enum class CitationAction {
 }
 
 open class StubModel : Model {
-  override fun config() = ModelConfig(
-    inputTokenLimit = 1024,
-    outputTokenLimit = 1024,
-  )
+  override fun config() = ModelConfig(inputTokenLimit = 1024, outputTokenLimit = 1024)
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
 

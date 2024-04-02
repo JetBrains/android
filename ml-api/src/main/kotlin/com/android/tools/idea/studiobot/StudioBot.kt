@@ -98,8 +98,8 @@ interface StudioBot {
 }
 
 /**
- * The type of the model to use. Currently, only text to text models are available
- * for production use.
+ * The type of the model to use. Currently, only text to text models are available for production
+ * use.
  */
 enum class ModelType {
   // Model used in Studio Bot chat. A chat model is guaranteed to be available.

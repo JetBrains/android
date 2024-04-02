@@ -22,9 +22,7 @@ plugins {
 
 version = properties("pluginVersion")
 
-repositories {
-  mavenCentral()
-}
+repositories { mavenCentral() }
 
 kotlin { jvmToolchain(17) }
 
@@ -34,5 +32,4 @@ intellij {
 
   // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
   plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
-
 }

@@ -18,11 +18,11 @@ package com.android.tools.idea.studiobot.prompts
 import com.android.tools.idea.studiobot.MimeType
 import com.intellij.lang.Language
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.Base64
 
 /**
- * A well-formed prompt that can be understood by the models used by Studio Bot, and has been validated to conform to .aiexclude rules and
- * context sharing setting in the project. See [buildPrompt] for information on the format and how to construct a prompt.
+ * A well-formed prompt that can be understood by the models used by Studio Bot, and has been
+ * validated to conform to .aiexclude rules and context sharing setting in the project. See
+ * [buildPrompt] for information on the format and how to construct a prompt.
  */
 interface Prompt {
   val messages: List<Message>

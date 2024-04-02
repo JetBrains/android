@@ -27,13 +27,12 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
+import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.test.assertFailsWith
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.test.assertFailsWith
 
 @RunWith(JUnit4::class)
 class PromptBuilderTest : BasePlatformTestCase() {
@@ -52,9 +51,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
   fun buildPrompt_completePrompt() {
     val prompt =
       buildPrompt(project) {
-        systemMessage {
-          text("You are Gemini, an AI assistant for Android Studio.", emptyList())
-        }
+        systemMessage { text("You are Gemini, an AI assistant for Android Studio.", emptyList()) }
         userMessage { text("Hello Gemini!", emptyList()) }
         modelMessage { text("Hello! How are you?", emptyList()) }
         userMessage { text("I am doing well, how about you?", emptyList()) }
@@ -71,17 +68,15 @@ class PromptBuilderTest : BasePlatformTestCase() {
                 )
               )
             ),
-            Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))
-            ),
+            Prompt.UserMessage(listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))),
             Prompt.ModelMessage(
               listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))
             ),
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
             ),
-          ),
-        ),
+          )
+        )
       )
   }
 
@@ -99,12 +94,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt.messages.size).isEqualTo(1)
     val chunks = prompt.messages.single().chunks
     assertThat(chunks.size).isEqualTo(2)
-    assertThat(chunks[0]).isEqualTo(
-      Prompt.Message.TextChunk(
-        "What is in this image?",
-        emptyList()
-      )
-    )
+    assertThat(chunks[0]).isEqualTo(Prompt.Message.TextChunk("What is in this image?", emptyList()))
     assertThat(chunks[1]).isInstanceOf(Prompt.Message.BlobChunk::class.java)
     assertThat((chunks[1] as Prompt.Message.BlobChunk).data).isEqualTo(data)
   }
@@ -176,7 +166,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
                 ),
               )
             ),
-          ),
+          )
         )
       )
   }
@@ -253,26 +243,23 @@ class PromptBuilderTest : BasePlatformTestCase() {
         userMessage { text("Hello Gemini!", emptyList()) }
         modelMessage { text("Hello! How are you?", emptyList()) }
       }
-    val prompt = buildPrompt(project, basePrompt) {
-      userMessage { text("I am doing well, how about you?", emptyList()) }
-    }
+    val prompt =
+      buildPrompt(project, basePrompt) {
+        userMessage { text("I am doing well, how about you?", emptyList()) }
+      }
     assertThat(prompt)
       .isEqualTo(
         PromptImpl(
           listOf(
-            Prompt.SystemMessage(
-              listOf(Prompt.Message.TextChunk("You are Gemini", emptyList()))
-            ),
-            Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))
-            ),
+            Prompt.SystemMessage(listOf(Prompt.Message.TextChunk("You are Gemini", emptyList()))),
+            Prompt.UserMessage(listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))),
             Prompt.ModelMessage(
               listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))
             ),
             Prompt.UserMessage(
               listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
             ),
-          ),
+          )
         )
       )
   }

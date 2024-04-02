@@ -18,25 +18,21 @@ package com.android.tools.idea.studiobot.prompts.impl
 import com.android.tools.idea.studiobot.AiExcludeException
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
-import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-data class PromptImpl(
-  override val messages: List<Prompt.Message>,
-) : Prompt
+@VisibleForTesting data class PromptImpl(override val messages: List<Prompt.Message>) : Prompt
 
 class PromptBuilderImpl(private val project: Project) : PromptBuilder {
   override val messages = mutableListOf<Prompt.Message>()
 
-  open class MessageBuilderImpl(
-    val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message
-  ) : PromptBuilder.MessageBuilder {
+  open class MessageBuilderImpl(val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
+    PromptBuilder.MessageBuilder {
     private val myChunks = mutableListOf<Prompt.Message.Chunk>()
 
     /** Adds [str] as text in the message. */
@@ -56,9 +52,8 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     fun build() = makeMessage(myChunks)
   }
 
-  inner class UserMessageBuilderImpl(
-    makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message
-  ) : MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
+  inner class UserMessageBuilderImpl(makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
+    MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
     override val project: Project = this@PromptBuilderImpl.project
   }
 

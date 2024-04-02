@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.studiobot.prompts
 
-import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
 import com.intellij.lang.Language
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.gradleTooling.get
@@ -28,9 +27,9 @@ import org.jetbrains.kotlin.idea.gradleTooling.get
  * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
  * Each part of the prompt must declare which files from the user's project, if any, it uses.
  *
- * Prompts that used files as context cannot be constructed if the context sharing setting is not enabled:
- * check it with `StudioBot.isContextAllowed(project)`. If it is not enabled, an [IllegalStateException]
- * will be thrown.
+ * Prompts that used files as context cannot be constructed if the context sharing setting is not
+ * enabled: check it with `StudioBot.isContextAllowed(project)`. If it is not enabled, an
+ * [IllegalStateException] will be thrown.
  *
  * Additionally, each file must be allowed by aiexclude. Check files using
  * AiExcludeService.isFileExcluded. If a file is not allowed, an AiExcludeException will be thrown.
@@ -78,7 +77,11 @@ import org.jetbrains.kotlin.idea.gradleTooling.get
  * }
  * ```
  */
-inline fun buildPrompt(project: Project, existingPrompt: Prompt? = null, builderAction: PromptBuilder.() -> Unit): Prompt {
+inline fun buildPrompt(
+  project: Project,
+  existingPrompt: Prompt? = null,
+  builderAction: PromptBuilder.() -> Unit,
+): Prompt {
   val builder = PromptBuilderImpl(project)
   existingPrompt?.let { builder.addAll(existingPrompt) }
   val prompt = builder.apply(builderAction).build()
@@ -100,8 +103,9 @@ interface PromptBuilder {
     /**
      * Adds [str] as text in the message.
      *
-     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and `AiExcludeService`
-     * before including any user file content into the string passed to this method.
+     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and
+     * `AiExcludeService` before including any user file content into the string passed to this
+     * method.
      *
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService
@@ -112,8 +116,9 @@ interface PromptBuilder {
      * Adds [code] as a Markdown formatted code block in the message, with optional [language]
      * specified if it has a Markdown representation.
      *
-     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and `AiExcludeService`
-     * before including any user file content into the string passed to this method.
+     * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and
+     * `AiExcludeService` before including any user file content into the string passed to this
+     * method.
      *
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService

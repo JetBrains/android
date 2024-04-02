@@ -16,9 +16,9 @@
 package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.MimeType
+import kotlin.test.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class BlobChunkTest {
   // These tests are needed because BlobChunk is a data class that contains a ByteArray,

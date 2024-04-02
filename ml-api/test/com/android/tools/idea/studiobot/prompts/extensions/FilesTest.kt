@@ -60,14 +60,11 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk(
-                  "The contents of the file \"/src/$path\" are:",
-                  filesUsed,
-                ),
+                Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
                 Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
-          ),
+          )
         )
       )
   }
@@ -87,14 +84,11 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk(
-                  "The contents of the file \"/src/$path\" are:",
-                  filesUsed,
-                ),
+                Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
                 Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
               )
             )
-          ),
+          )
         )
       )
   }
@@ -122,10 +116,7 @@ class FilesTest : BasePlatformTestCase() {
             Prompt.UserMessage(
               listOf(
                 Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
-                Prompt.Message.TextChunk(
-                  "The contents before the selected text are:",
-                  filesUsed,
-                ),
+                Prompt.Message.TextChunk("The contents before the selected text are:", filesUsed),
                 Prompt.Message.CodeChunk(
                   contents.take(selectionStart),
                   PlainTextLanguage.INSTANCE,
@@ -137,10 +128,7 @@ class FilesTest : BasePlatformTestCase() {
                   PlainTextLanguage.INSTANCE,
                   filesUsed,
                 ),
-                Prompt.Message.TextChunk(
-                  "The contents after the selected text are:",
-                  filesUsed,
-                ),
+                Prompt.Message.TextChunk("The contents after the selected text are:", filesUsed),
                 Prompt.Message.CodeChunk(
                   contents.drop(selectionEnd),
                   PlainTextLanguage.INSTANCE,
@@ -148,7 +136,7 @@ class FilesTest : BasePlatformTestCase() {
                 ),
               )
             )
-          ),
+          )
         )
       )
   }
@@ -189,7 +177,7 @@ class FilesTest : BasePlatformTestCase() {
                 ),
               )
             )
-          ),
+          )
         )
       )
   }
