@@ -271,7 +271,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
     NELE, "xml.to.compose", "Enable XML to Compose conversion",
-    "Enable an action that converts XML layouts to Compose using the Studio Bot backend",
+    "Enable an action that converts XML layouts to Compose using the Gemini backend",
     false);
   //endregion
 
@@ -1365,7 +1365,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_GENERATE_SAMPLE_DATA = new BooleanFlag(
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
-    "Enable a Studio Bot context-menu action that generates sample data for a given Composable function",
+    "Enable a Gemini context-menu action that generates sample data for a given Composable function",
     false);
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
@@ -1766,9 +1766,9 @@ public final class StudioFlags {
   // endregion PRIVACY_SANDBOX_SDK
 
   // region STUDIO_BOT
-  private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Studio Bot");
+  private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
+    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", true);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",

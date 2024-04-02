@@ -63,7 +63,7 @@ class ComposeVisualLintAiFix(
     // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
     // can't use the sendQuery API.
     if (!studioBot.isContextAllowed(project)) {
-      return "Studio Bot context sharing needs to be enabled for this feature"
+      return "Gemini context sharing needs to be enabled for this feature"
     }
     try {
       val response = studioBot.model(project).generateContent(getPrompt(issue)).toList()
@@ -96,7 +96,7 @@ class ComposeVisualLintAiFix(
 
   private class ComposeCodeDialog(project: Project) : DialogWrapper(project) {
 
-    private val textArea = JBTextArea("Sending query to Studio Bot...")
+    private val textArea = JBTextArea("Sending query to Gemini...")
 
     init {
       isModal = false

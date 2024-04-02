@@ -74,12 +74,12 @@ class ExplainBuildErrorFilterTest {
       """
       e: file:///Users/someone/AndroidStudioProjects/MyApplication31/app/build.gradle.kts:11:24: Expecting an element
 
-      >> Ask Studio Bot Expecting an element
+      >> Ask Gemini Expecting an element
     """
         .trimIndent()
     studioBot.isContextSharingAllowed = false
     val result = filter.applyFilter(output, output.length)!!.resultItems[0]
-    assertEquals(output.indexOf(">> Ask Stu"), result.highlightStartOffset)
+    assertEquals(output.indexOf(">> Ask Gem"), result.highlightStartOffset)
     assertEquals(output.lastIndexOf(" Expecting an"), result.highlightEndOffset)
     result.hyperlinkInfo!!.navigate(projectRule.project)
     assertEquals("Explain build error: Expecting an element", chatService.lastQuery)
@@ -94,12 +94,12 @@ class ExplainBuildErrorFilterTest {
       """
       e: file:///Users/someone/AndroidStudioProjects/MyApplication31/app/build.gradle.kts:11:24: Expecting an element
 
-      >> Ask Studio Bot Expecting an element
+      >> Ask Gemini Expecting an element
     """
         .trimIndent()
     studioBot.isContextSharingAllowed = true
     val result = filter.applyFilter(output, output.length)!!.resultItems[0]
-    assertEquals(output.indexOf(">> Ask Stu"), result.highlightStartOffset)
+    assertEquals(output.indexOf(">> Ask Gem"), result.highlightStartOffset)
     assertEquals(output.lastIndexOf(" Expecting an"), result.highlightEndOffset)
     result.hyperlinkInfo!!.navigate(projectRule.project)
     assertEquals("UserMessage(chunks=[TextChunk(text=Explain build error: Expecting an element, filesUsed=[])])", chatService.lastQuery)

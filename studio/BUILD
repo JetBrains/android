@@ -657,12 +657,12 @@ studio_plugin(
 
 studio_plugin(
     name = "com.android.tools.studiobot",
-    directory = "studio-bot",
+    directory = "gemini",
     libs = [
         "//tools/vendor/google/ml/aiplugin/core:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
-        "//tools/vendor/google/ml/aiplugin/core:studio_bot_proto",
+        "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
         "//prebuilts/tools/common/m2:commonmark-0.20.0",
     ],
     modules = {

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.TestOnly
  * [LlmService.sendQuery].
  *
  * See
- * [aiexclude Documentation](https://developer.android.com/studio/preview/studio-bot/data-and-privacy#aiexclude).
+ * [aiexclude Documentation](https://developer.android.com/studio/preview/gemini/data-and-privacy#aiexclude).
  */
 abstract class AiExcludeService {
   /**

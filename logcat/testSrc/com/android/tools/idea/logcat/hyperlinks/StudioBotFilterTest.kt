@@ -57,11 +57,11 @@ class StudioBotFilterTest {
   @Test
   fun applyFilter_detectsLink() {
     val filter = StudioBotFilter(editor)
-    val line = "before (Ask Studio Bot) after"
+    val line = "before (Ask Gemini) after"
 
     val result = filter.applyFilter(line, line.length) ?: fail()
 
-    assertThat(result.resultItems.map { it.getText(line) }).containsExactly("(Ask Studio Bot)")
+    assertThat(result.resultItems.map { it.getText(line) }).containsExactly("(Ask Gemini)")
   }
 
   @Test
@@ -120,7 +120,7 @@ class StudioBotFilterTest {
 }
 
 private fun LogcatMessage.formatMessage(): String =
-  message.toString().replace("Exception", "Exception  (Ask Studio Bot)")
+  message.toString().replace("Exception", "Exception  (Ask Gemini)")
 
 private fun ResultItem.getText(line: String) =
   line.substring(highlightStartOffset, highlightEndOffset)

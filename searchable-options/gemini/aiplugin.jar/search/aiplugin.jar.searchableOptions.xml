@@ -17,6 +17,7 @@
     <option name="document" path="ActionManager" hit="Document Code" />
     <option name="code" path="ActionManager" hit="Explain Code" />
     <option name="explain" path="ActionManager" hit="Explain Code" />
+    <option name="gemini" path="ActionManager" hit="Gemini" />
     <option name="compose" path="ActionManager" hit="Generate Compose Sample Data" />
     <option name="data" path="ActionManager" hit="Generate Compose Sample Data" />
     <option name="generate" path="ActionManager" hit="Generate Compose Sample Data" />
@@ -34,8 +35,6 @@
     <option name="the" path="ActionManager" hit="Generates a README in markdown for the selected files." />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
-    <option name="bot" path="ActionManager" hit="Studio Bot" />
-    <option name="studio" path="ActionManager" hit="Studio Bot" />
     <option name="commit" path="ActionManager" hit="Suggest Commit Message" />
     <option name="message" path="ActionManager" hit="Suggest Commit Message" />
     <option name="suggest" path="ActionManager" hit="Suggest Commit Message" />
@@ -49,7 +48,7 @@
     <option name="summarizing" path="ActionManager" hit="Suggest commit message by summarizing changes" />
     <option name="transform" path="ActionManager" hit="Transform..." />
   </configurable>
-  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
+  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Gemini">
     <option name="" hit=" Ask to decide per project" />
     <option name="ask" hit=" Ask to decide per project" />
     <option name="decide" hit=" Ask to decide per project" />
@@ -91,17 +90,15 @@
     <option name="completions" hit="Enable AI-based inline code completions" />
     <option name="enable" hit="Enable AI-based inline code completions" />
     <option name="inline" hit="Enable AI-based inline code completions" />
+    <option name="gemini" hit="Gemini" />
+    <option name="a" hit="Gemini requires a logged in Google account." />
+    <option name="account" hit="Gemini requires a logged in Google account." />
+    <option name="gemini" hit="Gemini requires a logged in Google account." />
+    <option name="google" hit="Gemini requires a logged in Google account." />
+    <option name="in" hit="Gemini requires a logged in Google account." />
+    <option name="logged" hit="Gemini requires a logged in Google account." />
+    <option name="requires" hit="Gemini requires a logged in Google account." />
     <option name="in" hit="Log in" />
     <option name="log" hit="Log in" />
-    <option name="bot" hit="Studio Bot" />
-    <option name="studio" hit="Studio Bot" />
-    <option name="a" hit="Studio Bot requires a logged in Google account." />
-    <option name="account" hit="Studio Bot requires a logged in Google account." />
-    <option name="bot" hit="Studio Bot requires a logged in Google account." />
-    <option name="google" hit="Studio Bot requires a logged in Google account." />
-    <option name="in" hit="Studio Bot requires a logged in Google account." />
-    <option name="logged" hit="Studio Bot requires a logged in Google account." />
-    <option name="requires" hit="Studio Bot requires a logged in Google account." />
-    <option name="studio" hit="Studio Bot requires a logged in Google account." />
   </configurable>
 </options>

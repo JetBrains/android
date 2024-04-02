@@ -175,7 +175,7 @@ class BuildOutputParserWrapperTest {
       val expected = """
         Detailed error message
 
-        >> Ask Studio Bot !!some error message!!
+        >> Ask Gemini !!some error message!!
       """
       assertEquals(expected.trimIndent(), event.description)
 

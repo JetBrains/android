@@ -224,7 +224,7 @@ class ExplainSyncOrBuildOutputTest {
       to this project's gradle.properties.
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
       Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
-      <a href="explain.issue">>> Ask Studio Bot</a>
+      <a href="explain.issue">>> Ask Gemini</a>
     """
             .trimIndent()
       }

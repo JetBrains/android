@@ -642,7 +642,7 @@ class MessageFormatterTest {
     assertThat(textAccumulator.text.trim())
       .isEqualTo(
         "" +
-          "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception (Ask Studio Bot)\n" +
+          "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception (Ask Gemini)\n" +
           "                                                                                                    \tat com.example(File.kt:1)"
       )
   }

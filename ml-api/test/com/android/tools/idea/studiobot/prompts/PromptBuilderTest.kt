@@ -53,9 +53,9 @@ class PromptBuilderTest : BasePlatformTestCase() {
     val prompt =
       buildPrompt(project) {
         systemMessage {
-          text("You are Studio Bot, an AI assistant for Android Studio.", emptyList())
+          text("You are Gemini, an AI assistant for Android Studio.", emptyList())
         }
-        userMessage { text("Hello Studio Bot!", emptyList()) }
+        userMessage { text("Hello Gemini!", emptyList()) }
         modelMessage { text("Hello! How are you?", emptyList()) }
         userMessage { text("I am doing well, how about you?", emptyList()) }
       }
@@ -66,13 +66,13 @@ class PromptBuilderTest : BasePlatformTestCase() {
             Prompt.SystemMessage(
               listOf(
                 Prompt.Message.TextChunk(
-                  "You are Studio Bot, an AI assistant for Android Studio.",
+                  "You are Gemini, an AI assistant for Android Studio.",
                   emptyList(),
                 )
               )
             ),
             Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("Hello Studio Bot!", emptyList()))
+              listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))
             ),
             Prompt.ModelMessage(
               listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))
@@ -250,8 +250,8 @@ class PromptBuilderTest : BasePlatformTestCase() {
   fun buildPrompt_withLastPrompt_addsToPrompt() {
     val basePrompt =
       buildPrompt(project) {
-        systemMessage { text("You are Studio Bot", emptyList()) }
-        userMessage { text("Hello Studio Bot!", emptyList()) }
+        systemMessage { text("You are Gemini", emptyList()) }
+        userMessage { text("Hello Gemini!", emptyList()) }
         modelMessage { text("Hello! How are you?", emptyList()) }
       }
     val prompt = buildPrompt(project, basePrompt) {
@@ -262,10 +262,10 @@ class PromptBuilderTest : BasePlatformTestCase() {
         PromptImpl(
           listOf(
             Prompt.SystemMessage(
-              listOf(Prompt.Message.TextChunk("You are Studio Bot", emptyList()))
+              listOf(Prompt.Message.TextChunk("You are Gemini", emptyList()))
             ),
             Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("Hello Studio Bot!", emptyList()))
+              listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))
             ),
             Prompt.ModelMessage(
               listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))

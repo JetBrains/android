@@ -46,7 +46,7 @@ private const val customViewPrompt = "Wrap any Custom Views in an AndroidView co
 private const val errorToGenerateComposeCode = "A valid compose code could not be generated."
 
 private const val contextSharingNeedsToBeEnabled =
-  "Please follow the Studio Bot onboarding and " +
+  "Please follow the Gemini onboarding and " +
     "enable context sharing if you want to use this feature."
 
 /**
