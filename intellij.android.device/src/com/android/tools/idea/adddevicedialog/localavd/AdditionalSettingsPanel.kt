@@ -16,12 +16,14 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -188,20 +190,26 @@ private fun StorageGroup(
   storageGroupState: StorageGroupState,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
-  GroupHeader("Storage")
+  GroupHeader("Storage", Modifier.padding(bottom = Padding.MEDIUM))
 
-  Row {
-    Text("Internal storage")
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    Text("Internal storage", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
     StorageCapacityField(
       device.internalStorage,
       onValueChange = { onDeviceChange(device.copy(internalStorage = it)) },
+      Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
     )
+
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
   }
 
-  Row { Text("Expanded storage") }
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
+    InfoOutlineIcon()
+  }
 
-  Row {
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
     RadioButtonRow(
       RadioButton.CUSTOM,
       storageGroupState.selectedRadioButton,
@@ -211,7 +219,7 @@ private fun StorageGroup(
         val custom = storageGroupState.custom.withMaxUnit()
         onDeviceChange(device.copy(expandedStorage = Custom(custom)))
       },
-      Modifier.testTag("CustomRadioButton"),
+      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
     )
 
     StorageCapacityField(
@@ -220,11 +228,12 @@ private fun StorageGroup(
         storageGroupState.custom = it
         onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
       },
+      Modifier.alignByBaseline(),
       storageGroupState.selectedRadioButton == RadioButton.CUSTOM,
     )
   }
 
-  Row {
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
     val existingImageFieldState = storageGroupState.existingImageFieldState
     val fileSystem = LocalFileSystem.current
 
@@ -239,7 +248,7 @@ private fun StorageGroup(
           onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
         }
       },
-      Modifier.testTag("ExistingImageRadioButton"),
+      Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
     )
 
     ExistingImageField(
@@ -255,6 +264,7 @@ private fun StorageGroup(
 
         // TODO Else image is not valid. Disable the Add button.
       },
+      Modifier.alignByBaseline(),
     )
   }
 
@@ -265,6 +275,7 @@ private fun StorageGroup(
       storageGroupState.selectedRadioButton = RadioButton.NONE
       onDeviceChange(device.copy(expandedStorage = None))
     },
+    Modifier.padding(bottom = Padding.LARGE),
   )
 }
 
@@ -283,41 +294,44 @@ private fun ExistingImageField(
   state: ExistingImageFieldState,
   enabled: Boolean,
   onStateChange: (ExistingImageFieldState) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  if (enabled && !state.valid) {
-    Text("The specified image must be a valid file")
+  Column(modifier) {
+    if (enabled && !state.valid) {
+      Text("The specified image must be a valid file")
+    }
+
+    val fileSystem = LocalFileSystem.current
+    @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
+    val project = LocalProject.current
+
+    TextField(
+      state.value,
+      onValueChange = {
+        onStateChange(ExistingImageFieldState(it, Files.isRegularFile(fileSystem.getPath(it))))
+      },
+      Modifier.testTag("ExistingImageField"),
+      enabled,
+      trailingIcon = {
+        Icon(
+          "general/openDisk.svg",
+          null,
+          AllIcons::class.java,
+          Modifier.clickable(
+              enabled,
+              onClick = {
+                val image = chooseFile(component, project)
+
+                if (image != null) {
+                  onStateChange(ExistingImageFieldState(image.toString(), true))
+                }
+              },
+            )
+            .pointerHoverIcon(PointerIcon.Default),
+        )
+      },
+    )
   }
-
-  val fileSystem = LocalFileSystem.current
-  @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
-  val project = LocalProject.current
-
-  TextField(
-    state.value,
-    onValueChange = {
-      onStateChange(ExistingImageFieldState(it, Files.isRegularFile(fileSystem.getPath(it))))
-    },
-    Modifier.testTag("ExistingImageField"),
-    enabled,
-    trailingIcon = {
-      Icon(
-        "general/openDisk.svg",
-        null,
-        AllIcons::class.java,
-        Modifier.clickable(
-            enabled,
-            onClick = {
-              val image = chooseFile(component, project)
-
-              if (image != null) {
-                onStateChange(ExistingImageFieldState(image.toString(), true))
-              }
-            },
-          )
-          .pointerHoverIcon(PointerIcon.Default),
-      )
-    },
-  )
 }
 
 private fun chooseFile(parent: Component, project: Project?): Path? {

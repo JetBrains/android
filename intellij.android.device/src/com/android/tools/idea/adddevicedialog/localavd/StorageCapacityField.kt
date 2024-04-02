@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -25,27 +27,30 @@ import org.jetbrains.jewel.ui.component.TextField
 internal fun StorageCapacityField(
   value: StorageCapacity,
   onValueChange: (StorageCapacity) -> Unit,
+  modifier: Modifier = Modifier,
   enabled: Boolean = true,
 ) {
-  TextField(
-    value.value.toString(),
-    {
-      if (STORAGE_CAPACITY_VALUE_REGEX.matches(it)) {
-        try {
-          onValueChange(StorageCapacity(it.toLong(), value.unit))
-        } catch (_: NumberFormatException) {}
-      }
-    },
-    Modifier.testTag("StorageCapacityFieldTextField"),
-    enabled,
-  )
+  Row(modifier) {
+    TextField(
+      value.value.toString(),
+      {
+        if (STORAGE_CAPACITY_VALUE_REGEX.matches(it)) {
+          try {
+            onValueChange(StorageCapacity(it.toLong(), value.unit))
+          } catch (_: NumberFormatException) {}
+        }
+      },
+      Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
+      enabled,
+    )
 
-  Dropdown(
-    value.unit,
-    UNITS,
-    onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) },
-    enabled = enabled,
-  )
+    Dropdown(
+      value.unit,
+      UNITS,
+      onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) },
+      enabled = enabled,
+    )
+  }
 }
 
 private val STORAGE_CAPACITY_VALUE_REGEX = Regex("\\d+")
