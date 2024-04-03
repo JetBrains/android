@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.RenderQualityPolicy
-import com.android.tools.idea.preview.getDefaultPreviewQuality
 
 /**
- * Implementation of [RenderQualityPolicy] specific for Compose Preview. A
- * [screenScalingFactorProvider] is needed for the [scaleVisibilityThreshold] to work correctly.
- * Also note that it needs to be a provider and not a fixed value for the policy to properly work
- * and get dynamically adjusted when the user has different screens with different scale factors.
+ * Default implementation of [RenderQualityPolicy] . A [screenScalingFactorProvider] is needed for
+ * the [scaleVisibilityThreshold] to work correctly. Also note that it needs to be a provider and
+ * not a fixed value for the policy to properly work and get dynamically adjusted when the user has
+ * different screens with different scale factors.
  */
-class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) :
+class DefaultRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) :
   RenderQualityPolicy {
   companion object {
     /** When the scale is lower than this value, then all previews are treated as not visible. */
@@ -44,8 +42,6 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
    * This is expected to be used for considering the lifecycle of the components where this policy
    * is used, to make sure that deactivated previews, that could be reactivated later, get
    * temporarily rendered in low quality.
-   *
-   * See [ComposePreviewRepresentation.onDeactivate] and [ComposePreviewRepresentation.onActivate]
    */
   private var active: Boolean = true
   override val acceptedErrorMargin = .05f // 5% error margin
@@ -59,11 +55,11 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
     return scale.toFloat().coerceAtMost(getDefaultPreviewQuality()).coerceAtLeast(lowestQuality)
   }
 
-  internal fun activate() {
+  fun activate() {
     active = true
   }
 
-  internal fun deactivate() {
+  fun deactivate() {
     active = false
   }
 }

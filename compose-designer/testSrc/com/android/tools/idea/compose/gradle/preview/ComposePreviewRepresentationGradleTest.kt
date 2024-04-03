@@ -24,7 +24,6 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
-import com.android.tools.idea.compose.preview.ComposePreviewRenderQualityPolicy
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -37,6 +36,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
@@ -538,12 +538,12 @@ class ComposePreviewRepresentationGradleTest {
       // Now zoom out a lot to go below the threshold (quality change refresh should happen)
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
         previewView.mainSurface.zoomController.setScale(
-          ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold / 2.0
+          DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0
         )
       }
       withContext(uiThread) { fakeUi.root.validate() }
       assertEquals(
-        ComposePreviewRenderQualityPolicy.lowestQuality,
+        DefaultRenderQualityPolicy.lowestQuality,
         (fakeUi
             .findAllComponents<SceneViewPeerPanel>()
             .first { it.displayName == firstPreview!!.displayName }
@@ -555,12 +555,12 @@ class ComposePreviewRepresentationGradleTest {
       // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
         previewView.mainSurface.zoomController.setScale(
-          ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2.0
+          DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0
         )
       }
       withContext(uiThread) { fakeUi.root.validate() }
       assertEquals(
-        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2,
+        DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2,
         (fakeUi
             .findAllComponents<SceneViewPeerPanel>()
             .first { it.displayName == firstPreview!!.displayName }
@@ -602,7 +602,7 @@ class ComposePreviewRepresentationGradleTest {
       }
       withContext(uiThread) { fakeUi.root.validate() }
       assertEquals(
-        ComposePreviewRenderQualityPolicy.lowestQuality,
+        DefaultRenderQualityPolicy.lowestQuality,
         (fakeUi
             .findAllComponents<SceneViewPeerPanel>()
             .first { it.displayName == firstPreview!!.displayName }

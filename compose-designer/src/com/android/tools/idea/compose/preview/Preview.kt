@@ -54,6 +54,7 @@ import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
+import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewRefreshManager
@@ -686,7 +687,7 @@ class ComposePreviewRepresentation(
     get() = composeWorkBench.mainSurface
 
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
-  private val qualityPolicy = ComposePreviewRenderQualityPolicy {
+  private val qualityPolicy = DefaultRenderQualityPolicy {
     surface.zoomController.screenScalingFactor
   }
   private val qualityManager: RenderQualityManager =
