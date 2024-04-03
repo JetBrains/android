@@ -173,7 +173,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   // Gradle
   override fun updateToLatestStable(module: Module, externalModule: ExternalModule) {
     // Based on UpgradeConstraintLayoutFix
-    StudioSdkUtil.reloadRemoteSdkWithModalProgress()
+    StudioSdkUtil.reloadRemoteSdk(true)
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
     val path =

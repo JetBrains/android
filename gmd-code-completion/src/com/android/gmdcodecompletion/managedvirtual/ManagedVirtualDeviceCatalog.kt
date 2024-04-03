@@ -64,7 +64,7 @@ class ManagedVirtualDeviceCatalog : GmdDeviceCatalog() {
     val iLogger = LogWrapper(LOGGER)
     try {
       // Sync with server to obtain latest SDK list
-      StudioSdkUtil.reloadRemoteSdkWithModalProgress()
+      StudioSdkUtil.reloadRemoteSdk(false)
       val progress: LoggerProgressIndicatorWrapper = object : LoggerProgressIndicatorWrapper(iLogger) {
         override fun logVerbose(s: String) = iLogger.verbose(s)
       }
