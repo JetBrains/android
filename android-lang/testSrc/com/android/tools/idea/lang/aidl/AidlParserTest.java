@@ -28,29 +28,9 @@ import kotlin.io.FilesKt;
  * Tests for Aidl.bnf.
  */
 public class AidlParserTest extends ParsingTestCase {
-  // If set to true, on test failures the test will rewrite the expected
-  // text files in place; this makes it more convenient to update the
-  // ~20 golden files after making a structural change to the grammar
-  // or generated PSI elements.
-  private static final boolean UPDATE_EXPECTED_FILES_IN_PLACE = false;
-
   public AidlParserTest() {
     super("lang/aidl/parser",
           AidlFileType.DEFAULT_ASSOCIATED_EXTENSION, new AidlParserDefinition());
-  }
-
-  protected void doTest(boolean checkResult, boolean ensureNoErrorElements) {
-    try {
-      super.doTest(checkResult, ensureNoErrorElements);
-    } catch (FileComparisonFailure e) {
-      if (UPDATE_EXPECTED_FILES_IN_PLACE) {
-        File file = new File(myFullDataPath, getTestName() + DOT_TXT);
-        assertTrue(file.getPath(), file.isFile());
-        String expected = toParseTreeText(myFile, skipSpaces(), includeRanges()).trim();
-        FilesKt.writeText(file, expected, Charsets.UTF_8);
-      }
-      throw e;
-    }
   }
 
   @Override
