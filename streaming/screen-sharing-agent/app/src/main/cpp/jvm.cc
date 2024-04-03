@@ -175,6 +175,7 @@ void JObject::IllegalGlobalReferenceUse() {
 jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetStaticFieldID(ref(), name, signature);
   if (field == nullptr) {
+    GetJni()->ExceptionClear();
     Log::Fatal(FIELD_NOT_FOUND, "Unable to find the static %s.%s field with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return field;
@@ -183,6 +184,7 @@ jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char*
 jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetFieldID(ref(), name, signature);
   if (field == nullptr) {
+    GetJni()->ExceptionClear();
     Log::Fatal(FIELD_NOT_FOUND, "Unable to find the %s.%s field with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return field;
@@ -191,6 +193,7 @@ jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
+    GetJni()->ExceptionClear();
     Log::Fatal(METHOD_NOT_FOUND, "Unable to find the static %s.%s method with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return method;
@@ -199,6 +202,7 @@ jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char*
 jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetMethodID(ref(), name, signature);
   if (method == nullptr) {
+    GetJni()->ExceptionClear();
     Log::Fatal(METHOD_NOT_FOUND, "Unable to find the %s.%s method with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return method;
@@ -207,6 +211,7 @@ jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetConstructor(JNIEnv* jni_env, const char* signature) const {
   auto constructor = jni_env->GetMethodID(ref(), "<init>", signature);
   if (constructor == nullptr) {
+    GetJni()->ExceptionClear();
     Log::Fatal(CONSTRUCTOR_NOT_FOUND, "Unable to find the %s constructor with signature \"%s\"", GetName(jni_env).c_str(), signature);
   }
   return constructor;
