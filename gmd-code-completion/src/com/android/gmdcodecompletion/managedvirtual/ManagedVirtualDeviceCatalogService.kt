@@ -46,18 +46,16 @@ class ManagedVirtualDeviceCatalogService
       ApplicationManager.getApplication().getService(ManagedVirtualDeviceCatalogService::class.java)!!
   }
 
-  override var myDeviceCatalogState: ManagedVirtualDeviceCatalogState = ManagedVirtualDeviceCatalogState()
-
   override fun updateDeviceCatalogTaskAction(project: Project, indicator: ProgressIndicator) {
     indicator.isIndeterminate = false
     indicator.fraction = 0.0
 
     myLock.withLock {
       indicator.text = "Checking cache freshness"
-      if (myDeviceCatalogState.isCacheFresh()) return
+      if (this.state.isCacheFresh()) return
       val calendar = Calendar.getInstance() // Specify the number of days that device catalog should be updated
       calendar.add(Calendar.DATE, MANAGED_VIRTUAL_DEVICE_CATALOG_UPDATE_FREQUENCY)
-      myDeviceCatalogState = ManagedVirtualDeviceCatalogState(calendar.time, ManagedVirtualDeviceCatalog().syncDeviceCatalog())
+      this.state = ManagedVirtualDeviceCatalogState(calendar.time, ManagedVirtualDeviceCatalog().syncDeviceCatalog())
     }
     indicator.text = "Cache updated"
     indicator.fraction = 1.0

@@ -46,8 +46,6 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
     fun getInstance(): FtlDeviceCatalogService = ApplicationManager.getApplication().getService(FtlDeviceCatalogService::class.java)!!
   }
 
-  override var myDeviceCatalogState: FtlDeviceCatalogState = FtlDeviceCatalogState()
-
   /**
    * Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction
    */
@@ -60,11 +58,11 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
 
     myLock.withLock {
       indicator.text = "Checking cache freshness"
-      if (myDeviceCatalogState.isCacheFresh()) return
+      if (this.state.isCacheFresh()) return
       indicator.text = "Fetching device catalog from FTL Server"
       val calendar = Calendar.getInstance() // Specify the number of days that device catalog should be updated
       calendar.add(Calendar.DATE, FTL_DEVICE_CATALOG_UPDATE_FREQUENCY)
-      myDeviceCatalogState = FtlDeviceCatalogState(calendar.time, FtlDeviceCatalog().syncDeviceCatalog())
+      this.state = FtlDeviceCatalogState(calendar.time, FtlDeviceCatalog().syncDeviceCatalog())
     }
 
     indicator.text = "FTL device catalog cache updated"
