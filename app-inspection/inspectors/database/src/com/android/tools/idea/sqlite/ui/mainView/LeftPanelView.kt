@@ -22,7 +22,6 @@ import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -72,6 +71,7 @@ private val LIVE_DB_FORCED_ICON = StudioIcons.DeviceExplorer.DATABASE_FOLDER
 private val FILE_DB_ICON = StudioIcons.DatabaseInspector.DATABASE_OFFLINE
 
 class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
+  private var isForceOpen = false
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
@@ -105,7 +105,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     } else {
       keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE
     }
-
     keepConnectionsOpenButton.disabledIcon =
       IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
   }
@@ -145,7 +144,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     refreshSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true
-    keepConnectionsOpenButton.isEnabled = hasLiveDatabases()
+    keepConnectionsOpenButton.isEnabled = hasLiveDatabases() && !isForceOpen
   }
 
   // TODO(b/149920358) handle error by recreating the view.
@@ -467,6 +466,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     refreshSchemaButton.isEnabled = state
   }
 
+  fun setForceOpen(forceOpen: Boolean) {
+    this.isForceOpen = forceOpen
+  }
+
   private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
     private val colorTextAttributes =
       SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
@@ -535,5 +538,3 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
   }
 }
-
-private fun SqliteDatabaseId.isForced() = this is LiveSqliteDatabaseId && isForced

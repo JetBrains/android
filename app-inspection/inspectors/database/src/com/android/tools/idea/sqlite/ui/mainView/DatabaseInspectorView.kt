@@ -78,6 +78,8 @@ interface DatabaseInspectorView {
    */
   fun showOfflineModeUnavailablePanel()
 
+  fun setForceOpen(forceOpen: Boolean)
+
   interface Listener {
     /** Called when the user wants to open a table */
     fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)

@@ -197,6 +197,10 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     addEmptyStatePanel("Offline mode unavailable.", offlineModeHelpUrl)
   }
 
+  override fun setForceOpen(forceOpen: Boolean) {
+    leftPanelView.setForceOpen(forceOpen)
+  }
+
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
     leftPanelView.updateKeepConnectionOpenButton(keepOpen)
   }

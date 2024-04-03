@@ -299,6 +299,7 @@ class DatabaseInspectorControllerImpl(
     this.appInspectionIdeServices = appInspectionIdeServices
     this.processDescriptor = processDescriptor
     this.appPackageName = appPackageName
+    view.setForceOpen(DatabaseInspectorSettings.getInstance().isForceOpen)
   }
 
   // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
@@ -363,7 +364,7 @@ class DatabaseInspectorControllerImpl(
                   it.filesDownloaded.forEach { databaseFileData ->
                     totalSizeDownloaded +=
                       databaseFileData.mainFile.length +
-                        databaseFileData.walFiles.map { file -> file.length }.sum()
+                        databaseFileData.walFiles.sumOf { file -> file.length }
 
                     // we open dbs only after all downloads are completed because if the user opens
                     // a tab before all downloads are done,
@@ -406,6 +407,7 @@ class DatabaseInspectorControllerImpl(
       resultSetControllers.values.forEach { it.notifyDataMightBeStale() }
     }
 
+  @Suppress("UnstableApiUsage")
   override fun dispose(): Unit = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
     model.removeListener(modelListener)
@@ -527,7 +529,7 @@ class DatabaseInspectorControllerImpl(
       if (newTable == null) {
         diffOperations.add(RemoveTable(oldTable.name))
       } else {
-        val columnsToRemove = oldTable.columns - newTable.columns
+        val columnsToRemove = oldTable.columns - newTable.columns.toSet()
         if (columnsToRemove.isNotEmpty()) {
           diffOperations.add(RemoveColumns(oldTable.name, columnsToRemove, newTable))
         }
@@ -606,7 +608,7 @@ class DatabaseInspectorControllerImpl(
         edtExecutor,
         taskExecutor,
       )
-    Disposer.register(project, sqliteEvaluatorController)
+    Disposer.register(this, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp(evaluationParams)
 
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
@@ -644,7 +646,7 @@ class DatabaseInspectorControllerImpl(
         edtExecutor = edtExecutor,
         taskExecutor = taskExecutor,
       )
-    Disposer.register(project, tableController)
+    Disposer.register(this, tableController)
     resultSetControllers[tabId] = tableController
 
     tableController
@@ -729,7 +731,7 @@ class DatabaseInspectorControllerImpl(
       )
     controller.setUp()
     controller.showView()
-    Disposer.register(project, controller)
+    Disposer.register(this, controller)
   }
 
   private fun downloadDatabase(
@@ -825,7 +827,7 @@ interface DatabaseInspectorController : Disposable {
   /**
    * Updates schema of all open databases and notifies each tab that its data might be stale.
    *
-   * This method is called when a `DatabasePossiblyChanged` event is received from the the on-device
+   * This method is called when a `DatabasePossiblyChanged` event is received from the on-device
    * inspector which tells us that the data in a database might have changed (schema, tables or
    * both).
    */
