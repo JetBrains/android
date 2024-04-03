@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultL
 import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -75,9 +76,11 @@ public class AndroidProjectRootListener implements Disposable.Default {
    * @param project the project whose module roots changed
    */
   private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
-    if (!project.isDisposed()) {
-      new MyDumbModeTask(project).queue(project);
-    }
+    ReadAction.run(() -> {
+      if (!project.isDisposed()) {
+        new MyDumbModeTask(project).queue(project);
+      }
+    });
   }
 
   /**
