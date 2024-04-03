@@ -2239,7 +2239,7 @@ private fun <T> openPreparedProject(
               save()
             }
           }
-          project.messageBus.connect(disposable).let {
+          project.messageBus.connect(project).let {
             options.subscribe(it)
 
             if (options.reportProjectSizeUsage) {
@@ -2253,7 +2253,7 @@ private fun <T> openPreparedProject(
           if (outputHandler != null || syncExceptionHandler != null) {
             injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
           }
-          fixDummySyncViewManager(project, disposable, options.syncViewEventHandler)
+          fixDummySyncViewManager(project, project, options.syncViewEventHandler)
         }
 
         // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
