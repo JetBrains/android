@@ -50,26 +50,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createFile
 
-private fun Throwable?.isCompilationError(): Boolean =
-  this is LiveEditUpdateException
-  && when (error) {
-    LiveEditUpdateException.Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
-    LiveEditUpdateException.Error.COMPILATION_ERROR -> true
-    LiveEditUpdateException.Error.UNABLE_TO_INLINE,
-    LiveEditUpdateException.Error.NON_KOTLIN,
-    LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION,
-    LiveEditUpdateException.Error.INTERNAL_ERROR,
-    LiveEditUpdateException.Error.INTERNAL_ERROR_NO_BINDING_CONTEXT,
-    LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
-    LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_RECOVERABLE,
-    LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
-    LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
-    LiveEditUpdateException.Error.UNABLE_TO_DESUGAR,
-    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR,
-    LiveEditUpdateException.Error.BAD_MIN_API,
-    LiveEditUpdateException.Error.KNOWN_ISSUE -> false
-  }
+private fun Throwable?.isCompilationError(): Boolean = this is LiveEditUpdateException && this.isCompilationError()
 
 /**
  * [Throwable] used by the [EmbeddedCompilerClientImpl] during a compilation when the embedded plugin is not being used. This signals

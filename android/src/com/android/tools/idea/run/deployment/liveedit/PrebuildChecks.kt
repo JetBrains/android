@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
@@ -83,8 +84,7 @@ internal fun checkJetpackCompose(project: Project) {
 
 internal fun checkKotlinPluginBundled() {
   if (!isKotlinPluginBundled()) {
-    throw compilationError(
-      "Live Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.", null, null)
+    throw kotlinEap()
   }
 }
 
