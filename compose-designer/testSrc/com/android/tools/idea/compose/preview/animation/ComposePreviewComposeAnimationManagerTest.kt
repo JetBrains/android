@@ -30,8 +30,8 @@ import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
-import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.rendering.classloading.NopClassLocator
+import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
@@ -91,17 +91,17 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
     createAndOpenInspector()
 
     val animation = createComposeAnimation()
-    assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animation).join()
-    assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
 
     val otherAnimation = createComposeAnimation()
     ComposePreviewAnimationManager.onAnimationUnsubscribed(otherAnimation).join()
-    assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
 
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation).join()
-    assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
   }
 
   @Test
@@ -110,10 +110,10 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), createComposeAnimation())
       .join()
-    assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
 
     ComposePreviewAnimationManager.closeCurrentInspector()
-    assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
   }
 
   @Test
@@ -668,12 +668,12 @@ class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType
       previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
     val animation = createComposeAnimation()
     notifySubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertFalse(ComposePreviewAnimationManager.hasNoAnimationsForTests())
 
     val notifyUnsubscribe =
       previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
     notifyUnsubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
+    assertTrue(ComposePreviewAnimationManager.hasNoAnimationsForTests())
   }
 
   @Test

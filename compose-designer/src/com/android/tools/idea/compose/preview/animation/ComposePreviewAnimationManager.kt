@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
+import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.surface.DesignSurface
@@ -23,7 +24,6 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -51,9 +51,8 @@ object ComposePreviewAnimationManager {
   internal var currentInspector: ComposeAnimationPreview? = null
     private set
 
-  @get:VisibleForTesting
   @GuardedBy("subscribedAnimationsLock")
-  val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
   private val subscribedAnimationsLock = Any()
 
   private var newInspectorOpenedCallback: (() -> Unit)? = null
@@ -149,6 +148,8 @@ object ComposePreviewAnimationManager {
     }
     return CompletableDeferred(Unit)
   }
+
+  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
 
   /** Whether the animation inspector is open. */
   fun isInspectorOpen() = currentInspector != null
