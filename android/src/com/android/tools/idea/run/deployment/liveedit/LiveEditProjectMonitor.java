@@ -268,30 +268,6 @@ public class LiveEditProjectMonitor implements Disposable {
     return info == null ? LiveEditStatus.Disabled.INSTANCE : info.getStatus();
   }
 
-  // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
-  public void onPsiChanged(EditEvent event) {
-    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
-      return;
-    }
-
-    if (StringUtil.isEmpty(applicationId)) {
-      return;
-    }
-
-    if (liveEditDevices.isUnrecoverable() || liveEditDevices.isDisabled()) {
-      return;
-    }
-
-    if (isGradleSyncNeeded()) {
-      updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
-      return;
-    }
-
-    changedMethodQueue.add(event);
-    mainThreadExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
-                                TimeUnit.MILLISECONDS);
-  }
-
   private void processQueuedChanges() {
     if (changedMethodQueue.isEmpty()) {
       return;
@@ -442,7 +418,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    mainThreadExecutor.schedule(() -> {
+    mainThreadExecutor.submit(() -> {
       PsiFile psiFile = ReadAction.compute(() -> getPsiInProject(file));
       if (psiFile == null) {
         return;
@@ -455,7 +431,7 @@ public class LiveEditProjectMonitor implements Disposable {
         return;
       }
       processQueuedChanges();
-    }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+    });
   }
 
   @RequiresReadLock
@@ -541,6 +517,14 @@ public class LiveEditProjectMonitor implements Disposable {
   @VisibleForTesting
   boolean processChangesForTest(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) throws Exception {
     return mainThreadExecutor.submit(() -> processChanges(project, changes, mode)).get();
+  }
+
+  // Waits for the LE main thread to complete all previously scheduled work. Not perfectly reliable due to retry logic, and the
+  // existence of both this and processChangesForTest strongly imply a need to refactor our threading to make it testable, but that's not
+  // a high priority right now.
+  @VisibleForTesting
+  void waitForThreadInTest(long timeoutMillis) throws Exception {
+    mainThreadExecutor.submit(() -> {}).get(timeoutMillis, TimeUnit.MILLISECONDS);
   }
 
   @Trace

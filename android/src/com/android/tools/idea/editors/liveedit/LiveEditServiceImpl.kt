@@ -33,7 +33,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup.Companion.getExecutorSetting
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -103,10 +102,6 @@ class LiveEditServiceImpl(val project: Project,
     LiveEditIssueNotificationAction.registerProject(project, adapter)
     Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
     registerWithRunningDevices(project, adapter)
-
-    // TODO: Deactivate this when not needed.
-    val listener = PsiListener(this::onPsiChanged)
-    PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
 
     deployMonitor = LiveEditProjectMonitor(this, project, DefaultApkClassProvider());
 
@@ -236,15 +231,6 @@ class LiveEditServiceImpl(val project: Project,
     else if (newMode == LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
       deployMonitor.onManualLETrigger()
     }
-  }
-
-  @com.android.annotations.Trace
-  private fun onPsiChanged(event: EditEvent) {
-    // Disable PSI event detection if the class differ path is enabled.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-      return
-    }
-    executor.execute { deployMonitor.onPsiChanged(event) }
   }
 
   override fun dispose() {

@@ -154,13 +154,11 @@ class LiveEditProjectMonitorTest {
 
     var foo = findFunction(file, "foo")
     monitor.processChangesForTest(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file, foo))
 
     var file2 = projectRule.fixture.configureByText("B.kt", "fun foo2() {}")
     monitor.updatePsiSnapshot(file2.virtualFile)
     var foo2 = findFunction(file2, "foo2")
     monitor.processChangesForTest(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file2, foo2))
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
