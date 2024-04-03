@@ -61,6 +61,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected val animationPreviewPanel =
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
   val component = TooltipLayeredPane(animationPreviewPanel)
+
   /**
    * Tabs panel where each tab represents a single animation being inspected. First tab is a
    * coordination tab. All tabs share the same [Timeline], but have their own playback toolbar and
@@ -80,6 +81,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   @VisibleForTesting
   var animations: List<T> = emptyList()
     private set
+
   /** Holds the currently selected animation (for focused inspection on a single tab).* */
   protected var selectedAnimation: SupportedAnimationManager? = null
     private set
@@ -104,6 +106,7 @@ abstract class AnimationPreview<T : AnimationManager>(
       }
     }
   }
+
   /**
    * Set clock time, driving the animation's state.
    *

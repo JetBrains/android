@@ -199,6 +199,7 @@ class PlaybackControls(
       }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
       e.presentation.isEnabled = true
