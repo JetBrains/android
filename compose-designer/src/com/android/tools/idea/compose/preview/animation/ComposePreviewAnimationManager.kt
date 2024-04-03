@@ -94,7 +94,7 @@ object ComposePreviewAnimationManager {
     }
     currentInspector = null
     newInspectorOpenedCallback = null
-    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
+    removeAllAnimations()
   }
 
   /**
@@ -147,6 +147,11 @@ object ComposePreviewAnimationManager {
       return currentInspector?.removeAnimation(animation) ?: CompletableDeferred(Unit)
     }
     return CompletableDeferred(Unit)
+  }
+
+  /** Removes all the subscribed animations. */
+  private fun removeAllAnimations() {
+    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
   }
 
   @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
