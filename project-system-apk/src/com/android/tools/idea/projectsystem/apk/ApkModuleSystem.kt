@@ -80,4 +80,7 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus = CapabilityNotSupported()
 
   override fun getManifestOverrides(): ManifestOverrides = ManifestOverrides()
+
+  override val isDebuggable: Boolean
+    get() = delegate.isDebuggable
 }
