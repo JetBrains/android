@@ -47,6 +47,7 @@ class WearTileViewControlActionTest {
       override var hasErrorsAndNeedsBuild: Boolean = true
       override var hasSyntaxErrors: Boolean = true
       override var isOutOfDate: Boolean = true
+      override val areResourcesOutOfDate: Boolean = true
       override var previewedFile: PsiFile? = null
     }
 

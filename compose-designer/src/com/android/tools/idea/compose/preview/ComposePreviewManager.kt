@@ -48,7 +48,7 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
     override val hasErrorsAndNeedsBuild: Boolean,
     override val hasSyntaxErrors: Boolean,
     override val isOutOfDate: Boolean,
-    val areResourcesOutOfDate: Boolean,
+    override val areResourcesOutOfDate: Boolean,
     override val isRefreshing: Boolean,
     override val previewedFile: PsiFile?,
   ) : PreviewViewModelStatus {

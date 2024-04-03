@@ -181,6 +181,10 @@ open class CommonPreviewViewModel(
   override val isOutOfDate: Boolean
     get() = projectBuildStatusManager.status is ProjectStatus.OutOfDate
 
+  override val areResourcesOutOfDate: Boolean
+    get() =
+      (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate == true
+
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 }
