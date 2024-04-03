@@ -63,7 +63,7 @@ int32_t RoundToOneTwoFiveScale(double x) {
       f < 5 * SQRT_2 ?
         5 :
         10;
-  return n * round<int32_t>(u);
+  return n * round<int32_t>(u); // NOLINT(*-narrowing-conversions)
 }
 
 AMediaFormat* CreateMediaFormat(const string& mime_type) {
@@ -270,7 +270,7 @@ void DisplayStreamer::Run() {
       packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
       packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
       packet_header.flags =
-          ((display_info.flags & DisplayInfo::FLAG_ROUND) ? VideoPacketHeader::FLAG_DISPLAY_ROUND : 0) |
+          ((display_info.flags & DisplayInfo::FLAG_ROUND) ? VideoPacketHeader::FLAG_DISPLAY_ROUND : 0) | // NOLINT(*-narrowing-conversions)
           (bit_rate_reduced_ ? VideoPacketHeader::FLAG_BIT_RATE_REDUCED : 0);
       packet_header.bit_rate = bit_rate_;
     }
@@ -293,7 +293,7 @@ void DisplayStreamer::Run() {
   }
 }
 
-bool DisplayStreamer::ProcessFramesUntilCodecStopped( VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
+bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
   bool continue_streaming = true;
   bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
@@ -468,7 +468,7 @@ bool DisplayStreamer::ReduceBitRate() {
     return false;
   }
   StopCodec();
-  bit_rate_ = RoundToOneTwoFiveScale(bit_rate_ / 2);
+  bit_rate_ = RoundToOneTwoFiveScale(bit_rate_ / 2); // NOLINT(*-integer-division)
   bit_rate_reduced_ = true;
   Log::I("Display %d: bit rate reduced to %d", display_id_, bit_rate_);
   return true;

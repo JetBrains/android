@@ -72,10 +72,10 @@ public:
   // Sets the maximum resolution of the display video stream.
   void SetMaxVideoResolution(Size max_video_resolution);
   // Returns the cached version of DisplayInfo.
-  DisplayInfo GetDisplayInfo();
+  [[nodiscard]] DisplayInfo GetDisplayInfo();
 
-  const CodecInfo* codec_info() const { return codec_info_; }
-  int32_t bit_rate() const { return bit_rate_; }
+  [[nodiscard]] const CodecInfo* codec_info() const { return codec_info_; }
+  [[nodiscard]] int32_t bit_rate() const { return bit_rate_; }
 
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
