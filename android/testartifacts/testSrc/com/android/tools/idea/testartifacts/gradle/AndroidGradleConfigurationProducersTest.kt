@@ -40,7 +40,7 @@ import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -109,7 +109,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_RESOURCES)
 
     // Create the Run configuration.
-    val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
+    val listener = object : ExternalSystemTaskNotificationListener {
       var messagesLog = StringBuilder()
       var finalMessage = ""
 
@@ -237,7 +237,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       project.basePath!!,
       GradleManager().executionSettingsProvider.`fun`(Pair.create(project, project.basePath)),
       null,
-      object : ExternalSystemTaskNotificationListenerAdapter() {}
+      ExternalSystemTaskNotificationListener.NULL_OBJECT
     )
 
     // Check that the JavaCoverageEngine won't require project rebuild.
