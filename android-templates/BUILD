@@ -281,6 +281,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-jdk8_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-reactive_1.7.3",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-slf4j_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-bom_1.6.0",

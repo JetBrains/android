@@ -3,29 +3,25 @@ package template.test.pkg
 /**
  * A sealed hierarchy describing the state of the text generation.
  */
-sealed interface SummarizeUiState {
+sealed interface UiState {
 
     /**
      * Empty state when the screen is first shown
      */
-    object Initial : SummarizeUiState
+    object Initial : UiState
 
     /**
      * Still loading
      */
-    object Loading : SummarizeUiState
+    object Loading : UiState
 
     /**
      * Text has been generated
      */
-    data class Success(
-        val outputText: String
-    ) : SummarizeUiState
+    data class Success(val outputText: String) : UiState
 
     /**
      * There was an error generating text
      */
-    data class Error(
-        val errorMessage: String
-    ) : SummarizeUiState
+    data class Error(val errorMessage: String) : UiState
 }
