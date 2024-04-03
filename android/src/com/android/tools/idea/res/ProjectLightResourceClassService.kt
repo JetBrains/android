@@ -152,7 +152,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
           invalidationScheduled = true // should already be on the EDT, no atomics required
           ApplicationManager.getApplication().invokeLater {
             invalidationScheduled = false
-            if (project.isDisposed) return@invokeLater
+            if (project.isDisposed || aarClassesCache.size() == 0L) return@invokeLater
             // TODO? can actually extract affected libraries from the event for more granularity.
             //   It's easier to do by listening on `LibraryInfoListener.TOPIC` instead, which is
             //   emitted when LibraryInfoCache is partially invalidated, and contains a list of
