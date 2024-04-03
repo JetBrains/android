@@ -25,6 +25,9 @@ import kotlin.math.min
 import kotlin.math.sqrt
 import org.jetbrains.annotations.ApiStatus
 
+/** The minumum height x width what should be available for the preview. */
+private const val minumumPreviewSpacePx = 100 * 100
+
 /**
  * Experimental grid layout. All previews are organized in groups.
  *
@@ -115,7 +118,7 @@ class GridLayoutManager(
 
     var maxNumberOfPreviews =
       (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding) /
-        (100 * 30 + 150 * 150)
+        minumumPreviewSpacePx
 
     maxNumberOfPreviews = min(maxNumberOfPreviews, content.size)
 

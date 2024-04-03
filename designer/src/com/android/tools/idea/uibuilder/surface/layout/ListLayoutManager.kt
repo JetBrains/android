@@ -24,6 +24,9 @@ import kotlin.math.max
 import kotlin.math.min
 import org.jetbrains.annotations.ApiStatus
 
+/** The minumum height what should be available for the preview. */
+private const val minumumPreviewHeightPx = 65
+
 /**
  * Experimental list layout. All previews are organized in groups.
  *
@@ -46,7 +49,7 @@ class ListLayoutManager(
       return 1.0
     }
     // Use binary search to find the proper zoom-to-fit value.
-    val maxNumberOfPreviews = min(content.size, availableHeight / (30 + 100)) // 30 is the header height, 100 is the preview height
+    val maxNumberOfPreviews = min(content.size, availableHeight / minumumPreviewHeightPx)
     val maxWidth =
       content.maxOf { it.contentSize.width } +
         padding.canvasLeftPadding +
