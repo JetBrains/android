@@ -53,7 +53,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -122,7 +122,7 @@ class GradleConnectedAndroidTestInvoker(
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val executionId = executionEnvironment.executionId
-    val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
+    val listener = object : ExternalSystemTaskNotificationListener {
       val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)

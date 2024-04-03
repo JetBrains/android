@@ -167,7 +167,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleSdkData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
@@ -180,9 +180,6 @@ import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
-import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
@@ -234,7 +231,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -2497,7 +2493,7 @@ fun injectSyncOutputDumper(
 ) {
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
-    object : ExternalSystemTaskNotificationListenerAdapter() {
+    object : ExternalSystemTaskNotificationListener {
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         if (id.ideProjectId != projectId) return
         outputHandler(project, text)
