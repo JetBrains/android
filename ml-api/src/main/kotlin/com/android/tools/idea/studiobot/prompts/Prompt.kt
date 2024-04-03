@@ -17,15 +17,13 @@ package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.MimeType
 import com.intellij.lang.Language
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Base64
 
 /**
- * A well-formed prompt that can be understood by the models used by Studio Bot,
- * and has been validated to conform to aiexclude rules and context sharing setting
- * in the project. See [buildPrompt] for information on the format and how to construct
- * a prompt.
+ * A well-formed prompt that can be understood by the models used by Studio Bot, and has been
+ * validated to conform to .aiexclude rules and context sharing setting in the project. See
+ * [buildPrompt] for information on the format and how to construct a prompt.
  */
 interface Prompt {
   val messages: List<Message>
@@ -33,16 +31,42 @@ interface Prompt {
   sealed class Message(open val chunks: List<Chunk>) {
     sealed class Chunk(open val filesUsed: Collection<VirtualFile>)
 
-    data class TextChunk(val text: String, override val filesUsed: Collection<VirtualFile>)
-      : Chunk(filesUsed)
+    data class TextChunk(val text: String, override val filesUsed: Collection<VirtualFile>) :
+      Chunk(filesUsed)
 
-    data class CodeChunk(val text: String, val language: Language?, override val filesUsed: Collection<VirtualFile>)
-      : Chunk(filesUsed)
+    data class CodeChunk(
+      val text: String,
+      val language: Language?,
+      override val filesUsed: Collection<VirtualFile>,
+    ) : Chunk(filesUsed)
 
-    data class BlobChunk(private val data: ByteArray, val mimeType: MimeType, override val filesUsed: Collection<VirtualFile>)
-      : Chunk(filesUsed) {
-        val base64Data: ByteArray = Base64.getEncoder().encode(data)
+    data class BlobChunk(
+      val data: ByteArray,
+      val mimeType: MimeType,
+      override val filesUsed: Collection<VirtualFile>,
+    ) : Chunk(filesUsed) {
+      val base64Data: ByteArray by lazy { Base64.getEncoder().encode(data) }
+
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BlobChunk
+
+        if (!data.contentEquals(other.data)) return false
+        if (mimeType != other.mimeType) return false
+        if (filesUsed != other.filesUsed) return false
+
+        return true
       }
+
+      override fun hashCode(): Int {
+        var result = data.contentHashCode()
+        result = 31 * result + mimeType.hashCode()
+        result = 31 * result + filesUsed.hashCode()
+        return result
+      }
+    }
   }
 
   data class SystemMessage(override val chunks: List<Chunk>) : Message(chunks)
