@@ -35,4 +35,11 @@ internal fun DevicePanel(
     onValueChange = { onDeviceChange(device.copy(name = it)) },
     Modifier.padding(bottom = Padding.MEDIUM_LARGE),
   )
+
+  Text("Select System Image", Modifier.padding(bottom = Padding.SMALL_MEDIUM))
+
+  Text(
+    "Available system images are displayed based on the service and ABI configuration",
+    Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+  )
 }
