@@ -16,6 +16,8 @@
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,8 +47,10 @@ import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.focusOutline
 
 @Composable
 fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
@@ -56,11 +61,28 @@ fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelectio
 fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
 
   var isHovered by remember { mutableStateOf(false) }
+
+  val interactionSource = remember { MutableInteractionSource() }
+  var buttonState by remember(interactionSource) {
+    mutableStateOf(ButtonState.of(enabled = true))
+  }
+
+  LaunchedEffect(interactionSource) {
+    interactionSource.interactions.collect { interaction ->
+      when (interaction) {
+        is FocusInteraction.Focus -> buttonState = buttonState.copy(focused = true)
+        is FocusInteraction.Unfocus -> buttonState = buttonState.copy(focused = false)
+      }
+    }
+  }
+
   Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
+      .padding(vertical = 5.dp)
       .fillMaxWidth()
-      .clip(shape = RoundedCornerShape(5.dp))
+      .focusOutline(buttonState, RoundedCornerShape(2.dp))
+      .clip(shape = RoundedCornerShape(4.dp))
       .background(
         if (isSelectedTask) {
           TASK_SELECTION_BACKGROUND_COLOR
@@ -71,7 +93,7 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
         else {
           Color.Transparent
         })
-      .selectable(selected = isSelectedTask) {
+      .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null) {
         onTaskSelection(task)
       }
       .onHover { isHovered = it }
